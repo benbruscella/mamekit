@@ -62,7 +62,7 @@ const context: SoundRuntimeContext = {
   readProgram: () => 0xff,
   stallCpu: () => {},
   setCpuInputLine: () => {},
-  perfectQuantum: () => {},
+  perfectQuantum: () => {}, synchronize: run => run(),
 };
 
 installSn76489Runtime(context);

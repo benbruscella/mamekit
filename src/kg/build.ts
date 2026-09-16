@@ -525,6 +525,22 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     // Qix's three processors share RAM through a handshake that will not
     // survive anything coarser.
     const perfectQuantum = /\bset_perfect_quantum\s*\(/.test(cfg.raw);
+    // `m_x = timer_alloc(...)` in the machine-start closure: a driver's own
+    // emu_timer. The board models `adjust()`/`enabled()` for these, and
+    // without them Simpsons' four-cycle NMI block never blocked anything --
+    // its sound CPU took the NMI before the HALT it is meant to arm, and the
+    // whole sound board went quiet as soon as the schedule interleaved as
+    // finely as MAME's own does.
+    const driverTimers = [...new Set([...timerStartHandlers].flatMap(key => {
+      const [className, method] = key.split('.');
+      const fn = className && method
+        ? ast.findFunctionInHierarchy(className, method)
+        : undefined;
+      if (!fn) return [];
+      return [...fn.body.matchAll(
+        /\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*(?:FUNC\(\s*(\w+)::(\w+)\s*\)|timer_expired_delegate\s*\(\s*\))/g,
+      )].map(match => `${match[1]}=${match[2] && match[3] ? `${match[2]}.${match[3]}` : ''}`);
+    }))];
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
       name: cfg.name,
@@ -533,6 +549,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
         : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
+      ...(driverTimers.length ? { driverTimers } : {}),
       ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(startHandlers.length ? { startHandlers } : {}),
       ...(installedHandlers.length

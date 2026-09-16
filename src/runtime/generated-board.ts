@@ -489,8 +489,7 @@ class IrBoard implements Board {
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
     // The first line boundary is the beam arriving at line 0 with nothing run
-    // yet, so it owes the devices nothing. Every boundary after it settles a
-    // line that has actually executed.
+    // yet, so it owes the devices nothing.
     this.timedHardwareDelivered = this.lineSeconds();
 
     for (const device of machine.devices ?? []) {
@@ -943,9 +942,10 @@ class IrBoard implements Board {
           let line = 0;
           if (custom.source === 'screen-vblank') {
             const { vbstart, vbend = 0 } = machine.execution.screen;
+            const beam = this.beamLine();
             const inVblank = vbstart > vbend
-              ? this.currentLine >= vbstart || this.currentLine < vbend
-              : this.currentLine >= vbstart && this.currentLine < vbend;
+              ? beam >= vbstart || beam < vbend
+              : beam >= vbstart && beam < vbend;
             line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
           } else if (custom.source === 'rtc-tp') {
             line = this.neoGeoRtcLine('tp');
@@ -1126,7 +1126,14 @@ class IrBoard implements Board {
         if (!enabled) this.pendingTimers.delete(timer.member);
         return 0;
       };
-      calls[`${timer.member}.enabled`] = () => this.pendingTimers.has(timer.member) ? 1 : 0;
+      // MAME answers from emulated time, not from when the callback happens to
+      // run: Simpsons blocks its sound NMI for four Z80 cycles, far less than
+      // the line this schedule fires timers on, and a whole line of blocking
+      // swallowed the NMIs its sound driver runs on.
+      calls[`${timer.member}.enabled`] = () => {
+        const pending = this.pendingTimers.get(timer.member);
+        return pending && pending.at > this.machineSeconds() ? 1 : 0;
+      };
     }
     // The driver reaches its motion-object device through a finder member
     // (`m_mob->set_yscroll(...)`). Without a call binding, the device's inline
@@ -1175,7 +1182,7 @@ class IrBoard implements Board {
     );
     const screen = machine.devices?.find(device => device.type === 'SCREEN');
     for (const owner of [screen?.tag, screen?.member].filter(Boolean) as string[]) {
-      calls[`${owner}.vpos`] = () => this.currentLine;
+      calls[`${owner}.vpos`] = () => this.beamLine();
     }
     for (const [tag, device] of this.devices) {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
@@ -2157,9 +2164,14 @@ class IrBoard implements Board {
           // Settle the device clock against the beam, which has just moved on
           // to `line`: the line it left is now a line in the past, so retire
           // one from the running offset and pay whatever the CPU's instruction
-          // deltas did not deliver — a whole line when the primary CPU is
+          // deltas did not deliver -- a whole line when the primary CPU is
           // held, a slice overrun's worth when it ran. The remainder carries
           // signed, so an over-delivered line is not paid for twice.
+          //
+          // Settling against only the lines the processors had run was tried
+          // for rounds spanning lines; it moved Galaga's 54xx boot boom, whose
+          // discrete network is driven from this clock. The beam stays the
+          // reference, and rounds end at timer expiries instead.
           this.timedHardwareDelivered -= seconds;
           if (this.timedHardwareDelivered < 0) {
             advanceTimedHardware(-this.timedHardwareDelivered);
@@ -2432,6 +2444,7 @@ class IrBoard implements Board {
 
   private drainingScheduledWork = false;
 
+
   /**
    * Run everything `scheduler().synchronize()` posted during the slice that
    * just ended. Draining in order, and re-checking the queue, matches MAME:
@@ -2451,8 +2464,22 @@ class IrBoard implements Board {
   }
 
   private beamPosition(): number {
+    const running = this.runningCpu
+      ? this.frameRunner?.runningBeam(this.cpuSliceCycles.get(this.runningCpu) ?? 0)
+      : undefined;
+    if (running !== undefined) return running - generatedTimerBacklog() / this.lineSeconds();
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
+  }
+
+  /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
+  private beamLine(): number {
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const running = this.runningCpu
+      ? this.frameRunner?.runningBeam(this.cpuSliceCycles.get(this.runningCpu) ?? 0)
+      : undefined;
+    const line = running === undefined ? this.currentLine : Math.floor(running);
+    return ((line % vtotal) + vtotal) % vtotal;
   }
 
   /** One scanline of emulated wall time — the unit both clocks settle in. */
@@ -3972,9 +3999,10 @@ class IrBoard implements Board {
         for (const custom of customs) {
           if (custom.source === 'screen-vblank') {
             const { vbstart, vbend = 0 } = this.machine.execution.screen;
+            const beam = this.beamLine();
             const inVblank = vbstart > vbend
-              ? this.currentLine >= vbstart || this.currentLine < vbend
-              : this.currentLine >= vbstart && this.currentLine < vbend;
+              ? beam >= vbstart || beam < vbend
+              : beam >= vbstart && beam < vbend;
             const line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
             const shift = trailingZeroBits(custom.mask);
             value = (value & ~custom.mask) | ((line << shift) & custom.mask);
@@ -4431,6 +4459,7 @@ class IrBoard implements Board {
         if (cpu) cpu.setInputLine(line, state);
       },
       perfectQuantum: seconds => this.perfectQuantum(seconds),
+      synchronize: run => this.synchronize(run),
     });
     for (const specification of machine.devices ?? []) {
       if (!/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(specification.type)) continue;

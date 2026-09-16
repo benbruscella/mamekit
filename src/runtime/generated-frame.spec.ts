@@ -286,12 +286,13 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   });
   runner.frame(new Uint32Array(1));
   // 1,584,000 Hz over 264 lines at 60 Hz is 100 cycles a line, and a line is
-  // 63 us, so the 250 us bound is three of them. This board schedules nothing
-  // before vbstart, so that bound is what it runs on.
+  // 63 us. This board reports no timer at all, so the schedule keeps the
+  // empirical 250 us bound (UNTIMED_QUANTUM_SECONDS) rather than running to
+  // the next event a whole frame away.
   assert.deepEqual(
-    slices.slice(0, 4),
-    [300, 300, 300, 300],
-    'an unscheduled board still hands over at the quantum bound',
+    slices.slice(0, 2),
+    [300, 300],
+    'a board with no timers keeps the untimed bound',
   );
   assert.equal(
     slices.reduce((total, slice) => total + slice, 0),
@@ -308,7 +309,7 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     'the window runs one instruction at a time for as long as it lasts',
   );
   assert.ok(
-    slices[158]! >= 41 && slices[158]! <= 42 && slices[159]! >= 299,
+    slices[158]! >= 41 && slices[158]! <= 42 && slices[159]! >= 300,
     `then the quantum reopens: ${slices.slice(158, 160)}`,
   );
   assert.equal(

@@ -522,6 +522,21 @@ export function lowerGeneratedMachine(
       ...(device.source ? { source: device.source } : {}),
     }];
   });
+  // A driver's own emu_timers (`timer_alloc` in the machine-start closure),
+  // armed through the same `->adjust()` the board already models for a
+  // configure_generic TIMER. An empty timer_expired_delegate has no callback:
+  // the driver only asks whether it is still running (Simpsons' NMI block).
+  const driverTimers = graph.nodes
+    .filter(node => node.label === 'MachineConfig')
+    .flatMap(node => (node.props.driverTimers as string[] | undefined) ?? [])
+    .map(entry => {
+      const [member, handler] = entry.split('=');
+      return { tag: member!.replace(/^m_/, ''), member: member!, handler: handler ?? '' };
+    })
+    .filter((timer, index, all) =>
+      all.findIndex(candidate => candidate.member === timer.member) === index &&
+      !genericTimers.some(existing => existing.member === timer.member));
+  genericTimers.push(...driverTimers);
   const shareBindings = lowerShareBindings(graph);
   // Any config in the selected machine's chain may declare it; MAME applies
   // the request to the whole machine however deep it is set.

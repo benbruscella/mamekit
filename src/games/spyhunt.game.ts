@@ -58,9 +58,9 @@ export const spyhunt = sourceTarget({
     audio: {
       writes: 7119,
       nonzeroWrites: 6896,
-      writeHash: '295f1aea',
-      pcmHash: '5f4999f4',
-      rms: 0.045855,
+      writeHash: '1064874b',
+      pcmHash: 'b95b04d2',
+      rms: 0.045863,
     },
   },
 });

@@ -34,19 +34,16 @@ export const trackfld = sourceTarget({
       60: { video: '1b2d0eec', state: '85c2e874' },
       180: { video: '6f6992d8', state: '32b36102' },
       300: { video: '0dc8abd3', state: 'fe05e068' },
-      600: { video: '5fcbfaa8', state: 'efa5d2b6' },
-      900: { video: '73a5cbb7', state: 'ede73776' },
-      1200: { video: '8faba9c2', state: '251c4358' },
+      600: { video: '5fcbfaa8', state: '55bc0146' },
+      900: { video: '73a5cbb7', state: '152513f2' },
+      1200: { video: '8faba9c2', state: '42e50f96' },
     },
     audio: {
       writes: 18309,
       nonzeroWrites: 14521,
-      writeHash: 'ee50fc93',
-      // VLM5030 commands remain in the exact source write trace but no longer
-      // mutate SN76489 registers. Speech stays an explicit generation gap
-      // until its own core is executable; invented PSG noise is not speech.
-      pcmHash: 'e9d18bb6',
-      rms: 0.029277,
+      writeHash: 'd50d181f',
+      pcmHash: '55220208',
+      rms: 0.029241,
     },
   },
 });

@@ -15,9 +15,9 @@ export const cavenger = sourceTarget({
     },
     checkpoints: {
       1: { video: '4d5cf6af', state: 'aa9d1673' },
-      60: { video: 'f3b56a02', state: 'bcae12dd' },
-      180: { video: 'f3b56a02', state: '31325acb' },
-      300: { video: 'f3b56a02', state: '370dfbed' },
+      60: { video: 'f3b56a02', state: '7b1f8a39' },
+      180: { video: 'f3b56a02', state: '3c56d876' },
+      300: { video: 'f3b56a02', state: 'f02bf3a8' },
       600: { video: '7ce7b68e', state: 'de2c5070' },
       900: { video: 'fcb76ebf', state: '0a8e44ca' },
       1200: { video: '79f2af5c', state: 'f8c7de92' },
@@ -25,9 +25,9 @@ export const cavenger = sourceTarget({
     audio: {
       writes: 12124,
       nonzeroWrites: 12075,
-      writeHash: 'c294bd08',
-      pcmHash: '22ad9072',
-      rms: 0.055724,
+      writeHash: 'c574b286',
+      pcmHash: 'a12d3f1f',
+      rms: 0.055417,
     },
   },
 });

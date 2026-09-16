@@ -463,6 +463,7 @@ class IrTimer {
     return Number.isFinite(this.remainingSeconds);
   }
 
+
   tick(seconds: number, callback: (parameter: number) => void): void {
     if (!Number.isFinite(this.remainingSeconds)) return;
     this.remainingSeconds -= seconds;
@@ -693,7 +694,16 @@ class IrDevice implements Device {
       getters,
       setters,
       constants: definition.constants,
-      ...(options.schedule ? { schedule: options.schedule } : {}),
+      // Only the cross-CPU command latch defers its work: its partner is a
+      // scheduled processor, so MAME's synchronize is what the two agree on.
+      // Every other device here talks to hardware this runtime hosts rather
+      // than schedules -- Namco's 06xx and its 5xxx MCUs, for one -- and
+      // deferring their writes desynchronises that hosting (Xevious went
+      // silent). Scheduling those MCUs as processors is what would let the
+      // rest of MAME's synchronize semantics apply to them too.
+      ...(options.schedule && definition.type.toUpperCase() === 'GENERIC_LATCH_8'
+        ? { schedule: options.schedule }
+        : {}),
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
@@ -984,6 +994,7 @@ class IrDevice implements Device {
     return this.timers.size > 0 || this.children.some(child => child.needsTick()) ||
       Boolean(this.slotChild?.needsTick());
   }
+
 
   call(name: string, ...args: number[]): number {
     return Number(this.invoke(name, ...args)) || 0;
