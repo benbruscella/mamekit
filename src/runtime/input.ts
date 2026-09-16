@@ -187,6 +187,8 @@ export class KeyboardInput implements InputPorts {
   private sticks = new Map<string, Stick>();
   /** the four switches of each lever, by the same key; wiring, never saved */
   private stickFields = new Map<string, Field[]>();
+  /** the last gate line printed per lever, so a held corner logs once */
+  private loggedGate = new Map<string, string>();
   /**
    * When each field was last pressed, as a running count of edges. Two
    * opposite directions physically held at once are resolved by this: a
@@ -480,14 +482,22 @@ export class KeyboardInput implements InputPorts {
       // ?debug=1: a direction the player is physically holding that the gate
       // refused. This is the line that separates "the press was lost" from
       // "the machine was told and ignored it".
+      //
+      // Only when the answer changes. A held corner is the same decision
+      // sixty times a second, and printing it every frame buries the edges
+      // either side of it in a thousand identical lines.
       const held = switches.filter(f => this.pressed(f));
       const gated = held.filter(f => {
         const allowed = f.ways === 16 ? current : f.ways === 4 ? stick.four : current;
         return (allowed & (1 << f.dir!)) === 0;
       });
-      if (gated.length) {
-        console.log(`[input] lever ${name} holding ${held.map(f => f.label).join('+')} -> gate dropped ` +
-          `${gated.map(f => f.label).join('+')} | ${this.dump()}`);
+      const line = gated.length
+        ? `[input] lever ${name} holding ${held.map(f => f.label).join('+')} -> gate dropped ` +
+          `${gated.map(f => f.label).join('+')} | ${this.dump()}`
+        : '';
+      if (line !== (this.loggedGate.get(name) ?? '')) {
+        this.loggedGate.set(name, line);
+        if (line) console.log(line);
       }
     }
   }
@@ -697,7 +707,7 @@ export class KeyboardInput implements InputPorts {
       this.drive(h, down, ev.repeat, ev.code);
       if (this.debug && !ev.repeat && h.relativeDelta === undefined && !h.toggle) {
         console.log(`[input] ${ev.code} ${down ? 'DOWN' : 'UP'} -> ${h.port} mask=0x${h.mask.toString(16)} ` +
-          `${h.activeLow ? 'activeLow' : 'activeHigh'} | ${this.dump()}`);
+          `${h.activeLow ? 'activeLow' : 'activeHigh'} | ports before this frame: ${this.dump()}`);
       }
     }
   }

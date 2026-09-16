@@ -1061,13 +1061,17 @@ export async function runShell(
 
   /** Run up to `count` frames, and say how many actually ran. */
   const stepFrames = (count: number): number => {
-    // The pad has no events, only a snapshot the browser refreshes once a
-    // display frame, so polling it per emulated frame read the same snapshot
-    // several times over during a catch-up and never once in between. It is
-    // read here and on every animation tick instead, and a press it catches
-    // is held for a frame by the input model, so a tap during a stall still
-    // reaches the machine.
-    pads.poll();
+    // Exactly one pad read per animation tick, and the tick itself owns it.
+    //
+    // `navigator.getGamepads()` is sampled off the main thread and answers
+    // with whatever arrived a moment ago, so reading it twice in one tick is
+    // not the same read twice: a switch can go down in one and up in the
+    // next. Both edges then land in one frame, and a lever resolved by which
+    // direction changed last flips on a bounce the display never showed --
+    // which on a 4-way machine is the stick visibly changing its mind while
+    // the player holds a corner. Only a QA-driven run, where nothing is
+    // ticking frames, reads the pad here.
+    if (qaDrive) pads.poll();
     let ran = 0;
     for (let index = 0; index < count; index++) {
       if (!runFrame()) break;

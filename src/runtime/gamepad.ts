@@ -314,8 +314,10 @@ export class GamepadInput {
     }
     for (const binding of bindings) this.input.press(binding, down, `pad${slot.player}:${control}`);
     if (this.debug) {
+      // The edge is posted, not applied: a machine only sees input at a frame
+      // boundary, so these bytes are the ones this edge is about to change.
       console.log(`[gamepad] player ${slot.player} ${control} ${down ? 'DOWN' : 'UP'} -> ` +
-        `${bindings.map(binding => binding.label).join(', ')} | ${this.input.dump()}`);
+        `${bindings.map(binding => binding.label).join(', ')} | ports before this frame: ${this.input.dump()}`);
     }
   }
 }

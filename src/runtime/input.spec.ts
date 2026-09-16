@@ -388,3 +388,45 @@ console.log('input.spec: MAME 4-way, 8-way and opposite gating passed');
   assert.equal(quick.read('IN0'), 0xff, 'a press the same batch released wholesale stays released');
 }
 console.log('input.spec: a tap between two frames reaches the machine');
+// --- a lever that bounces must not change the gate's mind -------------------
+//
+// A microswitch dropping out for an instant and coming straight back is not
+// the player moving the lever, but "favour the direction that changed" reads
+// it as exactly that: a corner held steady flips to the other axis. The gate
+// only re-decides when the set of closed switches differs from last frame's,
+// so a release and a press inside one frame cancel and the answer stands.
+{
+  const stick: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways: 4 },
+    { port: 'IN0', mask: 0x02, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways: 4 },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+    { port: 'IN0', mask: 0x08, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  const lever = new KeyboardInput(stick, [], [{ tag: 'IN0', init: 0xff }]);
+  const facing = (): string[] => stick.filter(b => (~lever.read('IN0') & b.mask) !== 0).map(b => b.label);
+
+  lever.press(stick[1]!, true, 'lever');   // down
+  lever.advance();
+  lever.press(stick[3]!, true, 'lever');   // and into the down-right corner
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'the direction that changed wins');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'and the corner holds');
+
+  // the right switch bounces: out and back inside one frame
+  lever.press(stick[3]!, false, 'lever');
+  lever.press(stick[3]!, true, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'a bounce on the held switch changes nothing');
+  // and on the one the gate is suppressing
+  lever.press(stick[1]!, false, 'lever');
+  lever.press(stick[1]!, true, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'a bounce on the suppressed switch changes nothing either');
+
+  // a real release, on its own frame, is still a real change
+  lever.press(stick[3]!, false, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Down'], 'letting go of right hands the lever to down');
+}
+console.log('input.spec: a bouncing switch does not flip a held corner');
