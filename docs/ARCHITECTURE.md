@@ -472,11 +472,31 @@ own fractional line position for the same reason.
   input at a frame boundary -- which is what lets a session say which frame an
   event belongs to and replay a peer's press into exactly that frame; a relative control's frame of travel is handed
   out against the board's `frameFraction()` (MAME's `frame_interpolate`), so
-  a trackball counter read mid-frame sees a share of the frame, not a lump;
+  a trackball counter read mid-frame sees a share of the frame, not a lump.
+  That boundary is also where a lever is resolved, because a real one moves
+  inside a gate: the generated binding carries MAME's own `PORT_nWAY`, and
+  `digital_joystick::frame_update` decides once a frame which of the four
+  switches reach the port. A `PORT_4WAY` machine was built knowing its square
+  gate cannot hold a diagonal -- Donkey Kong's ladders, Pac-Man's maze -- so
+  MAME resolves a diagonal by favouring the direction that just changed, and
+  an unresolvable one falls to the horizontal axis. Nothing here reads a game
+  name: the gate, the lever a switch belongs to and which switch it is are all
+  derived from the generated `type` and `ways`. Opposite directions are the
+  one deliberate departure. MAME zeroes both, because on a cabinet the pair
+  can only mean a broken switch; a keyboard rolls one arrow onto the other
+  routinely, so the newest press wins and releasing it hands the lever back.
+  Either way the port never sees both, which is all the machine assumes. A
+  press and a release that both land between two frames are held for one frame
+  rather than cancelling, so a tap during a stall still reaches the machine;
 - `gamepad.ts`: the other edge source -- the W3C Standard Gamepad layout
-  mapped onto MAME input types and polled once per emulated frame, so which
-  fields a pad drives comes from the generated bindings' `type`, never from a
-  device or a game;
+  mapped onto MAME input types, so which fields a pad drives comes from the
+  generated bindings' `type`, never from a device or a game. The API has no
+  events, only a snapshot the browser refreshes once a display frame, so the
+  pad is read once per animation tick rather than once per emulated frame: a
+  catch-up used to read the same snapshot several times over and never once in
+  between. A pad the browser could not map may put its lever on a POV hat,
+  which centres outside an axis's own range -- the only thing separating it
+  from an analog stick resting at zero, and therefore how one is recognised;
 - `pointer.ts`: the third source -- mouse travel over the screen (a spinner
   or arcade trackball is a USB mouse) turns the generated relative pairs
   (dials, trackballs) by MAME's own `PORT_SENSITIVITY`, one pixel per

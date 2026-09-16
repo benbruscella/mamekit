@@ -4,6 +4,7 @@ import {
   handlerOwnsSharedRam,
   inputPlayer,
   isKeyboardPlayerInput,
+  joystickWays,
   keypadKeys,
   computerKeyboardKeys,
   sourceHandlerDataWidth,
@@ -66,6 +67,17 @@ assert.equal(inputPlayer(['PORT_8WAY', 'PORT_PLAYER(1)']), 1);
 assert.equal(inputPlayer(['PORT_PLAYER(2)']), 2);
 assert.equal(inputPlayer(['PORT_8WAY', 'PORT_COCKTAIL']), 2);
 assert.equal(inputPlayer(['PORT_PLAYER(3)']), 3);
+
+// PORT_nWAY is the gate the physical lever moves inside, and the machines
+// that declare 4 were built knowing a square gate cannot hold a diagonal.
+// MAME leaves an unmarked lever at 0, which its own restriction treats as 8,
+// so nothing needs emitting for one.
+assert.equal(joystickWays(['PORT_4WAY', 'PORT_PLAYER(1)']), 4);
+assert.equal(joystickWays(['PORT_2WAY']), 2);
+assert.equal(joystickWays(['PORT_8WAY']), 8);
+assert.equal(joystickWays(['PORT_16WAY']), 16);
+assert.equal(joystickWays(['PORT_PLAYER(1)', 'PORT_COCKTAIL']), undefined);
+assert.equal(joystickWays(['PORT_4WAY_SOMETHING']), undefined);
 
 // --- PORT_CONDITION ---------------------------------------------------------
 //

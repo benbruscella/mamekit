@@ -191,6 +191,73 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.equal(settle(input).read('DIAL'), 0xf8, 'the counter holds when the stick centres');
 }
 
+// A tap the pad shows between two emulated frames.
+//
+// The Gamepad API has no events, only a snapshot the browser refreshes once a
+// display frame, so a press and a release can both fall between two frames --
+// a window that is one frame while the page keeps up and the whole of a stall
+// when it does not. Both edges are posted and the input model holds the press
+// for the frame rather than letting the pair cancel.
+{
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(bindings, [], ports);
+  const source = new GamepadInput(input, bindings, () => pads);
+  pads = [pressing(0, [])];
+  source.poll();
+  input.advance();
+
+  pads = [pressing(0, [2])];  // X, the jab punch
+  source.poll();
+  pads = [pressing(0, [])];
+  source.poll();
+  input.advance();
+  assert.equal(input.read('IN1') & 0x10, 0x00, 'a tap between two frames still punches');
+  input.advance();
+  assert.equal(input.read('IN1') & 0x10, 0x10, 'and lets go on the next frame');
+}
+
+// A lever the browser could not map, on a POV hat.
+//
+// An unrecognised fight stick often reports an empty mapping and puts its
+// lever on a hat axis, which centres outside an axis's own -1..1 range. That
+// is what tells it apart from an analog stick resting at 0, which would
+// otherwise read as a direction held forever.
+{
+  const hatPad = (value: number): PadState => pad(0, {
+    mapping: '',
+    buttons: Array.from({ length: 10 }, () => ({ pressed: false, value: 0 })),
+    axes: [0, 0, 0, 0, 0, 0, 0, 0, 0, value],
+  });
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(bindings, [], ports);
+  const source = new GamepadInput(input, bindings, () => pads);
+  pads = [hatPad(3.2857)]; // centred, and out of range: this axis is a hat
+  source.poll();
+  input.advance();
+  assert.equal(input.read('IN1') & 0x0f, 0x0f, 'a resting hat asserts no direction');
+  pads = [hatPad(-1)]; // detent 0
+  source.poll();
+  input.advance();
+  assert.equal(~input.read('IN1') & 0x0f, 0x08, 'the hat pushed up reads up');
+  pads = [hatPad(-1 + 3 / 3.5)]; // detent 3: down-right
+  source.poll();
+  input.advance();
+  assert.equal(~input.read('IN1') & 0x0f, 0x05, 'and a corner detent reads both its directions');
+  pads = [hatPad(3.2857)];
+  source.poll();
+  input.advance();
+  assert.equal(input.read('IN1') & 0x0f, 0x0f, 'and centres again');
+
+  // An analog axis resting at 0 is never mistaken for a hat detent.
+  const analog = new KeyboardInput(bindings, [], ports);
+  let plain: (PadState | null)[] = [];
+  const stick = new GamepadInput(analog, bindings, () => plain);
+  plain = [pad(0, { mapping: '', axes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] })];
+  stick.poll();
+  analog.advance();
+  assert.equal(analog.read('IN1') & 0x0f, 0x0f, 'an axis at rest is a stick, not a hat');
+}
+
 assert.equal(padName('FightBox R10-Pro (Vendor: 1209 Product: 0001)'), 'FightBox R10-Pro');
 assert.equal(padName('1209-0001-FightBox R10-Pro'), 'FightBox R10-Pro');
 assert.equal(padName('Xbox Wireless Controller Extended Gamepad'), 'Xbox Wireless Controller Extended Gamepad');

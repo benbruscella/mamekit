@@ -294,6 +294,26 @@ export function isKeyboardPlayerInput(modifiers: readonly string[]): boolean {
 }
 
 /**
+ * The gate a lever moves inside, from MAME's own PORT_nWAY on the field.
+ *
+ * MAME stores this per field (`ioport_field::m_way`) and reads it once per
+ * frame to decide whether a direction switch is allowed to reach the port at
+ * all: a `PORT_4WAY` machine has a square gate that cannot hold a diagonal,
+ * so Donkey Kong's ladders and Pac-Man's maze are built on the assumption
+ * that up and left never arrive together. Without the modifier MAME leaves
+ * `m_way` at 0, which its restriction treats exactly like 8 -- opposites
+ * locked out, diagonals allowed -- so an unmarked lever needs nothing
+ * emitted. 16 is MAME's "do not restrict this at all".
+ */
+export function joystickWays(modifiers: readonly string[]): number | undefined {
+  for (const modifier of modifiers) {
+    const match = /^PORT_(2|4|8|16)WAY$/.exec(modifier.trim());
+    if (match) return Number(match[1]);
+  }
+  return undefined;
+}
+
+/**
  * The browser key for one key of a MAME keypad, taken from the name the field
  * carries. A keypad has no fixed set of buttons -- the ColecoVision's twelve
  * are 0-9, * and # -- so the label is the only thing that says which key this
@@ -2183,6 +2203,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               }
             : {}),
           ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
+          ...(joystickWays(mods) !== undefined ? { ways: joystickWays(mods) } : {}),
         });
       }
     }
@@ -2229,6 +2250,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             ...(player !== 1 ? { player } : {}),
             activeLow,
             ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
+            ...(joystickWays(mods) !== undefined ? { ways: joystickWays(mods) } : {}),
           });
         }
         portSpecs.push({ tag, init });

@@ -236,3 +236,126 @@ console.log('input.spec: press() edges and release listeners passed');
   assert.equal(settle(tb).read('TB'), 0xe1, 'no fraction, no interpolation');
 }
 console.log('input.spec: frame interpolation of relative controls passed');
+
+// --- the gate the lever moves inside -----------------------------------------
+//
+// MAME reads PORT_nWAY once a frame and decides there whether a direction
+// switch reaches the port at all (digital_joystick::frame_update). A square
+// 4-way gate cannot hold a diagonal, and the machines that declare one were
+// built knowing it: Donkey Kong's ladders and Pac-Man's maze read left+up as
+// horizontal, so a stick with a square restrictor walked past the ladder.
+{
+  const stick = (ways: number | undefined, player = 1): FieldBinding[] => [
+    { port: 'IN0', mask: 0x01, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways, player },
+    { port: 'IN0', mask: 0x02, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways, player },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways, player },
+    { port: 'IN0', mask: 0x08, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways, player },
+  ];
+  const UP = 0x01, DOWN = 0x02, LEFT = 0x04, RIGHT = 0x08;
+  /** Which directions the port is asserting, on an active-low panel. */
+  const asserted = (model: KeyboardInput): number => ~model.read('IN0') & 0x0f;
+
+  const four = stick(4);
+  const gate = new KeyboardInput(four, [], [{ tag: 'IN0', init: 0xff }]);
+  gate.press(four[2]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), LEFT, 'a lever pushed left reads left');
+  // The restrictor is square, so travelling from left to up crosses up-left.
+  gate.press(four[0]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), UP,
+    'a 4-way lever moving from left to up must land on up, not stay horizontal');
+  gate.press(four[2]!, false, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), UP, 'and stays up once the corner is left behind');
+  // Held still, the gate holds its answer rather than re-deciding each frame.
+  gate.advance();
+  assert.equal(asserted(gate), UP);
+  gate.press(four[0]!, false, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), 0, 'and the lever centres');
+
+  // Rest straight to a diagonal names no direction that changed on its own,
+  // and MAME's documented fallback is the horizontal axis.
+  gate.press(four[0]!, true, 'lever');
+  gate.press(four[3]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), RIGHT, 'a diagonal from rest falls to the horizontal axis');
+
+  // The same lever declared 8-way keeps its diagonal: that machine was built
+  // for a round gate and reads both switches.
+  const eight = stick(8);
+  const open = new KeyboardInput(eight, [], [{ tag: 'IN0', init: 0xff }]);
+  open.press(eight[2]!, true, 'lever');
+  open.advance();
+  open.press(eight[0]!, true, 'lever');
+  open.advance();
+  assert.equal(asserted(open), UP | LEFT, 'an 8-way lever keeps up-left');
+
+  // A lever MAME declared nothing for is an 8-way as far as its own
+  // restriction is concerned.
+  const plain = stick(undefined);
+  const unmarked = new KeyboardInput(plain, [], [{ tag: 'IN0', init: 0xff }]);
+  unmarked.press(plain[2]!, true, 'lever');
+  unmarked.press(plain[0]!, true, 'lever');
+  unmarked.advance();
+  assert.equal(asserted(unmarked), UP | LEFT, 'an unmarked lever is not gated');
+
+  // Opposites never reach the port together on any gate, because no real
+  // lever can assert them: the newest press wins and releasing it hands the
+  // lever back to the one still held.
+  open.press(eight[0]!, false, 'lever');
+  open.press(eight[3]!, true, 'lever');
+  open.advance();
+  assert.equal(asserted(open), RIGHT, 'the newest of two opposites wins');
+  open.press(eight[3]!, false, 'lever');
+  open.advance();
+  assert.equal(asserted(open), LEFT, 'and releasing it hands the lever back');
+
+  // Two levers on one panel are gated apart, as MAME numbers them apart.
+  const pair = [...stick(4, 1), ...stick(4, 2).map((b, i) => ({ ...b, mask: 0x10 << i }))];
+  const panel = new KeyboardInput(pair, [], [{ tag: 'IN0', init: 0xff }]);
+  panel.press(pair[2]!, true, 'p1');
+  panel.advance();
+  panel.press(pair[4]!, true, 'p2'); // player two's up
+  panel.advance();
+  assert.equal(~panel.read('IN0') & 0xff, LEFT | 0x10,
+    "player two's lever must not move player one's");
+}
+console.log('input.spec: MAME 4-way, 8-way and opposite gating passed');
+
+// --- a tap between two frames ------------------------------------------------
+//
+// Sources post what they saw and `advance()` settles it, so a press and a
+// release that both land between two frames used to cancel and never reach
+// the machine at all. That window is one frame while the page keeps up and
+// the whole of a stall when it does not.
+{
+  const tap: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: ['Space'], label: 'Fire', type: 'IPT_BUTTON1' },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+  ];
+  const quick = new KeyboardInput(tap, [], [{ tag: 'IN0', init: 0xff }]);
+  quick.press(tap[0]!, true, 'pad');
+  quick.press(tap[0]!, false, 'pad');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x01, 0x00, 'a press and release inside one frame still fires');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x01, 0x01, 'and is released on the next frame');
+
+  // A tapped direction is gated like a held one rather than skipping the rule.
+  quick.press(tap[1]!, true, 'pad');
+  quick.press(tap[1]!, false, 'pad');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x04, 0x00, 'a tapped direction reaches the lever');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x04, 0x04);
+
+  // Losing focus is not a tap: it means nothing is held, and a control
+  // re-asserted there is a control stuck on.
+  quick.press(tap[0]!, true, 'pad');
+  quick.releaseAll();
+  quick.advance();
+  assert.equal(quick.read('IN0'), 0xff, 'a press the same batch released wholesale stays released');
+}
+console.log('input.spec: a tap between two frames reaches the machine');

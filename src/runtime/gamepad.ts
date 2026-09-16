@@ -1,11 +1,14 @@
 // Gamepad -> the same generated port fields the keyboard drives.
 //
 // The Gamepad API has no events for buttons, only for connection, so the pad
-// is polled once per emulated frame from the run loop and every change is
-// handed to `KeyboardInput.press()` as an edge. Nothing here knows a port, a
-// polarity or a game: the W3C Standard Gamepad layout is mapped onto MAME
-// input types, and which fields those types name on this machine comes from
-// the generated bindings.
+// is polled from the run loop and every change is handed to
+// `KeyboardInput.press()` as an edge. The poll runs once per animation tick
+// rather than once per emulated frame, because the browser refreshes the
+// snapshot on that cadence: reading it again for each of a catch-up's frames
+// re-read the same snapshot and saw nothing in between. Nothing here knows a
+// port, a polarity or a game: the W3C Standard Gamepad layout is mapped onto
+// MAME input types, and which fields those types name on this machine comes
+// from the generated bindings.
 
 import { bindingPlayer } from './input.ts';
 import type { FieldBinding, KeyboardInput } from './input.ts';
@@ -106,8 +109,33 @@ export function padName(id: string): string {
     .trim() || 'gamepad';
 }
 
+/**
+ * A POV hat's eight detents, clockwise from up, as the browser encodes them
+ * on one axis: `value = detent / 3.5 - 1`.
+ */
+const HAT_DETENTS: readonly (readonly Control[])[] = [
+  ['up'], ['up', 'right'], ['right'], ['down', 'right'],
+  ['down'], ['down', 'left'], ['left'], ['up', 'left'],
+];
+
+/** How far outside an axis's own range a resting hat reads. */
+const AXIS_RANGE = 1.01;
+
+/**
+ * Which of a pad's axes are POV hats rather than sticks.
+ *
+ * A fight stick the browser could not map often puts its lever on a hat, and
+ * a hat centres at a value deliberately outside an axis's -1..1 range. That
+ * is the only thing separating it from an analog axis, which rests at 0 and
+ * would otherwise read as a direction held forever -- so an axis becomes a
+ * hat the first time it is seen resting, and stays one.
+ */
+function noteHats(pad: PadState, hats: Set<number>): void {
+  pad.axes.forEach((value, index) => { if (Math.abs(value) > AXIS_RANGE) hats.add(index); });
+}
+
 /** The digital controls a pad currently asserts. */
-function activeControls(pad: PadState): Set<Control> {
+function activeControls(pad: PadState, hats: Set<number>): Set<Control> {
   const active = new Set<Control>();
   pad.buttons.forEach((button, index) => {
     if (button.pressed || button.value > DEADZONE) active.add(`b${index}`);
@@ -120,7 +148,9 @@ function activeControls(pad: PadState): Set<Control> {
     if (active.delete('b14')) active.add('left');
     if (active.delete('b15')) active.add('right');
   }
-  const [x = 0, y = 0, rx = 0, ry = 0] = pad.axes;
+  noteHats(pad, hats);
+  const stick = (index: number): number => (hats.has(index) ? 0 : pad.axes[index] ?? 0);
+  const [x, y, rx, ry] = [stick(0), stick(1), stick(2), stick(3)];
   if (x < -DEADZONE) active.add('left');
   if (x > DEADZONE) active.add('right');
   if (y < -DEADZONE) active.add('up');
@@ -131,10 +161,19 @@ function activeControls(pad: PadState): Set<Control> {
     if (ry < -DEADZONE) active.add('rup');
     if (ry > DEADZONE) active.add('rdown');
   }
+  // A recognised pad already has its d-pad on buttons 12-15; only an unmapped
+  // one needs its lever read off the hat.
+  if (pad.mapping !== 'standard') {
+    for (const index of hats) {
+      const value = pad.axes[index];
+      if (value === undefined || Math.abs(value) > AXIS_RANGE) continue;
+      for (const control of HAT_DETENTS[Math.round((value + 1) * 3.5)] ?? []) active.add(control);
+    }
+  }
   return active;
 }
 
-interface Slot extends ConnectedPad { active: Set<Control> }
+interface Slot extends ConnectedPad { active: Set<Control>; hats: Set<number> }
 
 export class GamepadInput {
   /** `${player}:${control}` -> the fields that control drives */
@@ -230,12 +269,12 @@ export class GamepadInput {
         let player = 1;
         while (taken.has(player)) player++;
         if (player > this.players) continue; // more pads than the machine has players
-        slot = { player, index: pad.index, id: pad.id, mapping: pad.mapping, active: new Set() };
+        slot = { player, index: pad.index, id: pad.id, mapping: pad.mapping, active: new Set(), hats: new Set() };
         this.slots.push(slot);
         changed = true;
         if (this.debug) console.log(`[gamepad] player ${player}: ${pad.id} (mapping "${pad.mapping}")`);
       }
-      this.update(slot, activeControls(pad));
+      this.update(slot, activeControls(pad, slot.hats));
     }
     for (const slot of [...this.slots]) {
       if (seen.has(slot.index)) continue;
