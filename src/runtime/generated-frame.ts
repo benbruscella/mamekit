@@ -6,37 +6,26 @@ export interface GeneratedFrameProcessor {
   clock?: number;
   run(cycles: number): number;
   enabled?: () => boolean;
+  /** MAME abort_timeslice: stop after the instruction in progress. */
+  abort?: () => void;
 }
 
 /**
- * The longest any processor may run ahead of the others.
+ * The longest any processor may run ahead of the others where the board
+ * declares no timer cadence of its own.
  *
- * MAME's own maximum quantum is a whole frame, but its real one is bounded by
- * every device timer it has, and the timers this runtime models tick once per
- * scanline. Claiming a whole frame of atomicity on a board that schedules
- * nothing is therefore claiming more than the model supports: Phoenix and
- * Rampage both stop drawing when their processors run a couple of hundred
- * lines at a stretch.
- *
- * The bound is squeezed from both sides, and the window is narrower than it
- * looks. Too coarse and a fast processor runs thousands of cycles while the
- * one it is handshaking with waits: at one millisecond Gyruss lost half of
- * its sound writes and Juno First a third, both boards where an 8 MHz i8039
- * feeds a DAC under a slower CPU's direction. Too fine and a driver's own
- * `perfect_quantum` request stops meaning anything -- Gauntlet asks for 100
- * us, so at a 100 us bound the boost can no longer shorten the interval and
- * the sound handshake it exists to protect breaks again.
- *
- * 250 us sits between them: fine enough that no board's handshake starves,
- * coarse enough that a 100 us boost still tightens the schedule. It restores
- * every regressed board to within 0.4% of its pre-quantum write count while
- * leaving Gauntlet's intact.
- *
- * This is an empirical bound, not a derived one. The derived version is to
- * lower the device timers MAME clamps its own timeslice against, which would
- * make the cap redundant for boards that schedule real work.
+ * What bounds a timeslice in MAME is the soonest timer, and that bounds a
+ * round here too (`nextTimerSeconds`, plus a scanline TIMER's own period).
+ * Not every timer this runtime hosts is visible to that query, so a board
+ * with no declared cadence keeps the empirical bound the schedule used before
+ * timers were modelled at all: Galaga's 54xx boot boom is knife-edge
+ * sensitive to it, and a five-line round silences a boom that is already far
+ * quieter than MAME's.
  */
-const MAX_QUANTUM_SECONDS = 0.00025;
+const MAX_QUANTUM_SECONDS = 250e-6;
+
+
+
 
 export interface GeneratedFrameRunnerOptions {
   machine: BoardIr;
@@ -44,6 +33,9 @@ export interface GeneratedFrameRunnerOptions {
   video?: VideoRenderer;
   eventPhase?: 'before-processors' | 'after-processors';
   onEvent?: (event: GeneratedFrameEvent) => void;
+  /** Run the `scheduler().synchronize()` work posted since the last call. */
+  onSynchronize?: () => void;
+
   onLine?: (
     line: number,
     phase: 'before-processors' | 'after-processors',
@@ -67,6 +59,19 @@ export class GeneratedFrameRunner {
   private readonly eventPhase: 'before-processors' | 'after-processors';
   private readonly onEvent?: (event: GeneratedFrameEvent) => void;
   private readonly onLine?: GeneratedFrameRunnerOptions['onLine'];
+  private readonly onSynchronize?: () => void;
+
+  /** How far into the current round each processor has been credited. */
+  private readonly credited: Float64Array;
+  /** The processor whose slice is executing, if any. */
+  private running?: GeneratedFrameRunner['processors'][number];
+  /** Work was synchronized during the running slice. */
+  private synchronizeRequested = false;
+  /** The round in progress: its first line and its length. */
+  private roundFirstLine = 0;
+  private roundLines = 1;
+  /** Where in the round, in lines, the running processor's slice began. */
+  private runStartLines = 0;
   private readonly eventsByLine = new Map<number, GeneratedFrameEvent[]>();
   private readonly periodicEvents: {
     event: GeneratedFrameEvent;
@@ -90,7 +95,12 @@ export class GeneratedFrameRunner {
   private readonly perLineSchedule: boolean;
   /** Scanlines a processor may run in one slice, from MAX_QUANTUM_SECONDS. */
   private readonly maximumQuantumLines: number;
-  /** Lines left in a `perfect_quantum` window, during which every line breaks. */
+  /** A scanline TIMER's own period in lines; it is what MAME ends slices on. */
+  private readonly scanlineTimerLinesApart: number;
+  /**
+   * Scanlines (fractional) left in a `perfect_quantum` window, during which
+   * the processors run in lockstep.
+   */
   private fineLines = 0;
   private frames = 0;
 
@@ -100,6 +110,8 @@ export class GeneratedFrameRunner {
     this.eventPhase = options.eventPhase ?? 'after-processors';
     this.onEvent = options.onEvent;
     this.onLine = options.onLine;
+    this.onSynchronize = options.onSynchronize;
+
     const clocks = new Map([
       ...options.machine.execution.cpus.map(cpu => [cpu.tag, cpu.cycleClock ?? cpu.clock] as const),
       ...(options.machine.execution.participants ?? []).map(participant =>
@@ -114,6 +126,7 @@ export class GeneratedFrameRunner {
       }
       return { processor, cyclesPerLine: clock / denominator, carry: 0 };
     });
+    this.credited = new Float64Array(this.processors.length);
     for (const event of options.machine.execution.frameEvents) {
       if (event.frequency) {
         this.periodicEvents.push({
@@ -133,28 +146,71 @@ export class GeneratedFrameRunner {
     this.perLineSchedule = this.periodicEvents.length > 0 ||
       options.machine.execution.perfectQuantum === true ||
       options.machine.execution.screen.updateMode === 'scanline';
-    this.maximumQuantumLines = Math.max(1, Math.floor(MAX_QUANTUM_SECONDS * denominator));
+
+    // A scanline TIMER fires on every increment, whether or not its callback
+    // has work on that line, and MAME ends every timeslice there. The frame
+    // events keep only the lines with work, so the timer's own cadence is
+    // added back as boundaries: MCR's scantimer fires every line (a round of
+    // 116 lines starved Rampage's sound board), Gauntlet's every 32.
+    const scanlineTimerLines: number[] = [];
+    let scanlineIncrementLines = Infinity;
+    const vtotal = options.machine.execution.screen.vtotal;
+    for (const callback of options.machine.callbacks ?? []) {
+      if (callback.signal !== 'configure_scanline') continue;
+      const increment = Number(callback.scanlineIncrement ?? 0);
+      const start = Number(callback.scanlineStart ?? 0);
+      if (!(increment > 0)) continue;
+      scanlineIncrementLines = Math.min(scanlineIncrementLines, increment);
+      for (let line = ((start % increment) + increment) % increment; line < vtotal; line += increment) {
+        scanlineTimerLines.push(line);
+      }
+    }
+    this.scanlineTimerLinesApart = scanlineIncrementLines;
+    // A declared scanline TIMER is the board's own cadence and MAME ends every
+    // timeslice on it: Gauntlet's 32 lines keep its sound board's reply burst
+    // whole, MCR's single line keeps Rampage's handshake alive. With none
+    // declared the empirical bound stands in for the timers this runtime does
+    // not model. Either way `nextTimerSeconds` may still shorten the round.
+    this.maximumQuantumLines = Number.isFinite(scanlineIncrementLines)
+      ? scanlineIncrementLines
+      : Math.max(1, Math.floor(MAX_QUANTUM_SECONDS * denominator));
     this.boundaryLines = new Set([
       ...this.eventsByLine.keys(),
+      ...scanlineTimerLines,
       options.machine.execution.screen.vbstart,
       options.machine.execution.screen.vtotal - 1,
     ]);
   }
 
   /**
-   * MAME `scheduler::perfect_quantum(duration)` as a quantum, not as a run.
+   * MAME `scheduler::perfect_quantum(duration)`: interleave as finely as the
+   * processors allow for this long.
    *
-   * The request means "interleave as finely as possible for this long", which
-   * is what a driver appends to a latch callback so the far side is given real
-   * time promptly. It must not run the other processor *now*: the writer is
-   * mid-routine, and on Gauntlet the two instructions after the command write
-   * are the ones that arm the buffer the answer belongs in.
+   * It is a quantum, not a run. The request does not run the other processor
+   * *now*: the writer is mid-routine, and on Gauntlet the two instructions
+   * after the command write are the ones that arm the buffer the answer
+   * belongs in. In the window every processor executes one instruction at a
+   * time in emulated-time order, which is what MAME's minimum quantum does.
    */
   quantumWindow(seconds: number): void {
     const denominator =
       this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
-    const lines = Math.ceil(Math.min(Math.max(seconds, 0), MAX_QUANTUM_SECONDS) * denominator);
-    this.fineLines = Math.max(this.fineLines, lines);
+    this.fineLines = Math.max(this.fineLines, Math.max(seconds, 0) * denominator);
+  }
+
+  /**
+   * MAME `scheduler().synchronize()` from inside a processor's slice: end the
+   * slice after the instruction in progress. The processors after it in the
+   * round run only up to where it stopped, the posted work runs, and the
+   * round resumes -- so no processor observes the work before the time it
+   * was posted. Answers whether a slice was running to end; outside one the
+   * work is already due.
+   */
+  requestSynchronize(): boolean {
+    if (!this.running) return false;
+    this.synchronizeRequested = true;
+    this.running.processor.abort?.();
+    return true;
   }
 
   get frameCount(): number {
@@ -165,34 +221,10 @@ export class GeneratedFrameRunner {
     return this.processors.map(processor => processor.carry);
   }
 
-  /**
-   * MAME `scheduler::perfect_quantum` — run every processor except the one
-   * that asked, right now.
-   *
-   * The frame schedule interleaves processors once per scanline, which is
-   * coarse enough that a CPU can publish and overwrite a value inside a single
-   * slice: MCR's Sounds Good command latch presents two nibbles 45us apart,
-   * and the sound board only ever saw the second one. MAME's answer is to
-   * interleave finely for a short window, and the interval it asks for is the
-   * one honoured here. Cycles are charged against each processor's carry, so
-   * the boost changes when a processor runs, never how much.
-   */
-  boost(activeTag: string, seconds: number): void {
-    const window = Math.min(Math.max(seconds, 0), MAX_QUANTUM_SECONDS);
-    if (window === 0) return;
-    const denominator =
-      this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
-    for (const scheduled of this.processors) {
-      if (scheduled.processor.tag === activeTag) continue;
-      if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
-      const cycles = Math.floor(window * scheduled.cyclesPerLine * denominator);
-      if (cycles > 0) scheduled.carry -= scheduled.processor.run(cycles);
-    }
-  }
-
   reset(): void {
     for (const processor of this.processors) processor.carry = 0;
     for (const event of this.periodicEvents) event.carry = 0;
+    this.fineLines = 0;
     this.frames = 0;
   }
 
@@ -211,7 +243,7 @@ export class GeneratedFrameRunner {
       // the lines since the last one is paid before the event — and before the
       // frame this line may present — rather than after it.
       if (pendingLines > 0 && this.boundaryLines.has(line)) {
-        this.runProcessors(pendingLines);
+        this.runProcessors(pendingLines, line - 1);
         pendingLines = 0;
       }
       if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
@@ -232,10 +264,9 @@ export class GeneratedFrameRunner {
 
       pendingLines++;
       const inQuantumWindow = this.fineLines > 0;
-      if (inQuantumWindow) this.fineLines--;
       if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line) ||
         pendingLines >= this.maximumQuantumLines) {
-        this.runProcessors(pendingLines);
+        this.runProcessors(pendingLines, line);
         pendingLines = 0;
       }
 
@@ -248,14 +279,125 @@ export class GeneratedFrameRunner {
     if (screen.updateMode !== 'scanline' && !rendered) this.video?.render(framebuffer);
   }
 
-  /** Run every enabled processor for `lines` scanlines' worth of cycles. */
-  private runProcessors(lines: number): void {
-    for (const scheduled of this.processors) {
-      if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
-      scheduled.carry += scheduled.cyclesPerLine * lines;
-      const target = Math.floor(scheduled.carry);
-      if (target > 0) scheduled.carry -= scheduled.processor.run(target);
+
+  /**
+   * Run every enabled processor for `lines` scanlines' worth of cycles: one
+   * MAME timeslice, bounded by the next scheduled event.
+   *
+   * A processor that synchronizes stops short, and the round's target drops
+   * to where it stopped for every processor after it -- MAME's
+   * `if (exec->m_localtime < target) target = exec->m_localtime`. Processors
+   * before it have already run to the full target and stay ahead, as they do
+   * in MAME. The posted work then runs and the round continues from there.
+   */
+  private runProcessors(lines: number, lastLine: number): void {
+    const processors = this.processors;
+    const credited = this.credited;
+    credited.fill(0);
+    this.roundFirstLine = lastLine - lines + 1;
+    this.roundLines = lines;
+    // Work posted outside any slice (a line callback, an event) is due now.
+    this.onSynchronize?.();
+    let done = 0;
+    while (done < 1) {
+      if (this.fineLines > 0) {
+        done = this.lockstep(lines, done);
+        continue;
+      }
+      let reached = 1;
+      for (let index = 0; index < processors.length; index++) {
+        const scheduled = processors[index]!;
+        if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
+          credited[index] = 1;
+          continue;
+        }
+        if (credited[index]! < reached) {
+          scheduled.carry += scheduled.cyclesPerLine * lines * (reached - credited[index]!);
+          credited[index] = reached;
+        }
+        const target = Math.floor(scheduled.carry);
+        if (target <= 0) continue;
+        this.running = scheduled;
+        this.runStartLines = credited[index]! * lines - scheduled.carry / scheduled.cyclesPerLine;
+        this.synchronizeRequested = false;
+        const executed = scheduled.processor.run(target);
+        this.running = undefined;
+        scheduled.carry -= executed;
+        if (this.synchronizeRequested && executed < target) {
+          const stoppedAt = credited[index]! - scheduled.carry / (scheduled.cyclesPerLine * lines);
+          reached = Math.max(done, Math.min(reached, stoppedAt));
+        }
+        this.synchronizeRequested = false;
+      }
+      this.onSynchronize?.();
+      done = reached;
     }
+  }
+
+  /**
+   * The beam as the running processor sees it, `elapsedCycles` into its
+   * slice: MAME's screen_device::vpos() reads the executing CPU's own local
+   * time. Undefined outside a slice. Without it a round of many lines showed
+   * every read the round's last line, and a game polling for VBLANK
+   * (Phoenix, Rampage) never saw the beam move.
+   */
+  runningBeam(elapsedCycles: number): number | undefined {
+    const running = this.running;
+    // A one-line round is already resolved inside the line by the board's
+    // instruction-time device clock, which boards such as the 2600 position
+    // sprites by; only a round spanning lines needs the processor's position.
+    if (!running || this.roundLines <= 1) return undefined;
+    return this.roundFirstLine + this.runStartLines + elapsedCycles / running.cyclesPerLine;
+  }
+
+  /**
+   * The `perfect_quantum` window: from `done` to the window's end (or the
+   * round's), the processor furthest behind in emulated time executes one
+   * instruction, then any work that instruction synchronized runs.
+   */
+  private lockstep(lines: number, done: number): number {
+    const processors = this.processors;
+    const credited = this.credited;
+    const end = Math.min(1, done + this.fineLines / lines);
+    // Subtracting spent fractions leaves floating-point residue: a window of
+    // 4e-16 lines advanced the round by nothing, forever. Anything shorter
+    // than a billionth of a line is over.
+    if (end - done < 1e-9) {
+      this.fineLines = 0;
+      return done;
+    }
+    for (let index = 0; index < processors.length; index++) {
+      const scheduled = processors[index]!;
+      if (credited[index]! < end) {
+        if (!scheduled.processor.enabled || scheduled.processor.enabled()) {
+          scheduled.carry += scheduled.cyclesPerLine * lines * (end - credited[index]!);
+        }
+        credited[index] = end;
+      }
+    }
+    for (;;) {
+      let behind: GeneratedFrameRunner['processors'][number] | undefined;
+      let owed = 0;
+      for (const scheduled of processors) {
+        if (scheduled.carry < 1) continue;
+        if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
+        const lineDebt = scheduled.carry / scheduled.cyclesPerLine;
+        if (!behind || lineDebt > owed) {
+          behind = scheduled;
+          owed = lineDebt;
+        }
+      }
+      if (!behind) break;
+      this.running = behind;
+      this.runStartLines = end * lines - behind.carry / behind.cyclesPerLine;
+      behind.carry -= behind.processor.run(1);
+      this.running = undefined;
+      this.synchronizeRequested = false;
+      this.onSynchronize?.();
+    }
+    this.fineLines = this.fineLines - (end - done) * lines;
+    if (!(this.fineLines > 1e-9)) this.fineLines = 0;
+    return end;
   }
 
   private dispatchLine(line: number, framebuffer: Uint32Array): void {

@@ -25,19 +25,16 @@ export const rampage = sourceTarget({
       60: { video: '68ba2ad6', state: 'e9b80a11' },
       180: { video: '68ba2ad6', state: 'bd556bea' },
       300: { video: '4ac434b4', state: 'b85b119a' },
-      600: { video: '272a4eaf', state: 'c1b8ccf2' },
-      // Current MAME's PIA read_alt/write_alt handlers now execute through the
-      // generated device. Only the sound CPU's internal checkpoint moved;
-      // every framebuffer and all 639,818 audio writes/PCM remain exact.
-      900: { video: '229095b9', state: '1d55b028' },
-      1200: { video: '95817170', state: '7c874976' },
+      600: { video: 'a3bd7210', state: 'c69a9a36' },
+      900: { video: '4357166f', state: '069b71aa' },
+      1200: { video: 'f446f2a6', state: '5ac44a9d' },
     },
     audio: {
-      writes: 639818,
-      nonzeroWrites: 639816,
-      writeHash: '9c5c9a3b',
-      pcmHash: '29714fa7',
-      rms: 0.600304,
+      writes: 639992,
+      nonzeroWrites: 639990,
+      writeHash: 'c8b3eafc',
+      pcmHash: 'dfad8b6c',
+      rms: 0.585149,
     },
   },
 });

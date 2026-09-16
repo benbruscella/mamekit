@@ -36,6 +36,7 @@ import {
   lowerDacChips,
 } from './emit-machine.ts';
 import type { BoardConfig } from '../runtime/types.ts';
+import { generatedCpuAddressUnitBytes } from '../runtime/generated-board-shape.ts';
 import type {
   GeneratedDiscreteDacPlan,
   GeneratedDiscreteEffectsPlan,
@@ -193,6 +194,17 @@ export function sixButtonKeys(type: string): string[] | undefined {
 // convention. Keep these local: swapping the global X/Z mapping would silently
 // change every established game and the NES pad.
 const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
+  // Spy Hunter's wheel has five weapon switches and MAME names every one. The
+  // shared map stops at BUTTON3, so the oil slick, the smoke screen and the
+  // machine guns -- the primary weapon -- had no keys at all and were dropped
+  // from the emitted bindings. Machine Guns takes Space, the universal fire
+  // key on every other machine; the rest sit around it in panel order.
+  spyhunt: {
+    IPT_BUTTON6: ['Space'],  // Right Trigger / Machine Guns
+    IPT_BUTTON3: ['KeyC'],   // Left Trigger / Missiles
+    IPT_BUTTON4: ['KeyX'],   // Left Button / Oil Slick
+    IPT_BUTTON5: ['KeyV'],   // Right Button / Smoke Screen
+  },
   asteroid: {
     // Asteroids numbers its buttons by schematic input rather than by role.
     // Keep the cabinet controls intuitive while avoiding macOS-reserved
@@ -745,7 +757,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -950,11 +962,23 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       const ioMask = inheritedGlobalMask(ioMap.id);
       if (ioMask !== undefined) io.globalMask = ioMask;
     }
+    // A word-addressed core (MAME addrshift -1) writes every map range in
+    // words while the generated bus is byte addressed, so one address unit
+    // covers `unit` bytes. Scaling here keeps the ranges in the same units
+    // the core's own accesses use.
+    const unit = generatedCpuAddressUnitBytes(String(dev.props.type));
+    const scaleRange = (range: Record<string, unknown>) => unit === 1 ? range : {
+      ...range,
+      start: Number(range.start) * unit,
+      end: (Number(range.end) + 1) * unit - 1,
+      ...(range.mirror !== undefined ? { mirror: Number(range.mirror) * unit } : {}),
+      ...(range.select !== undefined ? { select: Number(range.select) * unit } : {}),
+    };
     return {
-      ranges,
-      ...(mask !== undefined ? { mask } : {}),
+      ranges: ranges.map(scaleRange),
+      ...(mask !== undefined ? { mask: unit === 1 ? mask : (mask + 1) * unit - 1 } : {}),
       ...(opcode ? { opcode } : {}),
-      io,
+      ...(io ? { io: { ...io, ranges: (io.ranges as Record<string, unknown>[]).map(scaleRange) } } : { io }),
       ...(explicitRegions.length === 1 ? { region: explicitRegions[0] } : {}),
     };
   };
@@ -1072,6 +1096,54 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // coordinates -- so its visible rectangle is the whole raster.
   const screenDev = devices.find(d => d.props.type === 'SCREEN')
     ?? devices.find(d => d.props.type === 'VECTOR');
+  // A derived config may resize a screen its base created. MCR3 is the case:
+  // `mcrmono` builds a 32*16-wide screen and `mcrscroll` patches it down to
+  // 30*16 for Spy Hunter, so reading the creating config alone gave a 512-wide
+  // picture where MAME's own -listxml reports 480. Walk the selected machine's
+  // CALLS chain most-derived first and take the first patch that resizes it.
+  if (screenDev) {
+    const screenTag = String(screenDev.props.tag ?? '');
+    const chain: KGNode[] = [];
+    const seen = new Set<string>();
+    const walk = (id: string): void => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const node = g.node(id);
+      if (node?.label === 'MachineConfig') chain.push(node);
+      for (const called of g.out(id, 'CALLS')) walk(called.node.id);
+    };
+    walk(machine.id);
+    for (const config of chain) {
+      const patches = (config.props.devicePatches as string[] | undefined) ?? [];
+      const lines = patches
+        .map(raw => JSON.parse(raw) as { tag: string; config: string[] })
+        .filter(patch => patch.tag === screenTag)
+        .flatMap(patch => patch.config);
+      const size = lines
+        .map(line => /->set_size\s*\(([^,]+),([^)]+)\)/.exec(line))
+        .find((match): match is RegExpExecArray => Boolean(match));
+      const visarea = lines
+        .map(line => /->set_visarea\s*\(([^,]+),([^,]+),([^,]+),([^)]+)\)/.exec(line))
+        .find((match): match is RegExpExecArray => Boolean(match));
+      // MAME writes these in beam arithmetic (`30*16-1`), never with a named
+      // constant, so plain integer arithmetic settles them.
+      const numbers = (match: RegExpExecArray | undefined): number[] | undefined => {
+        if (!match) return undefined;
+        const values = match.slice(1).map(value => {
+          const text = value.trim();
+          if (!/^[-+*/()\s\d]+$/.test(text)) return null;
+          const result = Number(Function(`"use strict";return (${text});`)());
+          return Number.isFinite(result) ? result : null;
+        });
+        return values.every((value): value is number => value !== null) ? values : undefined;
+      };
+      const sized = numbers(size);
+      const visible = numbers(visarea);
+      if (sized) screenDev.props.screenSize = sized;
+      if (visible) screenDev.props.screenVisarea = visible;
+      if (sized || visible) break;
+    }
+  }
   // A machine built around a video-display processor leaves its SCREEN bare
   // (coleco.cpp: `SCREEN(config, "screen")`). The graph has already asked the
   // device that claimed it, so the geometry arrives here like any other.
@@ -1192,7 +1264,10 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     .map(({ node: region }) => String(region.props.tag))
     .find(region => region.endsWith(':ymsnd:adpcma'));
   const opmChips = devices.filter(d => d.props.type === 'YM2151');
-  const oplChips = devices.filter(d => d.props.type === 'YM3526');
+  // OPL parts hosted by the same generated FM worklet. YM3812 is a YM3526
+  // plus OPL2's waveform select, and Wardner's only sound chip is one.
+  const oplChips = devices.filter(d =>
+    d.props.type === 'YM3526' || d.props.type === 'YM3812');
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
@@ -1533,24 +1608,33 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const biosRomSet = parentGame && String(parentGame.props.flags ?? '').includes('MACHINE_IS_BIOS_ROOT')
     ? parentRomSet
     : undefined;
-  const inheritedBiosSet = (region: KGNode): string | undefined => {
-    if (!biosRomSet) return undefined;
+  const loadKey = (props: KGNode['props']): string =>
+    `${props.file}/${props.crc}/${props.offset}/${props.size}`;
+  /** The BIOS parent's own chips in the region with this tag, by identity. */
+  const biosLoadKeys = (region: KGNode): Set<string> => {
+    if (!biosRomSet) return new Set();
     const parentRegion = lineage.out(biosRomSet.id, 'HAS_REGION')
       .map(edge => edge.node)
       .find(candidate => candidate.props.tag === region.props.tag);
-    if (!parentRegion) return undefined;
-    const parentLoads = lineage.out(parentRegion.id, 'LOADS').map(edge => edge.node);
+    if (!parentRegion) return new Set();
+    return new Set(lineage.out(parentRegion.id, 'LOADS')
+      .map(edge => loadKey(edge.node.props)));
+  };
+  const inheritedBiosSet = (region: KGNode): string | undefined => {
+    if (!biosRomSet) return undefined;
+    const keys = biosLoadKeys(region);
     const loads = g.out(region.id, 'LOADS').map(edge => edge.node);
-    if (!loads.length || !loads.every(load => parentLoads.some(parent =>
-      parent.props.file === load.props.file &&
-      parent.props.crc === load.props.crc &&
-      parent.props.offset === load.props.offset &&
-      parent.props.size === load.props.size))) return undefined;
+    if (!loads.length || !loads.every(load => keys.has(loadKey(load.props)))) return undefined;
     return String(biosRomSet.props.name);
   };
   const cloneRomSet = !biosRomSet ? parentSetName : undefined;
   const roms = g.out(romset.id, 'HAS_REGION').map(({ node: region }) => {
     const assignedRomSet = inheritedBiosSet(region) ?? cloneRomSet;
+    // A BIOS parent that owns only *part* of a region: Atari System 1 loads
+    // the motherboard BIOS into the game's own `maincpu` alongside its code,
+    // so the whole-region rule above never fires and `atarisy1.zip` was never
+    // asked for. Attribute those chips one at a time instead.
+    const biosKeys = assignedRomSet ? new Set<string>() : biosLoadKeys(region);
     return {
       region: String(region.props.tag),
       size: Number(region.props.size),
@@ -1571,6 +1655,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           file: String(rom.props.file),
           offset: Number(rom.props.offset),
           size: Number(rom.props.size),
+          ...(biosKeys.has(loadKey(rom.props))
+            ? { romSet: String(biosRomSet!.props.name) }
+            : {}),
           crc,
           ...(alts.length ? { alt: alts } : {}),
           ...(rom.props.reloadOffsets
@@ -1972,6 +2059,44 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           });
           continue;
         }
+        // An absolute analog stick, not a relative one: MAME's AD_STICK holds
+        // a position inside PORT_MINMAX and springs back to the field's own
+        // default when nothing drives it. A digital key therefore drives full
+        // deflection and release recentres, which is exactly what `activeValue`
+        // already does. Sinistar's 49-way stick is one of these, and without
+        // it the ship has no controls at all.
+        if (
+          type === 'IPT_AD_STICK_X' || type === 'IPT_AD_STICK_Y' ||
+          type === 'IPT_PADDLE' || type === 'IPT_PADDLE_V'
+        ) {
+          if (player !== 1) continue;
+          const low = minMax ? sourceNumber(minMax[1]!) : 0;
+          const high = minMax ? sourceNumber(minMax[2]!) : mask;
+          const reversed = mods.includes('PORT_REVERSE');
+          const vertical = type === 'IPT_AD_STICK_Y' || type === 'IPT_PADDLE_V';
+          const negativeKey = vertical ? 'ArrowUp' : 'ArrowLeft';
+          const positiveKey = vertical ? 'ArrowDown' : 'ArrowRight';
+          const negativeName = vertical ? 'Up' : 'Left';
+          const positiveName = vertical ? 'Down' : 'Right';
+          for (const [key, name, value] of [
+            [negativeKey, negativeName, reversed ? high : low],
+            [positiveKey, positiveName, reversed ? low : high],
+          ] as [string, string, number][]) {
+            bindings.push({
+              port: tag,
+              mask,
+              keys: [key],
+              label: named ? `${named} ${name}` : `${type}_${name.toUpperCase()}`,
+              type: `${type}_${name.toUpperCase()}`,
+              activeLow: false,
+              activeValue: value,
+              // MAME travels an analog field by PORT_KEYDELTA per frame rather
+              // than jumping; a wheel that snapped to full lock is undrivable.
+              keyDelta: keyDelta ? sourceNumber(keyDelta[1]!) : 1,
+            });
+          }
+          continue;
+        }
         if (type === 'IPT_TRACKBALL_X' || type === 'IPT_TRACKBALL_Y') {
           if (player !== 1) continue;
           const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
@@ -2046,8 +2171,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           type,
           ...(player !== 1 ? { player } : {}),
           activeLow,
+          // A pedal is an absolute analog control like the stick and the
+          // wheel above, and MAME travels it by PORT_KEYDELTA per frame
+          // rather than jumping: Spy Hunter's throttle is
+          // PORT_MINMAX(0x30,0xff) PORT_KEYDELTA(10), roughly 21 frames from
+          // idle to the floor. Snapping it made the car undrivable.
           ...(/^IPT_PEDAL\d*$/.test(type)
-            ? { activeValue: minMax ? sourceNumber(minMax[2]!) : mask }
+            ? {
+                activeValue: minMax ? sourceNumber(minMax[2]!) : mask,
+                keyDelta: keyDelta ? sourceNumber(keyDelta[1]!) : 1,
+              }
             : {}),
           ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
         });
@@ -2253,7 +2386,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // (runtime/machine-memory.ts). Absent when the file has no entry.
   const hiscore = hiscoreTable(opts.mameSrc, opts.game);
 
-  const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id);
+  const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id, opts.game);
   if (compiledVideo?.plan.updateMode) {
     screen.updateMode = compiledVideo.plan.updateMode;
   }

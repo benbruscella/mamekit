@@ -1,6 +1,6 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
-import type { BoardIr, GeneratedGfxEntry, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
+import type { BoardIr, GeneratedGfxEntry, GeneratedGfxLayout, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineProgram,
@@ -555,6 +555,16 @@ class GeneratedRectangle {
     this.max_y = maxY;
   }
 
+  // emu/rendertypes.h accessors. A screen update's merge loop is written
+  // `for (int y = rect.top(); y <= rect.bottom(); y++)`; unresolved, they
+  // answered 0 and Atari System 1 merged one pixel of its sprites.
+  left(): number { return this.min_x; }
+  right(): number { return this.max_x; }
+  top(): number { return this.min_y; }
+  bottom(): number { return this.max_y; }
+  width(): number { return this.max_x + 1 - this.min_x; }
+  height(): number { return this.max_y + 1 - this.min_y; }
+
   contains(x: number, y: number): number {
     return x >= this.min_x && x <= this.max_x && y >= this.min_y && y <= this.max_y ? 1 : 0;
   }
@@ -655,6 +665,23 @@ interface GeneratedPaletteDevice {
  * affected entry, so mid-frame writes reach partial screen updates the same way
  * they do in MAME.
  */
+/**
+ * Share tags an address-map range stores into. A share only a device writes is
+ * that device's own memory; one the bus writes has storage of its own.
+ */
+export function generatedBusWrittenShares(machine: BoardIr): ReadonlySet<string> {
+  const written = new Set<string>();
+  const ranges = machine.execution.cpus.flatMap(cpu => [
+    ...(cpu.ranges ?? []),
+    ...(cpu.opcode?.ranges ?? []),
+    ...(cpu.io?.ranges ?? []),
+  ]);
+  for (const range of ranges) {
+    if (range.share && range.kind === 'ram' && !range.readOnly) written.add(range.share);
+  }
+  return written;
+}
+
 class GeneratedRamPalette implements GeneratedPaletteDevice {
   /**
    * Save-state roots (machine-state.ts). The colors are saved as they are,
@@ -672,11 +699,36 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   /** palette_device::device_start halves bytes-per-entry across a split share. */
   private readonly bytesPerEntry: number;
 
-  constructor(plan: GeneratedRamPalettePlan) {
+  constructor(
+    plan: GeneratedRamPalettePlan,
+    shares: Record<string, Uint8Array> = {},
+    /** Share tags some address-map range stores into. See `adopt` below. */
+    busWrittenShares: ReadonlySet<string> = new Set(),
+  ) {
     this.plan = plan;
     this.bytesPerEntry = plan.extShare ? plan.bytesPerEntry / 2 : plan.bytesPerEntry;
-    this.ram = new Uint8Array(plan.entries * this.bytesPerEntry);
-    if (plan.extShare) this.ext = new Uint8Array(plan.entries * this.bytesPerEntry);
+    const bytes = plan.entries * this.bytesPerEntry;
+    // Whether the device's colour RAM *is* the board's share is a fact of the
+    // address map, and MAME spells both arrangements:
+    //
+    //  - Wardner maps the window write-only through the device and readable
+    //    through `m_rom_ram_view[0]` as a read-only share. Nothing on the bus
+    //    ever stores into that share, so palette_device::write8 is its only
+    //    writer -- they have to be one buffer, or the board's power-on RAM
+    //    test walks a bit through 0xa000, reads back zero and hangs on
+    //    "LRAM ERROR".
+    //  - Gauntlet maps it `.ram().w("palette", write16).share("palette")`.
+    //    The bus stores the word itself and the device keeps its own copy,
+    //    which is exactly what MAME does; adopting the share there instead
+    //    took the palette from 1020 of 1024 entries matching MAME to 891.
+    //
+    // So: adopt only a share the bus never writes.
+    const adopt = (tag: string): Uint8Array => {
+      const share = busWrittenShares.has(tag) ? undefined : shares[tag];
+      return share && share.length >= bytes ? share.subarray(0, bytes) : new Uint8Array(bytes);
+    };
+    this.ram = adopt(plan.tag);
+    if (plan.extShare) this.ext = adopt(plan.extShare);
     this.colors = new Uint32Array(plan.entries);
     for (let pen = 0; pen < plan.entries; pen++) this.update(pen);
     this.reset();
@@ -1229,12 +1281,25 @@ class GeneratedTnx1Palette implements GeneratedPaletteDevice {
 class GeneratedMotionObjects {
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['bitmap', 'bank', 'xscroll', 'yscroll', 'nextXpos', 'lastXpos'];
+    return [
+      'objectBitmap', 'bank', 'xscroll', 'yscroll', 'nextXpos', 'lastXpos',
+      'codeLookup', 'colorLookup', 'gfxLookup',
+    ];
   }
 
-  readonly bitmap: GeneratedIndexedBitmap;
+  private readonly objectBitmap: GeneratedIndexedBitmap;
   private readonly plan: GeneratedMotionObjectsPlan;
   private readonly gfx: GeneratedGfxElement;
+  /** The board's decoded graphics sets, which `gfxLookup` indexes. */
+  private readonly gfxSets: () => readonly (GeneratedGfxElement | undefined)[];
+  /**
+   * device_start's lookups, identity by default: raw code -> tile code, raw
+   * colour -> colour, code >> 8 -> graphics set. A driver rewrites them in
+   * video_start (Atari System 1 routes each code through its PROMs).
+   */
+  private readonly codeLookup: Uint32Array;
+  private readonly colorLookup: Uint32Array;
+  private readonly gfxLookup: Uint8Array;
   private readonly spriteRam: () => ArrayLike<number> | undefined;
   private readonly slipRam: () => ArrayLike<number> | undefined;
   private readonly activeList: number[] = [];
@@ -1255,21 +1320,90 @@ class GeneratedMotionObjects {
     slipRam: () => ArrayLike<number> | undefined,
     width: number,
     height: number,
+    gfxSets: () => readonly (GeneratedGfxElement | undefined)[] = () => [],
   ) {
     this.plan = plan;
     this.gfx = gfx;
+    this.gfxSets = gfxSets;
     this.spriteRam = spriteRam;
     this.slipRam = slipRam;
     this.visited = new Uint8Array(Math.max(1, plan.entryCount));
     this.tileXShift = Math.round(Math.log2(Math.max(1, gfx.decoded.width)));
     this.tileYShift = Math.round(Math.log2(Math.max(1, gfx.decoded.height)));
-    this.bitmap = new GeneratedIndexedBitmap(width, height);
+    this.objectBitmap = new GeneratedIndexedBitmap(width, height);
+    // atarimo.cpp device_start: sizes are round_to_powerof2 of each mask.
+    const powerOfTwo = (mask: number) => 2 ** Math.ceil(Math.log2(Math.max(1, mask)));
+    const codeSize = powerOfTwo(plan.code.mask);
+    // Identity, as device_start leaves it. The driver's video_start then
+    // rewrites it through code_lookup() -- Gauntlet's `elem ^= 0x800` loop
+    // executes -- so folding that xor in here as well applied it twice.
+    this.codeLookup = new Uint32Array(codeSize).map((_, code) => code);
+    this.colorLookup = new Uint32Array(powerOfTwo(plan.color.mask)).map((_, color) => color);
+    this.gfxLookup = new Uint8Array(Math.max(1, codeSize / 256)).fill(plan.gfxIndex);
+  }
+
+  /** MAME `sprite_device::bitmap()`: the objects, 0xffff where none drew. */
+  bitmap(): GeneratedIndexedBitmap {
+    return this.objectBitmap;
+  }
+
+  code_lookup(): Uint32Array {
+    return this.codeLookup;
+  }
+
+  color_lookup(): Uint32Array {
+    return this.colorLookup;
+  }
+
+  gfx_lookup(): Uint8Array {
+    return this.gfxLookup;
   }
 
   /** MAME `sprite_device::draw_async`: clear to "no pixel", then render. */
   draw_async(clip: GeneratedRectangle): void {
-    this.bitmap.fill(0xffff, clip);
+    this.objectBitmap.fill(0xffff, clip);
     this.draw(clip);
+  }
+
+  // The device's own accessors, as the driver calls them through its finder.
+  // These must exist on the object bound to `m_mob`, because every generated
+  // handler shares one flat member namespace: with no `set_yscroll` here,
+  // `m_mob->set_yscroll(256)` fell through to the compiled
+  // atari_motion_objects_device.set_yscroll handler, whose body is
+  // `m_yscroll = ...` -- and that overwrote Atari System 1's *driver* member
+  // of the same name, a required_shared_ptr, with a plain number.
+  set_xscroll(value: number): void {
+    this.xscroll = value & (this.plan.bitmapWidth - 1);
+  }
+
+  set_yscroll(value: number): void {
+    this.yscroll = value & (this.plan.bitmapHeight - 1);
+  }
+
+  set_bank(value: number): void {
+    this.bank = value;
+  }
+
+  /** MAME returns the live bank index; the driver compares against it. */
+  bankIndex(): number {
+    return this.bank;
+  }
+
+  spriteram(): ArrayLike<number> | undefined {
+    return this.spriteRam();
+  }
+
+  /**
+   * MAME redraws only the rectangles the sprite pass touched. The generated
+   * renderer tracks no dirty list, so the whole clip is one rectangle: the
+   * callback's own test (`mo[x] != 0xffff`) is what skips untouched pixels,
+   * which is why MAME's own merge loops read correctly either way.
+   */
+  iterate_dirty_rects(
+    clip: GeneratedRectangle,
+    body: (rect: GeneratedRectangle) => void,
+  ): void {
+    body(clip);
   }
 
   private extract(parameter: { word: number; shift: number; mask: number }, at: number): number {
@@ -1294,7 +1428,7 @@ class GeneratedMotionObjects {
         const entry = slip?.[band & (slipCount - 1)] ?? 0;
         link = (entry >>> plan.link.shift) & plan.link.mask;
         let minY = ((band << plan.slipShift) - this.yscroll + plan.slipOffset) & mask;
-        if (minY >= this.bitmap.height) minY -= plan.bitmapHeight;
+        if (minY >= this.objectBitmap.height) minY -= plan.bitmapHeight;
         bandMinY = Math.max(clip.min_y, minY);
         bandMaxY = Math.min(clip.max_y, minY + (1 << plan.slipShift) - 1);
         if (bandMinY > bandMaxY) continue;
@@ -1343,8 +1477,9 @@ class GeneratedMotionObjects {
   private renderObject(clip: GeneratedRectangle, at: number): void {
     const plan = this.plan;
     const rawcode = this.extract(plan.code, at);
-    let code = plan.codeXor === undefined ? rawcode : rawcode ^ plan.codeXor;
-    const colorIndex = this.extract(plan.color, at);
+    const gfx = this.gfxSets()[this.gfxLookup[rawcode >> 8] ?? plan.gfxIndex] ?? this.gfx;
+    let code = this.codeLookup[rawcode] ?? rawcode;
+    const colorIndex = this.colorLookup[this.extract(plan.color, at)] ?? 0;
     let xpos = this.extract(plan.xpos, at);
     let ypos = -this.extract(plan.ypos, at);
     const hflip = this.extract(plan.hflip, at);
@@ -1352,12 +1487,12 @@ class GeneratedMotionObjects {
     const width = this.extract(plan.width, at) + 1;
     const height = this.extract(plan.height, at) + 1;
     const priority = this.extract(plan.priority, at);
-    const tileWidth = this.gfx.decoded.width;
-    const tileHeight = this.gfx.decoded.height;
+    const tileWidth = gfx.decoded.width;
+    const tileHeight = gfx.decoded.height;
     const tileXShift = this.tileXShift;
     const tileYShift = this.tileYShift;
     const penBase =
-      ((colorIndex * this.gfx.granularity()) | (priority << 12)) + plan.paletteBase;
+      ((colorIndex * gfx.granularity()) | (priority << 12)) + plan.paletteBase;
 
     if (!this.extract(plan.absolute, at)) {
       xpos -= this.xscroll;
@@ -1374,8 +1509,8 @@ class GeneratedMotionObjects {
 
     xpos &= plan.bitmapWidth - 1;
     ypos &= plan.bitmapHeight - 1;
-    if (xpos >= this.bitmap.width) xpos -= plan.bitmapWidth;
-    if (ypos >= this.bitmap.height) ypos -= plan.bitmapHeight;
+    if (xpos >= this.objectBitmap.width) xpos -= plan.bitmapWidth;
+    if (ypos >= this.objectBitmap.height) ypos -= plan.bitmapHeight;
     if (plan.special.mask !== 0 && this.extract(plan.special, at) === plan.specialValue) return;
 
     let xadv = tileWidth;
@@ -1389,8 +1524,8 @@ class GeneratedMotionObjects {
         if (sy > clip.max_y) break;
         for (let x = 0, sx = xpos; x < width; x++, sx += xadv, code++) {
           if (sx <= -clip.min_x - tileWidth || sx > clip.max_x) continue;
-          this.gfx.transpen_raw(
-            this.bitmap, clip, code, penBase, hflip, vflip, sx, sy, plan.transparentPen,
+          gfx.transpen_raw(
+            this.objectBitmap, clip, code, penBase, hflip, vflip, sx, sy, plan.transparentPen,
           );
         }
       }
@@ -1401,8 +1536,8 @@ class GeneratedMotionObjects {
       if (sx > clip.max_x) break;
       for (let y = 0, sy = ypos; y < height; y++, sy += yadv, code++) {
         if (sy <= -clip.min_y - tileHeight || sy > clip.max_y) continue;
-        this.gfx.transpen_raw(
-          this.bitmap, clip, code, penBase, hflip, vflip, sx, sy, plan.transparentPen,
+        gfx.transpen_raw(
+          this.objectBitmap, clip, code, penBase, hflip, vflip, sx, sy, plan.transparentPen,
         );
       }
     }
@@ -1852,6 +1987,8 @@ class GeneratedTilemap {
   }
 
   private readonly plan: GeneratedTilemapPlan;
+  /** The share `tilemap_device::m_basemem` binds; see GeneratedTilemapPlan. */
+  private readonly baseMemory?: Uint8Array;
   private readonly mapper?: GeneratedHandler;
   private readonly tileInfo: GeneratedHandler;
   private readonly machine: BoardIr;
@@ -1877,7 +2014,9 @@ class GeneratedTilemap {
     machine: BoardIr,
     bindings: () => GeneratedHandlerBindings,
     gfx: GeneratedGfxElement[],
+    baseMemory?: Uint8Array,
   ) {
+    this.baseMemory = baseMemory;
     this.plan = plan;
     this.machine = machine;
     this.bindings = bindings;
@@ -1892,6 +2031,50 @@ class GeneratedTilemap {
       plan.columns * plan.tileWidth,
       plan.rows * plan.tileHeight,
     );
+  }
+
+  /**
+   * MAME `tilemap_device::basemem_read`/`basemem_write`, over the share the
+   * device binds. A driver whose tilemaps are devices reads its own map this
+   * way and owns no member for it at all.
+   */
+  basemem_read(offset: number): number {
+    const bytes = this.baseMemory;
+    if (!bytes) return 0;
+    const index = Math.trunc(offset);
+    if (index < 0) return 0;
+    if ((this.plan.bytesPerEntry ?? 1) < 2) return bytes[index] ?? 0;
+    const at = index * 2;
+    if (this.wordShare()) return new Uint16Array(bytes.buffer, bytes.byteOffset + at, 1)[0]!;
+    // An 8-bit bus stores the share byte by byte in its own order.
+    return ((bytes[at] ?? 0) << 8) | (bytes[at + 1] ?? 0);
+  }
+
+  /**
+   * A 16-bit big-endian bus keeps RAM as native words (bus.ts), so the share's
+   * bytes are in host order, not the CPU's. Assembled big-endian here, every
+   * Atari System 1 playfield word came back byte-swapped.
+   */
+  private wordShare(): boolean {
+    const space = this.machine.execution.participants?.[0]?.space;
+    return space?.dataWidth === 16 && space.endianness === 'big' && this.baseMemory?.byteLength !== undefined &&
+      this.baseMemory.byteOffset % 2 === 0;
+  }
+
+  basemem_write(offset: number, data: number): void {
+    const bytes = this.baseMemory;
+    if (!bytes) return;
+    const index = Math.trunc(offset);
+    if (index < 0) return;
+    if ((this.plan.bytesPerEntry ?? 1) < 2) bytes[index] = data & 0xff;
+    else if (this.wordShare()) {
+      new Uint16Array(bytes.buffer, bytes.byteOffset + index * 2, 1)[0] = data & 0xffff;
+    } else {
+      const at = index * 2;
+      bytes[at] = (data >>> 8) & 0xff;
+      bytes[at + 1] = data & 0xff;
+    }
+    this.mark_tile_dirty(index);
   }
 
   user_data(): unknown {
@@ -2653,6 +2836,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     bindings: GeneratedHandlerBindings,
     updatePartial?: (line: number) => void,
     memoryRead?: (address: number) => number,
+    shares: Record<string, Uint8Array> = {},
   ) {
     this.machine = machine;
     this.regions = regions;
@@ -2741,7 +2925,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       state.resistances ??= [3900, 2200, 1000, 470, 220];
     }
     if (ramPalettePlan) {
-      this.ramPalette = new GeneratedRamPalette(ramPalettePlan);
+      this.ramPalette = new GeneratedRamPalette(
+        ramPalettePlan,
+        shares,
+        generatedBusWrittenShares(machine),
+      );
       this.palettes.set('m_palette', this.ramPalette);
     }
     if (bitmapPlan?.paletteRam) {
@@ -2792,9 +2980,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const motionObjectsPlan = machine.video?.motionObjects;
     const motionObjectsGfx = motionObjectsPlan && this.gfx[motionObjectsPlan.gfxIndex];
     if (motionObjectsPlan && motionObjectsGfx) {
-      const share = (name?: string) => (): ArrayLike<number> | undefined => {
-        const bytes = name === undefined ? undefined : state[`m_${name}`];
-        return ArrayBuffer.isView(bytes) ? bytes as unknown as ArrayLike<number> : undefined;
+      // Taken now, while `m_<share>` is still the share's bound view: the
+      // device's own finder member can carry the same name (Atari System 1's
+      // sprite RAM share is "mob", its motion-object finder `m_mob`) and is
+      // bound over it below.
+      const share = (name?: string) => {
+        const bound = name === undefined ? undefined : state[`m_${name}`];
+        const memory = ArrayBuffer.isView(bound) ? bound as unknown as ArrayLike<number> : undefined;
+        return (): ArrayLike<number> | undefined => memory;
       };
       this.motionObjects = new GeneratedMotionObjects(
         motionObjectsPlan,
@@ -2803,10 +2996,45 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         share(motionObjectsPlan.slipShare),
         this.width,
         this.height,
+        () => this.gfx,
       );
+    }
+    // Layouts a driver builds graphics sets from at run time, reachable by
+    // their source names (`objlayout_4bpp`).
+    for (const [name, layout] of Object.entries(machine.video?.gfxLayouts ?? {})) {
+      state[name] = { gfxLayout: layout };
     }
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
       ...bindings.referenceCalls,
+      // gfx_element(palette, layout, srcdata, xormask, total_colors, color_base).
+      'std::make_unique<gfx_element>': (...args) => {
+        const palette = generatedArgumentValue(args[0]) as GeneratedPaletteDevice | undefined;
+        const layout = (generatedArgumentValue(args[1]) as { gfxLayout?: GeneratedGfxLayout } | undefined)
+          ?.gfxLayout;
+        const source = generatedArgumentValue(args[2]) as
+          { source?: unknown; offset?: number } | undefined;
+        const bytes = source?.source;
+        if (!layout || !ArrayBuffer.isView(bytes)) {
+          throw new Error(`${machine.game}: gfx_element needs a compiled layout and source memory`);
+        }
+        const offset = Number(source?.offset ?? 0);
+        const entry: GeneratedGfxEntry = {
+          region: '',
+          offset,
+          colorBase: Number(generatedArgumentValue(args[5]) ?? 0),
+          colorCount: Number(generatedArgumentValue(args[4]) ?? 0),
+          xscale: 1,
+          yscale: 1,
+          layout,
+        };
+        const rom = bytes as Uint8Array;
+        return new GeneratedGfxElement(
+          entry,
+          decodeGfx(layout, rom.subarray(offset)),
+          palette ?? this.palette!,
+          indexed,
+        );
+      },
       'std::make_unique': (...args) => new GeneratedIndexedBitmap(
         Math.max(1, Number(generatedArgumentValue(args[0]) ?? this.width)),
         Math.max(1, Number(generatedArgumentValue(args[1]) ?? this.height)),
@@ -2818,6 +3046,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         return {
           base: () => bytes,
           bytes: () => bytes.length,
+          // `&region->as_u8(offset)`: memory from that byte on.
+          'as_u8&': (offset = 0) => ({ generatedPointer: true, source: bytes, offset }),
+          as_u8: (offset = 0) => bytes[offset] ?? 0,
         };
       },
       rectangle: (...args) => new GeneratedRectangle(
@@ -3201,14 +3432,20 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       callParameters,
     };
     if (this.palette) {
-      state.m_gfxdecode = { gfx: (index: number) => this.gfx[index] };
+      state.m_gfxdecode = this.gfxDecodeInterface(this.gfx);
       state.m_palette = this.palette;
     }
+    // The driver's finder onto its motion-object device (`m_mob`), named by
+    // the device's configured member: the screen update reads
+    // `m_mob->bitmap()` and video_start fills its code/colour/gfx lookups.
+    const motionObjectsMember = machine.devices?.find(device =>
+      device.tag === machine.video?.motionObjects?.tag)?.member;
+    if (this.motionObjects && motionObjectsMember) state[motionObjectsMember] = this.motionObjects;
     for (const [member, palette] of this.palettes) {
       state[member] = palette;
     }
     for (const [member, gfx] of this.gfxByDecode) {
-      state[member] = { gfx: (index: number) => gfx[index] };
+      state[member] = this.gfxDecodeInterface(gfx);
     }
     const createdTilemaps: GeneratedTilemap[] = [];
     for (const plan of machine.video?.tilemaps ?? []) {
@@ -3227,6 +3464,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         plan.decodeMember
           ? this.gfxByDecode.get(plan.decodeMember) ?? []
           : this.gfx,
+        plan.baseShare ? shares[plan.baseShare] : undefined,
       );
       createdTilemaps.push(tilemap);
       const indexed = /^(m_\w+)\[\s*(\d+)\s*\]$/.exec(plan.member);
@@ -3385,6 +3623,42 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     return this.bindings;
   }
 
+  /** The sprite engine the plan models, for the board's own device finders. */
+  /**
+   * MAME gfxdecode_device over one decode group: `gfx(n)` answers nullptr
+   * (0) for an empty slot, which a driver scans for, and `set_gfx` fills one
+   * with a graphics set built at run time. A single group is the board's
+   * whole table, so the tilemaps and sprites that read `this.gfx` see it too.
+   */
+  private gfxDecodeInterface(group: GeneratedGfxElement[]): {
+    gfx(index: number): GeneratedGfxElement | 0;
+    set_gfx(index: number, element: unknown): number;
+  } {
+    return {
+      gfx: index => group[index] ?? 0,
+      set_gfx: (index, element) => {
+        if (!(element instanceof GeneratedGfxElement)) return 0;
+        group[index] = element;
+        if (group !== this.gfx && this.gfxByDecode.size === 1) this.gfx[index] = element;
+        return 0;
+      },
+    };
+  }
+
+  motionObjectsDevice(): {
+    code_lookup(): Uint32Array;
+    color_lookup(): Uint32Array;
+    gfx_lookup(): Uint8Array;
+    bitmap(): GeneratedIndexedBitmap;
+    set_xscroll(value: number): void;
+    set_yscroll(value: number): void;
+    set_bank(value: number): void;
+    bankIndex(): number;
+    draw_async(clip: GeneratedRectangle): void;
+  } | undefined {
+    return this.motionObjects;
+  }
+
   directScreenUpdate(
     handler: string,
     screen: { visible_area(): GeneratedRectangle },
@@ -3507,11 +3781,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return true;
     }
-    if (
-      this.directScreenShape === 'outrun-sega16-layers' ||
-      this.directScreenShape === 'system16b-layers'
-    ) {
-      return this.drawOutrunLayers(screen, bitmap, cliprect);
+    if (this.directScreenShape === 'system16b-layers') {
+      return this.drawSystem16BLayers(screen, bitmap, cliprect);
     }
     if (this.directScreenShape === 'system16a-layers') {
       return this.drawSystem16ALayers(bitmap, cliprect);
@@ -3654,8 +3925,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         mob.xscroll = scrollX;
         mob.yscroll = scrollY;
         mob.draw_async(cliprect);
-        const mo = mob.bitmap.pixels;
-        const width = mob.bitmap.width;
+        const mo = mob.bitmap().pixels;
+        const width = mob.bitmap().width;
         for (let y = Math.max(0, cliprect.min_y); y <= cliprect.max_y; y++) {
           for (let x = Math.max(0, cliprect.min_x); x <= cliprect.max_x; x++) {
             const pen = mo[y * width + x]!;
@@ -3943,14 +4214,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   }
 
   /**
-   * Compose OutRun's source-declared System 16B tile/text layers and road RAM.
-   * The dedicated Sega devices are not standalone generated cores yet, so the
-   * renderer reads the same shared RAM and 8x8 graphics layout directly.  The
-   * road is a conservative horizon/stripe representation until the road ROM
-   * pixel generator joins the hardware closure; tile codes, colors, paging,
-   * scrolling and text are the real board data.
+   * Compose a System 16B board's source-declared tile and text layers.
+   * SEGAIC16VID is not a standalone generated core yet, so the renderer reads
+   * the same shared RAM and 8x8 graphics layout directly; tile codes, colors,
+   * paging, scrolling and text are the real board data.
    */
-  private drawOutrunLayers(
+  private drawSystem16BLayers(
     screen: { visible_area(): GeneratedRectangle },
     bitmap: BitmapTarget,
     cliprect: GeneratedRectangle,
@@ -3965,9 +4234,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     const tile = wordsView(this.state.m_tileram);
     const text = wordsView(this.state.m_textram);
-    const road = wordsView(
-      this.state.m_segaic16road_roadram ?? this.state['m_segaic16road:roadram'],
-    );
     const palette = wordsView(this.state.m_paletteram);
     const gfx = this.gfx[0];
     if (!tile || !text || !gfx) return false;
@@ -3985,18 +4251,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     }
 
     bitmap.fill(0, cliprect);
-    // OutRun's road hardware is line based. Preserve the live road-RAM color
-    // and horizon motion even before the specialized ROM pixel generator is
-    // available, leaving the source tile/text layers fully visible above it.
-    if (road) {
-      for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
-        const control = road[(y * 2) % road.length] ?? 0;
-        const color = 0x400 + ((control >>> 1) & 0x3f);
-        for (let x = cliprect.min_x; x <= cliprect.max_x; x++) {
-          bitmap['pix='](y, x, color);
-        }
-      }
-    }
 
     const drawLayer = (which: 0 | 1, transparent: boolean) => {
       const rawPages = system16a

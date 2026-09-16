@@ -42,14 +42,20 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
 /** Explicit address-space facts emitted once instead of rediscovered by the runtime. */
 export function generatedCpuAddressSpace(type: string | undefined, ownerTag: string) {
   const normalized = type?.toLowerCase() ?? '';
-  const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010'].includes(normalized)
+  const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010', 'tms320c10'].includes(normalized)
     ? 16 as const
     : 8 as const;
+  // MAME declares every TMS320C1x space with an address shift of -1, but the
+  // generated core normalizes word addresses to byte addresses at each access
+  // site and its map ranges are scaled to match
+  // (generatedCpuAddressUnitBytes), so nothing is left for the bus to shift.
+  // tms34010 is bit addressed and still converts here.
+  const addressShift = normalized === 'tms34010' ? -3 : 0;
   return {
     ownerTag,
     name: 'program' as const,
     dataWidth,
-    addressShift: normalized === 'tms34010' ? -3 : 0,
+    addressShift,
     endianness: ['v30', 'tms34010'].includes(normalized) ? 'little' as const : 'big' as const,
   };
 }
@@ -200,6 +206,7 @@ export function lowerGeneratedMachine(
         signal: String(props.signal),
         operation: String(props.operation),
       };
+      if (props.member) callback.member = String(props.member);
       if (props.delegate) callback.delegate = true;
       if (props.slot !== undefined && Number.isFinite(Number(props.slot))) {
         callback.slot = Number(props.slot);
@@ -308,6 +315,9 @@ export function lowerGeneratedMachine(
         ? { classHierarchy: node.props.clsHierarchy.map(String) }
         : {}),
       ...(hostTag ? { hostTag } : {}),
+      ...(node.props.startHandler
+        ? { startHandler: String(node.props.startHandler) }
+        : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
       ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),
@@ -493,6 +503,52 @@ export function lowerGeneratedMachine(
   const startHandlers = Array.isArray(selectedMachine?.props.startHandlers)
     ? selectedMachine.props.startHandlers.map(String)
     : [];
+  // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: a one-shot the
+  // driver arms itself. Atari System 1's scanline-interrupt chain is three of
+  // them, and with no model for `->adjust()` the board took its vblank
+  // interrupts and never drew a thing.
+  const genericTimers = devices.flatMap(device => {
+    if (device.type !== 'TIMER' || !device.member) return [];
+    const declaration = (byId.get(device.id)?.props.config as string[] | undefined ?? [])
+      .find(line => line.includes('configure_generic'));
+    const handler = declaration
+      ? /configure_generic\s*\(\s*FUNC\(\s*([\w:]+)\s*\)/.exec(declaration)?.[1]
+      : undefined;
+    if (!handler || !handler.includes('::')) return [];
+    return [{
+      tag: device.tag,
+      member: device.member,
+      handler: handler.replace('::', '.'),
+      ...(device.source ? { source: device.source } : {}),
+    }];
+  });
+  // A driver's own emu_timers (`timer_alloc` in the machine-start closure),
+  // armed through the same `->adjust()` the board already models for a
+  // configure_generic TIMER.
+  //
+  // Only the ones built from an empty `timer_expired_delegate()` are lowered.
+  // Such a timer has no callback at all: the driver never expects it to *do*
+  // anything, it only asks whether it is still running, so modelling it adds a
+  // clock nothing else drives (Simpsons' NMI block is the whole motivation).
+  //
+  // A driver timer with a real FUNC() callback is a different animal. That
+  // interrupt already reaches the machine through whatever the board lowered
+  // it as -- a frame event, a scanline callback, a device line -- so lowering
+  // it a second time here drives it twice. It measurably shifted galaga,
+  // digdug and invaders audio, and it stopped berzerk dead: its irq/nmi
+  // timers double-fired and the screen never progressed past its first frame.
+  const driverTimers = graph.nodes
+    .filter(node => node.label === 'MachineConfig')
+    .flatMap(node => (node.props.driverTimers as string[] | undefined) ?? [])
+    .map(entry => {
+      const [member, handler] = entry.split('=');
+      return { tag: member!.replace(/^m_/, ''), member: member!, handler: handler ?? '' };
+    })
+    .filter(timer => timer.handler === '')
+    .filter((timer, index, all) =>
+      all.findIndex(candidate => candidate.member === timer.member) === index &&
+      !genericTimers.some(existing => existing.member === timer.member));
+  genericTimers.push(...driverTimers);
   const shareBindings = lowerShareBindings(graph);
   // Any config in the selected machine's chain may declare it; MAME applies
   // the request to the whole machine however deep it is set.
@@ -586,6 +642,7 @@ export function lowerGeneratedMachine(
       : {}),
     cpus: executionCpus,
     participants: executionParticipants,
+    ...(genericTimers.length ? { genericTimers } : {}),
     ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
@@ -692,7 +749,10 @@ export function lowerGeneratedMachine(
   const ymDevices = devices.filter(device =>
     device.type === 'YM2203' || device.type === 'YM2610');
   const opmDevices = devices.filter(device => device.type === 'YM2151');
-  const oplDevices = devices.filter(device => device.type === 'YM3526');
+  // Both OPL parts the generated FM worklet hosts; YM3812 is a YM3526 plus
+  // OPL2's waveform select.
+  const oplDevices = devices.filter(device =>
+    device.type === 'YM3526' || device.type === 'YM3812');
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
@@ -765,7 +825,7 @@ export function lowerGeneratedMachine(
           kind: 'ym2203',
           deviceTag: (ymDevices[0] ?? oplDevices[0])!.tag,
           deviceTags: ymDevices.map(device => device.tag),
-          deviceType: ymDevices.length ? ymDevices[0]!.type : 'YM3526',
+          deviceType: ymDevices.length ? ymDevices[0]!.type : oplDevices[0]!.type,
           // ym2203_device maps a two-byte address/data port pair.
           writeMethods: ymDevices.length ? ['write'] : [],
           enableMethods: [],
@@ -1022,12 +1082,20 @@ export function lowerShareBindings(
         wordShares.add(share);
       }
       const combinedMembers = [
-        ...body.matchAll(/\bCOMBINE_DATA\s*\(\s*&\s*(m_\w+)\s*\[/g),
+        ...body.matchAll(/\bCOMBINE_DATA\s*\(\s*&\s*(m_\w+)\s*[[)]/g),
       ].map(match => match[1]!);
+      // A share of a single element is a pointer, not an array: MAME writes
+      // `*m_xscroll = newscroll`, never `m_xscroll[0] = newscroll`. Matching
+      // only the subscripted form left Atari System 1's scroll registers
+      // bound to nothing, and the board stopped on a dereference of 0.
       const writtenMembers = new Set(combinedMembers.length
         ? combinedMembers
-        : [...body.matchAll(/\b(m_\w+)\s*\[[^\]]+\]\s*(?:[|&^+\-]?=)/g)]
-          .map(match => match[1]!));
+        : [
+            ...[...body.matchAll(/\b(m_\w+)\s*\[[^\]]+\]\s*(?:[|&^+\-]?=)/g)]
+              .map(match => match[1]!),
+            ...[...body.matchAll(/\*\s*(m_\w+)\s*(?:[|&^+\-]?=)(?!=)/g)]
+              .map(match => match[1]!),
+          ]);
       if (!writtenMembers.size) {
         const referenced = [...new Set(
           [...body.matchAll(/\b(m_\w+)\s*\[/g)].map(match => match[1]!),
@@ -1473,6 +1541,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
+  YM3812: ['write'],
   HC55516: ['digit_w', 'clock_w'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
   OKIM6295: ['write', 'set_pin7'],

@@ -44,3 +44,51 @@ export function monomorphizeFunctionTemplate(
     return { id: instantiation.id, source: specialized, constants };
   });
 }
+
+/**
+ * Materialize one specialization of a non-type C++ *class* template across a
+ * whole translation unit, so the result parses as an ordinary class.
+ *
+ * MAME writes a few device families this way -- `tms320c1x_device_base<12>`
+ * is the TMS320C10, `<16>` the TMS320C16 -- with every member function
+ * carrying a `template <int HighBits>` prefix and a `Class<HighBits>::`
+ * scope. Substituting the argument turns the parameter into an ordinary
+ * literal the existing expression folder already handles, which is the same
+ * bargain monomorphizeFunctionTemplate strikes; type parameters remain a C++
+ * front-end concern.
+ *
+ * Returns source only. The caller decides which class name the flattened
+ * members belong to, because MAME's concrete device is a subclass of the base
+ * and the two names are not interchangeable in a machine configuration.
+ */
+export function monomorphizeClassTemplate(
+  source: string,
+  className: string,
+  argumentsByParameter: Record<string, number>,
+): string {
+  const parameters = Object.keys(argumentsByParameter);
+  if (!parameters.length) throw new Error(`${className}: no template arguments given`);
+  const declaration = new RegExp(
+    `template\\s*<\\s*(?:(?:int|bool|unsigned(?:\\s+int)?|size_t|u(?:8|16|32|64)|s(?:8|16|32|64))\\s+` +
+    `(?:${parameters.join('|')})\\s*,?\\s*)+>\\s*`,
+    'g',
+  );
+  if (!declaration.test(source)) {
+    throw new Error(`${className}: source declares no template over ${parameters.join(', ')}`);
+  }
+  declaration.lastIndex = 0;
+  let flattened = source.replace(declaration, '');
+  // `Class<Args>::` and the `typename Class<Args>::member` disambiguator that
+  // a dependent name needs while the class is still a template.
+  const argumentList = parameters.map(parameter => `\\s*${parameter}\\s*`).join(',');
+  flattened = flattened
+    .replace(new RegExp(`\\btypename\\s+${className}\\s*<${argumentList}>\\s*::`, 'g'), '')
+    .replace(new RegExp(`\\b${className}\\s*<${argumentList}>`, 'g'), className);
+  for (const [parameter, value] of Object.entries(argumentsByParameter)) {
+    if (!Number.isInteger(value)) {
+      throw new Error(`${className}: ${parameter} is not integral`);
+    }
+    flattened = flattened.replace(new RegExp(`\\b${parameter}\\b`, 'g'), String(value));
+  }
+  return flattened;
+}

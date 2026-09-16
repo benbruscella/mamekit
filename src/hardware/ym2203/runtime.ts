@@ -180,7 +180,7 @@ export function installYm2203Runtime(context: SoundRuntimeContext): SoundRuntime
       }
       continue;
     }
-    if (auxiliary.type !== 'YM3526') continue;
+    if (auxiliary.type !== 'YM3526' && auxiliary.type !== 'YM3812') continue;
     const timer = createTimer(auxiliary.deviceTag, 'opl', auxiliary.clock);
     const base = primaryPorts + oplChip++ * YM2203_PORTS_PER_CHIP;
     const write = (offset: number, data: number): void => {

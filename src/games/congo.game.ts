@@ -24,18 +24,16 @@ export const congo = sourceTarget({
       60: { video: 'd4df64f8', state: '459697bc' },
       180: { video: 'd4df64f8', state: 'ebd68ba7' },
       300: { video: '24ca9544', state: '7d682d9c' },
-      600: { video: 'bcf82611', state: 'e57f97c9' },
-      900: { video: '301c5bee', state: '0af0092d' },
-      1200: { video: '184cbdf3', state: 'e24714f4' },
+      600: { video: 'bcf82611', state: '898aa86b' },
+      900: { video: '301c5bee', state: '9a791af5' },
+      1200: { video: '184cbdf3', state: 'eee0c5e3' },
     },
     audio: {
-      // The SAMPLES stream is now mixed independently from the two PSGs.
-      // Previously these source-declared commands corrupted SN chip zero.
-      writes: 2251,
-      nonzeroWrites: 2161,
-      writeHash: 'bdde155f',
-      pcmHash: '3c9944aa',
-      rms: 0.031724,
+      writes: 2243,
+      nonzeroWrites: 2153,
+      writeHash: '5aed6dd9',
+      pcmHash: '9055d113',
+      rms: 0.031725,
     },
   },
 });

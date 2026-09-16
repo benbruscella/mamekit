@@ -29,10 +29,10 @@ export const ddragon = sourceTarget({
     },
     audio: {
       writes: 697044,
-      nonzeroWrites: 667478,
-      writeHash: 'b9722207',
-      pcmHash: '3152a110',
-      rms: 0.047255,
+      nonzeroWrites: 667480,
+      writeHash: '2c310490',
+      pcmHash: '83941cc7',
+      rms: 0.047275,
     },
   },
 });

@@ -882,6 +882,20 @@ function specializeMethod(
  * the same name here lets configuration and executable device code meet at a
  * source-derived entry point.
  */
+
+/**
+ * Drop `if constexpr (sizeof...(Pack) > 0) <statement>` for an empty pack.
+ *
+ * C++ discards the branch when the pack is empty; the handler IR has no
+ * `constexpr` and no pack, so the text has to go before parsing.
+ */
+function stripEmptyPackRecursion(body: string): string {
+  return body.replace(
+    /\bif\s+constexpr\s*\(\s*sizeof\.\.\.\s*\([^)]*\)[^)]*\)\s*[^;{}]*;/g,
+    '',
+  );
+}
+
 function specializeFunctionTemplate(
   method: MameFunction,
   sources: readonly { file: string; source: string }[],
@@ -939,9 +953,14 @@ function specializeFunctionTemplate(
   }
   return [...instances].map(([suffix, args]) => {
     const marker = '__MAMEKIT_TEMPLATE_BODY__';
+    // Every specialization the call sites name supplies only the non-pack
+    // parameters, so any variadic pack is empty here and its `if constexpr`
+    // recursion is dead code. Left in place it is a condition the handler
+    // parser cannot read, and the whole method is dropped for a diagnostic --
+    // which is how Sinistar's sound command reached no PIA at all.
     const source =
       `template <${parameters.map(parameter => `int ${parameter}`).join(', ')}>\n` +
-      method.parameters + marker + method.body;
+      method.parameters + marker + stripEmptyPackRecursion(method.body);
     const [monomorphized] = monomorphizeFunctionTemplate(source, [{
       id: `${method.name}<${args.join(',')}>`,
       arguments: Object.fromEntries(parameters.map((parameter, index) => [

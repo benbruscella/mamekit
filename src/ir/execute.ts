@@ -67,6 +67,12 @@ export interface GeneratedHandlerBindings {
   referenceCalls?: Record<string, (...args: GeneratedCallArgument[]) => unknown>;
   callParameters?: Record<string, string[]>;
   /**
+   * MAME `machine().scheduler().synchronize()`: run this at the current time
+   * but only once the running CPU has yielded. Absent, the caller runs it
+   * inline, which is what a spec harness with no scheduler wants.
+   */
+  schedule?(run: () => void): void;
+  /**
    * MAME's address_space for a handler whose signature takes one
    * (`void congo_sprite_custom_w(address_space &space, ...)`). The space is the
    * one belonging to the CPU whose map reached the handler, so the board
@@ -507,6 +513,12 @@ function preparedHandlerRuntime(
         offset: index,
       },
     dereference: dereferenceGeneratedValue,
+    // A `u16*`/`s16*` declaration over byte memory is a reinterpreting view,
+    // not a copy -- the same rule compilePackedPointerView applies on the
+    // interpreted path. Emitted code dropped it, so a byte-backed sprite RAM
+    // written a half-word at a time (wardner's wardner_sprite_w) stored the
+    // low byte at the word index and lost every high byte.
+    packedView: generatedPackedView,
     container: generatedContainerAccessor,
     pointerStore: generatedPointerStore,
     add: generatedAdd,
@@ -649,7 +661,13 @@ function preparedMachineCalls(
     const names = parameterNames(target.parameters);
     MACHINE_CALL_STACK.push(key);
     try {
-      const executable = machine.compiledHandlers?.[key];
+      // The compiled ABI dereferences every argument, so a callee with a C++
+      // reference parameter stays on the interpreted path: that is the only
+      // one that keeps the caller's lvalue intact and lets the callee's
+      // writes land back in the caller's member.
+      const executable = hasReferenceParameter(target.parameters)
+        ? undefined
+        : machine.compiledHandlers?.[key];
       if (executable) {
         // Cross-component bus calls already arrive in parameter order. Keep
         // that ABI instead of allocating a locals dictionary only to unpack
@@ -696,6 +714,24 @@ function preparedMachineCalls(
     callParameters[qualified] = parameters;
     callParameters[scoped] = parameters;
     callParameters[candidate.method] = parameters;
+  }
+  // A device_delegate the owning device calls by member name. MAME writes the
+  // two halves apart -- the driver names the device's setter, the device calls
+  // the member that setter assigned -- and the callee's parameter list has to
+  // travel with the binding: wardner's DSP addresses host RAM entirely through
+  // `u32 &seg` / `u32 &addr` out-parameters, and a caller that cannot see they
+  // are references passes values and drops every write the callee makes.
+  for (const callback of machine.callbacks ?? []) {
+    if (!callback.delegate || !callback.member || !callback.targetMethod) continue;
+    const target = compiled.find(candidate =>
+      candidate.ownerClass === callback.targetClass &&
+      candidate.method === callback.targetMethod);
+    if (!target) continue;
+    callParameters[callback.member] ??= (target.parameters ?? '')
+      .split(',')
+      .map(parameter => parameter.trim())
+      .filter(Boolean);
+    referenceCalls[callback.member] ??= (...values) => invoke(target, values);
   }
   // A configured custom device can be a source-defined composite rather than
   // a primitive supplied by the runtime. Bind its finder member to methods on
@@ -1175,6 +1211,8 @@ function compileFastExpression(
   }
   if (expression.kind === 'cast') {
     const operand = compileFastExpression(expression.operand, bindings, locals);
+    const view = expression.pointer ? packedCastView(expression.valueType) : undefined;
+    if (view !== undefined) return context => packedByteView(operand(context), view);
     const wrap = valueWrapper(expression.valueType);
     return context => wrap(operand(context));
   }
@@ -1343,7 +1381,7 @@ function declaredArrayLength(
 ): GeneratedExpression | undefined {
   return value?.kind === 'call' &&
     value.callee.kind === 'identifier' &&
-    value.callee.name === 'ALLOC'
+    ['ALLOC', 'ALLOC16', 'ALLOC32'].includes(value.callee.name)
     ? value.args[0] ?? { kind: 'number', value: 0 }
     : undefined;
 }
@@ -1580,6 +1618,8 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     return value;
   }
   if (expression.kind === 'cast') {
+    const view = expression.pointer ? packedCastView(expression.valueType) : undefined;
+    if (view !== undefined) return packedByteView(evaluate(expression.operand, context), view);
     return wrapValue(expression.valueType, evaluate(expression.operand, context));
   }
   if (expression.kind === 'assignment') {
@@ -1827,6 +1867,9 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOC' || name === 'make_unique_clear') {
     return new Uint8Array(Math.max(0, toNumber(args[0])));
   }
+  // The same allocation at the element width MAME declared.
+  if (name === 'ALLOC16') return new Uint16Array(Math.max(0, toNumber(args[0])));
+  if (name === 'ALLOC32') return new Uint32Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
   if (name === 'floor') return Math.floor(toNumber(args[0]));
   // The C math functions MAME's palette and DSP arithmetic reaches for.
@@ -2097,9 +2140,13 @@ function evaluateCall(
         ? context.bindings.referenceCalls?.[callback]
         : undefined;
       if (!generatedCallback) return 0;
-      return generatedCallback(
-        expression.args[1] ? evaluate(expression.args[1], context) : 0,
-      );
+      const parameter = expression.args[1] ? evaluate(expression.args[1], context) : 0;
+      // Posted at the current time, as below: it fires once the running
+      // processor has yielded and the others have caught up to it.
+      const schedule = context.bindings.schedule;
+      if (!schedule) return generatedCallback(parameter);
+      schedule(() => void generatedCallback(parameter));
+      return 0;
     }
     const generated = context.bindings.referenceCalls?.[generatedName];
     if (generated) {
@@ -2161,9 +2208,19 @@ function evaluateCall(
           ? context.bindings.referenceCalls?.[callback]
           : undefined;
         if (!generatedCallback) return 0;
-        return generatedCallback(
-          expression.args[1] ? evaluate(expression.args[1], context) : 0,
-        );
+        const parameter = expression.args[1]
+          ? evaluate(expression.args[1], context)
+          : 0;
+        // MAME posts this at the current timestamp, which fires only after the
+        // running CPU gives up its timeslice. Running it inline delivers the
+        // effect too early: Sinistar's first sound command reached the sound
+        // board's PIA before the sound CPU had configured CB1's active edge,
+        // so the line latched high with no interrupt and no later command --
+        // all of which drive CB1 the same way -- could ever produce an edge.
+        const schedule = context.bindings.schedule;
+        if (!schedule) return generatedCallback(parameter);
+        schedule(() => void generatedCallback(parameter));
+        return 0;
       }
       // Generated devices only execute while their host processor is runnable;
       // board-level reset/hold state is enforced by the frame scheduler.
@@ -2268,7 +2325,10 @@ function assign(
       const received = pointer && typeof pointer === 'object'
         ? `object with keys ${Object.keys(pointer).join(', ') || '(none)'}`
         : `${typeof pointer} ${String(pointer)}`;
-      throw new Error(`generated dereference assignment has no pointer (received ${received})`);
+      throw new Error(
+        `generated dereference assignment has no pointer: ` +
+        `*${describeGeneratedTarget(target.operand)} received ${received}`,
+      );
     }
     const current = pointerValue(pointer, 0);
     setPointerValue(pointer, 0, assignmentValue(operator, current, value));
@@ -2463,6 +2523,27 @@ function valueWrapper(valueType: string | undefined): (value: unknown) => unknow
     VALUE_WRAPPERS.set(key, wrapper);
   }
   return wrapper;
+}
+
+
+/**
+ * `reinterpret_cast<u16 *>` over byte memory: a view, not a copy, so writes
+ * through the wider type reach the same shared bytes. Undefined for any other
+ * pointer cast, which stays an identity.
+ */
+function packedCastView(valueType: string | undefined): boolean | undefined {
+  const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
+  if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
+  if (/^(?:s16|int16_t)$/.test(pointee)) return true;
+  return undefined;
+}
+
+function packedByteView(value: unknown, signed: boolean): unknown {
+  if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
+  const bytes: Uint8Array | Int8Array = value;
+  return signed
+    ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
+    : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
 }
 
 function wrapValue(valueType: string | undefined, value: unknown): unknown {
@@ -2886,6 +2967,31 @@ function resizeGeneratedMemory(
  * `m_sp_palette->transpen_mask(*m_sp_gfxdecode->gfx(0), ...)` read `.source`
  * off a gfx element that never had one.
  */
+/**
+ * A `u16*`/`s16*` declaration over byte memory is a reinterpreting view, not a
+ * copy. Shared with the device runtime: a generated device core emits the same
+ * `runtime.packedView` call, and without it the Neo Geo sprite core stopped on
+ * "runtime.packedView is not a function".
+ */
+export function generatedPackedView(value: unknown, signed: boolean): unknown {
+  if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
+  const bytes: Uint8Array | Int8Array = value;
+  return signed
+    ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
+    : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+}
+
+/** The source spelling of an assignment target, for diagnostics. */
+function describeGeneratedTarget(expression: unknown): string {
+  const node = expression as { kind?: string; name?: string; property?: string; object?: unknown };
+  if (node?.kind === 'identifier') return String(node.name);
+  if (node?.kind === 'member') return `${describeGeneratedTarget(node.object)}.${node.property}`;
+  if (node?.kind === 'call') {
+    return `${describeGeneratedTarget((node as { callee?: unknown }).callee)}()`;
+  }
+  return node?.kind ? `<${node.kind}>` : '<unknown>';
+}
+
 export function dereferenceGeneratedValue(value: unknown): unknown {
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
   if (isIndexableMemory(value)) return indexValue(value, 0);
@@ -2960,7 +3066,17 @@ export function generatedPointerStore(pointer: unknown, value: unknown): unknown
 export function generatedContainerAccessor(value: unknown, method: string): unknown {
   const held = isLValue(value) ? value.get() : value;
   const pointer = isGeneratedPointer(held);
-  if (!pointer && !isIndexableMemory(held)) return 0;
+  if (!pointer && !isIndexableMemory(held)) {
+    // Not a memory container: a device accessor handing back a reference to
+    // one of its own members. `atari_motion_objects_device::bitmap()` returns
+    // the sprite bitmap that way, and answering 0 left Atari's screen update
+    // taking `&mobitmap.pix(y)` on a number.  Only a non-callable member: a
+    // method is something the caller invokes itself.
+    const member = held && typeof held === 'object'
+      ? (held as Record<string, unknown>)[method]
+      : undefined;
+    return member !== undefined && typeof member !== 'function' ? member : 0;
+  }
   const length = pointer
     ? Math.max(0, (held.source as ArrayLike<unknown>).length - held.offset)
     : (held as ArrayLike<unknown>).length;
@@ -3032,6 +3148,14 @@ function generatedCallArguments(
  * object where it expected something to call -- so every Game Boy cartridge
  * decoded its ROM and then installed none of it.
  */
+
+/** Whether a MAME parameter list declares a non-const C++ reference. */
+function hasReferenceParameter(parameters: string | undefined): boolean {
+  return (parameters ?? '')
+    .split(',')
+    .some(parameter => parameter.includes('&') && !/\bconst\b/.test(parameter));
+}
+
 function isReferenceParameter(
   parameter: string | undefined,
   expression: GeneratedExpression,

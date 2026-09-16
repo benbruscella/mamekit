@@ -101,13 +101,25 @@ function callArguments(source: string, open: number): { args: string[]; end: num
 export function expandFunctionMacros(body: string, macros: readonly FunctionMacro[]): string {
   if (!macros.length) return body;
   const byName = new Map(macros.map(macro => [macro.name, macro]));
+  // Match the names actually collected rather than an all-caps shape. MAME's
+  // macros are usually shouted but not always: the TMS320C1x port accessors
+  // are `TMS320C1X_In` / `TMS320C1X_Out`, and an all-caps pattern walked
+  // straight past them, leaving `P_IN(...)` half expanded and every port read
+  // lowered to zero. Longest name first so one macro cannot mask another it
+  // is a prefix of.
+  const invocation = new RegExp(
+    `\\b(${[...byName.keys()]
+      .sort((left, right) => right.length - left.length)
+      .map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|')})\\s*\\(`,
+  );
   let expanded = body;
   for (let pass = 0; pass < 8; pass++) {
     let changed = false;
     let result = '';
     let index = 0;
     while (index < expanded.length) {
-      const match = /\b([A-Z_][A-Z0-9_]*)\s*\(/.exec(expanded.slice(index));
+      const match = invocation.exec(expanded.slice(index));
       if (!match) break;
       const at = index + match.index;
       const macro = byName.get(match[1]!);

@@ -55,6 +55,8 @@ const STANDARD: Record<string, Control> = {
   IPT_DIAL_LEFT: 'left', IPT_DIAL_RIGHT: 'right',
   IPT_TRACKBALL_X_LEFT: 'left', IPT_TRACKBALL_X_RIGHT: 'right',
   IPT_TRACKBALL_Y_UP: 'up', IPT_TRACKBALL_Y_DOWN: 'down',
+  IPT_AD_STICK_X_LEFT: 'left', IPT_AD_STICK_X_RIGHT: 'right',
+  IPT_AD_STICK_Y_UP: 'up', IPT_AD_STICK_Y_DOWN: 'down',
   IPT_BUTTON1: 'b2', IPT_BUTTON2: 'b3', IPT_BUTTON3: 'b5',
   IPT_BUTTON4: 'b0', IPT_BUTTON5: 'b1', IPT_BUTTON6: 'b7',
   IPT_BUTTON7: 'b4', IPT_BUTTON8: 'b6',

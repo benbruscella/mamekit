@@ -20,7 +20,14 @@ export interface CpuBus {
   /** A 68000 long access, which MAME performs as two word accesses. */
   write32be?(address: number, data: number): void;
   in(port: number): number;
+  /**
+   * Atomic big-endian word access to the I/O space, for a core whose ports
+   * are natively 16 bits wide (the TMS320C1x). Splitting one into two byte
+   * transactions would show a word handler two half writes.
+   */
+  in16be?(port: number): number;
   out(port: number, data: number): void;
+  out16be?(port: number, data: number): void;
   /** Optional source-derived interrupt-acknowledge address-space read. */
   acknowledge?(level: number): number;
   signal?(name: string, state: number): number | void;
@@ -116,6 +123,8 @@ export interface Cpu {
   reset(): void;
   step(): number;
   run(cycles: number): number;
+  /** MAME abort_timeslice: the running run() returns after this instruction. */
+  abortTimeslice?(): void;
   /**
    * Cycles the instruction currently executing has consumed, for a core that
    * charges them per bus access. MAME's `total_cycles()` includes these.
@@ -303,13 +312,23 @@ class IrCpu implements Cpu {
     return this.get('cycles');
   }
 
+  /** MAME abort_timeslice; see the generated cores' run(). */
+  private timesliceAborted = false;
+
+  abortTimeslice(): void {
+    this.timesliceAborted = true;
+  }
+
   run(target: number): number {
     let total = 0;
+    this.timesliceAborted = false;
     while (total < target) {
       this.bus.timing?.(total, target);
       total += this.step();
+      if (this.timesliceAborted) break;
     }
-    this.bus.timing?.(target, target);
+    const settled = Math.min(total, target);
+    this.bus.timing?.(settled, settled);
     return total;
   }
 

@@ -67,7 +67,7 @@ SoundRuntimeContext & { writes: [number, number, string | undefined][] } {
     readSignal: () => undefined,
     readProgram: () => 0xff,
     stallCpu: () => {},
-    setCpuInputLine: () => {}, perfectQuantum: () => {},
+    setCpuInputLine: () => {}, perfectQuantum: () => {}, synchronize: run => run(),
   };
 }
 

@@ -10,7 +10,6 @@ export type GeneratedDirectScreenShape =
   | 'gauntlet-tilemaps'
   | 'galaxian-no-bullets'
   | 'm62-category-sprites'
-  | 'outrun-sega16-layers'
   | 'system16a-layers'
   | 'system16b-layers'
   | 'system1-prom-mixer'
@@ -37,17 +36,13 @@ export function generatedDirectScreenShape(
     body.includes('m_mob->draw_async(cliprect)') &&
     body.includes('m_playfield_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
     body.includes('m_mob->iterate_dirty_rects(') &&
-    body.includes('m_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0)')
+    body.includes('m_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0)') &&
+    // The merge is what the executor replicates: MO pen 1 toggles playfield
+    // colour bit 0x80. Atari System 1 calls the same four framework routines
+    // but merges by priority, and drawn as Gauntlet its picture went black.
+    body.includes('pf[x] ^= 0x80')
   ) {
     return 'gauntlet-tilemaps';
-  }
-  if (
-    body.includes('m_sprites->draw_async(cliprect)') &&
-    body.includes('m_segaic16road->segaic16_road_draw') &&
-    body.includes('m_segaic16vid->tilemap_draw') &&
-    body.includes('m_sprites->iterate_dirty_rects(')
-  ) {
-    return 'outrun-sega16-layers';
   }
   if (
     body.includes('m_sprites->draw_async(cliprect)') &&

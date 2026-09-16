@@ -65,6 +65,11 @@ export interface SoundRuntimeContext {
    * was just published before the running one overwrites it.
    */
   perfectQuantum(seconds: number): void;
+  /**
+   * MAME `scheduler().synchronize()`: run once the processor that asked has
+   * yielded and the others have caught up to it.
+   */
+  synchronize(run: () => void): void;
 }
 
 export interface SoundRuntimeHooks {

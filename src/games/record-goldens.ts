@@ -29,7 +29,14 @@ export function replaceGolden(
   const contracts = file.statements.flatMap(statement => ts.isVariableStatement(statement)
     ? statement.declarationList.declarations.flatMap(declaration => {
       const value = declaration.initializer && object(declaration.initializer);
-      return value && (property(value, 'game') || property(value, 'scenarios')) ? [value] : [];
+      // A contract may also be an object literal spreading `sourceTarget({...})`
+      // and overriding fields (ghouls, mario), so the `game` property sits in
+      // the spread call rather than on the literal itself.
+      const spreadContract = value?.properties.some(entry =>
+        ts.isSpreadAssignment(entry) && ts.isCallExpression(entry.expression));
+      return value && (property(value, 'game') || property(value, 'scenarios') || spreadContract)
+        ? [value]
+        : [];
     }) : []);
   if (contracts.length !== 1) throw new Error('expected one literal game contract');
   let target = contracts[0]!;

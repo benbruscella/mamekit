@@ -6,7 +6,7 @@ const root = import.meta.dirname;
 const sharedRuntime = readdirSync(root).filter(file =>
   file.endsWith('.ts') && !file.endsWith('.spec.ts'));
 const forbiddenTargets = [
-  'gauntlet', 'mario', 'defender', 'outrun', 'elevator',
+  'gauntlet', 'mario', 'defender', 'elevator',
   'segas16a', 'segas16b', 'neogeo',
 ];
 

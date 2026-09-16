@@ -43,6 +43,14 @@ export interface RomLoad {
    * an incomplete set. `baddump` bytes are known-imperfect but usable.
    */
   status?: 'nodump' | 'baddump';
+  /**
+   * MAME set supplying this one chip, when the region as a whole comes from
+   * the game's own set. A BIOS parent usually owns a region outright (the Neo
+   * Geo's `mainbios`), but it need not: Atari System 1 loads the motherboard
+   * BIOS into the *game's* `maincpu` region alongside its own code, so the
+   * attribution has to be per chip or `atarisy1.zip` is never asked for.
+   */
+  romSet?: string;
   groupSize?: number;
   skip?: number;
   reverse?: boolean;
@@ -90,8 +98,10 @@ export function requiredRomRegions(specs: RomRegionSpec[], cpuRegions: Iterable<
 
 /** Distinct external device sets needed alongside the game's own zip. */
 export function dependencyRomSets(specs: RomRegionSpec[], game: string): string[] {
-  return [...new Set(specs.flatMap(spec => spec.romSet && spec.loads.some(isDumpedRom) ? [spec.romSet] : []))]
-    .filter(set => set !== game);
+  return [...new Set(specs.flatMap(spec => [
+    ...(spec.romSet && spec.loads.some(isDumpedRom) ? [spec.romSet] : []),
+    ...spec.loads.flatMap(load => load.romSet && isDumpedRom(load) ? [load.romSet] : []),
+  ]))].filter(set => set !== game);
 }
 
 /**
@@ -108,7 +118,15 @@ export function unresolvedDependencyRomSets(
   files: Map<string, Uint8Array>,
 ): string[] {
   return dependencyRomSets(specs, game).filter(romSet => {
-    const owned = specs.filter(spec => spec.romSet === romSet);
+    // Everything this set supplies: a whole region when it owns one, and the
+    // individual chips attributed to it when it shares a region with the
+    // game's own (see RomLoad.romSet).
+    const owned = specs.flatMap(spec => {
+      const loads = spec.romSet === romSet
+        ? spec.loads
+        : spec.loads.filter(load => load.romSet === romSet);
+      return loads.length ? [{ ...spec, loads }] : [];
+    });
     const required = new Set(owned.map(spec => spec.region));
     const check = checkRomSet(owned, files, required);
     return check.missingCritical.length > 0 || check.crcMismatch.length > 0;

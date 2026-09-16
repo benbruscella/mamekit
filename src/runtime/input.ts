@@ -46,6 +46,13 @@ export interface FieldBinding {
   toggle?: boolean;
   /** Absolute value driven while an analog control key is held. */
   activeValue?: number;
+  /**
+   * MAME's PORT_KEYDELTA for an absolute analog control: how far the port
+   * travels toward `activeValue` per emulated frame while the key is held,
+   * and back toward its own rest value when released. A steering wheel that
+   * snapped straight to full lock and back was unusable.
+   */
+  keyDelta?: number;
   /** Relative masked delta applied each emulated frame while held. */
   relativeDelta?: number;
   /**
@@ -91,6 +98,7 @@ interface Field {
   player: number;
   toggle: boolean;
   activeValue?: number;
+  keyDelta?: number;
   relativeDelta?: number;
 }
 
@@ -126,6 +134,12 @@ export class KeyboardInput implements InputPorts {
   private releaseListeners: (() => void)[] = [];
   /** ports holding a relative control, and their bytes as the frame began */
   private relativePorts = new Set<string>();
+  /**
+   * Absolute analog controls sharing one port field, by `port:mask`. A wheel
+   * is two bindings over the same byte -- one per direction -- so the ramp has
+   * to decide the target for the pair, not for each half independently.
+   */
+  private analogGroups = new Map<string, Field[]>();
   private frameStart: Record<string, number> = {};
   /** signed units each relative control (port:mask) has moved this frame */
   private frameDelta = new Map<string, number>();
@@ -167,11 +181,18 @@ export class KeyboardInput implements InputPorts {
         player: b.player ?? 1,
         toggle: b.toggle === true,
         activeValue: b.activeValue,
+        keyDelta: b.keyDelta,
         relativeDelta: b.relativeDelta,
       };
       fields.push(f);
       this.byBinding.set(b, f);
       if (f.relativeDelta !== undefined) this.relativePorts.add(f.port);
+      if (f.keyDelta !== undefined && f.activeValue !== undefined) {
+        const key = `${f.port}:${f.mask}`;
+        const group = this.analogGroups.get(key) ?? [];
+        group.push(f);
+        this.analogGroups.set(key, group);
+      }
       for (const key of b.keys) {
         let list = this.byKey.get(key);
         if (!list) { list = []; this.byKey.set(key, list); }
@@ -233,6 +254,12 @@ export class KeyboardInput implements InputPorts {
       if (field.relativeDelta === undefined || !this.isHeld(field)) continue;
       this.travel(field, field.relativeDelta);
     }
+    // 3b. The same ramp for an absolute control. MAME moves an analog field
+    // toward full deflection by PORT_KEYDELTA while a key is held and springs
+    // it back toward its own rest value when released; it never jumps. A
+    // steering wheel that snapped between hard left and hard right could not
+    // be driven.
+    this.rampAnalog();
     // 4. Distance a spinner, trackball or mouse covered, handed out across the
     // frame rather than appearing whole at its start.
     for (const event of list) this.applyEvent(event, 'travel');
@@ -247,6 +274,35 @@ export class KeyboardInput implements InputPorts {
     const list = this.takePending();
     for (const event of list) this.applyEvent(event, 'hold');
     for (const event of list) this.applyEvent(event, 'travel');
+    // A probe reads the port back immediately, so an absolute control settles
+    // at its destination here rather than over the frames a ramp would take.
+    this.rampAnalog(true);
+  }
+
+  /**
+   * Move every absolute analog control one frame's PORT_KEYDELTA toward where
+   * its keys say it should be -- full deflection while held, its own rest
+   * value when not. `snap` jumps straight there instead, for `latch()`.
+   */
+  private rampAnalog(snap = false): void {
+    for (const group of this.analogGroups.values()) {
+      const first = group[0]!;
+      const shift = Math.log2(first.mask & -first.mask);
+      const held = group.find(field => this.isHeld(field));
+      const target = held?.activeValue !== undefined
+        ? (held.activeValue & first.mask) >>> shift
+        : (this.init[first.port] & first.mask) >>> shift;
+      const current = (this.state[first.port] & first.mask) >>> shift;
+      if (current === target) continue;
+      const step = Math.max(1, Math.abs(held?.keyDelta ?? first.keyDelta ?? 1));
+      const next = snap
+        ? target
+        : current < target
+          ? Math.min(target, current + step)
+          : Math.max(target, current - step);
+      this.state[first.port] =
+        (this.state[first.port] & ~first.mask) | ((next << shift) & first.mask);
+    }
   }
 
   /** The generated binding an event names. */
@@ -295,6 +351,9 @@ export class KeyboardInput implements InputPorts {
 
   /** drive a field active (pressed) or back to its resting bits */
   private apply(f: Field, active: boolean): void {
+    // A ramped analog control is owned by rampAnalog(); the edge only changes
+    // which way it is travelling, never the value.
+    if (f.keyDelta !== undefined && f.activeValue !== undefined) return;
     if (active) {
       this.state[f.port] = f.activeValue !== undefined
         ? (this.state[f.port] & ~f.mask) | (f.activeValue & f.mask)

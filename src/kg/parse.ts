@@ -304,7 +304,14 @@ export function parseEnumConstants(
 
 export function parseDefines(src: string, seed: Record<string, number> = {}): Record<string, number> {
   const out: Record<string, number> = { ...seed };
-  const re = /^#define\s+(\w+)\s+(.+)$|(?:static\s+)?constexpr\s+(?:XTAL|int|unsigned|double|u?int\d+_t)\s+(\w+)\s*(?:\(([^;]*)\)|=\s*([^;]*))\s*;/gm;
+  // `static const <type> NAME = expr;` is the older spelling of the same
+  // declaration and MAME still uses it for class-scoped constants
+  // (atarimo.h's PRIORITY_SHIFT/PRIORITY_MASK). A non-numeric initialiser
+  // simply does not evaluate and is skipped, as with every other form here.
+  // The define's whitespace is horizontal only: with `\s`, a header's empty
+  // include guard (`#define MAME_EMU_DIGFX_H`) took the next line as its
+  // value, and the first constant after every guard was lost.
+  const re = /^#define[ \t]+(\w+)[ \t]+(.+)$|(?:static\s+)?(?:constexpr|const)\s+(?:XTAL|int|unsigned|double|u?int\d+_t|[us](?:8|16|32|64))\s+(\w+)\s*(?:\(([^;]*)\)|=\s*([^;]*))\s*;/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const name = m[1] ?? m[3];

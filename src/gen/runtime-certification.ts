@@ -48,6 +48,19 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
     ],
     allowDirectScreen: true,
   },
+  // Verified against real MAME 0.289: main RAM 1 byte apart at frame 900 and
+  // frame 899 pixel-identical to MAME's frame 900. The tilemaps and the
+  // motion-object engine are the video framework's runtime bridges, as on
+  // Gauntlet; screen_update itself is compiled.
+  marble: {
+    generationGaps: [
+      'alpha:TILEMAP',
+      'mob:ATARI_MOTION_OBJECTS',
+      'playfield:TILEMAP',
+    ],
+    // tilemap_device::write16, answered by the board's tilemap bridge.
+    handlerGaps: ['alpha.write16', 'playfield.write16'],
+  },
   mario: {
     generationGaps: ['snd_nl:dac:NETLIST_INT_INPUT', 'z80dma:Z80DMA'],
     handlerGaps: ['z80dma.read', 'z80dma.write'],
@@ -61,24 +74,6 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'upd4990a:UPD4990A',
     ],
     handlerGaps: [],
-  },
-  outrun: {
-    generationGaps: [
-      'i8255:I8255',
-      'mapper:SEGA_315_5195_MEM_MAPPER',
-      'pcm:SEGA_315_5218',
-      'segaic16road:SEGAIC16_ROAD',
-      'segaic16vid:SEGAIC16VID',
-      'sprites:SEGA_OUTRUN_SPRITES',
-    ],
-    handlerGaps: [
-      'mapper.pread',
-      'mapper.read',
-      'mapper.write',
-      'segaic16road.segaic16_road_control_0_r',
-      'segaic16road.segaic16_road_control_0_w',
-    ],
-    allowDirectScreen: true,
   },
   polepos: {
     generationGaps: [

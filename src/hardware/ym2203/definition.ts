@@ -7,12 +7,14 @@ import type { PortDeclaration } from '../ports.ts';
 
 export const YM2203_ID = 'ym2203';
 
-// YM3526 is hosted as an auxiliary chip by the same generated worklet. This
-// matches boards such as Bubble Bobble where OPN and OPL share one speaker.
+// The OPL chips (YM3526, and YM3812 which is the same part plus OPL2's
+// waveform select) are hosted by the same generated worklet. This matches
+// boards such as Bubble Bobble where OPN and OPL share one speaker, and
+// Wardner, whose only sound chip is an OPL2.
 // YM2610 shares the OPN address/data register protocol. The current generated
 // core renders its FM/SSG portion; ADPCM-A/B can be layered in without changing
 // the board-facing contract.
-export const YM2203_MAME_TYPES = ['YM2203', 'YM2610', 'YM3526'] as const;
+export const YM2203_MAME_TYPES = ['YM2203', 'YM2610', 'YM3526', 'YM3812'] as const;
 
 /** Emitted artifacts, relative to dist/runtime/generated. */
 export const YM2203_IR_ARTIFACT = 'audio/ym2203.audio.ir.json';
