@@ -430,3 +430,51 @@ console.log('input.spec: a tap between two frames reaches the machine');
   assert.deepEqual(facing(), ['Down'], 'letting go of right hands the lever to down');
 }
 console.log('input.spec: a bouncing switch does not flip a held corner');
+// The same bounce, but spanning a frame: the switch is reported open on one
+// poll and closed again on the next, with a frame in between.
+//
+// This is what a real stick does, and it is the whole of the ZigZag report.
+// MAME's rule re-decides whenever the set of closed switches differs from
+// last frame's, so the momentary gap makes the returning switch look like the
+// direction the player just moved to, and a corner held steady flips to the
+// other axis -- then flips back on the next bounce.
+{
+  const stick: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways: 4 },
+    { port: 'IN0', mask: 0x02, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways: 4 },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+    { port: 'IN0', mask: 0x08, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  const lever = new KeyboardInput(stick, [], [{ tag: 'IN0', init: 0xff }]);
+  const facing = (): string[] => stick.filter(b => (~lever.read('IN0') & b.mask) !== 0).map(b => b.label);
+
+  lever.press(stick[3]!, true, 'lever');   // right
+  lever.advance();
+  lever.press(stick[0]!, true, 'lever');   // and up: into the up-right corner
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'the direction that changed wins');
+
+  lever.press(stick[3]!, false, 'lever');  // the right switch opens for one frame
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'and a gap on the suppressed switch shows nothing');
+  lever.press(stick[3]!, true, 'lever');   // and closes again
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'a switch that bounced is not a direction the player moved to');
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'and the corner still holds');
+
+  // A switch that stays open is a real change, and the lever follows it.
+  lever.press(stick[0]!, false, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'letting go of up hands the lever to right');
+
+  // So is one that comes back after being properly away. A frame is 16ms and
+  // no hand lets go and pushes again inside one, so the gap is what separates
+  // the player from the switch: anything longer is a move.
+  lever.advance();
+  lever.press(stick[0]!, true, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'pushing up again is a real direction change');
+}
+console.log('input.spec: a bounce across a frame does not flip a held corner');
+

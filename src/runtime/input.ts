@@ -207,6 +207,8 @@ export class KeyboardInput implements InputPorts {
    * player is concerned, whatever order the table happens to list them in.
    */
   private pressFrame = new Map<string, number>();
+  /** Which frame each field last opened, for telling a bounce from a move. */
+  private releaseFrame = new Map<string, number>();
   private frameCount = 0;
   /**
    * Bindings pressed and released inside one frame's batch of events, held
@@ -439,7 +441,7 @@ export class KeyboardInput implements InputPorts {
       let current = 0;
       for (const f of switches) if (this.pressed(f)) current |= 1 << f.dir!;
       current = this.resolveOpposites(switches, current);
-      if (current !== stick.previous) {
+      if (current !== stick.previous && !this.bounced(switches, current, stick.previous)) {
         let four = current;
         // Zero the switches that did not change, which leaves the new one.
         if ((four & JOY_VERTICAL) && (four & JOY_HORIZONTAL)) four ^= four & stick.previous;
@@ -517,6 +519,42 @@ export class KeyboardInput implements InputPorts {
       current &= ~(this.stamp(switches, a) >= this.stamp(switches, b) ? b : a);
     }
     return current;
+  }
+
+  /**
+   * Whether the only thing that changed on this lever is a switch that
+   * bounced.
+   *
+   * MAME re-decides a lever whenever the set of closed switches differs from
+   * last frame's, and calls whatever is newly closed the direction the player
+   * moved to. A real lever is held by a hand and a gate, so that is sound on
+   * a cabinet. A stick on a desk reports a switch open for one frame and
+   * closed again on the next, and the returning switch then looks exactly
+   * like a new direction -- so a corner held perfectly still flips to the
+   * other axis, and flips back on the next bounce. That is the lever
+   * visibly changing its mind under a hand that has not moved.
+   *
+   * A direction that closed again within a frame of opening was never let
+   * go of, so nothing changed and the gate keeps the answer it had. A switch
+   * that stayed open longer, or one closing for the first time, is a real
+   * move and MAME's rule owns it.
+   */
+  private bounced(switches: readonly Field[], current: number, previous: number): boolean {
+    const arrived = current & ~previous;
+    // Something let go: that is a move, whatever else happened alongside it.
+    if (arrived === 0 || (previous & ~current) !== 0) return false;
+    // A lever at rest is not holding anything for a switch to bounce under.
+    // Pushing it somewhere the frame after letting go is a move, however
+    // quickly it follows.
+    if (previous === 0) return false;
+    for (const f of switches) {
+      const bit = 1 << f.dir!;
+      if ((arrived & bit) === 0 || !this.pressed(f)) continue;
+      const closed = this.pressFrame.get(this.fid(f)) ?? 0;
+      const opened = this.releaseFrame.get(this.fid(f)) ?? 0;
+      if (opened === 0 || closed < opened || closed - opened > 1) return false;
+    }
+    return true;
   }
 
   /** Which frame one direction of a lever last closed on; 0 if never. */
@@ -682,6 +720,8 @@ export class KeyboardInput implements InputPorts {
     if (down) {
       this.pressOrder.set(this.fid(h), ++this.sequence);
       this.pressFrame.set(this.fid(h), this.frameCount);
+    } else {
+      this.releaseFrame.set(this.fid(h), this.frameCount);
     }
     // A switch of a digital joystick belongs to the lever, not to this edge:
     // `settleSticks()` decides what all four of them assert, once, after every
@@ -715,7 +755,7 @@ export class KeyboardInput implements InputPorts {
   /** Save-state roots (machine-state.ts): port bytes, holds, toggles and this frame's travel. */
   stateKeys(): readonly string[] {
     return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta', 'pending',
-      'sticks', 'pressOrder', 'pressFrame', 'sequence', 'frameCount', 'carried'];
+      'sticks', 'pressOrder', 'pressFrame', 'releaseFrame', 'sequence', 'frameCount', 'carried'];
   }
 
   /** all port bytes as hex, for logging/overlay */
@@ -755,6 +795,7 @@ export class KeyboardInput implements InputPorts {
     this.toggled.clear();
     this.pressOrder.clear();
     this.pressFrame.clear();
+    this.releaseFrame.clear();
     this.carried.clear();
     this.sequence = 0;
     this.frameCount = 0;
