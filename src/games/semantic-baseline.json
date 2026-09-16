@@ -605,7 +605,7 @@
       "palette": "ram:paletteram:-:big:4096:2"
     },
     "simpsons": {
-      "sha256": "2816a59d6d90a2ee301e1510a688e3f4574726e9ed9f5231cd552b1a723b5dc7",
+      "sha256": "568f4301f22e033454de0a0322d6027a03b9a536fda131371fcae48f440e23cf",
       "callbacks": 7,
       "frameEvents": 1,
       "devices": 12,

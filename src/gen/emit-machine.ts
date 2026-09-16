@@ -524,8 +524,19 @@ export function lowerGeneratedMachine(
   });
   // A driver's own emu_timers (`timer_alloc` in the machine-start closure),
   // armed through the same `->adjust()` the board already models for a
-  // configure_generic TIMER. An empty timer_expired_delegate has no callback:
-  // the driver only asks whether it is still running (Simpsons' NMI block).
+  // configure_generic TIMER.
+  //
+  // Only the ones built from an empty `timer_expired_delegate()` are lowered.
+  // Such a timer has no callback at all: the driver never expects it to *do*
+  // anything, it only asks whether it is still running, so modelling it adds a
+  // clock nothing else drives (Simpsons' NMI block is the whole motivation).
+  //
+  // A driver timer with a real FUNC() callback is a different animal. That
+  // interrupt already reaches the machine through whatever the board lowered
+  // it as -- a frame event, a scanline callback, a device line -- so lowering
+  // it a second time here drives it twice. It measurably shifted galaga,
+  // digdug and invaders audio, and it stopped berzerk dead: its irq/nmi
+  // timers double-fired and the screen never progressed past its first frame.
   const driverTimers = graph.nodes
     .filter(node => node.label === 'MachineConfig')
     .flatMap(node => (node.props.driverTimers as string[] | undefined) ?? [])
@@ -533,6 +544,7 @@ export function lowerGeneratedMachine(
       const [member, handler] = entry.split('=');
       return { tag: member!.replace(/^m_/, ''), member: member!, handler: handler ?? '' };
     })
+    .filter(timer => timer.handler === '')
     .filter((timer, index, all) =>
       all.findIndex(candidate => candidate.member === timer.member) === index &&
       !genericTimers.some(existing => existing.member === timer.member));
