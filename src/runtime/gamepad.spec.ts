@@ -191,6 +191,37 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.equal(settle(input).read('DIAL'), 0xf8, 'the counter holds when the stick centres');
 }
 
+// A panel whose buttons do not start at button one.
+//
+// Tutankham's only button is IPT_BUTTON2 and Pole Position's is IPT_BUTTON3.
+// Folding the bottom row by name paired A to IPT_BUTTON1, found nothing, and
+// left the pad's primary button dead while a secondary one worked. The row
+// echoes the machine's buttons in the order it numbers them instead.
+{
+  const odd: FieldBinding[] = [
+    { port: 'IN1', mask: 0x40, keys: ['KeyZ'], label: 'P1 Flash Bomb', type: 'IPT_BUTTON2' },
+    { port: 'IN1', mask: 0x01, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(odd, [], [{ tag: 'IN1', init: 0xff }]);
+  const source = new GamepadInput(input, odd, () => pads);
+  const bomb = (): boolean => (~input.read('IN1') & 0x40) !== 0;
+
+  pads = [pressing(0, [0])];  // A
+  source.poll();
+  input.advance();
+  assert.equal(bomb(), true, "the machine's first button answers A even when it is BUTTON2");
+  pads = [pressing(0, [])];
+  source.poll();
+  input.advance();
+  assert.equal(bomb(), false);
+  pads = [pressing(0, [3])];  // Y, where the standard layout puts BUTTON2
+  source.poll();
+  input.advance();
+  assert.equal(bomb(), true, 'and its own place on the layout still works');
+  assert.deepEqual(source.controlNames(odd[0]!).sort(), ['A', 'Y']);
+}
+
 // A tap the pad shows between two emulated frames.
 //
 // The Gamepad API has no events, only a snapshot the browser refreshes once a

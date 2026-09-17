@@ -72,8 +72,15 @@ const STANDARD: Record<string, Control> = {
  * On a machine with no kick row the bottom row echoes the top one, so a plain
  * pad fires Galaga from A as readily as from X. Each alias is taken only when
  * the machine has nothing of its own on that button.
+ *
+ * The row echoes the machine's buttons in the order it declares them, not by
+ * name. Pairing A to IPT_BUTTON1 assumed every panel starts at button one,
+ * and two do not: Tutankham's only button is BUTTON2 and Pole Position's is
+ * BUTTON3, so A drove nothing on either while B or RB did -- the pad's
+ * primary button dead and a secondary one live. Where a machine does start at
+ * button one this is the same table it always was.
  */
-const FOLD: [Control, string][] = [['b0', 'IPT_BUTTON1'], ['b1', 'IPT_BUTTON2'], ['b7', 'IPT_BUTTON3']];
+const FOLD_ROW: readonly Control[] = ['b0', 'b1', 'b7'];
 
 /** Legend names for the standard layout, in the Xbox spelling browsers use. */
 const STANDARD_NAMES: Record<string, string> = {
@@ -239,12 +246,18 @@ export class GamepadInput {
       claim(player, control, binding);
     }
     for (let player = 1; player <= players; player++) {
-      for (const [control, type] of FOLD) {
-        if (this.targets.has(`${player}:${control}`)) continue;
+      // This player's action buttons, in the order the machine numbers them.
+      const numbered = [...new Set(bindings
+        .filter(binding => /^IPT_BUTTON\d+$/.test(binding.type ?? '') && padPlayer(binding) === player)
+        .map(binding => binding.type!))]
+        .sort((left, right) => Number(left.slice(10)) - Number(right.slice(10)));
+      FOLD_ROW.forEach((control, index) => {
+        const type = numbered[index];
+        if (type === undefined || this.targets.has(`${player}:${control}`)) return;
         for (const binding of bindings) {
           if (binding.type === type && padPlayer(binding) === player) claim(player, control, binding);
         }
-      }
+      });
     }
     this.players = players;
     // A blur or a reset released every field under us; forget what we held
