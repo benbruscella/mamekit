@@ -80,11 +80,11 @@ test.describe(`${game} gamepad`, () => {
 
     // The stick, past the deadzone, is a held direction; centred, it releases.
     //
-    // On a machine MAME gated to four ways the release is believed only once
-    // a second poll agrees, so centring the lever takes one extra step. That
-    // is what stops a bouncing microswitch reading as a direction change, and
-    // an eight-way panel pays nothing for it.
-    const release = async () => { await step(); await step(); };
+    // A release reaches the machine on the very next frame, with nothing held
+    // back: a lever that lets go late over-runs, and leaves the old direction
+    // still held when the next arrives, so the gate resolves a corner the
+    // player never made.
+    const release = async () => { await step(); };
     const left = await probe(page, 'IPT_JOYSTICK_LEFT');
     if (left) {
       await setPad([], [-0.9, 0, 0, 0]);

@@ -274,10 +274,12 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
     return held();
   };
 
-  // A four-way lever's release is believed only once a second poll agrees,
-  // so centring it takes one extra poll. That is the price of not flipping
-  // on a bounce, and it is paid only here.
-  const centre = (): string[] => { shove(0, 0); return shove(0, 0); };
+  // A release reaches the machine on the next frame, with nothing held back:
+  // a lever that lets go late over-runs, and leaves the old direction still
+  // held when the next one arrives, so the gate resolves a corner the player
+  // never made. A switch that really bounces is caught in the input model,
+  // against frames, which the last two assertions here exercise.
+  const centre = (): string[] => shove(0, 0);
 
   assert.deepEqual(centre(), []);
   assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'a corner leaning up reads up');
@@ -299,9 +301,8 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.deepEqual(shove(0, -0.9), ['Up'], 'the right switch misses a poll');
   assert.deepEqual(shove(0.9, -0.9), ['Up'], 'and is back: the lever has not moved');
   assert.deepEqual(shove(0.9, -0.9), ['Up'], 'and it still has not');
-  // Two polls without it is a real release, and the lever follows.
-  shove(0, -0.9);
   assert.deepEqual(shove(0, -0.9), ['Up'], 'letting go of right leaves up');
+  assert.deepEqual(centre(), [], 'and centring is immediate, not a poll later');
 }
 
 // A lever the browser could not map, on a POV hat.

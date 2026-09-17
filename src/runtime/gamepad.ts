@@ -194,23 +194,13 @@ function activeControls(pad: PadState, hats: Set<number>): Set<Control> {
   return active;
 }
 
-/** The lever's own controls: the ones a bouncing switch shows up on. */
-const DIRECTIONS = new Set<Control>(['up', 'down', 'left', 'right', 'rup', 'rdown', 'rleft', 'rright']);
-
-interface Slot extends ConnectedPad {
-  active: Set<Control>;
-  hats: Set<number>;
-  /** directions absent from exactly one poll, not yet believed */
-  settling: Set<Control>;
-}
+interface Slot extends ConnectedPad { active: Set<Control>; hats: Set<number> }
 
 export class GamepadInput {
   /** `${player}:${control}` -> the fields that control drives */
   private targets = new Map<string, FieldBinding[]>();
   /** every control that reaches a binding, for the legend */
   private controls = new Map<FieldBinding, Control[]>();
-  /** controls driving a lever MAME gated to four ways; see `settle` */
-  private gated = new Set<Control>();
   private slots: Slot[] = [];
   private players: number;
   private listeners: ((pads: ConnectedPad[]) => void)[] = [];
@@ -236,7 +226,6 @@ export class GamepadInput {
       let names = this.controls.get(binding);
       if (!names) { names = []; this.controls.set(binding, names); }
       names.push(control);
-      if (binding.ways === 4 && DIRECTIONS.has(control)) this.gated.add(control);
     };
     for (const binding of bindings) {
       const control = binding.type ? STANDARD[binding.type] : undefined;
@@ -263,7 +252,7 @@ export class GamepadInput {
     // A blur or a reset released every field under us; forget what we held
     // so the next poll re-presses anything the player still holds.
     input.onReleaseAll(() => {
-      for (const slot of this.slots) { slot.active.clear(); slot.settling.clear(); }
+      for (const slot of this.slots) slot.active.clear();
     });
   }
 
@@ -314,7 +303,7 @@ export class GamepadInput {
         if (player > this.players) continue; // more pads than the machine has players
         slot = {
           player, index: pad.index, id: pad.id, mapping: pad.mapping,
-          active: new Set(), hats: new Set(), settling: new Set(),
+          active: new Set(), hats: new Set(),
         };
         this.slots.push(slot);
         changed = true;
@@ -323,11 +312,10 @@ export class GamepadInput {
             `, ${pad.buttons.length} buttons, ${pad.axes.length} axes`);
         }
       }
-      this.update(slot, this.settle(slot, activeControls(pad, slot.hats)));
+      this.update(slot, activeControls(pad, slot.hats));
     }
     for (const slot of [...this.slots]) {
       if (seen.has(slot.index)) continue;
-      slot.settling = new Set(slot.active);
       this.update(slot, new Set());
       this.slots.splice(this.slots.indexOf(slot), 1);
       changed = true;
@@ -336,56 +324,27 @@ export class GamepadInput {
     if (changed) for (const listener of this.listeners) listener(this.connected());
   }
 
+  /**
+   * A pad edge reaches the machine on the very next frame, with nothing held
+   * back.
+   *
+   * There was briefly a grace here: a direction missing from one poll was not
+   * believed until a second poll agreed, so a bouncing microswitch could not
+   * read as the player letting go. It cost a poll of lateness on every
+   * release, and play-testing logs showed it never once caught a bounce --
+   * every hold went on to be a real release. A late release is a lever that
+   * over-runs, and worse, it leaves the old direction still held when the
+   * next one arrives, so the gate resolves a corner the player never made.
+   *
+   * A switch that genuinely bounces is caught where it belongs, in the input
+   * model, which measures the gap against emulated frames rather than polls
+   * and costs nothing to a control that is behaving (`KeyboardInput` and its
+   * `bounced` rule).
+   */
   private update(slot: Slot, next: Set<Control>): void {
     for (const control of next) if (!slot.active.has(control)) this.edge(slot, control, true);
     for (const control of slot.active) if (!next.has(control)) this.edge(slot, control, false);
     slot.active = next;
-  }
-
-  /**
-   * A direction missing from a single poll is not believed yet.
-   *
-   * A lever's microswitch bounces for a few milliseconds, far less than the
-   * gap between two polls, so a bounce is seen as the direction being absent
-   * from exactly one sample and back in the next. Downstream that reads as
-   * the player letting go and pushing again, and a lever resolved by which
-   * direction moved last then flips axis under a hand that has not moved --
-   * on a four-way machine, the whole of the ZigZag report.
-   *
-   * The pad is the right place to settle it, because the noise is the pad's
-   * own sampling and only the pad knows its rate: one missed sample here is
-   * one missed sample, whatever the board's refresh happens to be. A
-   * direction absent from two polls running is a real release, arriving one
-   * poll late.
-   *
-   * That one poll of lateness is the price, so it is only paid where not
-   * paying it loses the machine: a lever the generated binding says MAME
-   * gated to four ways. An eight-way panel can hold the diagonal and has
-   * nothing to flip, and a button that flickers costs a frame of fire rather
-   * than control, so both keep their immediate release.
-   */
-  private settle(slot: Slot, seen: Set<Control>): Set<Control> {
-    const believed = new Set(seen);
-    // Anything the pad actually reports is settled by definition. This reads
-    // `seen`, never the believed set: a control kept alive by its own grace
-    // would otherwise clear the grace that is keeping it, and never release.
-    for (const control of seen) slot.settling.delete(control);
-    for (const control of slot.active) {
-      if (seen.has(control) || !this.gated.has(control)) continue;
-      if (slot.settling.has(control)) {
-        if (this.debug) {
-          console.log(`[gamepad ${this.when()}] ${control} absent from a second poll: a real release`);
-        }
-        continue; // absent twice: it really went
-      }
-      slot.settling.add(control);
-      believed.add(control);
-      if (this.debug) {
-        console.log(`[gamepad ${this.when()}] ${control} missing from one poll -> held, ` +
-          `waiting for the next read`);
-      }
-    }
-    return believed;
   }
 
   /** `f<frame> p<poll>`: which frame this lands on, and which read saw it. */
