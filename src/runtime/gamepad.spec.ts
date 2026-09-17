@@ -226,7 +226,8 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   source.poll();
   input.advance();
   assert.deepEqual(held(), ['Fire left'], 'the right stick still fires too');
-  assert.deepEqual(source.controlNames(panel[0]!).sort(), ['X', 'right stick']);
+  // The button leads: a fight stick has it and the right stick it does not.
+  assert.deepEqual(source.controlNames(panel[0]!), ['X', 'right stick']);
 }
 
 // A panel whose buttons do not start at button one.

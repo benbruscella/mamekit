@@ -299,11 +299,21 @@ export class GamepadInput {
     return this.slots.map(({ player, index, id, mapping }) => ({ player, index, id, mapping }));
   }
 
-  /** Legend names of the pad controls that drive one binding; empty while its player has no pad. */
+  /**
+   * Legend names of the pad controls that drive one binding; empty while its
+   * player has no pad.
+   *
+   * Buttons are named first. A second lever answers both the right stick and
+   * a face button, and a fight stick has the button but not the stick -- so
+   * leading with "right stick" sends the one player who most needs the legend
+   * hunting for a control their hardware does not have.
+   */
   controlNames(binding: FieldBinding): string[] {
     const slot = this.slots.find(candidate => candidate.player === padPlayer(binding));
     if (!slot) return [];
-    const names = (this.controls.get(binding) ?? []).map(control =>
+    const controls = [...(this.controls.get(binding) ?? [])]
+      .sort((left, right) => Number(/^b\d+$/.test(right)) - Number(/^b\d+$/.test(left)));
+    const names = controls.map(control =>
       slot.mapping === 'standard' || !/^b\d+$/.test(control)
         ? STANDARD_NAMES[control] ?? control
         : `button ${Number(control.slice(1)) + 1}`);
