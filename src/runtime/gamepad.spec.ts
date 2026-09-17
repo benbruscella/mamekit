@@ -191,6 +191,44 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.equal(settle(input).read('DIAL'), 0xf8, 'the counter holds when the stick centres');
 }
 
+// A machine with two levers, played on a stick that has only one.
+//
+// Tutankham walks on a four-way lever and fires on a separate two-way one;
+// Robotron's two levers are the whole game. Both sat on the right analog
+// stick, which a fight stick does not have and a browser cannot report the
+// absence of. The second lever also answers the four face buttons in their
+// diamond, taken only where the machine has not claimed them itself.
+{
+  const panel: FieldBinding[] = [
+    { port: 'IN1', mask: 0x10, keys: ['KeyJ'], label: 'Fire left', type: 'IPT_JOYSTICKRIGHT_LEFT', ways: 2 },
+    { port: 'IN1', mask: 0x20, keys: ['KeyL'], label: 'Fire right', type: 'IPT_JOYSTICKRIGHT_RIGHT', ways: 2 },
+    { port: 'IN1', mask: 0x40, keys: ['KeyZ'], label: 'P1 Flash Bomb', type: 'IPT_BUTTON2' },
+    { port: 'IN1', mask: 0x01, keys: [], label: 'Walk right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(panel, [], [{ tag: 'IN1', init: 0xff }]);
+  const source = new GamepadInput(input, panel, () => pads);
+  const held = (): string[] => panel.filter(b => (~input.read('IN1') & b.mask) !== 0).map(b => b.label);
+  const press = (...buttons: number[]): string[] => {
+    pads = [pressing(0, buttons)];
+    source.poll();
+    input.advance();
+    return held();
+  };
+
+  assert.deepEqual(press(2), ['Fire left'], 'X fires left');
+  assert.deepEqual(press(1), ['Fire right'], 'B fires right');
+  assert.deepEqual(press(), []);
+  // The machine's own button keeps the face buttons the fold gave it.
+  assert.deepEqual(press(0), ['P1 Flash Bomb'], 'A is still the bomb, not a lever direction');
+  // And a pad that does have a right stick loses nothing.
+  pads = [pad(0, { axes: [0, 0, -0.9, 0] })];
+  source.poll();
+  input.advance();
+  assert.deepEqual(held(), ['Fire left'], 'the right stick still fires too');
+  assert.deepEqual(source.controlNames(panel[0]!).sort(), ['X', 'right stick']);
+}
+
 // A panel whose buttons do not start at button one.
 //
 // Tutankham's only button is IPT_BUTTON2 and Pole Position's is IPT_BUTTON3.

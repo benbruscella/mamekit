@@ -82,6 +82,26 @@ const STANDARD: Record<string, Control> = {
  */
 const FOLD_ROW: readonly Control[] = ['b0', 'b1', 'b7'];
 
+/**
+ * A second lever also reaches the four face buttons, in their diamond.
+ *
+ * The button layout here is built around a fight stick, because that is what
+ * the panel it imitates physically is -- and a fight stick has no right
+ * analog stick. Putting a machine's second lever there alone made Tutankham's
+ * gun unreachable and left Robotron, whose two levers *are* the game, half
+ * playable. Worse, nothing can detect the gap: a browser reports four axes
+ * for any standard-mapped pad whether the hardware has them or not, so the
+ * missing stick just reads as one resting at zero forever.
+ *
+ * The diamond is the long-standing way to put a second stick on face
+ * buttons, and it needs no detection: a pad that does have a right stick
+ * keeps it, and these are taken only where the machine has not already
+ * claimed them for a button of its own.
+ */
+const SECOND_LEVER: Partial<Record<Control, Control>> = {
+  rup: 'b3', rdown: 'b0', rleft: 'b2', rright: 'b1',
+};
+
 /** Legend names for the standard layout, in the Xbox spelling browsers use. */
 const STANDARD_NAMES: Record<string, string> = {
   b0: 'A', b1: 'B', b2: 'X', b3: 'Y', b4: 'LB', b5: 'RB', b6: 'LT', b7: 'RT',
@@ -247,6 +267,14 @@ export class GamepadInput {
           if (binding.type === type && padPlayer(binding) === player) claim(player, control, binding);
         }
       });
+      // Last, so the machine's own buttons keep first call on the diamond.
+      for (const binding of bindings) {
+        if (padPlayer(binding) !== player) continue;
+        const lever = binding.type ? STANDARD[binding.type] : undefined;
+        const face = lever ? SECOND_LEVER[lever] : undefined;
+        if (!face || this.targets.has(`${player}:${face}`)) continue;
+        claim(player, face, binding);
+      }
     }
     this.players = players;
     // A blur or a reset released every field under us; forget what we held
