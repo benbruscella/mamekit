@@ -1,11 +1,14 @@
 // Gamepad -> the same generated port fields the keyboard drives.
 //
 // The Gamepad API has no events for buttons, only for connection, so the pad
-// is polled once per emulated frame from the run loop and every change is
-// handed to `KeyboardInput.press()` as an edge. Nothing here knows a port, a
-// polarity or a game: the W3C Standard Gamepad layout is mapped onto MAME
-// input types, and which fields those types name on this machine comes from
-// the generated bindings.
+// is polled from the run loop and every change is handed to
+// `KeyboardInput.press()` as an edge. The poll runs once per animation tick
+// rather than once per emulated frame, because the browser refreshes the
+// snapshot on that cadence: reading it again for each of a catch-up's frames
+// re-read the same snapshot and saw nothing in between. Nothing here knows a
+// port, a polarity or a game: the W3C Standard Gamepad layout is mapped onto
+// MAME input types, and which fields those types name on this machine comes
+// from the generated bindings.
 
 import { bindingPlayer } from './input.ts';
 import type { FieldBinding, KeyboardInput } from './input.ts';
@@ -69,8 +72,35 @@ const STANDARD: Record<string, Control> = {
  * On a machine with no kick row the bottom row echoes the top one, so a plain
  * pad fires Galaga from A as readily as from X. Each alias is taken only when
  * the machine has nothing of its own on that button.
+ *
+ * The row echoes the machine's buttons in the order it declares them, not by
+ * name. Pairing A to IPT_BUTTON1 assumed every panel starts at button one,
+ * and two do not: Tutankham's only button is BUTTON2 and Pole Position's is
+ * BUTTON3, so A drove nothing on either while B or RB did -- the pad's
+ * primary button dead and a secondary one live. Where a machine does start at
+ * button one this is the same table it always was.
  */
-const FOLD: [Control, string][] = [['b0', 'IPT_BUTTON1'], ['b1', 'IPT_BUTTON2'], ['b7', 'IPT_BUTTON3']];
+const FOLD_ROW: readonly Control[] = ['b0', 'b1', 'b7'];
+
+/**
+ * A second lever also reaches the four face buttons, in their diamond.
+ *
+ * The button layout here is built around a fight stick, because that is what
+ * the panel it imitates physically is -- and a fight stick has no right
+ * analog stick. Putting a machine's second lever there alone made Tutankham's
+ * gun unreachable and left Robotron, whose two levers *are* the game, half
+ * playable. Worse, nothing can detect the gap: a browser reports four axes
+ * for any standard-mapped pad whether the hardware has them or not, so the
+ * missing stick just reads as one resting at zero forever.
+ *
+ * The diamond is the long-standing way to put a second stick on face
+ * buttons, and it needs no detection: a pad that does have a right stick
+ * keeps it, and these are taken only where the machine has not already
+ * claimed them for a button of its own.
+ */
+const SECOND_LEVER: Partial<Record<Control, Control>> = {
+  rup: 'b3', rdown: 'b0', rleft: 'b2', rright: 'b1',
+};
 
 /** Legend names for the standard layout, in the Xbox spelling browsers use. */
 const STANDARD_NAMES: Record<string, string> = {
@@ -106,8 +136,33 @@ export function padName(id: string): string {
     .trim() || 'gamepad';
 }
 
+/**
+ * A POV hat's eight detents, clockwise from up, as the browser encodes them
+ * on one axis: `value = detent / 3.5 - 1`.
+ */
+const HAT_DETENTS: readonly (readonly Control[])[] = [
+  ['up'], ['up', 'right'], ['right'], ['down', 'right'],
+  ['down'], ['down', 'left'], ['left'], ['up', 'left'],
+];
+
+/** How far outside an axis's own range a resting hat reads. */
+const AXIS_RANGE = 1.01;
+
+/**
+ * Which of a pad's axes are POV hats rather than sticks.
+ *
+ * A fight stick the browser could not map often puts its lever on a hat, and
+ * a hat centres at a value deliberately outside an axis's -1..1 range. That
+ * is the only thing separating it from an analog axis, which rests at 0 and
+ * would otherwise read as a direction held forever -- so an axis becomes a
+ * hat the first time it is seen resting, and stays one.
+ */
+function noteHats(pad: PadState, hats: Set<number>): void {
+  pad.axes.forEach((value, index) => { if (Math.abs(value) > AXIS_RANGE) hats.add(index); });
+}
+
 /** The digital controls a pad currently asserts. */
-function activeControls(pad: PadState): Set<Control> {
+function activeControls(pad: PadState, hats: Set<number>): Set<Control> {
   const active = new Set<Control>();
   pad.buttons.forEach((button, index) => {
     if (button.pressed || button.value > DEADZONE) active.add(`b${index}`);
@@ -120,21 +175,46 @@ function activeControls(pad: PadState): Set<Control> {
     if (active.delete('b14')) active.add('left');
     if (active.delete('b15')) active.add('right');
   }
-  const [x = 0, y = 0, rx = 0, ry = 0] = pad.axes;
-  if (x < -DEADZONE) active.add('left');
-  if (x > DEADZONE) active.add('right');
-  if (y < -DEADZONE) active.add('up');
-  if (y > DEADZONE) active.add('down');
+  noteHats(pad, hats);
+  const stick = (index: number): number => (hats.has(index) ? 0 : pad.axes[index] ?? 0);
+  const [x, y, rx, ry] = [stick(0), stick(1), stick(2), stick(3)];
+  // The lever's two axes go in leaning-last order.
+  //
+  // A digital switch says only whether a direction is on, and when a lever
+  // is shoved into a corner both cross the deadzone in the same poll -- at
+  // which point which one the player meant is unanswerable from the bits
+  // alone. The magnitudes answer it, and this is the only place that still
+  // has them, so the stronger axis is added second and the order carries
+  // what the numbers knew. Nothing downstream learns about axes: it reads
+  // the same "which arrived later" it reads from a keyboard.
+  const horizontal = (): void => {
+    if (x < -DEADZONE) active.add('left');
+    if (x > DEADZONE) active.add('right');
+  };
+  const vertical = (): void => {
+    if (y < -DEADZONE) active.add('up');
+    if (y > DEADZONE) active.add('down');
+  };
+  if (Math.abs(y) > Math.abs(x)) { horizontal(); vertical(); } else { vertical(); horizontal(); }
   if (pad.mapping === 'standard') {
     if (rx < -DEADZONE) active.add('rleft');
     if (rx > DEADZONE) active.add('rright');
     if (ry < -DEADZONE) active.add('rup');
     if (ry > DEADZONE) active.add('rdown');
   }
+  // A recognised pad already has its d-pad on buttons 12-15; only an unmapped
+  // one needs its lever read off the hat.
+  if (pad.mapping !== 'standard') {
+    for (const index of hats) {
+      const value = pad.axes[index];
+      if (value === undefined || Math.abs(value) > AXIS_RANGE) continue;
+      for (const control of HAT_DETENTS[Math.round((value + 1) * 3.5)] ?? []) active.add(control);
+    }
+  }
   return active;
 }
 
-interface Slot extends ConnectedPad { active: Set<Control> }
+interface Slot extends ConnectedPad { active: Set<Control>; hats: Set<number> }
 
 export class GamepadInput {
   /** `${player}:${control}` -> the fields that control drives */
@@ -146,6 +226,8 @@ export class GamepadInput {
   private listeners: ((pads: ConnectedPad[]) => void)[] = [];
   private input: KeyboardInput;
   private read: () => readonly (PadState | null)[];
+  /** How many times the pad has been read, so a log can count polls as well as frames. */
+  private polls = 0;
   debug = false;
 
   constructor(
@@ -173,17 +255,33 @@ export class GamepadInput {
       claim(player, control, binding);
     }
     for (let player = 1; player <= players; player++) {
-      for (const [control, type] of FOLD) {
-        if (this.targets.has(`${player}:${control}`)) continue;
+      // This player's action buttons, in the order the machine numbers them.
+      const numbered = [...new Set(bindings
+        .filter(binding => /^IPT_BUTTON\d+$/.test(binding.type ?? '') && padPlayer(binding) === player)
+        .map(binding => binding.type!))]
+        .sort((left, right) => Number(left.slice(10)) - Number(right.slice(10)));
+      FOLD_ROW.forEach((control, index) => {
+        const type = numbered[index];
+        if (type === undefined || this.targets.has(`${player}:${control}`)) return;
         for (const binding of bindings) {
           if (binding.type === type && padPlayer(binding) === player) claim(player, control, binding);
         }
+      });
+      // Last, so the machine's own buttons keep first call on the diamond.
+      for (const binding of bindings) {
+        if (padPlayer(binding) !== player) continue;
+        const lever = binding.type ? STANDARD[binding.type] : undefined;
+        const face = lever ? SECOND_LEVER[lever] : undefined;
+        if (!face || this.targets.has(`${player}:${face}`)) continue;
+        claim(player, face, binding);
       }
     }
     this.players = players;
     // A blur or a reset released every field under us; forget what we held
     // so the next poll re-presses anything the player still holds.
-    input.onReleaseAll(() => { for (const slot of this.slots) slot.active.clear(); });
+    input.onReleaseAll(() => {
+      for (const slot of this.slots) slot.active.clear();
+    });
   }
 
   /** Connection events only prompt a poll; the run loop polls every frame anyway. */
@@ -201,11 +299,21 @@ export class GamepadInput {
     return this.slots.map(({ player, index, id, mapping }) => ({ player, index, id, mapping }));
   }
 
-  /** Legend names of the pad controls that drive one binding; empty while its player has no pad. */
+  /**
+   * Legend names of the pad controls that drive one binding; empty while its
+   * player has no pad.
+   *
+   * Buttons are named first. A second lever answers both the right stick and
+   * a face button, and a fight stick has the button but not the stick -- so
+   * leading with "right stick" sends the one player who most needs the legend
+   * hunting for a control their hardware does not have.
+   */
   controlNames(binding: FieldBinding): string[] {
     const slot = this.slots.find(candidate => candidate.player === padPlayer(binding));
     if (!slot) return [];
-    const names = (this.controls.get(binding) ?? []).map(control =>
+    const controls = [...(this.controls.get(binding) ?? [])]
+      .sort((left, right) => Number(/^b\d+$/.test(right)) - Number(/^b\d+$/.test(left)));
+    const names = controls.map(control =>
       slot.mapping === 'standard' || !/^b\d+$/.test(control)
         ? STANDARD_NAMES[control] ?? control
         : `button ${Number(control.slice(1)) + 1}`);
@@ -218,6 +326,7 @@ export class GamepadInput {
    * whatever it held and frees its slot for the next one.
    */
   poll(): void {
+    this.polls++;
     const pads = this.read();
     const seen = new Set<number>();
     let changed = false;
@@ -230,39 +339,67 @@ export class GamepadInput {
         let player = 1;
         while (taken.has(player)) player++;
         if (player > this.players) continue; // more pads than the machine has players
-        slot = { player, index: pad.index, id: pad.id, mapping: pad.mapping, active: new Set() };
+        slot = {
+          player, index: pad.index, id: pad.id, mapping: pad.mapping,
+          active: new Set(), hats: new Set(),
+        };
         this.slots.push(slot);
         changed = true;
-        if (this.debug) console.log(`[gamepad] player ${player}: ${pad.id} (mapping "${pad.mapping}")`);
+        if (this.debug) {
+          console.log(`[gamepad ${this.when()}] player ${player}: ${pad.id} (mapping "${pad.mapping}")` +
+            `, ${pad.buttons.length} buttons, ${pad.axes.length} axes`);
+        }
       }
-      this.update(slot, activeControls(pad));
+      this.update(slot, activeControls(pad, slot.hats));
     }
     for (const slot of [...this.slots]) {
       if (seen.has(slot.index)) continue;
       this.update(slot, new Set());
       this.slots.splice(this.slots.indexOf(slot), 1);
       changed = true;
-      if (this.debug) console.log(`[gamepad] player ${slot.player} disconnected: ${slot.id}`);
+      if (this.debug) console.log(`[gamepad ${this.when()}] player ${slot.player} disconnected: ${slot.id}`);
     }
     if (changed) for (const listener of this.listeners) listener(this.connected());
   }
 
+  /**
+   * A pad edge reaches the machine on the very next frame, with nothing held
+   * back.
+   *
+   * There was briefly a grace here: a direction missing from one poll was not
+   * believed until a second poll agreed, so a bouncing microswitch could not
+   * read as the player letting go. It cost a poll of lateness on every
+   * release, and play-testing logs showed it never once caught a bounce --
+   * every hold went on to be a real release. A late release is a lever that
+   * over-runs, and worse, it leaves the old direction still held when the
+   * next one arrives, so the gate resolves a corner the player never made.
+   *
+   * A switch that genuinely bounces is caught where it belongs, in the input
+   * model, which measures the gap against emulated frames rather than polls
+   * and costs nothing to a control that is behaving (`KeyboardInput` and its
+   * `bounced` rule).
+   */
   private update(slot: Slot, next: Set<Control>): void {
     for (const control of next) if (!slot.active.has(control)) this.edge(slot, control, true);
     for (const control of slot.active) if (!next.has(control)) this.edge(slot, control, false);
     slot.active = next;
   }
 
+  /** `f<frame> p<poll>`: which frame this lands on, and which read saw it. */
+  private when(): string { return `f${this.input.frames()} p${this.polls}`; }
+
   private edge(slot: Slot, control: Control, down: boolean): void {
     const bindings = this.targets.get(`${slot.player}:${control}`);
     if (!bindings) {
-      if (this.debug && down) console.log(`[gamepad] player ${slot.player} ${control} unbound`);
+      if (this.debug && down) console.log(`[gamepad ${this.when()}] player ${slot.player} ${control} unbound`);
       return;
     }
     for (const binding of bindings) this.input.press(binding, down, `pad${slot.player}:${control}`);
     if (this.debug) {
-      console.log(`[gamepad] player ${slot.player} ${control} ${down ? 'DOWN' : 'UP'} -> ` +
-        `${bindings.map(binding => binding.label).join(', ')} | ${this.input.dump()}`);
+      // The edge is posted, not applied: a machine only sees input at a frame
+      // boundary, so these bytes are the ones this edge is about to change.
+      console.log(`[gamepad ${this.when()}] player ${slot.player} ${control} ${down ? 'DOWN' : 'UP'} -> ` +
+        `${bindings.map(binding => binding.label).join(', ')} | ports before this frame: ${this.input.dump()}`);
     }
   }
 }

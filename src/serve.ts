@@ -197,9 +197,12 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
       let file = join(root, path);
       const s = await stat(file).catch(() => null);
       if (s?.isDirectory()) {
-        // match github pages: redirect /app -> /app/ so relative URLs resolve
+        // match github pages: redirect /app -> /app/ so relative URLs resolve.
+        // The query travels with it: `?debug=1` on a machine's page is how a
+        // controller problem is diagnosed, and dropping it here sent whoever
+        // was diagnosing one to a page with the logging switched off.
         if (!url.pathname.endsWith('/')) {
-          res.writeHead(301, { location: `${url.pathname}/` }).end();
+          res.writeHead(301, { location: `${url.pathname}/${url.search}` }).end();
           return;
         }
         file = join(file, 'index.html');

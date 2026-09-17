@@ -1036,11 +1036,11 @@ export async function runShell(
   /** One emulated frame, without presenting it. False when it could not run. */
   const runFrame = (): boolean => {
     // Every source posts what it did, then one boundary settles the ports and
-    // the frame runs against them: a pad's poll, the pointer's travel and the
-    // keyboard's edges all land in the frame they happened in. In a two-player
-    // room the frame also waits here until the other browser has said what
-    // its player did, which is what keeps the two machines identical.
-    pads.poll();
+    // the frame runs against them: the pad's poll above, the pointer's travel
+    // and the keyboard's edges all land in the frame they happened in. In a
+    // two-player room the frame also waits here until the other browser has
+    // said what its player did, which is what keeps the two machines
+    // identical.
     pointer.advance();
     if (!netplay.begin()) return false;
     input.advance(netplay.take());
@@ -1061,6 +1061,17 @@ export async function runShell(
 
   /** Run up to `count` frames, and say how many actually ran. */
   const stepFrames = (count: number): number => {
+    // Exactly one pad read per animation tick, and the tick itself owns it.
+    //
+    // `navigator.getGamepads()` is sampled off the main thread and answers
+    // with whatever arrived a moment ago, so reading it twice in one tick is
+    // not the same read twice: a switch can go down in one and up in the
+    // next. Both edges then land in one frame, and a lever resolved by which
+    // direction changed last flips on a bounce the display never showed --
+    // which on a 4-way machine is the stick visibly changing its mind while
+    // the player holds a corner. Only a QA-driven run, where nothing is
+    // ticking frames, reads the pad here.
+    if (qaDrive) pads.poll();
     let ran = 0;
     for (let index = 0; index < count; index++) {
       if (!runFrame()) break;
@@ -1219,6 +1230,7 @@ export async function runShell(
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
     }
+    pads.poll();
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause

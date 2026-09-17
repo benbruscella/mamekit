@@ -191,6 +191,201 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
   assert.equal(settle(input).read('DIAL'), 0xf8, 'the counter holds when the stick centres');
 }
 
+// A machine with two levers, played on a stick that has only one.
+//
+// Tutankham walks on a four-way lever and fires on a separate two-way one;
+// Robotron's two levers are the whole game. Both sat on the right analog
+// stick, which a fight stick does not have and a browser cannot report the
+// absence of. The second lever also answers the four face buttons in their
+// diamond, taken only where the machine has not claimed them itself.
+{
+  const panel: FieldBinding[] = [
+    { port: 'IN1', mask: 0x10, keys: ['KeyJ'], label: 'Fire left', type: 'IPT_JOYSTICKRIGHT_LEFT', ways: 2 },
+    { port: 'IN1', mask: 0x20, keys: ['KeyL'], label: 'Fire right', type: 'IPT_JOYSTICKRIGHT_RIGHT', ways: 2 },
+    { port: 'IN1', mask: 0x40, keys: ['KeyZ'], label: 'P1 Flash Bomb', type: 'IPT_BUTTON2' },
+    { port: 'IN1', mask: 0x01, keys: [], label: 'Walk right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(panel, [], [{ tag: 'IN1', init: 0xff }]);
+  const source = new GamepadInput(input, panel, () => pads);
+  const held = (): string[] => panel.filter(b => (~input.read('IN1') & b.mask) !== 0).map(b => b.label);
+  const press = (...buttons: number[]): string[] => {
+    pads = [pressing(0, buttons)];
+    source.poll();
+    input.advance();
+    return held();
+  };
+
+  assert.deepEqual(press(2), ['Fire left'], 'X fires left');
+  assert.deepEqual(press(1), ['Fire right'], 'B fires right');
+  assert.deepEqual(press(), []);
+  // The machine's own button keeps the face buttons the fold gave it.
+  assert.deepEqual(press(0), ['P1 Flash Bomb'], 'A is still the bomb, not a lever direction');
+  // And a pad that does have a right stick loses nothing.
+  pads = [pad(0, { axes: [0, 0, -0.9, 0] })];
+  source.poll();
+  input.advance();
+  assert.deepEqual(held(), ['Fire left'], 'the right stick still fires too');
+  // The button leads: a fight stick has it and the right stick it does not.
+  assert.deepEqual(source.controlNames(panel[0]!), ['X', 'right stick']);
+}
+
+// A panel whose buttons do not start at button one.
+//
+// Tutankham's only button is IPT_BUTTON2 and Pole Position's is IPT_BUTTON3.
+// Folding the bottom row by name paired A to IPT_BUTTON1, found nothing, and
+// left the pad's primary button dead while a secondary one worked. The row
+// echoes the machine's buttons in the order it numbers them instead.
+{
+  const odd: FieldBinding[] = [
+    { port: 'IN1', mask: 0x40, keys: ['KeyZ'], label: 'P1 Flash Bomb', type: 'IPT_BUTTON2' },
+    { port: 'IN1', mask: 0x01, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(odd, [], [{ tag: 'IN1', init: 0xff }]);
+  const source = new GamepadInput(input, odd, () => pads);
+  const bomb = (): boolean => (~input.read('IN1') & 0x40) !== 0;
+
+  pads = [pressing(0, [0])];  // A
+  source.poll();
+  input.advance();
+  assert.equal(bomb(), true, "the machine's first button answers A even when it is BUTTON2");
+  pads = [pressing(0, [])];
+  source.poll();
+  input.advance();
+  assert.equal(bomb(), false);
+  pads = [pressing(0, [3])];  // Y, where the standard layout puts BUTTON2
+  source.poll();
+  input.advance();
+  assert.equal(bomb(), true, 'and its own place on the layout still works');
+  assert.deepEqual(source.controlNames(odd[0]!).sort(), ['A', 'Y']);
+}
+
+// A tap the pad shows between two emulated frames.
+//
+// The Gamepad API has no events, only a snapshot the browser refreshes once a
+// display frame, so a press and a release can both fall between two frames --
+// a window that is one frame while the page keeps up and the whole of a stall
+// when it does not. Both edges are posted and the input model holds the press
+// for the frame rather than letting the pair cancel.
+{
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(bindings, [], ports);
+  const source = new GamepadInput(input, bindings, () => pads);
+  pads = [pressing(0, [])];
+  source.poll();
+  input.advance();
+
+  pads = [pressing(0, [2])];  // X, the jab punch
+  source.poll();
+  pads = [pressing(0, [])];
+  source.poll();
+  input.advance();
+  assert.equal(input.read('IN1') & 0x10, 0x00, 'a tap between two frames still punches');
+  input.advance();
+  assert.equal(input.read('IN1') & 0x10, 0x10, 'and lets go on the next frame');
+}
+
+// A lever shoved from centre straight into a corner of a 4-way gate.
+//
+// Both switches cross the deadzone in the same poll, so the bits alone
+// cannot say which direction the player meant. The magnitudes can, and the
+// pad is the last place that still has them: it posts the leaning axis
+// second, and the gate reads that as "arrived later" exactly as it reads a
+// keyboard. Without this a stick shoved up-left always gave left and held
+// it, so the player could not climb.
+{
+  const lever: FieldBinding[] = [
+    { port: 'IN1', mask: 0x08, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways: 4 },
+    { port: 'IN1', mask: 0x04, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways: 4 },
+    { port: 'IN1', mask: 0x02, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+    { port: 'IN1', mask: 0x01, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(lever, [], [{ tag: 'IN1', init: 0xff }]);
+  const source = new GamepadInput(input, lever, () => pads);
+  /** Which directions the port asserts, by label. */
+  const held = (): string[] => lever.filter(b => (~input.read('IN1') & b.mask) !== 0).map(b => b.label);
+  const shove = (x: number, y: number): string[] => {
+    pads = [pad(0, { axes: [x, y, 0, 0] })];
+    source.poll();
+    input.advance();
+    return held();
+  };
+
+  // A release reaches the machine on the next frame, with nothing held back:
+  // a lever that lets go late over-runs, and leaves the old direction still
+  // held when the next one arrives, so the gate resolves a corner the player
+  // never made. A switch that really bounces is caught in the input model,
+  // against frames, which the last two assertions here exercise.
+  const centre = (): string[] => shove(0, 0);
+
+  assert.deepEqual(centre(), []);
+  assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'a corner leaning up reads up');
+  assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'and holds it while the lever stays there');
+  assert.deepEqual(centre(), []);
+  assert.deepEqual(shove(-0.95, -0.8), ['Left'], 'a corner leaning left reads left');
+  assert.deepEqual(centre(), []);
+  // A real direction change still wins: that is MAME's own rule and it runs
+  // before any of this.
+  assert.deepEqual(shove(-0.9, 0), ['Left'], 'push left');
+  assert.deepEqual(shove(-0.9, -0.9), ['Up'], 'rolling to up-left lands on up');
+  assert.deepEqual(shove(0, -0.9), ['Up'], 'and easing off leaves up');
+
+  // The bounce the whole thing is for: the right switch drops out of one
+  // poll and is back in the next, while the lever is held in a corner.
+  assert.deepEqual(centre(), []);
+  assert.deepEqual(shove(0.9, 0), ['Right'], 'push right');
+  assert.deepEqual(shove(0.9, -0.9), ['Up'], 'roll into the up-right corner');
+  assert.deepEqual(shove(0, -0.9), ['Up'], 'the right switch misses a poll');
+  assert.deepEqual(shove(0.9, -0.9), ['Up'], 'and is back: the lever has not moved');
+  assert.deepEqual(shove(0.9, -0.9), ['Up'], 'and it still has not');
+  assert.deepEqual(shove(0, -0.9), ['Up'], 'letting go of right leaves up');
+  assert.deepEqual(centre(), [], 'and centring is immediate, not a poll later');
+}
+
+// A lever the browser could not map, on a POV hat.
+//
+// An unrecognised fight stick often reports an empty mapping and puts its
+// lever on a hat axis, which centres outside an axis's own -1..1 range. That
+// is what tells it apart from an analog stick resting at 0, which would
+// otherwise read as a direction held forever.
+{
+  const hatPad = (value: number): PadState => pad(0, {
+    mapping: '',
+    buttons: Array.from({ length: 10 }, () => ({ pressed: false, value: 0 })),
+    axes: [0, 0, 0, 0, 0, 0, 0, 0, 0, value],
+  });
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(bindings, [], ports);
+  const source = new GamepadInput(input, bindings, () => pads);
+  pads = [hatPad(3.2857)]; // centred, and out of range: this axis is a hat
+  source.poll();
+  input.advance();
+  assert.equal(input.read('IN1') & 0x0f, 0x0f, 'a resting hat asserts no direction');
+  pads = [hatPad(-1)]; // detent 0
+  source.poll();
+  input.advance();
+  assert.equal(~input.read('IN1') & 0x0f, 0x08, 'the hat pushed up reads up');
+  pads = [hatPad(-1 + 3 / 3.5)]; // detent 3: down-right
+  source.poll();
+  input.advance();
+  assert.equal(~input.read('IN1') & 0x0f, 0x05, 'and a corner detent reads both its directions');
+  pads = [hatPad(3.2857)];
+  source.poll();
+  input.advance();
+  assert.equal(input.read('IN1') & 0x0f, 0x0f, 'and centres again');
+
+  // An analog axis resting at 0 is never mistaken for a hat detent.
+  const analog = new KeyboardInput(bindings, [], ports);
+  let plain: (PadState | null)[] = [];
+  const stick = new GamepadInput(analog, bindings, () => plain);
+  plain = [pad(0, { mapping: '', axes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] })];
+  stick.poll();
+  analog.advance();
+  assert.equal(analog.read('IN1') & 0x0f, 0x0f, 'an axis at rest is a stick, not a hat');
+}
+
 assert.equal(padName('FightBox R10-Pro (Vendor: 1209 Product: 0001)'), 'FightBox R10-Pro');
 assert.equal(padName('1209-0001-FightBox R10-Pro'), 'FightBox R10-Pro');
 assert.equal(padName('Xbox Wireless Controller Extended Gamepad'), 'Xbox Wireless Controller Extended Gamepad');

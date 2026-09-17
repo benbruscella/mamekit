@@ -412,6 +412,8 @@ Choose the layer from evidence, not from the visible symptom.
 | Two browsers in a room drift apart | something reached a port outside `input.advance()`, or the two machines did not start from the same place; the room names the frame it happened on |
 | A room runs faster than the board's refresh | the input delay's frames in hand were counted as a backlog to catch up on; only unspent timestep time may run a frame |
 | An input reaches the machine a frame late | it was posted after `input.advance()` ran; every source must post before that boundary (see the run loop in `shell.ts`) |
+| A lever's diagonals block one axis on a 4-way machine | the generated binding's `ways`; MAME gates the lever in `digital_joystick::frame_update`, not the game |
+| A tap does nothing while the page is stalling | both edges landed in one batch and cancelled; `input.advance()` holds a press for a frame |
 | A hardware family needs a new central branch | it needs a capability package instead |
 | Audit reports a mixed build | regenerate fully; `--targets` builds are partial by design |
 | App cannot locate config/module | output layout, manifest `dataPath`, or relative URL |

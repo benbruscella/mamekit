@@ -13,7 +13,7 @@ import { bootGame } from '../support/game.ts';
 
 const game = process.env.MAMEKIT_E2E_GAMES?.split(',')[0]?.trim() || 'pacman';
 
-interface Binding { port: string; mask: number; type?: string; player?: number; activeLow?: boolean }
+interface Binding { port: string; mask: number; type?: string; player?: number; activeLow?: boolean; ways?: number }
 interface Probe { mask: number; activeLow: boolean; value: number }
 
 /** The live port byte behind player one's binding of one MAME input type. */
@@ -79,6 +79,12 @@ test.describe(`${game} gamepad`, () => {
     expect((await probe(page, 'IPT_COIN1'))!.value & coinRest!.mask).toBe(releasedBits(coinRest!));
 
     // The stick, past the deadzone, is a held direction; centred, it releases.
+    //
+    // A release reaches the machine on the very next frame, with nothing held
+    // back: a lever that lets go late over-runs, and leaves the old direction
+    // still held when the next arrives, so the gate resolves a corner the
+    // player never made.
+    const release = async () => { await step(); };
     const left = await probe(page, 'IPT_JOYSTICK_LEFT');
     if (left) {
       await setPad([], [-0.9, 0, 0, 0]);
@@ -88,9 +94,66 @@ test.describe(`${game} gamepad`, () => {
       await step();
       expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, 'd-pad left').toBe(pressedBits(left));
       await setPad([]);
-      await step();
+      await release();
       expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask).toBe(releasedBits(left));
       await expect(legend).toContainText('🎮 D-pad');
+
+      // The gate the lever moves inside. A stick with a square restrictor
+      // makes diagonals freely, and a machine MAME declared PORT_4WAY for
+      // was built knowing its own lever could not: left and up together read
+      // as horizontal, which is a player walking past the ladder. Pushing
+      // the pad from left to up-left must land on up.
+      const up = await probe(page, 'IPT_JOYSTICK_UP');
+      const gated = await page.evaluate(() => {
+        const mamekit = (window as unknown as { mamekit: { config: { bindings: Binding[] } } }).mamekit;
+        return mamekit.config.bindings.some(b => b.type === 'IPT_JOYSTICK_UP' && b.ways === 4);
+      });
+      if (up && gated) {
+        await setPad([14]);            // left
+        await step();
+        await setPad([14, 12]);        // left and up: the corner of the gate
+        await step();
+        expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask, '4-way up').toBe(pressedBits(up));
+        expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, '4-way drops left')
+          .toBe(releasedBits(left));
+        await setPad([]);
+        await release();
+        expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask).toBe(releasedBits(up));
+
+        // The bounce: the lever is held in the corner and one switch misses a
+        // single poll. Nothing moved, so the lever must not change axis.
+        await setPad([14]);
+        await step();
+        await setPad([14, 12]);
+        await step();
+        expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask, 'in the corner').toBe(pressedBits(up));
+        await setPad([12]);              // the left switch misses a poll
+        await step();
+        await setPad([14, 12]);          // and is back
+        await step();
+        expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask, 'a bounce moves nothing')
+          .toBe(pressedBits(up));
+        expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, 'and left stays gated')
+          .toBe(releasedBits(left));
+        await setPad([]);
+        await release();
+      }
+
+      // A press and a release the pad shows between two frames: both edges
+      // are posted and the input model holds the press for the frame rather
+      // than letting the pair cancel. The two polls stand in for the run
+      // loop's own, which reads the pad on every animation tick.
+      const poll = () => page.evaluate(
+        () => (window as unknown as { mamekit: { pads: { poll(): void } } }).mamekit.pads.poll());
+      await setPad([14]);
+      await poll();
+      await setPad([]);
+      await poll();
+      await step();
+      expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, 'a tap between frames')
+        .toBe(pressedBits(left));
+      await release();
+      expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask).toBe(releasedBits(left));
     }
 
     // Unplugging mid-press releases the field and withdraws the announcement.

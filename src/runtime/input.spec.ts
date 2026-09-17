@@ -236,3 +236,245 @@ console.log('input.spec: press() edges and release listeners passed');
   assert.equal(settle(tb).read('TB'), 0xe1, 'no fraction, no interpolation');
 }
 console.log('input.spec: frame interpolation of relative controls passed');
+
+// --- the gate the lever moves inside -----------------------------------------
+//
+// MAME reads PORT_nWAY once a frame and decides there whether a direction
+// switch reaches the port at all (digital_joystick::frame_update). A square
+// 4-way gate cannot hold a diagonal, and the machines that declare one were
+// built knowing it: Donkey Kong's ladders and Pac-Man's maze read left+up as
+// horizontal, so a stick with a square restrictor walked past the ladder.
+{
+  const stick = (ways: number | undefined, player = 1): FieldBinding[] => [
+    { port: 'IN0', mask: 0x01, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways, player },
+    { port: 'IN0', mask: 0x02, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways, player },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways, player },
+    { port: 'IN0', mask: 0x08, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways, player },
+  ];
+  const UP = 0x01, DOWN = 0x02, LEFT = 0x04, RIGHT = 0x08;
+  /** Which directions the port is asserting, on an active-low panel. */
+  const asserted = (model: KeyboardInput): number => ~model.read('IN0') & 0x0f;
+
+  const four = stick(4);
+  const gate = new KeyboardInput(four, [], [{ tag: 'IN0', init: 0xff }]);
+  gate.press(four[2]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), LEFT, 'a lever pushed left reads left');
+  // The restrictor is square, so travelling from left to up crosses up-left.
+  gate.press(four[0]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), UP,
+    'a 4-way lever moving from left to up must land on up, not stay horizontal');
+  gate.press(four[2]!, false, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), UP, 'and stays up once the corner is left behind');
+  // Held still, the gate holds its answer rather than re-deciding each frame.
+  gate.advance();
+  assert.equal(asserted(gate), UP);
+  gate.press(four[0]!, false, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), 0, 'and the lever centres');
+
+  // Rest straight to a diagonal names no direction that changed on its own.
+  // MAME's documented fallback is the horizontal axis, and it stands when the
+  // two switches closed on the same frame in the order the table lists them.
+  gate.press(four[0]!, true, 'lever');
+  gate.press(four[3]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), RIGHT, 'a diagonal from rest falls to the horizontal axis');
+  gate.press(four[0]!, false, 'lever');
+  gate.press(four[3]!, false, 'lever');
+  gate.advance();
+
+  // A source that knew which way the lever was leaning says so by posting
+  // that direction last. Always answering "horizontal" meant shoving a 4-way
+  // stick up-left from centre gave left and held it, so the player could not
+  // climb -- which is the whole complaint the gate was meant to fix.
+  gate.press(four[3]!, true, 'lever');  // right, the weaker axis
+  gate.press(four[0]!, true, 'lever');  // up, the one it is leaning on
+  gate.advance();
+  assert.equal(asserted(gate), UP, 'a corner leaning vertical reads the vertical axis');
+  gate.advance();
+  assert.equal(asserted(gate), UP, 'and holds it while the lever stays there');
+  gate.press(four[0]!, false, 'lever');
+  gate.press(four[3]!, false, 'lever');
+  gate.advance();
+
+  // A switch that closed on a later frame still outranks any ordering inside
+  // one frame: that is a real direction change and MAME's own rule owns it.
+  gate.press(four[0]!, true, 'lever');
+  gate.advance();
+  gate.press(four[2]!, true, 'lever');
+  gate.advance();
+  assert.equal(asserted(gate), LEFT, 'a later frame beats an ordering within one');
+  gate.press(four[0]!, false, 'lever');
+  gate.press(four[2]!, false, 'lever');
+  gate.advance();
+
+  // The same lever declared 8-way keeps its diagonal: that machine was built
+  // for a round gate and reads both switches.
+  const eight = stick(8);
+  const open = new KeyboardInput(eight, [], [{ tag: 'IN0', init: 0xff }]);
+  open.press(eight[2]!, true, 'lever');
+  open.advance();
+  open.press(eight[0]!, true, 'lever');
+  open.advance();
+  assert.equal(asserted(open), UP | LEFT, 'an 8-way lever keeps up-left');
+
+  // A lever MAME declared nothing for is an 8-way as far as its own
+  // restriction is concerned.
+  const plain = stick(undefined);
+  const unmarked = new KeyboardInput(plain, [], [{ tag: 'IN0', init: 0xff }]);
+  unmarked.press(plain[2]!, true, 'lever');
+  unmarked.press(plain[0]!, true, 'lever');
+  unmarked.advance();
+  assert.equal(asserted(unmarked), UP | LEFT, 'an unmarked lever is not gated');
+
+  // Opposites never reach the port together on any gate, because no real
+  // lever can assert them: the newest press wins and releasing it hands the
+  // lever back to the one still held.
+  open.press(eight[0]!, false, 'lever');
+  open.press(eight[3]!, true, 'lever');
+  open.advance();
+  assert.equal(asserted(open), RIGHT, 'the newest of two opposites wins');
+  open.press(eight[3]!, false, 'lever');
+  open.advance();
+  assert.equal(asserted(open), LEFT, 'and releasing it hands the lever back');
+
+  // Two levers on one panel are gated apart, as MAME numbers them apart.
+  const pair = [...stick(4, 1), ...stick(4, 2).map((b, i) => ({ ...b, mask: 0x10 << i }))];
+  const panel = new KeyboardInput(pair, [], [{ tag: 'IN0', init: 0xff }]);
+  panel.press(pair[2]!, true, 'p1');
+  panel.advance();
+  panel.press(pair[4]!, true, 'p2'); // player two's up
+  panel.advance();
+  assert.equal(~panel.read('IN0') & 0xff, LEFT | 0x10,
+    "player two's lever must not move player one's");
+}
+console.log('input.spec: MAME 4-way, 8-way and opposite gating passed');
+
+// --- a tap between two frames ------------------------------------------------
+//
+// Sources post what they saw and `advance()` settles it, so a press and a
+// release that both land between two frames used to cancel and never reach
+// the machine at all. That window is one frame while the page keeps up and
+// the whole of a stall when it does not.
+{
+  const tap: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: ['Space'], label: 'Fire', type: 'IPT_BUTTON1' },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+  ];
+  const quick = new KeyboardInput(tap, [], [{ tag: 'IN0', init: 0xff }]);
+  quick.press(tap[0]!, true, 'pad');
+  quick.press(tap[0]!, false, 'pad');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x01, 0x00, 'a press and release inside one frame still fires');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x01, 0x01, 'and is released on the next frame');
+
+  // A tapped direction is gated like a held one rather than skipping the rule.
+  quick.press(tap[1]!, true, 'pad');
+  quick.press(tap[1]!, false, 'pad');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x04, 0x00, 'a tapped direction reaches the lever');
+  quick.advance();
+  assert.equal(quick.read('IN0') & 0x04, 0x04);
+
+  // Losing focus is not a tap: it means nothing is held, and a control
+  // re-asserted there is a control stuck on.
+  quick.press(tap[0]!, true, 'pad');
+  quick.releaseAll();
+  quick.advance();
+  assert.equal(quick.read('IN0'), 0xff, 'a press the same batch released wholesale stays released');
+}
+console.log('input.spec: a tap between two frames reaches the machine');
+// --- a lever that bounces must not change the gate's mind -------------------
+//
+// A microswitch dropping out for an instant and coming straight back is not
+// the player moving the lever, but "favour the direction that changed" reads
+// it as exactly that: a corner held steady flips to the other axis. The gate
+// only re-decides when the set of closed switches differs from last frame's,
+// so a release and a press inside one frame cancel and the answer stands.
+{
+  const stick: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways: 4 },
+    { port: 'IN0', mask: 0x02, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways: 4 },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+    { port: 'IN0', mask: 0x08, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  const lever = new KeyboardInput(stick, [], [{ tag: 'IN0', init: 0xff }]);
+  const facing = (): string[] => stick.filter(b => (~lever.read('IN0') & b.mask) !== 0).map(b => b.label);
+
+  lever.press(stick[1]!, true, 'lever');   // down
+  lever.advance();
+  lever.press(stick[3]!, true, 'lever');   // and into the down-right corner
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'the direction that changed wins');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'and the corner holds');
+
+  // the right switch bounces: out and back inside one frame
+  lever.press(stick[3]!, false, 'lever');
+  lever.press(stick[3]!, true, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'a bounce on the held switch changes nothing');
+  // and on the one the gate is suppressing
+  lever.press(stick[1]!, false, 'lever');
+  lever.press(stick[1]!, true, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'a bounce on the suppressed switch changes nothing either');
+
+  // a real release, on its own frame, is still a real change
+  lever.press(stick[3]!, false, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Down'], 'letting go of right hands the lever to down');
+}
+console.log('input.spec: a bouncing switch does not flip a held corner');
+// The same bounce, but spanning a frame: the switch is reported open on one
+// poll and closed again on the next, with a frame in between.
+//
+// This is what a real stick does, and it is the whole of the ZigZag report.
+// MAME's rule re-decides whenever the set of closed switches differs from
+// last frame's, so the momentary gap makes the returning switch look like the
+// direction the player just moved to, and a corner held steady flips to the
+// other axis -- then flips back on the next bounce.
+{
+  const stick: FieldBinding[] = [
+    { port: 'IN0', mask: 0x01, keys: [], label: 'Up', type: 'IPT_JOYSTICK_UP', ways: 4 },
+    { port: 'IN0', mask: 0x02, keys: [], label: 'Down', type: 'IPT_JOYSTICK_DOWN', ways: 4 },
+    { port: 'IN0', mask: 0x04, keys: [], label: 'Left', type: 'IPT_JOYSTICK_LEFT', ways: 4 },
+    { port: 'IN0', mask: 0x08, keys: [], label: 'Right', type: 'IPT_JOYSTICK_RIGHT', ways: 4 },
+  ];
+  const lever = new KeyboardInput(stick, [], [{ tag: 'IN0', init: 0xff }]);
+  const facing = (): string[] => stick.filter(b => (~lever.read('IN0') & b.mask) !== 0).map(b => b.label);
+
+  lever.press(stick[3]!, true, 'lever');   // right
+  lever.advance();
+  lever.press(stick[0]!, true, 'lever');   // and up: into the up-right corner
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'the direction that changed wins');
+
+  lever.press(stick[3]!, false, 'lever');  // the right switch opens for one frame
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'and a gap on the suppressed switch shows nothing');
+  lever.press(stick[3]!, true, 'lever');   // and closes again
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'a switch that bounced is not a direction the player moved to');
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'and the corner still holds');
+
+  // A switch that stays open is a real change, and the lever follows it.
+  lever.press(stick[0]!, false, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Right'], 'letting go of up hands the lever to right');
+
+  // So is one that comes back after being properly away. A frame is 16ms and
+  // no hand lets go and pushes again inside one, so the gap is what separates
+  // the player from the switch: anything longer is a move.
+  lever.advance();
+  lever.press(stick[0]!, true, 'lever');
+  lever.advance();
+  assert.deepEqual(facing(), ['Up'], 'pushing up again is a real direction change');
+}
+console.log('input.spec: a bounce across a frame does not flip a held corner');
+

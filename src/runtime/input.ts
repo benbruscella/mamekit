@@ -60,6 +60,14 @@ export interface FieldBinding {
    * mouse, spinner or trackball travel moves the port this/100 units.
    */
   sensitivity?: number;
+  /**
+   * MAME's PORT_nWAY on a digital joystick direction: the gate the physical
+   * lever moves inside. 4 is the square gate that cannot hold a diagonal,
+   * which is what Donkey Kong's ladders and Pac-Man's maze were built for;
+   * 16 asks for no restriction at all. Absent means MAME declared none,
+   * which its own restriction treats as 8.
+   */
+  ways?: number;
 }
 
 export interface DipDefault { port: string; mask: number; value: number; name: string }
@@ -100,6 +108,25 @@ interface Field {
   activeValue?: number;
   keyDelta?: number;
   relativeDelta?: number;
+  /** MAME's PORT_nWAY for this switch, when the source declared one. */
+  ways?: number;
+  /** `player:number` of the digital joystick this switch belongs to. */
+  stick?: string;
+  /** which of MAME's four direction bits this switch is: UP, DOWN, LEFT, RIGHT. */
+  dir?: number;
+}
+
+/**
+ * What MAME's `digital_joystick::frame_update` carries between frames for one
+ * lever (`src/emu/ioport.cpp`). State only: which switches the lever has is
+ * wiring and lives in `stickFields`, so a save captures the two numbers and
+ * never walks into the field table.
+ */
+interface Stick {
+  /** m_current as the previous frame left it */
+  previous: number;
+  /** m_current4way: what a PORT_4WAY switch is allowed to assert */
+  four: number;
 }
 
 /**
@@ -114,6 +141,31 @@ interface Field {
 type Phase = 'hold' | 'travel';
 
 const OPPOSITE_SUFFIX: Record<string, string> = { _LEFT: '_RIGHT', _RIGHT: '_LEFT', _UP: '_DOWN', _DOWN: '_UP' };
+
+// MAME's JOYDIR_UP/DOWN/LEFT/RIGHT, in the order its IPT_DIGITAL_JOYSTICK
+// block declares them: direction = (type - (FIRST + 1)) % 4.
+const JOY_UP = 1 << 0;
+const JOY_DOWN = 1 << 1;
+const JOY_LEFT = 1 << 2;
+const JOY_RIGHT = 1 << 3;
+const JOY_VERTICAL = JOY_UP | JOY_DOWN;
+const JOY_HORIZONTAL = JOY_LEFT | JOY_RIGHT;
+const JOY_DIRECTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+
+/**
+ * Which lever a MAME input type is a switch of, and which switch.
+ *
+ * MAME derives both arithmetically from the type's position in its own
+ * enum -- stick number `(type - (FIRST + 1)) / 4`, direction the remainder --
+ * so a panel with two levers gates each one separately. The three names here
+ * are that block in order: JOYSTICK, JOYSTICKRIGHT, JOYSTICKLEFT.
+ */
+function joystickAxis(type: string | undefined): { stick: number; dir: number } | undefined {
+  const match = /^IPT_JOYSTICK(LEFT|RIGHT)?_(UP|DOWN|LEFT|RIGHT)$/.exec(type ?? '');
+  if (!match) return undefined;
+  const stick = match[1] === undefined ? 0 : match[1] === 'RIGHT' ? 1 : 2;
+  return { stick, dir: JOY_DIRECTIONS.indexOf(match[2]!) };
+}
 
 export class KeyboardInput implements InputPorts {
   private state: Record<string, number> = {};
@@ -131,6 +183,44 @@ export class KeyboardInput implements InputPorts {
   private fields: Field[] = [];
   /** opposite joystick direction per field id (LEFT<->RIGHT, UP<->DOWN) */
   private opposite = new Map<string, Field>();
+  /** what each lever's last frame decided, by `player:number`; saved state */
+  private sticks = new Map<string, Stick>();
+  /** the four switches of each lever, by the same key; wiring, never saved */
+  private stickFields = new Map<string, Field[]>();
+  /** the last gate line printed per lever, so a held corner logs once */
+  private loggedGate = new Map<string, string>();
+  /**
+   * When each field was last pressed, as a running count of edges. Two
+   * opposite directions physically held at once are resolved by this: a
+   * keyboard makes that routine and the newest press is the one the player
+   * means.
+   */
+  private pressOrder = new Map<string, number>();
+  private sequence = 0;
+  /**
+   * Which frame each field was last pressed on, and the running count of
+   * frames settled.
+   *
+   * A lever resting in a corner needs to know which of the two switches
+   * closed later, and the per-edge count above is too fine to answer it: two
+   * controls a single poll reported together are simultaneous as far as the
+   * player is concerned, whatever order the table happens to list them in.
+   */
+  private pressFrame = new Map<string, number>();
+  /** Which frame each field last opened, for telling a bounce from a move. */
+  private releaseFrame = new Map<string, number>();
+  private frameCount = 0;
+  /**
+   * Bindings pressed and released inside one frame's batch of events, held
+   * asserted for that one frame.
+   *
+   * A source posts what it saw, and a press and a release that both land
+   * between two frames would otherwise cancel inside `advance()` and never
+   * reach the machine at all. That window is one frame while the page keeps
+   * up and the whole of a stall when it does not, which is why a tap
+   * sometimes did nothing.
+   */
+  private carried = new Set<number>();
   private releaseListeners: (() => void)[] = [];
   /** ports holding a relative control, and their bytes as the frame began */
   private relativePorts = new Set<string>();
@@ -183,7 +273,17 @@ export class KeyboardInput implements InputPorts {
         activeValue: b.activeValue,
         keyDelta: b.keyDelta,
         relativeDelta: b.relativeDelta,
+        ways: b.ways,
       };
+      const axis = joystickAxis(b.type);
+      if (axis) {
+        f.stick = `${f.player}:${axis.stick}`;
+        f.dir = axis.dir;
+        if (!this.sticks.has(f.stick)) this.sticks.set(f.stick, { previous: 0, four: 0 });
+        const switches = this.stickFields.get(f.stick) ?? [];
+        switches.push(f);
+        this.stickFields.set(f.stick, switches);
+      }
       fields.push(f);
       this.byBinding.set(b, f);
       if (f.relativeDelta !== undefined) this.relativePorts.add(f.port);
@@ -241,8 +341,9 @@ export class KeyboardInput implements InputPorts {
    */
   advance(events?: readonly InputEvent[]): void {
     const list = events ?? this.takePending();
-    // 1. What the controls did since the last frame, in the order it happened.
-    for (const event of list) this.applyEvent(event, 'hold');
+    // 1. What the controls did since the last frame, in the order it happened,
+    // then MAME's own once-a-frame resolution of every lever on the panel.
+    this.settle(list);
     // 2. Where each relative port stood as the frame begins; every delta landed
     // from here to the board's frame() is what this frame interpolates.
     for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
@@ -272,11 +373,221 @@ export class KeyboardInput implements InputPorts {
    */
   latch(): void {
     const list = this.takePending();
-    for (const event of list) this.applyEvent(event, 'hold');
+    this.settle(list);
     for (const event of list) this.applyEvent(event, 'travel');
     // A probe reads the port back immediately, so an absolute control settles
     // at its destination here rather than over the frames a ramp would take.
     this.rampAnalog(true);
+  }
+
+  /**
+   * Apply one batch of events and settle every switch they touched.
+   *
+   * MAME does its digital work once a frame in this order too: every port's
+   * switches are read, `digital_joystick::frame_update` resolves each lever,
+   * and only then does a field decide whether its bit reaches the port.
+   */
+  private settle(list: readonly InputEvent[]): void {
+    // Last frame's one-frame holds go back to whatever is physically held.
+    for (const index of this.carried) {
+      const field = this.fields[index];
+      if (field && field.stick === undefined) this.apply(field, this.isHeld(field));
+    }
+    this.carried.clear();
+    this.frameCount++;
+    const tapped = new Set<number>();
+    for (const event of list) {
+      this.applyEvent(event, 'hold');
+      // A wholesale release means nothing is held any more, so a press it
+      // swept away is not a tap: re-asserting one there is how a control
+      // gets stuck on after the page loses focus. A press after it is.
+      if (event.kind === 'release') tapped.clear();
+      else if (event.kind === 'edge' && event.down) tapped.add(event.binding);
+    }
+    // A press the same batch also released is held for this one frame, so a
+    // tap between two frames still reaches the machine.
+    for (const index of tapped) {
+      const field = this.fields[index];
+      if (!field || field.toggle || field.relativeDelta !== undefined) continue;
+      if (this.isHeld(field)) continue;
+      this.carried.add(index);
+      if (field.stick === undefined) this.apply(field, true);
+      if (this.debug) {
+        console.log(`[input f${this.frameCount}] ${field.label} pressed and released between ` +
+          `two frames -> held for this one`);
+      }
+    }
+    this.settleSticks();
+  }
+
+  /** Physically held, or held for this one frame because it was tapped. */
+  private pressed(f: Field): boolean {
+    return this.isHeld(f) || this.carried.has(f.index);
+  }
+
+  /**
+   * MAME's `digital_joystick::frame_update`, once per lever per frame.
+   *
+   * A real cabinet's lever moves inside a gate, and a `PORT_4WAY` gate is
+   * square: the machine was built knowing up and left can never arrive
+   * together. An arcade stick with a square or octagonal restrictor produces
+   * those diagonals freely, and a 4-way game reads the pair as horizontal --
+   * which is a player walking past the ladder they are trying to climb. A
+   * keyboard almost never makes a diagonal, so nothing showed this before.
+   *
+   * MAME resolves it by favouring the direction that just changed, so a lever
+   * travelling from left to up passes through up-left and lands on up at
+   * once; a diagonal it cannot attribute to a change falls to horizontal.
+   */
+  private settleSticks(): void {
+    for (const [name, switches] of this.stickFields) {
+      const stick = this.sticks.get(name)!;
+      let current = 0;
+      for (const f of switches) if (this.pressed(f)) current |= 1 << f.dir!;
+      current = this.resolveOpposites(switches, current);
+      const settled = current !== stick.previous && this.bounced(switches, current, stick.previous);
+      if (this.debug && settled) {
+        console.log(`[input f${this.frameCount}] lever ${name} ignored a switch that re-closed ` +
+          `within a frame; the gate keeps its answer`);
+      }
+      if (current !== stick.previous && !settled) {
+        let four = current;
+        // Zero the switches that did not change, which leaves the new one.
+        if ((four & JOY_VERTICAL) && (four & JOY_HORIZONTAL)) four ^= four & stick.previous;
+        // Still diagonal: the lever went from rest, or from one diagonal
+        // straight to another, and neither switch can be called the change.
+        //
+        // MAME picks the horizontal axis, and says in the same comment why it
+        // can afford to: with a keyboard the case is rare. With a lever it is
+        // the normal way into a corner, and always answering "horizontal"
+        // means shoving a 4-way stick up-left from centre gives left and
+        // holds it -- which is a player unable to climb. So the axis whose
+        // switch closed later wins, because a lever crosses one edge of the
+        // gate before the other. Only when both closed on the same frame is
+        // there nothing to go on, and that is where MAME's answer stands.
+        if ((four & JOY_VERTICAL) && (four & JOY_HORIZONTAL)) {
+          let vertical = Math.max(this.arrived(switches, JOY_UP), this.arrived(switches, JOY_DOWN));
+          let horizontal = Math.max(this.arrived(switches, JOY_LEFT), this.arrived(switches, JOY_RIGHT));
+          if (vertical === horizontal) {
+            // Both closed on the same frame. A source that knew which way the
+            // lever was leaning said so by posting that one last, so fall
+            // through to the finer per-edge order; where it knew nothing the
+            // order is its table's and this lands on MAME's horizontal.
+            vertical = Math.max(this.stamp(switches, JOY_UP), this.stamp(switches, JOY_DOWN));
+            horizontal = Math.max(this.stamp(switches, JOY_LEFT), this.stamp(switches, JOY_RIGHT));
+          }
+          four &= vertical > horizontal ? ~JOY_HORIZONTAL : ~JOY_VERTICAL;
+        }
+        stick.four = four;
+      } else {
+        stick.four &= current;
+      }
+      stick.previous = current;
+      for (const f of switches) {
+        // MAME reads m_way per switch, not per lever, and 16 asks for no
+        // restriction at all.
+        const allowed = f.ways === 16 ? current : f.ways === 4 ? stick.four : current;
+        this.apply(f, (allowed & (1 << f.dir!)) !== 0);
+      }
+      if (!this.debug) continue;
+      // ?debug=1: a direction the player is physically holding that the gate
+      // refused. This is the line that separates "the press was lost" from
+      // "the machine was told and ignored it".
+      //
+      // Only when the answer changes. A held corner is the same decision
+      // sixty times a second, and printing it every frame buries the edges
+      // either side of it in a thousand identical lines.
+      const held = switches.filter(f => this.pressed(f));
+      const gated = held.filter(f => {
+        const allowed = f.ways === 16 ? current : f.ways === 4 ? stick.four : current;
+        return (allowed & (1 << f.dir!)) === 0;
+      });
+      // What is compared is the lever's own decision and nothing else. The
+      // frame stamp changes every frame, and the port dump changes whenever
+      // any other control moves -- a button press was enough to make one
+      // unchanged corner print itself a second time.
+      const decision = gated.length
+        ? `lever ${name} holding ${held.map(f => f.label).join('+')} ` +
+          `-> gate dropped ${gated.map(f => f.label).join('+')}`
+        : '';
+      if (decision !== (this.loggedGate.get(name) ?? '')) {
+        this.loggedGate.set(name, decision);
+        if (decision) console.log(`[input f${this.frameCount}] ${decision} | ${this.dump()}`);
+      }
+    }
+  }
+
+  /**
+   * Opposite directions on one lever, which a real gate cannot assert at once.
+   *
+   * MAME zeroes both, because on a cabinet the pair can only mean a broken
+   * switch. Here the pair is routine -- a keyboard rolls one arrow onto the
+   * other, and a thumbstick crosses centre -- so the newest press wins and
+   * releasing it hands the lever back to the one still held. Either way the
+   * port never sees both, which is all the machine was built to assume.
+   */
+  private resolveOpposites(switches: readonly Field[], current: number): number {
+    for (const [a, b] of [[JOY_UP, JOY_DOWN], [JOY_LEFT, JOY_RIGHT]] as const) {
+      if ((current & a) === 0 || (current & b) === 0) continue;
+      current &= ~(this.stamp(switches, a) >= this.stamp(switches, b) ? b : a);
+    }
+    return current;
+  }
+
+  /**
+   * Whether the only thing that changed on this lever is a switch that
+   * bounced.
+   *
+   * MAME re-decides a lever whenever the set of closed switches differs from
+   * last frame's, and calls whatever is newly closed the direction the player
+   * moved to. A real lever is held by a hand and a gate, so that is sound on
+   * a cabinet. A stick on a desk reports a switch open for one frame and
+   * closed again on the next, and the returning switch then looks exactly
+   * like a new direction -- so a corner held perfectly still flips to the
+   * other axis, and flips back on the next bounce. That is the lever
+   * visibly changing its mind under a hand that has not moved.
+   *
+   * A direction that closed again within a frame of opening was never let
+   * go of, so nothing changed and the gate keeps the answer it had. A switch
+   * that stayed open longer, or one closing for the first time, is a real
+   * move and MAME's rule owns it.
+   */
+  private bounced(switches: readonly Field[], current: number, previous: number): boolean {
+    const arrived = current & ~previous;
+    // Something let go: that is a move, whatever else happened alongside it.
+    if (arrived === 0 || (previous & ~current) !== 0) return false;
+    // A lever at rest is not holding anything for a switch to bounce under.
+    // Pushing it somewhere the frame after letting go is a move, however
+    // quickly it follows.
+    if (previous === 0) return false;
+    for (const f of switches) {
+      const bit = 1 << f.dir!;
+      if ((arrived & bit) === 0 || !this.pressed(f)) continue;
+      const closed = this.pressFrame.get(this.fid(f)) ?? 0;
+      const opened = this.releaseFrame.get(this.fid(f)) ?? 0;
+      if (opened === 0 || closed < opened || closed - opened > 1) return false;
+    }
+    return true;
+  }
+
+  /** Which frame one direction of a lever last closed on; 0 if never. */
+  private arrived(switches: readonly Field[], bit: number): number {
+    let newest = 0;
+    for (const f of switches) {
+      if ((1 << f.dir!) !== bit || !this.pressed(f)) continue;
+      newest = Math.max(newest, this.pressFrame.get(this.fid(f)) ?? 0);
+    }
+    return newest;
+  }
+
+  /** How recently one direction of a lever was pressed; 0 if never. */
+  private stamp(switches: readonly Field[], bit: number): number {
+    let newest = 0;
+    for (const f of switches) {
+      if ((1 << f.dir!) !== bit || !this.pressed(f)) continue;
+      newest = Math.max(newest, this.pressOrder.get(this.fid(f)) ?? 0);
+    }
+    return newest;
   }
 
   /**
@@ -288,7 +599,7 @@ export class KeyboardInput implements InputPorts {
     for (const group of this.analogGroups.values()) {
       const first = group[0]!;
       const shift = Math.log2(first.mask & -first.mask);
-      const held = group.find(field => this.isHeld(field));
+      const held = group.find(field => this.pressed(field));
       const target = held?.activeValue !== undefined
         ? (held.activeValue & first.mask) >>> shift
         : (this.init[first.port] & first.mask) >>> shift;
@@ -304,6 +615,16 @@ export class KeyboardInput implements InputPorts {
         (this.state[first.port] & ~first.mask) | ((next << shift) & first.mask);
     }
   }
+
+  /**
+   * Which frame the machine is about to run, counted by this model.
+   *
+   * Every debug line carries it, because the question that matters when a
+   * control misbehaves is almost always "did those two edges land in the
+   * same frame or different ones" -- and a log without it cannot answer
+   * that. Two rounds of this issue were spent guessing at it.
+   */
+  frames(): number { return this.frameCount; }
 
   /** The generated binding an event names. */
   binding(index: number): FieldBinding | undefined {
@@ -419,6 +740,16 @@ export class KeyboardInput implements InputPorts {
       return;
     }
     const held = this.hold(h, source, down);
+    if (down) {
+      this.pressOrder.set(this.fid(h), ++this.sequence);
+      this.pressFrame.set(this.fid(h), this.frameCount);
+    } else {
+      this.releaseFrame.set(this.fid(h), this.frameCount);
+    }
+    // A switch of a digital joystick belongs to the lever, not to this edge:
+    // `settleSticks()` decides what all four of them assert, once, after every
+    // event in the frame has landed.
+    if (h.stick !== undefined) return;
     const opp = this.opposite.get(this.fid(h));
     this.apply(h, held);
     if (opp && this.isHeld(opp)) {
@@ -431,22 +762,24 @@ export class KeyboardInput implements InputPorts {
   private onKey(ev: KeyboardEvent, down: boolean): void {
     const hits = this.byKey.get(ev.code);
     if (!hits) {
-      if (this.debug && down && !ev.repeat) console.log(`[input] ${ev.code} unbound`);
+      if (this.debug && down && !ev.repeat) console.log(`[input f${this.frameCount}] ${ev.code} unbound`);
       return;
     }
     ev.preventDefault();
     for (const h of hits) {
       this.drive(h, down, ev.repeat, ev.code);
       if (this.debug && !ev.repeat && h.relativeDelta === undefined && !h.toggle) {
-        console.log(`[input] ${ev.code} ${down ? 'DOWN' : 'UP'} -> ${h.port} mask=0x${h.mask.toString(16)} ` +
-          `${h.activeLow ? 'activeLow' : 'activeHigh'} | ${this.dump()}`);
+        console.log(`[input f${this.frameCount}] ${ev.code} ${down ? 'DOWN' : 'UP'} -> ${h.port} ` +
+          `mask=0x${h.mask.toString(16)} ${h.activeLow ? 'activeLow' : 'activeHigh'} ` +
+          `| ports before this frame: ${this.dump()}`);
       }
     }
   }
 
   /** Save-state roots (machine-state.ts): port bytes, holds, toggles and this frame's travel. */
   stateKeys(): readonly string[] {
-    return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta', 'pending'];
+    return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta', 'pending',
+      'sticks', 'pressOrder', 'pressFrame', 'releaseFrame', 'sequence', 'frameCount', 'carried'];
   }
 
   /** all port bytes as hex, for logging/overlay */
@@ -484,6 +817,13 @@ export class KeyboardInput implements InputPorts {
     this.pending = [];
     this.holds.clear();
     this.toggled.clear();
+    this.pressOrder.clear();
+    this.pressFrame.clear();
+    this.releaseFrame.clear();
+    this.carried.clear();
+    this.sequence = 0;
+    this.frameCount = 0;
+    for (const stick of this.sticks.values()) { stick.previous = 0; stick.four = 0; }
     for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
     for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
     this.frameDelta.clear();
@@ -495,6 +835,8 @@ export class KeyboardInput implements InputPorts {
     for (const tag of Object.keys(this.state)) this.state[tag] = this.init[tag];
     for (const tag of this.relativePorts) this.frameStart[tag] = this.state[tag];
     this.holds.clear();
+    this.carried.clear();
+    for (const stick of this.sticks.values()) { stick.previous = 0; stick.four = 0; }
     for (const field of this.fields) {
       if (field.toggle && this.toggled.get(this.fid(field))) this.apply(field, true);
     }
