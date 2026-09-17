@@ -502,15 +502,17 @@ export class KeyboardInput implements InputPorts {
         const allowed = f.ways === 16 ? current : f.ways === 4 ? stick.four : current;
         return (allowed & (1 << f.dir!)) === 0;
       });
-      // The decision, without the frame stamp: that changes every frame and
-      // comparing it would defeat the whole point of only logging a change.
+      // What is compared is the lever's own decision and nothing else. The
+      // frame stamp changes every frame, and the port dump changes whenever
+      // any other control moves -- a button press was enough to make one
+      // unchanged corner print itself a second time.
       const decision = gated.length
         ? `lever ${name} holding ${held.map(f => f.label).join('+')} ` +
-          `-> gate dropped ${gated.map(f => f.label).join('+')} | ${this.dump()}`
+          `-> gate dropped ${gated.map(f => f.label).join('+')}`
         : '';
       if (decision !== (this.loggedGate.get(name) ?? '')) {
         this.loggedGate.set(name, decision);
-        if (decision) console.log(`[input f${this.frameCount}] ${decision}`);
+        if (decision) console.log(`[input f${this.frameCount}] ${decision} | ${this.dump()}`);
       }
     }
   }
