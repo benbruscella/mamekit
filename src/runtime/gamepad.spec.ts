@@ -243,17 +243,34 @@ function pressing(index: number, buttons: number[], axes: number[] = [0, 0, 0, 0
     return held();
   };
 
-  assert.deepEqual(shove(0, 0), []);
+  // A four-way lever's release is believed only once a second poll agrees,
+  // so centring it takes one extra poll. That is the price of not flipping
+  // on a bounce, and it is paid only here.
+  const centre = (): string[] => { shove(0, 0); return shove(0, 0); };
+
+  assert.deepEqual(centre(), []);
   assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'a corner leaning up reads up');
   assert.deepEqual(shove(-0.8, -0.95), ['Up'], 'and holds it while the lever stays there');
-  assert.deepEqual(shove(0, 0), []);
+  assert.deepEqual(centre(), []);
   assert.deepEqual(shove(-0.95, -0.8), ['Left'], 'a corner leaning left reads left');
-  assert.deepEqual(shove(0, 0), []);
+  assert.deepEqual(centre(), []);
   // A real direction change still wins: that is MAME's own rule and it runs
   // before any of this.
   assert.deepEqual(shove(-0.9, 0), ['Left'], 'push left');
   assert.deepEqual(shove(-0.9, -0.9), ['Up'], 'rolling to up-left lands on up');
   assert.deepEqual(shove(0, -0.9), ['Up'], 'and easing off leaves up');
+
+  // The bounce the whole thing is for: the right switch drops out of one
+  // poll and is back in the next, while the lever is held in a corner.
+  assert.deepEqual(centre(), []);
+  assert.deepEqual(shove(0.9, 0), ['Right'], 'push right');
+  assert.deepEqual(shove(0.9, -0.9), ['Up'], 'roll into the up-right corner');
+  assert.deepEqual(shove(0, -0.9), ['Up'], 'the right switch misses a poll');
+  assert.deepEqual(shove(0.9, -0.9), ['Up'], 'and is back: the lever has not moved');
+  assert.deepEqual(shove(0.9, -0.9), ['Up'], 'and it still has not');
+  // Two polls without it is a real release, and the lever follows.
+  shove(0, -0.9);
+  assert.deepEqual(shove(0, -0.9), ['Up'], 'letting go of right leaves up');
 }
 
 // A lever the browser could not map, on a POV hat.
