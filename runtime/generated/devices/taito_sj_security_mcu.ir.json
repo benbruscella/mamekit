@@ -1,0 +1,2327 @@
+{
+  "type": "TAITO_SJ_SECURITY_MCU",
+  "uses": [
+    {
+      "game": "elevator",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TAITO_SJ_SECURITY_MCU",
+    "className": "taito_sj_security_mcu_device",
+    "shortName": "taitosjsecmcu",
+    "description": "Taito SJ Security MCU Interface",
+    "sourceFile": "src/mame/taito/taitosjsec.cpp",
+    "sourceLine": 6,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TAITO_SJ_SECURITY_MCU,  taito_sj_security_mcu_device, \"taitosjsecmcu\", \"Taito SJ Security MCU Interface\")"
+  },
+  "methods": [
+    {
+      "name": "data_r",
+      "parameters": "address_space &space, offs_t offset",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "perfect_quantum"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_usec"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 10
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "cast",
+                        "valueType": "u8",
+                        "operand": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "space"
+                            },
+                            "property": "unmap"
+                          },
+                          "args": []
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 252
+                      }
+                    },
+                    "right": {
+                      "kind": "cast",
+                      "valueType": "u8",
+                      "operand": {
+                        "kind": "conditional",
+                        "condition": {
+                          "kind": "identifier",
+                          "name": "m_zaccept"
+                        },
+                        "whenTrue": {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        "whenFalse": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "cast",
+                    "valueType": "u8",
+                    "operand": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_zready"
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "side_effects_disabled"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_zaccept"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_mcu_data"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "int_mode::WRITE"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_int_mode"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_mcu"
+                        },
+                        "property": "set_input_line"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "M68705_IRQ_LINE"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "HOLD_LINE"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "declare",
+                "name": "sched",
+                "valueType": "device_scheduler&",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "device_scheduler&",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "scheduler"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "sched"
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "taito_sj_security_mcu_device::do_host_write"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "sched"
+                    },
+                    "property": "perfect_quantum"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_usec"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 10
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "busak_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 73,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_busak"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "ASSERT_LINE"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 78,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_reset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "ASSERT_LINE"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "CLEAR_LINE"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_zaccept"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_zready"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "int_mode::LATCH"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_int_mode"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_mcu"
+                        },
+                        "property": "set_input_line"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "M68705_IRQ_LINE"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "CLEAR_LINE"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_mcu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "INPUT_LINE_RESET"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_addr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_mcu_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_host_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_read_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_zaccept"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_zready"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pa_val"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pb_val"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_busak"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_reset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_addr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 65535
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mcu_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_host_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_read_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_val"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_busak"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_reset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 113,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_zaccept"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_zready"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "int_mode::LATCH"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_int_mode"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_mcu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "M68705_IRQ_LINE"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "M68705P5"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_mcu"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_mcu"
+                    },
+                    "property": "porta_r"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "taito_sj_security_mcu_device::mcu_pa_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_mcu"
+                    },
+                    "property": "portc_r"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "taito_sj_security_mcu_device::mcu_pc_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_mcu"
+                    },
+                    "property": "porta_w"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "taito_sj_security_mcu_device::mcu_pa_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_mcu"
+                    },
+                    "property": "portb_w"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "taito_sj_security_mcu_device::mcu_pb_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcu_pa_r",
+      "parameters": "",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 130,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_bus_val"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcu_pc_r",
+      "parameters": "",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 135,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_zready"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "right": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_zaccept"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_busak"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcu_pa_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa_val"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_pb_val"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_addr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_addr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 65280
+                    }
+                  },
+                  "right": {
+                    "kind": "cast",
+                    "valueType": "u16",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_bus_val"
+                      },
+                      "args": []
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcu_pb_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 151,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "inc_addr",
+            "valueType": "bool",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "diff",
+            "valueType": "u8",
+            "value": {
+              "kind": "cast",
+              "valueType": "u8",
+              "operand": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pb_val"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "diff"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_68intrq_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "BIT"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "CLEAR_LINE"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "ASSERT_LINE"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "bus_val",
+            "valueType": "u8",
+            "value": {
+              "kind": "cast",
+              "valueType": "u8",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_bus_val"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "diff"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "data"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "taito_sj_security_mcu_device::do_mcu_read"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "int_mode::LATCH"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_int_mode"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_mcu"
+                        },
+                        "property": "set_input_line"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "M68705_IRQ_LINE"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "CLEAR_LINE"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "diff"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "data"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "taito_sj_security_mcu_device::do_mcu_write"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "bus_val"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "diff"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_busrq_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "BIT"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        ]
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "CLEAR_LINE"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "ASSERT_LINE"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "diff"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_68write_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_addr"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "bus_val"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "inc_addr"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "diff"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 5
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_read_data"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_68read_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_addr"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "inc_addr"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "data"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_addr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_addr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 65280
+                    }
+                  },
+                  "right": {
+                    "kind": "cast",
+                    "valueType": "u16",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "bus_val"
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "inc_addr"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_addr"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_addr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_addr"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "data"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_addr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_addr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "u16",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "bus_val"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_val"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_mcu_read",
+      "parameters": "int param",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 208,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_zready"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_mcu_write",
+      "parameters": "int param",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 213,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mcu_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "u8",
+              "operand": {
+                "kind": "identifier",
+                "name": "param"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_reset"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_zaccept"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_host_write",
+      "parameters": "int param",
+      "sourceFile": "src/mame/taito/taitosjsec.cpp",
+      "sourceLine": 220,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_host_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "u8",
+              "operand": {
+                "kind": "identifier",
+                "name": "param"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_reset"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_zready"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "int_mode::LATCH"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_int_mode"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_mcu"
+                        },
+                        "property": "set_input_line"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "M68705_IRQ_LINE"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "ASSERT_LINE"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/taito/taitosjsec.cpp",
+    "src/mame/taito/taitosjsec.h"
+  ],
+  "composedOf": [
+    "M68705P5"
+  ]
+}

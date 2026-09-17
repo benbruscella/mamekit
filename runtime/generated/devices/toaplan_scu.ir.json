@@ -1,0 +1,782 @@
+{
+  "type": "TOAPLAN_SCU",
+  "uses": [
+    {
+      "game": "wardner",
+      "tags": [
+        "scu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TOAPLAN_SCU",
+    "className": "toaplan_scu_device",
+    "shortName": "toaplan_scu",
+    "description": "Toaplan SCU",
+    "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+    "sourceLine": 39,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TOAPLAN_SCU, toaplan_scu_device, \"toaplan_scu\", \"Toaplan SCU\")"
+  },
+  "methods": [
+    {
+      "name": "toaplan_scu_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 57,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "decode_gfx"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxinfo"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "gfx"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                "property": "set_colorbase"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_colbase"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pri_cb"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 76,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites_common",
+      "parameters": "auto &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "offs",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "bytes"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "offs"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "offs"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "attribute",
+                "valueType": "u16",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "spriteram"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offs"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "priority",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "attribute"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3072
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "priority"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "continue"
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "sy",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "spriteram"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "offs"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "sy"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "sprite",
+                    "valueType": "u32",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "spriteram"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "offs"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2047
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "color",
+                    "valueType": "u32",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "attribute"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 63
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "pri_mask",
+                    "valueType": "u32",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_pri_cb"
+                          },
+                          "property": "isnull"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_pri_cb"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "priority"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "pri_mask"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "sx",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "spriteram"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offs"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "flipx",
+                    "valueType": "bool",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "attribute"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "flipx"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sx"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "m_xoffs_flipped"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "flipy",
+                    "valueType": "bool",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "attribute"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "gfx"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        },
+                        "property": "prio_transpen"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "bitmap"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "cliprect"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "sprite"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "color"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "flipx"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "flipy"
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sx"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_xoffs"
+                          }
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sy"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "screen"
+                              },
+                              "args": []
+                            },
+                            "property": "priority"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "pri_mask"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "draw_sprites_common"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "bitmap"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spriteram"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "bytes"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites",
+      "parameters": "bitmap_rgb32 &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 125,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "draw_sprites_common"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "bitmap"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spriteram"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "bytes"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_xoffsets",
+      "parameters": "int xoffs, int xoffs_flipped",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs_flipped"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_colorbase",
+      "parameters": "u16 base",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_colbase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "toaplan_scu_device::set_xoffsets",
+      "parameters": "int xoffs, int xoffs_flipped",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs_flipped"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "toaplan_scu_device::set_colorbase",
+      "parameters": "u16 base",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_colbase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/toaplan/toaplan_scu.cpp",
+    "src/mame/toaplan/toaplan_scu.h"
+  ]
+}

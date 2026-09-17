@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "type": "YM3526",
+  "className": "ym3526_device",
+  "channels": 9,
+  "operators": 18,
+  "registers": 256,
+  "waveformLength": 1024,
+  "sampleRateDivider": 72,
+  "operatorMap": [
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      7,
+      10
+    ],
+    [
+      8,
+      11
+    ],
+    [
+      12,
+      15
+    ],
+    [
+      13,
+      16
+    ],
+    [
+      14,
+      17
+    ]
+  ],
+  "operatorOffsets": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+  ],
+  "multiples": [
+    0.5,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    10,
+    12,
+    12,
+    15,
+    15
+  ],
+  "sourceFiles": [
+    "src/devices/sound/ymopl.cpp",
+    "3rdparty/ymfm/src/ymfm_opl.h",
+    "3rdparty/ymfm/src/ymfm_opl.cpp",
+    "3rdparty/ymfm/src/ymfm_fm.h"
+  ],
+  "source": {
+    "file": "3rdparty/ymfm/src/ymfm_opl.cpp",
+    "line": 143
+  }
+}

@@ -1,0 +1,106 @@
+Arcade Video game published 38 years ago:
+
+Ghouls'n Ghosts (c) 1988 Capcom.
+
+Export release. Game developed in Japan. For more information about the game itself, please see the original Japanese release entry; "Daimakaimura [B-Board 88622B-2]".
+
+- TECHNICAL -
+
+Runs on the "CP System" hardware
+B-Board ID 88620B-2
+B-Board PALs: DM620
+CPS-B #: CPS-B-01 DL-0411-10001
+
+There is no C-Board on these Export versions, contrary to the original Japanese release.
+
+- TRIVIA -
+
+Ghouls'n Ghosts was released in December 1988 in arcades outside of Japan. It is known in Japan as "Daimakaimura".
+
+- TIPS AND TRICKS -
+
+Debug features (US VERSION ONLY, it doesn't work on the original Japanese version) : 
+How to activate the debug features.
+1) Set "Game Mode" Dip Switch to "Game".
+2) Set both "Coin A" and "Coin B" Dip Switches to 1C_1C.
+3) Reset the game.
+4) Insert a coin.
+5) Set "Game Mode" Dip Switch to "Test".
+6) Set the debug Dip Switches to what you want.
+7) Start a 1 player game.
+
+Some debug features :
+- "Armor on New Life" is effective at the beginning of a new life. Note that even when you start without armor, you need to be hit twice.
+- "Starting Weapon" is effective only when you start a new game or when you continue play.
+- "Starting Level" is effective only when you start a new game (you must NOT continue play !).
+- "Slow Motion" and "Invulnerability" can be changed at any time.
+
+- PORTS -
+
+Here is a list of all ports excluding Japanese ones. To see Japanese ports, please see the original Japanese version entry; "Daimakaimura [B-Board 88622B-2]".
+
+* CONSOLES: 
+[US] Sega Genesis (1989) 
+Sega Mega Drive [BR] (1990) by Tec Toy 
+Sega Mega Drive [KO] (1990) "Daemagyecheon [Model GM-5008-JM]" 
+Sega Master System [US] [EU] (1990) "Ghouls'n Ghosts [Model 7055]" 
+Sega Master System [BR] (1990) by Tec Toy 
+[EU] Sega Mega Drive (nov.30, 1990) 
+[EU] Sony PlayStation (sept.3, 1999) "Capcom Generations 2 - Chronicles of Arthur [Capcom Generations Disc 2] [Model SLES-11881]" 
+[US] Microsoft XBOX (sept.27, 2005) "Capcom Classics Collection" 
+[US] Sony PS2 (sept.27, 2005) "Capcom Classics Collection [Model SLUS-21316]" 
+[EU] Microsoft XBOX (nov.18, 2005) "Capcom Classics Collection" 
+[EU] Sony PS2 (nov.18, 2005) "Capcom Classics Collection [Model SLES-53661]" 
+
+* HANDHELDS: 
+[US] Sony PSP (oct.24, 2006) "Capcom Classics Collection Reloaded [Model ULUS-10134]" 
+[EU] Sony PSP (nov.10, 2006) "Capcom Classics Collection Reloaded [Model ULES-00377]" 
+[AU] Sony PSP (nov.16, 2006) "Capcom Classics Collection Reloaded" 
+
+* COMPUTERS: 
+[EU] Sinclair ZX Spectrum (1989) 
+[US] Commodore C64 [EU] (1989) 
+[EU] Atari ST (1989) 
+[EU] Amstrad CPC (1989) 
+Commodore Amiga [US] (1989) "Ghouls 'n' Ghosts"
+Commodore Amiga [US] (1991) "Ghouls 'n' Ghosts & Venus the Flytrap [Chart Attack]"
+Commodore Amiga [US] (199?) "Ghouls 'n' Ghosts [Platinum]"
+[EU] Amstrad CPC (1990) "Coin-Op Hits II"
+[EU] Amstrad CPC (1991) "Capcom Collection" 
+[EU] Atari ST (1991) "Capcom Collection" 
+[EU] Commodore C64 (1991) "Capcom Collection" 
+[EU] Commodore Amiga (1991) "Capcom Collection" 
+[EU] Sinclair ZX Spectrum (1991) "Capcom Collection" 
+
+* OTHERS:  
+Street Fighter II' Special Champion Edition Plug 'n Play TV Game [US] (2004) by Radica Games : Genesis version included as a bonus.
+Apple iPhone/iPod [US] (nov.4, 2010) "Capcom Arcade [Model 397347348]"
+
+- SERIES -
+
+MAIN SERIES
+1. Ghosts'n Goblins (1985, Arcade)
+2. Ghouls'n Ghosts [B-Board 88620B-2] (1988, Arcade)
+3. Super Ghouls'n Ghosts [Model SNS-CM-USA] (1991, SNES)
+4. Makaimura Gaiden - The Demon Darkness (1993, Game Boy)
+5. Arthur to Astaroth no Nazomakaimura (1996, PlayStation, Saturn)
+6. Makaimura for WonderSwan (1999, WonderSwan)
+7. Maximo - Ghosts to Glory (2001, PS2)
+8. Choumakaimura R (2002, Game Boy Advance)
+9. Maximo vs. Army of Zin (2003, PS2)
+10. Ultimate Ghosts'n Goblins (2006, PSP)
+11. Goku Makaimura Kai (2007, PSP) 
+12. Ghosts'n Goblins - Gold Knights (2009, iOS)
+13. Ghosts'n Goblins - Gold Knights II (2010, iOS)
+14. Ghosts'n Goblins Resurrection (2021, Switch, PS4, PC, Xbox One)
+
+SPIN-OFF
+1. Gargoyle's Quest (1990, Game Boy)
+2. Gargoyle's Quest II (1992, NES)
+3. Demon's Crest (1994, SNES)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/951/?o=2
+
+— Gaming History (arcade-history.com)

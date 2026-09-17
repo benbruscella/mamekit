@@ -1,0 +1,678 @@
+{
+  "game": "sinistar",
+  "title": "Sinistar (revision 3, upright) (Williams, 1982)",
+  "fullname": "Sinistar (revision 3, upright)",
+  "year": "1982",
+  "company": "Williams",
+  "family": "williams",
+  "driverFile": "src/mame/williams/williams.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "mc6809e",
+      "clock": 1000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 49151,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 0,
+          "end": 36863,
+          "kind": "nop"
+        },
+        {
+          "start": 0,
+          "end": 36863,
+          "kind": "rom",
+          "romOffset": 0,
+          "viewTag": "m_rom_view",
+          "viewEntry": 0
+        },
+        {
+          "start": 49152,
+          "end": 49167,
+          "kind": "ram",
+          "mirror": 1008,
+          "share": "paletteram",
+          "writeOnly": true
+        },
+        {
+          "start": 51204,
+          "end": 51207,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "pia_0.read",
+          "write": "pia_0.write"
+        },
+        {
+          "start": 51212,
+          "end": 51215,
+          "kind": "handler",
+          "mirror": 240,
+          "read": "pia_1.read",
+          "write": "pia_1.write"
+        },
+        {
+          "start": 51456,
+          "end": 51711,
+          "kind": "handler",
+          "write": "williams_state.vram_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 51968,
+          "end": 52223,
+          "kind": "handler",
+          "read": "williams_state.video_counter_r"
+        },
+        {
+          "start": 52223,
+          "end": 52223,
+          "kind": "handler",
+          "write": "williams_state.watchdog_reset_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 52224,
+          "end": 53247,
+          "kind": "ram",
+          "share": "nvram",
+          "write": "williams_state.cmos_4bit_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 65535,
+          "kind": "rom"
+        },
+        {
+          "start": 51712,
+          "end": 51719,
+          "kind": "handler",
+          "mirror": 248,
+          "write": "blitter.register_write"
+        },
+        {
+          "start": 51456,
+          "end": 51711,
+          "kind": "handler",
+          "write": "williams_state.sinistar_vram_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 57343,
+          "kind": "ram"
+        },
+        {
+          "start": 57344,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "m6808",
+      "clock": 3579545,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 127,
+          "kind": "ram"
+        },
+        {
+          "start": 128,
+          "end": 255,
+          "kind": "ram"
+        },
+        {
+          "start": 1024,
+          "end": 1027,
+          "kind": "handler",
+          "mirror": 32768,
+          "read": "pia_2.read",
+          "write": "pia_2.write"
+        },
+        {
+          "start": 45056,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "dac",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "HC55516",
+        "deviceTag": "cvsd",
+        "clock": 0,
+        "gain": 0.8,
+        "target": "speaker",
+        "writeMethods": [
+          "digit_w",
+          "clock_w"
+        ]
+      }
+    ],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 292,
+    "height": 240,
+    "xOffset": 6,
+    "yOffset": 7,
+    "refresh": 60.09615384615385,
+    "htotal": 512,
+    "vtotal": 260,
+    "vbstart": 247,
+    "vbend": 7,
+    "updateMode": "scanline",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "sinistar_rom_1-b_16-3004-53.1d",
+          "offset": 0,
+          "size": 4096,
+          "crc": "f6f3a22c",
+          "alt": [
+            {
+              "file": "sinistar_rom_1-b_16-3004-12.1d",
+              "crc": "3810d7b8"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_2-b_16-3004-54.1c",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "cab3185c"
+        },
+        {
+          "file": "sinistar_rom_3-b_16-3004-55.1a",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "1ce1b3cc",
+          "alt": [
+            {
+              "file": "sinistar_rom_3-b_16-3004-14.1a",
+              "crc": "7c984ca9"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_4-b_16-3004-56.2d",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "6da632ba",
+          "alt": [
+            {
+              "file": "sinistar_rom_4-b_16-3004-15.2d",
+              "crc": "cc6c4f24"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_5-b_16-3004-57.2c",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "b662e8fc",
+          "alt": [
+            {
+              "file": "sinistar_rom_5-b_16-3004-16.2c",
+              "crc": "12285bfe"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_6-b_16-3004-58.2a",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "2306183d",
+          "alt": [
+            {
+              "file": "sinistar_rom_6-b_16-3004-17.2a",
+              "crc": "7a675f35"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_7-b_16-3004-59.3d",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "e5dd918e",
+          "alt": [
+            {
+              "file": "sinistar_rom_7-b_16-3004-18.3d",
+              "crc": "b0463243"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_8-b_16-3004-60.3c",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "4785a787",
+          "alt": [
+            {
+              "file": "sinistar_rom_8-b_16-3004-45.3c",
+              "crc": "d7ecee45"
+            },
+            {
+              "file": "sinistar_rom_8-b_16-3004-19.3c",
+              "crc": "909040d4"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_9-b_16-3004-61.3a",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "50cb63ad",
+          "alt": [
+            {
+              "file": "sinistar_rom_9-b_16-3004-20.3a",
+              "crc": "cc949810"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_10-b_16-3004-62.4c",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "3d670417",
+          "alt": [
+            {
+              "file": "sinistar_rom_10-b_16-3004-21.4c",
+              "crc": "ea87a53f"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_11-b_16-3004-63.4a",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "3162bc50",
+          "alt": [
+            {
+              "file": "sinistar_rom_11-b_16-3004-48.4a",
+              "crc": "792c8b00"
+            },
+            {
+              "file": "sinistar_rom_11-b_16-3004-22.4a",
+              "crc": "88d36e80"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "3004_speech_ic7_r1_16-3004-52.ic7",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "e1019568"
+        },
+        {
+          "file": "3004_speech_ic5_r1_16-3004-50.ic5",
+          "offset": 49152,
+          "size": 4096,
+          "crc": "cf3b5ffd"
+        },
+        {
+          "file": "3004_speech_ic6_r1_16-3004-51.ic6",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "ff8d2645"
+        },
+        {
+          "file": "3004_speech_ic4_r1_16-3004-49.ic4",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "4b56a626"
+        },
+        {
+          "file": "video_sound_rom_9_std.808.ic12",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "b82f4ddb"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "decoder_rom_4.3g",
+          "offset": 0,
+          "size": 512,
+          "crc": "e6631c23"
+        },
+        {
+          "file": "decoder_rom_6.3c",
+          "offset": 512,
+          "size": 512,
+          "crc": "83faf25e"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Auto Up / Manual Down",
+      "type": "IPT_SERVICE1",
+      "activeLow": false,
+      "toggle": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "F2"
+      ],
+      "label": "Advance",
+      "type": "IPT_SERVICE",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "F3"
+      ],
+      "label": "High Score Reset",
+      "type": "IPT_MEMORY_RESET",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "49WAYX",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_AD_STICK_X_LEFT",
+      "type": "IPT_AD_STICK_X_LEFT",
+      "activeLow": false,
+      "activeValue": 0,
+      "keyDelta": 10
+    },
+    {
+      "port": "49WAYX",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_AD_STICK_X_RIGHT",
+      "type": "IPT_AD_STICK_X_RIGHT",
+      "activeLow": false,
+      "activeValue": 111,
+      "keyDelta": 10
+    },
+    {
+      "port": "49WAYY",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_AD_STICK_Y_UP",
+      "type": "IPT_AD_STICK_Y_UP",
+      "activeLow": false,
+      "activeValue": 111,
+      "keyDelta": 10
+    },
+    {
+      "port": "49WAYY",
+      "mask": 255,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_AD_STICK_Y_DOWN",
+      "type": "IPT_AD_STICK_Y_DOWN",
+      "activeLow": false,
+      "activeValue": 0,
+      "keyDelta": 10
+    }
+  ],
+  "dipDefaults": [],
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.223",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "MajorHavocOnKLOV",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.284",
+        "lastRelease": "0.284"
+      },
+      {
+        "name": "Recreativas.org",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.262",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "Asociación Retroclub",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.278",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.230",
+        "lastRelease": "0.230"
+      },
+      {
+        "name": "Juan Romero",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.223",
+        "lastRelease": "0.223"
+      },
+      {
+        "name": "M.A.S.H.",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.147",
+        "lastRelease": "0.147"
+      },
+      {
+        "name": "O. Galibert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.277",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "SynaMax",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-18",
+    "commits": 291,
+    "authors": 42,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nSinistar (c) 1982 Williams.\n\nYour intergalactic crystal-mining mission takes you to the antipodes of the known universe. But your parametric DeepSpace scanner faithfully displays the sector of the galaxy you presently occupy (including an area fully three parsecs across, no less)! \n\nKeep the galaxy safe for all its sinizens! Fiendish Worker ships from the planet Sporg will attempt to fabricate a Sinistar from the remains of derelict planetoids in your very sector. You must not let them do this for two reasons : \n1) These planetoids contain the life-sustaining crystals that your civilization requires for its vital technologies. \n2) With the eminently unstable Sinistar in their possession, the Sprogites can lay waste to any civilization in your sector. You alone stand in their way. \n\nYou must mine the sinisite crystals. Williams has equipped you with the latest heuristic electret cannon technology. All you need to do is aim at a planetoid and shoot. Now collect your motherlode! \n\nIn fact, only with sinisite can you manufacture sinibombs to eradicate the Sinistar. But you must also rebuff the Workers and disintegrate their even more aggressive comrades-at-arms, the evil skelomorphic Warriors! Intelligent beings everywhere depend on your courage, your dedication, your reserve, your shrewd command of tactical invention! It's up to you, space cadet!\n\n- TECHNICAL -\n\n[Upright model]\n\nMain CPU : Motorola M6809 (@ 1 Mhz) \nSound CPU : M6808 (@ 894.75 Khz) \nSound Chips : DAC, HC55516 (@ 894.75 Khz) \n\nPlayers : 2 \nControl : 8-way joystick \nButtons : 2 \n= > [1] FIRE, [2] SINIBOMB\n\n- TRIVIA -\n\nSinistar was released in January 1983 in the USA, even if the copyright year is 1982.\n\nAlso released as :\n\"Sinistar [Cockpit model]\"\n\"Sinistar [DuraMold model]\"\n\nThis game was originally going to be called \"Juggernaut\", then \"Darkstar\". The prototype version called Sinistar is a machine that was displayed at the November 1982 AMOA show in Las Vegas. The revision 2 was the most common version of the game. \n\nThe game is jokingly referred to as 'Opie-Star' at Williams' offices, because Sinistar's 'Run, Coward!' taunt sounded like he's saying 'Ron Howard' (acclaimed actor and director best known for his roles as Opie Taylor on 'The Andy Griffith Show', and as Richie Cunningham on 'Happy Days'). \n\nSinistar's phrases : \n'Beware I live' \n'I hunger' \n'I hunger coward' \n'Beware coward' \n'Run coward' \n'Run run run' \n'I am Sinistar' \n\nA Sinistar unit appears in the 1983 movie 'WarGames'. \n\nA Sinistar unit appears in the 1983 music video, 'Almost Over You' by Sheena Easton.\n\n- UPDATES -\n\nREVISION 3:\n* Latest revision.\n* Some bugs fixed.\n\nREVISION 2:\n* Added 'Set Attract mode message' option in the game adjustments menu.\n* The Survivors Today has the following initials (the initial are mostly those of the people who contributed programming, artwork, sound, playtesting or ideas (or a little of each)). Note : They keep the same order, but rotate position every time the machine is reset. :\nN-F = Noah Falstein\nKJF = Ken Fedesna\nKAG = Ken Graham\nFRG = ???\nYAK = ???\nJJK = John Kotlarik\nKFL = Ken Lantz\nPJM = Pam McMahon\nDOC = ???\nJLM = John Meissen\nE-Z = Mike Metz\n=M= = ???\nTIM = Tim Murphy\nJRN = John Newcommer\nTOM = ???\nPFZ = Bill Pfutzenreuter\nRTP = ???\nBFD = Dave Rzepka\nMBS = ???\nMRS = Mike Stroll\nEJS = ???\nSTU = ???\nWIT = Rich Witt\nMOM = ???\nFAC = ???\nGOD = ???\nKAY = ???\nHEC = ???\nSAM = Sam Dicker\nKYD = ???\n\nPROTOTYPE (AMOA):\n* The Sinistar logo in the attract mode uses a Rocky-Horror-esque 'dripping blood' font.\n* The letter 'T' shows up behind the 'dripping blood' logo, possibly part of the trademark?.\n* The Sinistar death sequence sometimes occurs offscreen.\n* There seem to be more crystals per planetoid than in the release revision.\n* Missing the 'set attract mode message' option in the game adjustments screen.\n* High score entry uses fire to advance to the next character, rather than the joystick.\n* Warping to the next level can occur in any direction, not just upper-right.\n* Sinistar's 'roar' occurs multiple times in rapid succession, cutting off each time he is hit by a sinibomb.\n* When a player's ship is destroyed by the Sinistar, it explodes rather than spinning out first.\n* After defeating Sinistar, his face outline doesn't appear in the center of the screen.\n* You can set the extra ship points AND extra ship point factors to ZERO. As soon as you get a point, the game program gets caught in an infinite loop. You'll also hear an EXTENDED extra ship noise. You can break the loop by hitting advance and looking at ALL the extra ships you just received.\n* Stuff (like the Sini-bombs, warriors and even the Sinistar himself (if it has a gender)) doesn't travel well from scanner to playfield and these objects can make quick second passes and sometimes even just skip the playfield all together.\n* Survivors Today Has the following initials when tables are cleared : YYY XYS MAA AAA AAA AAA BDG MAA AAA AAA ABC EJS MAA AAA AAA RED HPG MAA AAA AAB CFL XYS MAA AAA AAB DGN DBG MAA AAA BCE.\n* Scores start at 19,045 and are listed with the following algorithm (-265, -365, -265, repeat).\n\n- SCORING -\n\nPlanetoid: 5 points. \nWorker: 150 points. \nCrystal: 200 points. \nWarrior: 500 points. \nSinistar Piece: 500 points. \nDestroying Sinistar: 15,000 points.\n\n- TIPS AND TRICKS -\n\n* Programming Credits And Williams message:\n1) Set lives to 1 (this is optional, it merely saves time).\n2) Insert one credit.\n3) Bump into a Planetoid (rock).\n4) Push the fire button seven times.\n5) Avoid Planetoids and Workers, don't fire at anything and get shot by a Warrior. If you set lives to 1, the game will now be over. If not, lose all lives in this manner until the game ends.\n6) Enter initials.\n7) Press the 2-Player button 3 times, then insert one coin and start a new 1-Player game.\n8) Don't move or fire, just push the Sinibomb button once.\n\nThere are now two messages which can be displayed for the credits:\n9) Insert three coins, then push the Sinibomb button again. The 'crossword' credits should now be displayed.\n\n* For the Williams Electronics message :\n10) Simply end the game by getting shot without hitting a Planetoid or firing, then push the 1-Player button to display the message. \n\n* 255 Lives Trick : This little trick is harder than the game itself, but worth it if you pull it off. On your last man, make sure a warrior fires at you just as Sinistar sucks you in. As the Sinistar sucks you in, you will lose your last man, but when the warrior's bullet hits you, you will have one less than zero ships.\nNote: The warriors stop shooting as soon as you are 'caught' by Sinistar. The game was programmed this way, to prevent you from dying twice. Since you are trying to die twice, you have to let a warrior shoot at you, before you get sucked in, then hope that the shot hits you after you have been sucked in. This is very tricky.\nNote 2: 8-bit processors can only handle values from 0-255, for a total of 256 values. Therefore, 'one less than zero ships' will roll around to 255.\n\n- STAFF -\n\nProject leader & co-designer : Noah Falstein (N-F)\nLead programmer : Sam Dicker (SAM)\nProgrammers : Robert J. Mical, Richard A. Witt (WIT)\nOriginal design & storyline : John Newcomer (JRN)\nArtwork / graphics : Jack E. Haeger\nSound effects by : Michael Metz (E-Z)\nHardware designers : Rich Grande, Greg Wepner\nMechanical : Leo Ludzia, Gary Berge\nTech. support by : John Meissen (JLM)\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 (1984) : was a prototype only. It was never released. \n[US] Sega Genesis (1996) \"Williams Arcade's Greatest Hits\" \n[EU] Sega Mega Drive (1996) \"Arcade's Greatest Hits [Model T-97126-50]\" \n[US] Sega Saturn (1996) \"Arcade's Greatest Hits [Model T-9703H]\" \n[US] Sony PlayStation (apr.10, 1996) \"Williams Arcade's Greatest Hits [Model SLUS-00201]\" \n[EU] Sony PlayStation (sept.1, 1996) \"Williams Arcade's Greatest Hits [Model SLES-00323]\" \n[US] Nintendo SNES (oct.1996) \"Williams Arcade's Greatest Hits [Model SNS-AW8E-USA]\" \n[EU] Nintendo SNES (jan.8, 1997) \"Williams Arcade's Greatest Hits [Model SNSP-AW8P-EUR]\" \n[US] Sega Dreamcast (june.27, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9713N]\" \n[EU] Sega Dreamcast (jul.28, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model T-9710D-50]\" \n[US] Nintendo 64 (nov.14, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]\" \n[US] Sony PS2 (nov.18, 2003) \"Midway Arcade Treasures [Model SLUS-20801]\" \n[US] Microsoft XBOX (nov.24, 2003) \"Midway Arcade Treasures\" \n[US] Nintendo GameCube (dec.18, 2003) \"Midway Arcade Treasures [Model DOL-GAKE-USA]\" \n[EU] Microsoft XBOX (feb.6, 2004) \"Midway Arcade Treasures\" \n[EU] Sony PS2 (feb.6, 2004) \"Midway Arcade Treasures [Model SLES-51927]\" \n[US] Microsoft XBOX 360 (nov.6, 2012) \"Midway Arcade Origins\" \n[US] Sony PlayStation 3 (nov.6, 2012) \"Midway Arcade Origins [Model BLUS-31083]\" \n[EU] Microsoft XBOX 360 (nov.15, 2012) \"Midway Arcade Origins\" \n[EU] Sony PlayStation 3 (nov.15, 2012) \"Midway Arcade Origins [Model BLES-01768]\" \n\n* HANDHELDS: \n[US] Nintendo GBA (nov.22, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3E-USA]\" \n[EU] Nintendo GBA (nov.30, 2001) \"Midway's Greatest Arcade Hits [Model AGB-AM3P-EUR]\" \n[US] Sony PSP (dec.13, 2005) \"Midway Arcade Treasures Extended Play [Model ULUS-10059]\" \n[EU] Sony PSP (feb.24, 2006) \"Midway Arcade Treasures Extended Play [Model ULES-00180]\" \n\n* COMPUTERS: \nTandy Color Computer 3 (1989) \"Sinistaar\" \n[US] PC [MS Windows 3.1/DOS, CD-ROM] (1995) \"Williams Arcade Classics\" \n[US] PC [MS Windows 95/DOS, CD-ROM] (1996) \"Williams Arcade Classics\" \n[US] PC [MS Windows, CD-ROM] (aug.27, 2004) \"Midway Arcade Treasures\" \n[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) \"Midway Arcade Treasures\" \n\n* OTHERS: \n[US] Palm OS (aug.2001) \"Midway Arcade Classic\" \n[US] Tiger Game.com (1997) \"Williams Arcade Classics [Model 71-722]\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2447/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

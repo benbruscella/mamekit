@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "type": "DISCRETE_SN76477",
+  "deviceType": "INVADERS_AUDIO",
+  "className": "invaders_audio_device",
+  "workletName": "invaders-audio",
+  "processorName": "discrete",
+  "sampleRate": 48000,
+  "ports": [
+    {
+      "method": "p1_w",
+      "offset": 0
+    },
+    {
+      "method": "p2_w",
+      "offset": 1
+    }
+  ],
+  "amplifier": {
+    "port": 0,
+    "mask": 32
+  },
+  "snControl": {
+    "port": 0,
+    "mask": 1
+  },
+  "sn76477": {
+    "vcoCapacitance": 1e-7,
+    "vcoResistance": 8200,
+    "slfCapacitance": 0.000001,
+    "slfResistance": 120000,
+    "routeGain": 0.5
+  },
+  "lfsr": {
+    "clock": 7515,
+    "bits": 17,
+    "reset": 131071,
+    "tap0": 4,
+    "tap1": 16,
+    "outputBit": 12
+  },
+  "voices": [
+    {
+      "outputNode": "INVADERS_SAUCER_HIT_SND",
+      "model": "warble",
+      "control": {
+        "port": 1,
+        "mask": 16
+      },
+      "mixerResistance": 200000,
+      "resistors": [
+        100000,
+        1000000,
+        1000000,
+        470000,
+        100000,
+        120000,
+        1000000,
+        1000000,
+        470000,
+        680000,
+        1000000,
+        1000000,
+        680000,
+        680000,
+        2700000,
+        680000
+      ],
+      "capacitors": [
+        0.000001,
+        1e-7,
+        4.7e-10
+      ],
+      "sourceMacro": "INVADERS_SAUCER_HIT"
+    },
+    {
+      "outputNode": "INVADERS_FLEET_SND",
+      "model": "parallel-555",
+      "control": {
+        "port": 1,
+        "mask": 15
+      },
+      "mixerResistance": 10200,
+      "resistors": [
+        75000,
+        20000,
+        20000,
+        68000,
+        82000,
+        100000
+      ],
+      "capacitors": [
+        1e-7,
+        0.0000047,
+        0.000009999999999999999
+      ],
+      "parallelResistors": [
+        40000,
+        68000,
+        82000,
+        100000
+      ],
+      "sourceMacro": "INVADERS_FLEET"
+    },
+    {
+      "outputNode": "INVADERS_BONUS_MISSLE_BASE_SND",
+      "model": "gated-555",
+      "control": {
+        "port": 0,
+        "mask": 16
+      },
+      "mixerResistance": 150000,
+      "resistors": [
+        100000,
+        47000
+      ],
+      "capacitors": [
+        0.000001
+      ],
+      "toneHz": 480,
+      "sourceMacro": "INVADERS_BONUS_MISSLE_BASE"
+    },
+    {
+      "outputNode": "INVADERS_INVADER_HIT_SND",
+      "model": "swept-square",
+      "control": {
+        "port": 0,
+        "mask": 8
+      },
+      "mixerResistance": 200000,
+      "resistors": [
+        4700000,
+        100000,
+        1000000,
+        1000000,
+        2200000,
+        10000,
+        1000000,
+        1000000,
+        10000,
+        100000,
+        120000,
+        1000000,
+        1000000,
+        470000,
+        680000,
+        1000000,
+        1000000,
+        470000,
+        680000,
+        2700000,
+        680000
+      ],
+      "capacitors": [
+        1e-7,
+        4.7e-10,
+        4.6999999999999995e-7,
+        1e-7,
+        3.3e-10
+      ],
+      "triggerCapacitance": 1e-7,
+      "sourceMacro": "INVADERS_INVADER_HIT"
+    },
+    {
+      "outputNode": "INVADERS_EXPLOSION_SND",
+      "model": "filtered-noise",
+      "control": {
+        "port": 0,
+        "mask": 4
+      },
+      "mixerResistance": 14400,
+      "resistors": [
+        5600,
+        5600,
+        6800,
+        4700000,
+        100000,
+        1000000,
+        1000000,
+        2200000,
+        2700000,
+        680000,
+        680000,
+        10000,
+        680000
+      ],
+      "capacitors": [
+        1e-7,
+        1e-7,
+        0.0000022,
+        4.7e-10,
+        0.000001
+      ],
+      "triggerCapacitance": 0.0000022,
+      "sourceMacro": "INVADERS_EXPLOSION"
+    },
+    {
+      "outputNode": "INVADERS_MISSILE_SND",
+      "model": "swept-square",
+      "control": {
+        "port": 0,
+        "mask": 2
+      },
+      "mixerResistance": 150000,
+      "resistors": [
+        1000000,
+        330000,
+        330000,
+        1000000,
+        330000,
+        4700000,
+        100000,
+        1000000,
+        1000000,
+        2200000,
+        10000,
+        1500000,
+        1000000,
+        330000,
+        1500000,
+        1000000,
+        560000,
+        2200000,
+        1000000,
+        4700000,
+        3300000,
+        2200000,
+        560000,
+        470000,
+        2700000,
+        560000,
+        2700000,
+        560000,
+        560000,
+        1000,
+        560000
+      ],
+      "capacitors": [
+        1e-7,
+        0.000001,
+        2.1999999999999998e-7,
+        4.7e-10,
+        2.1999999999999998e-7,
+        3.3e-10,
+        1e-7
+      ],
+      "triggerCapacitance": 0.000001,
+      "sourceMacro": "INVADERS_MISSILE"
+    }
+  ],
+  "outputGain": 2500,
+  "discreteRouteGain": 0.5,
+  "sourceFiles": [
+    "src/mame/midw8080/mw8080bw_a.cpp"
+  ],
+  "source": {
+    "file": "src/mame/midw8080/mw8080bw_a.cpp",
+    "line": 3279
+  }
+}

@@ -1,0 +1,1374 @@
+{
+  "type": "MIDWAY_CHEAP_SQUEAK_DELUXE",
+  "uses": [
+    {
+      "game": "spyhunt",
+      "tags": [
+        "csd"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MIDWAY_CHEAP_SQUEAK_DELUXE",
+    "className": "midway_cheap_squeak_deluxe_device",
+    "shortName": "midcsd",
+    "description": "Cheap Squeak Deluxe Sound Board",
+    "sourceFile": "src/mame/bally/csd.cpp",
+    "sourceLine": 17,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MIDWAY_CHEAP_SQUEAK_DELUXE, midway_cheap_squeak_deluxe_device, \"midcsd\", \"Cheap Squeak Deluxe Sound Board\")"
+  },
+  "methods": [
+    {
+      "name": "csdeluxe_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "map"
+                },
+                "property": "unmap_value_high"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "map"
+                },
+                "property": "global_mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 131071
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 32767
+                    }
+                  ]
+                },
+                "property": "rom"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "map"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 98304
+                            },
+                            {
+                              "kind": "number",
+                              "value": 98311
+                            }
+                          ]
+                        },
+                        "property": "mirror"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 16376
+                        }
+                      ]
+                    },
+                    "property": "rw"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "pia"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "pia6821_device::read_alt"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "pia6821_device::write_alt"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "property": "umask16"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 65280
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "map"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 98304
+                            },
+                            {
+                              "kind": "number",
+                              "value": 98311
+                            }
+                          ]
+                        },
+                        "property": "mirror"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 16376
+                        }
+                      ]
+                    },
+                    "property": "rw"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "pia"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "pia6821_device::read_alt"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "pia6821_device::write_alt"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "property": "umask16"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 255
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 114688
+                    },
+                    {
+                      "kind": "number",
+                      "value": 118783
+                    }
+                  ]
+                },
+                "property": "ram"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 38,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "M68000"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "midway_cheap_squeak_deluxe_device::csdeluxe_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "PIA6821"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_pia"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "writepa_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_cheap_squeak_deluxe_device::porta_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "writepb_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_cheap_squeak_deluxe_device::portb_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "irqa_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_cheap_squeak_deluxe_device::irq_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pia"
+                    },
+                    "property": "irqb_handler"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_cheap_squeak_deluxe_device::irq_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "AD7533"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_dac"
+                    }
+                  ]
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_region",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 61,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ROM_NAME"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "csd"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_status"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dacval"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pia_sync_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_cheap_squeak_deluxe_device::sync_pia"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "suspend_cpu",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "suspend"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "SUSPEND_REASON_DISABLE"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stat_r",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_status"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sr_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 128,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pia"
+                },
+                "property": "portb_w"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sirq_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 137,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pia_sync_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "attotime::zero"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 146,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "INPUT_LINE_RESET"
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "INPUT_LINE_HALT"
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "porta_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 156,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dacval"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dacval"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dac"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_dacval"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "portb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 166,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "z_mask",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pia"
+                },
+                "property": "port_b_z_mask"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "unary",
+                "operator": "~",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "z_mask"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_status"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_status"
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "unary",
+                "operator": "~",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "z_mask"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 32
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_status"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_status"
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dacval"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dacval"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 6
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dac"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_dacval"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 182,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "combined_state",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_pia"
+                  },
+                  "property": "irq_a_state"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_pia"
+                  },
+                  "property": "irq_b_state"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "combined_state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_pia",
+      "parameters": "int param",
+      "sourceFile": "src/mame/bally/csd.cpp",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pia"
+                },
+                "property": "ca1_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "perfect_quantum"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime::from_usec"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 100
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/bally/csd.cpp",
+    "src/mame/bally/csd.h"
+  ],
+  "composedOf": [
+    "AD7533",
+    "M68000",
+    "PIA6821"
+  ]
+}

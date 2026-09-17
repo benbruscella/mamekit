@@ -1,0 +1,2047 @@
+{
+  "type": "PLS100",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "u17"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "u17"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "PLS100",
+    "className": "pls100_device",
+    "shortName": "pls100",
+    "description": "82S100-series PLA",
+    "sourceFile": "src/devices/machine/pla.cpp",
+    "sourceLine": 20,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(PLS100, pls100_device, \"pls100\", \"82S100-series PLA\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.cpp",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_inputs"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 16
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_outputs"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 8
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_terms"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 48
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_terms"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MAX_TERMS"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_inputs"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_outputs"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_input_mask"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              },
+              "precision": 64
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_input_mask"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "uint64_t",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_inputs"
+                    },
+                    "precision": 64
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "precision": 64
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_input_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "cast",
+                  "valueType": "uint64_t",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_input_mask"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 32
+                },
+                "precision": 64
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_input_mask"
+              },
+              "precision": 64
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cache_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "number",
+                "value": 1
+              },
+              "right": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_inputs"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MAX_CACHE_BITS"
+                  }
+                },
+                "whenTrue": {
+                  "kind": "identifier",
+                  "name": "MAX_CACHE_BITS"
+                },
+                "whenFalse": {
+                  "kind": "identifier",
+                  "name": "m_inputs"
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cache"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_cache_size"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "reinit"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reinit",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parse_fusemap"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cache2_ptr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_cache2"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__range0"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "__range0_index"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 2147483648
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "csize",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "m_cache_size"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cache_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "csize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cache"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cache_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "csize"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "result"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "JEDERR_NONE"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "parse_fusemap",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.cpp",
+      "sourceLine": 105,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "JEDERR_NONE"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "fusenum",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "p",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "p"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_terms"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "p"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "term",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_term"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "p"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "term"
+                  },
+                  "property": "and_mask"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_inputs"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "term"
+                      },
+                      "property": "and_mask"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "precision": 64,
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "term"
+                        },
+                        "property": "and_mask"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "cast",
+                          "valueType": "uint64_t",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "jed_get_fuse"
+                            },
+                            "args": [
+                              {
+                                "kind": "assignment",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "fusenum"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                "postfix": true
+                              }
+                            ]
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "i"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32
+                          }
+                        },
+                        "precision": 64
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "term"
+                      },
+                      "property": "and_mask"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "precision": 64,
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "term"
+                        },
+                        "property": "and_mask"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "cast",
+                          "valueType": "uint64_t",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "jed_get_fuse"
+                            },
+                            "args": [
+                              {
+                                "kind": "assignment",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "fusenum"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                "postfix": true
+                              }
+                            ]
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "i"
+                        },
+                        "precision": 64
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "term"
+                  },
+                  "property": "or_mask"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "f",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "f"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_outputs"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "f"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "term"
+                      },
+                      "property": "or_mask"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "precision": 64,
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "term"
+                        },
+                        "property": "or_mask"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "jed_get_fuse"
+                            },
+                            "args": [
+                              {
+                                "kind": "assignment",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "fusenum"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                "postfix": true
+                              }
+                            ]
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "f"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "term"
+                  },
+                  "property": "or_mask"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "precision": 64,
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "term"
+                    },
+                    "property": "or_mask"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "f",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "f"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_outputs"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "f"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_xor"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "precision": 64,
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_xor"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "jed_get_fuse"
+                      },
+                      "args": [
+                        {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "fusenum"
+                          },
+                          "operator": "+=",
+                          "value": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "postfix": true
+                        }
+                      ]
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "f"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "precision": 64,
+              "left": {
+                "kind": "identifier",
+                "name": "m_xor"
+              },
+              "right": {
+                "kind": "number",
+                "value": 32
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "result"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "uint32_t input",
+      "sourceFile": "src/devices/machine/pla.cpp",
+      "sourceLine": 197,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "input"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_cache_size"
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cache"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "input"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_cache2"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "cast",
+                    "valueType": "uint32_t",
+                    "operand": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "input"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "__range0"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "__range0_index"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 32
+                      },
+                      "precision": 64
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "inputs",
+            "valueType": "uint64_t",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "^",
+                    "precision": 64,
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "uint64_t",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "input"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0,
+                      "wide": "18446744073709551615"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32
+                  },
+                  "precision": 64
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "input"
+                },
+                "precision": 64
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_input_mask"
+              },
+              "precision": 64
+            }
+          },
+          {
+            "op": "declare",
+            "name": "s",
+            "valueType": "uint64_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_terms"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "term",
+                "valueType": "term*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_term"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "term"
+                      },
+                      "property": "and_mask"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "inputs"
+                    },
+                    "precision": 64
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_input_mask"
+                  },
+                  "precision": 64
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "s"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "precision": 64,
+                      "left": {
+                        "kind": "identifier",
+                        "name": "s"
+                      },
+                      "right": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "term"
+                        },
+                        "property": "or_mask"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "s"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "precision": 64,
+              "left": {
+                "kind": "identifier",
+                "name": "s"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_xor"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_cache2"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_cache2_ptr"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "identifier",
+                "name": "s"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "input"
+              },
+              "precision": 64
+            }
+          },
+          {
+            "op": "declare",
+            "name": "__mame_assignment_128",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "CACHE2_SIZE"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cache2_ptr"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cache2_ptr"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "identifier",
+              "name": "__mame_assignment_128"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "s"
+              },
+              "right": {
+                "kind": "number",
+                "value": 32
+              },
+              "precision": 64
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device",
+      "parameters": "mconfig, tag, owner, (uint32_t)0",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 53,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_inputs"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "inputs"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_outputs"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "outputs"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_terms"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "terms"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_num_inputs",
+      "parameters": "uint32_t i",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_inputs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "i"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_num_outputs",
+      "parameters": "uint32_t o",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_outputs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "o"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_num_terms",
+      "parameters": "uint32_t t",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_terms"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "t"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_inputmask",
+      "parameters": "uint32_t mask",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_input_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_format",
+      "parameters": "FMT format",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_format"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "format"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inputs",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_inputs"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "outputs",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_outputs"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::pla_device",
+      "parameters": "mconfig, tag, owner, (uint32_t)0",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_inputs"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "inputs"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_outputs"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "outputs"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_num_terms"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "terms"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::set_num_inputs",
+      "parameters": "uint32_t i",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 60,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_inputs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "i"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::set_num_outputs",
+      "parameters": "uint32_t o",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_outputs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "o"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::set_num_terms",
+      "parameters": "uint32_t t",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_terms"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "t"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::set_inputmask",
+      "parameters": "uint32_t mask",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_input_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::set_format",
+      "parameters": "FMT format",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_format"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "format"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::inputs",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_inputs"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pla_device::outputs",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pla.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_outputs"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jed_get_fuse",
+      "parameters": "uint32_t fusenum",
+      "sourceFile": "src/lib/util/jedparse.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "fusenum"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "JED_MAX_FUSES"
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_fusemap"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "fusenum"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "%",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "fusenum"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/pla.cpp",
+    "src/devices/machine/pla.h",
+    "src/lib/util/jedparse.h",
+    "src/lib/util/jedparse.cpp"
+  ]
+}

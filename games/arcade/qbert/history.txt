@@ -1,0 +1,171 @@
+Arcade Video game published 44 years ago:
+
+Q*bert (c) 1982 Gottlieb.
+
+The object of the Q*bert game is to change the color of the top of the cubes to the Destination Color indicated at the upper-left corner of the screen (below Player 1's score) by hopping onto them. When all the cubes in the pyramid have been changed to the Destination Color, the screen will advance to the next round, with the player-controlled Q*bert character starting back on the top cube. At the beginning of each level, there will be a short demonstration cycle with Q*bert hopping around four cubes to explain to the player the play action of each level. Each level consists of four rounds. The current level number and round number is displayed at the upper-right corner of the screen (below Player 2's score in a 2-player game).
+
+Gameplay starts with Q*bert appearing at the top of the pyramid. The joystick will move Q*bert from cube to cube by hopping in any of four diagonal directions. Q*bert can move anywhere on the pyramid, but jumping off will kill him. Hopping onto a rotating disk will take Q*bert back to the top of the pyramid. In the first two rounds of play, Q*bert will have to avoid touching the red and purple balls. These deadly objects drop randomly onto the second-from-the-top row of the pyramid and bounce downwards. The red balls will fall off the bottom, but the purple ball will stop at the bottom and hatch into Coily, the snake which chases Q*bert. To get rid of Coily, lure him to the edge, then jump unto a disk. The disk will take Q*bert back to the top and Coily will fall off, awarding 500 points and clearing the board of all other 'nasty' characters.
+
+Starting at the third round of play, other 'nasty' characters come into play. The green characters or objects are safe to hop onto and will award points. All other 'nasty' characters are deadly to touch. In the third round the red balls will stop falling, but two purple characters named Ugg and Wrong Way will appear at the lower portion of the pyramid and travel sideways and upwards (Ugg is the one with the snout moving from right to left on the right face of the cubes, and Wrong Way is the one with the big eyes moving from left to right on the left face of the cubes). They will not chase Q*bert, but will move randomly to get in Q*bert's way. In the third round and every round after, based on an internal timer, a green ball will appear and bounce down from the top of the pyramid. Hopping Q*bert onto the green ball will award 100 points, and freeze all the 'nasty' characters on the screen for a few seconds, but 'Q*bert' will still be able to move to complete the color changes.
+
+During the fourth round of play, two green characters named Slick and Sam will appear, based on the internal timer (Slick is the one wearing shades; Sam does not wear shades, otherwise their function is identical). They will drop onto the second-from-the-top row of the pyramid and hop randomly downwards. If they hop onto a cube that Q*bert has already changed the color of, the cube will change to a different color to thwart Q*bert. Hopping Q*bert onto Slick or Sam will stop them and award 300 points.
+
+Throughout the remaining rounds, all the characters and objects will appear in random combinations with increasing speed.
+
+To add variety to the game, the disks will change positions every round, and in the higher levels the number of disks will change.
+
+During Level 2, the play action will increase in difficulty from changing the cubes to one color, to changing the color of the cubes twice. This means that each cube would have to be hopped on twice to change the pyramid to the Destination Color, completing the Round.
+
+Starting at Level 3 and for all remaining rounds, and levels, the play action will become more difficult. The object remains to change the cubes to the Destination Color, but if Q*bert hops on any cube, that cube will change color. So even if the cube has already been changed to the Destination Color, it will change again.
+
+Here is a rundown of how all the colors change :
+
+Legend :
+S - Starting Color
+I - Intermediate Color
+D - Destination Color
+
+LEVEL 1 : When Q*bert jumps on S or I, it changes to D. When he jumps on D, it stays at D (NOTE : During the fourth round, when Slick/Sam jumps on D, it changes to I).
+
+LEVEL 2 : When Q*bert jumps on S, it changes to I. When he jumps on I, it changes to D. When he jumps on D, it stays at D.
+
+LEVEL 3 : When Q*bert jumps on S, it changes to D. When he jumps on D, it changes back to S. Q*bert must start again.
+
+LEVEL 4 : When Q*bert jumps on S, it changes to I. When he jumps on I, it changes to D. When he jumps on D, it changes back to I. Q*bert must start again.
+
+LEVEL 5 : When Q*bert jumps on S, it changes to I. When he jumps on I, it changes to D. When he jumps on D, it changes back to S. Q*bert must start again.
+
+LEVELS 6-9 : Same color pattern as Level 5. The difference is the increased speed of Q*bert and the 'nasty' characters.
+
+There are also bonus points awarded at the end of each round for successfully completing the round. The bonus for the completion of the 1st round is 1,000 points. This Bonus will progressively increase each Round by 250 points to a maximum of 5,000 points at Level 5.
+
+- TECHNICAL -
+
+Game ID : GV-103
+
+Main CPU : I8086 (@ 5 Mhz)
+Sound CPU : MOS Technology M6502 (@ 894.886 Khz)
+Sound Chips : DAC, Votrax SC-01
+
+Players: 2
+Control : 4-way joystick (diagonal)
+
+- TRIVIA -
+
+Q*bert was released in October 1982 in the USA.
+
+Licensed to Konami for Japanese distribution (February 1983).
+
+Inspired by artwork by M.C. Escher who was an artist that Jeff admired. Ron Waxman came up with the idea of Q*bert changing the color of the cubes. Q*bert's name originated by the combination of 'Cube' and 'Hubert', but the 'Cube-Bert' was changed to 'Q-bert' to make it more unique. The concept game was called 'Snots and Boogers' and then '@!#?@!' (which many of the programmers and Gottlieb VPs said would be impossible to get anyone to say) before the final version was called just 'Q*bert'. Slick and Sam were a play on the phrase 'spick and span' with Sam being named after co-worker Sam Russo. Rick Tighe came up with the idea of adding the pinball hardware which generated the very mechanical KA-CHUNK when Q*bert falls off the pyramid.
+
+A Votrax SC-01 speech synthesis chip is used to generate the incoherent speech of Q*bert swearing, Slick and Sam (high pitch), and Ugg and Wrong Way (low pitch). The only true speech ever generated is Q*bert saying 'Hello, I'm turned on' when the game is first powered up and 'Bye Bye' after the player enters his or her initials at the end of a game.
+
+Approximately 30,000 units were produced by Gottlieb.
+
+Several early cabinets were produced with '@!#?@!' on the marquee.
+
+Bob Gerhardt holds the official records for this game in 'Marathon' setting with 33,273,520 points on November 28, 1983.
+
+Tom Gault holds the official records for this game in 'Tournament' setting with 1,895,565 points.
+
+A slightly different version known as 'Mello Yello' was programmed for promotion of the Mellow-Yellow soft drink, but it was never released to the market.
+
+As well as being a huge commercial success as a game, Q*bert also provided revenue from its many tie-in products. Toys, games, and other products bearing the hero’s likeness all sold well. There was even a Q*bert cartoon; Saturday Supercade was a CBS cartoon series which featured a number of different segments starring various video game characters. In addition to the characters from the game, the Q*Bert segment featured Q*tee (Q*bert's girlfriend), Q*bit (his little brother), and others.
+
+Such was the character's popularity at this time that Gottlieb assigned pinball designer, John Trudeau ("Creature From the Black Lagoon", "Congo"), to devise a Q*bert pinball. It was called "Q*bert's Quest" and Trudeau created an innovative design pattern that should have sparked arcade goers to try it. Remarkably, the table was a commercial flop. Released in March 1983, a paltry 884 machines dribbled out of the plant and further convinced management that pinball was indeed experiencing desperate times.
+
+A Q*bert unit appears in the 1983 movie 'Koyaanisqatsi - Life out of Balance'.
+
+Parker Brothers released a board game based on this videogame (same name) in 1983. The object of the game is to be one of the 'noser elite' by removing more pegs from the pyramid than your opponent. A peg plugged into a cube simulates the Starting Color; a peg removed from a cube simulates the Destination Color. One player takes on the role of the hero, Q*bert, who must make his way around the pyramid trying to remove as many pegs as he can. A second player controls the 'nasty' characters out to thwart Q*bert. This board game has Ugg and Wrong Way reversing their positions; Ugg moves from left to right on the left face of the cubes, and Wrong Way moves from right to left on the right face of the cubes. Also, Slick is featured in the board game, but not Sam.
+
+The main characters make an appearance on the 2012 animation movie "Wreck-It Ralph" from Walt Disney Animation Studios.
+
+- SCORING -
+
+Q*bert changes a cube from the Starting Color to the Intermediate Color : 15 points (NOTE : In Level 4, you get no points when Q*bert changes a cube from the Destination Color back to the Intermediate Color.)
+Q*bert changes a cube to the Destination color : 25 points.
+Q*bert catches the Green Ball : 100 points
+Q*bert catches Slick/Sam : 300 points.
+Q*bert lures Coily off the pyramid : 500 points bonus.
+Bonus points for every round you complete : 750 points + 250 points x round number + 50 points per remaining disk.
+
+- TIPS AND TRICKS -
+
+* Control Panel Instructions :
+Goal : Change the tops of all cubes to a new color by hopping onto them.
+Joystick moves 'Q*bert' from cube to cube. Hopping onto a disk will take you back to the top.
+All green objects are safe to hit. All other objects are deadly.
+Destroy the snake by leading him to the edge, then jumping on a disk.
+Stay on pyramid! Only jump off to use a disk.
+
+* A big part of the game is waiting to see where 'nasty' characters are going to jump. You need to make sure you always time a jump at the same time the 'nasty' characters jump, so you can always have a clear path to a new square.
+
+* Since the game only has nine levels, if you can master Level 9 then you should be able to play indefinitely since Level 9 repeats once you reach it and the game doesn't get any harder.
+
+- STAFF -
+
+Designed and programmed by : Warren Davis
+Video graphics by : Jeff Lee
+Cabinet graphics by : Terry Doerzaph
+Audio by : David D. Thiel
+
+- PORTS -
+
+* CONSOLES:
+[US] Magnavox Odyssey 2 (1983)
+[EU] Philips Videopac G7000 (1982)
+[US] Colecovision (1983) "Q*bert [Model 9800]"  
+[JP] Sega SG-1000 (1983) "Q*bert [Model OM-G001]"  
+[US] Mattel Intellivision (1983) "Q*bert [Model PB6360]" 
+[US] Atari 2600 (1983) "Q*bert [Model PB5360]" 
+[US] Atari 5200 (1983) "Q*bert [Model 9500]" 
+[US] Atari 7800 "Bentley Bear In Q*bert": Unreleased prototype.
+Atari XEGS
+[JP] MSX (1986) "Q*bert [Model RC746]" 
+[EU] MSX (1987) "Q*bert [Model RC746]" 
+[US] Nintendo NES (feb.1989) "Q*bert [Model NES-QB-USA]"  
+[US] Sony PlayStation 3 [PSN] (feb.22, 2007) 
+[EU] Sony PlayStation 3 [PSN] (may.18, 2007) 
+
+* HANDHELDS:
+[EU] Nintendo Game Boy (1992) "Q*bert for Game Boy [Model DMG-P-QT]"  
+[JP] Nintendo Game Boy (jan.14, 1992) "Q*bert for Game Boy [Model DMG-QTJ]" 
+[US] Nintendo Game Boy (feb.1992) "Q*bert for Game Boy [Model DMG-QT-USA]" 
+
+* COMPUTERS:
+[US] Atari 800 (1983) "Q*bert [Model 1120]"  
+[EU] BBC Micro (1983) 
+[US] Commodore VIC-20 (1983)
+[EU] Commodore C64 (1983) 
+[US] Commodore C64 (1983) "Q*bert [Model PB1550]"  
+[US] [EU] Commodore C64 (1983) "Hexpert" 
+[US] Tandy Color Computer (1983) "Cuber" 
+[US] Tandy Color Computer (1983) "Cubix" 
+[EU] Sinclair ZX-Spectrum (1983) "Pogo" by Ocean.
+[EU] Amstrad CPC (1984) "Er*Bert" by Microbyte.
+[US] Texas Instruments TI-99/4A (1984) "Q*bert [Model PB1620]"  
+[EU] BBC B (1984) "R*THER" by Acornsoft 
+[EU] Memotech MTX512 (1985) "Qogo" 
+[EU] Tandy Color Computer 3 (1987) "Pyramix"
+[EU] Amstrad CPC (1987) "Crazy Er*Bert" by Alternative Software.
+[EU] Commodore Amiga (1992) "Q.Bic" by CodeMasters.
+[US] PC [MS Windows, CD-ROM] (2005) "Q*bert 2005" 
+
+* OTHERS: 
+[US] VFD handheld game(1983) by Parker Brothers.
+[US] Mobile Phones (june.13, 2003) 
+[US] Apple iPhone/iPod (jul.28, 2009) "Q*bert Deluxe [Model 325065512]"
+
+- SERIES -
+
+1. Q*bert (1982, Arcade)
+2. Q*bert's Qubes (1983, Arcade)
+3. Q*bert 3 (1993, Nintendo Super NES)
+4. Q*bert (1999, PC CD-ROM, Sony PlayStation)
+5. Q*bert Rebooted (2014, Steam)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2094/?o=2
+
+— Gaming History (arcade-history.com)

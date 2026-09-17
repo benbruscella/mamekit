@@ -1,0 +1,310 @@
+{
+  "generatedFrom": "src/mame/nintendo/gb.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1047,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1053,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1057
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1047,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1045,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1051,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1188,
+      "column": 2
+    },
+    {
+      "path": "/execution/paletteInit/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1011,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1045,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1051,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1056,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1057,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1059,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1062,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1064,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1069,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 948,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 948,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 950,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 950,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 617,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 349,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 688,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 671,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 937,
+      "column": 2
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 954,
+      "column": 2
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 954,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 909,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 431,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 343,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 606,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 611,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 300,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 319,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 439,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 701,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 646,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1188,
+      "column": 2
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 1011,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 902,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 903,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 904,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 905,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 906,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 907,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 908,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 909,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 910,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 911,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/nintendo/gb.cpp",
+      "line": 899,
+      "column": 1
+    }
+  ]
+}

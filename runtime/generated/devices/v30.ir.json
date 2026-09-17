@@ -1,0 +1,36 @@
+{
+  "type": "V30",
+  "uses": [
+    {
+      "game": "rtype",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "V30",
+    "className": "v30_device",
+    "shortName": "v30",
+    "description": "NEC V30",
+    "sourceFile": "src/devices/cpu/nec/nec.cpp",
+    "sourceLine": 124,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(V30,  v30_device,  \"v30\",  \"NEC V30\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/nec/nec.cpp",
+    "src/devices/cpu/nec/nec.h",
+    "src/devices/cpu/nec/nec80inst.hxx",
+    "src/devices/cpu/nec/necdasm.h",
+    "src/devices/cpu/nec/necea.h",
+    "src/devices/cpu/nec/necinstr.h",
+    "src/devices/cpu/nec/necinstr.hxx",
+    "src/devices/cpu/nec/necmacro.h",
+    "src/devices/cpu/nec/necmodrm.h",
+    "src/devices/cpu/nec/necpriv.ipp"
+  ]
+}

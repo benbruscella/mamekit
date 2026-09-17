@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "wardner",
+  "family": "wardner",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "ymsnd:YM3812"
+  ],
+  "silentGaps": [
+    "ymsnd:YM3812"
+  ],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 179,
+    "total": 225,
+    "percent": 79.6
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "dsp:dsp:TMS320C10",
+        "status": "executable",
+        "source": "src/devices/cpu/tms320c1x/tms320c1x.cpp:35"
+      }
+    ],
+    "devices": [
+      {
+        "name": "dsp:TOAPLAN_DSP",
+        "status": "executable",
+        "source": "src/mame/toaplan/toaplan_dsp.cpp:13"
+      },
+      {
+        "name": "mainlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "coinlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "crtc:HD6845S",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:68"
+      },
+      {
+        "name": "scu:TOAPLAN_SCU",
+        "status": "executable",
+        "source": "src/mame/toaplan/toaplan_scu.cpp:39"
+      },
+      {
+        "name": "spriteram8:BUFFERED_SPRITERAM8",
+        "status": "executable",
+        "source": "src/devices/video/bufsprite.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ymsnd:YM3812",
+        "status": "blocked",
+        "source": "src/devices/sound/ymopl.cpp:86",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "dsp:TMS320C10",
+        "status": "executable",
+        "source": "src/devices/cpu/tms320c1x/tms320c1x.cpp:35"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.rombank",
+        "status": "generated"
+      },
+      {
+        "name": "coinlatch.write_nibble_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "crtc.address_w",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:68"
+      },
+      {
+        "name": "crtc.register_w",
+        "status": "executable",
+        "source": "src/devices/video/mc6845.cpp:68"
+      },
+      {
+        "name": "mainlatch.write_nibble_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSWA",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSWB",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "toaplan_dsp_device.dsp_addrsel_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/toaplan_dsp.cpp:84"
+      },
+      {
+        "name": "toaplan_dsp_device.dsp_bio_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/toaplan_dsp.cpp:108"
+      },
+      {
+        "name": "toaplan_dsp_device.dsp_r",
+        "status": "generated",
+        "source": "src/mame/toaplan/toaplan_dsp.cpp:90"
+      },
+      {
+        "name": "toaplan_dsp_device.dsp_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/toaplan_dsp.cpp:100"
+      },
+      {
+        "name": "wardner_state.wardner_bank_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:251"
+      },
+      {
+        "name": "wardner_state.wardner_bglayer_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:241"
+      },
+      {
+        "name": "wardner_state.wardner_bgscroll_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:259"
+      },
+      {
+        "name": "wardner_state.wardner_exscroll_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:271"
+      },
+      {
+        "name": "wardner_state.wardner_fglayer_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:247"
+      },
+      {
+        "name": "wardner_state.wardner_fgscroll_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:265"
+      },
+      {
+        "name": "wardner_state.wardner_sprite_r",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:305"
+      },
+      {
+        "name": "wardner_state.wardner_sprite_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:312"
+      },
+      {
+        "name": "wardner_state.wardner_txlayer_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:235"
+      },
+      {
+        "name": "wardner_state.wardner_txscroll_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:253"
+      },
+      {
+        "name": "wardner_state.wardner_videoram_r",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:282"
+      },
+      {
+        "name": "wardner_state.wardner_videoram_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/twincobr_v.cpp:294"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "blocked",
+        "source": "src/devices/sound/ymopl.cpp:86",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "blocked",
+        "source": "src/devices/sound/ymopl.cpp:86",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "dsp.set_host_addr_callback -> wardner_state.dsp_host_addr_cb",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:452"
+      },
+      {
+        "name": "dsp.set_host_read_callback -> wardner_state.dsp_host_read_cb",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:453"
+      },
+      {
+        "name": "dsp.set_host_write_callback -> wardner_state.dsp_host_write_cb",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:454"
+      },
+      {
+        "name": "dsp.halt_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:455"
+      },
+      {
+        "name": "mainlatch.q_out_cb<2> -> wardner_state.int_enable_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:460"
+      },
+      {
+        "name": "mainlatch.q_out_cb<3> -> wardner_state.flipscreen_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:461"
+      },
+      {
+        "name": "mainlatch.q_out_cb<4> -> wardner_state.bg_ram_bank_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:462"
+      },
+      {
+        "name": "mainlatch.q_out_cb<5> -> wardner_state.fg_rom_bank_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:463"
+      },
+      {
+        "name": "mainlatch.q_out_cb<6> -> wardner_state.display_on_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:464"
+      },
+      {
+        "name": "coinlatch.q_out_cb<0> -> dsp.dsp_int_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:467"
+      },
+      {
+        "name": "coinlatch.q_out_cb<4> -> wardner_state.coin_counter_1_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:468"
+      },
+      {
+        "name": "coinlatch.q_out_cb<5> -> wardner_state.coin_counter_2_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:469"
+      },
+      {
+        "name": "coinlatch.q_out_cb<6> -> wardner_state.coin_lockout_1_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:470"
+      },
+      {
+        "name": "coinlatch.q_out_cb<7> -> wardner_state.coin_lockout_2_w",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:471"
+      },
+      {
+        "name": "scu.set_pri_callback -> wardner_state.pri_cb",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:483"
+      },
+      {
+        "name": "screen.set_screen_update -> wardner_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:490"
+      },
+      {
+        "name": "screen.screen_vblank -> spriteram8.vblank_copy_rising",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:491"
+      },
+      {
+        "name": "screen.screen_vblank -> wardner_state.wardner_vblank_irq",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:492"
+      },
+      {
+        "name": "ymsnd.irq_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/toaplan/wardner.cpp:501"
+      },
+      {
+        "name": "dsp.bio -> toaplan_dsp_device.bio_r",
+        "status": "generated",
+        "source": "src/mame/toaplan/toaplan_dsp.cpp:54"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/wardner/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 53,
+    "compiledMethods": 53,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 16,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 3,
+    "frameCallbacks": 2,
+    "screenUpdate": "wardner_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 14,
+    "generated": 43,
+    "declarative-host": 5,
+    "blocked": 3,
+    "missing": 0
+  }
+}

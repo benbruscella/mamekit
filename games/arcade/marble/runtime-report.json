@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "marble",
+  "family": "atarisy1",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "alpha:TILEMAP",
+    "mob:ATARI_MOTION_OBJECTS",
+    "playfield:TILEMAP"
+  ],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 160,
+    "total": 210,
+    "percent": 76.2
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M68010",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68010.cpp:8"
+      },
+      {
+        "name": "audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "eeprom:EEPROM_2804",
+        "status": "declarative-host"
+      },
+      {
+        "name": "outlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "scan_timer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "int3off_timer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "yreset_timer:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "playfield:TILEMAP",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "alpha:TILEMAP",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "mob:ATARI_MOTION_OBJECTS",
+        "status": "blocked",
+        "source": "src/mame/atari/atarimo.cpp:121",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "mainlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ymsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "pokey:POKEY",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "slapstic:SLAPSTIC",
+        "status": "executable",
+        "source": "src/mame/atari/slapstic.cpp:204"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "alpha.write16",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "atarisy1_state.adc_r",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:248"
+      },
+      {
+        "name": "atarisy1_state.adc_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:262"
+      },
+      {
+        "name": "atarisy1_state.bankselect_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1_v.cpp:189"
+      },
+      {
+        "name": "atarisy1_state.int3state_r",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1_v.cpp:394"
+      },
+      {
+        "name": "atarisy1_state.priority_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1_v.cpp:238"
+      },
+      {
+        "name": "atarisy1_state.spriteram_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1_v.cpp:322"
+      },
+      {
+        "name": "atarisy1_state.switch_6502_r",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:329"
+      },
+      {
+        "name": "atarisy1_state.trakball_r",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:281"
+      },
+      {
+        "name": "atarisy1_state.video_int_ack_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:215"
+      },
+      {
+        "name": "atarisy1_state.xscroll_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1_v.cpp:258"
+      },
+      {
+        "name": "atarisy1_state.yscroll_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1_v.cpp:289"
+      },
+      {
+        "name": "bank.slapstic_bank",
+        "status": "generated"
+      },
+      {
+        "name": "eeprom.read",
+        "status": "declarative-host"
+      },
+      {
+        "name": "eeprom.unlock_write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "eeprom.write",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mainlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "mainlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "outlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "palette.write16",
+        "status": "declarative-host"
+      },
+      {
+        "name": "playfield.write16",
+        "status": "missing",
+        "reason": "MAME hardware implementation was not resolved"
+      },
+      {
+        "name": "pokey.read",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "pokey.write",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "port.F60000",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "outlatch.q_out_cb<0> -> ymsnd.reset_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:781"
+      },
+      {
+        "name": "outlatch.q_out_cb<6> -> atarisy1_state.coin_counter_right_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:784"
+      },
+      {
+        "name": "outlatch.q_out_cb<7> -> atarisy1_state.coin_counter_left_w",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:785"
+      },
+      {
+        "name": "scan_timer.configure_generic -> atarisy1_state.int3_callback",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:789"
+      },
+      {
+        "name": "int3off_timer.configure_generic -> atarisy1_state.int3off_callback",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:790"
+      },
+      {
+        "name": "yreset_timer.configure_generic -> atarisy1_state.reset_yscroll_callback",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:791"
+      },
+      {
+        "name": "playfield.set_info_callback -> atarisy1_state.get_playfield_tile_info",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:798"
+      },
+      {
+        "name": "alpha.set_info_callback -> atarisy1_state.get_alpha_tile_info",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:799"
+      },
+      {
+        "name": "screen.set_screen_update -> atarisy1_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:809"
+      },
+      {
+        "name": "screen.screen_vblank -> maincpu",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:811"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:817"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> perfect_quantum",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:818"
+      },
+      {
+        "name": "mainlatch.data_pending_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:821"
+      },
+      {
+        "name": "ymsnd.irq_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/atari/atarisy1.cpp:824"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/marble/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 36,
+    "compiledMethods": 36,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 11,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "atarisy1_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 17,
+    "generated": 29,
+    "declarative-host": 13,
+    "blocked": 1,
+    "missing": 4
+  }
+}

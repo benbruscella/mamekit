@@ -1,0 +1,106 @@
+Arcade Video game published 43 years ago:
+
+Gyruss (c) 1983 Konami Industry Company, Limited.
+
+Gyruss is a single-player shoot-em-up in which the purpose is to fly through the solar system, destroying waves of alien attackers, before finally reaching Earth. Planets that must be passed before Earth is reached are Neptune, Uranus, Saturn, Jupiter, and Mars. 
+
+It only takes two warps to reach Neptune, but all of the others, including Earth, take three warps to get to. Each time the player reaches a planet, they will be faced with a 'Chance Stage', a bonus stage in which players try to destroy as many aliens as possible to accrue points. After reaching Earth, there is a Chance Stage, followed by a very fast '3 Warps to Neptune' stage. After this, the levels and the background music start over. 
+
+Gyruss' superb gameplay, in which the player ship rotates around the edges of the screen and fires 'inwards', is heavily influenced by Atari's 1981 classic, "Tempest". While the design of the alien ships themselves is similar to those of Namco's also-legendary "Galaga" series.
+
+- TECHNICAL -
+
+Game ID : GX347
+
+Main CPU : Zilog Z80 (@ 3.072 Mhz), M6809 (@ 2 Mhz)
+Sound CPU : Zilog Z80 (@ 3.579545 Mhz), I8039 (@ 533.333 Khz)
+Sound Chips : (5x) AY8910 (@ 1.789772 Mhz), DAC, (6x) RC (@ 1.789772 Mhz)
+
+Players : 2 (Alternating)
+Control : 8-Way Joystick
+Buttons : 1
+=> Fire
+
+- TRIVIA -
+
+Gyruss was released in March 1983 in Japan.
+
+After working on the successful "Time Pilot", Gyruss' designer, Yoshiki Okamoto, went on to create Gyruss, which, although a success in its own right, was released at a time when the arcade craze was starting to die down. This may explain why the game didn't shift the units it really deserved. After its release, Okamoto asked for a raise, or he would quit. He was duly fired when he turned up for work the following day. 
+
+One of the most memorable features of this game is its soundtrack, which consists of an extremely catchy synthesized rendition of Bach's 'Tocatta and Fugue in D Minor'. 
+
+Anthony Fodrizio holds the official record for this game with 41,090,450 points. 
+
+A set of developer credits are hidden in the ROM, beginning at 1E9A in memory.
+
+A bootleg of this game is known as "Venus". 
+
+Alfa Records released a limited-edition soundtrack album for this game (Konami Game Music Vol.1 - 28XA-85) on June 25, 1986.
+
+A Gyruss unit appears in the music video for "Kid Candy" by the grunge rock group Seaweed.
+
+- SCORING -
+
+Shooting a ship : 50, 100 or 150 points. 
+Destroying a whole formation of enemy ships before the next wave attacks : 1,000, 1,500, 2,000, 2,500 points. 
+Bonus for clearing a sector (having not destroyed a whole formation) : 1,000 points. 
+Shooting the three glowing spheres : 1,000, 1,500, 2,000 points. 
+Bonus for shooting each ship on the Chance Stage : 100 points. 
+Bonus for shooting all 40 ships on the Chance Stage : 10,000 points.
+
+- TIPS AND TRICKS -
+
+* You can get double fire if you shoot the sun-like enemy that appears in front of you surrounded by two blue pod-like enemies - try to make this a priority.
+
+* To make getting double fire easier, try to stay at the bottom of the screen until the 'pod and sun' formation appears as it will appear right in front of wherever your ship is after all enemies have entered and they start attacking. 
+1) There must be at least three enemies left in the level for the 'pod and sun' formation to show. If you lose a life and three enemies are left, the 'pod and sun' will show up one more time, but if you lose a life after that, they will not show any more until the next level. After you get double fire, the sun enemy will be replaced on later levels with another pod. Destroy all three for some bonus points.
+2) If you have only one enemy left and cannot seem to destroy it, just leave it alone and eventually it will just leave and the level will end.
+
+* Each level begins with four formations entering. If you destroy enough of these, a fifth formation will enter. As you pass each planet, more formations will enter towards the top of the screen. Learn to control your ship at the top as it will come in real handy on those Mars and Earth warps.
+
+* When formations enter from the edge of the screen, they will not hit you if you are right where they enter. You can use this to your advantage to take out the formation with little or no trouble - just watch out for asteroids.
+
+* Asteroids will always appear in your path - they cannot be destroyed and must be avoided.
+
+* The 'bee-like' creatures with the force field will always appear from the center and move outward. The force field will destroy your ship if you touch it. Destroy one of the creatures to disable their force field.
+
+* Learn the formations of the enemy attack waves during the normal stages, to enable you to collect the bonuses for destroying whole waves of attacking ships.
+
+* Learn the formations of the enemy attack waves during the chance stages, to enable you to collect the bonuses for destroying whole waves of attackers and the 10,000 for destroying all 40 ships.
+
+* The three glowing spheres always appear aligned with where you are located on screen. Remember to avoid any bullets when they appear.
+
+* You can fire bullets ahead of enemy ships and then move aside to destroy them and avoid their shots.
+
+- STAFF -
+
+Programmer: Toshio Arima
+Designer: Yoshiki Okamoto
+Character: Hideki Ooyami
+Sound: Masahiro Inoue
+
+- PORTS -
+
+* CONSOLES: 
+[EU] Nintendo NES (1988) 
+Nintendo Famicom Disk [JP] (nov.18, 1988) "Gyruss [Model KDS-GRS]" 
+[JP] Sony PlayStation (may.13, 1999) "Konami 80's Arcade Gallery [Model SLPM-86228]" 
+Microsoft XBOX 360 [XBLA] [JP] [EU] (apr.18, 2007) 
+
+* HANDHELDS: 
+[JP] Nintendo GBA (may.2, 2002) "Konami Arcade Game Collection [Model AGB-AKCJ-JPN]" 
+[EU] Nintendo GBA (june.21, 2002) "Konami Collector's Series - Arcade Classics [Model AGB-AKCP-EUR]" 
+
+* COMPUTERS: 
+[EU] Commodore C64 (1984) 
+
+* OTHERS: 
+Arcade [EU] [AU] [KO] (nov.1998) "Konami 80's AC Special" 
+Arcade [JP] (nov.1998) "Konami 80's Arcade Gallery" 
+Mobile Phones [JP] (2004)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/1063/?o=2
+
+— Gaming History (arcade-history.com)

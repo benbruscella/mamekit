@@ -1,0 +1,4893 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/toaplan/wardner.cpp",
+    "generatedAt": "2026-09-17T07:12:49.961Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Quench"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/toaplan/wardner.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/toaplan/wardner.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:twincobr.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "twincobr.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:toaplipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "toaplipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/tms320c1x/tms320c1x.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/tms320c1x/tms320c1x.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopl.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopl.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:toaplan_dsp.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "toaplan_dsp.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:logmacro.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "logmacro.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/toaplan/toaplan_dsp.cpp"
+      }
+    },
+    {
+      "id": "game:wardner",
+      "label": "Game",
+      "props": {
+        "name": "wardner",
+        "year": "1987",
+        "company": "Toaplan / Taito",
+        "fullname": "Wardner (World)",
+        "monitor": "ROT0",
+        "cls": "wardner_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 756,
+        "sourceColumn": 1,
+        "sourceEndLine": 756
+      }
+    },
+    {
+      "id": "romset:wardner",
+      "label": "RomSet",
+      "props": {
+        "name": "wardner",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 513,
+        "sourceColumn": 1,
+        "sourceEndLine": 513
+      }
+    },
+    {
+      "id": "region:wardner/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 262144,
+        "flags": "ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 514,
+        "sourceColumn": 2,
+        "sourceEndLine": 514
+      }
+    },
+    {
+      "id": "rom:wardner/maincpu/b25-31.6m",
+      "label": "Rom",
+      "props": {
+        "file": "b25-31.6m",
+        "offset": 0,
+        "size": 32768,
+        "crc": "c5dd56fd",
+        "sha1": "f0a09557150e9c1c6b9d8e125f5408fc269c9d17",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 515,
+        "sourceColumn": 2,
+        "sourceEndLine": 515
+      }
+    },
+    {
+      "id": "rom:wardner/maincpu/b25-18.7m",
+      "label": "Rom",
+      "props": {
+        "file": "b25-18.7m",
+        "offset": 65536,
+        "size": 65536,
+        "crc": "9aab8ee2",
+        "sha1": "16fa44b75f4a3a5b1ff713690a299ecec2b5a4bf",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 516,
+        "sourceColumn": 2,
+        "sourceEndLine": 516
+      }
+    },
+    {
+      "id": "rom:wardner/maincpu/b25-19.8m",
+      "label": "Rom",
+      "props": {
+        "file": "b25-19.8m",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "95b68813",
+        "sha1": "06ea1b1d6e2e6326ceb9324fc471d082fda6112e",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 517,
+        "sourceColumn": 2,
+        "sourceEndLine": 517
+      }
+    },
+    {
+      "id": "rom:wardner/maincpu/b25-32.10m",
+      "label": "Rom",
+      "props": {
+        "file": "b25-32.10m",
+        "offset": 229376,
+        "size": 32768,
+        "crc": "347f411b",
+        "sha1": "1fb2883d74d10350cb1c62fb58d5783652861b37",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 518,
+        "sourceColumn": 2,
+        "sourceEndLine": 518
+      }
+    },
+    {
+      "id": "region:wardner/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 520,
+        "sourceColumn": 2,
+        "sourceEndLine": 520
+      }
+    },
+    {
+      "id": "rom:wardner/audiocpu/b25-16.4k",
+      "label": "Rom",
+      "props": {
+        "file": "b25-16.4k",
+        "offset": 0,
+        "size": 32768,
+        "crc": "e5202ff8",
+        "sha1": "15ae8c0bb16a20bee14e8d80d81c249404ab1463",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 521,
+        "sourceColumn": 2,
+        "sourceEndLine": 521
+      }
+    },
+    {
+      "id": "region:wardner/dsp:dsp",
+      "label": "RomRegion",
+      "props": {
+        "tag": "dsp:dsp",
+        "size": 4096,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:wardner/dsp:dsp/d70012u_gxc-02_mcu_71001",
+      "label": "Rom",
+      "props": {
+        "file": "d70012u_gxc-02_mcu_71001",
+        "offset": 0,
+        "size": 3072,
+        "crc": "eee0ff59",
+        "sha1": "dad4570815ec444e34cc73f7cd90f9ca8f7b3eb8",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 524,
+        "sourceColumn": 2,
+        "sourceEndLine": 524,
+        "status": "baddump"
+      }
+    },
+    {
+      "id": "region:wardner/chars",
+      "label": "RomRegion",
+      "props": {
+        "tag": "chars",
+        "size": 49152,
+        "flags": "0",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 526,
+        "sourceColumn": 2,
+        "sourceEndLine": 526
+      }
+    },
+    {
+      "id": "rom:wardner/chars/b25-28.10f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-28.10f",
+        "offset": 0,
+        "size": 16384,
+        "crc": "1392b60d",
+        "sha1": "86b9eab87f8d5f68fda500420f4ed61331089fc2",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 527,
+        "sourceColumn": 2,
+        "sourceEndLine": 527
+      }
+    },
+    {
+      "id": "rom:wardner/chars/b25-27.8f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-27.8f",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "0ed848da",
+        "sha1": "e4b38e21c101a28a8961a9fe30c9cb10919cc148",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 528,
+        "sourceColumn": 2,
+        "sourceEndLine": 528
+      }
+    },
+    {
+      "id": "rom:wardner/chars/b25-26.7f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-26.7f",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "79792c86",
+        "sha1": "648b97f1ec30d46e40e60eb13159b4f6f86e9243",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 529,
+        "sourceColumn": 2,
+        "sourceEndLine": 529
+      }
+    },
+    {
+      "id": "region:wardner/fg_tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "fg_tiles",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 531,
+        "sourceColumn": 2,
+        "sourceEndLine": 531
+      }
+    },
+    {
+      "id": "rom:wardner/fg_tiles/b25-12.18f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-12.18f",
+        "offset": 0,
+        "size": 32768,
+        "crc": "15d08848",
+        "sha1": "e2e62d95a3f240664b5e0ac0f163a0d5cefa5312",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 532,
+        "sourceColumn": 2,
+        "sourceEndLine": 532
+      }
+    },
+    {
+      "id": "rom:wardner/fg_tiles/b25-15.23f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-15.23f",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "cdd2d408",
+        "sha1": "7e4d77f8725fa30d4d65e811d10e0b2c00b23cfe",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 533,
+        "sourceColumn": 2,
+        "sourceEndLine": 533
+      }
+    },
+    {
+      "id": "rom:wardner/fg_tiles/b25-14.21f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-14.21f",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "5a2aef4f",
+        "sha1": "60f4ab2582a924defb5241ab367826ae1f4b3f5e",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 534,
+        "sourceColumn": 2,
+        "sourceEndLine": 534
+      }
+    },
+    {
+      "id": "rom:wardner/fg_tiles/b25-13.19f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-13.19f",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "be21db2b",
+        "sha1": "7fc1809618f2432c9ec6eb33ce57a5faffd44974",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 535,
+        "sourceColumn": 2,
+        "sourceEndLine": 535
+      }
+    },
+    {
+      "id": "region:wardner/bg_tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "bg_tiles",
+        "size": 131072,
+        "flags": "0",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 537,
+        "sourceColumn": 2,
+        "sourceEndLine": 537
+      }
+    },
+    {
+      "id": "rom:wardner/bg_tiles/b25-08.12f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-08.12f",
+        "offset": 0,
+        "size": 32768,
+        "crc": "883ccaa3",
+        "sha1": "90d686094eac6e80caf8e2cf90c00bb41a0d26e2",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 538,
+        "sourceColumn": 2,
+        "sourceEndLine": 538
+      }
+    },
+    {
+      "id": "rom:wardner/bg_tiles/b25-11.16f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-11.16f",
+        "offset": 32768,
+        "size": 32768,
+        "crc": "d6ebd510",
+        "sha1": "d65e0db7756ebe6828bf637a6c915bb06082636c",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 539,
+        "sourceColumn": 2,
+        "sourceEndLine": 539
+      }
+    },
+    {
+      "id": "rom:wardner/bg_tiles/b25-10.15f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-10.15f",
+        "offset": 65536,
+        "size": 32768,
+        "crc": "b9a61e81",
+        "sha1": "541e579664d583fbbf81111046115018fdaff073",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 2,
+        "sourceEndLine": 540
+      }
+    },
+    {
+      "id": "rom:wardner/bg_tiles/b25-09.14f",
+      "label": "Rom",
+      "props": {
+        "file": "b25-09.14f",
+        "offset": 98304,
+        "size": 32768,
+        "crc": "585411b7",
+        "sha1": "67c0f4b7ab303341d5481c4024dc4199acb7c279",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 541,
+        "sourceColumn": 2,
+        "sourceEndLine": 541
+      }
+    },
+    {
+      "id": "region:wardner/scu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "scu",
+        "size": 262144,
+        "flags": "0",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 543,
+        "sourceColumn": 2,
+        "sourceEndLine": 543
+      }
+    },
+    {
+      "id": "rom:wardner/scu/b25-01.14c",
+      "label": "Rom",
+      "props": {
+        "file": "b25-01.14c",
+        "offset": 0,
+        "size": 65536,
+        "crc": "42ec01fb",
+        "sha1": "646192a2e89f795ed016860cdcdc0b5ef645fca2",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 544,
+        "sourceColumn": 2,
+        "sourceEndLine": 544
+      }
+    },
+    {
+      "id": "rom:wardner/scu/b25-02.16c",
+      "label": "Rom",
+      "props": {
+        "file": "b25-02.16c",
+        "offset": 65536,
+        "size": 65536,
+        "crc": "6c0130b7",
+        "sha1": "8b6ad72848d03c3d4ee3acd35abbb3a0e678122c",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 545,
+        "sourceColumn": 2,
+        "sourceEndLine": 545
+      }
+    },
+    {
+      "id": "rom:wardner/scu/b25-03.17c",
+      "label": "Rom",
+      "props": {
+        "file": "b25-03.17c",
+        "offset": 131072,
+        "size": 65536,
+        "crc": "b923db99",
+        "sha1": "2f4be81afdf200586bc44b1e94553d84d16d0b62",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 546,
+        "sourceColumn": 2,
+        "sourceEndLine": 546
+      }
+    },
+    {
+      "id": "rom:wardner/scu/b25-04.19c",
+      "label": "Rom",
+      "props": {
+        "file": "b25-04.19c",
+        "offset": 196608,
+        "size": 65536,
+        "crc": "8059573c",
+        "sha1": "75bd19e504433438b85ed00e50e85fb98eebf4de",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 547,
+        "sourceColumn": 2,
+        "sourceEndLine": 547
+      }
+    },
+    {
+      "id": "region:wardner/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 608,
+        "flags": "0",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 549,
+        "sourceColumn": 2,
+        "sourceEndLine": 549
+      }
+    },
+    {
+      "id": "rom:wardner/proms/82s129.b19",
+      "label": "Rom",
+      "props": {
+        "file": "82s129.b19",
+        "offset": 0,
+        "size": 256,
+        "crc": "24e7d62f",
+        "sha1": "1c06a1ef1b6a722794ca1d5ee2c476ecaa5178a3",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 550,
+        "sourceColumn": 2,
+        "sourceEndLine": 550
+      }
+    },
+    {
+      "id": "rom:wardner/proms/82s129.b18",
+      "label": "Rom",
+      "props": {
+        "file": "82s129.b18",
+        "offset": 256,
+        "size": 256,
+        "crc": "a50cef09",
+        "sha1": "55cafb5b2551b80ae708e9b966cf37c70a16d310",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 551,
+        "sourceColumn": 2,
+        "sourceEndLine": 551
+      }
+    },
+    {
+      "id": "rom:wardner/proms/82s123.b21",
+      "label": "Rom",
+      "props": {
+        "file": "82s123.b21",
+        "offset": 512,
+        "size": 32,
+        "crc": "f72482db",
+        "sha1": "b0cb911f9c81f6088a5aa8760916ddae1f8534d7",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 552,
+        "sourceColumn": 2,
+        "sourceEndLine": 552
+      }
+    },
+    {
+      "id": "rom:wardner/proms/82s123.c6",
+      "label": "Rom",
+      "props": {
+        "file": "82s123.c6",
+        "offset": 544,
+        "size": 32,
+        "crc": "bc88cced",
+        "sha1": "5055362710c0f58823c05fb4c0e0eec638b91e3d",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 553,
+        "sourceColumn": 2,
+        "sourceEndLine": 553
+      }
+    },
+    {
+      "id": "rom:wardner/proms/82s123.f1",
+      "label": "Rom",
+      "props": {
+        "file": "82s123.f1",
+        "offset": 576,
+        "size": 32,
+        "crc": "4fb5df2a",
+        "sha1": "506ef2c8e4cf45c256d6831a0a5760732f2de422",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 554,
+        "sourceColumn": 2,
+        "sourceEndLine": 554
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "wardner_state",
+        "name": "main_program_map",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 257,
+        "sourceColumn": 1,
+        "sourceEndLine": 269
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 28671,
+        "raw": "map(0x0000, 0x6fff).rom()",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 259,
+        "sourceColumn": 2,
+        "sourceEndLine": 259,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 28672,
+        "end": 32767,
+        "raw": "map(0x7000, 0x7fff).ram()",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 260,
+        "sourceColumn": 2,
+        "sourceEndLine": 260,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 36863,
+        "raw": "map(0x8000, 0x8fff).w(FUNC(wardner_state::wardner_sprite_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 261,
+        "sourceColumn": 2,
+        "sourceEndLine": 261
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_sprite_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_sprite_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 312,
+        "sourceColumn": 1,
+        "sourceEndLine": 319,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "u16 *const spriteram16 = reinterpret_cast<u16 *>(m_spriteram8->live());\n\tif (BIT(offset, 0))\n\t\tspriteram16[offset / 2] = (spriteram16[offset / 2] & 0x00ff) | (data << 8);\n\telse\n\t\tspriteram16[offset / 2] = (spriteram16[offset / 2] & 0xff00) | data;"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 45055,
+        "raw": "map(0xa000, 0xafff).w(m_palette, FUNC(palette_device::write8))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 262,
+        "sourceColumn": 2,
+        "sourceEndLine": 262
+      }
+    },
+    {
+      "id": "handler:palette_device.write8",
+      "label": "Handler",
+      "props": {
+        "method": "write8",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 262,
+        "sourceColumn": 2,
+        "sourceEndLine": 262
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "map(0xc000, 0xc7ff).writeonly().share(m_sharedram)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 263,
+        "sourceColumn": 2,
+        "sourceEndLine": 263,
+        "writeonly": true,
+        "share": "sharedram"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "map(0x8000, 0xffff).view(m_rom_ram_view)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 264,
+        "sourceColumn": 2,
+        "sourceEndLine": 264
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 36863,
+        "raw": "m_rom_ram_view[0](0x8000, 0x8fff).r(FUNC(wardner_state::wardner_sprite_r)).share(\"spriteram8\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 265,
+        "sourceColumn": 2,
+        "sourceEndLine": 265,
+        "share": "spriteram8",
+        "viewTag": "m_rom_ram_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_sprite_r",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_sprite_r",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 305,
+        "sourceColumn": 1,
+        "sourceEndLine": 310,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "u16 const *const spriteram16 = reinterpret_cast<u16 *>(m_spriteram8->live());\n\tconst int shift = BIT(offset, 0) * 8;\n\treturn spriteram16[offset / 2] >> shift;"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 45055,
+        "raw": "m_rom_ram_view[0](0xa000, 0xafff).readonly().share(\"palette\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 266,
+        "sourceColumn": 2,
+        "sourceEndLine": 266,
+        "readonly": true,
+        "share": "palette",
+        "viewTag": "m_rom_ram_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "m_rom_ram_view[0](0xc000, 0xc7ff).readonly().share(m_sharedram)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 267,
+        "sourceColumn": 2,
+        "sourceEndLine": 267,
+        "readonly": true,
+        "share": "sharedram",
+        "viewTag": "m_rom_ram_view",
+        "viewEntry": 0
+      }
+    },
+    {
+      "id": "map:wardner_state.main_program_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 65535,
+        "raw": "m_rom_ram_view[1](0x8000, 0xffff).bankr(m_rombank)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 268,
+        "sourceColumn": 2,
+        "sourceEndLine": 268,
+        "viewTag": "m_rom_ram_view",
+        "viewEntry": 1,
+        "bankRead": "rombank"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "wardner_state",
+        "name": "main_io_map",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 271,
+        "sourceColumn": 1,
+        "sourceEndLine": 292,
+        "globalMask": 255
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x00, 0x00).w(\"crtc\", FUNC(mc6845_device::address_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 274,
+        "sourceColumn": 2,
+        "sourceEndLine": 274
+      }
+    },
+    {
+      "id": "handler:mc6845_device.address_w",
+      "label": "Handler",
+      "props": {
+        "method": "address_w",
+        "ownerClass": "mc6845_device",
+        "sourceFile": "src/mame/toaplan/twincobr.cpp",
+        "sourceLine": 400,
+        "sourceColumn": 2,
+        "sourceEndLine": 400
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 2,
+        "end": 2,
+        "raw": "map(0x02, 0x02).w(\"crtc\", FUNC(mc6845_device::register_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 275,
+        "sourceColumn": 2,
+        "sourceEndLine": 275
+      }
+    },
+    {
+      "id": "handler:mc6845_device.register_w",
+      "label": "Handler",
+      "props": {
+        "method": "register_w",
+        "ownerClass": "mc6845_device",
+        "sourceFile": "src/mame/toaplan/twincobr.cpp",
+        "sourceLine": 401,
+        "sourceColumn": 2,
+        "sourceEndLine": 401
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 16,
+        "end": 19,
+        "raw": "map(0x10, 0x13).w(FUNC(wardner_state::wardner_txscroll_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 276,
+        "sourceColumn": 2,
+        "sourceEndLine": 276
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_txscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_txscroll_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 253,
+        "sourceColumn": 1,
+        "sourceEndLine": 257,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\ttwincobr_txscroll_w(offset / 2, data << shift, 0xff << shift);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_txscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_txscroll_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 186,
+        "sourceColumn": 1,
+        "sourceEndLine": 198,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "if (offset == 0)\n\t{\n\t\tCOMBINE_DATA(&m_txscrollx);\n\t\tm_tx_tilemap->set_scrollx(0, m_txscrollx);\n\t}\n\telse\n\t{\n\t\tCOMBINE_DATA(&m_txscrolly);\n\t\tm_tx_tilemap->set_scrolly(0, m_txscrolly);\n\t}"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 20,
+        "end": 21,
+        "raw": "map(0x14, 0x15).w(FUNC(wardner_state::wardner_txlayer_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 277,
+        "sourceColumn": 2,
+        "sourceEndLine": 277
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_txlayer_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_txlayer_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 235,
+        "sourceColumn": 1,
+        "sourceEndLine": 239,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\ttwincobr_txoffs_w(offset / 2, data << shift, 0xff << shift);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_txoffs_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_txoffs_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 140,
+        "sourceColumn": 1,
+        "sourceEndLine": 144,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_txoffs);\n\tm_txoffs %= m_txvideoram_size;"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 32,
+        "end": 35,
+        "raw": "map(0x20, 0x23).w(FUNC(wardner_state::wardner_bgscroll_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 278,
+        "sourceColumn": 2,
+        "sourceEndLine": 278
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_bgscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_bgscroll_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 259,
+        "sourceColumn": 1,
+        "sourceEndLine": 263,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\ttwincobr_bgscroll_w(offset / 2, data << shift, 0xff << shift);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_bgscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_bgscroll_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 200,
+        "sourceColumn": 1,
+        "sourceEndLine": 212,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "if (offset == 0)\n\t{\n\t\tCOMBINE_DATA(&m_bgscrollx);\n\t\tm_bg_tilemap->set_scrollx(0, m_bgscrollx);\n\t}\n\telse\n\t{\n\t\tCOMBINE_DATA(&m_bgscrolly);\n\t\tm_bg_tilemap->set_scrolly(0, m_bgscrolly);\n\t}"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 36,
+        "end": 37,
+        "raw": "map(0x24, 0x25).w(FUNC(wardner_state::wardner_bglayer_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 279,
+        "sourceColumn": 2,
+        "sourceEndLine": 279
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_bglayer_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_bglayer_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 241,
+        "sourceColumn": 1,
+        "sourceEndLine": 245,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\ttwincobr_bgoffs_w(offset / 2, data << shift, 0xff << shift);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_bgoffs_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_bgoffs_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 155,
+        "sourceColumn": 1,
+        "sourceEndLine": 159,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_bgoffs);\n\tm_bgoffs %= (m_bgvideoram_size >> 1);"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 48,
+        "end": 51,
+        "raw": "map(0x30, 0x33).w(FUNC(wardner_state::wardner_fgscroll_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 280,
+        "sourceColumn": 2,
+        "sourceEndLine": 280
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_fgscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_fgscroll_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 265,
+        "sourceColumn": 1,
+        "sourceEndLine": 269,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\ttwincobr_fgscroll_w(offset / 2, data << shift, 0xff << shift);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_fgscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_fgscroll_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 214,
+        "sourceColumn": 1,
+        "sourceEndLine": 226,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "if (offset == 0)\n\t{\n\t\tCOMBINE_DATA(&m_fgscrollx);\n\t\tm_fg_tilemap->set_scrollx(0, m_fgscrollx);\n\t}\n\telse\n\t{\n\t\tCOMBINE_DATA(&m_fgscrolly);\n\t\tm_fg_tilemap->set_scrolly(0, m_fgscrolly);\n\t}"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 52,
+        "end": 53,
+        "raw": "map(0x34, 0x35).w(FUNC(wardner_state::wardner_fglayer_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 281,
+        "sourceColumn": 2,
+        "sourceEndLine": 281
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_fglayer_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_fglayer_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 247,
+        "sourceColumn": 1,
+        "sourceEndLine": 251,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\ttwincobr_fgoffs_w(offset / 2, data << shift, 0xff << shift);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_fgoffs_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_fgoffs_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 170,
+        "sourceColumn": 1,
+        "sourceEndLine": 174,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_fgoffs);\n\tm_fgoffs %= m_fgvideoram_size;"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 64,
+        "end": 67,
+        "raw": "map(0x40, 0x43).w(FUNC(wardner_state::wardner_exscroll_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 282,
+        "sourceColumn": 2,
+        "sourceEndLine": 282
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_exscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_exscroll_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 271,
+        "sourceColumn": 1,
+        "sourceEndLine": 280,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "switch (offset)\n\t{\n\t\tcase 0x1:    //data <<= 8;\n\t\tcase 0x0:    logerror(\"%s: write %04x to unknown video scroll X register\\n\", machine().describe_context(),data); break;\n\t\tcase 0x3:    //data <<= 8;\n\t\tcase 0x2:    logerror(\"%s: write %04x to unknown video scroll Y register\\n\", machine().describe_context(),data); break;\n\t}"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 80,
+        "end": 80,
+        "raw": "map(0x50, 0x50).portr(\"DSWA\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 283,
+        "sourceColumn": 2,
+        "sourceEndLine": 283,
+        "portRead": "DSWA"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 82,
+        "end": 82,
+        "raw": "map(0x52, 0x52).portr(\"DSWB\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 284,
+        "sourceColumn": 2,
+        "sourceEndLine": 284,
+        "portRead": "DSWB"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 84,
+        "end": 84,
+        "raw": "map(0x54, 0x54).portr(\"P1\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 285,
+        "sourceColumn": 2,
+        "sourceEndLine": 285,
+        "portRead": "P1"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 86,
+        "end": 86,
+        "raw": "map(0x56, 0x56).portr(\"P2\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 286,
+        "sourceColumn": 2,
+        "sourceEndLine": 286,
+        "portRead": "P2"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 88,
+        "end": 88,
+        "raw": "map(0x58, 0x58).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 287,
+        "sourceColumn": 2,
+        "sourceEndLine": 287,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 90,
+        "end": 90,
+        "raw": "map(0x5a, 0x5a).w(m_coinlatch, FUNC(ls259_device::write_nibble_d0))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 288,
+        "sourceColumn": 2,
+        "sourceEndLine": 288
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_nibble_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_nibble_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/toaplan/twincobr.cpp",
+        "sourceLine": 446,
+        "sourceColumn": 2,
+        "sourceEndLine": 446
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 92,
+        "end": 92,
+        "raw": "map(0x5c, 0x5c).w(m_mainlatch, FUNC(ls259_device::write_nibble_d0))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 289,
+        "sourceColumn": 2,
+        "sourceEndLine": 289
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 96,
+        "end": 101,
+        "raw": "map(0x60, 0x65).rw(FUNC(wardner_state::wardner_videoram_r), FUNC(wardner_state::wardner_videoram_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 290,
+        "sourceColumn": 2,
+        "sourceEndLine": 290
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_videoram_r",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_videoram_r",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 282,
+        "sourceColumn": 1,
+        "sourceEndLine": 292,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\tswitch (offset / 2)\n\t{\n\t\tcase 0: return twincobr_txram_r() >> shift;\n\t\tcase 1: return twincobr_bgram_r() >> shift;\n\t\tcase 2: return twincobr_fgram_r() >> shift;\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_txram_r",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_txram_r",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 145,
+        "sourceColumn": 1,
+        "sourceEndLine": 148,
+        "sourceParameters": "",
+        "sourceBody": "return m_txvideoram16[m_txoffs];"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_bgram_r",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_bgram_r",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 160,
+        "sourceColumn": 1,
+        "sourceEndLine": 163,
+        "sourceParameters": "",
+        "sourceBody": "return m_bgvideoram16[m_bgoffs + m_bg_ram_bank];"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_fgram_r",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_fgram_r",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 175,
+        "sourceColumn": 1,
+        "sourceEndLine": 178,
+        "sourceParameters": "",
+        "sourceBody": "return m_fgvideoram16[m_fgoffs];"
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_videoram_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 294,
+        "sourceColumn": 1,
+        "sourceEndLine": 303,
+        "sourceParameters": "offs_t offset, u8 data",
+        "sourceBody": "const int shift = BIT(offset, 0) << 3;\n\tswitch (offset / 2)\n\t{\n\t\tcase 0: twincobr_txram_w(0, data << shift, 0xff << shift); break;\n\t\tcase 1: twincobr_bgram_w(0, data << shift, 0xff << shift); break;\n\t\tcase 2: twincobr_fgram_w(0, data << shift, 0xff << shift); break;\n\t}"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_txram_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_txram_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 149,
+        "sourceColumn": 1,
+        "sourceEndLine": 153,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_txvideoram16[m_txoffs]);\n\tm_tx_tilemap->mark_tile_dirty(m_txoffs);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_bgram_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_bgram_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 164,
+        "sourceColumn": 1,
+        "sourceEndLine": 168,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_bgvideoram16[m_bgoffs + m_bg_ram_bank]);\n\tm_bg_tilemap->mark_tile_dirty((m_bgoffs + m_bg_ram_bank));"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_fgram_w",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_fgram_w",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 179,
+        "sourceColumn": 1,
+        "sourceEndLine": 183,
+        "sourceParameters": "offs_t offset, u16 data, u16 mem_mask",
+        "sourceBody": "COMBINE_DATA(&m_fgvideoram16[m_fgoffs]);\n\tm_fg_tilemap->mark_tile_dirty(m_fgoffs);"
+      }
+    },
+    {
+      "id": "map:wardner_state.main_io_map/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 112,
+        "end": 112,
+        "raw": "map(0x70, 0x70).w(FUNC(wardner_state::wardner_bank_w))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 291,
+        "sourceColumn": 2,
+        "sourceEndLine": 291
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_bank_w",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_bank_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 251,
+        "sourceColumn": 1,
+        "sourceEndLine": 255,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_rom_ram_view.select(data == 0x00 ? 0 : 1);\n\tm_rombank->set_entry(data & 7);"
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_program_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "wardner_state",
+        "name": "sound_program_map",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 297,
+        "sourceColumn": 1,
+        "sourceEndLine": 303
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_program_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 32767,
+        "raw": "map(0x0000, 0x7fff).rom()",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 299,
+        "sourceColumn": 2,
+        "sourceEndLine": 299,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_program_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 32895,
+        "raw": "map(0x8000, 0x807f).ram()",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 300,
+        "sourceColumn": 2,
+        "sourceEndLine": 300,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_program_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 51199,
+        "raw": "map(0xc000, 0xc7ff).ram().share(m_sharedram)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 301,
+        "sourceColumn": 2,
+        "sourceEndLine": 301,
+        "ram": true,
+        "share": "sharedram"
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_program_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 51200,
+        "end": 53247,
+        "raw": "map(0xc800, 0xcfff).ram()",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 302,
+        "sourceColumn": 2,
+        "sourceEndLine": 302,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "wardner_state",
+        "name": "sound_io_map",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 305,
+        "sourceColumn": 1,
+        "sourceEndLine": 309,
+        "globalMask": 255
+      }
+    },
+    {
+      "id": "map:wardner_state.sound_io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1,
+        "raw": "map(0x00, 0x01).rw(\"ymsnd\", FUNC(ym3812_device::read), FUNC(ym3812_device::write))",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 308,
+        "sourceColumn": 2,
+        "sourceEndLine": 308
+      }
+    },
+    {
+      "id": "handler:ym3812_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym3812_device",
+        "sourceFile": "src/mame/toaplan/twincobr.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434
+      }
+    },
+    {
+      "id": "handler:ym3812_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym3812_device",
+        "sourceFile": "src/mame/toaplan/twincobr.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434
+      }
+    },
+    {
+      "id": "map:toaplan_dsp_device.program_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "toaplan_dsp_device",
+        "name": "program_map",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 32,
+        "sourceColumn": 1,
+        "sourceEndLine": 37
+      }
+    },
+    {
+      "id": "map:toaplan_dsp_device.program_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 2047,
+        "raw": "map(0x000, 0x7ff).rom().region(\"dsp\", 0)",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 36,
+        "sourceColumn": 2,
+        "sourceEndLine": 36,
+        "rom": true,
+        "region": "dsp",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:toaplan_dsp_device.io_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "toaplan_dsp_device",
+        "name": "io_map",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 41,
+        "sourceColumn": 1,
+        "sourceEndLine": 46
+      }
+    },
+    {
+      "id": "map:toaplan_dsp_device.io_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 0,
+        "raw": "map(0x0, 0x0).w(FUNC(toaplan_dsp_device::dsp_addrsel_w))",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 43,
+        "sourceColumn": 2,
+        "sourceEndLine": 43
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.dsp_addrsel_w",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_addrsel_w",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 84,
+        "sourceColumn": 1,
+        "sourceEndLine": 88,
+        "sourceConstants": [
+          "LOG_DSP=2"
+        ],
+        "sourceParameters": "u16 data",
+        "sourceBody": "m_host_addr_cb(data, m_main_ram_seg, m_dsp_addr_w);\n\tLOGMASKED(LOG_DSP, \"%s: dsp_addrsel_w %04x (%08x)\\n\", machine().describe_context(), data, m_main_ram_seg + m_dsp_addr_w);"
+      }
+    },
+    {
+      "id": "map:toaplan_dsp_device.io_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 1,
+        "end": 1,
+        "raw": "map(0x1, 0x1).rw(FUNC(toaplan_dsp_device::dsp_r), FUNC(toaplan_dsp_device::dsp_w))",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 44,
+        "sourceColumn": 2,
+        "sourceEndLine": 44
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.dsp_r",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_r",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 90,
+        "sourceColumn": 1,
+        "sourceEndLine": 98,
+        "sourceConstants": [
+          "LOG_DSP=2"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "// DSP can read data from main CPU RAM via DSP IO port 1\n\n\tconst u16 input_data = m_host_r_cb(m_main_ram_seg, m_dsp_addr_w);\n\tif (!machine().side_effects_disabled())\n\t\tLOGMASKED(LOG_DSP, \"%s: dsp_r %04x at %08x\\n\", machine().describe_context(), input_data, m_main_ram_seg + m_dsp_addr_w);\n\treturn input_data;"
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.dsp_w",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_w",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 100,
+        "sourceColumn": 1,
+        "sourceEndLine": 106,
+        "sourceConstants": [
+          "LOG_DSP=2"
+        ],
+        "sourceParameters": "u16 data",
+        "sourceBody": "// Data written to main CPU RAM via DSP IO port 1\n\n\tm_dsp_execute = m_host_w_cb(m_main_ram_seg, m_dsp_addr_w, data);\n\tLOGMASKED(LOG_DSP, \"%s: dsp_w %04x at %08x\\n\", machine().describe_context(), data, m_main_ram_seg + m_dsp_addr_w);"
+      }
+    },
+    {
+      "id": "map:toaplan_dsp_device.io_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 3,
+        "end": 3,
+        "raw": "map(0x3, 0x3).w(FUNC(toaplan_dsp_device::dsp_bio_w))",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 45,
+        "sourceColumn": 2,
+        "sourceEndLine": 45
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.dsp_bio_w",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_bio_w",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 108,
+        "sourceColumn": 1,
+        "sourceEndLine": 130,
+        "sourceConstants": [
+          "LOG_DSP=2"
+        ],
+        "sourceParameters": "u16 data",
+        "sourceBody": "// data 0xffff  means inhibit BIO line to DSP and enable\n\t//              communication to main processor\n\t//              Actually only DSP data bit 15 controls this\n\t// data 0x0000  means set DSP BIO line active and disable\n\t//              communication to main processor\n\n\tLOGMASKED(LOG_DSP, \"%s: dsp_bio_w %04x\\n\", machine().describe_context(), data);\n\tif (BIT(data, 15))\n\t\tm_dsp_bio = CLEAR_LINE;\n\n\tif (data == 0)\n\t{\n\t\tif (m_dsp_execute)\n\t\t{\n\t\t\tLOGMASKED(LOG_DSP, \"Turning the host CPU on\\n\");\n\t\t\tm_halt_cb(CLEAR_LINE);\n\t\t\tm_dsp_execute = false;\n\t\t}\n\t\tm_dsp_bio = ASSERT_LINE;\n\t}"
+      }
+    },
+    {
+      "id": "machine:wardner_state.wardner",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "wardner_state",
+        "name": "wardner",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_fg_rom_bank\",\"bits\":32}",
+          "{\"name\":\"m_bg_ram_bank\",\"bits\":32}",
+          "{\"name\":\"m_txscrollx\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_txscrolly\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_fgscrollx\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_fgscrolly\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_bgscrollx\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_bgscrolly\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_txoffs\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_fgoffs\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_bgoffs\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_display_on\",\"bits\":1}",
+          "{\"name\":\"m_intenable\",\"bits\":1}",
+          "{\"name\":\"m_fsharkbt_8741\",\"bits\":32,\"signed\":true}"
+        ],
+        "resetHandlers": [
+          "twincobr_state.machine_reset"
+        ],
+        "startHandlers": [
+          "twincobr_state.video_start"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 440,
+        "sourceColumn": 1,
+        "sourceEndLine": 503
+      }
+    },
+    {
+      "id": "handler:twincobr_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_m.cpp",
+        "sourceLine": 149,
+        "sourceColumn": 1,
+        "sourceEndLine": 152,
+        "sourceParameters": "",
+        "sourceBody": "m_fsharkbt_8741 = -1;"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 79,
+        "sourceColumn": 1,
+        "sourceEndLine": 109,
+        "sourceParameters": "",
+        "sourceBody": "/* the video RAM is accessed via ports, it's not memory mapped */\n\tm_txvideoram_size = 0x0800;\n\tm_bgvideoram_size = 0x2000; /* banked two times 0x1000 */\n\tm_fgvideoram_size = 0x1000;\n\n\ttwincobr_create_tilemaps();\n\n\tm_txvideoram16 = make_unique_clear<u16[]>(m_txvideoram_size);\n\tm_fgvideoram16 = make_unique_clear<u16[]>(m_fgvideoram_size);\n\tm_bgvideoram16 = make_unique_clear<u16[]>(m_bgvideoram_size);\n\n\tm_display_on = false;\n\n\tsave_pointer(NAME(m_txvideoram16), m_txvideoram_size);\n\tsave_pointer(NAME(m_fgvideoram16), m_fgvideoram_size);\n\tsave_pointer(NAME(m_bgvideoram16), m_bgvideoram_size);\n\tsave_item(NAME(m_txoffs));\n\tsave_item(NAME(m_fgoffs));\n\tsave_item(NAME(m_bgoffs));\n\tsave_item(NAME(m_txscrollx));\n\tsave_item(NAME(m_fgscrollx));\n\tsave_item(NAME(m_bgscrollx));\n\tsave_item(NAME(m_txscrolly));\n\tsave_item(NAME(m_fgscrolly));\n\tsave_item(NAME(m_bgscrolly));\n\tsave_item(NAME(m_display_on));\n\tsave_item(NAME(m_fg_rom_bank));\n\tsave_item(NAME(m_bg_ram_bank));"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.twincobr_create_tilemaps",
+      "label": "Handler",
+      "props": {
+        "method": "twincobr_create_tilemaps",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 62,
+        "sourceColumn": 1,
+        "sourceEndLine": 77,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(twincobr_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8,8, 64,64);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(twincobr_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8,8, 64,64);\n\tm_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(twincobr_state::get_tx_tile_info)), TILEMAP_SCAN_ROWS, 8,8, 64,32);\n\n\tm_bg_tilemap->set_scrolldx(-55, -134);\n\tm_fg_tilemap->set_scrolldx(-55, -134);\n\tm_tx_tilemap->set_scrolldx(-55, -134);\n\tm_bg_tilemap->set_scrolldy(-30, -243);\n\tm_fg_tilemap->set_scrolldy(-30, -243);\n\tm_tx_tilemap->set_scrolldy(-30, -243);\n\n\tm_fg_tilemap->set_transparent_pen(0);\n\tm_tx_tilemap->set_transparent_pen(0);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 25,
+        "sourceColumn": 1,
+        "sourceEndLine": 34,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "const u16 code = m_bgvideoram16[tile_index + m_bg_ram_bank];\n\tconst u32 tile_number = code & 0x0fff;\n\tconst u32 color = (code & 0xf000) >> 12;\n\ttileinfo.set(2,\n\t\t\ttile_number,\n\t\t\tcolor,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.get_fg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_fg_tile_info",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 36,
+        "sourceColumn": 1,
+        "sourceEndLine": 45,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "const u16 code = m_fgvideoram16[tile_index];\n\tconst u32 tile_number = (code & 0x0fff) | m_fg_rom_bank;\n\tconst u32 color = (code & 0xf000) >> 12;\n\ttileinfo.set(1,\n\t\t\ttile_number,\n\t\t\tcolor,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.get_tx_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_tx_tile_info",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 47,
+        "sourceColumn": 1,
+        "sourceEndLine": 56,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "const u16 code = m_txvideoram16[tile_index];\n\tconst u32 tile_number = code & 0x07ff;\n\tconst u32 color = (code & 0xf800) >> 11;\n\ttileinfo.set(0,\n\t\t\ttile_number,\n\t\t\tcolor,\n\t\t\t0);"
+      }
+    },
+    {
+      "id": "bank:wardner_state.wardner/rombank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "rombank",
+        "member": "m_rombank",
+        "startEntry": 0,
+        "entries": 8,
+        "region": "maincpu",
+        "offset": 0,
+        "stride": 32768,
+        "raw": "m_rombank->configure_entries(0, 8, memregion(\"maincpu\")->base(), 0x8000)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 432,
+        "sourceColumn": 1,
+        "sourceEndLine": 438
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "maincpu",
+        "clock": 6000000,
+        "config": [
+          "Z80(config, m_maincpu, XTAL(24'000'000) / 4)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &wardner_state::main_program_map)",
+          "m_maincpu->set_addrmap(AS_IO, &wardner_state::main_io_map)"
+        ],
+        "member": "m_maincpu",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 443,
+        "sourceColumn": 2,
+        "sourceEndLine": 443
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3500000,
+        "config": [
+          "z80_device &audiocpu(Z80(config, \"audiocpu\", XTAL(14'000'000) / 4))",
+          "audiocpu.set_addrmap(AS_PROGRAM, &wardner_state::sound_program_map)",
+          "audiocpu.set_addrmap(AS_IO, &wardner_state::sound_io_map)"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 447,
+        "sourceColumn": 2,
+        "sourceEndLine": 447
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/dsp",
+      "label": "Device",
+      "props": {
+        "type": "TOAPLAN_DSP",
+        "tag": "dsp",
+        "clock": 14000000,
+        "config": [
+          "TOAPLAN_DSP(config, m_dsp, XTAL(14'000'000))",
+          "m_dsp->set_host_addr_callback(FUNC(wardner_state::dsp_host_addr_cb))",
+          "m_dsp->set_host_read_callback(FUNC(wardner_state::dsp_host_read_cb))",
+          "m_dsp->set_host_write_callback(FUNC(wardner_state::dsp_host_write_cb))",
+          "m_dsp->halt_callback().set_inputline(m_maincpu, INPUT_LINE_HALT)"
+        ],
+        "member": "m_dsp",
+        "cls": "toaplan_dsp_device",
+        "clsHierarchy": [
+          "toaplan_dsp_device"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 451,
+        "sourceColumn": 2,
+        "sourceEndLine": 451,
+        "startHandler": "toaplan_dsp_device.device_start"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/dsp/callback:dsp:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_host_addr_callback",
+        "member": "m_host_addr_cb",
+        "delegate": 1,
+        "operation": "set_host_addr_callback",
+        "raw": "m_dsp->set_host_addr_callback(FUNC(wardner_state::dsp_host_addr_cb))",
+        "ownerTag": "dsp",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 452,
+        "sourceColumn": 2,
+        "sourceEndLine": 452,
+        "targetClass": "wardner_state",
+        "targetMethod": "dsp_host_addr_cb"
+      }
+    },
+    {
+      "id": "handler:wardner_state.dsp_host_addr_cb",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_host_addr_cb",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 191,
+        "sourceColumn": 1,
+        "sourceEndLine": 202,
+        "sourceParameters": "u16 data, u32 &seg, u32 &addr",
+        "sourceBody": "/* This sets the main CPU RAM address the DSP should */\n\t/*  read/write, via the DSP IO port 0 */\n\t/* Lower twelve bits of this data is shifted left one position */\n\t/*  to move it to an even address boundary */\n\n\tseg  =  (data & 0xe000);\n\taddr = ((data & 0x07ff) << 1);\n\n\tif (seg == 0x6000) seg = 0x7000;"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/dsp/callback:dsp:1",
+      "label": "Callback",
+      "props": {
+        "signal": "set_host_read_callback",
+        "member": "m_host_r_cb",
+        "delegate": 1,
+        "operation": "set_host_read_callback",
+        "raw": "m_dsp->set_host_read_callback(FUNC(wardner_state::dsp_host_read_cb))",
+        "ownerTag": "dsp",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 453,
+        "sourceColumn": 2,
+        "sourceEndLine": 453,
+        "targetClass": "wardner_state",
+        "targetMethod": "dsp_host_read_cb"
+      }
+    },
+    {
+      "id": "handler:wardner_state.dsp_host_read_cb",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_host_read_cb",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 204,
+        "sourceColumn": 1,
+        "sourceEndLine": 224,
+        "sourceParameters": "u32 seg, u32 addr",
+        "sourceBody": "u16 input_data = 0;\n\tswitch (seg)\n\t{\n\tcase 0x7000:\n\tcase 0x8000:\n\tcase 0xa000:\n\t\t{\n\t\t\taddress_space &mainspace = m_maincpu->space(AS_PROGRAM);\n\t\t\tinput_data =  mainspace.read_byte(seg + (addr + 0))\n\t\t\t\t\t\t| (mainspace.read_byte(seg + (addr + 1)) << 8);\n\t\t\tbreak;\n\t\t}\n\tdefault:\n\t\tif (!machine().side_effects_disabled())\n\t\t\tlogerror(\"%s: Warning !!! IO reading from %08x (port 1)\\n\", machine().describe_context(), seg + addr);\n\t\tbreak;\n\t}\n\treturn input_data;"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/dsp/callback:dsp:2",
+      "label": "Callback",
+      "props": {
+        "signal": "set_host_write_callback",
+        "member": "m_host_w_cb",
+        "delegate": 1,
+        "operation": "set_host_write_callback",
+        "raw": "m_dsp->set_host_write_callback(FUNC(wardner_state::dsp_host_write_cb))",
+        "ownerTag": "dsp",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 454,
+        "sourceColumn": 2,
+        "sourceEndLine": 454,
+        "targetClass": "wardner_state",
+        "targetMethod": "dsp_host_write_cb"
+      }
+    },
+    {
+      "id": "handler:wardner_state.dsp_host_write_cb",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_host_write_cb",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 226,
+        "sourceColumn": 1,
+        "sourceEndLine": 247,
+        "sourceParameters": "u32 seg, u32 addr, u16 data",
+        "sourceBody": "bool execute = false;\n\tswitch (seg)\n\t{\n\tcase 0x7000:\n\t\tif ((addr < 3) && (data == 0)) execute = true;\n\t\t[[fallthrough]];\n\tcase 0x8000:\n\tcase 0xa000:\n\t\t{\n\t\t\taddress_space &mainspace = m_maincpu->space(AS_PROGRAM);\n\t\t\tmainspace.write_byte(seg + (addr + 0), (data & 0xff));\n\t\t\tmainspace.write_byte(seg + (addr + 1), ((data >> 8) & 0xff));\n\t\t\tbreak;\n\t\t}\n\tdefault:\n\t\tlogerror(\"%s: Warning !!! IO writing to %08x (port 1)\\n\", machine().describe_context(), seg + addr);\n\t\tbreak;\n\t}\n\treturn execute;"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/dsp/callback:dsp:3",
+      "label": "Callback",
+      "props": {
+        "signal": "halt_callback",
+        "member": "m_halt_cb",
+        "operation": "set_inputline",
+        "raw": "m_dsp->halt_callback().set_inputline(m_maincpu, INPUT_LINE_HALT)",
+        "ownerTag": "dsp",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 455,
+        "sourceColumn": 2,
+        "sourceEndLine": 455,
+        "inputLine": "INPUT_LINE_HALT",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_mainlatch)",
+          "m_mainlatch->q_out_cb<2>().set(FUNC(wardner_state::int_enable_w))",
+          "m_mainlatch->q_out_cb<3>().set(FUNC(wardner_state::flipscreen_w))",
+          "m_mainlatch->q_out_cb<4>().set(FUNC(wardner_state::bg_ram_bank_w))",
+          "m_mainlatch->q_out_cb<5>().set(FUNC(wardner_state::fg_rom_bank_w))",
+          "m_mainlatch->q_out_cb<6>().set(FUNC(wardner_state::display_on_w))"
+        ],
+        "member": "m_mainlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 459,
+        "sourceColumn": 2,
+        "sourceEndLine": 459
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<2>().set(FUNC(wardner_state::int_enable_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 460,
+        "sourceColumn": 2,
+        "sourceEndLine": 460,
+        "slot": "2",
+        "targetClass": "wardner_state",
+        "targetMethod": "int_enable_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.int_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "int_enable_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 183,
+        "sourceColumn": 1,
+        "sourceEndLine": 188,
+        "sourceParameters": "int state",
+        "sourceBody": "m_intenable = state;\n\tif (!state)\n\t\tm_maincpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mainlatch/callback:mainlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<3>().set(FUNC(wardner_state::flipscreen_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 461,
+        "sourceColumn": 2,
+        "sourceEndLine": 461,
+        "slot": "3",
+        "targetClass": "wardner_state",
+        "targetMethod": "flipscreen_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.flipscreen_w",
+      "label": "Handler",
+      "props": {
+        "method": "flipscreen_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 122,
+        "sourceColumn": 1,
+        "sourceEndLine": 125,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().tilemap().set_flip_all((state ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0));"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mainlatch/callback:mainlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<4>().set(FUNC(wardner_state::bg_ram_bank_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 462,
+        "sourceColumn": 2,
+        "sourceEndLine": 462,
+        "slot": "4",
+        "targetClass": "wardner_state",
+        "targetMethod": "bg_ram_bank_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.bg_ram_bank_w",
+      "label": "Handler",
+      "props": {
+        "method": "bg_ram_bank_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 131,
+        "sourceParameters": "int state",
+        "sourceBody": "m_bg_ram_bank = state ? 0x1000 : 0x0000;\n\tm_bg_tilemap->mark_all_dirty();"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mainlatch/callback:mainlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<5>().set(FUNC(wardner_state::fg_rom_bank_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 463,
+        "sourceColumn": 2,
+        "sourceEndLine": 463,
+        "slot": "5",
+        "targetClass": "wardner_state",
+        "targetMethod": "fg_rom_bank_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.fg_rom_bank_w",
+      "label": "Handler",
+      "props": {
+        "method": "fg_rom_bank_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 133,
+        "sourceColumn": 1,
+        "sourceEndLine": 137,
+        "sourceParameters": "int state",
+        "sourceBody": "m_fg_rom_bank = state ? 0x1000 : 0x0000;\n\tm_fg_tilemap->mark_all_dirty();"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mainlatch/callback:mainlatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_mainlatch->q_out_cb<6>().set(FUNC(wardner_state::display_on_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 464,
+        "sourceColumn": 2,
+        "sourceEndLine": 464,
+        "slot": "6",
+        "targetClass": "wardner_state",
+        "targetMethod": "display_on_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.display_on_w",
+      "label": "Handler",
+      "props": {
+        "method": "display_on_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 117,
+        "sourceColumn": 1,
+        "sourceEndLine": 120,
+        "sourceParameters": "int state",
+        "sourceBody": "m_display_on = state;"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/coinlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "coinlatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_coinlatch)",
+          "m_coinlatch->q_out_cb<0>().set(m_dsp, FUNC(toaplan_dsp_device::dsp_int_w))",
+          "m_coinlatch->q_out_cb<4>().set(FUNC(wardner_state::coin_counter_1_w))",
+          "m_coinlatch->q_out_cb<5>().set(FUNC(wardner_state::coin_counter_2_w))",
+          "m_coinlatch->q_out_cb<6>().set(FUNC(wardner_state::coin_lockout_1_w))",
+          "m_coinlatch->q_out_cb<7>().set(FUNC(wardner_state::coin_lockout_2_w))"
+        ],
+        "member": "m_coinlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 466,
+        "sourceColumn": 2,
+        "sourceEndLine": 466
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/coinlatch/callback:coinlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_coinlatch->q_out_cb<0>().set(m_dsp, FUNC(toaplan_dsp_device::dsp_int_w))",
+        "ownerTag": "coinlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 467,
+        "sourceColumn": 2,
+        "sourceEndLine": 467,
+        "slot": "0",
+        "targetClass": "toaplan_dsp_device",
+        "targetMethod": "dsp_int_w",
+        "targetTag": "dsp"
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.dsp_int_w",
+      "label": "Handler",
+      "props": {
+        "method": "dsp_int_w",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 138,
+        "sourceColumn": 1,
+        "sourceEndLine": 154,
+        "sourceConstants": [
+          "LOG_DSP=2"
+        ],
+        "sourceParameters": "int enable",
+        "sourceBody": "m_dsp_on = enable;\n\tif (enable)\n\t{\n\t\tLOGMASKED(LOG_DSP, \"Turning DSP on and the host CPU off\\n\");\n\t\tm_dsp->set_input_line(INPUT_LINE_HALT, CLEAR_LINE);\n\t\tm_dsp->set_input_line(0, ASSERT_LINE); /* TMS32010 INT */\n\t\tm_halt_cb(ASSERT_LINE);\n\t}\n\telse\n\t{\n\t\tLOGMASKED(LOG_DSP, \"Turning DSP off\\n\");\n\t\tm_dsp->set_input_line(0, CLEAR_LINE); /* TMS32010 INT */\n\t\tm_dsp->set_input_line(INPUT_LINE_HALT, ASSERT_LINE);\n\t}"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/coinlatch/callback:coinlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_coinlatch->q_out_cb<4>().set(FUNC(wardner_state::coin_counter_1_w))",
+        "ownerTag": "coinlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 2,
+        "sourceEndLine": 468,
+        "slot": "4",
+        "targetClass": "wardner_state",
+        "targetMethod": "coin_counter_1_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.coin_counter_1_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_1_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_m.cpp",
+        "sourceLine": 112,
+        "sourceColumn": 1,
+        "sourceEndLine": 115,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/coinlatch/callback:coinlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_coinlatch->q_out_cb<5>().set(FUNC(wardner_state::coin_counter_2_w))",
+        "ownerTag": "coinlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 469,
+        "sourceColumn": 2,
+        "sourceEndLine": 469,
+        "slot": "5",
+        "targetClass": "wardner_state",
+        "targetMethod": "coin_counter_2_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.coin_counter_2_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_2_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_m.cpp",
+        "sourceLine": 117,
+        "sourceColumn": 1,
+        "sourceEndLine": 120,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/coinlatch/callback:coinlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_coinlatch->q_out_cb<6>().set(FUNC(wardner_state::coin_lockout_1_w))",
+        "ownerTag": "coinlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 470,
+        "sourceColumn": 2,
+        "sourceEndLine": 470,
+        "slot": "6",
+        "targetClass": "wardner_state",
+        "targetMethod": "coin_lockout_1_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.coin_lockout_1_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_lockout_1_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_m.cpp",
+        "sourceLine": 122,
+        "sourceColumn": 1,
+        "sourceEndLine": 125,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, !state);"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/coinlatch/callback:coinlatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_coinlatch->q_out_cb<7>().set(FUNC(wardner_state::coin_lockout_2_w))",
+        "ownerTag": "coinlatch",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 471,
+        "sourceColumn": 2,
+        "sourceEndLine": 471,
+        "slot": "7",
+        "targetClass": "wardner_state",
+        "targetMethod": "coin_lockout_2_w"
+      }
+    },
+    {
+      "id": "handler:wardner_state.coin_lockout_2_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_lockout_2_w",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_m.cpp",
+        "sourceLine": 127,
+        "sourceColumn": 1,
+        "sourceEndLine": 130,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, !state);"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/crtc",
+      "label": "Device",
+      "props": {
+        "type": "HD6845S",
+        "tag": "crtc",
+        "clock": 3500000,
+        "config": [
+          "hd6845s_device &crtc(HD6845S(config, \"crtc\", XTAL(14'000'000) / 4))",
+          "crtc.set_screen(m_screen)",
+          "crtc.set_show_border_area(false)",
+          "crtc.set_char_width(2)"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 474,
+        "sourceColumn": 2,
+        "sourceEndLine": 474,
+        "configCalls": [
+          "set_char_width(2)"
+        ]
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/scu",
+      "label": "Device",
+      "props": {
+        "type": "TOAPLAN_SCU",
+        "tag": "scu",
+        "clock": null,
+        "config": [
+          "TOAPLAN_SCU(config, m_spritegen)",
+          "m_spritegen->set_screen(m_screen)",
+          "m_spritegen->set_palette(m_palette)",
+          "m_spritegen->set_xoffsets(32, 14)",
+          "m_spritegen->set_pri_callback(FUNC(wardner_state::pri_cb))"
+        ],
+        "member": "m_spritegen",
+        "cls": "toaplan_scu_device",
+        "clsHierarchy": [
+          "toaplan_scu_device"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 2,
+        "sourceEndLine": 479,
+        "configCalls": [
+          "set_xoffsets(32,14)"
+        ]
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/scu/callback:scu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_pri_callback",
+        "member": "m_pri_cb",
+        "delegate": 1,
+        "operation": "set_pri_callback",
+        "raw": "m_spritegen->set_pri_callback(FUNC(wardner_state::pri_cb))",
+        "ownerTag": "scu",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 483,
+        "sourceColumn": 2,
+        "sourceEndLine": 483,
+        "targetClass": "wardner_state",
+        "targetMethod": "pri_cb"
+      }
+    },
+    {
+      "id": "handler:wardner_state.pri_cb",
+      "label": "Handler",
+      "props": {
+        "method": "pri_cb",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 363,
+        "sourceColumn": 1,
+        "sourceEndLine": 372,
+        "sourceParameters": "u8 priority, u32 &pri_mask",
+        "sourceBody": "switch (priority)\n\t{\n\t\tcase 0: pri_mask = GFX_PMASK_1|GFX_PMASK_2|GFX_PMASK_4; break; // disable?\n\t\tcase 1: pri_mask = GFX_PMASK_2|GFX_PMASK_4;             break; // over background, under foreground/text\n\t\tcase 2: pri_mask = GFX_PMASK_4;                         break; // over background/foreground, under text\n\t\tcase 3: pri_mask = 0;                                   break; // over everything\n\t}"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/spriteram8",
+      "label": "Device",
+      "props": {
+        "type": "BUFFERED_SPRITERAM8",
+        "tag": "spriteram8",
+        "clock": null,
+        "config": [
+          "BUFFERED_SPRITERAM8(config, m_spriteram8)"
+        ],
+        "member": "m_spriteram8",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 485,
+        "sourceColumn": 2,
+        "sourceEndLine": 485
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK)",
+          "m_screen->set_raw(14_MHz_XTAL/2, 446, 0, 320, 286, 0, 240)",
+          "m_screen->set_screen_update(FUNC(wardner_state::screen_update))",
+          "m_screen->screen_vblank().set(m_spriteram8, FUNC(buffered_spriteram8_device::vblank_copy_rising))",
+          "m_screen->screen_vblank().append(FUNC(wardner_state::wardner_vblank_irq))"
+        ],
+        "member": "m_screen",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 487,
+        "sourceColumn": 2,
+        "sourceEndLine": 487,
+        "configCalls": [
+          "set_raw(7000000,446,0,320,286,0,240)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          7000000,
+          446,
+          0,
+          320,
+          286,
+          0,
+          240
+        ],
+        "screenRawExpr": [
+          "14_MHz_XTAL/2",
+          "446",
+          "0",
+          "320",
+          "286",
+          "0",
+          "240"
+        ],
+        "screenVideoAttributes": [
+          "VIDEO_UPDATE_BEFORE_VBLANK"
+        ]
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(wardner_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 490,
+        "sourceColumn": 2,
+        "sourceEndLine": 490,
+        "targetClass": "wardner_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:wardner_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 375,
+        "sourceColumn": 1,
+        "sourceEndLine": 407,
+        "sourceParameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+        "sourceBody": "log_vram();\n\n\tif (!m_display_on)\n\t{\n\t\tbitmap.fill(rgb_t::black(), cliprect);\n\t}\n\telse\n\t{\n\t\tscreen.priority().fill(0, cliprect);\n\n\t\tu16 *buffered_spriteram16;\n\t\tu32 bytes;\n\t\tif (m_spriteram16 != nullptr)\n\t\t{\n\t\t\tbuffered_spriteram16 = m_spriteram16->buffer();\n\t\t\tbytes = m_spriteram16->bytes();\n\t\t}\n\t\telse\n\t\t{\n\t\t\tbuffered_spriteram16 = reinterpret_cast<u16 *>(m_spriteram8->buffer());\n\t\t\tbytes = m_spriteram8->bytes();\n\t\t}\n\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE,1);\n\t\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0,2);\n\t\tm_tx_tilemap->draw(screen, bitmap, cliprect, 0,4);\n\t\tm_spritegen->draw_sprites(bitmap, cliprect, buffered_spriteram16, bytes);\n\t}\n\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:twincobr_state.log_vram",
+      "label": "Handler",
+      "props": {
+        "method": "log_vram",
+        "ownerClass": "twincobr_state",
+        "sourceFile": "src/mame/toaplan/twincobr_v.cpp",
+        "sourceLine": 325,
+        "sourceColumn": 1,
+        "sourceEndLine": 360,
+        "sourceParameters": "",
+        "sourceBody": "#if 0\n\tif (machine().input().code_pressed(KEYCODE_M))\n\t{\n\t\tint tcode[4]{};\n\t\twhile (machine().input().code_pressed(KEYCODE_M)) ;\n\t\tlogerror(\"Scrolls             BG-X BG-Y  FG-X FG-Y  TX-X  TX-Y\\n\");\n\t\tlogerror(\"------>             %04x %04x  %04x %04x  %04x  %04x\\n\",m_bgscrollx,m_bgscrolly,m_fgscrollx,m_fgscrolly,m_txscrollx,m_txscrolly);\n\t\tfor (offs_t tile_voffs = 0; tile_voffs < (m_txvideoram_size / 2); tile_voffs++)\n\t\t{\n\t\t\ttcode[1] = m_bgvideoram16[tile_voffs];\n\t\t\ttcode[2] = m_fgvideoram16[tile_voffs];\n\t\t\ttcode[3] = m_txvideoram16[tile_voffs];\n\t\t\tlogerror(\"$(%04x)  (Col-Tile) BG1:%01x-%03x  FG1:%01x-%03x  TX1:%02x-%03x\\n\", tile_voffs,\n\t\t\t\t\t\t\ttcode[1] & 0xf000 >> 12, tcode[1] & 0x0fff,\n\t\t\t\t\t\t\ttcode[2] & 0xf000 >> 12, tcode[2] & 0x0fff,\n\t\t\t\t\t\t\ttcode[3] & 0xf800 >> 11, tcode[3] & 0x07ff);\n\t\t}\n\t\tfor (offs_t tile_voffs = (m_txvideoram_size / 2); tile_voffs < (m_fgvideoram_size / 2); tile_voffs++)\n\t\t{\n\t\t\ttcode[1] = m_bgvideoram16[tile_voffs];\n\t\t\ttcode[2] = m_fgvideoram16[tile_voffs];\n\t\t\tlogerror(\"$(%04x)  (Col-Tile) BG1:%01x-%03x  FG1:%01x-%03x\\n\", tile_voffs,\n\t\t\t\t\t\t\ttcode[1] & 0xf000 >> 12, tcode[1] & 0x0fff,\n\t\t\t\t\t\t\ttcode[2] & 0xf000 >> 12, tcode[2] & 0x0fff);\n\t\t}\n\t\tfor (offs_t tile_voffs = (m_fgvideoram_size / 2); tile_voffs < (m_bgvideoram_size / 2); tile_voffs++)\n\t\t{\n\t\t\ttcode[1] = m_bgvideoram16[tile_voffs];\n\t\t\tlogerror(\"$(%04x)  (Col-Tile) BG1:%01x-%03x\\n\", tile_voffs,\n\t\t\t\t\t\t\ttcode[1] & 0xf000 >> 12, tcode[1] & 0x0fff);\n\t\t}\n\t}\n#endif"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "m_screen->screen_vblank().set(m_spriteram8, FUNC(buffered_spriteram8_device::vblank_copy_rising))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 491,
+        "sourceColumn": 2,
+        "sourceEndLine": 491,
+        "targetClass": "buffered_spriteram8_device",
+        "targetMethod": "vblank_copy_rising",
+        "targetTag": "spriteram8"
+      }
+    },
+    {
+      "id": "handler:buffered_spriteram8_device.vblank_copy_rising",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_copy_rising",
+        "ownerClass": "buffered_spriteram8_device",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 491,
+        "sourceColumn": 2,
+        "sourceEndLine": 491
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/screen/callback:screen:2",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "append",
+        "raw": "m_screen->screen_vblank().append(FUNC(wardner_state::wardner_vblank_irq))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 492,
+        "sourceColumn": 2,
+        "sourceEndLine": 492,
+        "targetClass": "wardner_state",
+        "targetMethod": "wardner_vblank_irq"
+      }
+    },
+    {
+      "id": "handler:wardner_state.wardner_vblank_irq",
+      "label": "Handler",
+      "props": {
+        "method": "wardner_vblank_irq",
+        "ownerClass": "wardner_state",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 177,
+        "sourceColumn": 1,
+        "sourceEndLine": 181,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_intenable)\n\t\tm_maincpu->set_input_line(0, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_wardner)"
+        ],
+        "member": "m_gfxdecode",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 494,
+        "sourceColumn": 2,
+        "sourceEndLine": 494,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x1000 / 2)"
+        ],
+        "member": "m_palette",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 495,
+        "sourceColumn": 2,
+        "sourceEndLine": 495
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 498,
+        "sourceColumn": 2,
+        "sourceEndLine": 498
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM3812",
+        "tag": "ymsnd",
+        "clock": 3500000,
+        "config": [
+          "ym3812_device &ymsnd(YM3812(config, \"ymsnd\", XTAL(14'000'000) / 4))",
+          "ymsnd.irq_handler().set_inputline(\"audiocpu\", 0)",
+          "ymsnd.add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 500,
+        "sourceColumn": 2,
+        "sourceEndLine": 500
+      }
+    },
+    {
+      "id": "audioroute:device:wardner_state.wardner/ymsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "ymsnd.add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 502,
+        "sourceColumn": 2,
+        "sourceEndLine": 502
+      }
+    },
+    {
+      "id": "device:wardner_state.wardner/ymsnd/callback:ymsnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "ymsnd.irq_handler().set_inputline(\"audiocpu\", 0)",
+        "ownerTag": "ymsnd",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 501,
+        "sourceColumn": 2,
+        "sourceEndLine": 501,
+        "targetTag": "audiocpu",
+        "inputLine": "0"
+      }
+    },
+    {
+      "id": "machine:toaplan_dsp_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "toaplan_dsp_device",
+        "name": "device_add_mconfig",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_dsp_on\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_dsp_bio\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_dsp_execute\",\"bits\":1}",
+          "{\"name\":\"m_dsp_addr_w\",\"bits\":32}",
+          "{\"name\":\"m_main_ram_seg\",\"bits\":32}"
+        ],
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 49,
+        "sourceColumn": 1,
+        "sourceEndLine": 55
+      }
+    },
+    {
+      "id": "device:toaplan_dsp_device.device_add_mconfig/dsp",
+      "label": "Device",
+      "props": {
+        "type": "TMS320C10",
+        "tag": "dsp",
+        "clock": 14000000,
+        "config": [
+          "TMS320C10(config, m_dsp, DERIVED_CLOCK(1, 1))",
+          "m_dsp->set_addrmap(AS_PROGRAM, &toaplan_dsp_device::program_map)",
+          "m_dsp->set_addrmap(AS_IO, &toaplan_dsp_device::io_map)",
+          "m_dsp->bio().set(FUNC(toaplan_dsp_device::bio_r))"
+        ],
+        "member": "m_dsp",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 51,
+        "sourceColumn": 2,
+        "sourceEndLine": 51
+      }
+    },
+    {
+      "id": "device:toaplan_dsp_device.device_add_mconfig/dsp/callback:dsp:0",
+      "label": "Callback",
+      "props": {
+        "signal": "bio",
+        "operation": "set",
+        "raw": "m_dsp->bio().set(FUNC(toaplan_dsp_device::bio_r))",
+        "ownerTag": "dsp",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 54,
+        "sourceColumn": 2,
+        "sourceEndLine": 54,
+        "targetClass": "toaplan_dsp_device",
+        "targetMethod": "bio_r"
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.bio_r",
+      "label": "Handler",
+      "props": {
+        "method": "bio_r",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 132,
+        "sourceColumn": 1,
+        "sourceEndLine": 135,
+        "sourceParameters": "",
+        "sourceBody": "return m_dsp_bio;"
+      }
+    },
+    {
+      "id": "handler:toaplan_dsp_device.device_start",
+      "label": "Handler",
+      "props": {
+        "method": "device_start",
+        "ownerClass": "toaplan_dsp_device",
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 57,
+        "sourceColumn": 1,
+        "sourceEndLine": 68,
+        "sourceParameters": "",
+        "sourceBody": "m_host_addr_cb.resolve_safe();\n\tm_host_r_cb.resolve_safe(0);\n\tm_host_w_cb.resolve_safe(true);\n\n\tsave_item(NAME(m_dsp_on));\n\tsave_item(NAME(m_dsp_addr_w));\n\tsave_item(NAME(m_main_ram_seg));\n\tsave_item(NAME(m_dsp_bio));\n\tsave_item(NAME(m_dsp_execute));"
+      }
+    },
+    {
+      "id": "inputs:wardner_generic",
+      "label": "InputPorts",
+      "props": {
+        "name": "wardner_generic",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 319,
+        "sourceColumn": 8,
+        "sourceEndLine": 319
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2",
+      "label": "Port",
+      "props": {
+        "tag": "P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_TILT",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_OTHER",
+        "modifiers": [
+          "PORT_NAME(\"Test Switch\")"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_COIN1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_COIN2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_START1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_START2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA",
+      "label": "Port",
+      "props": {
+        "tag": "DSWA",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":!1\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 1,
+        "location": "#SW1\":!1\"",
+        "settings": [
+          "1=Upright",
+          "0=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":!2\")"
+        ],
+        "name": "Flip Screen",
+        "defaultValue": 0,
+        "location": "#SW1\":!2\"",
+        "settings": [
+          "0=Off",
+          "2=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 4,
+        "activeLow": false,
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":!4\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "#SW1\":!4\"",
+        "settings": [
+          "8=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":!5,!6\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 0,
+        "location": "#SW1\":!5,!6\"",
+        "settings": [
+          "48=4C 1C",
+          "32=3C 1C",
+          "16=2C 1C",
+          "0=1C 1C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWA/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":!7,!8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 0,
+        "location": "#SW1\":!7,!8\"",
+        "settings": [
+          "0=1C 2C",
+          "64=1C 3C",
+          "128=1C 4C",
+          "192=1C 6C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWB",
+      "label": "Port",
+      "props": {
+        "tag": "DSWB",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWB/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW2\":!1,!2\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 0,
+        "location": "#SW2\":!1,!2\"",
+        "settings": [
+          "1=Easy",
+          "0=Normal",
+          "2=Hard",
+          "3=Very Hard"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWB/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!3,!4\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 0,
+        "location": "SW2:!3,!4",
+        "settings": [
+          "0=30k 80k 50k+",
+          "4=50k 100k 50k+",
+          "8=30k Only",
+          "12=50k Only"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWB/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:!5,!6\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 0,
+        "location": "SW2:!5,!6",
+        "settings": [
+          "48=1",
+          "0=3",
+          "16=4",
+          "32=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWB/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 64,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner_generic/DSWB/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Unused",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:wardner",
+      "label": "InputPorts",
+      "props": {
+        "name": "wardner",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 368,
+        "sourceColumn": 8,
+        "sourceEndLine": 368
+      }
+    },
+    {
+      "id": "inputs:wardner/P1",
+      "label": "Port",
+      "props": {
+        "tag": "P1",
+        "modify": true
+      }
+    },
+    {
+      "id": "inputs:wardner/P1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_OTHER",
+        "modifiers": [
+          "PORT_NAME(\"Skip Video RAM Tests\")",
+          "PORT_CODE(KEYCODE_0)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "gfxlayout:charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "charlayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,3)",
+        "planes": 3,
+        "planeOffsets": [
+          "RGN_FRAC(0,3)",
+          "RGN_FRAC(1,3)",
+          "RGN_FRAC(2,3)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxlayout:tilelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "tilelayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,4)",
+        "planes": 4,
+        "planeOffsets": [
+          "RGN_FRAC(0,4)",
+          "RGN_FRAC(1,4)",
+          "RGN_FRAC(2,4)",
+          "RGN_FRAC(3,4)"
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 64
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_wardner",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_wardner",
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 425,
+        "sourceColumn": 8,
+        "sourceEndLine": 425
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_wardner/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "chars",
+        "offset": 0,
+        "layout": "charlayout",
+        "colorBase": 1536,
+        "colorCount": 32,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_wardner/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "fg_tiles",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 1280,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_wardner/e2",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "bg_tiles",
+        "offset": 0,
+        "layout": "tilelayout",
+        "colorBase": 1024,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:wardner",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 756,
+        "sourceColumn": 1,
+        "sourceEndLine": 756
+      }
+    },
+    {
+      "from": "game:wardner",
+      "to": "machine:wardner_state.wardner",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:wardner",
+      "to": "inputs:wardner",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:wardner",
+      "to": "romset:wardner",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:twincobr.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:toaplipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:cpu/tms320c1x/tms320c1x.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:sound/ymopl.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/wardner.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 440,
+        "sourceColumn": 1,
+        "sourceEndLine": 503
+      }
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "handler:twincobr_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "handler:twincobr_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "bank:wardner_state.wardner/rombank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/dsp",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/coinlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/crtc",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/scu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/spriteram8",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "gfxdecode:gfx_wardner",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:wardner_state.wardner",
+      "to": "device:wardner_state.wardner/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:wardner",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 368,
+        "sourceColumn": 8,
+        "sourceEndLine": 368
+      }
+    },
+    {
+      "from": "inputs:wardner",
+      "to": "inputs:wardner_generic",
+      "rel": "INCLUDES_PORTS"
+    },
+    {
+      "from": "inputs:wardner",
+      "to": "inputs:wardner/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 513,
+        "sourceColumn": 1,
+        "sourceEndLine": 513
+      }
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/dsp:dsp",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/chars",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/fg_tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/bg_tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/scu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:wardner",
+      "to": "region:wardner/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:twincobr_state.video_start",
+      "to": "handler:twincobr_state.twincobr_create_tilemaps",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "bank:wardner_state.wardner/rombank",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 432,
+        "sourceColumn": 1,
+        "sourceEndLine": 438
+      }
+    },
+    {
+      "from": "device:wardner_state.wardner/maincpu",
+      "to": "map:wardner_state.main_program_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:wardner_state.wardner/maincpu",
+      "to": "map:wardner_state.main_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:wardner_state.wardner/audiocpu",
+      "to": "map:wardner_state.sound_program_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:wardner_state.wardner/audiocpu",
+      "to": "map:wardner_state.sound_io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp",
+      "to": "device:wardner_state.wardner/dsp/callback:dsp:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp",
+      "to": "device:wardner_state.wardner/dsp/callback:dsp:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp",
+      "to": "device:wardner_state.wardner/dsp/callback:dsp:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp",
+      "to": "device:wardner_state.wardner/dsp/callback:dsp:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp",
+      "to": "machine:toaplan_dsp_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp",
+      "to": "handler:toaplan_dsp_device.device_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch",
+      "to": "device:wardner_state.wardner/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch",
+      "to": "device:wardner_state.wardner/mainlatch/callback:mainlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch",
+      "to": "device:wardner_state.wardner/mainlatch/callback:mainlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch",
+      "to": "device:wardner_state.wardner/mainlatch/callback:mainlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch",
+      "to": "device:wardner_state.wardner/mainlatch/callback:mainlatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch",
+      "to": "device:wardner_state.wardner/coinlatch/callback:coinlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch",
+      "to": "device:wardner_state.wardner/coinlatch/callback:coinlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch",
+      "to": "device:wardner_state.wardner/coinlatch/callback:coinlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch",
+      "to": "device:wardner_state.wardner/coinlatch/callback:coinlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch",
+      "to": "device:wardner_state.wardner/coinlatch/callback:coinlatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/scu",
+      "to": "device:wardner_state.wardner/scu/callback:scu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen",
+      "to": "device:wardner_state.wardner/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen",
+      "to": "device:wardner_state.wardner/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen",
+      "to": "device:wardner_state.wardner/screen/callback:screen:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_wardner",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 425,
+        "sourceColumn": 8,
+        "sourceEndLine": 425
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_wardner",
+      "to": "gfxdecode:gfx_wardner/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_wardner",
+      "to": "gfxdecode:gfx_wardner/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_wardner",
+      "to": "gfxdecode:gfx_wardner/e2",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:wardner_state.wardner/ymsnd",
+      "to": "audioroute:device:wardner_state.wardner/ymsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:wardner_state.wardner/ymsnd",
+      "to": "device:wardner_state.wardner/ymsnd/callback:ymsnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "inputs:wardner_generic",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 319,
+        "sourceColumn": 8,
+        "sourceEndLine": 319
+      }
+    },
+    {
+      "from": "inputs:wardner_generic",
+      "to": "inputs:wardner_generic/P1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:wardner_generic",
+      "to": "inputs:wardner_generic/P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:wardner_generic",
+      "to": "inputs:wardner_generic/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:wardner_generic",
+      "to": "inputs:wardner_generic/DSWA",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:wardner_generic",
+      "to": "inputs:wardner_generic/DSWB",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:wardner/P1",
+      "to": "inputs:wardner/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:wardner/maincpu",
+      "to": "rom:wardner/maincpu/b25-31.6m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/maincpu",
+      "to": "rom:wardner/maincpu/b25-18.7m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/maincpu",
+      "to": "rom:wardner/maincpu/b25-19.8m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/maincpu",
+      "to": "rom:wardner/maincpu/b25-32.10m",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/audiocpu",
+      "to": "rom:wardner/audiocpu/b25-16.4k",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/dsp:dsp",
+      "to": "rom:wardner/dsp:dsp/d70012u_gxc-02_mcu_71001",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/chars",
+      "to": "rom:wardner/chars/b25-28.10f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/chars",
+      "to": "rom:wardner/chars/b25-27.8f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/chars",
+      "to": "rom:wardner/chars/b25-26.7f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/fg_tiles",
+      "to": "rom:wardner/fg_tiles/b25-12.18f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/fg_tiles",
+      "to": "rom:wardner/fg_tiles/b25-15.23f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/fg_tiles",
+      "to": "rom:wardner/fg_tiles/b25-14.21f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/fg_tiles",
+      "to": "rom:wardner/fg_tiles/b25-13.19f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/bg_tiles",
+      "to": "rom:wardner/bg_tiles/b25-08.12f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/bg_tiles",
+      "to": "rom:wardner/bg_tiles/b25-11.16f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/bg_tiles",
+      "to": "rom:wardner/bg_tiles/b25-10.15f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/bg_tiles",
+      "to": "rom:wardner/bg_tiles/b25-09.14f",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/scu",
+      "to": "rom:wardner/scu/b25-01.14c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/scu",
+      "to": "rom:wardner/scu/b25-02.16c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/scu",
+      "to": "rom:wardner/scu/b25-03.17c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/scu",
+      "to": "rom:wardner/scu/b25-04.19c",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/proms",
+      "to": "rom:wardner/proms/82s129.b19",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/proms",
+      "to": "rom:wardner/proms/82s129.b18",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/proms",
+      "to": "rom:wardner/proms/82s123.b21",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/proms",
+      "to": "rom:wardner/proms/82s123.c6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:wardner/proms",
+      "to": "rom:wardner/proms/82s123.f1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:twincobr_state.twincobr_create_tilemaps",
+      "to": "handler:twincobr_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:twincobr_state.twincobr_create_tilemaps",
+      "to": "handler:twincobr_state.get_fg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:twincobr_state.twincobr_create_tilemaps",
+      "to": "handler:twincobr_state.get_tx_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 257,
+        "sourceColumn": 1,
+        "sourceEndLine": 269
+      }
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_program_map",
+      "to": "map:wardner_state.main_program_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 271,
+        "sourceColumn": 1,
+        "sourceEndLine": 292
+      }
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.main_io_map",
+      "to": "map:wardner_state.main_io_map/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.sound_program_map",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 297,
+        "sourceColumn": 1,
+        "sourceEndLine": 303
+      }
+    },
+    {
+      "from": "map:wardner_state.sound_program_map",
+      "to": "map:wardner_state.sound_program_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.sound_program_map",
+      "to": "map:wardner_state.sound_program_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.sound_program_map",
+      "to": "map:wardner_state.sound_program_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.sound_program_map",
+      "to": "map:wardner_state.sound_program_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:wardner_state.sound_io_map",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/wardner.cpp",
+        "sourceLine": 305,
+        "sourceColumn": 1,
+        "sourceEndLine": 309
+      }
+    },
+    {
+      "from": "map:wardner_state.sound_io_map",
+      "to": "map:wardner_state.sound_io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp/callback:dsp:0",
+      "to": "handler:wardner_state.dsp_host_addr_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp/callback:dsp:1",
+      "to": "handler:wardner_state.dsp_host_read_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp/callback:dsp:2",
+      "to": "handler:wardner_state.dsp_host_write_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/dsp/callback:dsp:3",
+      "to": "device:wardner_state.wardner/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "machine:toaplan_dsp_device.device_add_mconfig",
+      "to": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 49,
+        "sourceColumn": 1,
+        "sourceEndLine": 55
+      }
+    },
+    {
+      "from": "machine:toaplan_dsp_device.device_add_mconfig",
+      "to": "device:toaplan_dsp_device.device_add_mconfig/dsp",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch/callback:mainlatch:0",
+      "to": "handler:wardner_state.int_enable_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch/callback:mainlatch:1",
+      "to": "handler:wardner_state.flipscreen_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch/callback:mainlatch:2",
+      "to": "handler:wardner_state.bg_ram_bank_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch/callback:mainlatch:3",
+      "to": "handler:wardner_state.fg_rom_bank_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/mainlatch/callback:mainlatch:4",
+      "to": "handler:wardner_state.display_on_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch/callback:coinlatch:0",
+      "to": "handler:toaplan_dsp_device.dsp_int_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch/callback:coinlatch:0",
+      "to": "device:wardner_state.wardner/dsp",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch/callback:coinlatch:1",
+      "to": "handler:wardner_state.coin_counter_1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch/callback:coinlatch:2",
+      "to": "handler:wardner_state.coin_counter_2_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch/callback:coinlatch:3",
+      "to": "handler:wardner_state.coin_lockout_1_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/coinlatch/callback:coinlatch:4",
+      "to": "handler:wardner_state.coin_lockout_2_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/scu/callback:scu:0",
+      "to": "handler:wardner_state.pri_cb",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen/callback:screen:0",
+      "to": "handler:wardner_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen/callback:screen:1",
+      "to": "handler:buffered_spriteram8_device.vblank_copy_rising",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen/callback:screen:1",
+      "to": "device:wardner_state.wardner/spriteram8",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:wardner_state.wardner/screen/callback:screen:2",
+      "to": "handler:wardner_state.wardner_vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_wardner/e0",
+      "to": "gfxlayout:charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_wardner/e1",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_wardner/e2",
+      "to": "gfxlayout:tilelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:wardner_state.wardner/ymsnd/callback:ymsnd:0",
+      "to": "device:wardner_state.wardner/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P1",
+      "to": "inputs:wardner_generic/P1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/P2",
+      "to": "inputs:wardner_generic/P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/SYSTEM",
+      "to": "inputs:wardner_generic/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWA",
+      "to": "inputs:wardner_generic/DSWA/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWA",
+      "to": "inputs:wardner_generic/DSWA/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWA",
+      "to": "inputs:wardner_generic/DSWA/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWA",
+      "to": "inputs:wardner_generic/DSWA/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWA",
+      "to": "inputs:wardner_generic/DSWA/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWA",
+      "to": "inputs:wardner_generic/DSWA/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWB",
+      "to": "inputs:wardner_generic/DSWB/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWB",
+      "to": "inputs:wardner_generic/DSWB/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWB",
+      "to": "inputs:wardner_generic/DSWB/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWB",
+      "to": "inputs:wardner_generic/DSWB/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:wardner_generic/DSWB",
+      "to": "inputs:wardner_generic/DSWB/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "map:wardner_state.main_program_map/range2",
+      "to": "handler:wardner_state.wardner_sprite_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_program_map/range3",
+      "to": "handler:palette_device.write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:wardner_state.main_program_map/range6",
+      "to": "handler:wardner_state.wardner_sprite_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range0",
+      "to": "handler:mc6845_device.address_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "crtc"
+      }
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range1",
+      "to": "handler:mc6845_device.register_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "crtc"
+      }
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range2",
+      "to": "handler:wardner_state.wardner_txscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range3",
+      "to": "handler:wardner_state.wardner_txlayer_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range4",
+      "to": "handler:wardner_state.wardner_bgscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range5",
+      "to": "handler:wardner_state.wardner_bglayer_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range6",
+      "to": "handler:wardner_state.wardner_fgscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range7",
+      "to": "handler:wardner_state.wardner_fglayer_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range8",
+      "to": "handler:wardner_state.wardner_exscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range14",
+      "to": "handler:ls259_device.write_nibble_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "coinlatch"
+      }
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range15",
+      "to": "handler:ls259_device.write_nibble_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range16",
+      "to": "handler:wardner_state.wardner_videoram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range16",
+      "to": "handler:wardner_state.wardner_videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.main_io_map/range17",
+      "to": "handler:wardner_state.wardner_bank_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:wardner_state.sound_io_map/range0",
+      "to": "handler:ym3812_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:wardner_state.sound_io_map/range0",
+      "to": "handler:ym3812_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "to": "file:toaplan_dsp.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "to": "file:logmacro.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "device:toaplan_dsp_device.device_add_mconfig/dsp",
+      "to": "device:toaplan_dsp_device.device_add_mconfig/dsp/callback:dsp:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:toaplan_dsp_device.device_add_mconfig/dsp",
+      "to": "map:toaplan_dsp_device.program_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:toaplan_dsp_device.device_add_mconfig/dsp",
+      "to": "map:toaplan_dsp_device.io_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_IO"
+      }
+    },
+    {
+      "from": "handler:wardner_state.screen_update",
+      "to": "handler:twincobr_state.log_vram",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:charlayout",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:tilelayout",
+      "to": "file:src/mame/toaplan/wardner.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:wardner_state.wardner_txscroll_w",
+      "to": "handler:twincobr_state.twincobr_txscroll_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_txlayer_w",
+      "to": "handler:twincobr_state.twincobr_txoffs_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_bgscroll_w",
+      "to": "handler:twincobr_state.twincobr_bgscroll_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_bglayer_w",
+      "to": "handler:twincobr_state.twincobr_bgoffs_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_fgscroll_w",
+      "to": "handler:twincobr_state.twincobr_fgscroll_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_fglayer_w",
+      "to": "handler:twincobr_state.twincobr_fgoffs_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_videoram_r",
+      "to": "handler:twincobr_state.twincobr_txram_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_videoram_r",
+      "to": "handler:twincobr_state.twincobr_bgram_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_videoram_r",
+      "to": "handler:twincobr_state.twincobr_fgram_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_videoram_w",
+      "to": "handler:twincobr_state.twincobr_txram_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_videoram_w",
+      "to": "handler:twincobr_state.twincobr_bgram_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:wardner_state.wardner_videoram_w",
+      "to": "handler:twincobr_state.twincobr_fgram_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:toaplan_dsp_device.device_add_mconfig/dsp/callback:dsp:0",
+      "to": "handler:toaplan_dsp_device.bio_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:toaplan_dsp_device.program_map",
+      "to": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 32,
+        "sourceColumn": 1,
+        "sourceEndLine": 37
+      }
+    },
+    {
+      "from": "map:toaplan_dsp_device.program_map",
+      "to": "map:toaplan_dsp_device.program_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map",
+      "to": "file:src/mame/toaplan/toaplan_dsp.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+        "sourceLine": 41,
+        "sourceColumn": 1,
+        "sourceEndLine": 46
+      }
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map",
+      "to": "map:toaplan_dsp_device.io_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map",
+      "to": "map:toaplan_dsp_device.io_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map",
+      "to": "map:toaplan_dsp_device.io_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map/range0",
+      "to": "handler:toaplan_dsp_device.dsp_addrsel_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map/range1",
+      "to": "handler:toaplan_dsp_device.dsp_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map/range1",
+      "to": "handler:toaplan_dsp_device.dsp_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:toaplan_dsp_device.io_map/range2",
+      "to": "handler:toaplan_dsp_device.dsp_bio_w",
+      "rel": "WRITES"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "type": "DAC_8BIT_R2R",
+  "uses": [
+    {
+      "game": "elevator",
+      "tags": [
+        "dac"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "dac"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "dac"
+      ]
+    },
+    {
+      "game": "matmania",
+      "tags": [
+        "dac"
+      ]
+    },
+    {
+      "game": "shinobi",
+      "tags": [
+        "dac"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "dac"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DAC_8BIT_R2R",
+    "className": "dac_8bit_r2r_device",
+    "description": "8-Bit R-2R DAC",
+    "shortName": "dac_8bit_r2r",
+    "sourceFile": "src/devices/sound/dac.h",
+    "sourceLine": 237,
+    "sourceColumn": 1,
+    "macro": "DAC_GENERATOR(DAC_8BIT_R2R,                  dac_8bit_r2r_device,                  dac_byte_device_base, dac_mapper_unsigned,        8, dac_gain_r2r, \"8-Bit R-2R DAC\",                  \"dac_8bit_r2r\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/dac.h"
+  ]
+}

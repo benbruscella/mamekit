@@ -1,0 +1,43 @@
+Console published 49 years ago:
+
+Atari 2600 (c) 1977 Atari, Incorporated.
+
+- TECHNICAL -
+
+Model No. CX-2600 A.
+
+Resolution: 160 x 260 (horz.) at 60.00 Hz
+CPU: 6507
+Cpu Clock: 1.19 MHz
+Graphics Clock: 1.19 MHz
+Bits: 8
+ROM: 4k max
+RAM: 128 bytes, in VLSI
+Video Display Processor: Stella
+Sprites: 32
+Colors: 256 (static)
+Sound Processor: Two Channel Square or Noise (TIA)
+Cartridge ROM: 2k up to 64k
+
+- TRIVIA -
+
+The Atari 2600 was released on October 14, 1977 (Friday) in North America at a retail price of 199.95 USD, it was shipped with two joysticks and a Combat cartridge (eight additional games were available at launch and sold separately).
+
+The console was originally sold as the Atari VCS (for Video Computer System). Following the release of the Atari 5200 in 1982, the VCS was renamed Atari 2600, after the unit's Atari part number CX2600.
+
+The Atari VCS was developed under the project codename 'Stella'.
+
+It is rumored that the number 2600 was chosen because 2600 cycles was a prominent long distance access tone, and that one of the developers had created devices that would trick pay phones into granting long distance access as a hobby.
+
+Export releases:
+[JP] "Atari 2800"
+
+- STAFF -
+
+Designed by: Joe Decuir, Steve Mayer, Ron Milner
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/54858/?o=2
+
+— Gaming History (arcade-history.com)

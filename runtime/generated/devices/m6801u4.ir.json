@@ -1,0 +1,29 @@
+{
+  "type": "M6801U4",
+  "uses": [
+    {
+      "game": "bublbobl",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M6801U4",
+    "className": "m6801u4_cpu_device",
+    "shortName": "m6801u4",
+    "description": "Motorola MC6801U4",
+    "sourceFile": "src/devices/cpu/m6800/m6801.cpp",
+    "sourceLine": 407,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M6801U4, m6801u4_cpu_device, \"m6801u4\", \"Motorola MC6801U4\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6800/6800dasm.h",
+    "src/devices/cpu/m6800/m6801.cpp",
+    "src/devices/cpu/m6800/m6801.h"
+  ]
+}

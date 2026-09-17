@@ -1,0 +1,29 @@
+{
+  "type": "I8088",
+  "uses": [
+    {
+      "game": "qbert",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8088",
+    "className": "i8088_cpu_device",
+    "shortName": "i8088",
+    "description": "Intel 8088",
+    "sourceFile": "src/devices/cpu/i86/i86.cpp",
+    "sourceLine": 121,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8088, i8088_cpu_device, \"i8088\", \"Intel 8088\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/i86/i86.cpp",
+    "src/devices/cpu/i86/i86.h",
+    "src/devices/cpu/i86/i86inline.h"
+  ]
+}

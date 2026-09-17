@@ -1,0 +1,253 @@
+# Spy Hunter
+
+**Bally Midway · 1983** — transpiled from the MAME driver `src/mame/bally/mcr3.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/spyhunt.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/spyhunt.webp) | ![cabinet](/artwork/media/cabinets/spyhunt.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | Z80 | 5.000 MHz | 6 |
+| `ssio:cpu` | Z80 | 2.000 MHz | 13 |
+| `csd:cpu` | M68000 | 8.000 MHz | 4 |
+
+- **Sound:** ay8910 × 2 @ 2.000 MHz
+- **Screen:** 480×480 @ 30.00 Hz · rotated 90°
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `spy-hunter_cpu_pg0_2-9-84.6d` | 0x0 | 0x2000 | `1721b88f` |
+| `maincpu` | `spy-hunter_cpu_pg1_2-9-84.7d` | 0x2000 | 0x2000 | `909d044f` |
+| `maincpu` | `spy-hunter_cpu_pg2_2-9-84.8d` | 0x4000 | 0x2000 | `afeeb8bd` |
+| `maincpu` | `spy-hunter_cpu_pg3_2-9-84.9d` | 0x6000 | 0x2000 | `5e744381` |
+| `maincpu` | `spy-hunter_cpu_pg4_2-9-84.10d` | 0x8000 | 0x2000 | `a3033c15` |
+| `maincpu` | `spy-hunter_cpu_pg5_2-9-84.11d` | 0xc000 | 0x2000 | `88aa1e99` |
+| `ssio:cpu` | `spy-hunter_snd_0_sd_11-18-83.a7` | 0x0 | 0x1000 | `c95cf31e` |
+| `ssio:cpu` | `spy-hunter_snd_1_sd_11-18-83.a8` | 0x1000 | 0x1000 | `12aaa48e` |
+| `csd:cpu` | `spy-hunter_cs_deluxe_u7_a_11-18-83.u7` | 0x0 | 0x2000 | `6e689fe7` |
+| `csd:cpu` | `spy-hunter_cs_deluxe_u17_b_11-18-83.u17` | 0x1 | 0x2000 | `0d9ddce6` |
+| `csd:cpu` | `spy-hunter_cs_deluxe_u8_c_11-18-83.u8` | 0x4000 | 0x2000 | `35563cd0` |
+| `csd:cpu` | `spy-hunter_cs_deluxe_u18_d_11-18-83.u18` | 0x4001 | 0x2000 | `63d3f5b1` |
+| `gfx1` | `spy-hunter_cpu_bg0_11-18-83.3a` | 0x0 | 0x2000 | `dea34fed` |
+| `gfx1` | `spy-hunter_cpu_bg1_11-18-83.4a` | 0x2000 | 0x2000 | `8f64525f` |
+| `gfx1` | `spy-hunter_cpu_bg2_11-18-83.5a` | 0x4000 | 0x2000 | `ba0fd626` |
+| `gfx1` | `spy-hunter_cpu_bg3_11-18-83.6a` | 0x6000 | 0x2000 | `7b482d61` |
+| `gfx2` | `spy-hunter_video_1fg_11-18-83.a7` | 0x0 | 0x4000 | `9fe286ec` |
+| `gfx2` | `spy-hunter_video_0fg_11-18-83.a8` | 0x4000 | 0x4000 | `292c5466` |
+| `gfx2` | `spy-hunter_video_3fg_11-18-83.a5` | 0x8000 | 0x4000 | `b894934d` |
+| `gfx2` | `spy-hunter_video_2fg_11-18-83.a6` | 0xc000 | 0x4000 | `62c8bfa5` |
+| `gfx2` | `spy-hunter_video_5fg_11-18-83.a3` | 0x10000 | 0x4000 | `2d9fbcec` |
+| `gfx2` | `spy-hunter_video_4fg_11-18-83.a4` | 0x14000 | 0x4000 | `7ca4941b` |
+| `gfx2` | `spy-hunter_video_7fg_11-18-83.a1` | 0x18000 | 0x4000 | `940fe17e` |
+| `gfx2` | `spy-hunter_video_6fg_11-18-83.a2` | 0x1c000 | 0x4000 | `8cb8a066` |
+| `gfx3` | `spy-hunter_cpu_alpha-n_11-18-83` | 0x0 | 0x1000 | `936dc87f` |
+| `ssio:proms` | `82s123.12d` | 0x0 | 0x20 | `e1281ee9` |
+| `csd:pal` | `0304-00803-0052.u15` | 0x0 | 0x4a | `8b401aee` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| 5 | coin1 | `ssio:IP0` | 0x1 |
+| 6 | coin2 | `ssio:IP0` | 0x2 |
+| Z | gear shift | `ssio:IP0` | 0x10 |
+| 9 | service1 | `ssio:IP0` | 0x40 |
+| X | left button / oil slick | `ssio:IP1` | 0x1 |
+| C | left trigger / missiles | `ssio:IP1` | 0x2 |
+| 1 | center button / weapons van | `ssio:IP1` | 0x4 |
+| V | right button / smoke screen | `ssio:IP1` | 0x8 |
+| Space | right trigger / machine guns | `ssio:IP1` | 0x10 |
+| Up | pedal | `ssio:IP2` | 0xff |
+| Left | paddle left | `ssio:IP2.ALT` | 0xff |
+| Right | paddle right | `ssio:IP2.ALT` | 0xff |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Service Mode | `ssio:IP0` | 0x80 | 0x80 |
+| Game Timer | `ssio:IP3` | 0x1 | 0x1 |
+| Demo Sounds | `ssio:IP3` | 0x2 | 0x0 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/bally/mcr3.cpp`
+- **Written by:** Aaron Giles
+- **License:** BSD-3-Clause
+- **Credited by MAMEDEV:** Aaron Giles (driver header); M.A.S.H. (1 release note)
+- **Credit source:** MAME driver header (copyright-holders) and MAMEDEV release notes, release notes 0.100–0.289
+- **Commit activity:** 210 commits by 27 commit authors, 2007–2026 (git log --follow over the driver file at MAME f34f02505e32; not a statement of authorship)
+
+## The story
+
+Arcade Video game published 43 years ago:
+
+Spy Hunter (c) 1983 Bally Midway Mfg. Co.
+
+Spy Hunter is an action/driving game. It places the player as the driver of a G-6155 CIA Prototype Interceptor sports car. The object of the game is to travel the freeways and waterways, hunting down and destroying as many enemy vehicles as possible, all the while not harming civilian vehicles. The view is top-down and the screen scrolls vertically underneath the player's car.
+
+The game begins with the player driving the G-6155. Soon, the player starts to encounter enemy vehicles which try to force the player's car off the road and crash. Each enemy vehicle has its own special feature, such as tire slashers or bulletproof armor.
+
+Points are scored for driving on the road and for destroying enemy vehicles. There is a lead-in time when the player has an endless supply of cars. After this time expires, the player will lose a life each time the car crashes. Extra cars can be earned with high scores. The first extra car is earned at a default value of 30,000 points, but this value can vary depending on settings.
+
+The player must be careful to avoid harming civilian vehicles on the road. There are three types: blue automobiles, pink automobiles, and motorcycles. Hurting these vehicles causes scoring to stop briefly, during which time the player's score reads 'NO POINTS'.
+
+Initially, the only weapon the player's car has available is a dual front-mounted machine gun which has an endless supply of ammunition. Early on, these guns and the player's driving skill are his only weapons against the enemy cars. The player can also attempt to force or ram the enemy cars off the road. Eventually the player encounters an ally - the Weapons Van. After the player drives past the Weapons Van parked on the side of the road, the Weapons Van accelerates past the player's car and positions itself in front of it and drops a ramp. The player can then drive up the ramp to enter the back of the Weapons Van. The Weapons Van then pulls to the side of the road and deploys the player's car equipped with a new weapon. A symbol atop the weapons van indicates which type of special weapon it carries. The player is not obligated to use the weapons supplied by the van. Also, if uninterested, the player can simply ignore the van and drive past it.
+
+There are three special weapons in all and they can all be equipped simultaneously. The special weapons consist of an Oil Slick, a Smoke Screen, and Missiles. Each special weapon has a limited number of uses. The Smoke Screen and Missiles can each be used three times. The special weapons are activated via dedicated buttons on the steering wheel. Once the weapons ammo is depleted or before, the car can be refitted with a new supply from the Weapons Van.
+
+There are six enemies in all, each with their own special characteristic : 
+* 'The Road Lord' cars have bulletproof armor plating; machine guns are ineffective against these cars. Tagline 'Bullet Proof Bullies'.
+* 'Switch Blade' cars have tire slashers. Knives pop out of this car's tires and can force the player's car to crash if they touch his tires. Tagline: 'Never To Be Trusted'.
+* 'The Enforcer' is a limousine with a shotgun-toting thug who shoots at the player's car. Tagline: 'Double Barrel Action'.
+* 'The Mad Bomber' is a helicopter which drops bombs. This enemy can only be destroyed with missiles. Tagline: 'Master Of The Sky'.
+* 'Barrel Dumper' is a boat which drops lethal explosives into the water. Tagline: 'Ecologically Unfriendly'.
+* 'Doctor Torpedo' is a boat which shoots torpedoes at the player's speedboat. Tagline: 'Not Actually A Doctor'.
+
+Occasionally a message appears on screen that says 'Bridge Out - Detour on Left'. Then the player must drive his car into a boathouse located alongside the road, otherwise he will crash into the water and lose a life. After driving through this house, the player's car is turned into a speedboat on a river, with enemy boats which try to destroy the player. In this area, if the player uses the oil slick, the boat instead issues a line of fire which destroys any boat directly behind the player. In this area, occasionally the river splits; the left side continues the river, the right side causes the player to drive through another boathouse where the boat is changed back into the car.
+
+Later in the game the player gets a warning that there are 'Icy Roads Ahead', then the player enters an area that has a white road which is very slick. The icy roads section eventually ends and goes back to normal roads. Icy roads occur again on and off during the rest of the game.
+
+### Technical
+[Game No. A27]
+[Upright model]
+
+Bally Midway MCR 3 hardware
+
+Main CPU : Zilog Z80 (@ 5 Mhz)
+Sound CPU : Zilog Z80 (@ 2 Mhz), 68000 (@ 7.5 Mhz)
+Sound Chips : (2x) General Instrument AY8910 (@ 2 Mhz), DAC (@ 2 Mhz)
+
+Screen orientation : Vertical
+Video resolution : 480 x 480 pixels
+Screen refresh : 30.00 Hz
+Palette colors : 68
+
+Players : 1
+Control : Steering wheel with gear shift and pedal (High/Low)
+Buttons : 5
+=> MACHINE GUNS, SMOKE SCREEN, OIL SLICK, MISSILES, WEAPONS VAN
+
+### Trivia
+Spy Hunter was released in November 1983.
+
+Originally the James Bond theme was planned as the background music for the game. The inability to obtain the rights to use the music, however, forced Midway to change the theme on shipping models. In the end, the Peter Gunn theme music was a large part of the game's appeal.
+
+A boat driving sequence is incorporated in the game, and a sequence with the player flying a helicopter was also planned. Shortage of memory, however, did not allow for this feature. The game was RUMORED to have an ending sequence where the player exited the car for on-foot action in a graveyard scene, however this is a fantasy; the game has no end and at no time does the driver ever leave the car or boat.
+
+The car was based on one of the designer's own Nissan 280z. The name of the car, the G-6155, is a clever tribute to designer George Gomez - the numbers stand for his birth date.
+
+From George Gomez : 'My original design for both upright and sit-down were identical. And they were produced that way only because of the economies of manufacturing. Which means : why make different parts, since it will cost less to make more of one design. "Spy Hunter II" which I had nothing to do with was different. On my game both left and right grips should each have a trigger and a thumb button, in addition to the center button (call weapons van). The shifter was a two-position device, low and high. Of course there was the gas pedal and a series of dashboard weapons lights for machine guns, missiles, oil slick and smoke. After the first few thousand games the grips were retooled in plastic and they went on to be used in hundreds of different games. They were licensed to Happ controls in the late 80's and they have been on almost every manufacturer's games at one point or another. The original sand cast aluminium grips (painted black) were actually molded directly from patterns that I carved and they had softer contours and were more comfortable but they were also very expensive. So to cost-reduce them, the company took the grips and retooled them to be injection molded plastic. However, the patterns for the plastic grips were made off the engineering drawings, and the drawings of that era were not as representative of the actual parts I carved, since they were made after my patterns instead of before. I have the original wood patterns along with some other stuff from development of the game in a box somewhere.' 
+
+Spy Hunter was parodied in a sketch in the television show 'Robot Chicken'.
+
+In 2008, a Pontiac Commercial featured an homage to Spy Hunter by showing some gameplay which had the player's car turn into a real Pontiac.
+
+### Scoring
+The Road Lord : 150 points
+Switch Blade : 150 points
+The Enforcer : 500 points
+The Mad Bomber : 700 points
+Barrel Dumper : 150 points
+Doctor Torpedo : 500 points
+Driving through the river boathouse : 1,500 points
+Driving on the road for each 1/4 screen traveled : 15 points
+Driving on the water for each 1/4 screen traveled : 25 points
+
+### Tips and tricks
+* Here's A Great Cheat That Does Several Things At Once:
+1) You need to have a Weapons Van available, and be at a bridge-out level. When the detour appears, don't take it - instead, call up your Weapons Van.
+2) Wait until the road has straightened out into the bridge and drive into the Weapons Van. When the Weapons Van pulls over and lets you out, stay on the side of the road, and SLOWLY drive up until you reach the gap in the bridge.
+3) Drive on until you car is about half-way over the edge, and wait until the Enforcer comes along. He will try and get you, but he'll be unable to drive far enough to do so. At this point, I would get a friend to mind the game, while I went for a break. When I returned, I just drove across the bridge, flying mysteriously across the bridge out, until I reached the other side.
+4) You will notice several differences to the game after this happens. The Enforcer no longer appears, the game gets no harder, and Doctor Torpedo no longer appears on water sections!
+
+* Switchblade Destruction: You can actually destroy the Switchblade cars without use of weapons. As they close in from the rear, slow down a hair and align your car so that their front bumper is just barely in line with your Rear Bumper. Then Quickly slam the wheel to bump them off the road. As long as you bump them before the front tire area, the blades will not harm you.
+
+* Exploding Van Trick: When the Weapons Van comes, start to drive into it, but shoot a single bullet just before you enter. If you time it right, your car will still enter the yet unharmed Van, give you the weapon, let you out... then it will explode.
+
+* Boat Jumps: In an homage to a famous scene in the James Bond film "Live and Let Die", it is possible to jump the spy boat completely over an island. When you're on the water, an island will appear shortly after you miss an opportunity to exit the river. To make the jump, you must be at or near the vehicle's top speed and simply drive right at the island. If you're closely followed at the time, your pursuers won't make the jump.
+
+### Staff
+Designed & programmed by : Tom Leon (TFL), Jeff Nauman
+Art : Kevin O'Connor (KO), Brian Colin (BFC), Steve Ulstad (SJU), Sharon Perry (SP)
+Music and sounds : Bob Libbe, Neil Falconer
+"Peter Gunn" theme by : Henry Mancini
+Group Manager : Bill Adams
+Cabinet guru : George Gomez (GG)
+Cabinet assistant : John Kubik (JCK)
+Additional staff : Atish Ghosh (AG), (RML), (SV)
+
+### Ports
+* CONSOLES:
+[US] Atari 2600 (1983) "Spy Hunter [Model 011-01]" 
+[US] Colecovision (1984) "Spy Hunter [Model 2617]" 
+Atari XEGS
+[US] Nintendo NES (sept.1987) "Spy Hunter [Model NES-HU]" 
+[US] Sony PlayStation (nov.30, 1997) "Arcade's Greatest Hits - The Midway Collection 2 [Model SLUS-00450]" 
+[EU] Sony PlayStation (mar.1998) "Arcade's Greatest Hits - The Midway Collection 2 [Model SLES-00739]" 
+[US] Nintendo 64 (nov.14, 2000) "Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]" 
+[US] Sega Dreamcast (nov.15, 2001) "Midway's Greatest Arcade Hits Vol. 2 [Model T-9714N]" 
+[US] Sony PS2 (nov.18, 2003) "Midway Arcade Treasures [Model SLUS-20801]" 
+[US] Microsoft XBOX (nov.24, 2003) "Midway Arcade Treasures" 
+[US] Nintendo GameCube (dec.18, 2003) "Midway Arcade Treasures [Model DOL-GAKE-USA]" 
+[EU] Microsoft XBOX (feb.6, 2004) "Midway Arcade Treasures" 
+[EU] Sony PS2 (feb.6, 2004) "Midway Arcade Treasures [Model SLES-51927]" 
+[US] Microsoft XBOX 360 (nov.6, 2012) "Midway Arcade Origins" 
+[US] Sony PlayStation 3 (nov.6, 2012) "Midway Arcade Origins [Model BLUS-31083]"
+[EU] Microsoft XBOX 360 (nov.15, 2012) "Midway Arcade Origins" 
+[EU] Sony PlayStation 3 (nov.15, 2012) "Midway Arcade Origins [Model BLES-01768]"
+
+* HANDHELDS: 
+[US] Nintendo Game Boy Color (may.1999) "Arcade Hits - Moon Patrol & Spy Hunter [Model DMG-ADUE-USA]" 
+[EU] Nintendo Game Boy Color (1999) "Arcade Hits - Moon Patrol & Spy Hunter [Model DMG-ADUP-EUR]" 
+[US] Nintendo GBA (aug.15, 2005) "2 Games in One! Spy Hunter + Super Sprint [Model AGB-B6AE-USA]" 
+[EU] Nintendo GBA (sept.16, 2005) "2 Games in One! Spy Hunter + Super Sprint [Model AGB-B6AP-EUR]" 
+[US] Sony PSP (dec.13, 2005) "Midway Arcade Treasures Extended Play [Model ULUS-10059]"
+[EU] Sony PSP (feb.24, 2006) "Midway Arcade Treasures Extended Play [Model ULES-00180]" 
+
+* COMPUTERS:
+[EU] BBC Micro (1983) 
+[US] Commodore C64 (1983) "Spy Hunter [Model 011-05]" 
+[EU] Commodore C64 (1983) 
+[US] Atari 800 (1984) "Spy Hunter [Model 011-03]" 
+[US] PC [Booter] (1984)
+[EU] Apple II (1984)
+[EU] Sinclair ZX Spectrum (1985) 
+[EU] Amstrad CPC (1986)
+[US] Atari ST (1988) "Major Motion" 
+[EU] Commodore Amiga (1988) "Major Motion" 
+[EU] Amstrad CPC (1989) "Coin-Op Hits" 
+[US] PC [MS Windows 95, CD-ROM] (1997) "Arcade's Greatest Hits - The Midway Collection 2" 
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) "Midway Arcade Treasures" 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) "Midway Arcade Treasures" 
+
+* OTHERS:
+[US] Palm OS (aug.2001) "Midway Arcade Classic"
+[US] Mobile Phones (jul.18, 2005) 
+[US] BlackBerry (aug.28, 2009) "Spy Hunter [Model 3120]" 
+[US] Windows Mobile (jul.10, 2009) by EA Mobile 
+[US] Apple iPhone/iPod (sept.8, 2010) 
+[US] Apple iPhone/iPod (feb.23, 2012) "Midway Arcade [Model 476467441]"
+
+### Series
+1. Spy Hunter [Model A27] (1983, Arcade)
+2. Spy Hunter II [Model 0B75] (1987, Arcade)
+3. Spy Hunter (2001, PS2) 
+4. Spy Hunter - Nowhere to Run (2006, XBOX/PS2)
+5. Spy Hunter (2012, 3DS/Vita)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/2600/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `mcr3`. Play it at [../../../app/g/spyhunt/](../../../app/g/spyhunt/) or [explore the knowledge graph](viewer.html).*

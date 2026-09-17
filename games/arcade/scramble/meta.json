@@ -1,0 +1,313 @@
+{
+  "game": "scramble",
+  "title": "Scramble (Konami, 1981)",
+  "fullname": "Scramble",
+  "year": "1981",
+  "manufacturer": "Konami",
+  "family": "galaxian",
+  "driverFile": "src/mame/galaxian/galaxian.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles, Couriersud, Stephane Humbert, Robbbert",
+  "credits": {
+    "people": [
+      {
+        "name": "Robbbert",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.208",
+        "lastRelease": "0.244"
+      },
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Couriersud",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Stephane Humbert",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 33,
+        "firstRelease": "0.223",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "Recreativas.org",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 15,
+        "firstRelease": "0.237",
+        "lastRelease": "0.273"
+      },
+      {
+        "name": "Steven Coomber",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 9,
+        "firstRelease": "0.242",
+        "lastRelease": "0.243"
+      },
+      {
+        "name": "Victor Fernandez (City Game)",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 5,
+        "firstRelease": "0.234",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "Juan Romero",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.223",
+        "lastRelease": "0.264"
+      },
+      {
+        "name": "Luis Arrufat",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.273",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.163",
+        "lastRelease": "0.232"
+      },
+      {
+        "name": "Arcadedealer aka Edgar Solé aka Dios",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.267",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.228",
+        "lastRelease": "0.233"
+      },
+      {
+        "name": "Devin Acker",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.266",
+        "lastRelease": "0.266"
+      },
+      {
+        "name": "Retromaniacs",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.225",
+        "lastRelease": "0.237"
+      },
+      {
+        "name": "Ricardo - Factory Arcade",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.237",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "Steve Coomber",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.242",
+        "lastRelease": "0.243"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.206",
+        "lastRelease": "0.233"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.210",
+        "lastRelease": "0.210"
+      },
+      {
+        "name": "Arcade Planet",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.234",
+        "lastRelease": "0.234"
+      },
+      {
+        "name": "Arnaldo Lopes",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.263",
+        "lastRelease": "0.263"
+      },
+      {
+        "name": "David Bosque",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.264",
+        "lastRelease": "0.264"
+      },
+      {
+        "name": "Francisco Javier Muñoz Calero",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.278",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "GoldS_TCRF",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.183",
+        "lastRelease": "0.183"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.287",
+        "lastRelease": "0.287"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.199",
+        "lastRelease": "0.199"
+      },
+      {
+        "name": "Javier Alonso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      },
+      {
+        "name": "jkburks",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      },
+      {
+        "name": "johnmcallister",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.255",
+        "lastRelease": "0.255"
+      },
+      {
+        "name": "Jordi Tuells",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.277",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "Jorge Silva",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.263",
+        "lastRelease": "0.263"
+      },
+      {
+        "name": "MetalGod",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.211",
+        "lastRelease": "0.211"
+      },
+      {
+        "name": "Osso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.166",
+        "lastRelease": "0.166"
+      },
+      {
+        "name": "Rubén Casaña",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.256",
+        "lastRelease": "0.256"
+      },
+      {
+        "name": "scoomby",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.242",
+        "lastRelease": "0.242"
+      },
+      {
+        "name": "sjy96525",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.280",
+        "lastRelease": "0.280"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-11",
+    "commits": 659,
+    "authors": 49,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

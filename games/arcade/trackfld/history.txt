@@ -1,0 +1,60 @@
+Arcade Video game published 43 years ago:
+
+Track & Field (c) 1983 Konami.
+
+Export release. Game developed in Japan. See the original for more information; "Hyper Olympic [Model GX361]".
+
+- TECHNICAL -
+
+Game ID : GX361
+
+- TRIVIA -
+
+Track & Field was released in October 1983 by Konami.
+
+A Bootleg of this game called "Atlant Olimpic" was released in Italy in 1996, thirteen years after the game first appeared. 
+
+A Track & Field unit appears in the 1985 movie, 'The Goonies'.
+
+- PORTS -
+
+Note: Ports released in Japan and North America are not listed here. For Japanese ports, please see the Japanese version entry, "Hyper Olympic [Model GX361]". For North American ports, please see the Centuri "Track & Field" (North American version) entry.
+
+* CONSOLES: 
+[EU] Nintendo NES (feb.2, 1992) "Track & Field in Barcelona [Model NES-91-AUS]" 
+Microsoft XBOX 360 [XBLA] [EU] (aug.8, 2007) 
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1992) [Model DMG-KH] 
+[EU] Nintendo DS (oct.26, 2007) "Konami Arcade Classics [Model NTR-ACXP-EUR]" 
+[AU] Nintendo DS (oct.29, 2007) "Konami Arcade Classics" 
+
+* COMPUTERS: 
+[EU] Commodore C64 (1985) 
+[EU] Sinclair ZX Spectrum (1988) 
+MSX [EU] (1984) [Model RC710] 
+MSX [EU] (1984) "Track & Field 2" 
+MSX [EU] (1984) "Track & Field II" by SCEE 
+
+* OTHERS: 
+LCD handheld game (1984) "Track & Field Running Type" by Bandai. 
+LCD handheld game (1984) "Track & Field Throwing Type" by Bandai.
+
+- SERIES -
+
+1. Track & Field [Model GX361] (1983, ARC)
+2. Hyper Sports [Model GX330] (1984, ARC)
+3. '88 Games [Model GX861] (1988, ARC)
+4. Hyper Athlete [Model GV021] (1996, ARC)
+5. Nagano Winter Olympics '98 [Model GX720] (1998, ARC)
+6. International Track & Field 2000 (2000, PS)
+7. International Track & Field Summer Games (2000, N64)
+8. New International Track & Field (2008, DS)
+9. Hyper Sports Winter (2010 iPhone)
+10. Hyper Sports Track & Field (2010 iPhone)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2958/?o=2
+
+— Gaming History (arcade-history.com)

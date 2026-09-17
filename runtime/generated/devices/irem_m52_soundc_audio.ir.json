@@ -1,0 +1,551 @@
+{
+  "type": "IREM_M52_SOUNDC_AUDIO",
+  "uses": [
+    {
+      "game": "mpatrol",
+      "tags": [
+        "irem_audio"
+      ]
+    },
+    {
+      "game": "travrusa",
+      "tags": [
+        "irem_audio"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "IREM_M52_SOUNDC_AUDIO",
+    "className": "m52_soundc_audio_device",
+    "shortName": "m52_soundc_audio",
+    "description": "Irem M52 SoundC Audio",
+    "sourceFile": "src/mame/irem/irem.cpp",
+    "sourceLine": 18,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(IREM_M52_SOUNDC_AUDIO, m52_soundc_audio_device, \"m52_soundc_audio\", \"Irem M52 SoundC Audio\")"
+  },
+  "methods": [
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/irem/irem.cpp",
+      "sourceLine": 466,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cpu"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m52_soundc_audio_device::m52_small_sound_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "in_p1_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m52_soundc_audio_device::m6803_port1_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "out_p1_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m52_soundc_audio_device::m6803_port1_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "in_p2_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m52_soundc_audio_device::m6803_port2_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "out_p2_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m52_soundc_audio_device::m6803_port2_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "SPEAKER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "mono"
+                    }
+                  ]
+                },
+                "property": "front_center"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "set_flags"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "AY8910_SINGLE_OUTPUT"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "AY8910_DISCRETE_OUTPUT"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "set_resistors_load"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 470
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay_45M"
+                    },
+                    "property": "port_a_read_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "irem_audio_device::soundlatch_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay_45M"
+                    },
+                    "property": "port_b_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "irem_audio_device::ay8910_45M_portb_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "filtermix"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "set_flags"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "AY8910_SINGLE_OUTPUT"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "AY8910_DISCRETE_OUTPUT"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "set_resistors_load"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 470
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay_45L"
+                    },
+                    "property": "port_a_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "irem_audio_device::ay8910_45L_porta_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "filtermix"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid constructor declaration of \"cpu\"",
+          "could not parse statement at byte 529",
+          "could not parse statement at byte 918",
+          "could not parse statement at byte 1229"
+        ]
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/irem/irem.cpp",
+    "src/mame/irem/irem.h"
+  ],
+  "composedOf": [
+    "AY8910",
+    "DISCRETE",
+    "M6803",
+    "MSM5205",
+    "SPEAKER"
+  ]
+}

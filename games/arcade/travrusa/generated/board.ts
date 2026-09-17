@@ -1,0 +1,131 @@
+// GENERATED executable machine composition from src/mame/irem/travrusa.cpp; do not edit.
+import { decodeBoardIr } from '../../../../runtime/ir/decode.js';
+import type { BoardConfig, BoardSinks, InputPorts, Regions } from '../../../../runtime/core/types.js';
+import type { GeneratedCompiledHandler } from '../../../../runtime/ir/board.js';
+import { createGeneratedBoard } from '../../../../runtime/core/generated-board.js';
+import boardData from './board.json' with { type: 'json' };
+
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, 'travrusa');
+
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = {
+  ...(() => {
+    const methods = (() => {
+
+  function method_videoram_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.writableMember("m_videoram"), offset, data);
+    (__l["m_bg_tilemap.mark_tile_dirty"] ? __l["m_bg_tilemap.mark_tile_dirty"](runtime.divide(offset, 2)) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).mark_tile_dirty?.(runtime.divide(offset, 2)) ?? 0) : (__l["mark_tile_dirty"]?.(runtime.divide(offset, 2)) ?? 0));
+  }
+
+  function method_scroll_x_low_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    runtime.writeIndex(runtime.writableMember("m_scrollx"), 0, data);
+    (runtime.overrides["set_scroll"] ? runtime.overrides["set_scroll"]() : method_set_scroll(runtime));
+  }
+
+  function method_set_scroll(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    for (let i: any = ((0) | 0); ((Number(i) <= Number(2)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+      (__l["m_bg_tilemap.set_scrollx"] ? __l["m_bg_tilemap.set_scrollx"](i, runtime.add(runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 0), ((256) * (runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 1))))) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).set_scrollx?.(i, runtime.add(runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 0), ((256) * (runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 1))))) ?? 0) : (__l["set_scrollx"]?.(i, runtime.add(runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 0), ((256) * (runtime.readIndex((members.m_scrollx ?? runtime.member("m_scrollx")), 1))))) ?? 0));
+    }
+    (__l["m_bg_tilemap.set_scrollx"] ? __l["m_bg_tilemap.set_scrollx"](3, 0) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).set_scrollx?.(3, 0) ?? 0) : (__l["set_scrollx"]?.(3, 0) ?? 0));
+  }
+
+  function method_scroll_x_high_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    runtime.writeIndex(runtime.writableMember("m_scrollx"), 1, data);
+    (runtime.overrides["set_scroll"] ? runtime.overrides["set_scroll"]() : method_set_scroll(runtime));
+  }
+
+  function method_get_tile_info(runtime: any, tilemap: any, tileinfo: any, tile_index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let attr: any = ((runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), runtime.add(((2) * (tile_index)), 1))) & 0xff);
+    let flags: any = (((__l["TILE_FLIPXY"] ? __l["TILE_FLIPXY"](((((attr) & (48))) >>> (4))) : runtime.macro("TILE_FLIPXY", ((((attr) & (48))) >>> (4))))) | 0);
+    tileinfo.group = ((((Number(((attr) & (15))) === Number(15)) ? 1 : 0)) ? (1) : (0));
+    (__l["tileinfo.set"] ? __l["tileinfo.set"](0, runtime.add(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), ((2) * (tile_index))), ((((attr) & (192))) << (2))), ((attr) & (15)), flags) : (tileinfo) != null ? ((runtime.dereference(tileinfo)).set?.(0, runtime.add(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), ((2) * (tile_index))), ((((attr) & (192))) << (2))), ((attr) & (15)), flags) ?? 0) : (__l["set"]?.(0, runtime.add(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), ((2) * (tile_index))), ((((attr) & (192))) << (2))), ((attr) & (15)), flags) ?? 0));
+  }
+
+  function method_screen_update(runtime: any, screen: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_bg_tilemap.draw"] ? __l["m_bg_tilemap.draw"](screen, bitmap, cliprect, 32, 0) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).draw?.(screen, bitmap, cliprect, 32, 0) ?? 0) : (__l["draw"]?.(screen, bitmap, cliprect, 32, 0) ?? 0));
+    (runtime.overrides["draw_sprites"] ? runtime.overrides["draw_sprites"](bitmap, cliprect) : method_draw_sprites(runtime, bitmap, cliprect));
+    (__l["m_bg_tilemap.draw"] ? __l["m_bg_tilemap.draw"](screen, bitmap, cliprect, 16, 0) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).draw?.(screen, bitmap, cliprect, 16, 0) ?? 0) : (__l["draw"]?.(screen, bitmap, cliprect, 16, 0) ?? 0));
+    return 0;
+  }
+
+  function method_draw_sprites(runtime: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    const h_m_spriteram = members.m_spriteram ?? runtime.member("m_spriteram");
+    let spritevisiblearea: any = Object.assign(Object.create(Object.getPrototypeOf((__l["rectangle"] ? __l["rectangle"](8, 247, 0, 191) : runtime.macro("rectangle", 8, 247, 0, 191)))), (__l["rectangle"] ? __l["rectangle"](8, 247, 0, 191) : runtime.macro("rectangle", 8, 247, 0, 191)));
+    let spritevisibleareaflip: any = Object.assign(Object.create(Object.getPrototypeOf((__l["rectangle"] ? __l["rectangle"](8, 247, 64, 255) : runtime.macro("rectangle", 8, 247, 64, 255)))), (__l["rectangle"] ? __l["rectangle"](8, 247, 64, 255) : runtime.macro("rectangle", 8, 247, 64, 255)));
+    let clip: any = Object.assign(Object.create(Object.getPrototypeOf(cliprect)), cliprect);
+    if ((__l["flip_screen"] ? __l["flip_screen"]() : runtime.macro("flip_screen"))) {
+      clip = runtime.andAssign(clip, spritevisibleareaflip);
+    } else {
+      clip = runtime.andAssign(clip, spritevisiblearea);
+    }
+    for (let offs: any = (((((members.m_spriteram).length) - (4))) | 0); ((Number(offs) >= Number(0)) ? 1 : 0); offs = ((((offs) - (4))) | 0)) {
+      let sx: any = ((((((runtime.add(runtime.readIndex(h_m_spriteram, ((offs) + (3))), 8)) & (255))) - (8))) | 0);
+      let sy: any = ((((240) - (runtime.readIndex(h_m_spriteram, offs)))) | 0);
+      let code: any = ((runtime.readIndex(h_m_spriteram, ((offs) + (2)))) | 0);
+      let attr: any = ((runtime.readIndex(h_m_spriteram, ((offs) + (1)))) | 0);
+      let flipx: any = ((((attr) & (64))) | 0);
+      let flipy: any = ((((attr) & (128))) | 0);
+      if ((__l["flip_screen"] ? __l["flip_screen"]() : runtime.macro("flip_screen"))) {
+        sx = ((((240) - (sx))) | 0);
+        sy = ((((240) - (sy))) | 0);
+        flipx = ((((flipx) ? 0 : 1)) | 0);
+        flipy = ((((flipy) ? 0 : 1)) | 0);
+      }
+      ((runtime.dereference((__l["m_gfxdecode.gfx"] ? __l["m_gfxdecode.gfx"](1) : (members.m_gfxdecode) != null ? ((runtime.dereference(members.m_gfxdecode)).gfx?.(1) ?? 0) : 0))).transpen?.(bitmap, clip, code, ((attr) & (15)), flipx, flipy, sx, sy, 0) ?? 0);
+    }
+  }
+  return {
+    "videoram_w": method_videoram_w,
+    "scroll_x_low_w": method_scroll_x_low_w,
+    "set_scroll": method_set_scroll,
+    "scroll_x_high_w": method_scroll_x_high_w,
+    "get_tile_info": method_get_tile_info,
+    "screen_update": method_screen_update,
+    "draw_sprites": method_draw_sprites
+  };
+})();
+    return {
+      "travrusa_state.videoram_w": methods["videoram_w"],
+      "travrusa_state.scroll_x_low_w": methods["scroll_x_low_w"],
+      "travrusa_state.set_scroll": methods["set_scroll"],
+      "travrusa_state.scroll_x_high_w": methods["scroll_x_high_w"],
+      "travrusa_state.get_tile_info": methods["get_tile_info"],
+      "travrusa_state.screen_update": methods["screen_update"],
+      "travrusa_state.draw_sprites": methods["draw_sprites"],
+    };
+  })(),
+} as Record<string, GeneratedCompiledHandler>;
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ["TILE_FLIPXY","draw","flip_screen","m_bg_tilemap.draw","m_bg_tilemap.mark_tile_dirty","m_bg_tilemap.set_scrollx","m_gfxdecode.gfx","mark_tile_dirty","rectangle","set","set_scrollx","tileinfo.set"];
+export default {
+  machine: defined,
+  createBoard: (
+    config: BoardConfig,
+    regions: Regions,
+    inputs: InputPorts,
+    sinks: BoardSinks,
+  ) => createGeneratedBoard(defined, config, regions, inputs, sinks),
+};

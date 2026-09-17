@@ -1,0 +1,28 @@
+{
+  "type": "YM3812",
+  "uses": [
+    {
+      "game": "wardner",
+      "tags": [
+        "ymsnd"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM3812",
+    "className": "ym3812_device",
+    "shortName": "ym3812",
+    "description": "YM3812 OPL2",
+    "sourceFile": "src/devices/sound/ymopl.cpp",
+    "sourceLine": 86,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM3812, ym3812_device, \"ym3812\", \"YM3812 OPL2\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ymopl.cpp",
+    "src/devices/sound/ymopl.h"
+  ]
+}

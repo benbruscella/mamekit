@@ -1,0 +1,815 @@
+{
+  "game": "spyhunt",
+  "title": "Spy Hunter (Bally Midway, 1983)",
+  "family": "mcr3",
+  "dataPath": "games/arcade/spyhunt",
+  "board": {
+    "family": "mcr3",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 5000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 57343,
+            "kind": "rom"
+          },
+          {
+            "start": 57344,
+            "end": 59391,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "mcr3_state.spyhunt_videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 59392,
+            "end": 60415,
+            "kind": "ram",
+            "mirror": 1024,
+            "share": "spyhunt_alpha",
+            "write": "mcr3_state.spyhunt_alpharam_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 61440,
+            "end": 63487,
+            "kind": "ram",
+            "share": "nvram"
+          },
+          {
+            "start": 63488,
+            "end": 63999,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 64000,
+            "end": 64127,
+            "kind": "handler",
+            "mirror": 384,
+            "share": "paletteram",
+            "write": "mcr3_state.mcr_paletteram9_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          }
+        ],
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 4,
+              "kind": "handler",
+              "mirror": 24,
+              "read": "ssio.ioport_read"
+            },
+            {
+              "start": 7,
+              "end": 7,
+              "kind": "handler",
+              "mirror": 24,
+              "read": "ssio.read"
+            },
+            {
+              "start": 0,
+              "end": 7,
+              "kind": "handler",
+              "write": "ssio.ioport_write",
+              "handlerWidth": 8
+            },
+            {
+              "start": 28,
+              "end": 31,
+              "kind": "handler",
+              "write": "ssio.write",
+              "handlerWidth": 8
+            },
+            {
+              "start": 132,
+              "end": 134,
+              "kind": "handler",
+              "write": "mcr3_state.spyhunt_scroll_value_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 224,
+              "end": 224,
+              "kind": "handler",
+              "write": "watchdog.reset_w"
+            },
+            {
+              "start": 232,
+              "end": 232,
+              "kind": "nop",
+              "readOnly": true
+            },
+            {
+              "start": 240,
+              "end": 243,
+              "kind": "handler",
+              "read": "ctc.read",
+              "write": "ctc.write"
+            }
+          ],
+          "globalMask": 255
+        }
+      },
+      {
+        "tag": "ssio:cpu",
+        "type": "z80",
+        "clock": 2000000,
+        "region": "ssio:cpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 33791,
+            "kind": "ram",
+            "mirror": 3072
+          },
+          {
+            "start": 36864,
+            "end": 36867,
+            "kind": "handler",
+            "mirror": 4092,
+            "read": "midway_ssio_device.data_r"
+          },
+          {
+            "start": 40960,
+            "end": 40960,
+            "kind": "handler",
+            "mirror": 4092,
+            "write": "ssio:ay0.address_w"
+          },
+          {
+            "start": 40961,
+            "end": 40961,
+            "kind": "handler",
+            "mirror": 4092,
+            "read": "ssio:ay0.data_r"
+          },
+          {
+            "start": 40962,
+            "end": 40962,
+            "kind": "handler",
+            "mirror": 4092,
+            "write": "ssio:ay0.data_w"
+          },
+          {
+            "start": 45056,
+            "end": 45056,
+            "kind": "handler",
+            "mirror": 4092,
+            "write": "ssio:ay1.address_w"
+          },
+          {
+            "start": 45057,
+            "end": 45057,
+            "kind": "handler",
+            "mirror": 4092,
+            "read": "ssio:ay1.data_r"
+          },
+          {
+            "start": 45058,
+            "end": 45058,
+            "kind": "handler",
+            "mirror": 4092,
+            "write": "ssio:ay1.data_w"
+          },
+          {
+            "start": 49152,
+            "end": 53247,
+            "kind": "handler",
+            "writeOnly": true,
+            "write": "midway_ssio_device.status_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 57343,
+            "kind": "nop",
+            "readOnly": true
+          },
+          {
+            "start": 57344,
+            "end": 61439,
+            "kind": "handler",
+            "read": "midway_ssio_device.irq_clear"
+          },
+          {
+            "start": 61440,
+            "end": 65535,
+            "kind": "handler",
+            "read": "port.DIP"
+          }
+        ]
+      },
+      {
+        "tag": "csd:cpu",
+        "type": "m68000",
+        "clock": 8000000,
+        "region": "csd:cpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 98304,
+            "end": 98311,
+            "kind": "handler",
+            "mirror": 16376,
+            "umask": 65280,
+            "read": "csd:pia.read_alt",
+            "write": "csd:pia.write_alt"
+          },
+          {
+            "start": 98304,
+            "end": 98311,
+            "kind": "handler",
+            "mirror": 16376,
+            "umask": 255,
+            "read": "csd:pia.read_alt",
+            "write": "csd:pia.write_alt"
+          },
+          {
+            "start": 114688,
+            "end": 118783,
+            "kind": "ram"
+          }
+        ],
+        "mask": 131071
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 57343,
+        "kind": "rom"
+      },
+      {
+        "start": 57344,
+        "end": 59391,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "mcr3_state.spyhunt_videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 59392,
+        "end": 60415,
+        "kind": "ram",
+        "mirror": 1024,
+        "share": "spyhunt_alpha",
+        "write": "mcr3_state.spyhunt_alpharam_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 61440,
+        "end": 63487,
+        "kind": "ram",
+        "share": "nvram"
+      },
+      {
+        "start": 63488,
+        "end": 63999,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 64000,
+        "end": 64127,
+        "kind": "handler",
+        "mirror": 384,
+        "share": "paletteram",
+        "write": "mcr3_state.mcr_paletteram9_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 4,
+          "kind": "handler",
+          "mirror": 24,
+          "read": "ssio.ioport_read"
+        },
+        {
+          "start": 7,
+          "end": 7,
+          "kind": "handler",
+          "mirror": 24,
+          "read": "ssio.read"
+        },
+        {
+          "start": 0,
+          "end": 7,
+          "kind": "handler",
+          "write": "ssio.ioport_write",
+          "handlerWidth": 8
+        },
+        {
+          "start": 28,
+          "end": 31,
+          "kind": "handler",
+          "write": "ssio.write",
+          "handlerWidth": 8
+        },
+        {
+          "start": 132,
+          "end": 134,
+          "kind": "handler",
+          "write": "mcr3_state.spyhunt_scroll_value_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 224,
+          "end": 224,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 232,
+          "end": 232,
+          "kind": "nop",
+          "readOnly": true
+        },
+        {
+          "start": 240,
+          "end": 243,
+          "kind": "handler",
+          "read": "ctc.read",
+          "write": "ctc.write"
+        }
+      ],
+      "globalMask": 255
+    },
+    "screen": {
+      "width": 480,
+      "height": 480,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 30,
+      "htotal": 480,
+      "vtotal": 480,
+      "vbstart": 480,
+      "vbend": 0,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 2000000,
+    "chips": 2,
+    "deviceTags": [
+      "ssio:ay0",
+      "ssio:ay1"
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "spy-hunter_cpu_pg0_2-9-84.6d",
+          "offset": 0,
+          "size": 8192,
+          "crc": "1721b88f",
+          "alt": [
+            {
+              "file": "sh_mb_2.bin",
+              "crc": "df6cd642"
+            }
+          ]
+        },
+        {
+          "file": "spy-hunter_cpu_pg1_2-9-84.7d",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "909d044f"
+        },
+        {
+          "file": "spy-hunter_cpu_pg2_2-9-84.8d",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "afeeb8bd"
+        },
+        {
+          "file": "spy-hunter_cpu_pg3_2-9-84.9d",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "5e744381"
+        },
+        {
+          "file": "spy-hunter_cpu_pg4_2-9-84.10d",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "a3033c15",
+          "alt": [
+            {
+              "file": "sh_mb_6.bin",
+              "crc": "8cbf04d8"
+            }
+          ]
+        },
+        {
+          "file": "spy-hunter_cpu_pg5_2-9-84.11d",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "88aa1e99",
+          "continueSegments": [
+            {
+              "offset": 40960,
+              "size": 8192,
+              "fileOffset": 8192
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "ssio:cpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "spy-hunter_snd_0_sd_11-18-83.a7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c95cf31e"
+        },
+        {
+          "file": "spy-hunter_snd_1_sd_11-18-83.a8",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "12aaa48e"
+        }
+      ]
+    },
+    {
+      "region": "csd:cpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "spy-hunter_cs_deluxe_u7_a_11-18-83.u7",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6e689fe7",
+          "skip": 1
+        },
+        {
+          "file": "spy-hunter_cs_deluxe_u17_b_11-18-83.u17",
+          "offset": 1,
+          "size": 8192,
+          "crc": "0d9ddce6",
+          "skip": 1
+        },
+        {
+          "file": "spy-hunter_cs_deluxe_u8_c_11-18-83.u8",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "35563cd0",
+          "skip": 1
+        },
+        {
+          "file": "spy-hunter_cs_deluxe_u18_d_11-18-83.u18",
+          "offset": 16385,
+          "size": 8192,
+          "crc": "63d3f5b1",
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "spy-hunter_cpu_bg0_11-18-83.3a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dea34fed"
+        },
+        {
+          "file": "spy-hunter_cpu_bg1_11-18-83.4a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "8f64525f"
+        },
+        {
+          "file": "spy-hunter_cpu_bg2_11-18-83.5a",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "ba0fd626"
+        },
+        {
+          "file": "spy-hunter_cpu_bg3_11-18-83.6a",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "7b482d61"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "spy-hunter_video_1fg_11-18-83.a7",
+          "offset": 0,
+          "size": 16384,
+          "crc": "9fe286ec"
+        },
+        {
+          "file": "spy-hunter_video_0fg_11-18-83.a8",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "292c5466"
+        },
+        {
+          "file": "spy-hunter_video_3fg_11-18-83.a5",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "b894934d"
+        },
+        {
+          "file": "spy-hunter_video_2fg_11-18-83.a6",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "62c8bfa5"
+        },
+        {
+          "file": "spy-hunter_video_5fg_11-18-83.a3",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "2d9fbcec"
+        },
+        {
+          "file": "spy-hunter_video_4fg_11-18-83.a4",
+          "offset": 81920,
+          "size": 16384,
+          "crc": "7ca4941b"
+        },
+        {
+          "file": "spy-hunter_video_7fg_11-18-83.a1",
+          "offset": 98304,
+          "size": 16384,
+          "crc": "940fe17e"
+        },
+        {
+          "file": "spy-hunter_video_6fg_11-18-83.a2",
+          "offset": 114688,
+          "size": 16384,
+          "crc": "8cb8a066"
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "spy-hunter_cpu_alpha-n_11-18-83",
+          "offset": 0,
+          "size": 4096,
+          "crc": "936dc87f"
+        }
+      ]
+    },
+    {
+      "region": "ssio:proms",
+      "size": 32,
+      "romSet": "midssio",
+      "loads": [
+        {
+          "file": "82s123.12d",
+          "offset": 0,
+          "size": 32,
+          "crc": "e1281ee9"
+        }
+      ]
+    },
+    {
+      "region": "csd:pal",
+      "size": 74,
+      "romSet": "midcsd",
+      "loads": [
+        {
+          "file": "0304-00803-0052.u15",
+          "offset": 0,
+          "size": 74,
+          "crc": "8b401aee"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "ssio:IP0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP0",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Gear Shift",
+      "type": "IPT_BUTTON2",
+      "activeLow": true,
+      "toggle": true
+    },
+    {
+      "port": "ssio:IP0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "type": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 1,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "Left Button / Oil Slick",
+      "type": "IPT_BUTTON4",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 2,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "Left Trigger / Missiles",
+      "type": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "Center Button / Weapons Van",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 8,
+      "keys": [
+        "KeyV"
+      ],
+      "label": "Right Button / Smoke Screen",
+      "type": "IPT_BUTTON5",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 16,
+      "keys": [
+        "Space"
+      ],
+      "label": "Right Trigger / Machine Guns",
+      "type": "IPT_BUTTON6",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP2",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_PEDAL",
+      "type": "IPT_PEDAL",
+      "activeLow": false,
+      "activeValue": 255,
+      "keyDelta": 10
+    },
+    {
+      "port": "ssio:IP2.ALT",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_PADDLE_LEFT",
+      "type": "IPT_PADDLE_LEFT",
+      "activeLow": false,
+      "activeValue": 52,
+      "keyDelta": 10
+    },
+    {
+      "port": "ssio:IP2.ALT",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_PADDLE_RIGHT",
+      "type": "IPT_PADDLE_RIGHT",
+      "activeLow": false,
+      "activeValue": 180,
+      "keyDelta": 10
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "ssio:IP0",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "ssio:IP3",
+      "mask": 1,
+      "value": 1,
+      "name": "Game Timer"
+    },
+    {
+      "port": "ssio:IP3",
+      "mask": 2,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "ssio:IP0",
+      "init": 255
+    },
+    {
+      "tag": "ssio:IP1",
+      "init": 159
+    },
+    {
+      "tag": "ssio:IP2",
+      "init": 48
+    },
+    {
+      "tag": "ssio:IP3",
+      "init": 253
+    },
+    {
+      "tag": "ssio:IP4",
+      "init": 255
+    },
+    {
+      "tag": "ssio:DIP",
+      "init": 255
+    },
+    {
+      "tag": "ssio:IP2.ALT",
+      "init": 116
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

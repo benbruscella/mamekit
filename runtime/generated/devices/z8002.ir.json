@@ -1,0 +1,33 @@
+{
+  "type": "Z8002",
+  "uses": [
+    {
+      "game": "polepos",
+      "tags": [
+        "sub1",
+        "sub2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "Z8002",
+    "className": "z8002_device",
+    "shortName": "z8002",
+    "description": "Zilog Z8002",
+    "sourceFile": "src/devices/cpu/z8000/z8000.cpp",
+    "sourceLine": 23,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(Z8002, z8002_device, \"z8002\", \"Zilog Z8002\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/z8000/z8000.cpp",
+    "src/devices/cpu/z8000/z8000.h",
+    "src/devices/cpu/z8000/z8000cpu.h",
+    "src/devices/cpu/z8000/z8000dab.h",
+    "src/devices/cpu/z8000/z8000ops.hxx",
+    "src/devices/cpu/z8000/z8000tbl.hxx"
+  ]
+}

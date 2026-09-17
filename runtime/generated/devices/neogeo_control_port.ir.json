@@ -1,0 +1,176 @@
+{
+  "type": "NEOGEO_CONTROL_PORT",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "ctrl1",
+        "ctrl2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NEOGEO_CONTROL_PORT",
+    "className": "neogeo_control_port_device",
+    "shortName": "neogeo_control_port",
+    "description": "SNK Neo Geo controller port",
+    "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+    "sourceLine": 34,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NEOGEO_CONTROL_PORT,        neogeo_control_port_device,   \"neogeo_control_port\", \"SNK Neo Geo controller port\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_ctrl",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 116,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_device"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_device"
+                  },
+                  "property": "read_ctrl"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_start_sel",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_device"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_device"
+                  },
+                  "property": "read_start_sel"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_ctrlsel",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 127,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "write_ctrlsel"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+    "src/devices/bus/neogeo_ctrl/ctrl.h",
+    "src/devices/bus/neogeo_ctrl/dial.h",
+    "src/devices/bus/neogeo_ctrl/irrmaze.h",
+    "src/devices/bus/neogeo_ctrl/joystick.h",
+    "src/devices/bus/neogeo_ctrl/kizuna4p.h",
+    "src/devices/bus/neogeo_ctrl/mahjong.h"
+  ]
+}

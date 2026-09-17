@@ -1,0 +1,40 @@
+Arcade Video game published 45 years ago:
+
+Jump Bug (c) 1981 Rock-ola.
+
+The player controls a VW Beetle that jumps through 8 scenarios collecting money and jewels. Shoot or avoid the enemies.
+
+- TECHNICAL -
+
+Main CPU: Zilog Z80 (@ 3.072 Mhz)
+Sound Chips: General Instrument AY8910 (@ 1.78975 Mhz)
+
+Players: 2
+Control: 8-way joystick
+Buttons: 1
+
+- TRIVIA -
+
+Released during December 1981.
+
+The game was originally developed by Alpha Denshi. Rock-ola Mfg. Corp. licensed this game from SEGA.
+
+Hoei International (which became Coreland Technology in 1982) supported its development mainly by supporting Alpha Denshi with funding.
+
+A bootleg of this game was released with SEGA copyright.
+
+Allen Rager holds the official record for this game with 850,350 points.
+
+- PORTS -
+
+* CONSOLES:
+Emerson Arcadia
+
+* COMPUTERS:
+NEC PC 9801 (1996)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/1236/?o=2
+
+— Gaming History (arcade-history.com)

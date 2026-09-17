@@ -1,0 +1,76 @@
+Arcade Video game published 44 years ago:
+
+Tutankham (c) 1982 Konami.
+
+Inside King Tut's tomb are treasures beyond your wildest dreams. They can be yours... if you dare to take them. Supernatural creatures roam the mazes of the tomb guarding the treasures at all costs. Your only defenses against them are your laser gun... and your wits. Blast away, snatch the loot, escape through secret passageway before it's too late! And when you see a key, take that, too. It will unlock the door to the next chamber and the next adventure. Enter King Tut's tomb and see what awaits you... if you dare.
+
+- TECHNICAL -
+
+Game ID : GX350
+
+Main CPU : Motorola M6809 (@ 1.5 Mhz)
+Sound CPU : Zilog Z80 (@ ~1.79 Mhz)
+Sound Chips : (2x) General Instrument AY8910 (@ ~1.79 Mhz), (6x) RC (@ ~1.79 Mhz)
+
+Players : 2
+Control : 4-way joystick
+Buttons : 3
+
+- TRIVIA -
+
+Tutankham was released in June 1982 in Japan.
+
+The game was originally to be called 'Tutankhamon'. However, when programmers decided to change the monitor position from horizontal to vertical, they had to cut the -ON suffix from 'Tutankhamon' to make the title fit the screen width.
+
+Licensed to Stern for manufacture and distribution in USA as "Tutankham".
+
+- SCORING -
+
+Killing a Snake : 20 points.
+Killing a Monster : 40 points.
+Killing a Bat : 60 points.
+Collecting a Ring : Mystery Score (From 500 points).
+Collecting a Lantern : Mystery Score (Up to 4,000 points).
+Collecting a key : 500 points.
+Opening a door : 1,000 points.
+
+Bonus points are awarded at the end of each level for the time remaining.
+
+- TIPS AND TRICKS -
+
+* Flash bombs can only be used once per level, and remember you only have 3 available for the whole game. Use them sparingly, preferably only in a life-threatening situation.
+
+* You can sit in a safe place close to a monster generator and simply pick the monsters off as they appear. Most monsters follow a set pattern of movement so it is quite easy to predict which way they will turn and wait in a place where it is easy to kill them as they appear in front or behind you. Remember to watch the timer though!
+
+* The lanterns and rings are quite often a deadly diversion as they are sometimes placed in dead end vertical passages. Assess the risks carefully before collecting them.
+
+* Be careful when entering vertical tunnels as you cannot shoot monsters on the other side until they are level with you in a horizontal direction.
+
+* A carefully timed shot can kill a monster in a vertical tunnel, but only when fired exactly when the monster moves into the square in which you are stood.
+
+- STAFF -
+
+Programmed by : H. Tanigaki
+
+- PORTS -
+
+* CONSOLES:
+Casio PV-1000 [JP] 
+
+* HANDHELDS: 
+[JP] Nintendo DS (mar.15, 2007) "Konami Arcade Collection [Model NTR-A5KJ-JPN]" 
+[EU] Nintendo DS (oct.26, 2007) "Konami Arcade Classics [Model NTR-ACXP-EUR]" 
+[AU] Nintendo DS (oct.29, 2007) "Konami Arcade Classics" 
+
+* COMPUTERS:
+[EU] Sinclair ZX Spectrum (1984)
+
+* OTHERS:
+LCD handheld game by Konami.
+VFD handheld game (1983) by Bandai.
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2998/?o=2
+
+— Gaming History (arcade-history.com)

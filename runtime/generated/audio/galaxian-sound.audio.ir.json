@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "type": "COUNTER_LFSR_DISCRETE",
+  "deviceType": "GALAXIAN_SOUND",
+  "className": "galaxian_sound_device",
+  "workletName": "galaxian-sound",
+  "processorName": "discrete",
+  "methodBases": {
+    "lfo_freq_w": 0,
+    "pitch_w": 256,
+    "sound_w": 512
+  },
+  "methodRoles": {
+    "pitch": "pitch_w",
+    "lfo": "lfo_freq_w",
+    "controls": "sound_w"
+  },
+  "controls": {
+    "background": [
+      0,
+      1,
+      2
+    ],
+    "noise": 3,
+    "fire": 5,
+    "volume": [
+      6,
+      7
+    ]
+  },
+  "clockDivider": 2,
+  "lfsr": {
+    "bits": 17,
+    "reset": 0,
+    "tap0": 4,
+    "tap1": 16
+  },
+  "lfoResistors": [
+    1000000,
+    470000,
+    220000,
+    100000
+  ],
+  "backgroundLfo": {
+    "bitVoltage": 4,
+    "biasVoltage": 4.4,
+    "biasResistance": 15000,
+    "groundResistance": 330000,
+    "currentResistance": 100000,
+    "capacitance": 0.000001,
+    "supplyVoltage": 5,
+    "junctionVoltage": 0.7,
+    "controlGain": 1.4255319148936172,
+    "controlOffset": -1.0638297872340425,
+    "controlMinimum": 0,
+    "controlMaximum": 5
+  },
+  "background555": {
+    "chargeResistors": [
+      100000,
+      100000,
+      100000
+    ],
+    "dischargeResistors": [
+      470000,
+      330000,
+      220000
+    ],
+    "capacitors": [
+      1e-8,
+      1e-8,
+      1e-8
+    ],
+    "supplyVoltage": 5,
+    "outputHighVoltage": 4.5,
+    "mixerResistances": [
+      10000,
+      10000,
+      10000
+    ],
+    "filterCapacitance": 1e-7
+  },
+  "backgroundResistors": [
+    470000,
+    330000,
+    220000
+  ],
+  "backgroundCapacitors": [
+    1e-8,
+    1e-8,
+    1e-8
+  ],
+  "toneResistors": [
+    33000,
+    22000,
+    10000,
+    15000
+  ],
+  "hitFilter": {
+    "resistance": 172000,
+    "capacitance": 0.0000022,
+    "inputVoltage": 4,
+    "diodeDrop": 0.7,
+    "bandpass": {
+      "inputResistance": 150000,
+      "biasResistance": 22000,
+      "feedbackResistance": 470000,
+      "capacitance1": 1e-8,
+      "capacitance2": 1e-8,
+      "referenceVoltage": 2,
+      "positiveVoltage": 5,
+      "negativeVoltage": 0,
+      "positiveRailOffset": 1.5
+    },
+    "mixGain": 0.5379746835443038
+  },
+  "fire": {
+    "resistance": 100000,
+    "capacitance": 0.000001
+  },
+  "sourceFiles": [
+    "src/mame/galaxian/galaxian_a.cpp",
+    "src/devices/sound/disc_flt.hxx",
+    "src/devices/sound/discrete.h",
+    "src/devices/sound/disc_dev.hxx",
+    "src/devices/sound/disc_mth.hxx"
+  ],
+  "source": {
+    "file": "src/mame/galaxian/galaxian_a.cpp",
+    "line": 734
+  }
+}

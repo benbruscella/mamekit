@@ -1,0 +1,27 @@
+{
+  "type": "FILTER_RC",
+  "uses": [
+    {
+      "game": "junofrst",
+      "tags": [
+        "filter.0.0",
+        "filter.0.1",
+        "filter.0.2"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "FILTER_RC",
+    "className": "filter_rc_device",
+    "shortName": "filter_rc",
+    "description": "RC Filter",
+    "sourceFile": "src/devices/sound/flt_rc.cpp",
+    "sourceLine": 8,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(FILTER_RC, filter_rc_device, \"filter_rc\", \"RC Filter\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

@@ -1,0 +1,6098 @@
+{
+  "type": "NEOGEO_SPRITE_OPTIMZIED",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "spritegen"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NEOGEO_SPRITE_OPTIMZIED",
+    "className": "neosprite_optimized_device",
+    "shortName": "neosprite_opt",
+    "description": "Neo-Geo Sprites (optimized)",
+    "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+    "sourceLine": 654,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NEOGEO_SPRITE_OPTIMZIED, neosprite_optimized_device, \"neosprite_opt\", \"Neo-Geo Sprites (optimized)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_videoram_drawsource"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_videoram"
+                },
+                "property": "get"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_videoram"
+                    },
+                    "property": "get"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2048
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "u16"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_sprite_line_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_auto_animation_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_modulo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_speed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_disabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_frame_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_videoram"
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "number",
+                    "value": 32768
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2048
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_offset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_read_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_modulo"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_fixed_layer_source"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_speed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_disabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_frame_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neosprite_base_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_videoram_drawsource"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_videoram"
+                },
+                "property": "get"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_videoram"
+                    },
+                    "property": "get"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2048
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "u16"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_sprite_line_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_auto_animation_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_modulo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_speed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_disabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_frame_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_videoram"
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "number",
+                    "value": 32768
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2048
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_offset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_read_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_modulo"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_fixed_layer_source"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_speed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_disabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_frame_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 60,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "start_sprite_line_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "start_auto_animation_timer"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_videoram_offset",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 32768
+                }
+              },
+              "whenTrue": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 34815
+                }
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_videoram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_vram_offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_videoram_data",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_videoram_data",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_videoram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_vram_offset"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_videoram_offset"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_vram_offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32768
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_vram_offset"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_vram_modulo"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32767
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_videoram_modulo",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_modulo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_videoram_modulo",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_vram_modulo"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_auto_animation_speed",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_speed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_auto_animation_disabled",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 124,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_disabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_auto_animation_counter",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 130,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_auto_animation_counter"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "create_auto_animation_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 150,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "neosprite_base_device::auto_animation_timer_callback"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_auto_animation_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 156,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "NEOGEO_VSSTART"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_fixed_layer_source",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 168,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_fixed_layer_source"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_fixed_layer_bank_type",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 174,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_fixed_layer_bank_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_fixed_layer",
+      "parameters": "bitmap_rgb32 &bitmap, int scanline",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 180,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "gfx_base",
+            "valueType": "u8*",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_fixed_layer_source"
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "m_region_fixed"
+              },
+              "whenFalse": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_region_fixedbios"
+                  },
+                  "property": "base"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "addr_mask",
+            "valueType": "u32",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_fixed_layer_source"
+                },
+                "whenTrue": {
+                  "kind": "identifier",
+                  "name": "m_region_fixed_size"
+                },
+                "whenFalse": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_region_fixedbios"
+                    },
+                    "property": "bytes"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "video_data",
+            "valueType": "u16*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_videoram_drawsource"
+                },
+                "index": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "number",
+                    "value": 28672
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "scanline"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "pixel_addr",
+            "valueType": "u32*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "bitmap"
+                  },
+                  "property": "pix"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "scanline"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "NEOGEO_HBEND"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "x",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "x"
+              },
+              "right": {
+                "kind": "number",
+                "value": 40
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "code_and_palette",
+                "valueType": "u16",
+                "value": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "video_data"
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "code",
+                "valueType": "u16",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "code_and_palette"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4095
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "gfx_offset",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "code"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 5
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "scanline"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "addr_mask"
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "char_pens",
+                "valueType": "pen_t*",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_pens"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "code_and_palette"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 12
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_bppshift"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "draw_fixed_layer_2pixels"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "pixel_addr"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "gfx_offset"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "gfx_base"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "char_pens"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "draw_fixed_layer_2pixels"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "pixel_addr"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "gfx_offset"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 24
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "gfx_base"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "char_pens"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "draw_fixed_layer_2pixels"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "pixel_addr"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "gfx_offset"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "gfx_base"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "char_pens"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "draw_fixed_layer_2pixels"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "pixel_addr"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "gfx_offset"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "gfx_base"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "char_pens"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "video_data"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "video_data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_fixed_layer_2pixels",
+      "parameters": "u32*&pixel_addr, int offset, u8* gfx_base, const pen_t* char_pens",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 248,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "gfx_base"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "pixel_addr"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "char_pens"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 15
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "pixel_addr"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 240
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "pixel_addr"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "char_pens"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 240
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "pixel_addr"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_on_scanline",
+      "parameters": "int scanline, int y, int rows",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 277,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "||",
+                "left": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "rows"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "rows"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "scanline"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "y"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 511
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "rows"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites",
+      "parameters": "bitmap_rgb32 &bitmap, int scanline",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 283,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "max_sprite_index",
+            "valueType": "int"
+          },
+          {
+            "op": "declare",
+            "name": "y",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "x",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "rows",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "zoom_y",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "zoom_x",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sprite_list",
+            "valueType": "u16*"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "scanline"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_list"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_videoram_drawsource"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 34432
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_list"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_videoram_drawsource"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 34304
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "max_sprite_index"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "MAX_SPRITES_PER_LINE"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "max_sprite_index"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "max_sprite_index"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "sprite_list"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "max_sprite_index"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "max_sprite_index"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "MAX_SPRITES_PER_LINE"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "max_sprite_index"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "max_sprite_index"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sprite_index",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "sprite_index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "max_sprite_index"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "sprite_number",
+                "valueType": "u16",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "sprite_list"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "sprite_index"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 511
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "y_control",
+                "valueType": "u16",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_videoram_drawsource"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "number",
+                      "value": 33280
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "sprite_number"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "zoom_control",
+                "valueType": "u16",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_videoram_drawsource"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "sprite_number"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "y_control"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "zoom_x"
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 511
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "zoom_x"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "zoom_control"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "number",
+                        "value": 512
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "y_control"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_videoram_drawsource"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "number",
+                            "value": 33792
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "sprite_number"
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "zoom_y"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "zoom_control"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 255
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "zoom_x"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "zoom_control"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "rows"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y_control"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 63
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 320
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 496
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "continue"
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sprite_on_scanline"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "scanline"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "rows"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "sprite_line",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "scanline"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "y"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 511
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "zoom_line",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sprite_line"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 255
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "invert",
+                    "valueType": "bool",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "sprite_line"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "invert"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "zoom_line"
+                        },
+                        "operator": "^=",
+                        "value": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "rows"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 32
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "zoom_line"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "%",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "zoom_line"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "zoom_y"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "zoom_line"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "zoom_y"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "zoom_line"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "<<",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "zoom_y"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "zoom_line"
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "invert"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "invert"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "sprite_y_and_tile",
+                    "valueType": "u8",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_region_zoomy"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "|",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "zoom_y"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "zoom_line"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "sprite_y",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sprite_y_and_tile"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "tile",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sprite_y_and_tile"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "invert"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sprite_y"
+                        },
+                        "operator": "^=",
+                        "value": {
+                          "kind": "number",
+                          "value": 15
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "tile"
+                        },
+                        "operator": "^=",
+                        "value": {
+                          "kind": "number",
+                          "value": 31
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "attr_and_code_offs",
+                    "valueType": "offs_t",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "sprite_number"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 6
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "tile"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "attr",
+                    "valueType": "u16",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_videoram_drawsource"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "attr_and_code_offs"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "code",
+                    "valueType": "u32",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "attr"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 983040
+                        }
+                      },
+                      "right": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_videoram_drawsource"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "attr_and_code_offs"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_auto_animation_disabled"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "BIT"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "attr"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "code"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "|",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "code"
+                                },
+                                "right": {
+                                  "kind": "unary",
+                                  "operator": "~",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 7
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_auto_animation_counter"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 7
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "attr"
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "code"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "|",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "code"
+                                    },
+                                    "right": {
+                                      "kind": "unary",
+                                      "operator": "~",
+                                      "operand": {
+                                        "kind": "number",
+                                        "value": 3
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "m_auto_animation_counter"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 3
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "attr"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sprite_y"
+                        },
+                        "operator": "^=",
+                        "value": {
+                          "kind": "number",
+                          "value": 15
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "zoom_x_table",
+                    "valueType": "u16",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TABLE"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "zoom_x"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 128
+                        },
+                        {
+                          "kind": "number",
+                          "value": 2176
+                        },
+                        {
+                          "kind": "number",
+                          "value": 2184
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10376
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10378
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10890
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10922
+                        },
+                        {
+                          "kind": "number",
+                          "value": 43690
+                        },
+                        {
+                          "kind": "number",
+                          "value": 43754
+                        },
+                        {
+                          "kind": "number",
+                          "value": 47850
+                        },
+                        {
+                          "kind": "number",
+                          "value": 47851
+                        },
+                        {
+                          "kind": "number",
+                          "value": 48107
+                        },
+                        {
+                          "kind": "number",
+                          "value": 48111
+                        },
+                        {
+                          "kind": "number",
+                          "value": 64495
+                        },
+                        {
+                          "kind": "number",
+                          "value": 64511
+                        },
+                        {
+                          "kind": "number",
+                          "value": 65535
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "gfx_base",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "|",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "code"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "sprite_y"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_sprite_gfx_address_mask"
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "line_pens",
+                    "valueType": "auto*",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_pens"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "attr"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_bppshift"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "x_inc",
+                    "valueType": "int"
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "attr"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "gfx_base"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "gfx_base"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 15
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x_inc"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x_inc"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<=",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 496
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "pixel_addr",
+                        "valueType": "auto*",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "&",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "bitmap"
+                              },
+                              "property": "pix"
+                            },
+                            "args": [
+                              {
+                                "kind": "identifier",
+                                "name": "scanline"
+                              },
+                              {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "NEOGEO_HBEND"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "op": "for",
+                        "initialize": [
+                          {
+                            "op": "declare",
+                            "name": "i",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ],
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "i"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        },
+                        "iterate": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "i"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "zoom_x_table"
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 15
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "draw_pixel"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "gfx_base"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "pixel_addr"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "line_pens"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pixel_addr"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "zoom_x_table"
+                            },
+                            "operator": "<<=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "zoom_x_table"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "break"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "gfx_base"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "x_inc"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "declare",
+                        "name": "x_save",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      },
+                      {
+                        "op": "declare",
+                        "name": "pixel_addr",
+                        "valueType": "auto*",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "&",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "bitmap"
+                              },
+                              "property": "pix"
+                            },
+                            "args": [
+                              {
+                                "kind": "identifier",
+                                "name": "scanline"
+                              },
+                              {
+                                "kind": "identifier",
+                                "name": "NEOGEO_HBEND"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "op": "for",
+                        "initialize": [
+                          {
+                            "op": "declare",
+                            "name": "i",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ],
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "i"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        },
+                        "iterate": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "i"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "zoom_x_table"
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 15
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": ">=",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 512
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "draw_pixel"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "gfx_base"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "pixel_addr"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "line_pens"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "pixel_addr"
+                                    },
+                                    "operator": "+=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "zoom_x_table"
+                            },
+                            "operator": "<<=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "zoom_x_table"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "break"
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "gfx_base"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "x_inc"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "x_save"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "parse_sprites",
+      "parameters": "int scanline",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 462,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "y",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "rows",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sprite_list",
+            "valueType": "u16*"
+          },
+          {
+            "op": "declare",
+            "name": "active_sprite_count",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "scanline"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_list"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_videoram_drawsource"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 34432
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_list"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_videoram_drawsource"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 34304
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sprite_number",
+                "valueType": "u16",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sprite_number"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "MAX_SPRITES_PER_SCREEN"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_number"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "y_control",
+                "valueType": "u16",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_videoram_drawsource"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "number",
+                      "value": 33280
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "sprite_number"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "y_control"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "number",
+                        "value": 512
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "y_control"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "rows"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y_control"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 63
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "rows"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "continue"
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sprite_on_scanline"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "scanline"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "y"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "rows"
+                      }
+                    ]
+                  }
+                },
+                "then": [
+                  {
+                    "op": "continue"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "sprite_list"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "sprite_number"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sprite_list"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "active_sprite_count"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "active_sprite_count"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MAX_SPRITES_PER_LINE"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "sprite_list"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "sprite_list"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "MAX_SPRITES_PER_LINE"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "active_sprite_count"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "create_sprite_line_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 530,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sprite_line_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "neosprite_base_device::sprite_line_timer_callback"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_sprite_line_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 536,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sprite_line_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_region_mask",
+      "parameters": "u8* rgn, u32 rgn_size",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 542,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "u32",
+            "value": {
+              "kind": "number",
+              "value": 4294967295
+            }
+          },
+          {
+            "op": "declare",
+            "name": "len",
+            "valueType": "u32",
+            "value": {
+              "kind": "identifier",
+              "name": "rgn_size"
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "bit",
+                "valueType": "u32",
+                "value": {
+                  "kind": "number",
+                  "value": 2147483648
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "bit"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "bit"
+                },
+                "operator": ">>=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "len"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "bit"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "mask"
+                },
+                "operator": ">>=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "optimize_sprite_data",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 699,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sprite_gfx_address_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "optimize_helper"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_sprite_gfx"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_region_sprites"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_region_sprites_size"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spritegfx8"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sprite_gfx"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_optimized_sprite_data",
+      "parameters": "u8* sprdata, u32 mask",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 705,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sprite_gfx_address_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spritegfx8"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "sprdata"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_sprite_region",
+      "parameters": "u8* region_sprites, u32 region_sprites_size",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 577,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_sprites"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "region_sprites"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_sprites_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "region_sprites_size"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_fixed_regions",
+      "parameters": "u8* fix_cart, u32 fix_cart_size, memory_region* fix_bios",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 583,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_fixed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "fix_cart"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_fixed_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "fix_cart_size"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_fixedbios"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "fix_bios"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_pens",
+      "parameters": "const pen_t* pens",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 590,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pens"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "pens"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "auto_animation_timer_callback",
+      "parameters": "int param",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 136,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_auto_animation_frame_counter"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_frame_counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_speed"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_counter"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_frame_counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_auto_animation_frame_counter"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "NEOGEO_VSSTART"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_line_timer_callback",
+      "parameters": "int param",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 512,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "scanline",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "param"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "scanline"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "scanline"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parse_sprites"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "scanline"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "scanline"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "%",
+              "left": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "identifier",
+                  "name": "scanline"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "NEOGEO_VTOTAL"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sprite_line_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "scanline"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "scanline"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "optimize_helper",
+      "parameters": "std::vector<u8> &spritegfx, u8* region_sprites, u32 region_sprites_size",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 662,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "u32",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_region_mask"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "region_sprites"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "region_sprites_size"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "spritegfx"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "mask"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "src",
+            "valueType": "auto*",
+            "value": {
+              "kind": "identifier",
+              "name": "region_sprites"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dest",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "spritegfx"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "unsigned",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "region_sprites_size"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 128
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "src"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 128
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "y",
+                    "valueType": "unsigned",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "y"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "unsigned",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "dest"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "postfix": true
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "|",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "src"
+                                      },
+                                      "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                          "kind": "number",
+                                          "value": 67
+                                        },
+                                        "right": {
+                                          "kind": "binary",
+                                          "operator": "<<",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "x"
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "src"
+                                      },
+                                      "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                          "kind": "number",
+                                          "value": 65
+                                        },
+                                        "right": {
+                                          "kind": "binary",
+                                          "operator": "<<",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "x"
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "BIT"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "src"
+                                    },
+                                    "index": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "number",
+                                        "value": 66
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "y"
+                                        },
+                                        "right": {
+                                          "kind": "number",
+                                          "value": 2
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "src"
+                                  },
+                                  "index": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                      "kind": "number",
+                                      "value": 64
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "<<",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "y"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                }
+                              ]
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "unsigned",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "dest"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "postfix": true
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "|",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "src"
+                                      },
+                                      "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                          "kind": "number",
+                                          "value": 3
+                                        },
+                                        "right": {
+                                          "kind": "binary",
+                                          "operator": "<<",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "x"
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "src"
+                                      },
+                                      "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                          "kind": "number",
+                                          "value": 1
+                                        },
+                                        "right": {
+                                          "kind": "binary",
+                                          "operator": "<<",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "y"
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "x"
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "BIT"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "src"
+                                    },
+                                    "index": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "number",
+                                        "value": 2
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "y"
+                                        },
+                                        "right": {
+                                          "kind": "number",
+                                          "value": 2
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "src"
+                                  },
+                                  "index": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                      "kind": "number",
+                                      "value": 0
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "<<",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "y"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                }
+                              ]
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neosprite_base_device::optimize_sprite_data",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 564,
+      "program": {
+        "operations": [
+          {
+            "op": "return"
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neosprite_base_device::set_optimized_sprite_data",
+      "parameters": "u8* sprdata, u32 mask",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 571,
+      "program": {
+        "operations": [
+          {
+            "op": "return"
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_pixel",
+      "parameters": "int romaddr, u32* dst, const pen_t *line_pens",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 711,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "src",
+            "valueType": "u8*",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_region_sprites"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "romaddr"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "~",
+                        "operand": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "^",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "romaddr"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "romaddr"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 240
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "x",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "romaddr"
+              },
+              "right": {
+                "kind": "number",
+                "value": 7
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "gfx",
+            "valueType": "u8",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "src"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      ]
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "src"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      ]
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "src"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "x"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "src"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "x"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "gfx"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "dst"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "line_pens"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "gfx"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/snk/neogeo_spr.cpp",
+    "src/mame/snk/neogeo_spr.h"
+  ]
+}

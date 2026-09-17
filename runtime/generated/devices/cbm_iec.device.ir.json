@@ -1,0 +1,2871 @@
+{
+  "schemaVersion": 1,
+  "type": "CBM_IEC",
+  "className": "cbm_iec_device",
+  "hierarchy": [
+    "cbm_iec_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/cbmiec/cbmiec.cpp",
+    "src/devices/bus/cbmiec/cbmiec.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "LOG": 0,
+    "SRQ": 0,
+    "ATN": 1,
+    "CLK": 2,
+    "DATA": 3,
+    "RESET": 4,
+    "SIGNAL_COUNT": 5
+  },
+  "members": [
+    {
+      "name": "enum",
+      "valueType": "protected:"
+    },
+    {
+      "name": "m_line",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "m_device_list",
+      "valueType": "simple_list<daisy_entry>"
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "srq_callback",
+      "member": "m_write_srq",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "atn_callback",
+      "member": "m_write_atn",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "clk_callback",
+      "member": "m_write_clk",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "data_callback",
+      "member": "m_write_data",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "reset_callback",
+      "member": "m_write_reset",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 303,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "host_reset_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "host_reset_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 312,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_stop",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_device_list"
+                },
+                "property": "reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 323,
+        "column": 1
+      }
+    },
+    {
+      "name": "add_device",
+      "parameters": "cbm_iec_slot_device *slot, device_t *target",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "entry",
+            "valueType": "auto",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::daisy_entry"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "target"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "property": "m_interface"
+              },
+              "property": "m_slot"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "slot"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "property": "m_interface"
+              },
+              "property": "m_bus"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "this"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_device_list"
+                },
+                "property": "append"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "entry"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 333,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_signal",
+      "parameters": "device_t *device, int signal, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "changed",
+            "valueType": "bool",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "device"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_line"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "signal"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "LOG"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_line"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "signal"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "changed"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "declare",
+                "name": "entry",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device_list"
+                    },
+                    "property": "first"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "strcmp"
+                        },
+                        "args": [
+                          {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "entry"
+                                },
+                                "property": "m_device"
+                              },
+                              "property": "tag"
+                            },
+                            "args": []
+                          },
+                          {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "device"
+                              },
+                              "property": "tag"
+                            },
+                            "args": []
+                          }
+                        ]
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "entry"
+                              },
+                              "property": "m_line"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "signal"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "state"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "identifier",
+                              "name": "LOG"
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "TRACE_NOOP"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "entry"
+                                },
+                                "property": "m_line"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "signal"
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "state"
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "changed"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "entry"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "entry"
+                        },
+                        "property": "next"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "changed"
+            },
+            "then": [
+              {
+                "op": "switch",
+                "expression": {
+                  "kind": "identifier",
+                  "name": "signal"
+                },
+                "cases": [
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "SRQ"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_srq"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "state"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "ATN"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_atn"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "state"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "CLK"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_clk"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "state"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "DATA"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_data"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "state"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "RESET"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_reset"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "state"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "entry",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device_list"
+                    },
+                    "property": "first"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "body": [
+                  {
+                    "op": "switch",
+                    "expression": {
+                      "kind": "identifier",
+                      "name": "signal"
+                    },
+                    "cases": [
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "SRQ"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "entry"
+                                  },
+                                  "property": "m_interface"
+                                },
+                                "property": "cbm_iec_srq"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "state"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "ATN"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "entry"
+                                  },
+                                  "property": "m_interface"
+                                },
+                                "property": "cbm_iec_atn"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "state"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "CLK"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "entry"
+                                  },
+                                  "property": "m_interface"
+                                },
+                                "property": "cbm_iec_clk"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "state"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "DATA"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "entry"
+                                  },
+                                  "property": "m_interface"
+                                },
+                                "property": "cbm_iec_data"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "state"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "identifier",
+                            "name": "RESET"
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "entry"
+                                  },
+                                  "property": "m_interface"
+                                },
+                                "property": "cbm_iec_reset"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "state"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "entry"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "entry"
+                        },
+                        "property": "next"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "LOG"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 366,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_signal",
+      "parameters": "int signal",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_line"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "signal"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "entry",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device_list"
+                    },
+                    "property": "first"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "entry"
+                          },
+                          "property": "m_line"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "signal"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "entry"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "entry"
+                        },
+                        "property": "next"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 450,
+        "column": 1
+      }
+    },
+    {
+      "name": "srq_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_srq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 42,
+        "column": 1
+      }
+    },
+    {
+      "name": "atn_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_atn"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 44,
+        "column": 1
+      }
+    },
+    {
+      "name": "clk_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_clk"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 45,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_data"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 46,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_reset"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "srq_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "SRQ"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 50,
+        "column": 1
+      }
+    },
+    {
+      "name": "atn_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ATN"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 53,
+        "column": 1
+      }
+    },
+    {
+      "name": "clk_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "CLK"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DATA"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "RESET"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "host_srq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SRQ"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 57,
+        "column": 1
+      }
+    },
+    {
+      "name": "host_atn_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ATN"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 60,
+        "column": 1
+      }
+    },
+    {
+      "name": "host_clk_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLK"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 61,
+        "column": 1
+      }
+    },
+    {
+      "name": "host_data_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "DATA"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "host_reset_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "RESET"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "srq_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SRQ"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "atn_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ATN"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 67,
+        "column": 1
+      }
+    },
+    {
+      "name": "clk_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLK"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 68,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "DATA"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "RESET"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 70,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::srq_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_srq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 42,
+        "column": 97
+      }
+    },
+    {
+      "name": "cbm_iec_device::atn_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_atn"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 45,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::clk_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_clk"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 46,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::data_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_data"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::reset_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_reset"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::srq_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "SRQ"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 50,
+        "column": 62
+      }
+    },
+    {
+      "name": "cbm_iec_device::atn_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ATN"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::clk_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "CLK"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::data_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DATA"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::reset_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "RESET"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 57,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::host_srq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SRQ"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 58,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::host_atn_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ATN"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 61,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::host_clk_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLK"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::host_data_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "DATA"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::host_reset_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "RESET"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::srq_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SRQ"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 65,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::atn_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ATN"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 68,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::clk_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLK"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::data_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "DATA"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 70,
+        "column": 1
+      }
+    },
+    {
+      "name": "cbm_iec_device::reset_w",
+      "parameters": "device_t *device, int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_signal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "RESET"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.h",
+        "line": 71,
+        "column": 1
+      }
+    },
+    {
+      "name": "__construct",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_line"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__range0"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "__range0_index"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+        "line": 284,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 47,
+    "compiledMethods": 47,
+    "diagnostics": 0
+  },
+  "allocations": {
+    "daisy_entry": {
+      "schemaVersion": 1,
+      "type": "cbm_iec_device::daisy_entry",
+      "className": "cbm_iec_device::daisy_entry",
+      "hierarchy": [
+        "cbm_iec_device::daisy_entry"
+      ],
+      "sourceFiles": [
+        "src/devices/bus/cbmiec/cbmiec.cpp",
+        "src/devices/bus/cbmiec/cbmiec.h"
+      ],
+      "constants": {
+        "SEEK_SET": 0,
+        "SEEK_CUR": 1,
+        "SEEK_END": 2,
+        "CLEAR_LINE": 0,
+        "ASSERT_LINE": 1,
+        "HOLD_LINE": 2,
+        "AS_PROGRAM": 0,
+        "AS_DATA": 1,
+        "AS_IO": 2,
+        "AS_OPCODES": 3,
+        "LOG": 0,
+        "SRQ": 0,
+        "ATN": 1,
+        "CLK": 2,
+        "DATA": 3,
+        "RESET": 4,
+        "SIGNAL_COUNT": 5
+      },
+      "members": [
+        {
+          "name": "m_line",
+          "valueType": "int",
+          "bits": 32,
+          "signed": true,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "m_next",
+          "valueType": "daisy_entry*"
+        },
+        {
+          "name": "m_device",
+          "valueType": "device_t*"
+        },
+        {
+          "name": "m_interface",
+          "valueType": "device_cbm_iec_interface*"
+        }
+      ],
+      "callbacks": [],
+      "timers": [],
+      "methods": [
+        {
+          "name": "next",
+          "parameters": "",
+          "program": {
+            "operations": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_next"
+                }
+              }
+            ],
+            "diagnostics": []
+          },
+          "source": {
+            "file": "src/devices/bus/cbmiec/cbmiec.h",
+            "line": 92,
+            "column": 1
+          }
+        },
+        {
+          "name": "cbm_iec_device::daisy_entry::next",
+          "parameters": "",
+          "program": {
+            "operations": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_next"
+                }
+              }
+            ],
+            "diagnostics": []
+          },
+          "source": {
+            "file": "src/devices/bus/cbmiec/cbmiec.h",
+            "line": 92,
+            "column": 32
+          }
+        },
+        {
+          "name": "__construct",
+          "parameters": "device_t *device",
+          "program": {
+            "operations": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_next"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_device"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "device"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_interface"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "__range0",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_line"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__range0_index",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "__range0_index"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "__range0"
+                    },
+                    "property": "length"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "__range0_index"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_interface"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "device"
+                    },
+                    "property": "interface"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "device_cbm_iec_interface"
+                    }
+                  ]
+                }
+              }
+            ],
+            "diagnostics": []
+          },
+          "source": {
+            "file": "src/devices/bus/cbmiec/cbmiec.cpp",
+            "line": 348,
+            "column": 1
+          }
+        }
+      ],
+      "summary": {
+        "methods": 3,
+        "compiledMethods": 3,
+        "diagnostics": 0
+      },
+      "construct": "__construct"
+    }
+  },
+  "construct": "__construct",
+  "hotMethods": [
+    "device_start",
+    "device_reset",
+    "device_stop",
+    "add_device",
+    "set_signal",
+    "get_signal",
+    "srq_callback",
+    "atn_callback",
+    "clk_callback",
+    "data_callback",
+    "reset_callback",
+    "srq_r",
+    "atn_r",
+    "clk_r",
+    "data_r",
+    "reset_r",
+    "host_srq_w",
+    "host_atn_w",
+    "host_clk_w",
+    "host_data_w",
+    "host_reset_w",
+    "srq_w",
+    "atn_w",
+    "clk_w",
+    "data_w",
+    "reset_w",
+    "cbm_iec_device::srq_callback",
+    "cbm_iec_device::atn_callback",
+    "cbm_iec_device::clk_callback",
+    "cbm_iec_device::data_callback",
+    "cbm_iec_device::reset_callback",
+    "cbm_iec_device::srq_r",
+    "cbm_iec_device::atn_r",
+    "cbm_iec_device::clk_r",
+    "cbm_iec_device::data_r",
+    "cbm_iec_device::reset_r",
+    "cbm_iec_device::host_srq_w",
+    "cbm_iec_device::host_atn_w",
+    "cbm_iec_device::host_clk_w",
+    "cbm_iec_device::host_data_w",
+    "cbm_iec_device::host_reset_w",
+    "cbm_iec_device::srq_w",
+    "cbm_iec_device::atn_w",
+    "cbm_iec_device::clk_w",
+    "cbm_iec_device::data_w",
+    "cbm_iec_device::reset_w",
+    "__construct"
+  ]
+}

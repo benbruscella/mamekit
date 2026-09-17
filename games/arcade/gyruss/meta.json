@@ -1,0 +1,43 @@
+{
+  "game": "gyruss",
+  "title": "Gyruss (Konami, 1983)",
+  "fullname": "Gyruss",
+  "year": "1983",
+  "manufacturer": "Konami",
+  "family": "gyruss",
+  "driverFile": "src/mame/konami/gyruss.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Couriersud",
+  "credits": {
+    "people": [
+      {
+        "name": "Couriersud",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-27",
+    "commits": 152,
+    "authors": 28,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

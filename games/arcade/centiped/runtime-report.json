@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "centiped",
+  "family": "centiped",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 77,
+    "total": 150,
+    "percent": 51.3
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "earom:ER2055",
+        "status": "executable",
+        "source": "src/devices/machine/er2055.cpp:25"
+      },
+      {
+        "name": "outlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "32v:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "pokey:POKEY",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "centiped_state.centiped_IN0_r",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:545"
+      },
+      {
+        "name": "centiped_state.centiped_IN2_r",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:551"
+      },
+      {
+        "name": "centiped_state.centiped_paletteram_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped_v.cpp:211"
+      },
+      {
+        "name": "centiped_state.centiped_videoram_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped_v.cpp:130"
+      },
+      {
+        "name": "centiped_state.earom_control_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:680"
+      },
+      {
+        "name": "centiped_state.earom_read",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:669"
+      },
+      {
+        "name": "centiped_state.earom_write",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:674"
+      },
+      {
+        "name": "centiped_state.irq_ack_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:487"
+      },
+      {
+        "name": "outlatch.write_d7",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "pokey.read",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "pokey.write",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN3",
+        "status": "generated"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "outlatch.q_out_cb<0> -> centiped_state.coin_counter_left_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:1785"
+      },
+      {
+        "name": "outlatch.q_out_cb<1> -> centiped_state.coin_counter_center_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:1786"
+      },
+      {
+        "name": "outlatch.q_out_cb<2> -> centiped_state.coin_counter_right_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:1787"
+      },
+      {
+        "name": "32v.configure_scanline -> centiped_state.generate_interrupt",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:1794"
+      },
+      {
+        "name": "screen.set_screen_update -> centiped_state.screen_update_centiped",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:1801"
+      },
+      {
+        "name": "outlatch.q_out_cb<7> -> centiped_state.flip_screen_w",
+        "status": "generated",
+        "source": "src/mame/atari/centiped.cpp:1816"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/centiped/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 20,
+    "compiledMethods": 20,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 8,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "centiped_state.screen_update_centiped",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 7,
+    "generated": 20,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

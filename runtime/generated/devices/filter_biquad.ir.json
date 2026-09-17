@@ -1,0 +1,30 @@
+{
+  "type": "FILTER_BIQUAD",
+  "uses": [
+    {
+      "game": "rampage",
+      "tags": [
+        "dac_filter0",
+        "dac_filter1",
+        "dac_filter2"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "FILTER_BIQUAD",
+    "className": "filter_biquad_device",
+    "shortName": "filter_biquad",
+    "description": "Biquad Filter",
+    "sourceFile": "src/devices/sound/flt_biquad.cpp",
+    "sourceLine": 38,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(FILTER_BIQUAD, filter_biquad_device, \"filter_biquad\", \"Biquad Filter\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [],
+  "declaredBy": [
+    "midway_sounds_good_device"
+  ]
+}

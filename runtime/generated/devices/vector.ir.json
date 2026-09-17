@@ -1,0 +1,1825 @@
+{
+  "type": "VECTOR",
+  "uses": [
+    {
+      "game": "asteroid",
+      "tags": [
+        "vector"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "VECTOR",
+    "className": "vector_device",
+    "shortName": "vector_device",
+    "description": "VECTOR",
+    "sourceFile": "src/devices/video/vector.cpp",
+    "sourceLine": 53,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(VECTOR, vector_device, \"vector_device\", \"VECTOR\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vector_options::init"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "options"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": [
+          "could not parse statement at byte 103"
+        ]
+      }
+    },
+    {
+      "name": "add_frame_begin_notifier",
+      "parameters": "frame_begin_delegate &&n",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_frame_begin_notifier"
+                },
+                "property": "subscribe"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::move"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "n"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_frame_end_notifier",
+      "parameters": "frame_end_delegate &&n",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_frame_end_notifier"
+                },
+                "property": "subscribe"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::move"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "n"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_move_notifier",
+      "parameters": "move_delegate &&n",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_move_notifier"
+                },
+                "property": "subscribe"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::move"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "n"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_line_notifier",
+      "parameters": "line_delegate &&n",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_line_notifier"
+                },
+                "property": "subscribe"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::move"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "n"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "normalized_sigmoid",
+      "parameters": "float n, float k",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "n"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "n"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "k"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "k"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "fabs"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "n"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2,
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "k"
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_point",
+      "parameters": "int x, int y, rgb_t color, int intensity",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 131,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "newpoint",
+            "valueType": "point*"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "intensity"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::clamp"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "intensity"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 255
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_min_intensity"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "intensity"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "std::min"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_min_intensity"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "intensity"
+                  }
+                ]
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "m_min_intensity"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_max_intensity"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "intensity"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "std::max"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_max_intensity"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "intensity"
+                  }
+                ]
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "m_max_intensity"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "vector_options::s_flicker"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "intensity"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "random",
+                "valueType": "float",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "cast",
+                    "valueType": "float",
+                    "operand": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "rand"
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 255
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 255,
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "intensity"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "int",
+                  "operand": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "intensity"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "random",
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "vector_options::s_flicker"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "intensity"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::clamp"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "intensity"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "newpoint"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vector_list"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "m_vector_index"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "newpoint"
+              },
+              "property": "x"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "newpoint"
+              },
+              "property": "y"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "newpoint"
+              },
+              "property": "col"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "color"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "newpoint"
+              },
+              "property": "intensity"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "intensity"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector_index"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_vector_index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "MAX_POINTS"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_vector_index"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "logerror"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "*** Warning! Vector list overflow!\n"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear_list",
+      "parameters": "",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "screen_update",
+      "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+      "sourceFile": "src/devices/video/vector.cpp",
+      "sourceLine": 178,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "flags",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "PRIMFLAG_ANTIALIAS"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "PRIMFLAG_BLENDMODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "BLENDMODE_ADD"
+                    }
+                  ]
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "PRIMFLAG_VECTOR"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "visarea",
+            "valueType": "rectangle&",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "screen"
+                },
+                "property": "visible_area"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "xscale",
+            "valueType": "float",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "number",
+                "value": 1,
+                "floating": true
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "number",
+                  "value": 65536
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "visarea"
+                    },
+                    "property": "width"
+                  },
+                  "args": []
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "yscale",
+            "valueType": "float",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "number",
+                "value": 1,
+                "floating": true
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "number",
+                  "value": 65536
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "visarea"
+                    },
+                    "property": "height"
+                  },
+                  "args": []
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "xoffs",
+            "valueType": "float",
+            "value": {
+              "kind": "cast",
+              "valueType": "float",
+              "operand": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "visarea"
+                },
+                "property": "min_x"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "yoffs",
+            "valueType": "float",
+            "value": {
+              "kind": "cast",
+              "valueType": "float",
+              "operand": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "visarea"
+                },
+                "property": "min_y"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "curpoint",
+            "valueType": "point*"
+          },
+          {
+            "op": "declare",
+            "name": "lastx",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "lasty",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "curpoint"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vector_list"
+                },
+                "property": "get"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    "property": "container"
+                  },
+                  "args": []
+                },
+                "property": "empty"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    "property": "container"
+                  },
+                  "args": []
+                },
+                "property": "add_rect"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "rgb_t"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 255
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "PRIMFLAG_BLENDMODE"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "BLENDMODE_ALPHA"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "PRIMFLAG_VECTORBUF"
+                    },
+                    "args": [
+                      {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_frame_begin_notifier"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_vector_index"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "coords",
+                "valueType": "render_bounds"
+              },
+              {
+                "op": "declare",
+                "name": "intensity",
+                "valueType": "float",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "cast",
+                    "valueType": "float",
+                    "operand": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "curpoint"
+                      },
+                      "property": "intensity"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 255,
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "intensity_weight",
+                "valueType": "float",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "normalized_sigmoid"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "intensity",
+                      "floating": true
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "vector_options::s_beam_intensity_weight"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "beam_width",
+                "valueType": "float",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_min_intensity"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_max_intensity"
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "vector_options::s_beam_width_min"
+                  },
+                  "whenFalse": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "vector_options::s_beam_width_min"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "intensity_weight",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "vector_options::s_beam_width_max"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "vector_options::s_beam_width_min"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "beam_width",
+                  "floating": true
+                },
+                "operator": "*=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 1,
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "cast",
+                    "valueType": "float",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "VECTOR_WIDTH_DENOM"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "lastx"
+                    },
+                    "right": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "curpoint"
+                      },
+                      "property": "x"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "lasty"
+                    },
+                    "right": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "curpoint"
+                      },
+                      "property": "y"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "beam_width",
+                      "floating": true
+                    },
+                    "operator": "*=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "vector_options::s_beam_dot_size"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "coords"
+                  },
+                  "property": "x0"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "float",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "lastx"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "xoffs",
+                      "floating": true
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "xscale",
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "coords"
+                  },
+                  "property": "y0"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "float",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "lasty"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "yoffs",
+                      "floating": true
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "yscale",
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "coords"
+                  },
+                  "property": "x1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "float",
+                      "operand": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "curpoint"
+                        },
+                        "property": "x"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "xoffs",
+                      "floating": true
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "xscale",
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "coords"
+                  },
+                  "property": "y1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "float",
+                      "operand": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "curpoint"
+                        },
+                        "property": "y"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "yoffs",
+                      "floating": true
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "yscale",
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "curpoint"
+                    },
+                    "property": "intensity"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "screen"
+                            },
+                            "property": "container"
+                          },
+                          "args": []
+                        },
+                        "property": "add_line"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "coords"
+                          },
+                          "property": "x0"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "coords"
+                          },
+                          "property": "y0"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "coords"
+                          },
+                          "property": "x1"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "coords"
+                          },
+                          "property": "y1"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "beam_width",
+                          "floating": true
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "curpoint"
+                              },
+                              "property": "intensity"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 24
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "curpoint"
+                              },
+                              "property": "col"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 16777215
+                            }
+                          }
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "flags"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_line_notifier"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "lastx"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "lasty"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "x"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "y"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "col"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "intensity"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "visarea"
+                            },
+                            "property": "width"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "visarea"
+                            },
+                            "property": "height"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_move_notifier"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "x"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "y"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "curpoint"
+                          },
+                          "property": "col"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "visarea"
+                            },
+                            "property": "width"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "visarea"
+                            },
+                            "property": "height"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "lastx"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "curpoint"
+                  },
+                  "property": "x"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "lasty"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "curpoint"
+                  },
+                  "property": "y"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "curpoint"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_frame_end_notifier"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/video/vector.cpp",
+    "src/devices/video/vector.h"
+  ]
+}

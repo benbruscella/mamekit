@@ -1,0 +1,708 @@
+{
+  "game": "spyhunt",
+  "title": "Spy Hunter (Bally Midway, 1983)",
+  "fullname": "Spy Hunter",
+  "year": "1983",
+  "company": "Bally Midway",
+  "family": "mcr3",
+  "driverFile": "src/mame/bally/mcr3.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 5000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 57343,
+          "kind": "rom"
+        },
+        {
+          "start": 57344,
+          "end": 59391,
+          "kind": "ram",
+          "share": "videoram",
+          "write": "mcr3_state.spyhunt_videoram_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        },
+        {
+          "start": 59392,
+          "end": 60415,
+          "kind": "ram",
+          "mirror": 1024,
+          "share": "spyhunt_alpha",
+          "write": "mcr3_state.spyhunt_alpharam_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 61440,
+          "end": 63487,
+          "kind": "ram",
+          "share": "nvram"
+        },
+        {
+          "start": 63488,
+          "end": 63999,
+          "kind": "ram",
+          "share": "spriteram"
+        },
+        {
+          "start": 64000,
+          "end": 64127,
+          "kind": "handler",
+          "mirror": 384,
+          "share": "paletteram",
+          "write": "mcr3_state.mcr_paletteram9_w",
+          "writeHandlerOwnsRam": true,
+          "handlerWidth": 8
+        }
+      ],
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4,
+            "kind": "handler",
+            "mirror": 24,
+            "read": "ssio.ioport_read"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "kind": "handler",
+            "mirror": 24,
+            "read": "ssio.read"
+          },
+          {
+            "start": 0,
+            "end": 7,
+            "kind": "handler",
+            "write": "ssio.ioport_write",
+            "handlerWidth": 8
+          },
+          {
+            "start": 28,
+            "end": 31,
+            "kind": "handler",
+            "write": "ssio.write",
+            "handlerWidth": 8
+          },
+          {
+            "start": 132,
+            "end": 134,
+            "kind": "handler",
+            "write": "mcr3_state.spyhunt_scroll_value_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 224,
+            "end": 224,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 232,
+            "end": 232,
+            "kind": "nop",
+            "readOnly": true
+          },
+          {
+            "start": 240,
+            "end": 243,
+            "kind": "handler",
+            "read": "ctc.read",
+            "write": "ctc.write"
+          }
+        ],
+        "globalMask": 255
+      }
+    },
+    {
+      "tag": "ssio:cpu",
+      "type": "z80",
+      "clock": 2000000,
+      "region": "ssio:cpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "rom"
+        },
+        {
+          "start": 32768,
+          "end": 33791,
+          "kind": "ram",
+          "mirror": 3072
+        },
+        {
+          "start": 36864,
+          "end": 36867,
+          "kind": "handler",
+          "mirror": 4092,
+          "read": "midway_ssio_device.data_r"
+        },
+        {
+          "start": 40960,
+          "end": 40960,
+          "kind": "handler",
+          "mirror": 4092,
+          "write": "ssio:ay0.address_w"
+        },
+        {
+          "start": 40961,
+          "end": 40961,
+          "kind": "handler",
+          "mirror": 4092,
+          "read": "ssio:ay0.data_r"
+        },
+        {
+          "start": 40962,
+          "end": 40962,
+          "kind": "handler",
+          "mirror": 4092,
+          "write": "ssio:ay0.data_w"
+        },
+        {
+          "start": 45056,
+          "end": 45056,
+          "kind": "handler",
+          "mirror": 4092,
+          "write": "ssio:ay1.address_w"
+        },
+        {
+          "start": 45057,
+          "end": 45057,
+          "kind": "handler",
+          "mirror": 4092,
+          "read": "ssio:ay1.data_r"
+        },
+        {
+          "start": 45058,
+          "end": 45058,
+          "kind": "handler",
+          "mirror": 4092,
+          "write": "ssio:ay1.data_w"
+        },
+        {
+          "start": 49152,
+          "end": 53247,
+          "kind": "handler",
+          "writeOnly": true,
+          "write": "midway_ssio_device.status_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 53248,
+          "end": 57343,
+          "kind": "nop",
+          "readOnly": true
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "handler",
+          "read": "midway_ssio_device.irq_clear"
+        },
+        {
+          "start": 61440,
+          "end": 65535,
+          "kind": "handler",
+          "read": "port.DIP"
+        }
+      ]
+    },
+    {
+      "tag": "csd:cpu",
+      "type": "m68000",
+      "clock": 8000000,
+      "region": "csd:cpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 32767,
+          "kind": "rom"
+        },
+        {
+          "start": 98304,
+          "end": 98311,
+          "kind": "handler",
+          "mirror": 16376,
+          "umask": 65280,
+          "read": "csd:pia.read_alt",
+          "write": "csd:pia.write_alt"
+        },
+        {
+          "start": 98304,
+          "end": 98311,
+          "kind": "handler",
+          "mirror": 16376,
+          "umask": 255,
+          "read": "csd:pia.read_alt",
+          "write": "csd:pia.write_alt"
+        },
+        {
+          "start": 114688,
+          "end": 118783,
+          "kind": "ram"
+        }
+      ],
+      "mask": 131071
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 2000000,
+    "chips": 2,
+    "deviceTags": [
+      "ssio:ay0",
+      "ssio:ay1"
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 480,
+    "height": 480,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 30,
+    "htotal": 480,
+    "vtotal": 480,
+    "vbstart": 480,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 90
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "spy-hunter_cpu_pg0_2-9-84.6d",
+          "offset": 0,
+          "size": 8192,
+          "crc": "1721b88f",
+          "alt": [
+            {
+              "file": "sh_mb_2.bin",
+              "crc": "df6cd642"
+            }
+          ]
+        },
+        {
+          "file": "spy-hunter_cpu_pg1_2-9-84.7d",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "909d044f"
+        },
+        {
+          "file": "spy-hunter_cpu_pg2_2-9-84.8d",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "afeeb8bd"
+        },
+        {
+          "file": "spy-hunter_cpu_pg3_2-9-84.9d",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "5e744381"
+        },
+        {
+          "file": "spy-hunter_cpu_pg4_2-9-84.10d",
+          "offset": 32768,
+          "size": 8192,
+          "crc": "a3033c15",
+          "alt": [
+            {
+              "file": "sh_mb_6.bin",
+              "crc": "8cbf04d8"
+            }
+          ]
+        },
+        {
+          "file": "spy-hunter_cpu_pg5_2-9-84.11d",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "88aa1e99",
+          "continueSegments": [
+            {
+              "offset": 40960,
+              "size": 8192,
+              "fileOffset": 8192
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "ssio:cpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "spy-hunter_snd_0_sd_11-18-83.a7",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c95cf31e"
+        },
+        {
+          "file": "spy-hunter_snd_1_sd_11-18-83.a8",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "12aaa48e"
+        }
+      ]
+    },
+    {
+      "region": "csd:cpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "spy-hunter_cs_deluxe_u7_a_11-18-83.u7",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6e689fe7",
+          "skip": 1
+        },
+        {
+          "file": "spy-hunter_cs_deluxe_u17_b_11-18-83.u17",
+          "offset": 1,
+          "size": 8192,
+          "crc": "0d9ddce6",
+          "skip": 1
+        },
+        {
+          "file": "spy-hunter_cs_deluxe_u8_c_11-18-83.u8",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "35563cd0",
+          "skip": 1
+        },
+        {
+          "file": "spy-hunter_cs_deluxe_u18_d_11-18-83.u18",
+          "offset": 16385,
+          "size": 8192,
+          "crc": "63d3f5b1",
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "spy-hunter_cpu_bg0_11-18-83.3a",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dea34fed"
+        },
+        {
+          "file": "spy-hunter_cpu_bg1_11-18-83.4a",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "8f64525f"
+        },
+        {
+          "file": "spy-hunter_cpu_bg2_11-18-83.5a",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "ba0fd626"
+        },
+        {
+          "file": "spy-hunter_cpu_bg3_11-18-83.6a",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "7b482d61"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 131072,
+      "loads": [
+        {
+          "file": "spy-hunter_video_1fg_11-18-83.a7",
+          "offset": 0,
+          "size": 16384,
+          "crc": "9fe286ec"
+        },
+        {
+          "file": "spy-hunter_video_0fg_11-18-83.a8",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "292c5466"
+        },
+        {
+          "file": "spy-hunter_video_3fg_11-18-83.a5",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "b894934d"
+        },
+        {
+          "file": "spy-hunter_video_2fg_11-18-83.a6",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "62c8bfa5"
+        },
+        {
+          "file": "spy-hunter_video_5fg_11-18-83.a3",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "2d9fbcec"
+        },
+        {
+          "file": "spy-hunter_video_4fg_11-18-83.a4",
+          "offset": 81920,
+          "size": 16384,
+          "crc": "7ca4941b"
+        },
+        {
+          "file": "spy-hunter_video_7fg_11-18-83.a1",
+          "offset": 98304,
+          "size": 16384,
+          "crc": "940fe17e"
+        },
+        {
+          "file": "spy-hunter_video_6fg_11-18-83.a2",
+          "offset": 114688,
+          "size": 16384,
+          "crc": "8cb8a066"
+        }
+      ]
+    },
+    {
+      "region": "gfx3",
+      "size": 4096,
+      "loads": [
+        {
+          "file": "spy-hunter_cpu_alpha-n_11-18-83",
+          "offset": 0,
+          "size": 4096,
+          "crc": "936dc87f"
+        }
+      ]
+    },
+    {
+      "region": "ssio:proms",
+      "size": 32,
+      "romSet": "midssio",
+      "loads": [
+        {
+          "file": "82s123.12d",
+          "offset": 0,
+          "size": 32,
+          "crc": "e1281ee9"
+        }
+      ]
+    },
+    {
+      "region": "csd:pal",
+      "size": 74,
+      "romSet": "midcsd",
+      "loads": [
+        {
+          "file": "0304-00803-0052.u15",
+          "offset": 0,
+          "size": 74,
+          "crc": "8b401aee"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "ssio:IP0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP0",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Gear Shift",
+      "type": "IPT_BUTTON2",
+      "activeLow": true,
+      "toggle": true
+    },
+    {
+      "port": "ssio:IP0",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "type": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 1,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "Left Button / Oil Slick",
+      "type": "IPT_BUTTON4",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 2,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "Left Trigger / Missiles",
+      "type": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "Center Button / Weapons Van",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 8,
+      "keys": [
+        "KeyV"
+      ],
+      "label": "Right Button / Smoke Screen",
+      "type": "IPT_BUTTON5",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP1",
+      "mask": 16,
+      "keys": [
+        "Space"
+      ],
+      "label": "Right Trigger / Machine Guns",
+      "type": "IPT_BUTTON6",
+      "activeLow": true
+    },
+    {
+      "port": "ssio:IP2",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_PEDAL",
+      "type": "IPT_PEDAL",
+      "activeLow": false,
+      "activeValue": 255,
+      "keyDelta": 10
+    },
+    {
+      "port": "ssio:IP2.ALT",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_PADDLE_LEFT",
+      "type": "IPT_PADDLE_LEFT",
+      "activeLow": false,
+      "activeValue": 52,
+      "keyDelta": 10
+    },
+    {
+      "port": "ssio:IP2.ALT",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_PADDLE_RIGHT",
+      "type": "IPT_PADDLE_RIGHT",
+      "activeLow": false,
+      "activeValue": 180,
+      "keyDelta": 10
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "ssio:IP0",
+      "mask": 128,
+      "value": 128,
+      "name": "Service Mode"
+    },
+    {
+      "port": "ssio:IP3",
+      "mask": 1,
+      "value": 1,
+      "name": "Game Timer"
+    },
+    {
+      "port": "ssio:IP3",
+      "mask": 2,
+      "value": 0,
+      "name": "Demo Sounds"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "M.A.S.H.",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-24",
+    "commits": 210,
+    "authors": 27,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 43 years ago:\n\nSpy Hunter (c) 1983 Bally Midway Mfg. Co.\n\nSpy Hunter is an action/driving game. It places the player as the driver of a G-6155 CIA Prototype Interceptor sports car. The object of the game is to travel the freeways and waterways, hunting down and destroying as many enemy vehicles as possible, all the while not harming civilian vehicles. The view is top-down and the screen scrolls vertically underneath the player's car.\n\nThe game begins with the player driving the G-6155. Soon, the player starts to encounter enemy vehicles which try to force the player's car off the road and crash. Each enemy vehicle has its own special feature, such as tire slashers or bulletproof armor.\n\nPoints are scored for driving on the road and for destroying enemy vehicles. There is a lead-in time when the player has an endless supply of cars. After this time expires, the player will lose a life each time the car crashes. Extra cars can be earned with high scores. The first extra car is earned at a default value of 30,000 points, but this value can vary depending on settings.\n\nThe player must be careful to avoid harming civilian vehicles on the road. There are three types: blue automobiles, pink automobiles, and motorcycles. Hurting these vehicles causes scoring to stop briefly, during which time the player's score reads 'NO POINTS'.\n\nInitially, the only weapon the player's car has available is a dual front-mounted machine gun which has an endless supply of ammunition. Early on, these guns and the player's driving skill are his only weapons against the enemy cars. The player can also attempt to force or ram the enemy cars off the road. Eventually the player encounters an ally - the Weapons Van. After the player drives past the Weapons Van parked on the side of the road, the Weapons Van accelerates past the player's car and positions itself in front of it and drops a ramp. The player can then drive up the ramp to enter the back of the Weapons Van. The Weapons Van then pulls to the side of the road and deploys the player's car equipped with a new weapon. A symbol atop the weapons van indicates which type of special weapon it carries. The player is not obligated to use the weapons supplied by the van. Also, if uninterested, the player can simply ignore the van and drive past it.\n\nThere are three special weapons in all and they can all be equipped simultaneously. The special weapons consist of an Oil Slick, a Smoke Screen, and Missiles. Each special weapon has a limited number of uses. The Smoke Screen and Missiles can each be used three times. The special weapons are activated via dedicated buttons on the steering wheel. Once the weapons ammo is depleted or before, the car can be refitted with a new supply from the Weapons Van.\n\nThere are six enemies in all, each with their own special characteristic : \n* 'The Road Lord' cars have bulletproof armor plating; machine guns are ineffective against these cars. Tagline 'Bullet Proof Bullies'.\n* 'Switch Blade' cars have tire slashers. Knives pop out of this car's tires and can force the player's car to crash if they touch his tires. Tagline: 'Never To Be Trusted'.\n* 'The Enforcer' is a limousine with a shotgun-toting thug who shoots at the player's car. Tagline: 'Double Barrel Action'.\n* 'The Mad Bomber' is a helicopter which drops bombs. This enemy can only be destroyed with missiles. Tagline: 'Master Of The Sky'.\n* 'Barrel Dumper' is a boat which drops lethal explosives into the water. Tagline: 'Ecologically Unfriendly'.\n* 'Doctor Torpedo' is a boat which shoots torpedoes at the player's speedboat. Tagline: 'Not Actually A Doctor'.\n\nOccasionally a message appears on screen that says 'Bridge Out - Detour on Left'. Then the player must drive his car into a boathouse located alongside the road, otherwise he will crash into the water and lose a life. After driving through this house, the player's car is turned into a speedboat on a river, with enemy boats which try to destroy the player. In this area, if the player uses the oil slick, the boat instead issues a line of fire which destroys any boat directly behind the player. In this area, occasionally the river splits; the left side continues the river, the right side causes the player to drive through another boathouse where the boat is changed back into the car.\n\nLater in the game the player gets a warning that there are 'Icy Roads Ahead', then the player enters an area that has a white road which is very slick. The icy roads section eventually ends and goes back to normal roads. Icy roads occur again on and off during the rest of the game.\n\n- TECHNICAL -\n\n[Game No. A27]\n[Upright model]\n\nBally Midway MCR 3 hardware\n\nMain CPU : Zilog Z80 (@ 5 Mhz)\nSound CPU : Zilog Z80 (@ 2 Mhz), 68000 (@ 7.5 Mhz)\nSound Chips : (2x) General Instrument AY8910 (@ 2 Mhz), DAC (@ 2 Mhz)\n\nScreen orientation : Vertical\nVideo resolution : 480 x 480 pixels\nScreen refresh : 30.00 Hz\nPalette colors : 68\n\nPlayers : 1\nControl : Steering wheel with gear shift and pedal (High/Low)\nButtons : 5\n=> MACHINE GUNS, SMOKE SCREEN, OIL SLICK, MISSILES, WEAPONS VAN\n\n- TRIVIA -\n\nSpy Hunter was released in November 1983.\n\nOriginally the James Bond theme was planned as the background music for the game. The inability to obtain the rights to use the music, however, forced Midway to change the theme on shipping models. In the end, the Peter Gunn theme music was a large part of the game's appeal.\n\nA boat driving sequence is incorporated in the game, and a sequence with the player flying a helicopter was also planned. Shortage of memory, however, did not allow for this feature. The game was RUMORED to have an ending sequence where the player exited the car for on-foot action in a graveyard scene, however this is a fantasy; the game has no end and at no time does the driver ever leave the car or boat.\n\nThe car was based on one of the designer's own Nissan 280z. The name of the car, the G-6155, is a clever tribute to designer George Gomez - the numbers stand for his birth date.\n\nFrom George Gomez : 'My original design for both upright and sit-down were identical. And they were produced that way only because of the economies of manufacturing. Which means : why make different parts, since it will cost less to make more of one design. \"Spy Hunter II\" which I had nothing to do with was different. On my game both left and right grips should each have a trigger and a thumb button, in addition to the center button (call weapons van). The shifter was a two-position device, low and high. Of course there was the gas pedal and a series of dashboard weapons lights for machine guns, missiles, oil slick and smoke. After the first few thousand games the grips were retooled in plastic and they went on to be used in hundreds of different games. They were licensed to Happ controls in the late 80's and they have been on almost every manufacturer's games at one point or another. The original sand cast aluminium grips (painted black) were actually molded directly from patterns that I carved and they had softer contours and were more comfortable but they were also very expensive. So to cost-reduce them, the company took the grips and retooled them to be injection molded plastic. However, the patterns for the plastic grips were made off the engineering drawings, and the drawings of that era were not as representative of the actual parts I carved, since they were made after my patterns instead of before. I have the original wood patterns along with some other stuff from development of the game in a box somewhere.' \n\nSpy Hunter was parodied in a sketch in the television show 'Robot Chicken'.\n\nIn 2008, a Pontiac Commercial featured an homage to Spy Hunter by showing some gameplay which had the player's car turn into a real Pontiac.\n\n- SCORING -\n\nThe Road Lord : 150 points\nSwitch Blade : 150 points\nThe Enforcer : 500 points\nThe Mad Bomber : 700 points\nBarrel Dumper : 150 points\nDoctor Torpedo : 500 points\nDriving through the river boathouse : 1,500 points\nDriving on the road for each 1/4 screen traveled : 15 points\nDriving on the water for each 1/4 screen traveled : 25 points\n\n- TIPS AND TRICKS -\n\n* Here's A Great Cheat That Does Several Things At Once:\n1) You need to have a Weapons Van available, and be at a bridge-out level. When the detour appears, don't take it - instead, call up your Weapons Van.\n2) Wait until the road has straightened out into the bridge and drive into the Weapons Van. When the Weapons Van pulls over and lets you out, stay on the side of the road, and SLOWLY drive up until you reach the gap in the bridge.\n3) Drive on until you car is about half-way over the edge, and wait until the Enforcer comes along. He will try and get you, but he'll be unable to drive far enough to do so. At this point, I would get a friend to mind the game, while I went for a break. When I returned, I just drove across the bridge, flying mysteriously across the bridge out, until I reached the other side.\n4) You will notice several differences to the game after this happens. The Enforcer no longer appears, the game gets no harder, and Doctor Torpedo no longer appears on water sections!\n\n* Switchblade Destruction: You can actually destroy the Switchblade cars without use of weapons. As they close in from the rear, slow down a hair and align your car so that their front bumper is just barely in line with your Rear Bumper. Then Quickly slam the wheel to bump them off the road. As long as you bump them before the front tire area, the blades will not harm you.\n\n* Exploding Van Trick: When the Weapons Van comes, start to drive into it, but shoot a single bullet just before you enter. If you time it right, your car will still enter the yet unharmed Van, give you the weapon, let you out... then it will explode.\n\n* Boat Jumps: In an homage to a famous scene in the James Bond film \"Live and Let Die\", it is possible to jump the spy boat completely over an island. When you're on the water, an island will appear shortly after you miss an opportunity to exit the river. To make the jump, you must be at or near the vehicle's top speed and simply drive right at the island. If you're closely followed at the time, your pursuers won't make the jump.\n\n- STAFF -\n\nDesigned & programmed by : Tom Leon (TFL), Jeff Nauman\nArt : Kevin O'Connor (KO), Brian Colin (BFC), Steve Ulstad (SJU), Sharon Perry (SP)\nMusic and sounds : Bob Libbe, Neil Falconer\n\"Peter Gunn\" theme by : Henry Mancini\nGroup Manager : Bill Adams\nCabinet guru : George Gomez (GG)\nCabinet assistant : John Kubik (JCK)\nAdditional staff : Atish Ghosh (AG), (RML), (SV)\n\n- PORTS -\n\n* CONSOLES:\n[US] Atari 2600 (1983) \"Spy Hunter [Model 011-01]\" \n[US] Colecovision (1984) \"Spy Hunter [Model 2617]\" \nAtari XEGS\n[US] Nintendo NES (sept.1987) \"Spy Hunter [Model NES-HU]\" \n[US] Sony PlayStation (nov.30, 1997) \"Arcade's Greatest Hits - The Midway Collection 2 [Model SLUS-00450]\" \n[EU] Sony PlayStation (mar.1998) \"Arcade's Greatest Hits - The Midway Collection 2 [Model SLES-00739]\" \n[US] Nintendo 64 (nov.14, 2000) \"Midway's Greatest Arcade Hits Vol. 1 [Model NUS-NAIE-USA]\" \n[US] Sega Dreamcast (nov.15, 2001) \"Midway's Greatest Arcade Hits Vol. 2 [Model T-9714N]\" \n[US] Sony PS2 (nov.18, 2003) \"Midway Arcade Treasures [Model SLUS-20801]\" \n[US] Microsoft XBOX (nov.24, 2003) \"Midway Arcade Treasures\" \n[US] Nintendo GameCube (dec.18, 2003) \"Midway Arcade Treasures [Model DOL-GAKE-USA]\" \n[EU] Microsoft XBOX (feb.6, 2004) \"Midway Arcade Treasures\" \n[EU] Sony PS2 (feb.6, 2004) \"Midway Arcade Treasures [Model SLES-51927]\" \n[US] Microsoft XBOX 360 (nov.6, 2012) \"Midway Arcade Origins\" \n[US] Sony PlayStation 3 (nov.6, 2012) \"Midway Arcade Origins [Model BLUS-31083]\"\n[EU] Microsoft XBOX 360 (nov.15, 2012) \"Midway Arcade Origins\" \n[EU] Sony PlayStation 3 (nov.15, 2012) \"Midway Arcade Origins [Model BLES-01768]\"\n\n* HANDHELDS: \n[US] Nintendo Game Boy Color (may.1999) \"Arcade Hits - Moon Patrol & Spy Hunter [Model DMG-ADUE-USA]\" \n[EU] Nintendo Game Boy Color (1999) \"Arcade Hits - Moon Patrol & Spy Hunter [Model DMG-ADUP-EUR]\" \n[US] Nintendo GBA (aug.15, 2005) \"2 Games in One! Spy Hunter + Super Sprint [Model AGB-B6AE-USA]\" \n[EU] Nintendo GBA (sept.16, 2005) \"2 Games in One! Spy Hunter + Super Sprint [Model AGB-B6AP-EUR]\" \n[US] Sony PSP (dec.13, 2005) \"Midway Arcade Treasures Extended Play [Model ULUS-10059]\"\n[EU] Sony PSP (feb.24, 2006) \"Midway Arcade Treasures Extended Play [Model ULES-00180]\" \n\n* COMPUTERS:\n[EU] BBC Micro (1983) \n[US] Commodore C64 (1983) \"Spy Hunter [Model 011-05]\" \n[EU] Commodore C64 (1983) \n[US] Atari 800 (1984) \"Spy Hunter [Model 011-03]\" \n[US] PC [Booter] (1984)\n[EU] Apple II (1984)\n[EU] Sinclair ZX Spectrum (1985) \n[EU] Amstrad CPC (1986)\n[US] Atari ST (1988) \"Major Motion\" \n[EU] Commodore Amiga (1988) \"Major Motion\" \n[EU] Amstrad CPC (1989) \"Coin-Op Hits\" \n[US] PC [MS Windows 95, CD-ROM] (1997) \"Arcade's Greatest Hits - The Midway Collection 2\" \n[US] PC [MS Windows, CD-ROM] (aug.27, 2004) \"Midway Arcade Treasures\" \n[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) \"Midway Arcade Treasures\" \n\n* OTHERS:\n[US] Palm OS (aug.2001) \"Midway Arcade Classic\"\n[US] Mobile Phones (jul.18, 2005) \n[US] BlackBerry (aug.28, 2009) \"Spy Hunter [Model 3120]\" \n[US] Windows Mobile (jul.10, 2009) by EA Mobile \n[US] Apple iPhone/iPod (sept.8, 2010) \n[US] Apple iPhone/iPod (feb.23, 2012) \"Midway Arcade [Model 476467441]\"\n\n- SERIES -\n\n1. Spy Hunter [Model A27] (1983, Arcade)\n2. Spy Hunter II [Model 0B75] (1987, Arcade)\n3. Spy Hunter (2001, PS2) \n4. Spy Hunter - Nowhere to Run (2006, XBOX/PS2)\n5. Spy Hunter (2012, 3DS/Vita)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/2600/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

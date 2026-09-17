@@ -1,0 +1,55 @@
+{
+  "type": "NETLIST_SOUND",
+  "uses": [
+    {
+      "game": "1942",
+      "tags": [
+        "snd_nl"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "konami"
+      ]
+    },
+    {
+      "game": "kungfum",
+      "tags": [
+        "snd_nl"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "snd_nl"
+      ]
+    },
+    {
+      "game": "popeye",
+      "tags": [
+        "snd_nl"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "konami"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NETLIST_SOUND",
+    "className": "netlist_mame_sound_device",
+    "shortName": "netlist_sound",
+    "description": "Netlist Sound Device",
+    "sourceFile": "src/devices/machine/netlist.cpp",
+    "sourceLine": 48,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NETLIST_SOUND, netlist_mame_sound_device, \"netlist_sound\", \"Netlist Sound Device\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}
