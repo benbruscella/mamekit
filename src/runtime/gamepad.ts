@@ -209,6 +209,8 @@ export class GamepadInput {
   private listeners: ((pads: ConnectedPad[]) => void)[] = [];
   private input: KeyboardInput;
   private read: () => readonly (PadState | null)[];
+  /** How many times the pad has been read, so a log can count polls as well as frames. */
+  private polls = 0;
   debug = false;
 
   constructor(
@@ -284,6 +286,7 @@ export class GamepadInput {
    * whatever it held and frees its slot for the next one.
    */
   poll(): void {
+    this.polls++;
     const pads = this.read();
     const seen = new Set<number>();
     let changed = false;
@@ -302,7 +305,10 @@ export class GamepadInput {
         };
         this.slots.push(slot);
         changed = true;
-        if (this.debug) console.log(`[gamepad] player ${player}: ${pad.id} (mapping "${pad.mapping}")`);
+        if (this.debug) {
+          console.log(`[gamepad ${this.when()}] player ${player}: ${pad.id} (mapping "${pad.mapping}")` +
+            `, ${pad.buttons.length} buttons, ${pad.axes.length} axes`);
+        }
       }
       this.update(slot, this.settle(slot, activeControls(pad, slot.hats)));
     }
@@ -312,7 +318,7 @@ export class GamepadInput {
       this.update(slot, new Set());
       this.slots.splice(this.slots.indexOf(slot), 1);
       changed = true;
-      if (this.debug) console.log(`[gamepad] player ${slot.player} disconnected: ${slot.id}`);
+      if (this.debug) console.log(`[gamepad ${this.when()}] player ${slot.player} disconnected: ${slot.id}`);
     }
     if (changed) for (const listener of this.listeners) listener(this.connected());
   }
@@ -353,24 +359,36 @@ export class GamepadInput {
     for (const control of seen) slot.settling.delete(control);
     for (const control of slot.active) {
       if (seen.has(control) || !this.gated.has(control)) continue;
-      if (slot.settling.has(control)) continue; // absent twice: it really went
+      if (slot.settling.has(control)) {
+        if (this.debug) {
+          console.log(`[gamepad ${this.when()}] ${control} absent from a second poll: a real release`);
+        }
+        continue; // absent twice: it really went
+      }
       slot.settling.add(control);
       believed.add(control);
+      if (this.debug) {
+        console.log(`[gamepad ${this.when()}] ${control} missing from one poll -> held, ` +
+          `waiting for the next read`);
+      }
     }
     return believed;
   }
 
+  /** `f<frame> p<poll>`: which frame this lands on, and which read saw it. */
+  private when(): string { return `f${this.input.frames()} p${this.polls}`; }
+
   private edge(slot: Slot, control: Control, down: boolean): void {
     const bindings = this.targets.get(`${slot.player}:${control}`);
     if (!bindings) {
-      if (this.debug && down) console.log(`[gamepad] player ${slot.player} ${control} unbound`);
+      if (this.debug && down) console.log(`[gamepad ${this.when()}] player ${slot.player} ${control} unbound`);
       return;
     }
     for (const binding of bindings) this.input.press(binding, down, `pad${slot.player}:${control}`);
     if (this.debug) {
       // The edge is posted, not applied: a machine only sees input at a frame
       // boundary, so these bytes are the ones this edge is about to change.
-      console.log(`[gamepad] player ${slot.player} ${control} ${down ? 'DOWN' : 'UP'} -> ` +
+      console.log(`[gamepad ${this.when()}] player ${slot.player} ${control} ${down ? 'DOWN' : 'UP'} -> ` +
         `${bindings.map(binding => binding.label).join(', ')} | ports before this frame: ${this.input.dump()}`);
     }
   }

@@ -412,6 +412,10 @@ export class KeyboardInput implements InputPorts {
       if (this.isHeld(field)) continue;
       this.carried.add(index);
       if (field.stick === undefined) this.apply(field, true);
+      if (this.debug) {
+        console.log(`[input f${this.frameCount}] ${field.label} pressed and released between ` +
+          `two frames -> held for this one`);
+      }
     }
     this.settleSticks();
   }
@@ -441,7 +445,12 @@ export class KeyboardInput implements InputPorts {
       let current = 0;
       for (const f of switches) if (this.pressed(f)) current |= 1 << f.dir!;
       current = this.resolveOpposites(switches, current);
-      if (current !== stick.previous && !this.bounced(switches, current, stick.previous)) {
+      const settled = current !== stick.previous && this.bounced(switches, current, stick.previous);
+      if (this.debug && settled) {
+        console.log(`[input f${this.frameCount}] lever ${name} ignored a switch that re-closed ` +
+          `within a frame; the gate keeps its answer`);
+      }
+      if (current !== stick.previous && !settled) {
         let four = current;
         // Zero the switches that did not change, which leaves the new one.
         if ((four & JOY_VERTICAL) && (four & JOY_HORIZONTAL)) four ^= four & stick.previous;
@@ -493,13 +502,15 @@ export class KeyboardInput implements InputPorts {
         const allowed = f.ways === 16 ? current : f.ways === 4 ? stick.four : current;
         return (allowed & (1 << f.dir!)) === 0;
       });
-      const line = gated.length
-        ? `[input] lever ${name} holding ${held.map(f => f.label).join('+')} -> gate dropped ` +
-          `${gated.map(f => f.label).join('+')} | ${this.dump()}`
+      // The decision, without the frame stamp: that changes every frame and
+      // comparing it would defeat the whole point of only logging a change.
+      const decision = gated.length
+        ? `lever ${name} holding ${held.map(f => f.label).join('+')} ` +
+          `-> gate dropped ${gated.map(f => f.label).join('+')} | ${this.dump()}`
         : '';
-      if (line !== (this.loggedGate.get(name) ?? '')) {
-        this.loggedGate.set(name, line);
-        if (line) console.log(line);
+      if (decision !== (this.loggedGate.get(name) ?? '')) {
+        this.loggedGate.set(name, decision);
+        if (decision) console.log(`[input f${this.frameCount}] ${decision}`);
       }
     }
   }
@@ -602,6 +613,16 @@ export class KeyboardInput implements InputPorts {
         (this.state[first.port] & ~first.mask) | ((next << shift) & first.mask);
     }
   }
+
+  /**
+   * Which frame the machine is about to run, counted by this model.
+   *
+   * Every debug line carries it, because the question that matters when a
+   * control misbehaves is almost always "did those two edges land in the
+   * same frame or different ones" -- and a log without it cannot answer
+   * that. Two rounds of this issue were spent guessing at it.
+   */
+  frames(): number { return this.frameCount; }
 
   /** The generated binding an event names. */
   binding(index: number): FieldBinding | undefined {
@@ -739,15 +760,16 @@ export class KeyboardInput implements InputPorts {
   private onKey(ev: KeyboardEvent, down: boolean): void {
     const hits = this.byKey.get(ev.code);
     if (!hits) {
-      if (this.debug && down && !ev.repeat) console.log(`[input] ${ev.code} unbound`);
+      if (this.debug && down && !ev.repeat) console.log(`[input f${this.frameCount}] ${ev.code} unbound`);
       return;
     }
     ev.preventDefault();
     for (const h of hits) {
       this.drive(h, down, ev.repeat, ev.code);
       if (this.debug && !ev.repeat && h.relativeDelta === undefined && !h.toggle) {
-        console.log(`[input] ${ev.code} ${down ? 'DOWN' : 'UP'} -> ${h.port} mask=0x${h.mask.toString(16)} ` +
-          `${h.activeLow ? 'activeLow' : 'activeHigh'} | ports before this frame: ${this.dump()}`);
+        console.log(`[input f${this.frameCount}] ${ev.code} ${down ? 'DOWN' : 'UP'} -> ${h.port} ` +
+          `mask=0x${h.mask.toString(16)} ${h.activeLow ? 'activeLow' : 'activeHigh'} ` +
+          `| ports before this frame: ${this.dump()}`);
       }
     }
   }
