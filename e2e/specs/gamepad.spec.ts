@@ -79,6 +79,12 @@ test.describe(`${game} gamepad`, () => {
     expect((await probe(page, 'IPT_COIN1'))!.value & coinRest!.mask).toBe(releasedBits(coinRest!));
 
     // The stick, past the deadzone, is a held direction; centred, it releases.
+    //
+    // On a machine MAME gated to four ways the release is believed only once
+    // a second poll agrees, so centring the lever takes one extra step. That
+    // is what stops a bouncing microswitch reading as a direction change, and
+    // an eight-way panel pays nothing for it.
+    const release = async () => { await step(); await step(); };
     const left = await probe(page, 'IPT_JOYSTICK_LEFT');
     if (left) {
       await setPad([], [-0.9, 0, 0, 0]);
@@ -88,7 +94,7 @@ test.describe(`${game} gamepad`, () => {
       await step();
       expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, 'd-pad left').toBe(pressedBits(left));
       await setPad([]);
-      await step();
+      await release();
       expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask).toBe(releasedBits(left));
       await expect(legend).toContainText('🎮 D-pad');
 
@@ -111,8 +117,26 @@ test.describe(`${game} gamepad`, () => {
         expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, '4-way drops left')
           .toBe(releasedBits(left));
         await setPad([]);
-        await step();
+        await release();
         expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask).toBe(releasedBits(up));
+
+        // The bounce: the lever is held in the corner and one switch misses a
+        // single poll. Nothing moved, so the lever must not change axis.
+        await setPad([14]);
+        await step();
+        await setPad([14, 12]);
+        await step();
+        expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask, 'in the corner').toBe(pressedBits(up));
+        await setPad([12]);              // the left switch misses a poll
+        await step();
+        await setPad([14, 12]);          // and is back
+        await step();
+        expect((await probe(page, 'IPT_JOYSTICK_UP'))!.value & up.mask, 'a bounce moves nothing')
+          .toBe(pressedBits(up));
+        expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, 'and left stays gated')
+          .toBe(releasedBits(left));
+        await setPad([]);
+        await release();
       }
 
       // A press and a release the pad shows between two frames: both edges
@@ -128,7 +152,7 @@ test.describe(`${game} gamepad`, () => {
       await step();
       expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask, 'a tap between frames')
         .toBe(pressedBits(left));
-      await step();
+      await release();
       expect((await probe(page, 'IPT_JOYSTICK_LEFT'))!.value & left.mask).toBe(releasedBits(left));
     }
 
