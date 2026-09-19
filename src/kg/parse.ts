@@ -1000,7 +1000,13 @@ export interface MemoryBankDef {
 
 export interface InstalledHandlerDef {
   space: string;
-  kind: 'read' | 'write';
+  /** `install_ram` installs storage, with no handler (className/method empty). */
+  kind: 'read' | 'write' | 'ram';
+  /**
+   * The expression the space was taken from, when it names one
+   * (`m_adpcm_sound->get_cpu()` in `m_adpcm_sound->get_cpu()->space(AS_PROGRAM)`).
+   */
+  target?: string;
   start: number;
   end: number;
   mirror?: number;
@@ -1039,7 +1045,18 @@ export function parseInstalledHandlers(
     if (space) views.set(declaration[3]!, space);
   }
   const pattern =
-    /\b(?:space\s*\(\s*(AS_\w+)\s*\)|(\w+)\s*\[\s*(\d+)\s*\]|(\w+))\s*\.\s*install_(read|write)_handler\s*\(/g;
+    /\b(?:space\s*\(\s*(AS_\w+)\s*\)|(\w+)\s*\[\s*(\d+)\s*\]|(\w+))\s*\.\s*install_(read_handler|write_handler|ram)\s*\(/g;
+  // `<target>->space(AS_...)`: the device chain the space belongs to.
+  const targetOf = (index: number): string | undefined => {
+    const statementStart = Math.max(
+      body.lastIndexOf(';', index), body.lastIndexOf('{', index), body.lastIndexOf('}', index),
+    ) + 1;
+    const statement = body.slice(statementStart, index)
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/\/\/[^\n]*/g, ' ');
+    const chain = /([\w>\-()\s.]*?)\s*(?:->|\.)\s*$/.exec(statement)?.[1]?.replace(/\s+/g, '');
+    return chain || undefined;
+  };
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(body)) !== null) {
     const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('install_'));
@@ -1053,7 +1070,9 @@ export function parseInstalledHandlers(
       /NAME\s*\(\s*&\s*(\w+)::(\w+)\s*\)/.exec(text);
     const viewTag = match[2];
     const space = match[1] ?? (viewTag ? views.get(viewTag) : spaces.get(match[4]!));
-    if (!space || !callback || args.length < 3) continue;
+    const ram = match[5] === 'ram';
+    if (!space || (!callback && !ram) || args.length < (ram ? 2 : 3)) continue;
+    const target = match[1] ? targetOf(match.index) : undefined;
     const start = evalExpr(args[0]!, consts);
     const end = evalExpr(args[1]!, consts);
     if (start === null || end === null) continue;
@@ -1063,13 +1082,14 @@ export function parseInstalledHandlers(
     const mirror = args.length >= 6 ? evalExpr(args[3]!, consts) : null;
     installed.push({
       space,
-      kind: match[5]! as 'read' | 'write',
+      kind: ram ? 'ram' : match[5] === 'read_handler' ? 'read' : 'write',
+      ...(target ? { target } : {}),
       start,
       end,
-      ...(mirror !== null && mirror !== 0 ? { mirror } : {}),
+      ...(!ram && mirror !== null && mirror !== 0 ? { mirror } : {}),
       ...(viewTag ? { viewTag, viewEntry: Number(match[3]) } : {}),
-      className: callback[1]!,
-      method: callback[2]!,
+      className: callback?.[1] ?? '',
+      method: callback?.[2] ?? '',
     });
     pattern.lastIndex = close + 1;
   }
@@ -1089,25 +1109,39 @@ export function parseMemoryBanks(
   body: string,
   memberTags: Record<string, string>,
   consts: Record<string, number>,
+  /**
+   * A device's own start routine names regions relative to itself:
+   * `memregion("cpu")` inside the Williams ADPCM board is `adpcm:cpu`.
+   */
+  regionPrefix = '',
 ): MemoryBankDef[] {
   const banks: MemoryBankDef[] = [];
-  const regionAliases = pointerRegionAliases(body);
   const call =
-    /(?:\b(m_\w+(?:\s*\[\s*\d+\s*\])?)|membank\(\s*"([^"]+)"\s*\))\s*->\s*configure_(entries|entry)\s*\(/g;
+    /(?:\b(m_\w+(?:\s*\[\s*\d+\s*\])?)|membank\(\s*"([^"]+)"\s*\))\s*->\s*(configure_entries|configure_entry|set_base)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = call.exec(body)) !== null) {
-    const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('configure_'));
+    const open = body.indexOf('(', match.index + match[0]!.lastIndexOf(match[3]!));
     const close = matchParen(body, open);
     if (close < 0) continue;
-    const plural = match[3] === 'entries';
-    const args = splitArgs(body.slice(open + 1, close));
+    const plural = match[3] === 'configure_entries';
+    // `set_base(ptr)` is a bank with the one entry it points at.
+    const rawArgs = splitArgs(body.slice(open + 1, close));
+    const args = match[3] === 'set_base' ? ['0', ...rawArgs] : rawArgs;
     if (args.length !== (plural ? 4 : 2)) continue;
+    // A pointer local is reassigned between uses (`rom = memregion("oki")
+    // ->base();` after the CPU banks), so an alias is whatever it last held.
+    const regionAliases = Object.fromEntries(Object.entries(
+      pointerRegionAliases(body.slice(0, match.index)),
+    ).map(([name, region]) => [name, deviceRegion(region, regionPrefix)]));
     let source = regionPointer(
       args[plural ? 2 : 1]!,
       regionAliases,
       memberTags,
       consts,
     );
+    if (source && regionPrefix && /\bmemregion\(/.test(args[plural ? 2 : 1]!)) {
+      source = { ...source, region: deviceRegion(source.region, regionPrefix) };
+    }
     // Neo Geo's audio main bank deliberately spans two ROM regions: entry 0
     // is the SM1 audio BIOS when present, entry 1 is the cartridge M1 ROM.
     // A conditional pointer expression otherwise resolves through its `ROM`
@@ -1158,7 +1192,7 @@ export function parseMemoryBanks(
         tag,
         startEntry: 0,
         entries: 256,
-        region: regionAliases.ROM ?? 'cslot1:audiocpu',
+        region: pointerRegionAliases(body).ROM ?? 'cslot1:audiocpu',
         offset: 0x10000,
         stride: 0,
         dynamicShift: shift,
@@ -1170,10 +1204,16 @@ export function parseMemoryBanks(
 }
 
 /** Local pointers aliasing a region base: `uint8_t *rombase = memregion(...)`. */
+/** A region a device names relative to itself; a leading `:` is absolute. */
+function deviceRegion(region: string, prefix: string): string {
+  if (region.startsWith(':')) return region.slice(1);
+  return prefix ? `${prefix}:${region}` : region;
+}
+
 function pointerRegionAliases(body: string): Record<string, string> {
   const aliases: Record<string, string> = {};
   const re =
-    /\b(?:const\s+)?(?:uint8_t|u8|char)\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)/g;
+    /\b(?:(?:const\s+)?(?:uint8_t|u8|char)\s*\*\s*)?(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)/g;
   let match: RegExpExecArray | null;
   while ((match = re.exec(body)) !== null) aliases[match[1]!] = match[2]!;
   const audio = /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*[^;]*\bget_audio_base\s*\(\s*\)[^;]*;/.exec(body);
@@ -1514,10 +1554,14 @@ export function parseMachineConfigs(
           const [output = '', target = '', gain = '', input = ''] = chain.args;
           const parsedGain = evalExpr(gain, consts);
           const parsedInput = input ? evalExpr(input, consts) : null;
-          if (target.trim().startsWith('"') && parsedGain !== null) {
+          // `*this` routes a sub-device into the device that owns it (the
+          // Williams ADPCM board mixes its YM2151, DAC and OKI into itself,
+          // and is routed to the speaker by the driver); '^' names that owner.
+          const owned = /^\*\s*this$/.test(target.trim());
+          if ((target.trim().startsWith('"') || owned) && parsedGain !== null) {
             (dev.audioRoutes ??= []).push({
               output: output.trim(),
-              target: unquote(target),
+              target: owned ? '^' : unquote(target),
               gain: parsedGain,
               ...(parsedInput !== null ? { input: parsedInput } : {}),
               raw: s,
@@ -1620,10 +1664,11 @@ export function parseMachineConfigs(
               splitArgs(s.slice(open + 1, close));
             const parsedGain = evalExpr(gain, consts);
             const parsedInput = input ? evalExpr(input, consts) : null;
-            if (target.trim().startsWith('"') && parsedGain !== null) {
+            const owned = /^\*\s*this$/.test(target.trim());
+            if ((target.trim().startsWith('"') || owned) && parsedGain !== null) {
               (dev.audioRoutes ??= []).push({
                 output: output.trim(),
-                target: unquote(target),
+                target: owned ? '^' : unquote(target),
                 gain: parsedGain,
                 ...(parsedInput !== null ? { input: parsedInput } : {}),
                 raw: s,

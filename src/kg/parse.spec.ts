@@ -121,10 +121,21 @@ eq('driver-init address-space installs lower as executable map overrides',
     m_maincpu->space(AS_PROGRAM).install_read_handler(0x5080, 0x50bf,
       read8sm_delegate(*this, FUNC(board_state::protection_r)));
   `, {}), [
-    { space: 'AS_PROGRAM', kind: 'write', start: 0x5004, end: 0x5004,
+    { space: 'AS_PROGRAM', kind: 'write', target: 'm_maincpu', start: 0x5004, end: 0x5004,
       className: 'board_state', method: 'protection_w' },
-    { space: 'AS_PROGRAM', kind: 'read', start: 0x5080, end: 0x50bf,
+    { space: 'AS_PROGRAM', kind: 'read', target: 'm_maincpu', start: 0x5080, end: 0x50bf,
       className: 'board_state', method: 'protection_r' },
+  ]);
+
+// NBA Jam's sound protection: RAM installed into the sound board's own CPU,
+// named through the device that owns it.
+eq('install_ram records the device chain whose space it targets',
+  parseInstalledHandlers(`
+    // sound chip protection (hidden RAM)
+    m_adpcm_sound->get_cpu()->space(AS_PROGRAM).install_ram(0xfbaa, 0xfbd4, m_hidden_ram.get());
+  `, {}), [
+    { space: 'AS_PROGRAM', kind: 'ram', target: 'm_adpcm_sound->get_cpu()', start: 0xfbaa, end: 0xfbd4,
+      className: '', method: '' },
   ]);
 
 // A MAME memory_view is a switchable overlay over a window of a space. Its

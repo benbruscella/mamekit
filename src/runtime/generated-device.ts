@@ -717,6 +717,10 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
+        // A call through a member-function pointer, which holds the method's
+        // name (member-pointers.ts): the T-Unit blitter's dma_draw tables.
+        CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>
+          this.invoke(String(name), ...args),
         logerror: () => 0,
         clock: () => clock,
         'machine().sample_rate': () => 48000,

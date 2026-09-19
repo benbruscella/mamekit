@@ -199,11 +199,14 @@ export class Bus {
     dataWidth: 8 | 16 = 8,
     regions?: Readonly<Record<string, Uint8Array>>,
     endianness: 'big' | 'little' = 'big',
+    /** MAME `unmap_value_high()`: unmapped bytes read as 0xff. */
+    unmapHigh = false,
   ) {
     this.shares = shares;
-    this.addressMask = ranges.some(range => (range.end | (range.mirror ?? 0)) > 0xffff)
-      ? 0xffffff
-      : 0xffff;
+    if (unmapHigh) this.readFns[0] = () => 0xff;
+    const highest = Math.max(0, ...ranges.map(range => Math.max(range.end, range.mirror ?? 0)));
+    // A bit-addressed TMS34010 space reaches byte 0x1fffffff once scaled.
+    this.addressMask = highest > 0xffffff ? 0x1fffffff : highest > 0xffff ? 0xffffff : 0xffff;
     for (const r of ranges) {
       const size = r.end - r.start + 1;
       let read: ReadHandler | null = null;

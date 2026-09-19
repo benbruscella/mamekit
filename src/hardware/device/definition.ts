@@ -73,6 +73,7 @@ export const DEVICE_MAME_TYPES = [
   'PIT8253',
   'STARFIELD_05XX',
   'MC6845',
+  'MIDTUNIT_VIDEO',
   // Protocol devices used when a dumped firmware core is not executable.
   'NAMCO_51XX',
   'NAMCO_53XX',

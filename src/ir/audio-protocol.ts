@@ -209,6 +209,21 @@ export interface GeneratedAuxiliaryAudioDevice {
   referenceLevels?: number[];
   /** A DAC chip's resolution, coding and ladder gain, from dac.h. */
   dac?: { bits: number; mapper: string; gain: number };
+  /**
+   * The device's own address space (`set_addrmap(0, ...)`) over its sample
+   * region: each window is either a fixed slice of the region or a memory
+   * bank, whose entries are region offsets selected by `bank.<tag>` writes.
+   */
+  sampleMap?: GeneratedSampleWindow[];
+}
+
+export interface GeneratedSampleWindow {
+  start: number;
+  end: number;
+  /** Fixed `rom().region(...)` offset into the sample region. */
+  regionOffset?: number;
+  /** `bankr("tag")`: the entry offsets and which one is selected at start. */
+  bank?: { tag: string; entryOffsets: (number | null)[]; initialEntry: number };
 }
 /** Source-derived RP2A03 APU configuration carried by generated board IR. */
 export interface GeneratedNesApuPlan {

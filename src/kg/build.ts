@@ -196,9 +196,24 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     )?.span;
     const initFunction = ast.findFunctionInHierarchy(gm.cls, gm.init);
     const installedHandlers = initFunction
-      ? parseInstalledHandlers(initFunction.body, consts)
+      ? parseInstalledHandlers(effectiveInitBody(ast, gm.cls, initFunction, consts), consts)
+          .flatMap(handler => {
+            // The CPU whose space the install targets; the main CPU's when the
+            // source does not say.
+            const cpu = !handler.target || handler.target === 'm_maincpu'
+              ? memberTags.m_maincpu ?? 'maincpu'
+              : installTargetTag(ast, gm.cls, handler.target, memberTags);
+            if (!cpu) {
+              throw new Error(`${gm.name}: cannot resolve the space "${handler.target}" an init install targets`);
+            }
+            return [{ ...handler, cpu }];
+          })
+      : [];
+    const initTables = initFunction
+      ? initStaticTables(ast, effectiveInitBody(ast, gm.cls, initFunction, consts), consts)
       : [];
     g.node('Game', id, {
+      ...(initTables.length ? { initTables: initTables.map(table => JSON.stringify(table)) } : {}),
       name: gm.name, year: gm.year, company: gm.company, fullname: gm.fullname,
       monitor: gm.monitor, cls: gm.cls, init: gm.init, flags: gm.flags,
       kind: gm.kind,
@@ -230,6 +245,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     g.edge(id, `inputs:${gm.input}`, 'USES_INPUTS');
     g.edge(id, `romset:${gm.name}`, 'USES_ROMSET');
     for (const installed of installedHandlers) {
+      if (installed.kind === 'ram') continue;
       const handlerId = emitSourceHandlerClosure(
         g,
         ast,
@@ -508,8 +524,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         }
       }
     }
+    // Handlers only: machine_start installs are placed on the main CPU, and
+    // a storage install there has no target resolution yet.
     const installedHandlers = machineStart
-      ? parseInstalledHandlers(machineStart.body, consts)
+      ? parseInstalledHandlers(machineStart.body, consts).filter(handler => handler.kind !== 'ram')
       : [];
     const resetFunctions = resolveMachineLifecycle(
       ast,
@@ -686,10 +704,22 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
           }))
         : [];
     });
+    // A device that owns a CPU configures that CPU's banks in its own
+    // device_start, against regions named relative to itself: the Williams
+    // ADPCM board banks `adpcm:cpu` into `rombank` and `romupper`.
+    const deviceBankSources = cfg.devices.flatMap(device => {
+      const cls = deviceTypes[device.type];
+      const start = cls ? ast.findFunctionInHierarchy(cls, 'device_start') : undefined;
+      return start
+        ? parseMemoryBanks(start.body, memberTags, consts, device.tag)
+          .map(bank => ({ bank, source: start.span }))
+        : [];
+    });
     const bankSources = [
       ...bankFunctions.flatMap(fn =>
         parseMemoryBanks(fn.body, memberTags, consts).map(bank => ({ bank, source: fn.span }))),
       ...overrideBankSources,
+      ...deviceBankSources,
     ];
     for (const [index, { bank, source }] of bankSources.entries()) {
       // One node per configure call: a bank's entries may be placed by several.
@@ -930,6 +960,14 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     if (!classesWithHandlers.has(fn.className)) continue;
     const device = g.nodes.get(devId);
     if (device) device.props.startHandler = `${fn.className}.device_start`;
+    // The device's own emu_timers. Nothing else drives a composed board's
+    // timers -- the Williams ADPCM board hands every sound command to its CPU
+    // through a zero-delay sync_command timer -- so they are lowered with
+    // their callbacks, unlike a driver's (see driverTimers).
+    const deviceTimers = [...fn.body.matchAll(
+      /\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*(\w+)::(\w+)\s*\)/g,
+    )].map(match => `${match[1]}=${match[2]}.${match[3]}`);
+    if (device && deviceTimers.length) device.props.deviceTimers = deviceTimers;
     g.edge(devId, emitSourceHandlerClosure(
       g,
       ast,
@@ -2046,6 +2084,34 @@ function emitSourceHandlerClosure(
     );
     g.edge(handlerId, baseId, 'CALLS_HANDLER');
   }
+  // A call through a typed finder into a board device defined in the driver
+  // tree (`m_adpcm_sound->write(data)`, required_device<williams_adpcm_sound_device>)
+  // names exactly one method, so it is followed even when it mutates: without
+  // it, Mortal Kombat's sound board never received a command. Framework and
+  // src/devices classes are generated devices or MAME services, and stay out.
+  for (const match of fn.body.matchAll(/\b(m_\w+)\s*->\s*(\w+)\s*\(/g)) {
+    const [, member, callName] = match;
+    const finderClass = ast.finderClass(fn.className, member!);
+    if (!finderClass) continue;
+    // Only a composed board device with its own processor, whose handlers the
+    // board already lowers because that processor maps them. A custom sound
+    // device a family runtime serves (berzerk's exidy_sound_device) binds
+    // these calls itself, and lowering its methods here displaced that binding.
+    const mconfig = ast.findFunctionInHierarchy(finderClass, 'device_add_mconfig');
+    if (!mconfig || !/\bset_addrmap\s*\(\s*AS_PROGRAM\b/.test(mconfig.body)) continue;
+    const target = ast.findFunctionInHierarchy(finderClass, callName!);
+    if (!target || target === fn || !target.span.file.startsWith('src/mame/')) continue;
+    const targetId = emitSourceHandlerClosure(
+      g,
+      ast,
+      target.className,
+      target.name,
+      constants,
+      target.span,
+      visited,
+    );
+    g.edge(handlerId, targetId, 'CALLS_HANDLER', { finder: `${member}.${callName}` });
+  }
   for (const callName of accessorNames) {
     if (callNames.has(callName)) continue;
     const accessor = ast.findFunctionInHierarchy(fn.className, callName)
@@ -2674,4 +2740,196 @@ function expandSubmap(
       raw: `${range.raw} -> ${inner.raw}`,
     };
   }).filter(inner => inner.end >= inner.start);
+}
+
+
+/**
+ * A driver init with the same-class helpers it calls inlined: their constant
+ * arguments substituted and each branch those constants decide chosen. NBA
+ * Jam's init is one call, `init_nbajam_common(0)`, whose `if (!te_protection)`
+ * picks between two protection layouts; reading the helper whole installed
+ * both.
+ */
+export function effectiveInitBody(
+  ast: MameAstIndex,
+  className: string,
+  fn: MameFunction,
+  consts: Record<string, number>,
+  depth = 0,
+): string {
+  if (depth > 4) return fn.body;
+  return selectConstantBranches(fn.body.replace(
+    /(^\s*|[;{}]\s*)(\w+)\s*\(([^;{}]*)\)\s*;/g,
+    (all, lead: string, name: string, argumentText: string) => {
+      const helper = ast.findFunctionInHierarchy(className, name);
+      if (!helper || helper === fn) return all;
+      const names = helper.parameters.split(',').map(parameter =>
+        /(\w+)\s*(?:=[^,]*)?$/.exec(parameter.trim())?.[1]).filter(Boolean) as string[];
+      const values = argumentText.trim() ? argumentText.split(',').map(argument => evalExpr(argument.trim(), consts)) : [];
+      if (values.length !== names.length || values.some(value => value === null)) return all;
+      let body = effectiveInitBody(ast, className, helper, consts, depth + 1);
+      names.forEach((parameter, index) => {
+        body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), String(values[index]));
+      });
+      return `${lead}{${selectConstantBranches(body, consts)}}`;
+    },
+  ), consts);
+}
+
+/** `if (constant) {A} else {B}` as the block the constant selects. */
+function selectConstantBranches(text: string, consts: Record<string, number> = {}): string {
+  const block = (at: number): [number, number] | undefined => {
+    let index = at;
+    while (/\s/.test(text[index] ?? '')) index++;
+    if (text[index] !== '{') {
+      // A braceless branch is the one statement up to its semicolon.
+      if (/^(?:if|for|while|switch|do)\b/.test(text.slice(index))) return undefined;
+      const semicolon = text.indexOf(';', index);
+      return semicolon < 0 ? undefined : [index, semicolon + 1];
+    }
+    let depth = 0;
+    for (let end = index; end < text.length; end++) {
+      if (text[end] === '{') depth++;
+      else if (text[end] === '}' && --depth === 0) return [index, end + 1];
+    }
+    return undefined;
+  };
+  for (let from = 0; ;) {
+    const match = /\bif\s*\(/g;
+    match.lastIndex = from;
+    const found = match.exec(text);
+    if (!found) return text;
+    const open = found.index + found[0].length - 1;
+    let depth = 0;
+    let close = open;
+    for (; close < text.length; close++) {
+      if (text[close] === '(') depth++;
+      else if (text[close] === ')' && --depth === 0) break;
+    }
+    const condition = evalCondition(text.slice(open + 1, close), consts);
+    const then = block(close + 1);
+    if (condition === null || !then) { from = found.index + 2; continue; }
+    const elseMatch = /^\s*else\b/.exec(text.slice(then[1]));
+    const otherwise = elseMatch ? block(then[1] + elseMatch[0].length) : undefined;
+    const end = otherwise ? otherwise[1] : then[1];
+    const chosen = condition
+      ? text.slice(then[0], then[1])
+      : otherwise ? text.slice(otherwise[0], otherwise[1]) : '';
+    text = text.slice(0, found.index) + chosen + text.slice(end);
+    from = found.index;
+  }
+}
+
+function evalCondition(condition: string, consts: Record<string, number>): boolean | null {
+  let text = condition.trim();
+  while (text.startsWith('(') && text.endsWith(')')) {
+    let depth = 0;
+    let wraps = true;
+    for (let index = 0; index < text.length - 1; index++) {
+      if (text[index] === '(') depth++;
+      else if (text[index] === ')' && --depth === 0) { wraps = false; break; }
+    }
+    if (!wraps) break;
+    text = text.slice(1, -1).trim();
+  }
+  const split = (operator: string): string[] | undefined => {
+    let depth = 0;
+    for (let index = 0; index < text.length - 1; index++) {
+      if (text[index] === '(') depth++;
+      else if (text[index] === ')') depth--;
+      else if (depth === 0 && text.startsWith(operator, index)) {
+        return [text.slice(0, index), text.slice(index + operator.length)];
+      }
+    }
+    return undefined;
+  };
+  for (const operator of ['||', '&&']) {
+    const parts = split(operator);
+    if (!parts) continue;
+    const left = evalCondition(parts[0]!, consts);
+    const right = evalCondition(parts[1]!, consts);
+    if (left === null || right === null) return null;
+    return operator === '||' ? left || right : left && right;
+  }
+  for (const operator of ['==', '!=']) {
+    const parts = split(operator);
+    if (!parts) continue;
+    const left = evalExpr(parts[0]!.trim(), consts);
+    const right = evalExpr(parts[1]!.trim(), consts);
+    if (left === null || right === null) return null;
+    return operator === '==' ? left === right : left !== right;
+  }
+  if (text.startsWith('!')) {
+    const inner = evalCondition(text.slice(1), consts);
+    return inner === null ? null : !inner;
+  }
+  const value = evalExpr(text, consts);
+  return value === null ? null : value !== 0;
+}
+
+/**
+ * The tag of the CPU an install's space belongs to: `m_maincpu` is the
+ * maincpu finder; `m_adpcm_sound->get_cpu()` is the Williams ADPCM board's
+ * `m_cpu`, a child of the device (`adpcm:cpu`).
+ */
+function installTargetTag(
+  ast: MameAstIndex,
+  className: string,
+  target: string,
+  memberTags: Record<string, string>,
+): string | undefined {
+  const parts = target.split('->').map(part => part.trim());
+  const first = parts[0]!;
+  const tag = memberTags[first];
+  if (!tag) return undefined;
+  let owner = ast.finderClass(className, first);
+  let path = tag;
+  for (const accessor of parts.slice(1)) {
+    const method = /^(\w+)\s*\(\s*\)$/.exec(accessor)?.[1];
+    if (!owner || !method) return undefined;
+    const declaration = ast.ast.units.flatMap(unit => unit.classes).find(cls => cls.name === owner);
+    const member = declaration
+      ? new RegExp(`\\b${method}\\s*\\(\\s*\\)\\s*\\{\\s*return\\s+(m_\\w+)\\s*;`).exec(declaration.body)?.[1]
+      : undefined;
+    if (!member) return undefined;
+    const constructorTag = ast.ast.units.map(unit => new RegExp(
+      `${owner}::${owner}\\s*\\([^)]*\\)\\s*:[^{]*?\\b${member}\\s*\\(\\s*\\*\\s*this\\s*,\\s*"([^"%]+)"`,
+    ).exec(unit.source)?.[1]).find(Boolean);
+    if (!constructorTag) return undefined;
+    path = `${path}:${constructorTag}`;
+    owner = ast.finderClass(owner, member);
+  }
+  return path;
+}
+
+
+/**
+ * `m_member = file_scope_table;` in a driver init: the member is a pointer the
+ * handlers index, and what it points at is known at build time.
+ */
+function initStaticTables(
+  ast: MameAstIndex,
+  body: string,
+  consts: Record<string, number>,
+): { name: string; bits: 8 | 16 | 32; signed?: boolean; arrayLength: number; initialValues: number[] }[] {
+  const source = ast.ast.units.map(unit => unit.source).join('\n');
+  const tables = [];
+  for (const [, member, table] of body.matchAll(/\b(m_\w+)\s*=\s*(\w+)\s*;/g)) {
+    const declaration = new RegExp(
+      `\\bstatic\\s+(?:(?:const|constexpr)\\s+)+(u?int(8|16|32)_t)\\s+${table}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([^{}]*)\\}\\s*;`,
+    ).exec(source);
+    if (!declaration) continue;
+    const entries = declaration[3]!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+    const values = splitMameArgs(entries).map(value => value.trim()).filter(Boolean)
+      .map(value => evalExpr(value, consts));
+    if (values.some(value => value === null)) continue;
+    tables.push({
+      name: member!,
+      bits: Number(declaration[2]) as 8 | 16 | 32,
+      ...(declaration[1]!.startsWith('u') ? {} : { signed: true }),
+      arrayLength: values.length,
+      initialValues: values as number[],
+    });
+  }
+  return tables;
 }

@@ -56,6 +56,8 @@ export interface SoundRuntimeContext {
   dispatch(ownerTag: string, signal: string, value: number): void;
   /** Pull a value from a read callback through the same typed connection. */
   readSignal(ownerTag: string, signal: string): number | undefined;
+  /** The entry a memory bank currently selects (memory_bank::entry()). */
+  bankEntry?(tag: string): number | undefined;
   /** Read the live generated program bus, used by integrated DMA sound units. */
   readProgram(cpuTag: string, address: number): number;
   /** Charge cycles stolen by an integrated peripheral to its owning CPU. */
@@ -77,6 +79,16 @@ export interface SoundRuntimeContext {
 export interface SoundRuntimeHooks {
   /** Advance an integrated sound device by CPU cycles actually elapsed. */
   tickCpu?(cpuTag: string, cycles: number): void;
+  /**
+   * The same clock at instruction boundaries, for the CPUs in
+   * `instructionCpus`: a timer interrupting its own CPU faster than a slice
+   * (the Williams ADPCM board's 14 kHz YM2151 FIRQ) has to assert between
+   * instructions, as MAME's scheduler does, or expiries collapse and are lost.
+   * tickCpu still receives each slice's total; a hook implementing both counts
+   * only what this one has not already seen.
+   */
+  tickInstruction?(cpuTag: string, cycles: number): void;
+  instructionCpus?: ReadonlySet<string>;
   reset?(): void;
   /** What the hooks carry between calls, so a save state can take it (machine-state.ts). */
   state?: Record<string, unknown>;

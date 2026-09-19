@@ -211,6 +211,13 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   configuration?: { method: string; args: number[] }[];
+  /**
+   * Delegates the machine configuration binds on this device, by setter:
+   * `m_maincpu->set_scanline_ind16_callback(m_video,
+   * FUNC(midtunit_video_device::scanline_update))` names the `video` device's
+   * `scanline_update`.
+   */
+  delegates?: { setter: string; tag: string; method: string }[];
   /** Constructor-configured scalar members that are not ordinary setter calls. */
   memberValues?: Record<string, number>;
   /** Constructor-configured shared-pointer member -> board share bindings. */
@@ -240,6 +247,8 @@ export interface GeneratedHandler {
   constants?: Record<string, number>;
   program?: GeneratedHandlerProgram;
   source?: BoardSourceRef;
+  /** Typed-finder spellings callers reach this handler by (`m_adpcm_sound.write`). */
+  finderAliases?: string[];
 }
 
 /**
@@ -453,6 +462,8 @@ export interface GeneratedExecutionCpu {
   space?: GeneratedAddressSpaceSemantics;
   ranges?: RangeSpec[];
   mask?: number;
+  /** `map.unmap_value_high()`: an unmapped read answers all ones. */
+  unmapHigh?: boolean;
   /** Optional AS_OPCODES map/region, distinct from program data reads. */
   opcode?: {
     ranges: RangeSpec[];
@@ -1171,6 +1182,11 @@ export interface GeneratedStateMember {
   signed?: boolean;
   /** Element count when the member is a fixed C array (`uint8_t m_io[0x10]`). */
   arrayLength?: number;
+  /**
+   * The file-scope static table a driver init points this member at
+   * (`m_nbajam_prot_table = nbajam_prot_values;`), element by element.
+   */
+  initialValues?: number[];
 }
 
 export interface BoardIr {

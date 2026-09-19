@@ -18,6 +18,7 @@ export const CPU_MAME_TYPES = [
   'RP2A03', 'RP2A03G', 'M6510',
   'LR35902',
   'TMS320C10',
+  'TMS34010',
 ] as const;
 
 export const CPU_PORTS: readonly PortDeclaration[] = [

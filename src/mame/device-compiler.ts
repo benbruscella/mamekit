@@ -283,12 +283,19 @@ export function compileMameDevice(
   type = definition.type,
   /** Types already being compiled, so a device cycle cannot recurse forever. */
   compiling: ReadonlySet<string> = new Set(),
+  options: {
+    /**
+     * Rewrite a source file before it is read, for a device whose code only
+     * exists after the C preprocessor has run (see preprocessed-device.ts).
+     */
+    transformSource?: (file: string, source: string) => string;
+  } = {},
 ): GeneratedDeviceDefinition {
   const sourceFiles = localSourceFiles(mameSrc, definition.sourceFile);
-  const sources = sourceFiles.map(file => ({
-    file,
-    source: readFileSync(join(mameSrc, file), 'utf8'),
-  }));
+  const sources = sourceFiles.map(file => {
+    const source = readFileSync(join(mameSrc, file), 'utf8');
+    return { file, source: options.transformSource ? options.transformSource(file, source) : source };
+  });
   const ast = parseMameAst(sources);
   const classes = new Map(
     ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]),
