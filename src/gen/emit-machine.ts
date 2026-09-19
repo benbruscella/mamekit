@@ -23,6 +23,8 @@ import { lowerRamAllocation } from '../mame/ram-compiler.ts';
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
   if (type === 'i8085a') return clock / 2;
+  // tms34010.h execute_clocks_to_cycles: (clocks + 8 - 1) / 8.
+  if (type === 'tms34010') return clock / 8;
   if (
     type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
     type === 'm6803' || type === 'm6808' || type === 'nsc8105' ||
@@ -45,12 +47,11 @@ export function generatedCpuAddressSpace(type: string | undefined, ownerTag: str
   const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010', 'tms320c10'].includes(normalized)
     ? 16 as const
     : 8 as const;
-  // MAME declares every TMS320C1x space with an address shift of -1, but the
-  // generated core normalizes word addresses to byte addresses at each access
-  // site and its map ranges are scaled to match
+  // MAME declares the TMS320C1x's spaces with an address shift of -1 and the
+  // TMS34010's with +3 (bit addresses). Both generated cores normalize to byte
+  // addresses at each access site and their map ranges are scaled to match
   // (generatedCpuAddressUnitBytes), so nothing is left for the bus to shift.
-  // tms34010 is bit addressed and still converts here.
-  const addressShift = normalized === 'tms34010' ? -3 : 0;
+  const addressShift = 0;
   return {
     ownerTag,
     name: 'program' as const,
@@ -61,6 +62,7 @@ export function generatedCpuAddressSpace(type: string | undefined, ownerTag: str
 }
 import type {
   GeneratedAuxiliaryAudioDevice,
+  GeneratedSampleWindow,
   GeneratedBiquadStage,
   GeneratedDacChip,
   GeneratedDiscreteDacPlan,
@@ -78,6 +80,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
+import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
 import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
 export function lowerGeneratedMachine(
@@ -324,6 +327,9 @@ export function lowerGeneratedMachine(
       ...(deviceConfiguration(node.props).length
         ? { configuration: deviceConfiguration(node.props) }
         : {}),
+      ...(deviceDelegates(graph, node.props).length
+        ? { delegates: deviceDelegates(graph, node.props) }
+        : {}),
       ...deviceConstructorComposition(node.props),
       ...lowerRamAllocation(node.props, String(graph.meta.mameSrc ?? '')),
       ...(typeof node.props.slotOptions === 'string'
@@ -334,6 +340,12 @@ export function lowerGeneratedMachine(
         : {}),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
+  const finderAliases = new Map<string, Set<string>>();
+  for (const edge of graph.edges) {
+    if (edge.rel !== 'CALLS_HANDLER' || !edge.props?.finder) continue;
+    if (!finderAliases.has(edge.to)) finderAliases.set(edge.to, new Set());
+    finderAliases.get(edge.to)!.add(String(edge.props.finder));
+  }
   const handlers: GeneratedHandler[] = graph.nodes
     .filter(node => node.label === 'Handler')
     .map(node => {
@@ -359,6 +371,7 @@ export function lowerGeneratedMachine(
           program: compileMameHandler(normalizeMameExecutionSource(String(node.props.sourceBody))),
         } : {}),
         ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
+        ...(finderAliases.has(node.id) ? { finderAliases: [...finderAliases.get(node.id)!].sort() } : {}),
       };
     });
   const delegateTargets = callbacks.filter(callback =>
@@ -549,6 +562,18 @@ export function lowerGeneratedMachine(
       all.findIndex(candidate => candidate.member === timer.member) === index &&
       !genericTimers.some(existing => existing.member === timer.member));
   genericTimers.push(...driverTimers);
+  // Timers a composed device allocates in its device_start (build.ts). A
+  // generated device runs its own timers.
+  const generatedDeviceTypes = new Set<string>(DEVICE_MAME_TYPES);
+  for (const node of graph.nodes) {
+    if (node.label !== 'Device' || generatedDeviceTypes.has(String(node.props.type))) continue;
+    for (const entry of (node.props.deviceTimers as string[] | undefined) ?? []) {
+      const [member, handler] = entry.split('=');
+      if (!member || !handler || genericTimers.some(existing => existing.member === member)) continue;
+      if (!handlers.some(candidate => `${candidate.ownerClass}.${candidate.method}` === handler)) continue;
+      genericTimers.push({ tag: member.replace(/^m_/, ''), member, handler });
+    }
+  }
   const shareBindings = lowerShareBindings(graph);
   // Any config in the selected machine's chain may declare it; MAME applies
   // the request to the whole machine however deep it is set.
@@ -565,6 +590,16 @@ export function lowerGeneratedMachine(
   const stateMembers: GeneratedStateMember[] = (
     Array.isArray(rootStateMembers) ? rootStateMembers : []
   ).map(raw => JSON.parse(String(raw)) as GeneratedStateMember);
+  // Members the selected game's init points at a static table (build.ts).
+  for (const node of graph.nodes) {
+    if (node.label !== 'Game' || node.props.name !== game) continue;
+    for (const raw of (node.props.initTables as string[] | undefined) ?? []) {
+      const table = JSON.parse(raw) as GeneratedStateMember;
+      const index = stateMembers.findIndex(member => member.name === table.name);
+      if (index >= 0) stateMembers[index] = table;
+      else stateMembers.push(table);
+    }
+  }
   const memoryBanks = lowerMemoryBanks(graph, sourceRef);
   const accessTaps = lowerAccessTaps(graph, devices, memoryBanks, sourceRef);
   // The driver's own region_ptr finders, read straight from its source. These
@@ -610,6 +645,10 @@ export function lowerGeneratedMachine(
         : {}),
       ...(cpu.mask === undefined && ['i8088', 'v30'].includes(cpu.type?.toLowerCase() ?? '')
         ? { mask: 0xfffff }
+        : {}),
+      // A 32-bit bit address is a 29-bit byte address once scaled.
+      ...(cpu.mask === undefined && cpu.type?.toLowerCase() === 'tms34010'
+        ? { mask: 0x1fffffff }
         : {}),
       space,
       ...(cpu.io ? { io: { ...cpu.io, space: { ...space, name: 'io' } } } : {}),
@@ -1538,6 +1577,7 @@ export function lowerBiquadFilterChain(
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_4BIT_R2R: ['data_w', 'write'],
   DAC_8BIT_R2R: ['data_w', 'write'],
+  AD7524: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
@@ -1559,6 +1599,38 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
  * The method surface belongs to the generated hardware compiler capability;
  * tags, clocks, modes and routes remain facts from the machine graph.
  */
+/**
+ * A device's audio route to a speaker, following routes into an owning device
+ * (`add_route(ALL_OUTPUTS, *this, 0.10)` inside the Williams ADPCM board, which
+ * the driver routes to "speaker" at 1.0) and multiplying the gains on the way.
+ */
+function resolvedAudioRoute(
+  graph: KnowledgeGraph,
+  byId: ReadonlyMap<string, KGNode>,
+  deviceId: string,
+): { route: KGNode; gain: number } | undefined {
+  let gain = 1;
+  let current = deviceId;
+  for (let depth = 0; depth < 8; depth++) {
+    const edge = graph.edges.find(candidate =>
+      candidate.from === current && candidate.rel === 'HAS_AUDIO_ROUTE');
+    const route = edge ? byId.get(edge.to) : undefined;
+    if (!route) return undefined;
+    gain *= Number(route.props.gain);
+    if (route.props.target !== '^') return { route, gain };
+    // A sub-device is declared in its owner's device_add_mconfig, which the
+    // node id names (`device:<owner class>.device_add_mconfig/<tag>`); the
+    // owner is the device of that class.
+    const ownerClass = /^device:([\w:]+)\.device_add_mconfig\//.exec(current)?.[1];
+    const owner = ownerClass
+      ? graph.nodes.find(node => node.label === 'Device' && node.props.cls === ownerClass)
+      : undefined;
+    if (!owner) return undefined;
+    current = owner.id;
+  }
+  return undefined;
+}
+
 export function lowerAuxiliaryAudioDevices(
   graph: KnowledgeGraph,
   devices: {
@@ -1580,11 +1652,9 @@ export function lowerAuxiliaryAudioDevices(
           ? 640_000
           : undefined;
     if (!writeMethods || clock === undefined) return [];
-    const routeEdge = graph.edges.find(edge =>
-      edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE');
-    const route = routeEdge ? byId.get(routeEdge.to) : undefined;
-    if (!route) return [];
-    const gain = Number(route.props.gain);
+    const resolved = resolvedAudioRoute(graph, byId, device.id);
+    if (!resolved) return [];
+    const { route, gain } = resolved;
     if (!Number.isFinite(gain)) return [];
     const sourceDevice = byId.get(device.id);
     const config = Array.isArray(sourceDevice?.props.config)
@@ -1628,10 +1698,20 @@ export function lowerAuxiliaryAudioDevices(
         return referenceRoute?.props.target === device.tag;
       });
     });
+    // A DAC mixed by another family's worklet still levels its codes from
+    // its own DAC_GENERATOR line in dac.h.
+    const [dac] = graph.meta.mameSrc
+      ? lowerDacChips(String(graph.meta.mameSrc), [{ tag: device.tag, type: device.type }])
+      : [];
+    const sampleMap = sampleRegion
+      ? lowerSampleMap(graph, device.id, String(sampleRegion.props.tag))
+      : undefined;
     return [{
       type: device.type,
       deviceTag: device.tag,
+      ...(sampleMap?.length ? { sampleMap } : {}),
       ...(device.member ? { member: device.member } : {}),
+      ...(dac ? { dac: { bits: dac.bits, mapper: dac.mapper, gain: dac.gain } } : {}),
       clock,
       ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
       ...(Number.isFinite(rawSampleRate) ? { sampleRate: Number(rawSampleRate) } : {}),
@@ -1650,6 +1730,61 @@ export function lowerAuxiliaryAudioDevices(
   });
 }
 
+/**
+ * A sample-reading device's own address space 0 over its ROM region (the
+ * Williams ADPCM board's OKI sees a banked low half and a fixed upper half).
+ * Undefined when the device reads its region directly.
+ */
+function lowerSampleMap(
+  graph: KnowledgeGraph,
+  deviceId: string,
+  sampleRegion: string,
+): GeneratedSampleWindow[] | undefined {
+  const mapId = graph.edges.find(edge =>
+    edge.from === deviceId && edge.rel === 'HAS_MAP' && String(edge.props?.space ?? '0') === '0')?.to;
+  if (!mapId) return undefined;
+  const rangeIds = new Set(graph.edges
+    .filter(edge => edge.from === mapId && edge.rel === 'HAS_RANGE')
+    .map(edge => edge.to));
+  const ranges = graph.nodes.filter(node => rangeIds.has(node.id));
+  if (!ranges.length) return undefined;
+  const banks = lowerMemoryBanks(graph, () => undefined);
+  // A region the map names is relative to the device that owns the map.
+  const owner = sampleRegion.includes(':') ? sampleRegion.slice(0, sampleRegion.lastIndexOf(':') + 1) : '';
+  const windows: GeneratedSampleWindow[] = [];
+  for (const range of ranges) {
+    const start = Number(range.props.start);
+    const end = Number(range.props.end);
+    const bankTag = range.props.bankRead ? String(range.props.bankRead) : undefined;
+    if (bankTag) {
+      const bank = banks.find(candidate => candidate.tag === bankTag && candidate.region === sampleRegion);
+      if (!bank) throw new Error(`${deviceId}: sample bank "${bankTag}" has no entries in "${sampleRegion}"`);
+      windows.push({
+        start, end,
+        bank: {
+          tag: bank.tag,
+          entryOffsets: bank.entryOffsets,
+          initialEntry: Math.max(0, bank.initialEntry ?? bank.entryOffsets.findIndex(value => value !== null)),
+        },
+      });
+    } else if (range.props.region !== undefined) {
+      const region = `${owner}${String(range.props.region)}`;
+      if (region !== sampleRegion) {
+        throw new Error(`${deviceId}: sample window reads region "${region}", not "${sampleRegion}"`);
+      }
+      windows.push({ start, end, regionOffset: Number(range.props.regionOffset ?? 0) });
+    } else if (range.props.rom) {
+      // `rom()` with no region: the device's own region, at the same address.
+      windows.push({ start, end, regionOffset: start });
+    } else {
+      throw new Error(`${deviceId}: unsupported sample window ${String(range.props.raw ?? range.id)}`);
+    }
+  }
+  // A map that only restates the region adds nothing to reading it directly.
+  const identity = windows.every(window => !window.bank && window.regionOffset === window.start);
+  return identity ? undefined : windows.sort((a, b) => a.start - b.start);
+}
+
 /** The verbatim machine-config statements that instantiated a device. */
 function deviceConfigLines(props?: Record<string, unknown>): string[] {
   return Array.isArray(props?.config) ? props.config.map(String) : [];
@@ -1659,6 +1794,31 @@ function deviceMember(props: Record<string, unknown>): string | undefined {
   if (typeof props.member === 'string') return props.member;
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
   return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
+}
+
+/**
+ * `m_cpu->set_x_callback(m_video, FUNC(cls::method))` on a device: the device
+ * the finder names, and the method. A tag may also be written as a string.
+ */
+function deviceDelegates(
+  graph: KnowledgeGraph,
+  props: Record<string, unknown>,
+): { setter: string; tag: string; method: string }[] {
+  const member = deviceMember(props);
+  if (!member || !Array.isArray(props.config)) return [];
+  const escaped = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return props.config.map(String).flatMap(line => {
+    const match = new RegExp(
+      `^${escaped}->(set_\\w+)\\(\\s*(m_\\w+|"[^"]+")\\s*,\\s*FUNC\\(\\s*[\\w:]+::(\\w+)\\s*\\)\\s*\\)$`,
+    ).exec(line.trim());
+    if (!match) return [];
+    const [, setter, target, method] = match;
+    const tag = target!.startsWith('"')
+      ? target!.slice(1, -1)
+      : String(graph.nodes.find(node =>
+          node.label === 'Device' && deviceMember(node.props) === target)?.props.tag ?? '');
+    return tag ? [{ setter: setter!, tag, method: method! }] : [];
+  });
 }
 
 function deviceConfiguration(

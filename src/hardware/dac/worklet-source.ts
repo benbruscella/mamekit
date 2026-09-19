@@ -12,11 +12,12 @@ export interface DacGenerator {
 
 export type DacGeneratorTable = Record<string, DacGenerator>;
 
-export function generatedDacWorkletSource(): string {
-  return `// GENERATED — generic source-routed parallel DAC bank.
-export interface GeneratedDacWrite { offset: number; data: number; frac?: number; method?: string }
-
-// dac_mapper_unsigned in src/devices/sound/dac.cpp.
+/**
+ * MAME's DAC value mapping, as worklet source. Every worklet that mixes a DAC
+ * interpolates this one text, so a board whose DAC rides a PSG worklet (Hyper
+ * Sports, Track & Field) levels its codes exactly as the DAC family does.
+ */
+export const DAC_VALUE_MAP_SOURCE = `// dac_mapper_unsigned in src/devices/sound/dac.cpp.
 function dacUnsigned(input: number, bits: number): number {
   const scale = 1 / (bits > 1 ? 2 ** bits : 1);
   return (input & (2 ** bits - 1)) * scale;
@@ -43,7 +44,13 @@ function dacValueMap(generator: { bits: number; mapper: string; gain: number }):
   }
   return map;
 }
+`;
 
+export function generatedDacWorkletSource(): string {
+  return `// GENERATED — generic source-routed parallel DAC bank.
+export interface GeneratedDacWrite { offset: number; data: number; frac?: number; method?: string }
+
+${DAC_VALUE_MAP_SOURCE}
 class GeneratedHc55516Core {
   private digit = false;
   private clock = false;

@@ -1,3 +1,4 @@
+import { DAC_VALUE_MAP_SOURCE } from '../hardware/dac/worklet-source.ts';
 import { readFileSync } from 'node:fs';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedMsm5205Plan, GeneratedUpd7759Plan } from './audio-compiler.ts';
@@ -280,6 +281,7 @@ export function generatedYm2151WorkletSource(
 const plan = ${JSON.stringify(plan, null, 2)};
 const msmPlan = (${JSON.stringify(msm5205Plan ?? null, null, 2)}) as GeneratedMsm5205PlanData | null;
 const updPlan = (${JSON.stringify(upd7759Plan ?? null, null, 2)}) as GeneratedUpd7759PlanData | null;
+${DAC_VALUE_MAP_SOURCE}
 ${pokeyPlanSource ? generatedPokeyCoreSource(pokeyPlanSource) : ''}
 /** Null on a board with no POKEY, so the engine above is only emitted when one exists. */
 const pokeyFactory: ((clock: number, rate: number) => {
@@ -331,6 +333,59 @@ export interface GeneratedAuxiliaryAudioDevice {
   gain: number;
   target: string;
   writeMethods?: string[];
+  /** A DAC's resolution, coding and ladder gain, from dac.h. */
+  dac?: { bits: number; mapper: string; gain: number };
+  /** The device's own address space over its sample region. */
+  sampleMap?: GeneratedSampleWindow[];
+}
+
+export interface GeneratedSampleWindow {
+  start: number;
+  end: number;
+  regionOffset?: number;
+  bank?: { tag: string; entryOffsets: (number | null)[]; initialEntry: number };
+}
+
+/**
+ * A sample device's address space: fixed and banked windows over its ROM
+ * region, flattened into the one array the device core reads. A bank switch
+ * ('bank.' + tag, from memory_bank::set_entry on the board) copies the newly
+ * selected entry into its window in place.
+ */
+export class GeneratedSampleSpace {
+  readonly bytes: Uint8Array;
+  private readonly region: Uint8Array;
+  private readonly windows: readonly GeneratedSampleWindow[];
+
+  constructor(region: Uint8Array, windows: readonly GeneratedSampleWindow[]) {
+    this.region = region;
+    this.windows = windows;
+    this.bytes = new Uint8Array(Math.max(0, ...windows.map(window => window.end + 1)));
+    for (const window of windows) {
+      this.fill(window, window.bank
+        ? window.bank.entryOffsets[window.bank.initialEntry] ?? 0
+        : window.regionOffset ?? 0);
+    }
+  }
+
+  /** Whether a write names one of this space's banks. */
+  select(method: string | undefined, entry: number): boolean {
+    let selected = false;
+    for (const window of this.windows) {
+      if (!window.bank || method !== 'bank.' + window.bank.tag) continue;
+      const offset = window.bank.entryOffsets[entry];
+      if (offset !== undefined && offset !== null) this.fill(window, offset);
+      selected = true;
+    }
+    return selected;
+  }
+
+  private fill(window: GeneratedSampleWindow, offset: number): void {
+    const length = window.end - window.start + 1;
+    const source = this.region.subarray(offset, offset + length);
+    this.bytes.set(source, window.start);
+    this.bytes.fill(0, window.start + source.length, window.start + length);
+  }
 }
 
 interface Field {
@@ -884,7 +939,9 @@ class OkiCore {
     this.phase += this.clockHz / (this.pin7 ? 132 : 165) / this.outputRate;
     while (this.phase >= 1) {
       this.phase--;
-      this.held = this.voices.reduce((sum, voice) => sum + voice.clock(this.rom), 0) / 4;
+      // okim6295_device::sound_stream_update adds each voice into the one
+      // stream (add_int), so the voices sum rather than average.
+      this.held = this.voices.reduce((sum, voice) => sum + voice.clock(this.rom), 0);
     }
     return this.held;
   }
@@ -1388,7 +1445,10 @@ export class GeneratedRawSamplesCore {
  */
 export class GeneratedYm2151Mixer {
   private readonly chips: GeneratedYm2151Chip[];
+  /** DACs on the same speaker: each holds the level its last code maps to. */
+  private readonly dacs: { deviceTag: string; gain: number; map: Float64Array; level: number }[];
   private readonly oki?: { tag: string; gain: number; core: OkiCore };
+  private readonly sampleSpaces: GeneratedSampleSpace[] = [];
   private readonly msmChips: {
     deviceTag: string;
     gain: number;
@@ -1454,11 +1514,15 @@ export class GeneratedYm2151Mixer {
       () => new GeneratedYm2151Chip(),
     );
     const oki = auxiliaryDevices.find(device => device.type === 'OKIM6295');
+    const okiSpace = oki?.sampleMap?.length
+      ? new GeneratedSampleSpace(oki.sampleRom ?? sampleRom ?? new Uint8Array(), oki.sampleMap)
+      : undefined;
+    if (okiSpace) this.sampleSpaces.push(okiSpace);
     if (oki) this.oki = {
       tag: oki.deviceTag,
       gain: oki.gain,
       core: new OkiCore(
-        sampleRom ?? new Uint8Array(), oki.clock, outputRate, oki.initialMode !== 'PIN7_LOW',
+        okiSpace?.bytes ?? sampleRom ?? new Uint8Array(), oki.clock, outputRate, oki.initialMode !== 'PIN7_LOW',
       ),
     };
     const msmDevices = auxiliaryDevices.filter(device => device.type === 'MSM5205');
@@ -1518,6 +1582,10 @@ export class GeneratedYm2151Mixer {
           device.sampleRom ?? new Uint8Array(), outputRate, device.sampleRate,
         ),
       }));
+    this.dacs = auxiliaryDevices.filter(device => device.dac).map(device => {
+      const map = dacValueMap(device.dac!);
+      return { deviceTag: device.deviceTag, gain: device.gain, map, level: map[0]! };
+    });
     this.pcmChips = auxiliaryDevices
       .filter(device => device.type.startsWith('TMS5220'))
       .map(device => ({
@@ -1540,6 +1608,16 @@ export class GeneratedYm2151Mixer {
 
   /** Register writes arrive as chip * 2 + port; auxiliaries route by method. */
   write(offset: number, data: number, method?: string): void {
+    if (method?.startsWith('bank.')) {
+      for (const space of this.sampleSpaces) space.select(method, data);
+      return;
+    }
+    for (const dac of this.dacs) {
+      if (method === dac.deviceTag + '.data_w' || method === dac.deviceTag + '.write') {
+        dac.level = dac.map[data & (dac.map.length - 1)] ?? 0;
+        return;
+      }
+    }
     const msm = this.msmWrites.get(method ?? '');
     if (msm) {
       msm.core.write(msm.method, data);
@@ -1620,6 +1698,7 @@ export class GeneratedYm2151Mixer {
     output += (this.oki?.core.sample() ?? 0) * (this.oki?.gain ?? 0);
     for (const device of this.msmChips) output += device.core.sample() * device.gain;
     for (const device of this.pokeyChips) output += device.core.sample() * device.gain;
+    for (const dac of this.dacs) output += dac.level * dac.gain;
     for (const device of this.updChips) output += device.core.sample() * device.gain;
     for (const device of this.k007232Chips) output += device.core.sample() * device.gain;
     for (const device of this.k053260Chips) output += device.core.sample() * device.gain;

@@ -54,6 +54,7 @@ import {
 } from '../mame/audio-compiler.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
+import { parseAddressMaps, stripComments } from '../kg/parse.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
@@ -777,7 +778,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -808,6 +809,13 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       if (mask !== undefined) return mask;
     }
     return undefined;
+  };
+
+  const mapUnmapsHigh = (mapId: string, seen = new Set<string>()): boolean => {
+    if (seen.has(mapId)) return false;
+    seen.add(mapId);
+    if (g.node(mapId)?.props.unmapHigh) return true;
+    return g.out(mapId, 'INCLUDES_MAP').some(included => mapUnmapsHigh(included.node.id, seen));
   };
 
   const handlerKey = (
@@ -947,11 +955,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ? rangeNodes.map(range => rangeSpec(range, String(dev.props.tag)))
       : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
     const internalRom = CPU_INTERNAL_ROM[String(dev.props.type)];
-    const ranges = internalRom && !driverRanges.some(range =>
-      range.kind === 'rom' && Number(range.start) <= internalRom.start &&
-      Number(range.end) >= internalRom.end)
-      ? [...driverRanges, { ...internalRom, kind: 'rom' }]
-      : driverRanges;
+    const ranges = [
+      ...(internalRom && !driverRanges.some(range =>
+        range.kind === 'rom' && Number(range.start) <= internalRom.start &&
+        Number(range.end) >= internalRom.end)
+        ? [...driverRanges, { ...internalRom, kind: 'rom' }]
+        : driverRanges),
+      // The core's own internal map, installed over the driver's: the
+      // TMS34010's I/O registers at 0xc0000000.
+      ...cpuInternalMapRanges(opts.mameSrc, String(dev.props.type), String(dev.props.tag)),
+    ];
     const explicitRegions = [...new Set(
       rangeNodes
         .map(range => range.props.region)
@@ -986,17 +999,22 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     // words while the generated bus is byte addressed, so one address unit
     // covers `unit` bytes. Scaling here keeps the ranges in the same units
     // the core's own accesses use.
-    const unit = generatedCpuAddressUnitBytes(String(dev.props.type));
+    // A bit-addressed core (the TMS34010, addrshift +3) is the same rule the
+    // other way: eight addresses to a byte, so its ranges shrink.
+    const unit = generatedCpuAddressUnitBytes(cpuProgramAddressShift(opts.mameSrc, String(dev.props.type)));
+    const scale = (value: number) => Math.floor(value * unit);
     const scaleRange = (range: Record<string, unknown>) => unit === 1 ? range : {
       ...range,
-      start: Number(range.start) * unit,
-      end: (Number(range.end) + 1) * unit - 1,
-      ...(range.mirror !== undefined ? { mirror: Number(range.mirror) * unit } : {}),
-      ...(range.select !== undefined ? { select: Number(range.select) * unit } : {}),
+      start: scale(Number(range.start)),
+      end: scale(Number(range.end) + 1) - 1,
+      ...(range.mirror !== undefined ? { mirror: scale(Number(range.mirror)) } : {}),
+      ...(range.select !== undefined ? { select: scale(Number(range.select)) } : {}),
     };
     return {
       ranges: ranges.map(scaleRange),
-      ...(mask !== undefined ? { mask: unit === 1 ? mask : (mask + 1) * unit - 1 } : {}),
+      ...(mask !== undefined ? { mask: unit === 1 ? mask : scale(mask + 1) - 1 } : {}),
+      // `map.unmap_value_high()` in the program map or one it includes.
+      ...(programMap && mapUnmapsHigh(programMap.id) ? { unmapHigh: true } : {}),
       ...(opcode ? { opcode } : {}),
       ...(io ? { io: { ...io, ranges: (io.ranges as Record<string, unknown>[]).map(scaleRange) } } : { io }),
       ...(explicitRegions.length === 1 ? { region: explicitRegions[0] } : {}),
@@ -1016,15 +1034,24 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
           method: string;
           viewTag?: string;
           viewEntry?: number;
+          cpu?: string;
         })
       : [];
     installedHandlers.push(...machineInstalledHandlers);
-    const programInstalls = String(d.props.tag) === 'maincpu'
-      ? installedHandlers.filter(handler => handler.space === 'AS_PROGRAM')
-      : [];
-    const ioInstalls = String(d.props.tag) === 'maincpu'
-      ? installedHandlers.filter(handler => handler.space === 'AS_IO')
-      : [];
+    // An install lands on the CPU whose space it names (build.ts resolves
+    // it); machine_start installs are the main CPU's.
+    const installsHere = installedHandlers.filter(handler =>
+      (handler.cpu ?? 'maincpu') === String(d.props.tag));
+    // In the same address units the map ranges were scaled to (a bit-addressed
+    // TMS34010 install names bits).
+    const installUnit = generatedCpuAddressUnitBytes(
+      cpuProgramAddressShift(opts.mameSrc, String(d.props.type)),
+    );
+    const scaleInstall = (value: number, inclusiveEnd = false) => installUnit === 1
+      ? value
+      : inclusiveEnd ? Math.floor((value + 1) * installUnit) - 1 : Math.floor(value * installUnit);
+    const programInstalls = installsHere.filter(handler => handler.space === 'AS_PROGRAM');
+    const ioInstalls = installsHere.filter(handler => handler.space === 'AS_IO');
     const existingIoRanges = Array.isArray(maps.io?.ranges) ? maps.io.ranges : [];
     return {
       tag: String(d.props.tag),
@@ -1035,11 +1062,15 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       ...(programInstalls.length ? {
         ranges: [
           ...maps.ranges,
-          ...programInstalls.map(handler => ({
-            start: handler.start,
-            end: handler.end,
+          ...programInstalls.map(handler => (handler.kind as string) === 'ram' ? {
+            start: scaleInstall(handler.start),
+            end: scaleInstall(handler.end, true),
+            kind: 'ram' as const,
+          } : {
+            start: scaleInstall(handler.start),
+            end: scaleInstall(handler.end, true),
             kind: 'handler' as const,
-            ...(handler.mirror !== undefined ? { mirror: handler.mirror } : {}),
+            ...(handler.mirror !== undefined ? { mirror: scaleInstall(handler.mirror) } : {}),
             // A view entry's install is an overlay, not a map entry: it decodes
             // only while its entry is selected, and falls back to the map
             // underneath once the board disables the view.
@@ -1047,7 +1078,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
               ? { viewTag: handler.viewTag, viewEntry: handler.viewEntry ?? 0 }
               : {}),
             [handler.kind]: `${handler.className}.${handler.method}`,
-          })),
+          }),
         ],
       } : {}),
       ...(ioInstalls.length ? {
@@ -1236,6 +1267,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
       : graph.nodes.some(node =>
           node.label === 'Handler' &&
           String(node.props.sourceBody ?? '').includes('update_partial('))
+        || screenOwnerUpdatesPartially(opts.mameSrc, graph)
         ? 'partial' as const
         : 'frame' as const,
     rotate: monitor === 'ROT90' ? 90 : monitor === 'ROT270' ? 270 : monitor === 'ROT180' ? 180 : 0,
@@ -3052,7 +3084,11 @@ if (game) {
     console.log('unified app: compiled output restored from cache');
   } else {
     console.log('compiling unified app with tsc...');
+    // One program type-checks every generated device and CPU. The T-Unit
+    // video device alone is 4 MB (MAME instantiates all 256 dma_draw
+    // template variants), which took tsc past Node's default heap.
     const tsc = spawnSync(process.execPath, [
+      '--max-old-space-size=8192',
       join(projectRoot, 'node_modules/typescript/bin/tsc'),
       '-p',
       join(buildDir, 'tsconfig.json'),
@@ -3163,4 +3199,59 @@ function writeCartShelfIndex(setDir: string, outDir: string, set: string): numbe
   // compact on purpose: one line per thousand carts is still ~60 KB
   writeFileSync(join(outDir, 'carts.json'), JSON.stringify({ set, carts }));
   return carts.length;
+}
+
+/**
+ * The `addrshift` MAME gives a CPU's program space, read from its own
+ * `m_program_config("program", endianness, width, bits, shift)`. Zero when the
+ * source does not state one.
+ */
+function cpuProgramAddressShift(mameSrc: string, type: string): number {
+  const sourceFile = indexMameHardware(mameSrc).get(type)?.sourceFile;
+  const path = sourceFile ? join(mameSrc, sourceFile) : '';
+  if (!path || !existsSync(path)) return 0;
+  const config = /m_program_config\s*\(\s*"program"\s*,\s*ENDIANNESS_\w+\s*,\s*[^,]+,\s*[^,]+,\s*(-?\d+)/
+    .exec(readFileSync(path, 'utf8'));
+  return config ? Number(config[1]) : 0;
+}
+
+/**
+ * A screen updated by a device -- `set_screen_update("maincpu",
+ * FUNC(tms34010_device::tms340x0_ind16))` -- is partially updated when that
+ * device's own source drives `update_partial`, as the TMS34010's scanline
+ * timer does on every visible line.
+ */
+function screenOwnerUpdatesPartially(mameSrc: string, graph: KnowledgeGraph): boolean {
+  const callback = graph.nodes.find(node =>
+    node.label === 'Callback' && node.props.signal === 'set_screen_update');
+  const targetClass = String(callback?.props.targetClass ?? '');
+  if (!targetClass) return false;
+  const definition = [...indexMameHardware(mameSrc).values()]
+    .find(candidate => candidate.className === targetClass);
+  const path = definition ? join(mameSrc, definition.sourceFile) : '';
+  return Boolean(path) && existsSync(path) && readFileSync(path, 'utf8').includes('update_partial(');
+}
+
+/**
+ * A CPU's internal address map -- the `address_map_constructor(FUNC(cls::map),
+ * this)` its constructor hands to `m_program_config` -- as handler ranges owned
+ * by the CPU (`maincpu.io_register_r`), in the map's own address units.
+ */
+function cpuInternalMapRanges(mameSrc: string, type: string, tag: string): Record<string, unknown>[] {
+  const sourceFile = indexMameHardware(mameSrc).get(type)?.sourceFile;
+  const path = sourceFile ? join(mameSrc, sourceFile) : '';
+  if (!path || !existsSync(path)) return [];
+  const source = stripComments(readFileSync(path, 'utf8'));
+  const typePattern = new RegExp(`\\(\\s*mconfig\\s*,\\s*${type}\\s*,[^;{]*?address_map_constructor\\(\\s*FUNC\\(\\s*(\\w+)::(\\w+)\\s*\\)`);
+  const constructor = typePattern.exec(source);
+  if (!constructor) return [];
+  const map = parseAddressMaps(source).find(candidate =>
+    candidate.cls === constructor[1] && candidate.name === constructor[2]);
+  return (map?.ranges ?? []).filter(range => range.read || range.write).map(range => ({
+    start: range.start,
+    end: range.end,
+    kind: 'handler',
+    ...(range.read ? { read: `${tag}.${range.read.method}` } : {}),
+    ...(range.write ? { write: `${tag}.${range.write.method}` } : {}),
+  }));
 }

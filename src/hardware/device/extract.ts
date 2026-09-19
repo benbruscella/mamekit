@@ -19,6 +19,8 @@ import {
   deviceModuleArtifact,
 } from './definition.ts';
 
+import { preprocessedDeviceTransform } from '../../mame/preprocessed-device.ts';
+
 type Compiled = ReturnType<typeof compileMameDevice>;
 
 const SPECIALIZED: Record<
@@ -30,6 +32,7 @@ string,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_LOW: compileInputMerger,
   LADYBUG_VIDEO: compileLadybugVideo,
+  MIDTUNIT_VIDEO: compileMidtunitVideo,
   K051960: compileK051960,
   K052109: compileK052109,
   K053246: compileK053246,
@@ -42,6 +45,31 @@ string,
   SLAPSTIC: compileSlapstic,
   Z80CTC: compileZ80Ctc,
 };
+
+/**
+ * Midway's T-Unit video (and the W/X-unit variants sharing its source) is
+ * only complete after the C preprocessor: its pixel extractor is chosen by
+ * `#if`, its TMS34010 callbacks are header macros, and its blitter tables are
+ * macro-expanded member-function pointers to dma_draw<...> instances.
+ */
+export function compileMidtunitVideo(
+  mameSource: string,
+  definition: MameHardwareDefinition,
+): Compiled {
+  const directory = definition.sourceFile.slice(0, definition.sourceFile.lastIndexOf('/') + 1);
+  const stem = definition.sourceFile.slice(directory.length).replace(/\.cpp$/, '');
+  return compileMameDevice(mameSource, definition, definition.type, new Set(), {
+    transformSource: preprocessedDeviceTransform(mameSource, {
+      entry: definition.sourceFile,
+      // The device's own header and .ipp files, and the TMS34010 header whose
+      // callback macros its methods are declared with.
+      allow: file => (file.startsWith(directory) && /\.(?:h|ipp)$/.test(file) &&
+        (file.startsWith(`${directory}${stem}`) || file.endsWith('view.ipp'))) ||
+        file === 'src/devices/cpu/tms34010/tms34010.h',
+      classes: [definition.className],
+    }),
+  });
+}
 
 /**
  * K051960 draws from its vblank-latched 1 KiB sprite list. The draw-mode

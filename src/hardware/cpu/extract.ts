@@ -26,6 +26,7 @@ import {
   compileMameV30,
 } from '../../mame/cpu-compiler.ts';
 import { generatedCpuExecutableSource } from '../../mame/cpu-codegen.ts';
+import { compileMameTms34010 } from '../../mame/tms34010-compiler.ts';
 import type {
   CapabilityArtifact,
   CapabilityExtraction,
@@ -69,6 +70,7 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   RP2A03G: compileMameRp2a03,
   LR35902: compileMameLr35902,
   TMS320C10: compileMameTms320c10,
+  TMS34010: compileMameTms34010,
 };
 
 export function compileCpuType(type: string, mameSource: string): unknown {

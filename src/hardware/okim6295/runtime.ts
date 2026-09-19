@@ -6,7 +6,17 @@ export function installAuxiliaryOkim6295Runtime(
   context: SoundRuntimeContext,
   device: GeneratedAuxiliaryAudioDevice,
 ): SoundRuntimeHooks {
-  const rom = context.regions?.[device.deviceTag] ?? new Uint8Array();
+  const region = context.regions?.[device.deviceTag] ?? new Uint8Array();
+  // The chip's own address space when it has one (sampleMap), else the region.
+  const windows = device.sampleMap ?? [];
+  const romByte = (address: number): number => {
+    const window = windows.find(candidate => address >= candidate.start && address <= candidate.end);
+    if (!window) return windows.length ? 0 : region[address] ?? 0;
+    const base = window.bank
+      ? window.bank.entryOffsets[context.bankEntry?.(window.bank.tag) ?? window.bank.initialEntry] ?? 0
+      : window.regionOffset ?? 0;
+    return region[base + address - window.start] ?? 0;
+  };
   const state = { remaining: new Float64Array(4), command: -1, pin7: device.initialMode !== 'PIN7_LOW' };
   const remaining = state.remaining;
   const aliases = deviceAliases(context.board, device.deviceTag);
@@ -22,10 +32,10 @@ export function installAuxiliaryOkim6295Runtime(
       for (let voice = 0; voice < 4; voice++, mask >>>= 1) {
         if (!(mask & 1) || remaining[voice]! > 0) continue;
         const table = state.command * 8;
-        const start = (((rom[table] ?? 0) << 16) |
-          ((rom[table + 1] ?? 0) << 8) | (rom[table + 2] ?? 0)) & 0x3ffff;
-        const stop = (((rom[table + 3] ?? 0) << 16) |
-          ((rom[table + 4] ?? 0) << 8) | (rom[table + 5] ?? 0)) & 0x3ffff;
+        const start = ((romByte(table) << 16) |
+          (romByte(table + 1) << 8) | romByte(table + 2)) & 0x3ffff;
+        const stop = ((romByte(table + 3) << 16) |
+          (romByte(table + 4) << 8) | romByte(table + 5)) & 0x3ffff;
         if (start < stop) remaining[voice] =
           (2 * (stop - start + 1)) / (device.clock / (state.pin7 ? 132 : 165));
       }
@@ -55,7 +65,11 @@ export function installAuxiliaryOkim6295Runtime(
   }
   return {
     tickCpu: (cpuTag, cycles) => {
-      const audioCpu = context.board.execution.cpus.find(cpu => /audio|sound/.test(cpu.tag));
+      // The processor whose address map writes this chip, else the board's
+      // audio CPU by name.
+      const audioCpu = context.board.execution.cpus.find(cpu =>
+        (cpu.ranges ?? []).some(range => range.write === methodName('write'))) ??
+        context.board.execution.cpus.find(cpu => /audio|sound/.test(cpu.tag));
       if (!audioCpu || audioCpu.tag !== cpuTag) return;
       const seconds = cycles / Math.max(1, audioCpu.cycleClock ?? audioCpu.clock);
       for (let voice = 0; voice < 4; voice++) {

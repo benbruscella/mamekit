@@ -739,6 +739,32 @@ export class MameAstIndex {
     return new RegExp(`\\w+::${name}\\s*\\(`).test(dispatched.body) ? base : dispatched;
   }
 
+  /**
+   * The device class a `required_device<T> m_x` / `optional_device<T> m_x`
+   * finder declares, looked up through `className`'s hierarchy.
+   */
+  finderClass(className: string, member: string): string | undefined {
+    const visited = new Set<string>();
+    const pattern = new RegExp(
+      `\\b(?:required|optional)_device\\s*<\\s*([\\w:]+)\\s*>\\s*${member}\\s*[;{]`,
+    );
+    const find = (candidate: string): string | undefined => {
+      if (visited.has(candidate)) return undefined;
+      visited.add(candidate);
+      const declaration = this.ast.units
+        .flatMap(unit => unit.classes)
+        .find(cls => cls.name === candidate);
+      const own = declaration ? pattern.exec(declaration.body)?.[1] : undefined;
+      if (own) return own.split('::').at(-1);
+      for (const base of declaration?.bases ?? []) {
+        const inherited = find(base.split('::').at(-1)!);
+        if (inherited) return inherited;
+      }
+      return undefined;
+    };
+    return find(className);
+  }
+
   findFunctionInHierarchy(className: string, name: string): MameFunction | undefined {
     const visited = new Set<string>();
     const find = (candidate: string): MameFunction | undefined => {

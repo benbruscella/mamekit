@@ -59,7 +59,7 @@ export const spyhunt = sourceTarget({
       writes: 7119,
       nonzeroWrites: 6896,
       writeHash: '1064874b',
-      pcmHash: 'b95b04d2',
+      pcmHash: 'aa412a75',
       rms: 0.045863,
     },
   },

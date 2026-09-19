@@ -65,8 +65,22 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
     generationGaps: ['snd_nl:dac:NETLIST_INT_INPUT', 'z80dma:Z80DMA'],
     handlerGaps: ['z80dma.read', 'z80dma.write'],
   },
+  // Verified against real MAME 0.289 (#149). The Williams ADPCM board is a
+  // composed device: its CPU, YM2151 and OKI are generated, its own handlers
+  // and timers (sync_command, irq_clear) lower as board handlers, and the
+  // AD7524 is mixed as a YM2151 auxiliary. Sound command, OKI and DAC traffic
+  // match MAME frame for frame.
+  mk: {
+    generationGaps: ['adpcm:WILLIAMS_ADPCM_SOUND', 'dac:AD7524'],
+    handlerGaps: ['adpcm:dac.data_w'],
+  },
   mslug: {
     generationGaps: [
+      // `cartslot_fixed(config, "rom")` is a multi-argument config helper, so
+      // the slot only became visible once those expanded (#149). The board
+      // already serves the cartridge through its `cslot1:` regions; the
+      // execution plan is byte-identical with and without the device.
+      'cslot1:NEOGEO_CART_SLOT',
       'ctrl1:NEOGEO_CONTROL_PORT',
       'ctrl2:NEOGEO_CONTROL_PORT',
       'edge:NEOGEO_CTRL_EDGE_CONNECTOR',
@@ -74,6 +88,11 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'upd4990a:UPD4990A',
     ],
     handlerGaps: [],
+  },
+  // The same T-Unit ADPCM board as mk.
+  nbajam: {
+    generationGaps: ['adpcm:WILLIAMS_ADPCM_SOUND', 'dac:AD7524'],
+    handlerGaps: ['adpcm:dac.data_w'],
   },
   polepos: {
     generationGaps: [
@@ -154,13 +173,6 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'timeplt_audio:ay2.data_r',
       'timeplt_audio:ay2.data_w',
     ],
-  },
-  trackfld: {
-    // Real-ROM video and the SN76489/DAC audio stream match every stored
-    // checkpoint exactly. VLM speech decoding remains an explicit bounded
-    // gap rather than blocking the playable board around it.
-    generationGaps: ['vlm:VLM5030'],
-    handlerGaps: ['vlm.data_w'],
   },
   tutankhm: {
     generationGaps: [],

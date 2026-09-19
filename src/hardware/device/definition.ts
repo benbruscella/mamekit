@@ -54,6 +54,7 @@ export const DEVICE_MAME_TYPES = [
   'TMS9929A',
   'TRACKFLD_AUDIO',
   'UPD7759',
+  'VLM5030',
   'WILLIAMS_BLITTER_SC1',
   'WILLIAMS_BLITTER_SC2',
   'TTL153',
@@ -72,6 +73,7 @@ export const DEVICE_MAME_TYPES = [
   'PIT8253',
   'STARFIELD_05XX',
   'MC6845',
+  'MIDTUNIT_VIDEO',
   // Protocol devices used when a dumped firmware core is not executable.
   'NAMCO_51XX',
   'NAMCO_53XX',
