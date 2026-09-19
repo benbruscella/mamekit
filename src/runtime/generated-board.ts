@@ -667,7 +667,16 @@ class IrBoard implements Board {
               machine.execution.cpus[0];
             if (!cpuSpec) return 0;
             return new Proxy({}, {
-              get: (_target, property) => {
+              get: (target, property) => {
+                // JavaScript's own object protocol, and the save-state
+                // walker's (machine-state.ts), are not MAME methods: a handler
+                // comparing `m_vlm != nullptr` asks for valueOf and the walker
+                // asks every object for stateKeys, and forwarding either made
+                // the device invoke a method it never had.
+                if (typeof property === 'symbol' ||
+                    ['valueOf', 'toString', 'toJSON', 'then', 'stateKeys', 'stateRestored'].includes(property)) {
+                  return Reflect.get(target, property);
+                }
                 const method = String(property);
                 // MAME `device_memory_interface::space(AS_PROGRAM)`. A device
                 // that reaches its host processor's bus takes this by
@@ -4135,7 +4144,7 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (deviceType === 'UPD7759' || deviceType === 'VLM5030') {
+      if (deviceType === 'UPD7759') {
         // Keep the real command/control bus executable while the media
         // decoder remains a separately reported hardware gap.
         registry.write[key] = () => {};
@@ -4179,7 +4188,7 @@ class IrBoard implements Board {
         registry.read[key] = (_address, offset) => bytes[offset & 0xffff]!;
         continue;
       }
-      if (deviceType === 'UPD7759' || deviceType === 'VLM5030') {
+      if (deviceType === 'UPD7759') {
         registry.read[key] = () => 0;
         continue;
       }
@@ -4434,6 +4443,7 @@ class IrBoard implements Board {
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
       deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
+      deviceStreamRate: tag => this.devices.get(tag)?.streamRate?.(),
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>

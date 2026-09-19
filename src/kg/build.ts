@@ -28,6 +28,7 @@ import {
   parseEnumConstants, normalizeTemplatedMethod,
   type InputPortsDef,
   type AddressMapDef,
+  type AddressRangeDef,
   type HandlerRef,
 } from './parse.ts';
 
@@ -368,7 +369,14 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     /static\s+void\s+\w+\s*\(\s*machine_config/.test(source)
       ? parseMameAst([{ file: `external-config-${index}.h`, source }]).units.flatMap(unit =>
           unit.functions.filter(fn => /^machine_config\s*&/.test(fn.parameters)))
-      : []);
+      : []).concat(
+    // A driver's own config member that takes more than `config` is a helper
+    // expanded at its call site: Bomb Jack's
+    // `template <typename T> bombjack_base(machine_config &config, T &&psg_type)`
+    // instantiates `psg_type(config, m_ay8910[0], ...)` with the caller's AY8910.
+    ast.ast.units.flatMap(unit => unit.functions.filter(fn =>
+      /^machine_config\s*&\s*\w+\s*,/.test(fn.parameters))),
+  );
   const machineConfigs = parseMachineConfigs(combined, memberTags, consts, configHelpers);
   const cfgByName = new Map(machineConfigs.map(c => [c.name, c]));
   const resolveConfig = (cfg: (typeof machineConfigs)[number], callee: string) => {
@@ -2610,36 +2618,60 @@ function expandDeviceSubmaps(
     }
   }
   const deviceMaps = parseAddressMaps(implementations.join('\n'));
-  for (const map of maps) {
-    map.ranges = map.ranges.flatMap(range => {
-      const submap = range.deviceMap;
-      if (!submap) return [range];
-      const declared = deviceMaps.find(candidate =>
-        candidate.cls === submap.className && candidate.name === submap.method);
-      // Left as-is rather than dropped: an unresolved submap keeps its window
-      // and stays visible in the graph as a range that decodes nothing, which
-      // is what it is.
-      if (!declared) return [range];
-      const reference = submap.ref.replace(/^m_/, '');
-      return declared.ranges.map(inner => {
-        // `address_map_bank_device::amap8` maps the whole 32-bit space; the
-        // window is what MAME actually installs, so the inner end clamps to it.
-        const start = range.start + inner.start;
-        const end = Math.min(range.start + inner.end, range.end);
-        const withDevice = (handler?: HandlerRef): HandlerRef | undefined =>
-          handler && { ...handler, deviceRef: handler.deviceRef ?? reference };
-        return {
-          ...inner,
-          start,
-          end,
-          ...((range.mirror ?? 0) | (inner.mirror ?? 0)
-            ? { mirror: (range.mirror ?? 0) | (inner.mirror ?? 0) }
-            : {}),
-          read: withDevice(inner.read),
-          write: withDevice(inner.write),
-          raw: `${range.raw} -> ${inner.raw}`,
-        };
-      }).filter(inner => inner.end >= inner.start);
-    });
+  // A driver's own map installed through `.m(FUNC(cls::map))` has no device
+  // reference; it resolves against the driver's maps and may itself install
+  // further submaps, so expansion repeats until nothing resolves any more.
+  const ownMap = (className: string, method: string): AddressMapDef | undefined => {
+    const named = maps.filter(candidate => candidate.name === method);
+    return named.find(candidate => candidate.cls === className) ??
+      (named.length === 1 ? named[0] : undefined);
+  };
+  for (let depth = 0; depth < 4; depth++) {
+    let expanded = false;
+    for (const map of maps) {
+      map.ranges = map.ranges.flatMap(range => {
+        const inner = expandSubmap(range, deviceMaps, ownMap);
+        if (inner) expanded = true;
+        return inner ?? [range];
+      });
+    }
+    if (!expanded) break;
   }
+}
+
+function expandSubmap(
+  range: AddressRangeDef,
+  deviceMaps: readonly AddressMapDef[],
+  ownMap: (className: string, method: string) => AddressMapDef | undefined,
+): AddressRangeDef[] | undefined {
+  const submap = range.deviceMap;
+  if (!submap) return undefined;
+  const declared = submap.ref
+    ? deviceMaps.find(candidate =>
+      candidate.cls === submap.className && candidate.name === submap.method)
+    : ownMap(submap.className, submap.method);
+  // Left as-is rather than dropped: an unresolved submap keeps its window
+  // and stays visible in the graph as a range that decodes nothing, which
+  // is what it is.
+  if (!declared) return undefined;
+  const reference = submap.ref.replace(/^m_/, '');
+  return declared.ranges.map(inner => {
+    // `address_map_bank_device::amap8` maps the whole 32-bit space; the
+    // window is what MAME actually installs, so the inner end clamps to it.
+    const start = range.start + inner.start;
+    const end = Math.min(range.start + inner.end, range.end);
+    const withDevice = (handler?: HandlerRef): HandlerRef | undefined =>
+      handler && (reference ? { ...handler, deviceRef: handler.deviceRef ?? reference } : handler);
+    return {
+      ...inner,
+      start,
+      end,
+      ...((range.mirror ?? 0) | (inner.mirror ?? 0)
+        ? { mirror: (range.mirror ?? 0) | (inner.mirror ?? 0) }
+        : {}),
+      read: withDevice(inner.read),
+      write: withDevice(inner.write),
+      raw: `${range.raw} -> ${inner.raw}`,
+    };
+  }).filter(inner => inner.end >= inner.start);
 }

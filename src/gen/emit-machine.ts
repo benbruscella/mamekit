@@ -1628,10 +1628,16 @@ export function lowerAuxiliaryAudioDevices(
         return referenceRoute?.props.target === device.tag;
       });
     });
+    // A DAC mixed by another family's worklet still levels its codes from
+    // its own DAC_GENERATOR line in dac.h.
+    const [dac] = /^DAC_/.test(device.type) && graph.meta.mameSrc
+      ? lowerDacChips(String(graph.meta.mameSrc), [{ tag: device.tag, type: device.type }])
+      : [];
     return [{
       type: device.type,
       deviceTag: device.tag,
       ...(device.member ? { member: device.member } : {}),
+      ...(dac ? { dac: { bits: dac.bits, mapper: dac.mapper, gain: dac.gain } } : {}),
       clock,
       ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
       ...(Number.isFinite(rawSampleRate) ? { sampleRate: Number(rawSampleRate) } : {}),

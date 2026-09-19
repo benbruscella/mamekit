@@ -44,6 +44,8 @@ interface DeviceMember {
   arrayShape?: number[];
   /** Fields of a member whose type is a struct the device declares. */
   fields?: StructField[];
+  /** Aggregate initializer of a file-scope `static const struct`. */
+  initialValue?: Record<string, unknown>;
 }
 
 /** One field of a struct-shaped member; `fields` makes it nest. */
@@ -160,6 +162,8 @@ export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecu
 export interface GeneratedDeviceDefinition {
   type: string;
   hierarchy?: string[];
+  /** MAME `device_rom_interface`: `read_byte` reads the device's own region. */
+  romInterface?: { addressBits: number };
   allocations?: Record<string, GeneratedDeviceDefinition>;
   construct?: string;
   constants: Record<string, number>;
@@ -261,6 +265,8 @@ export interface Device {
    * that have no sound interface at all.
    */
   takeStreamSamples?(): readonly number[];
+  /** The rate the device passed to `stream_alloc`, once it has started. */
+  streamRate?(): number | undefined;
   arity(name: string): number;
   parameters(name: string): readonly string[];
   signalNames(): readonly string[];
@@ -587,7 +593,8 @@ class IrDevice implements Device {
           : member.fields
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, () => structMember(member.fields!))
-                : structMember(member.fields))
+                // A file-scope `static const struct` keeps its initializer.
+                : Object.assign(structMember(member.fields), structuredClone(member.initialValue ?? {})))
         : member.memory
         ? memoryMember(member, options)
         : member.values ? [...member.values]
@@ -616,7 +623,10 @@ class IrDevice implements Device {
       set: value => { this.members[member.name] = wrap(value, member.bits, member.signed); },
     });
     self.tag = () => options.tag ?? '';
-    self.machine = () => ({ sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000) });
+    self.machine = () => ({
+      sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000),
+      rand: () => Number(this.bindings.calls?.['machine().rand']?.() ?? 0),
+    });
     self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
     this.members.this = self;
     for (const callback of definition.callbacks) {
@@ -710,7 +720,29 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         'machine().sample_rate': () => 48000,
-        stream_alloc: () => ({ update: () => this.bindings.calls?.['stream.update']?.() ?? 0 }),
+        // MAME `running_machine::rand`, from its fixed power-on seed. The seed
+        // is device state so a save state carries it (VLM5030 draws its
+        // unvoiced excitation from it every sample).
+        'machine().rand': () => {
+          const seed = (Math.imul(1664525, Number(this.members.__machine_rand_seed ?? 0x9d14abd7)) +
+            1013904223) >>> 0;
+          this.members.__machine_rand_seed = seed;
+          return ((seed >>> 16) | (seed << 16)) >>> 0;
+        },
+        // MAME `device_rom_interface::read_byte`: the device's own region.
+        ...(definition.romInterface ? {
+          read_byte: (address: number) => {
+            const rom = options.regions?.[options.tag ?? ''];
+            return rom?.length ? rom[(address & (2 ** definition.romInterface!.addressBits - 1)) % rom.length]! : 0;
+          },
+        } : {}),
+        // `stream_alloc(inputs, outputs, sample_rate)`: the rate is the device's
+        // own native output rate (VLM5030 asks for clock()/440), kept so the
+        // host pumping it knows how many samples elapsed time is worth.
+        stream_alloc: (_inputs, _outputs, rate) => {
+          if (Number(rate) > 0) this.members.__stream_rate = Number(rate);
+          return { update: () => this.bindings.calls?.['stream.update']?.() ?? 0 };
+        },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
           ? 0 : this.runningCycles - Number(this.members.m_icount)),
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
@@ -1121,6 +1153,11 @@ class IrDevice implements Device {
 
   methodNames(): readonly string[] {
     return [...this.methods.keys()];
+  }
+
+  streamRate(): number | undefined {
+    const rate = Number(this.members.__stream_rate);
+    return rate > 0 ? rate : undefined;
   }
 
   takeStreamSamples(): readonly number[] {

@@ -59,6 +59,19 @@ void board_state::machine(machine_config &config) {
     [['CBM_IEC_SLOT', 'iec8'], ['CBM_IEC', 'iec_bus']]);
   eq('helper substitution preserves the configured drive',
     config?.devices[0]?.config[0]?.includes('"drive"'), true);
+  // Bomb Jack builds its board in a templated member and passes the PSG type.
+  const [bombjack] = parseMachineConfigs(`
+void bombjack_state::bombjack(machine_config &config) {
+  Z80(config, m_maincpu, 4000000);
+  bombjack_base(config, AY8910);
+}`, { m_maincpu: 'maincpu', 'm_ay8910[0]': 'ay1' }, {}, [{
+    className: 'bombjack_state', name: 'bombjack_base',
+    parameters: 'machine_config &config, T &&psg_type',
+    body: 'Z80(config, m_audiocpu, 3000000); psg_type(config, m_ay8910[0], 1500000).add_route(ALL_OUTPUTS, "speaker", 0.13);',
+  }]);
+  eq('unqualified templated config members expand with their type argument',
+    bombjack?.devices.map(device => [device.type, device.tag, device.clock]),
+    [['Z80', 'maincpu', 4000000], ['Z80', 'audiocpu', 3000000], ['AY8910', 'ay1', 1500000]]);
   eq('addressed slots retain their selected disk drive',
     [config?.devices[0]?.slotOptions, config?.devices[0]?.slotDefault, config?.devices[0]?.clock],
     ['cbm_iec_devices', 'drive', null]);
@@ -404,6 +417,24 @@ INPUT_PORTS_END
   ]);
 }
 
+eq('an owner-class submap window carries no device reference', parseAddressMaps(`
+void bombjack_state::bombjack_map(address_map &map)
+{
+  map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map));
+}`)[0]?.ranges[0]?.deviceMap, { ref: '', className: 'bombjack_state', method: 'program_map' });
+
+eq('east-const gfx layouts are recognised', parseGfxLayouts(`
+static gfx_layout const layout_8x8 =
+{
+  8, 8, RGN_FRAC(1, 3), 3,
+  { RGN_FRAC(0, 3), RGN_FRAC(1, 3), RGN_FRAC(2, 3) },
+  { STEP8(0, 1) },
+  { STEP8(0, 8) },
+  8 * 8
+};
+`).map(layout => [layout.name, layout.width, layout.charIncrement, layout.total, layout.planeOffsets[1]]),
+  [['layout_8x8', 8, 64, 'RGN_FRAC(1,3)', 'RGN_FRAC(1,3)']]);
+
 eq('nested symbolic STEP gfx offsets expand', parseGfxLayouts(`
 static const gfx_layout sprites = {
   16, 1, RGN_FRAC(1,4), 1,
@@ -677,6 +708,9 @@ void nes_state::nes(machine_config &config)
 
 // --- parseDefines seeding (externals first, local wins) ----------------------
 {
+  eq('every declarator of one constexpr declaration is a constant',
+    parseDefines('static inline constexpr u16 HTOTAL = 384, HBSTART = 256, HBEND = HTOTAL - 384;'),
+    { HTOTAL: 384, HBSTART: 256, HBEND: 0 });
   const seeded = parseDefines('#define LOCAL (BASE*2)\n#define BASE 7', { BASE: 3 });
   eq('seeded constant resolves', seeded.LOCAL, 6);   // uses seed BASE=3 at eval time
   eq('local redefinition wins', seeded.BASE, 7);

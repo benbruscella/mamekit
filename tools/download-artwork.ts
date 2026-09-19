@@ -96,6 +96,14 @@ const fallbackBezels: Record<string, {
     url: 'https://raw.githubusercontent.com/thebezelproject/bezelproject-MAME/master/retroarch/overlay/ArcadeBezels/wardner.png',
     screen: { x: 259, y: 18, width: 1403, height: 1043 },
   },
+  hyperspt: {
+    url: 'https://raw.githubusercontent.com/thebezelproject/bezelproject-MAME/master/retroarch/overlay/ArcadeBezels/hyperspt.png',
+    screen: { x: 259, y: 19, width: 1401, height: 1041 },
+  },
+  nbajam: {
+    url: 'https://raw.githubusercontent.com/thebezelproject/bezelproject-MAME/master/retroarch/overlay/ArcadeBezels/nbajam.png',
+    screen: { x: 260, y: 20, width: 1398, height: 1038 },
+  },
 };
 
 function validPng(path: string): boolean {

@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { DAC_VALUE_MAP_SOURCE } from '../hardware/dac/worklet-source.ts';
 import { join } from 'node:path';
 import { evalExpr } from '../kg/parse.ts';
 import { splitMameArgs } from './ast.ts';
@@ -114,10 +115,13 @@ export interface GeneratedSn76489Route {
   gain: number;
 }
 
+${DAC_VALUE_MAP_SOURCE}
+
 export interface GeneratedSn76489AuxiliaryDevice {
   type: string;
   deviceTag: string;
   gain: number;
+  dac?: { bits: number; mapper: string; gain: number };
   writeMethods: string[];
 }
 
@@ -329,6 +333,22 @@ export class GeneratedSn76489Mixer {
     gain: number;
     core: GeneratedSn76489SamplesCore;
   }[];
+  /**
+   * Secondary chips rendered on the main thread (a speech chip whose pin a CPU
+   * polls) stream finished PCM in as <tag>.pcm, with their native rate in
+   * the offset. All this side does is hold and resample it.
+   */
+  private readonly pcm = new Map<string, {
+    gain: number;
+    rate: number;
+    queue: number[];
+    phase: number;
+    held: number;
+  }>();
+  private readonly auxiliaryGains: Map<string, number>;
+  /** DACs on the same speaker: each holds the level its last code maps to. */
+  private readonly dacs: { deviceTag: string; gain: number; map: Float64Array; level: number }[];
+  private readonly outputRate: number;
 
   /**
    * deviceTypes and clocks are per chip: a machine config may fit two
@@ -362,6 +382,12 @@ export class GeneratedSn76489Mixer {
         ...routes.filter(route => route.chip === chip).map(route => route.gain),
       ) || 1,
     );
+    this.outputRate = outputRate;
+    this.auxiliaryGains = new Map(auxiliaryDevices.map(device => [device.deviceTag, device.gain]));
+    this.dacs = auxiliaryDevices.filter(device => device.dac).map(device => {
+      const map = dacValueMap(device.dac!);
+      return { deviceTag: device.deviceTag, gain: device.gain, map, level: map[0]! };
+    });
     this.samples = auxiliaryDevices
       .filter(device => device.type === 'SAMPLES')
       .map(device => ({
@@ -376,6 +402,23 @@ export class GeneratedSn76489Mixer {
       const separator = method.lastIndexOf('.');
       const deviceTag = separator < 0 ? '' : method.slice(0, separator);
       const deviceMethod = separator < 0 ? method : method.slice(separator + 1);
+      const dac = this.dacs.find(device => device.deviceTag === deviceTag);
+      if (dac) {
+        dac.level = dac.map[data & (dac.map.length - 1)] ?? 0;
+        return;
+      }
+      if (deviceMethod === 'pcm') {
+        let stream = this.pcm.get(deviceTag);
+        if (!stream) {
+          stream = { gain: this.auxiliaryGains.get(deviceTag) ?? 1, rate: chip, queue: [], phase: 0, held: 0 };
+          this.pcm.set(deviceTag, stream);
+        }
+        stream.rate = chip;
+        // A stalled consumer must not grow the queue without bound; half a
+        // second of speech is already far more than the sink is behind.
+        if (stream.queue.length < 4096) stream.queue.push(data);
+        return;
+      }
       const samples = this.samples.find(device => device.deviceTag === deviceTag);
       samples?.core.write(chip, data, deviceMethod);
       return;
@@ -396,6 +439,15 @@ export class GeneratedSn76489Mixer {
     mixed /= Math.max(1, this.cores.length);
     for (const device of this.samples) {
       mixed += device.core.sampleValue() * device.gain;
+    }
+    for (const dac of this.dacs) mixed += dac.level * dac.gain;
+    for (const stream of this.pcm.values()) {
+      stream.phase += stream.rate / this.outputRate;
+      while (stream.phase >= 1) {
+        stream.phase -= 1;
+        if (stream.queue.length) stream.held = stream.queue.shift()!;
+      }
+      mixed += stream.held * stream.gain;
     }
     return Math.max(-1, Math.min(1, mixed));
   }

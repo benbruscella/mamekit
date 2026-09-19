@@ -317,8 +317,18 @@ export function parseDefines(src: string, seed: Record<string, number> = {}): Re
     const name = m[1] ?? m[3];
     const expr = (m[2] ?? m[4] ?? m[5] ?? '').trim();
     if (!name || !expr) continue;
-    const v = evalExpr(expr, out);
-    if (v !== null) out[name] = v;
+    // One declaration may carry several declarators:
+    // `static inline constexpr u16 HTOTAL = 384, HBSTART = 256, HBEND = 0;`
+    const [first = '', ...rest] = m[5] !== undefined ? splitArgs(expr) : [expr];
+    const declarators: [string, string][] = [[name, first]];
+    for (const declarator of rest) {
+      const next = /^(\w+)\s*=\s*([\s\S]+)$/.exec(declarator.trim());
+      if (next) declarators.push([next[1]!, next[2]!]);
+    }
+    for (const [declared, value] of declarators) {
+      const v = evalExpr(value.trim(), out);
+      if (v !== null) out[declared] = v;
+    }
   }
   return out;
 }
@@ -655,7 +665,8 @@ export interface AddressRangeDef {
    * `map(...).m("riot", FUNC(mos6532_device::io_map))`: the window is filled by
    * a whole address map the device declares for itself, not by one handler.
    * The map lives in the device's own source, so build.ts expands this into
-   * ordinary ranges once it can read that file.
+   * ordinary ranges once it can read that file. An empty `ref` names one of
+   * the owning class's own maps instead.
    */
   deviceMap?: { ref: string; className: string; method: string };
   raw: string;
@@ -740,9 +751,11 @@ export function parseAddressMaps(src: string): AddressMapDef[] {
           case 'm': {
             const func = /FUNC\(\s*(\w+)::(\w+)\s*\)/.exec(args.join(','));
             const ref = args.find(argument => !argument.includes('FUNC('));
-            if (func && ref) {
+            // Without a device argument the window holds one of the owner's
+            // own maps: Bomb Jack's `map(0x8000, 0xbfff).m(FUNC(program_map))`.
+            if (func) {
               range.deviceMap = {
-                ref: unquote(ref.trim()),
+                ref: ref ? unquote(ref.trim()) : '',
                 className: func[1]!,
                 method: func[2]!,
               };
@@ -1324,12 +1337,18 @@ export function parseMachineConfigs(
     };
 
     const expandHelper = (statement: string, depth = 0): string[] => {
-      const call = /^(\w+)::(\w+)\s*\(([\s\S]*)\)$/.exec(statement.trim());
-      const helper = call && helpers.find(candidate => candidate.className === call[1] && candidate.name === call[2]);
+      const call = /^(?:(\w+)::)?(\w+)\s*\(\s*config\s*,([\s\S]*)\)$/.exec(statement.trim());
+      // An unqualified call names a member of this class or of a base class
+      // (calorie_state calls bombjack_state::bombjack_base); take it only when
+      // exactly one class declares a helper of that name.
+      const named = call ? helpers.filter(candidate => candidate.name === call[2] &&
+        (call[1] ? candidate.className === call[1] : true)) : [];
+      const helper = call && (named.find(candidate => candidate.className === cls) ??
+        (named.length === 1 ? named[0] : undefined));
       if (!call || !helper) return [statement];
-      if (depth >= 8) throw new Error(`recursive machine-config helper ${call[1]}::${call[2]}`);
+      if (depth >= 8) throw new Error(`recursive machine-config helper ${helper.className}::${call[2]}`);
       const parameters = splitArgs(helper.parameters).map(parameter => /([\w]+)\s*$/.exec(parameter)?.[1]);
-      const args = splitArgs(call[3]!);
+      const args = ['config', ...splitArgs(call[3]!)];
       if (parameters.length !== args.length || parameters.some(parameter => !parameter)) {
         throw new Error(`unsupported machine-config helper arguments: ${statement}`);
       }
@@ -1929,7 +1948,8 @@ export function parseGfxLayouts(src: string): GfxLayoutDef[] {
   for (const array of src.matchAll(offsetArrayRe)) {
     extendedOffsets.set(array[1]!, parseOffsetList(`{${array[2]}}`));
   }
-  const re = /(?:static\s+)?const\s+gfx_layout\s+(\w+)\s*=\s*\{([\s\S]*?)\};/g;
+  // Both `const gfx_layout x` and east-const `gfx_layout const x` (Bomb Jack).
+  const re = /(?:static\s+)?(?:const\s+gfx_layout|gfx_layout\s+const)\s+(\w+)\s*=\s*\{([\s\S]*?)\};/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const fields = splitArgs(m[2]);
@@ -1942,15 +1962,19 @@ export function parseGfxLayouts(src: string): GfxLayoutDef[] {
     const extendedY = yOffsets.length === 1 && yOffsets[0] === 'EXTENDED_YOFFS'
       ? extendedOffsets.get(fields[9]?.trim())
       : undefined;
+    // Symbolic offsets are data the runtime resolves; store them without
+    // source spacing so `RGN_FRAC(1, 3)` and `RGN_FRAC(1,3)` are one form.
+    const canonical = (offsets: (number | string)[]) =>
+      offsets.map(offset => typeof offset === 'string' ? offset.replace(/\s+/g, '') : offset);
     out.push({
       name: m[1],
       width: evalExpr(fields[0]) ?? 0,
       height: evalExpr(fields[1]) ?? 0,
-      total: evalExpr(fields[2]) ?? fields[2].trim(),
+      total: evalExpr(fields[2]) ?? fields[2].replace(/\s+/g, ''),
       planes: evalExpr(fields[3]) ?? 0,
-      planeOffsets: parseOffsetList(fields[4]),
-      xOffsets: extendedX ?? xOffsets,
-      yOffsets: extendedY ?? yOffsets,
+      planeOffsets: canonical(parseOffsetList(fields[4])),
+      xOffsets: canonical(extendedX ?? xOffsets),
+      yOffsets: canonical(extendedY ?? yOffsets),
       charIncrement: evalExpr(fields[7]) ?? 0,
     });
   }

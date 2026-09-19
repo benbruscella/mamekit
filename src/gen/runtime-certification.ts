@@ -67,6 +67,11 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
   },
   mslug: {
     generationGaps: [
+      // `cartslot_fixed(config, "rom")` is a multi-argument config helper, so
+      // the slot only became visible once those expanded (#149). The board
+      // already serves the cartridge through its `cslot1:` regions; the
+      // execution plan is byte-identical with and without the device.
+      'cslot1:NEOGEO_CART_SLOT',
       'ctrl1:NEOGEO_CONTROL_PORT',
       'ctrl2:NEOGEO_CONTROL_PORT',
       'edge:NEOGEO_CTRL_EDGE_CONNECTOR',
@@ -154,13 +159,6 @@ export const RUNTIME_CERTIFICATIONS: Readonly<Record<string, RuntimeCertificatio
       'timeplt_audio:ay2.data_r',
       'timeplt_audio:ay2.data_w',
     ],
-  },
-  trackfld: {
-    // Real-ROM video and the SN76489/DAC audio stream match every stored
-    // checkpoint exactly. VLM speech decoding remains an explicit bounded
-    // gap rather than blocking the playable board around it.
-    generationGaps: ['vlm:VLM5030'],
-    handlerGaps: ['vlm.data_w'],
   },
   tutankhm: {
     generationGaps: [],

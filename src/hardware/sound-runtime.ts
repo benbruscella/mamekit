@@ -48,6 +48,8 @@ export interface SoundRuntimeContext {
    * board knowing which chip it is.
    */
   deviceStream(tag: string): readonly number[];
+  /** The native rate a main-thread device gave `stream_alloc`, once started. */
+  deviceStreamRate?(tag: string): number | undefined;
   /** Run a callback's generated handler, for device ports read back. */
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */

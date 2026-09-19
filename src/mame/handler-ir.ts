@@ -1,6 +1,6 @@
 import { maskComments } from './ast.ts';
 import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
-import { walkExpressions, walkOperations } from '../ir/walk.ts';
+import { nestedOperations, walkExpressions, walkOperations } from '../ir/walk.ts';
 
 interface Token {
   kind: 'identifier' | 'number' | 'string' | 'operator' | 'punctuation' | 'eof';
@@ -141,8 +141,19 @@ class HandlerParser {
     this.tokens = tokens;
   }
 
+  /**
+   * `goto` and its labels, as placeholders until the list holding the label is
+   * complete. Only a forward jump out to a label at an enclosing level has a
+   * structured form (see `lowerForwardGotos`); anything else stays a diagnostic.
+   */
+  private readonly gotos = new Map<GeneratedHandlerOperation, string>();
+  private readonly labels = new Map<GeneratedHandlerOperation, string>();
+
   parse(): GeneratedHandlerProgram {
     const operations = this.parseOperations();
+    for (const [, label] of this.gotos) {
+      this.diagnostics.push(`unsupported goto ${label}`);
+    }
     return { operations, diagnostics: this.diagnostics };
   }
 
@@ -154,11 +165,128 @@ class HandlerParser {
       else if (operation) operations.push(operation);
     }
     if (stop) this.consume(stop);
-    return operations;
+    return this.lowerForwardGotos(operations);
+  }
+
+  /**
+   * A forward `goto` to a label later in the same list, from anywhere inside
+   * the statements before it: VLM5030's sample loop leaves through
+   * `goto phase_stop;` to the end-of-phase switch below it. The jump is the
+   * same as running the preceding statements once in a loop and breaking out:
+   *
+   *   bool __goto_L = 0;
+   *   while (1) { ...statements, goto -> { __goto_L = 1; break; }...; break; }
+   *   L: ...
+   *
+   * with `if (__goto_L) break;` after every loop or switch the goto sits in, so
+   * the break reaches the wrapper. The statements must not break or continue
+   * at their own level, which would change meaning once wrapped.
+   */
+  private lowerForwardGotos(operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
+    const at = operations.findIndex(operation => this.labels.has(operation));
+    if (at < 0) return operations;
+    const label = this.labels.get(operations[at]!)!;
+    const before = operations.slice(0, at);
+    const after = this.lowerForwardGotos(operations.slice(at + 1));
+    const flag = `__goto_${label}`;
+    const jumps = (list: GeneratedHandlerOperation[]): boolean => {
+      let found = false;
+      walkOperations(list, operation => {
+        if (this.gotos.get(operation) === label) found = true;
+      });
+      return found;
+    };
+    if (!jumps(before)) return [...before, ...after];
+    const exitsOwnLevel = (list: GeneratedHandlerOperation[]): boolean => list.some(operation =>
+      ((operation.op === 'break' || operation.op === 'continue') && !this.gotos.has(operation)) ||
+      (operation.op === 'if' && nestedOperations(operation).some(exitsOwnLevel)));
+    // A local declared before the jump stays in scope after the label, so a
+    // scalar the code after the label reads is declared ahead of the wrapper
+    // and only assigned inside it. An array or allocation is not hoisted.
+    const usedAfter = new Set<string>();
+    walkExpressions(after, expression => {
+      if (expression.kind === 'identifier') usedAfter.add(expression.name);
+    });
+    const hoisted: GeneratedHandlerOperation[] = [];
+    let unhoistable = false;
+    const body = before.map(operation => {
+      if (operation.op !== 'declare' || !usedAfter.has(operation.name)) return operation;
+      if (operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+          ['ARRAY', 'ALLOC'].includes(operation.value.callee.name)) {
+        unhoistable = true;
+        return operation;
+      }
+      hoisted.push({
+        op: 'declare',
+        name: operation.name,
+        ...(operation.valueType ? { valueType: operation.valueType } : {}),
+      });
+      return operation.value
+        ? { op: 'assign', target: { kind: 'identifier', name: operation.name }, operator: '=', value: operation.value } as GeneratedHandlerOperation
+        : undefined;
+    }).filter((operation): operation is GeneratedHandlerOperation => operation !== undefined);
+    // Unlowered, the goto placeholder survives and parse() reports it.
+    if (exitsOwnLevel(before) || unhoistable) return [...before, ...after];
+    const raise: GeneratedHandlerOperation[] = [
+      { op: 'assign', target: { kind: 'identifier', name: flag }, operator: '=', value: { kind: 'number', value: 1 } },
+      { op: 'break' },
+    ];
+    const rewrite = (list: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] =>
+      list.flatMap(operation => {
+        if (this.gotos.get(operation) === label) {
+          this.gotos.delete(operation);
+          return raise.map(step => ({ ...step }));
+        }
+        if (!jumps([operation])) return [operation];
+        const lowered = { ...operation } as GeneratedHandlerOperation & Record<string, unknown>;
+        switch (lowered.op) {
+          case 'if':
+            lowered.then = rewrite(lowered.then);
+            if (lowered.else) lowered.else = rewrite(lowered.else);
+            return [lowered];
+          case 'for': case 'while': case 'do-while':
+            lowered.body = rewrite(lowered.body);
+            break;
+          case 'switch':
+            lowered.cases = lowered.cases.map(entry => ({ ...entry, body: rewrite(entry.body) }));
+            break;
+          default:
+            return [lowered];
+        }
+        return [lowered, {
+          op: 'if',
+          condition: { kind: 'identifier', name: flag },
+          then: [{ op: 'break' }],
+        }];
+      });
+    return [
+      ...hoisted,
+      { op: 'declare', name: flag, valueType: 'int', value: { kind: 'number', value: 0 } },
+      { op: 'while', condition: { kind: 'number', value: 1 }, body: [...rewrite(body), { op: 'break' }] },
+      ...after,
+    ];
   }
 
   private parseStatement(): GeneratedHandlerOperation | GeneratedHandlerOperation[] | undefined {
     if (this.consume(';')) return undefined;
+    if (this.atText('goto') && this.tokens[this.index + 1]?.kind === 'identifier' &&
+        this.tokens[this.index + 2]?.text === ';') {
+      this.take();
+      const label = this.take().text;
+      this.take();
+      // Stands in until its label is seen; lowerForwardGotos replaces it.
+      const jump: GeneratedHandlerOperation = { op: 'break' };
+      this.gotos.set(jump, label);
+      return jump;
+    }
+    if (this.peek().kind === 'identifier' && !['case', 'default', 'public', 'private', 'protected'].includes(this.peek().text) &&
+        this.tokens[this.index + 1]?.text === ':') {
+      const label = this.take().text;
+      this.take();
+      const mark: GeneratedHandlerOperation = { op: 'continue' };
+      this.labels.set(mark, label);
+      return mark;
+    }
     if (this.consume('{')) return this.parseOperations('}');
     if (this.atText('if')) return this.parseIf();
     if (this.atText('for')) return this.parseFor();

@@ -3750,7 +3750,19 @@ function sourceNumericConstants(source: string): Record<string, number> {
   for (const match of source.matchAll(
     /\b(?:static\s+)?(?:constexpr|const)\s+(?:\w+\s+)+(\w+)\s*(?:\([^)]*\))?\s*=\s*([^;]+);/g,
   )) {
-    expressions.set(match[1]!, match[2]!.trim());
+    // A static declaration may carry several declarators (Bomb Jack's
+    // `static inline constexpr u16 HTOTAL = 384, HBSTART = 256, HBEND = 0;`).
+    // Function-local `const` lists are left alone: they are not constants of
+    // the translation unit.
+    const lineStart = source.lastIndexOf('\n', match.index) + 1;
+    const declarators = /\bstatic\b/.test(source.slice(lineStart, match.index + match[0].length))
+      ? splitMameArgs(match[2]!)
+      : [match[2]!];
+    expressions.set(match[1]!, declarators[0]!.trim());
+    for (const declarator of declarators.slice(1)) {
+      const next = /^\s*(\w+)\s*=\s*([\s\S]+)$/.exec(declarator);
+      if (next) expressions.set(next[1]!, next[2]!.trim());
+    }
   }
   const values: Record<string, number> = {};
   for (let pass = 0; pass < expressions.size + 1; pass++) {
