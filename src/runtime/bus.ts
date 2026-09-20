@@ -150,8 +150,21 @@ export class Bus {
   private highWriteBase = new Map<number, Uint32Array>();
   private readFns: ReadHandler[] = [() => OPEN_BUS];
   private writeFns: WriteHandler[] = [() => { /* open bus */ }];
-  private readonly wordReadFns = new Map<number, WordReadHandler>();
-  private readonly wordWriteFns = new Map<number, WordWriteHandler>();
+  private readonly wordReadFns: (WordReadHandler | undefined)[] = [];
+  private readonly wordWriteFns: (WordWriteHandler | undefined)[] = [];
+  /**
+   * The decode arrays of the last page each direction touched.
+   *
+   * A processor whose whole space lies above 0xffff (the TMS34010) decodes
+   * every access through these maps, and consecutive accesses nearly always
+   * share a page.
+   */
+  private lastReadPage = -1;
+  private lastReadIds?: Uint8Array;
+  private lastReadBases?: Int32Array | Uint32Array | Float64Array;
+  private lastWritePage = -1;
+  private lastWriteIds?: Uint8Array;
+  private lastWriteBases?: Int32Array | Uint32Array | Float64Array;
   private base = new Uint32Array(0x10000);  // range base addr per address (for offset calc)
   private readonly viewMappings: {
     tag: string; entry: number; start: number; end: number; mirror: number;
@@ -350,8 +363,8 @@ export class Bus {
 
       const readIdx = read ? this.readFns.push(read) - 1 : 0;
       const writeIdx = write ? this.writeFns.push(write) - 1 : 0;
-      if (wordRead && readIdx) this.wordReadFns.set(readIdx, wordRead);
-      if (wordWrite && writeIdx) this.wordWriteFns.set(writeIdx, wordWrite);
+      if (wordRead && readIdx) this.wordReadFns[readIdx] = wordRead;
+      if (wordWrite && writeIdx) this.wordWriteFns[writeIdx] = wordWrite;
       if (readIdx > 255 || writeIdx > 255) throw new Error('too many bus handlers');
 
       const mirror = r.mirror ?? 0;
@@ -429,6 +442,8 @@ export class Bus {
   }
 
   stateRestored(): void {
+    this.lastReadPage = -1;
+    this.lastWritePage = -1;
     this.rebuildViews();
   }
 
@@ -442,6 +457,8 @@ export class Bus {
 
   private rebuildViews(): void {
     if (!this.baseReadId || !this.baseWriteId || !this.baseAddresses) return;
+    this.lastReadPage = -1;
+    this.lastWritePage = -1;
     this.readId.set(this.baseReadId);
     this.writeId.set(this.baseWriteId);
     this.base.set(this.baseAddresses);
@@ -471,16 +488,16 @@ export class Bus {
     if (addr <= 0xffff) {
       return this.readFns[this.readId[addr]](addr, addr - (this.base[addr] & 0xffff)) & 0xff;
     }
-    const page = addr >>> 12;
-    const offset = addr & 0xfff;
-    const id = this.highReadId.get(page)?.[offset] ?? 0;
-    const base = this.highReadBase.get(page)?.[offset] ?? 0;
-    return this.readFns[id](addr, addr - base) & 0xff;
+    this.lookup(addr, false);
+    return this.readFns[this.lookupId](addr, addr - this.lookupBase) & 0xff;
   };
 
   read16be = (addr: number): number => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    // The tap bookkeeping below costs an exception frame on every access; a
+    // board with no taps installed cannot need it.
+    if (!this.accessTaps.length) return this.read16beUntapped(addr);
+    this.tap(addr);
     this.tapDepth++;
     try {
       return this.read16beUntapped(addr);
@@ -490,13 +507,15 @@ export class Bus {
   };
 
   private read16beUntapped(addr: number): number {
-    const mapping = this.wordMapping(addr, false);
-    const next = this.wordMapping((addr + 1) & this.addressMask, false);
-    const direct = mapping && next && mapping.id === next.id && mapping.base === next.base
-      ? this.wordReadFns.get(mapping.id)
+    this.lookup(addr, false);
+    const id = this.lookupId;
+    const base = this.lookupBase;
+    this.lookup((addr + 1) & this.addressMask, false);
+    const direct = id === this.lookupId && base === this.lookupBase
+      ? this.wordReadFns[id]
       : undefined;
     return direct
-      ? direct(addr, addr - mapping!.base) & 0xffff
+      ? direct(addr, addr - base) & 0xffff
       : ((this.read(addr) << 8) | this.read(addr + 1)) & 0xffff;
   }
 
@@ -535,32 +554,57 @@ export class Bus {
   };
 
   private write16beUntapped(addr: number, data: number): void {
-    const mapping = this.wordMapping(addr, true);
-    const next = this.wordMapping((addr + 1) & this.addressMask, true);
-    const direct = mapping && next && mapping.id === next.id && mapping.base === next.base
-      ? this.wordWriteFns.get(mapping.id)
+    this.lookup(addr, true);
+    const id = this.lookupId;
+    const base = this.lookupBase;
+    this.lookup((addr + 1) & this.addressMask, true);
+    const direct = id === this.lookupId && base === this.lookupBase
+      ? this.wordWriteFns[id]
       : undefined;
     if (direct) {
-      direct(addr, addr - mapping!.base, data & 0xffff);
+      direct(addr, addr - base, data & 0xffff);
       return;
     }
     this.write(addr, data >>> 8);
     this.write(addr + 1, data);
   }
 
-  private wordMapping(addr: number, write: boolean): { id: number; base: number } | undefined {
+  /**
+   * The handler id and window base decoding one address, left in
+   * `lookupId`/`lookupBase`.
+   *
+   * Scratch fields rather than a returned object: a word access looks up both
+   * halves, and allocating two records per access was a fifth of a Mortal
+   * Kombat frame -- its whole address space decodes through the high pages.
+   */
+  private lookupId = 0;
+  private lookupBase = 0;
+
+  private lookup(addr: number, write: boolean): void {
     if (addr <= 0xffff) {
-      return {
-        id: write ? this.writeId[addr]! : this.readId[addr]!,
-        base: write ? this.base[addr]! >>> 16 : this.base[addr]! & 0xffff,
-      };
+      this.lookupId = write ? this.writeId[addr]! : this.readId[addr]!;
+      this.lookupBase = write ? this.base[addr]! >>> 16 : this.base[addr]! & 0xffff;
+      return;
     }
     const page = addr >>> 12;
     const offset = addr & 0xfff;
-    return {
-      id: (write ? this.highWriteId : this.highReadId).get(page)?.[offset] ?? 0,
-      base: (write ? this.highWriteBase : this.highReadBase).get(page)?.[offset] ?? 0,
-    };
+    if (write) {
+      if (page !== this.lastWritePage) {
+        this.lastWritePage = page;
+        this.lastWriteIds = this.highWriteId.get(page);
+        this.lastWriteBases = this.highWriteBase.get(page);
+      }
+      this.lookupId = this.lastWriteIds === undefined ? 0 : this.lastWriteIds[offset] ?? 0;
+      this.lookupBase = this.lastWriteBases === undefined ? 0 : this.lastWriteBases[offset] ?? 0;
+      return;
+    }
+    if (page !== this.lastReadPage) {
+      this.lastReadPage = page;
+      this.lastReadIds = this.highReadId.get(page);
+      this.lastReadBases = this.highReadBase.get(page);
+    }
+    this.lookupId = this.lastReadIds === undefined ? 0 : this.lastReadIds[offset] ?? 0;
+    this.lookupBase = this.lastReadBases === undefined ? 0 : this.lastReadBases[offset] ?? 0;
   }
 
   /** io space: unused on this board family */

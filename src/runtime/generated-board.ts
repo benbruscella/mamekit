@@ -372,6 +372,12 @@ class IrBoard implements Board {
    */
   private readonly cpuSliceCycles = new Map<string, number>();
   /**
+   * Cycles the running processor's slice has executed, updated between
+   * instructions. A field rather than a map entry: every instruction writes
+   * it, and only the running processor's count is ever read mid-slice.
+   */
+  private runningSliceCycles = 0;
+  /**
    * The latest time each image transport has observed, so its reading never
    * rewinds. Only transports get this: a timer callback must read its own
    * expiry (the scheduler stands there, not at the end of the lump that
@@ -384,8 +390,6 @@ class IrBoard implements Board {
   private readonly observedTransportSeconds = new Map<string, number>();
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
-  /** Cycles of the running slice already reported to tickInstruction, by CPU. */
-  private readonly instructionTickCycles = new Map<string, number>();
   /** The live selection of each memory bank, by tag. */
   private readonly bankSelection = new Map<string, { entry: number }>();
   /**
@@ -1504,6 +1508,13 @@ class IrBoard implements Board {
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
+      // Cycles of the running slice already reported to a sound device, and
+      // the resolved hook itself (the runtime is installed after this closure).
+      const instructionTicks = this.hostModel(
+        `${specification.tag}.instructionTicks`, { previous: 0 },
+      );
+      const instructionTick: { resolved: boolean; tick?: (cycles: number) => void } =
+        { resolved: false };
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       // Delegates the machine configuration bound on this processor, by the
       // name the core calls them: the TMS34010 draws each scanline through
@@ -1590,20 +1601,27 @@ class IrBoard implements Board {
           ) ?? 0xff,
         } : {}),
         timing: (elapsed, target) => {
-          const sound = this.soundRuntime;
-          if (sound?.tickInstruction && sound.instructionCpus?.has(specification.tag)) {
-            const current = Math.max(0, Math.min(target, elapsed));
-            const previous = this.instructionTickCycles.get(specification.tag) ?? 0;
-            if (current > previous) sound.tickInstruction(specification.tag, current - previous);
-            this.instructionTickCycles.set(specification.tag, current === target ? 0 : current);
+          // Runs between every pair of instructions: what can be resolved once
+          // -- whether a sound device ticks on this processor -- is.
+          if (!instructionTick.resolved) {
+            const sound = this.soundRuntime;
+            instructionTick.resolved = true;
+            instructionTick.tick = sound?.tickInstruction &&
+              sound.instructionCpus?.has(specification.tag)
+              ? (cycles: number) => sound.tickInstruction!(specification.tag, cycles)
+              : undefined;
+          }
+          const clamped = elapsed < 0 ? 0 : elapsed > target ? target : elapsed;
+          if (instructionTick.tick) {
+            if (clamped > instructionTicks.previous) {
+              instructionTick.tick(clamped - instructionTicks.previous);
+            }
+            instructionTicks.previous = clamped === target ? 0 : clamped;
           }
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
-          this.cpuSliceCycles.set(
-            specification.tag,
-            Math.max(0, Math.min(target, elapsed)),
-          );
+          this.runningSliceCycles = clamped;
           if (specification.tag === timerClockCpu?.tag) {
-            const current = Math.max(0, Math.min(target, elapsed));
+            const current = clamped;
             // run() calls timing(0,target) at the start of each slice and
             // timing(target,target) at its end. Advancing by instruction-time
             // deltas lets device timers assert lines between instructions,
@@ -2137,6 +2155,7 @@ class IrBoard implements Board {
               : 0);
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            this.runningSliceCycles = 0;
             this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
               specification.tag,
@@ -2564,7 +2583,7 @@ class IrBoard implements Board {
 
   private beamPosition(): number {
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.cpuSliceCycles.get(this.runningCpu) ?? 0)
+      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
       : undefined;
     if (running !== undefined) return running - generatedTimerBacklog() / this.lineSeconds();
     return this.currentLine +
@@ -2575,7 +2594,7 @@ class IrBoard implements Board {
   private beamLine(): number {
     const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.cpuSliceCycles.get(this.runningCpu) ?? 0)
+      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
       : undefined;
     const line = running === undefined ? this.currentLine : Math.floor(running);
     return ((line % vtotal) + vtotal) % vtotal;
@@ -2716,7 +2735,8 @@ class IrBoard implements Board {
   stateKeys(): readonly string[] {
     return [
       'cpus', 'cpuBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
-      'cpuSliceCycles', 'devices', 'generatedBanks', 'observedTransportSeconds',
+      'cpuSliceCycles', 'runningSliceCycles', 'devices', 'generatedBanks',
+      'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
       'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'watchdogFrames',
@@ -2991,7 +3011,9 @@ class IrBoard implements Board {
 
   private totalCycles(cpuTag: string): number {
     return (this.cpuCycles.get(cpuTag) ?? 0)
-      + (this.cpuSliceCycles.get(cpuTag) ?? 0)
+      + (cpuTag === this.runningCpu
+        ? this.runningSliceCycles
+        : this.cpuSliceCycles.get(cpuTag) ?? 0)
       // The slice total only moves between instructions. A device read or
       // write happens *inside* one, and MAME counts the cycles the current
       // instruction has already paid for -- so a cycle-accurate core is asked

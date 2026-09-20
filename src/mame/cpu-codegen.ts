@@ -498,21 +498,32 @@ export default cpu;
 
 /** Name dispatch and bit-addressed word access for a strict-call core. */
 function emitStrictHelpers(definition: GeneratedCpuDefinition): string {
-  const cases = [...new Set(definition.methods.map(method => method.name))].map(name => {
+  // One entry per method, resolved once into a Map. A member-function-pointer
+  // call names its target at runtime (the TMS34010's opcode and raster-op
+  // tables), and a switch over a thousand names compared them one by one: it
+  // was 16% of an NBA Jam frame.
+  const entries = [...new Set(definition.methods.map(method => method.name))].map(name => {
     const method = resolveMethod(definition, name, parseParameters(
       definition.methods.find(candidate => candidate.name === name)!.parameters).length)!;
     const arity = parseParameters(method.parameters).length;
+    const parameters = Array.from({ length: arity }, (_unused, index) => `a${index}: any`).join(', ');
     const args = Array.from({ length: arity }, (_unused, index) => `a${index}`).join(', ');
-    return `      case ${JSON.stringify(name)}: return this.method_${emittedMethodName(definition, method)}(${args});`;
+    return `    [${JSON.stringify(name)}, (${parameters}) => ` +
+      `this.method_${emittedMethodName(definition, method)}(${args})],`;
   }).join('\n');
   const widest = Math.max(0, ...definition.methods.map(method => parseParameters(method.parameters).length));
   const slots = Array.from({ length: widest }, (_unused, index) => `a${index}: any = 0`).join(', ');
   return `
+  private readonly methodTable = new Map<unknown, (...args: any[]) => number>([
+${entries}
+  ]);
+
   private callMethod(name: unknown${slots ? `, ${slots}` : ''}): number {
-    switch (name) {
-${cases}
-      default: throw new Error('${definition.type} has no method "' + String(name) + '" to call');
+    const method = this.methodTable.get(name);
+    if (method === undefined) {
+      throw new Error('${definition.type} has no method "' + String(name) + '" to call');
     }
+    return method(${Array.from({ length: widest }, (_unused, index) => `a${index}`).join(', ')});
   }
 
   private readWordLE(bitAddress: number): number {
