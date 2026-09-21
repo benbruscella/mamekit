@@ -7,7 +7,12 @@ import { clearGeneratedCpus, registerGeneratedCpu, createCpu } from '../runtime/
 const definition = compileMameM6510(process.env.MAME_SRC ?? '../mame');
 assert.equal(definition.summary.compiledOpcodes, 256);
 assert.equal(definition.summary.diagnostics, 0);
-assert.deepEqual(definition.callbacks, { m_read_port: 'read_callback', m_write_port: 'write_callback' });
+// The port lines are the 6510's own; SYNC is every 6502's (m6502.h).
+assert.deepEqual(definition.callbacks, {
+  m_sync_w: 'sync_cb',
+  m_read_port: 'read_callback',
+  m_write_port: 'write_callback',
+});
 assert.ok(definition.sourceFiles.includes('src/devices/cpu/m6502/om6510.lst'));
 const js = ts.transpileModule(generatedCpuExecutableSource(definition), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },

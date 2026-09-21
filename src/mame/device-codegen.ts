@@ -944,7 +944,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         expression.operator === '!=' ? '!==' : expression.operator;
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
-    if (expression.operator === '>>') return `((${left}) >>> (${right}))`;
+    if (expression.operator === '>>') return `runtime.shiftRight(${left}, ${right})`;
     if (expression.operator === '/') {
       // C++ integer division truncates. The interpreter applies that whenever
       // both operands are integers at run time, exempting expressions the
@@ -1491,7 +1491,7 @@ function emitAssignment(
     const current = `runtime.readIndex(${pointer}, 0)`;
     const next = operator === '='
       ? right
-      : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+      : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     return `runtime.pointerStore(${pointer}, ${next})`;
   }
   if (expression.kind === 'index' && context.pointerSafeIndex) {
@@ -1512,13 +1512,13 @@ function emitAssignment(
       const current = `${object}[${index}]`;
       const next = operator === '='
         ? right
-        : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+        : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
       return `${object}[${index}] = ${next}`;
     }
     const current = `runtime.readIndex(${object}, ${index})`;
     const next = operator === '='
       ? right
-      : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+      : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     return `runtime.writeIndex(${object}, ${index}, ${next})`;
   }
   const target = targetInfo(expression, context);
@@ -1558,7 +1558,7 @@ function pointerAssignment(
   // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical.
   return operator === '='
     ? right
-    : `((${current}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+    : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
 }
 
 function emitAddressOf(

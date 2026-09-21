@@ -620,7 +620,7 @@ class HandlerParser {
     return { op: 'do-while', condition, body };
   }
 
-  private parseSwitch(): GeneratedHandlerOperation | undefined {
+  private parseSwitch(): GeneratedHandlerOperation | GeneratedHandlerOperation[] | undefined {
     this.take();
     if (!this.consume('(')) {
       this.unsupportedStatement('switch without expression');
@@ -631,7 +631,7 @@ class HandlerParser {
       this.unsupportedStatement('invalid switch expression');
       return undefined;
     }
-    const cases: Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'] = [];
+    const cases: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[] = [];
     while (!this.at('eof') && !this.atText('}')) {
       const values: GeneratedExpression[] = [];
       let isDefault = false;
@@ -656,7 +656,8 @@ class HandlerParser {
         this.unsupportedStatement('switch body before first case');
         return undefined;
       }
-      const body: GeneratedHandlerOperation[] = [];
+      let body: GeneratedHandlerOperation[] = [];
+      cases.push({ ...(isDefault ? {} : { values }), body });
       while (
         !this.at('eof') &&
         !this.atText('}') &&
@@ -664,16 +665,109 @@ class HandlerParser {
         !this.atText('default')
       ) {
         const statement = this.parseStatement();
+        // A label at the switch body's own level is another way in: it ends
+        // this case and opens one the preceding statements fall into.
+        const label = !Array.isArray(statement) && statement ? this.labels.get(statement) : undefined;
+        if (label !== undefined) {
+          this.labels.delete(statement as GeneratedHandlerOperation);
+          body = [];
+          cases.push({ values: [], label, body });
+          continue;
+        }
         if (Array.isArray(statement)) body.push(...statement);
         else if (statement) body.push(statement);
       }
-      cases.push({ ...(isDefault ? {} : { values }), body });
     }
     if (!this.consume('}')) {
       this.unsupportedStatement('unterminated switch');
       return undefined;
     }
-    return { op: 'switch', expression, cases };
+    return this.lowerSwitchGotos(expression, cases);
+  }
+
+  /**
+   * `goto` between the case bodies of one switch, forward or back: MAME's
+   * mathbox enters a shared tail of another command's code from two cases
+   * (`goto step_048;`, `goto step_0bf;`). Each such label became a case of
+   * its own above; a jump to it is the switch dispatched again on that case:
+   *
+   *   int __switch = expression;
+   *   while (1) { switch (__switch) { ...goto L -> { __switch = <L>; continue; }... } break; }
+   *
+   * A `continue` of the switch's own would now reach the wrapper instead of
+   * an enclosing loop, and a goto inside a loop in a case would continue that
+   * loop, so either leaves the goto unlowered (and reported).
+   */
+  private lowerSwitchGotos(
+    expression: GeneratedExpression,
+    parsed: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[],
+  ): GeneratedHandlerOperation | GeneratedHandlerOperation[] {
+    // A case is dispatched on a value no real case can have: a label's index,
+    // negated past anything an unsigned offset or register holds.
+    const labelValue = (index: number): GeneratedExpression => ({ kind: 'number', value: -0x40000000 - index });
+    const labels = parsed.flatMap(entry => entry.label ? [entry.label] : []);
+    const cases = parsed.map(entry => {
+      const { label, ...rest } = entry;
+      return label ? { ...rest, values: [labelValue(labels.indexOf(label))] } : rest;
+    });
+    const plain: GeneratedHandlerOperation = { op: 'switch', expression, cases };
+    if (!labels.length) return plain;
+    let lowerable = true;
+    let jumped = false;
+    const visit = (list: GeneratedHandlerOperation[], inLoop: boolean): void => {
+      for (const operation of list) {
+        const target = this.gotos.get(operation);
+        if (target !== undefined && labels.includes(target)) {
+          jumped = true;
+          if (inLoop) lowerable = false;
+          continue;
+        }
+        if (operation.op === 'continue' && !inLoop) lowerable = false;
+        if (operation.op === 'if') {
+          visit(operation.then, inLoop);
+          if (operation.else) visit(operation.else, inLoop);
+        } else if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
+          visit(operation.body, true);
+        } else if (operation.op === 'switch') {
+          for (const entry of operation.cases) visit(entry.body, inLoop);
+        }
+      }
+    };
+    for (const entry of cases) visit(entry.body, false);
+    if (!jumped || !lowerable) return plain;
+    const selector = `__switch_${labels.join('_')}`;
+    const rewrite = (list: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] => list.flatMap(operation => {
+      const target = this.gotos.get(operation);
+      if (target !== undefined && labels.includes(target)) {
+        this.gotos.delete(operation);
+        return [
+          { op: 'assign', target: { kind: 'identifier', name: selector }, operator: '=', value: labelValue(labels.indexOf(target)) },
+          { op: 'continue' },
+        ] as GeneratedHandlerOperation[];
+      }
+      if (operation.op === 'if') {
+        return [{ ...operation, then: rewrite(operation.then), ...(operation.else ? { else: rewrite(operation.else) } : {}) }];
+      }
+      if (operation.op === 'switch') {
+        return [{ ...operation, cases: operation.cases.map(entry => ({ ...entry, body: rewrite(entry.body) })) }];
+      }
+      return [operation];
+    });
+    return [
+      { op: 'declare', name: selector, valueType: 'int', value: expression },
+      {
+        op: 'while',
+        condition: { kind: 'number', value: 1 },
+        body: [
+          {
+            op: 'switch',
+            expression: { kind: 'identifier', name: selector },
+            cases: cases.map(entry => ({ ...entry, body: rewrite(entry.body) })),
+          },
+          { op: 'break' },
+        ],
+      },
+    ];
   }
 
   private parseMutation(terminator: string): GeneratedHandlerOperation | undefined {

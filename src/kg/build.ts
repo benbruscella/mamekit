@@ -14,6 +14,7 @@ import {
 import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import {
+  coreAddressSpaces,
   integerBits,
   constructorInitialValues,
   integerSigned,
@@ -182,6 +183,9 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
   const memberTags = { ...textMacros.strings, ...parseMemberTags(combined, textMacros.strings) };
+  // MAME's address-space indices (AS_PROGRAM, AS_IO, ...), for setters that
+  // name a space by constant.
+  const addressSpaces = coreAddressSpaces(mameSrc);
   const stateClassConstants = parseStateClassConstants(combined);
   const deviceTypes = parseDeviceTypeDecls(combined);
 
@@ -567,10 +571,36 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         /\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*(?:FUNC\(\s*(\w+)::(\w+)\s*\)|timer_expired_delegate\s*\(\s*\))/g,
       )].map(match => `${match[1]}=${match[2] && match[3] ? `${match[2]}.${match[3]}` : ''}`);
     }))];
+    // A driver timer with a real callback, allocated and first armed in the
+    // machine-start closure (Missile Command's scanline IRQ and CPU-speed
+    // timers). Recorded with the start function that arms it; emit-machine
+    // lowers it only when nothing else already reaches that callback.
+    const armedTimers = [...timerStartHandlers].flatMap(key => {
+      const [className, method] = key.split('.');
+      const fn = className && method ? ast.findFunctionInHierarchy(className, method) : undefined;
+      if (!fn) return [];
+      return [...fn.body.matchAll(/\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*(\w+)::(\w+)\s*\)/g)]
+        // Armed by the function that allocates it, through its own closure
+        // (missile's machine_start arms m_irq_timer via schedule_next_irq).
+        .flatMap(match => functionClosureContains(ast, fn, body => body.includes(`${match[1]}->adjust`))
+          ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
+          : []);
+    });
+    for (const entry of armedTimers) {
+      const [, handler, arming] = /^[^=]+=([^@]+)@(.+)$/.exec(entry)!;
+      for (const key of [handler!, arming!]) {
+        const [className, method] = key.split('.');
+        const fn = className && method ? ast.findFunctionInHierarchy(className, method) : undefined;
+        if (!fn) continue;
+        const handlerId = emitSourceHandlerClosure(g, ast, fn.className, fn.name, consts, fn.span);
+        g.edge(cfgId, handlerId, 'CALLS_HANDLER');
+      }
+    }
     g.node('MachineConfig', cfgId, {
       cls: cfg.cls,
       name: cfg.name,
       calls: cfg.calls,
+      ...(armedTimers.length ? { armedTimers } : {}),
       ...(driverStateMembers(ast, cfg.cls).length
         ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
         : {}),
@@ -840,8 +870,18 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
         // are lowered just like setters on scalar finder members.
         const call = /(?:\w+|m_\w+(?:\[\d+\])?)\s*(?:->|\.)\s*(\w+)\s*\(([\s\S]*)\)\s*;?$/.exec(raw.trim());
         if (!call) return [];
-        const values = splitMameArgs(call[2]!).map(value => evalExpr(value, consts));
-        return values.every((value): value is number => value !== null)
+        // Numbers, and the tags a setter hands another device: a string
+        // literal, or a device finder resolved to its tag (the Battlezone
+        // AVG's `set_memory(m_maincpu, AS_PROGRAM, 0x2000)`).
+        const values = splitMameArgs(call[2]!).map(value => {
+          const number = evalExpr(value, { ...addressSpaces, ...consts });
+          if (number !== null) return String(number);
+          const text = value.trim();
+          if (/^"[^"]*"$/.test(text)) return text;
+          const finder = /^m_\w+$/.test(text) ? memberTags[text] : undefined;
+          return finder ? JSON.stringify(finder) : null;
+        });
+        return values.every((value): value is string => value !== null)
           ? [`${call[1]}(${values.join(',')})`]
           : [];
       });
@@ -2565,6 +2605,13 @@ function recordPaletteInit(
     if (device.label !== 'Device' || device.props.type !== 'PALETTE') continue;
     const config = Array.isArray(device.props.config) ? device.props.config.map(String) : [];
     const construction = config.find(line => /^\s*PALETTE\s*\(/.test(line));
+    // The pen count: `set_entries(8)`, or the constructor's trailing count.
+    const entryCount = config
+      .map(line => /\bset_entries\s*\(\s*([^)]+)\)/.exec(line)?.[1]?.trim())
+      .find((value): value is string => Boolean(value))
+      ?? (construction && /,\s*([^,()]+)\s*\)\s*$/.exec(construction)?.[1]?.trim());
+    const paletteEntries = entryCount !== undefined ? evalExpr(entryCount, constants) : null;
+    if (paletteEntries !== null && paletteEntries > 0) device.props.paletteEntries = paletteEntries;
     const func = construction && /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(construction);
     if (!func) continue;
     const entries = /,\s*([^,()]+)\s*\)\s*$/.exec(construction!)?.[1]?.trim();

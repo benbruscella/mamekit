@@ -209,6 +209,11 @@ export async function runGameAcceptance(
   );
   assert.equal(board.fbWidth, contract.screen.width);
   assert.equal(board.fbHeight, contract.screen.height);
+  // As the shell does (shell.ts): a relative control's frame of travel is
+  // handed out against the beam, MAME's frame_interpolate. Without it a board
+  // that reads its trackball mid-frame -- Missile Command, from its scanline
+  // IRQ -- saw one lump per frame here and gradual steps in the browser.
+  input.frameFraction = () => board.frameFraction?.() ?? 1;
 
   const audio = await createAudioProbe(config, regions, outRoot);
   const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -429,6 +434,7 @@ export async function runGameAcceptance(
         deepInput,
         { soundWrite: (offset, data, frac, method) => { replayWrites?.push({ offset, data, frac, method }); } },
       );
+      deepInput.frameFraction = () => deepBoard.frameFraction?.() ?? 1;
       const scratch = new Uint32Array(deepBoard.fbWidth * deepBoard.fbHeight);
       for (let index = 0; index < roundTrip.step; index++) { deepInput.advance(); deepBoard.frame(scratch); }
       await replayFromState(deepBoard, deepInput, roundTrip.step, roundTrip.state, roundTrip.input, 'divergent');

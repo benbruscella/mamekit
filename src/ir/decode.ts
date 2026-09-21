@@ -378,6 +378,21 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.bankDevices !== undefined) {
+    for (const [index, entry] of reader.array(execution.bankDevices, 'execution.bankDevices').entries()) {
+      const path = `execution.bankDevices[${index}]`;
+      const bank = reader.object(entry, path);
+      const source = sourceOf(bank);
+      reader.string(bank.tag, `${path}.tag`, source);
+      reader.optionalString(bank.member, `${path}.member`, source);
+      for (const field of ['dataWidth', 'addrWidth', 'stride']) {
+        reader.number(bank[field], `${path}.${field}`, source);
+      }
+      decodeRanges(reader, bank.ranges, `${path}.ranges`, source);
+      reader.optionalNumber(bank.mask, `${path}.mask`, source);
+    }
+  }
+
   if (execution.participants !== undefined) {
     for (const [index, entry] of reader.array(execution.participants, 'execution.participants').entries()) {
       const path = `execution.participants[${index}]`;

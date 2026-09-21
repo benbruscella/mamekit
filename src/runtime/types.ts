@@ -38,6 +38,7 @@ export interface InputPorts {
 // board contracts shared by the shell and generated machine composition
 // ---------------------------------------------------------------------------
 
+import type { GeneratedBankDevice } from '../ir/board.ts';
 import type { RangeSpec } from './bus.ts';
 
 export interface CpuSpec {
@@ -62,6 +63,8 @@ export interface BoardConfig {
   /** Driver family provenance from the graph. */
   family: string;
   cpus: CpuSpec[];
+  /** `address_map_bank_device` spaces; see GeneratedBankDevice. */
+  bankDevices?: GeneratedBankDevice[];
   /** cpu[0]'s program map alias retained in the generated config format. */
   ranges: RangeSpec[];
   /** cpu[0]'s io space (pacman IM2 vector port) */

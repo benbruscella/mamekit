@@ -1657,6 +1657,14 @@ export function parseMachineConfigs(
             const [space, mapRef] = splitArgs(s.slice(open + 1, close));
             const mm = /&\s*\w+::(\w+)/.exec(mapRef ?? '');
             if (mm) dev.addrMaps[space.trim()] = mm[1];
+          } else if (method === 'set_map' && dev.type === 'ADDRESS_MAP_BANK') {
+            // address_map_bank_device owns one AS_PROGRAM space and names its
+            // map with set_map rather than set_addrmap (Missile Command routes
+            // every CPU access through one).
+            const open = s.indexOf('(', s.indexOf(method));
+            const close = matchParen(s, open);
+            const mm = /&\s*\w+::(\w+)/.exec(s.slice(open + 1, close));
+            if (mm) dev.addrMaps.AS_PROGRAM = mm[1]!;
           } else if (method === 'add_route') {
             const open = s.indexOf('(', s.indexOf(method));
             const close = matchParen(s, open);

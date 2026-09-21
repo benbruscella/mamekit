@@ -210,7 +210,8 @@ export interface GeneratedDevice {
   clock?: number;
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
-  configuration?: { method: string; args: number[] }[];
+  /** Setter calls from the machine config: numbers, and tags as strings. */
+  configuration?: { method: string; args: (number | string)[] }[];
   /**
    * Delegates the machine configuration binds on this device, by setter:
    * `m_maincpu->set_scanline_ind16_callback(m_video,
@@ -526,11 +527,38 @@ export interface GeneratedGenericTimer {
   member: string;
   /** `<class>.<method>` of the TIMER_DEVICE_CALLBACK_MEMBER it fires. */
   handler: string;
+  /**
+   * An `emu_timer` the driver allocates and arms itself (`timer_alloc` +
+   * `adjust` in machine_start), rather than a TIMER device. MAME ends a
+   * timeslice at each of its expiries, so the board schedules by the line.
+   */
+  driver?: true;
+  source?: BoardSourceRef;
+}
+
+/**
+ * MAME `address_map_bank_device`: an address space with no processor of its
+ * own. The driver reaches it with `read8`/`write8` (and moves its window with
+ * `set_bank`), so the board decodes its map as it would a CPU's.
+ */
+export interface GeneratedBankDevice {
+  tag: string;
+  /** Driver finder the driver's calls name (`m_mainmap`). */
+  member?: string;
+  dataWidth: number;
+  addrWidth: number;
+  /** `set_stride`: address units one bank moves the window by. */
+  stride: number;
+  ranges: RangeSpec[];
+  mask?: number;
+  unmapHigh?: boolean;
   source?: BoardSourceRef;
 }
 
 export interface GeneratedExecutionPlan {
   cpus: GeneratedExecutionCpu[];
+  /** Processor-less address spaces the driver reaches by method call. */
+  bankDevices?: GeneratedBankDevice[];
   /** Driver-armed one-shot timers; see GeneratedGenericTimer. */
   genericTimers?: GeneratedGenericTimer[];
   /** Every independently clocked execute participant, CPUs included. */
@@ -675,6 +703,15 @@ export interface GeneratedExecutionPlan {
   paletteInit?: {
     handler: string;
     entries?: number;
+    source?: BoardSourceRef;
+  };
+  /**
+   * A `palette_device` with no init routine and no decoded plan: its pens are
+   * set by the driver's own code (`set_pen_color`) as the machine runs.
+   */
+  paletteDevice?: {
+    tag: string;
+    entries: number;
     source?: BoardSourceRef;
   };
 }
@@ -1126,6 +1163,13 @@ export interface GeneratedVideoPlan {
       mask: number;
       activeLow: boolean;
     };
+  } | {
+    /**
+     * A generated vector generator (`set_vector("vector")`) that appends to
+     * vector_device's display list itself; the host draws that list.
+     */
+    type: 'device';
+    generator: string;
   };
   source?: BoardSourceRef;
 }
@@ -1285,6 +1329,8 @@ export interface GeneratedHandlerRuntime {
   combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
   /** C++ `/`: integral between integers, exact otherwise. */
   divide(left: unknown, right: unknown): number;
+  /** C++ `>>`: arithmetic on a negative value, logical otherwise. */
+  shiftRight(left: unknown, right: unknown): number;
   /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
   same(left: unknown, right: unknown): boolean;
   /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */

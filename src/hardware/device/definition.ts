@@ -15,6 +15,7 @@ export const DEVICE_ID = 'device';
  */
 export const DEVICE_MAME_TYPES = [
   'ADC0804',
+  'AVG_BZONE',
   'BUFFERED_SPRITERAM8',
   'BUFFERED_SPRITERAM16',
   'CD4099',
@@ -37,6 +38,7 @@ export const DEVICE_MAME_TYPES = [
   'LS259',
   'LS157',
   'LATCH8',
+  'MATHBOX',
   'MB14241',
   'MB8843',
   'MB8844',

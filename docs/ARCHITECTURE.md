@@ -246,6 +246,20 @@ does not run another processor from inside the caller's instruction stream,
 which would let the far side answer before the caller has finished setting up
 for the answer.
 
+A driver's own `emu_timer`s -- allocated with a real callback in
+`machine_start` and armed there, where no frame event or scanline timer already
+reaches the callback -- are lowered as generic timers and schedule the board by
+the line. MAME ends a timeslice at every one of their expiries, and they are
+armed against raster positions: Missile Command re-arms its IRQ 32 lines on from
+inside the callback, and a round spanning several lines measured each re-arm
+from a beam the device clock had already run past. A timer fires after the line
+boundary has settled the device clock, for the same reason.
+
+A processor's clock may change as it runs (`set_unscaled_clock`, which Missile
+Command uses to halve its CPU for the lines video fetches steal). The frame
+runner takes the new rate from that line on, and the board keeps a time epoch
+per processor so the cycles run before the change keep the rate they ran at.
+
 ### ADDRESS-SPACE TAPS
 
 Some hardware is invisible to an address map. MAME's `install_readwrite_tap`
@@ -255,6 +269,15 @@ addresses a CPU touches. The Atari slapstic is the example: the machine config
 hands it a window with `set_range` and a ROM bank with `set_bank`, and neither
 call appears in any map. `execution.accessTaps` carries that pair, and the
 board installs a bus tap that offers each access to the device's own decoder.
+
+### BANK DEVICES
+
+`address_map_bank_device` is an address space with no processor of its own:
+the driver reaches it with `read8`/`write8` and moves its window with
+`set_bank`. Its `set_map` names a driver map, which is lowered with exactly the
+range rules a CPU's program map uses and carried as `execution.bankDevices`;
+the board builds a bus from it and answers the driver's calls on the device's
+finder. Missile Command's whole CPU map is a trampoline into one.
 
 ### VALIDATION
 
@@ -305,6 +328,13 @@ state aliases and cycle tables. `src/mame/cpu-compiler.ts` and
 `cpu-codegen.ts` produce executable TypeScript plus auditable CPU IR. The
 browser runtime supplies generic register, bus and program-execution machinery.
 
+A 6502 subclass that changes only its memory interface -- Data East's
+encrypted DECO CPU-7 and C10707 -- is the stock operation list with its bus
+primitives routed through the subclass's own `mi_*` overrides, lowered from its
+source. The fetch is lowered from MAME's `prefetch_start`/`prefetch_end`, so the
+SYNC line (`sync_cb`, `get_sync()`) rises around the opcode read and an
+interrupt is taken only after that read, as MAME takes it.
+
 ### DEVICE
 
 `src/mame/device-compiler.ts` follows MAME device inheritance and methods,
@@ -354,6 +384,14 @@ flips. `src/mame/atarimo-compiler.ts` reads the struct declaration for its
 field order and the driver's initializer for its values, derives each
 word/shift/mask exactly as `sprite_parameter::set` does, and emits a
 `video.motionObjects` plan the generic video runtime executes.
+
+A vector generator is a generated device when MAME's source for it lowers:
+Battlezone's AVG runs its own state-machine timer, reads the display list
+through its `required_address_space`, and hands every beam endpoint to
+`vector_device::add_point`. The vector display itself is presentation -- MAME
+passes the same list to its render container -- so the host keeps the list and
+the video plan (`vector: { type: 'device' }`) only names the generator whose
+list it is. Asteroids' DVG still runs through the older host executor.
 
 A declarative plan is always preferred, because data is inspectable. Where a
 driver's palette callback computes its network in source rather than declaring

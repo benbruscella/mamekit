@@ -778,7 +778,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', DECO_CPU7: 'deco_cpu7', DECO_C10707: 'deco_c10707', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -1099,6 +1099,51 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     };
   });
 
+  // `address_map_bank_device`: an address space with no processor of its own,
+  // reached through the driver's `read8`/`write8` on it. Its map is lowered
+  // with the same range rules as a CPU's, so RAM, ROM, ports and device
+  // handlers inside it decode exactly as they would on a processor bus.
+  const bankDevices = devices
+    .filter(device => device.props.type === 'ADDRESS_MAP_BANK')
+    .flatMap(device => {
+      const map = g.out(device.id, 'HAS_MAP')
+        .find(ref => (ref.edge.props?.space ?? 'AS_PROGRAM') === 'AS_PROGRAM')?.node;
+      if (!map) return [];
+      const tag = String(device.props.tag);
+      const lines = (device.props.config as string[] | undefined) ?? [];
+      const setting = (method: string): string[] | undefined => {
+        const line = lines.find(candidate => candidate.includes(`->${method}(`) || candidate.includes(`.${method}(`));
+        const match = line && new RegExp(`${method}\\s*\\(([^)]*)\\)`).exec(line);
+        return match ? match[1]!.split(',').map(value => value.trim()) : undefined;
+      };
+      // Widths and strides are written as plain literals in every driver.
+      const number = (value: string | undefined): number | undefined =>
+        value !== undefined && /^(?:0x[\da-f]+|\d+)$/i.test(value) ? Number(value) : undefined;
+      const options = setting('set_options');
+      const dataWidth = number(options?.[1]) ?? number(setting('set_data_width')?.[0]) ?? 8;
+      const addrWidth = number(options?.[2]) ?? number(setting('set_addr_width')?.[0]) ?? 32;
+      const stride = number(setting('set_stride')?.[0]) ?? 0;
+      const mask = inheritedGlobalMask(map.id);
+      return [{
+        tag,
+        ...(device.props.member ? { member: String(device.props.member) } : {}),
+        dataWidth,
+        addrWidth,
+        stride,
+        // A processor's ROM comes from its own region, so rangeSpec leaves the
+        // region to the CPU; a bank device has no region of its own and every
+        // ROM window names one (`.rom().region("maincpu", 0x5000)`).
+        ranges: collectRanges(map.id).map(range => ({
+          ...rangeSpec(range, tag),
+          ...(range.props.rom && typeof range.props.region === 'string'
+            ? { region: range.props.region }
+            : {}),
+        })),
+        ...(mask !== undefined ? { mask } : {}),
+        ...(mapUnmapsHigh(map.id) ? { unmapHigh: true } : {}),
+      }];
+    });
+
   if (family === 'neogeo') {
     const main = cpus.find(cpu => cpu.tag === 'maincpu');
     if (main) {
@@ -1202,6 +1247,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   let pixclock: number, htotal: number, hbend: number, hbstart: number, vtotal: number, vbend: number, vbstart: number;
   if (raw) {
     [pixclock, htotal, hbend, hbstart, vtotal, vbend, vbstart] = raw;
+    // `set_raw` sets the visible rectangle as well as the timing, and a later
+    // `set_visarea` replaces only the rectangle -- which is also what MAME's
+    // vblank is timed from. Bump 'n' Jump inherits BurgerTime's 240-wide raw
+    // screen and widens it to 256 in its own config.
+    const patched = screenDev?.props.screenVisarea as number[] | undefined;
+    if (patched) {
+      const [x0, x1, y0, y1] = patched as [number, number, number, number];
+      hbend = x0; hbstart = x1 + 1;
+      vbend = y0; vbstart = y1 + 1;
+    }
   } else if (screenDev?.props.screenRefreshHz && screenDev.props.screenVisarea) {
     const [x0, x1, y0, y1] = screenDev.props.screenVisarea as number[];
     // A vector device has no blanking interval, so the visible rectangle bounds
@@ -2473,6 +2528,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     board: {
       family,
       cpus,
+      ...(bankDevices.length ? { bankDevices } : {}),
       ranges,
       ...(io ? { io } : {}),
       ...(initialShares.length ? { initialShares } : {}),

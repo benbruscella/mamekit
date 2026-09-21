@@ -11,6 +11,7 @@ import type {
   GeneratedDevice,
   GeneratedExecutionPlan,
   GeneratedExpression,
+  GeneratedGenericTimer,
   GeneratedHandler,
   GeneratedHandlerOperation,
   GeneratedStateMember,
@@ -491,6 +492,14 @@ export function lowerGeneratedMachine(
         handler.ownerClass === paletteCallback.targetClass &&
         handler.method === paletteCallback.targetMethod)
     : undefined;
+  const paletteDevice = devices
+    .filter(device => device.type === 'PALETTE')
+    .flatMap(device => {
+      const entries = Number(byId.get(device.id)?.props.paletteEntries ?? 0);
+      return entries > 0
+        ? [{ tag: device.tag, entries, ...(device.source ? { source: device.source } : {}) }]
+        : [];
+    })[0];
   const inputMembers = new Map<string, string[]>();
   for (const node of graph.nodes.filter(candidate => candidate.label === 'Handler')) {
     for (const encoded of Array.isArray(node.props.inputMembers)
@@ -520,7 +529,7 @@ export function lowerGeneratedMachine(
   // driver arms itself. Atari System 1's scanline-interrupt chain is three of
   // them, and with no model for `->adjust()` the board took its vblank
   // interrupts and never drew a thing.
-  const genericTimers = devices.flatMap(device => {
+  const genericTimers: GeneratedGenericTimer[] = devices.flatMap(device => {
     if (device.type !== 'TIMER' || !device.member) return [];
     const declaration = (byId.get(device.id)?.props.config as string[] | undefined ?? [])
       .find(line => line.includes('configure_generic'));
@@ -562,6 +571,23 @@ export function lowerGeneratedMachine(
       all.findIndex(candidate => candidate.member === timer.member) === index &&
       !genericTimers.some(existing => existing.member === timer.member));
   genericTimers.push(...driverTimers);
+  // A driver timer with a real callback that nothing else reaches: no frame
+  // event, scanline timer or device line targets the handler it fires, so
+  // the board runs it as the one-shot MAME has, armed by the machine-start
+  // function that arms it in source (build.ts `armedTimers`).
+  const reachedHandlers = new Set(callbacks.flatMap(callback =>
+    callback.targetClass && callback.targetMethod
+      ? [`${callback.targetClass}.${callback.targetMethod}`]
+      : []));
+  for (const entry of (selectedMachine?.props.armedTimers as string[] | undefined) ?? []) {
+    const match = /^([^=]+)=([^@]+)@(.+)$/.exec(entry);
+    if (!match) continue;
+    const [, member, handler, arming] = match as unknown as [string, string, string, string];
+    if (reachedHandlers.has(handler) || genericTimers.some(timer => timer.member === member)) continue;
+    if (!handlers.some(candidate => `${candidate.ownerClass}.${candidate.method}` === handler)) continue;
+    genericTimers.push({ tag: member.replace(/^m_/, ''), member, handler, driver: true });
+    if (!startHandlers.includes(arming)) startHandlers.unshift(arming);
+  }
   // Timers a composed device allocates in its device_start (build.ts). A
   // generated device runs its own timers.
   const generatedDeviceTypes = new Set<string>(DEVICE_MAME_TYPES);
@@ -680,6 +706,7 @@ export function lowerGeneratedMachine(
       ? { regionBindings: driverRegionBindings }
       : {}),
     cpus: executionCpus,
+    ...(board.bankDevices?.length ? { bankDevices: board.bankDevices } : {}),
     participants: executionParticipants,
     ...(genericTimers.length ? { genericTimers } : {}),
     ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
@@ -769,6 +796,9 @@ export function lowerGeneratedMachine(
     // Only when the machine has no colour PROM to decode: a board that does
     // keeps the palette plan it already had, so this adds a palette where
     // there was none rather than replacing one that works.
+    // No video plan and no init routine: the palette is whatever the driver
+    // writes into it, so the host needs only its size.
+    ...(!paletteHandler && !compiledVideo && paletteDevice ? { paletteDevice } : {}),
     ...(paletteHandler && !compiledVideo?.plan.palette ? {
       paletteInit: {
         handler: `${paletteCallback!.targetClass}.${paletteCallback!.targetMethod}`,
@@ -1823,7 +1853,7 @@ function deviceDelegates(
 
 function deviceConfiguration(
   props: Record<string, unknown>,
-): { method: string; args: number[] }[] {
+): { method: string; args: (number | string)[] }[] {
   const encoded = Array.isArray(props.configCalls)
     ? props.configCalls.map(String)
     : [];
@@ -1839,13 +1869,16 @@ function deviceConfiguration(
     const match = /^(\w+)\((.*)\)$/.exec(value);
     if (!match) return [];
     const rawArgs = match[2]!.trim();
-    const args = rawArgs ? rawArgs.split(',').map(argument => {
+    const args = rawArgs ? rawArgs.split(',').map((argument): number | string => {
       const raw = argument.trim();
       if (raw === 'true') return 1;
       if (raw === 'false') return 0;
+      if (/^"[^"]*"$/.test(raw)) return raw.slice(1, -1);
       return Number(raw);
     }) : [];
-    return args.every(Number.isFinite) ? [{ method: match[1]!, args }] : [];
+    return args.every(argument => typeof argument === 'string' || Number.isFinite(argument))
+      ? [{ method: match[1]!, args }]
+      : [];
   }).filter((entry, index, all) => all.findIndex(candidate =>
     candidate.method === entry.method &&
     candidate.args.length === entry.args.length &&

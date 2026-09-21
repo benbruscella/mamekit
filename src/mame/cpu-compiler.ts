@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
 import { parseMameAst, parseMameSource, splitMameArgs } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { indexMameHardware } from './hardware.ts';
 import { stripCppComments } from './initializer.ts';
 import {
   parseZ80OpcodeDsl,
@@ -111,6 +112,11 @@ export interface GeneratedCpuDefinition {
    * binds: `set_shiftreg_in_callback` -> `to_shiftreg_cb`.
    */
   delegateSetters?: Record<string, string>;
+  /**
+   * One-line state accessors from the core's header, by method name: a
+   * driver asking `m_maincpu->get_sync()` reads the member it returns.
+   */
+  accessors?: Record<string, string>;
   /** Opcode-table timing already includes every memory access for the instruction. */
   fixedInstructionCycles?: boolean;
   sourceFiles: string[];
@@ -372,10 +378,90 @@ export function compileMameM6507(mameSrc: string): GeneratedCpuDefinition {
   };
 }
 
+/**
+ * A 6502 whose only difference is its memory interface.
+ *
+ * Data East's encrypted parts (DECO CPU-7, C10707, 222) are `m6502_device`
+ * subclasses that change nothing but the `mi_default` object `device_start`
+ * installs: an inner `mi_decrypt` overrides `read_sync` (and on CPU-7 `write`,
+ * which arms the next opcode's bitswap). The core is therefore the stock
+ * operation list with its four bus primitives routed through that class, whose
+ * overrides are lowered from the variant's own source; a primitive it does not
+ * override keeps `mi_default`'s plain access. The class's fields become core
+ * members, and its `device_reset` runs ahead of the operation-list reset the
+ * same way the 6510's port reset does.
+ */
+export function compileMameM6502MemoryInterface(
+  mameSrc: string,
+  type: string,
+): GeneratedCpuDefinition {
+  const hardware = indexMameHardware(mameSrc).get(type);
+  if (!hardware) throw new Error(`MAME defines no device type ${type}`);
+  const variantFile = hardware.sourceFile;
+  const variantHeaderFile = variantFile.replace(/\.cpp$/, '.h');
+  const cls = hardware.className;
+  const source = readFileSync(join(mameSrc, variantFile), 'utf8');
+  const header = existsSync(join(mameSrc, variantHeaderFile))
+    ? readFileSync(join(mameSrc, variantHeaderFile), 'utf8')
+    : '';
+  const unit = parseMameSource(variantFile, source);
+  const declaration = new RegExp(`class\\s+${cls}\\s*:\\s*public\\s+(\\w+)`).exec(header)
+    ?? new RegExp(`class\\s+${cls}\\s*:\\s*public\\s+(\\w+)`).exec(source);
+  if (declaration?.[1] !== 'm6502_device') {
+    throw new Error(`${type}: ${cls} is not an m6502_device subclass`);
+  }
+  const start = unit.functions.find(fn => fn.className === cls && fn.name === 'device_start');
+  const miClass = start && /m_mintf\s*=\s*std::make_unique<(\w+)>\s*\(\s*\)/.exec(start.body)?.[1];
+  if (!miClass) throw new Error(`${type}: device_start installs no memory interface`);
+  // The inner class lives inside this device's own declaration; deco222.h
+  // declares two devices, each with its own `mi_decrypt`.
+  const outer = (header || source).slice(declaration.index);
+  const inner = new RegExp(
+    `class\\s+${miClass}\\s*:\\s*public\\s+mi_default\\s*\\{([\\s\\S]*?)\\n\\s*\\};`,
+  ).exec(outer);
+  if (!inner) throw new Error(`${type}: ${miClass} does not derive from mi_default`);
+  const fields: GeneratedCpuMember[] = [];
+  for (const field of inner[1]!.matchAll(/^\s*(bool|u?int(?:8|16|32)_t|u8|u16|u32)\s+(\w+)\s*;/gm)) {
+    const bits = field[1] === 'bool' ? 1 : Number(/\d+/.exec(field[1]!)?.[0]);
+    fields.push({ name: field[2]!, bits: bits as GeneratedCpuMember['bits'] });
+  }
+  const overrides = new Map<string, { parameters: string; body: string; line: number }>();
+  for (const fn of unit.functions) {
+    if (fn.className !== `${cls}::${miClass}`) continue;
+    overrides.set(fn.name, { parameters: fn.parameters, body: fn.body, line: fn.span.line });
+  }
+  const reset = unit.functions.find(fn => fn.className === cls && fn.name === 'device_reset');
+  const resetBody = (reset?.body ?? '')
+    .replace(/\bm6502_device::device_reset\s*\(\s*\)\s*;/, '')
+    .replace(/\bdowncast\s*<\s*\w+\s*&\s*>\s*\(\s*\*\s*m_mintf\s*\)\s*\./g, '');
+  const definition = compileMameM6502Variant(mameSrc, 'M6502', {
+    file: variantFile,
+    fields,
+    overrides,
+    resetBody,
+  });
+  return {
+    ...definition,
+    type,
+    sourceFiles: [...definition.sourceFiles, variantFile, ...(header ? [variantHeaderFile] : [])],
+  };
+}
+
+interface M6502MemoryInterface {
+  file: string;
+  fields: GeneratedCpuMember[];
+  overrides: ReadonlyMap<string, { parameters: string; body: string; line: number }>;
+  resetBody: string;
+}
+
 function compileMameM6502Variant(
   mameSrc: string,
   variant: 'M6502' | 'RP2A03' | 'M6510',
+  memoryInterface?: M6502MemoryInterface,
 ): GeneratedCpuDefinition {
+  // Whether every bus access goes through a lowered memory-interface method
+  // rather than straight to the bus primitive.
+  const routed = variant === 'M6510' || memoryInterface !== undefined;
   const cppFile = 'src/devices/cpu/m6502/m6502.cpp';
   const headerFile = 'src/devices/cpu/m6502/m6502.h';
   const variantFile = `src/devices/cpu/m6502/${variant.toLowerCase()}.cpp`;
@@ -406,7 +492,7 @@ function compileMameM6502Variant(
     .replace(/\bwrite_9\s*\(/g, 'WRITE(')
     .replace(/\bwrite\s*\(/g, 'WRITE(')
     .replace(/\b(READ|ARG|OPCODE|WRITE)\(/g, (call, name: string) =>
-      variant === 'M6510' ? `memory_${name.toLowerCase()}(` : call);
+      routed ? `memory_${name.toLowerCase()}(` : call);
 
   const commonBlocks = parseM6502OpcodeBlocks(operationsFile, operationsSource);
   const variantBlocks = parseM6502OpcodeBlocks(
@@ -540,16 +626,19 @@ function compileMameM6502Variant(
     }
   `);
   const service = compileMameHandler('');
+  // MAME's prefetch, from its own source: raise SYNC, fetch the opcode, drop
+  // SYNC, and only then look for an interrupt -- which replaces the opcode it
+  // has already read. Both halves matter. A driver on the SYNC line may move
+  // an interrupt in that window (Missile Command re-samples its IRQ there),
+  // and the fetch MAME makes before taking one is a bus cycle the handwritten
+  // fetch this replaced skipped on every interrupt.
+  const prefetchStart = sourceMethods.find(method => method.name === 'prefetch_start');
+  const prefetchEnd = sourceMethods.find(method => method.name === 'prefetch_end');
+  if (!prefetchStart || !prefetchEnd) throw new Error(`MAME ${variant} prefetch_start/prefetch_end are missing`);
   const fetch = compileMameHandler(`
-    m_NPC = m_PC;
-    if (m_nmi_pending || ((m_irq_state${variant === 'RP2A03' ? ' || m_apu_irq_state' : ''}) && !(m_P & F_I))) {
-      m_irq_taken = true;
-      m_IR = 0;
-    } else {
-      m_irq_taken = false;
-      m_IR = ${variant === 'M6510' ? 'memory_opcode' : 'OPCODE'}(m_PC);
-      m_PC++;
-    }
+    ${prefetchStart.body}
+    m_IR = ${routed ? 'memory_opcode' : 'OPCODE'}(m_PC);
+    ${prefetchEnd.body}
     m_ref = m_IR << 16;
   `);
   const members: GeneratedCpuMember[] = [
@@ -565,6 +654,7 @@ function compileMameM6502Variant(
     { name: 'm_nmi_pending', bits: 1 },
     { name: 'm_irq_taken', bits: 1 },
     { name: 'm_inhibit_interrupts', bits: 1 },
+    { name: 'm_sync', bits: 1 },
     { name: 'm_ref', bits: 32 },
     { name: 'cycles' },
     { name: 'm_icount' },
@@ -607,7 +697,16 @@ function compileMameM6502Variant(
     F_Z: 0x02,
     F_C: 0x01,
   };
+  // The core's own devcb lines (`auto sync_cb() { return m_sync_w.bind(); }`)
+  // and one-line state accessors a driver may call on it (`get_sync()`).
   const callbacks: Record<string, string> = {};
+  for (const binding of header.matchAll(/auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g)) {
+    callbacks[binding[2]!] = binding[1]!;
+  }
+  const accessors: Record<string, string> = {};
+  for (const accessor of header.matchAll(/\b(\w+)\(\)\s*const\s*\{\s*return\s+(m_\w+)\s*;\s*\}/g)) {
+    if (members.some(member => member.name === accessor[2])) accessors[accessor[1]!] = accessor[2]!;
+  }
   if (variant === 'M6510') {
     const variantSource = readFileSync(join(mameSrc, variantFile), 'utf8');
     const variantHeader = readFileSync(join(mameSrc, variantHeaderFile), 'utf8');
@@ -643,6 +742,34 @@ function compileMameM6502Variant(
     reset.operations.unshift(...portProgram.operations);
     reset.diagnostics.push(...portProgram.diagnostics);
   }
+  if (memoryInterface) {
+    members.push(...memoryInterface.fields);
+    const defaults: Record<string, { parameters: string; body: string }> = {
+      read: { parameters: 'uint16_t adr', body: 'return READ(adr);' },
+      read_sync: { parameters: 'uint16_t adr', body: 'return OPCODE(adr);' },
+      read_arg: { parameters: 'uint16_t adr', body: 'return ARG(adr);' },
+      write: { parameters: 'uint16_t adr, uint8_t val', body: 'WRITE(adr, val);' },
+    };
+    for (const [name, primitive] of Object.entries({ read: 'READ', read_sync: 'OPCODE', read_arg: 'ARG', write: 'WRITE' })) {
+      const override = memoryInterface.overrides.get(name);
+      const body = override
+        ? override.body.replace(
+          /\bm_(?:csprogram|cprogram|program)\.(?:read|write)_(?:byte|interruptible)\s*\(/g,
+          `${primitive}(`)
+        : defaults[name]!.body;
+      methods.push({
+        name: `memory_${primitive.toLowerCase()}`,
+        parameters: override?.parameters ?? defaults[name]!.parameters,
+        program: compileMameHandler(body),
+        source: override
+          ? sourceRef(memoryInterface.file, override.line)
+          : sourceRef(cppFile, lineAt(cpp, cpp.indexOf(`m6502_device::mi_default::${name}(`))),
+      });
+    }
+    const interfaceReset = compileMameHandler(memoryInterface.resetBody);
+    reset.operations.unshift(...interfaceReset.operations);
+    reset.diagnostics.push(...interfaceReset.diagnostics);
+  }
   const programs = [
     start,
     reset,
@@ -669,6 +796,7 @@ function compileMameM6502Variant(
     members,
     methods,
     ...(Object.keys(callbacks).length ? { callbacks } : {}),
+    ...(Object.keys(accessors).length ? { accessors } : {}),
     start,
     reset,
     input,

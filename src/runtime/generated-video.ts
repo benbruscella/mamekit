@@ -2783,10 +2783,12 @@ class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
   }
 
   set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
-    // MAME has both overloads: a packed rgb_t, and three channels.
+    // MAME has both overloads: a packed rgb_t, and three channels. Both land
+    // in canvas order, which is how the interpreter builds an rgb_t too; the
+    // three-channel form was packed ARGB, swapping red and blue.
     const color = green === undefined
       ? colorOrRed >>> 0
-      : (0xff000000 | ((colorOrRed & 0xff) << 16) | ((green & 0xff) << 8) | ((blue ?? 0) & 0xff)) >>> 0;
+      : packRgb(colorOrRed & 0xff, green & 0xff, (blue ?? 0) & 0xff);
     if (pen >= 0 && pen < this.colors.length) this.colors[pen] = color;
   }
 
@@ -2826,6 +2828,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly bindings: GeneratedHandlerBindings;
   private readonly directScreenShape?: GeneratedDirectScreenShape;
   private readonly memoryRead?: (address: number) => number;
+  private readonly vectorPoints?: () => readonly number[];
   private ramPaletteMirror?: Uint16Array;
   private priorityBitmap?: GeneratedPriorityBitmap;
 
@@ -2837,11 +2840,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     updatePartial?: (line: number) => void,
     memoryRead?: (address: number) => number,
     shares: Record<string, Uint8Array> = {},
+    /** vector_device's display list: x, y, rgb, intensity per point. */
+    vectorPoints?: () => readonly number[],
   ) {
     this.machine = machine;
     this.regions = regions;
     this.state = state;
     this.memoryRead = memoryRead;
+    this.vectorPoints = vectorPoints;
     this.width = machine.execution.screen.width;
     this.height = machine.execution.screen.height;
     for (const [tag, bytes] of Object.entries(regions)) {
@@ -2946,6 +2952,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     // device_start, so the screen has colours before the first frame.
     if (!this.palette && machine.execution.paletteInit) {
       this.palette = new GeneratedInitialisedPalette(machine.execution.paletteInit.entries ?? 0);
+    }
+    // A palette with neither a decoded PROM nor an init routine: the driver
+    // sets every pen itself as the game runs (Missile Command's palette_w).
+    if (!this.palette && machine.execution.paletteDevice) {
+      this.palette = new GeneratedInitialisedPalette(machine.execution.paletteDevice.entries);
     }
     const indexed = isIndexedScreen(machine);
     this.gfx = (machine.video?.gfx ?? []).map(entry => {
@@ -3799,6 +3810,33 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       // the generated category renderer.
       (this.state.m_bg_tilemap as GeneratedTilemap | undefined)?.clear_transmasks();
       return false;
+    }
+    if (vector?.type === 'device' && this.vectorPoints && bitmap.direct) {
+      // vector_device::screen_update: each point with an intensity draws a
+      // line from the one before it, in 16.16 beam coordinates measured from
+      // the visible area's corner, additively, its colour scaled by the
+      // intensity MAME hands the render container as alpha.
+      bitmap.fill(0xff000000);
+      const points = this.vectorPoints();
+      const pixels = bitmap.direct.pixels;
+      const width = bitmap.direct.width;
+      const height = bitmap.direct.height;
+      const area = screen.visible_area();
+      const xOffset = area.min_x * 65536;
+      const yOffset = area.min_y * 65536;
+      let lastX = 0;
+      let lastY = 0;
+      for (let index = 0; index + 3 < points.length; index += 4) {
+        const x = Math.round((points[index]! - xOffset) / 65536);
+        const y = Math.round((points[index + 1]! - yOffset) / 65536);
+        const intensity = points[index + 3]!;
+        if (intensity !== 0) {
+          drawAdditiveVectorLine(pixels, width, height, lastX, lastY, x, y, intensity, points[index + 2]!);
+        }
+        lastX = x;
+        lastY = y;
+      }
+      return true;
     }
     if (vector?.type === 'DVG' && this.memoryRead && bitmap.direct) {
       bitmap.fill(0xff000000);
@@ -5566,14 +5604,19 @@ function drawAdditiveVectorLine(
   toX: number,
   toY: number,
   intensity: number,
+  /** The beam's colour in canvas order; white when absent. */
+  color = 0xffffffff,
 ): void {
+  const redScale = (color & 0xff) / 255;
+  const greenScale = ((color >>> 8) & 0xff) / 255;
+  const blueScale = ((color >>> 16) & 0xff) / 255;
   const add = (x: number, y: number, level: number): void => {
     if (x < 0 || x >= width || y < 0 || y >= height) return;
     const index = y * width + x;
     const previous = pixels[index] ?? 0xff000000;
-    const red = Math.min(255, (previous & 0xff) + level);
-    const green = Math.min(255, ((previous >>> 8) & 0xff) + level);
-    const blue = Math.min(255, ((previous >>> 16) & 0xff) + level);
+    const red = Math.min(255, (previous & 0xff) + Math.round(level * redScale));
+    const green = Math.min(255, ((previous >>> 8) & 0xff) + Math.round(level * greenScale));
+    const blue = Math.min(255, ((previous >>> 16) & 0xff) + Math.round(level * blueScale));
     pixels[index] = packRgb(red, green, blue);
   };
   let x = fromX;

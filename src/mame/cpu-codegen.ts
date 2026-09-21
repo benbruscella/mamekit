@@ -82,6 +82,13 @@ import type {
   GeneratedCpuExecutable,
 } from '../../core/generated-cpu.js';
 
+/** MAME's bitswap<N>: the first listed source bit is the result's MSB. */
+function bitswap(value: number, ...bits: number[]): number {
+  let swapped = 0;
+  for (const bit of bits) swapped = (swapped << 1) | ((value >>> bit) & 1);
+  return swapped >>> 0;
+}
+
 function popcount32(value: number): number {
   value -= (value >>> 1) & 0x55555555;
   value = (value & 0x33333333) + ((value >>> 2) & 0x33333333);
@@ -488,7 +495,8 @@ export const cpu: GeneratedCpuExecutable = {
   type: ${JSON.stringify(definition.type)},
   summary: ${JSON.stringify(definition.summary)},${definition.scanlineTimer
     ? `\n  scanlineTimer: ${JSON.stringify(definition.scanlineTimer)},` : ''}${definition.delegateSetters
-    ? `\n  delegateSetters: ${JSON.stringify(definition.delegateSetters)},` : ''}
+    ? `\n  delegateSetters: ${JSON.stringify(definition.delegateSetters)},` : ''}${definition.accessors
+    ? `\n  accessors: ${JSON.stringify(definition.accessors)},` : ''}
   create: (bus: CpuBus): Cpu => new Generated${safeName(definition.type)}(bus),
 };
 
@@ -1245,6 +1253,10 @@ function emitCall(
   }
   const signal = context.definition.callbacks?.[name];
   if (signal) return `(this.bus.signal?.(${JSON.stringify(signal)}, ${args[0] ?? '0'}) ?? 0)`;
+  // devcb `isunset()` on one of the core's own lines: a bus that routes
+  // signals decides whether anything is bound to it.
+  const unset = /^(m_\w+)\.isunset$/.exec(name);
+  if (unset && context.definition.callbacks?.[unset[1]!]) return '(this.bus.signal ? 0 : 1)';
 
   if ((name === 'POSTINC' || name === 'POSTDEC') && expression.args[0]) {
     const target = targetInfo(expression.args[0], context);
@@ -1268,6 +1280,17 @@ function emitCall(
       return `((${value} >>> ${shift}) & ((1 << ${width}) - 1))`;
     }
     return `((${value} >>> ${shift}) & 1)`;
+  }
+  // MAME's bitswap<N>(value, b(N-1), ..., b0), as the interpreter reads it
+  // (src/ir/execute.ts): the first listed source bit becomes the result's
+  // most significant. Unbound, it fell to the catch-all `0` at the bottom of
+  // this function, and every DECO CPU-7 opcode fetched after a write decoded
+  // as BRK.
+  if (/^bitswap_\d+$/.test(name)) {
+    // A helper, not an inline expansion: the value is often a bus read (the
+    // C10707 swaps its opcode fetch in place), and repeating it once per bit
+    // read -- and charged -- every opcode eight times.
+    return `bitswap(${args.join(', ')})`;
   }
   if (name === 'std::popcount') {
     return `popcount32((${args[0] ?? '0'}) >>> 0)`;
