@@ -45,8 +45,11 @@ import type { BoardConfig } from '../runtime/types.ts';
 if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
   throw new Error('I8085A must use MAME\'s divide-by-two execution clock');
 }
+// The generated TMS34010 converts its bit addresses to bytes at every access
+// (TMS_READ16/TMS_WRITE16) and its map ranges are scaled to match, so the bus
+// itself shifts nothing: a second conversion here would address 1/8 of RAM.
 const tmsSpace = generatedCpuAddressSpace('tms34010', 'maincpu');
-if (tmsSpace.addressShift !== -3 || tmsSpace.dataWidth !== 16 || tmsSpace.endianness !== 'little') {
+if (tmsSpace.addressShift !== 0 || tmsSpace.dataWidth !== 16 || tmsSpace.endianness !== 'little') {
   throw new Error(`TMS34010 bit-addressed program space was not preserved: ${JSON.stringify(tmsSpace)}`);
 }
 

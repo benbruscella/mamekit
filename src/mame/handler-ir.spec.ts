@@ -579,4 +579,34 @@ const localVector = compileMameHandler(normalizeMameExecutionSource(`
 assert.deepEqual(localVector.diagnostics, []);
 assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
 
-console.log('handler-ir.spec: 69 passed');
+// A forward goto out of nested loops to a label below them (VLM5030's
+// `goto phase_stop;`) runs the rest of the function from the label.
+{
+  const jumped = compileMameHandler(`
+    int total = 0;
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        if (i == 2 && j == 1) goto done;
+        total += 1;
+      }
+    }
+    total += 100;
+  done:
+    return total * 10;
+  `);
+  assert.deepEqual(jumped.diagnostics, []);
+  assert.equal(executeGeneratedProgram(jumped, {}).value, 90);
+  const ran = compileMameHandler(`
+    int total = 0;
+    if (total == 1) goto done;
+    total += 100;
+  done:
+    return total;
+  `);
+  assert.equal(executeGeneratedProgram(ran, {}).value, 100);
+  // A backward jump has no structured form and must stay visible.
+  const backward = compileMameHandler(`again: x = 1; goto again;`);
+  assert.deepEqual(backward.diagnostics, ['unsupported goto again']);
+}
+
+console.log('handler-ir.spec: 72 passed');

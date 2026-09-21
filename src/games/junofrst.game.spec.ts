@@ -48,6 +48,7 @@ assert.equal(bank?.props.sourceFile, 'src/mame/konami/junofrst.cpp');
 assert.deepEqual(lowerAuxiliaryAudioDevices(graph, devices), [{
   type: 'DAC_8BIT_R2R',
   deviceTag: 'dac',
+  dac: { bits: 8, mapper: 'unsigned', gain: 1 },
   clock: 0,
   gain: 0.25,
   target: 'speaker',

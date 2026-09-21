@@ -219,6 +219,31 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
     context.board.execution.cpus[0]?.tag ??
     '';
   const timers: OpmTimerState[] = [];
+  const instructionCycles = new Map<string, number>();
+  const cpuClocks = new Map(context.board.execution.cpus.map(cpu =>
+    [cpu.tag, Math.max(1, cpu.cycleClock ?? cpu.clock)]));
+  const advanceTimers = (cpuTag: string, cycles: number): void => {
+    const cpuClock = cpuClocks.get(cpuTag);
+    if (!cpuClock || cycles <= 0) return;
+    const elapsed = cycles / cpuClock;
+    for (const timer of timers) {
+      if (timer.ownerCpu !== cpuTag) continue;
+      const clocks = elapsed * timer.clock;
+      for (const index of [0, 1] as const) {
+        if (!Number.isFinite(timer.remaining[index])) continue;
+        timer.remaining[index] -= clocks;
+        while (timer.remaining[index] <= 0) {
+          timer.status |= 1 << index;
+          if (!(timer.registers[0x14]! & (1 << index))) {
+            timer.remaining[index] = Infinity;
+            break;
+          }
+          timer.remaining[index] += timerPeriod(timer, index);
+        }
+        updateIrq(timer);
+      }
+    }
+  };
   const timerPeriod = (timer: OpmTimerState, index: number): number => {
     const value = index === 0
       ? (timer.registers[0x10]! << 2) | (timer.registers[0x11]! & 3)
@@ -449,6 +474,25 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
       };
     });
 
+  // A DAC answering the same speaker (the Williams ADPCM board's AD7524): the
+  // worklet holds the level its code maps to, so only the byte crosses.
+  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
+    if (!auxiliary.dac) continue;
+    const name = `${auxiliary.deviceTag}.data_w`;
+    const write = (data: number): number => {
+      context.soundWrite(0, data & 0xff, context.fraction(), name);
+      return 0;
+    };
+    for (const method of auxiliary.writeMethods) {
+      context.registry.write[`${auxiliary.deviceTag}.${method}`] = (_address, _offset, data) => void write(data);
+    }
+    for (const alias of deviceAliases(context.board, auxiliary.deviceTag)) {
+      for (const method of auxiliary.writeMethods) {
+        context.calls[`${alias}.${method}`] = (...args: number[]) => write(args.at(-1) ?? 0);
+      }
+    }
+  }
+
   // A POKEY answering the same speaker: the register offset carries the
   // channel, so unlike the MSM5205 feeder its writes forward the offset too.
   for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
@@ -510,28 +554,17 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
       for (const auxiliary of auxiliaries) auxiliary.reset?.();
       for (const chip of upd) chip.reset();
     },
+    instructionCpus: new Set(timers.map(timer => timer.ownerCpu)),
+    tickInstruction: (cpuTag, cycles) => {
+      instructionCycles.set(cpuTag, (instructionCycles.get(cpuTag) ?? 0) + cycles);
+      advanceTimers(cpuTag, cycles);
+    },
     tickCpu: (cpuTag, cycles) => {
-      const cpu = context.board.execution.cpus.find(candidate => candidate.tag === cpuTag);
-      if (cpu) {
-        const elapsed = cycles / Math.max(1, cpu.cycleClock ?? cpu.clock);
-        for (const timer of timers) {
-          if (timer.ownerCpu !== cpuTag) continue;
-          const clocks = elapsed * timer.clock;
-          for (const index of [0, 1] as const) {
-            if (!Number.isFinite(timer.remaining[index])) continue;
-            timer.remaining[index] -= clocks;
-            while (timer.remaining[index] <= 0) {
-              timer.status |= 1 << index;
-              if (!(timer.registers[0x14]! & (1 << index))) {
-                timer.remaining[index] = Infinity;
-                break;
-              }
-              timer.remaining[index] += timerPeriod(timer, index);
-            }
-            updateIrq(timer);
-          }
-        }
-      }
+      // The instruction ticks already moved the timers through this slice;
+      // only an overshoot past its target is left.
+      const seen = instructionCycles.get(cpuTag) ?? 0;
+      instructionCycles.set(cpuTag, 0);
+      advanceTimers(cpuTag, Math.max(0, cycles - seen));
       const speechCpu = context.board.execution.cpus.find(candidate =>
         candidate.tag === cpuTag);
       if (speechCpu && speech.length) {

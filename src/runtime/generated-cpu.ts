@@ -31,6 +31,32 @@ export interface CpuBus {
   /** Optional source-derived interrupt-acknowledge address-space read. */
   acknowledge?(level: number): number;
   signal?(name: string, state: number): number | void;
+  /**
+   * A machine-configured delegate called with its arguments intact: objects
+   * such as a screen, bitmap or display_params, not one line state.
+   */
+  delegate?(name: string, ...args: unknown[]): number | void;
+  /** Whether the machine configuration bound that delegate or devcb. */
+  hasDelegate?(name: string): boolean;
+  /** The screen a video processor drives (device_video_interface::screen()). */
+  screen?: {
+    vpos(): number;
+    hpos(): number;
+    width(): number;
+    height(): number;
+    visibleArea(): { min_x: number; max_x: number; min_y: number; max_y: number };
+    updatePartial(line: number): void;
+    /** screen_device::configure: the processor programs a new visible area. */
+    configure?(
+      width: number,
+      height: number,
+      visarea: { min_x: number; max_x: number; min_y: number; max_y: number },
+    ): void;
+    /** Seconds until the next scanline boundary. */
+    untilNextLine(): number;
+    /** palette_device::black_pen() for the screen's palette. */
+    blackPen(): number;
+  };
   /** Instruction boundary within the current scheduler slice. */
   timing?(elapsedCycles: number, targetCycles: number): void;
 }
@@ -45,7 +71,7 @@ interface CpuMember {
   name: string;
   bits?: 1 | 8 | 16 | 32;
   pair?: boolean;
-  values?: number[];
+  values?: unknown[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
   wordByteRegisters?: number;
@@ -116,6 +142,10 @@ export interface GeneratedCpuExecutable {
     diagnostics: number;
     [name: string]: number;
   };
+  /** The method the core's scanline timer calls, with the line, at each line start. */
+  scanlineTimer?: string;
+  /** Config setters that bind a delegate, to the delegate they bind. */
+  delegateSetters?: Record<string, string>;
   create(bus: CpuBus): Cpu;
 }
 
@@ -160,6 +190,14 @@ export function registerGeneratedCpu(definition: GeneratedCpuRegistration): void
 
 export function clearGeneratedCpus(): void {
   DEFINITIONS.clear();
+}
+
+/** Source facts a generated core exports beside its executable. */
+export function generatedCpuFacts(type: string): Pick<GeneratedCpuExecutable, 'scanlineTimer' | 'delegateSetters'> {
+  const definition = DEFINITIONS.get(type.toUpperCase());
+  return definition && 'create' in definition
+    ? { scanlineTimer: definition.scanlineTimer, delegateSetters: definition.delegateSetters }
+    : {};
 }
 
 export function hasGeneratedCpu(type: string): boolean {

@@ -10,6 +10,7 @@ import {
   type MameFunction,
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import {
@@ -66,6 +67,11 @@ export interface GeneratedDeviceMember {
    * all.
    */
   fields?: GeneratedStructField[];
+  /**
+   * The aggregate initializer of a file-scope `static const struct` the
+   * device points into, field by field (arrays nest as arrays).
+   */
+  initialValue?: Record<string, unknown>;
 }
 
 /**
@@ -116,6 +122,11 @@ export interface GeneratedDeviceDefinition {
   className: string;
   hierarchy: string[];
   sourceFiles: string[];
+  /**
+   * MAME `device_rom_interface<AddrWidth>`: the device reads its own ROM
+   * region (by default the one named by its tag) through `read_byte`.
+   */
+  romInterface?: { addressBits: number };
   constants: Record<string, number>;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
@@ -272,12 +283,19 @@ export function compileMameDevice(
   type = definition.type,
   /** Types already being compiled, so a device cycle cannot recurse forever. */
   compiling: ReadonlySet<string> = new Set(),
+  options: {
+    /**
+     * Rewrite a source file before it is read, for a device whose code only
+     * exists after the C preprocessor has run (see preprocessed-device.ts).
+     */
+    transformSource?: (file: string, source: string) => string;
+  } = {},
 ): GeneratedDeviceDefinition {
   const sourceFiles = localSourceFiles(mameSrc, definition.sourceFile);
-  const sources = sourceFiles.map(file => ({
-    file,
-    source: readFileSync(join(mameSrc, file), 'utf8'),
-  }));
+  const sources = sourceFiles.map(file => {
+    const source = readFileSync(join(mameSrc, file), 'utf8');
+    return { file, source: options.transformSource ? options.transformSource(file, source) : source };
+  });
   const ast = parseMameAst(sources);
   const classes = new Map(
     ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]),
@@ -537,6 +555,7 @@ export function compileMameDevice(
       }];
     });
   });
+  members.push(...staticStructConstants(sources, structFields, constants, members));
   const regionResources = Object.fromEntries(members.flatMap(member => {
     if (!/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
     const target = constructorBindings[member.name]?.at(-1) ?? '';
@@ -627,12 +646,19 @@ export function compileMameDevice(
       delegates[setter[1]!] = resolvedMemberName(className, setter[2]!);
     }
   }
+  const romInterfaceBits = hierarchy.map(className => {
+    const declaration = classes.get(className);
+    if (!declaration?.bases.includes('device_rom_interface')) return undefined;
+    const width = declaration.baseTemplateArguments?.device_rom_interface?.[0];
+    return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
+  }).find(width => width !== undefined);
   const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
     type,
     className: definition.className,
     hierarchy,
     sourceFiles,
+    ...(romInterfaceBits ? { romInterface: { addressBits: romInterfaceBits } } : {}),
     constants,
     members,
     callbacks,
@@ -800,7 +826,10 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
     // inherits: a PCB that registers and does nothing.
     const family = ['.h', '.ipp'].includes(extname(absolute));
     for (const match of source.matchAll(/^\s*#include\s+"([^"]+)"/gm)) {
-      if (!family && extname(match[1]!) !== '.ipp') continue;
+      // `.hxx` is the same convention for data: the coefficient tables one
+      // source includes into itself (vlm5030.cpp reads its LPC ladders from
+      // tms5110r.hxx), never another device's declarations.
+      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!))) continue;
       // Follow headers that are part of the same device family. Includes
       // resolved through MAME's global include paths (screen.h, emu.h, etc.)
       // describe host services, not another source-defined base class.
@@ -1261,6 +1290,13 @@ export function memberDeclarations(
     /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    // A builtin spelled in more than one word -- VLM5030's
+    // `unsigned int m_current_energy;` -- and a pointer to a struct the
+    // source names with its elaborated specifier, `const struct
+    // tms5100_coeffs *m_coeff;`. Neither shape matched above, so the members
+    // did not exist and every store into them went nowhere.
+    /^\s*((?:const\s+)?(?:(?:unsigned|signed|long|short)\s+)+(?:int|char|long|short)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*(?:const\s+)?(?:struct|union)\s+([\w:]+)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -1378,17 +1414,18 @@ function callbackSlots(valueType: string): number {
 }
 
 export function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
-  const normalized = valueType.replace(/\bconst\b/g, '').trim();
+  const normalized = valueType.replace(/\bconst\b/g, '').trim().replace(/\s+/g, ' ');
   if (normalized === 'bool') return 1;
-  if (['u8', 's8', 'uint8_t', 'int8_t', 'char'].includes(normalized)) return 8;
-  if (['u16', 's16', 'uint16_t', 'int16_t'].includes(normalized)) return 16;
-  if (['u32', 's32', 'uint32_t', 'int32_t', 'int', 'unsigned'].includes(normalized)) return 32;
+  if (['u8', 's8', 'uint8_t', 'int8_t', 'char', 'unsigned char', 'signed char'].includes(normalized)) return 8;
+  if (['u16', 's16', 'uint16_t', 'int16_t', 'short', 'unsigned short'].includes(normalized)) return 16;
+  if (['u32', 's32', 'uint32_t', 'int32_t', 'int', 'unsigned', 'unsigned int', 'signed int'].includes(normalized)) return 32;
   return undefined;
 }
 
 export function integerSigned(valueType: string): boolean {
-  const normalized = valueType.replace(/\bconst\b/g, '').trim();
-  return ['s8', 'int8_t', 'char', 's16', 'int16_t', 's32', 'int32_t', 'int'].includes(normalized);
+  const normalized = valueType.replace(/\bconst\b/g, '').trim().replace(/\s+/g, ' ');
+  return ['s8', 'int8_t', 'char', 'signed char', 's16', 'int16_t', 'short', 's32', 'int32_t', 'int', 'signed int']
+    .includes(normalized);
 }
 
 interface Constructor {
@@ -1527,8 +1564,13 @@ function coreAddressSpaces(mameSrc: string): Record<string, number> {
 
 function numericConstants(source: string): Record<string, number> {
   const expressions = new Map<string, string>();
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n/]+)/gmi)) {
-    expressions.set(match[1]!, match[2]!.trim());
+  // The value runs to the end of the line less any comment. Stopping at the
+  // first `/` instead cut every dividing macro in half -- VLM5030's
+  // `#define IP_SIZE_NORMAL (160/FR_SIZE)` read as `(160` -- and its speed
+  // table then gave every frame zero samples.
+  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n]+)/gmi)) {
+    const value = match[2]!.replace(/\/\/.*$|\/\*.*?\*\//g, '').trim();
+    if (value) expressions.set(match[1]!, value);
   }
   for (const match of source.matchAll(
     /\b(?:static\s+)?constexpr\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
@@ -1767,6 +1809,52 @@ function deviceAddressSpaces(
  * gives it a scalar member, and the host needs the shape to build one. Only the
  * fields matter here: a name, and an array bound when the field is an array.
  */
+/**
+ * File-scope `static const struct T name = { ... };` instances the device's
+ * own source refers to, as constant members with their initializer applied.
+ *
+ * MAME keeps LPC coefficient sets this way: VLM5030 starts with
+ * `m_coeff = &vlm5030_coeff;` and then reads `m_coeff->ktable[i][...]` for
+ * every frame. Only a set the non-table sources mention is lifted, so the
+ * dozen unrelated TI sets in the same header stay out of the device.
+ */
+function staticStructConstants(
+  sources: readonly { file: string; source: string }[],
+  structFields: Map<string, GeneratedStructField[]>,
+  constants: Record<string, number>,
+  existing: readonly GeneratedDeviceMember[],
+): GeneratedDeviceMember[] {
+  const code = sources.filter(({ file }) => !file.endsWith('.hxx'))
+    .map(({ source }) => stripCppComments(source)).join('\n');
+  const all = sources.map(({ source }) => stripCppComments(source)).join('\n');
+  const macros = objectMacros(all);
+  const expand = (text: string, depth = 0): string => depth > 8 ? text
+    : text.replace(/\b[A-Z_][A-Z0-9_]*\b/g, name =>
+      macros.has(name) && constants[name] === undefined ? expand(macros.get(name)!, depth + 1) : name);
+  const lifted: GeneratedDeviceMember[] = [];
+  for (const match of all.matchAll(/\bstatic\s+const\s+struct\s+(\w+)\s+(\w+)\s*=\s*\{/g)) {
+    const [, type, name] = match;
+    const fields = structFields.get(type!);
+    if (!fields || !new RegExp(`\\b${name}\\b`).test(code)) continue;
+    if (existing.some(member => member.name === name) || lifted.some(member => member.name === name)) continue;
+    const body = expand(braceBody(all, match.index! + match[0].length - 1, name));
+    const value = (item: string): unknown => item.startsWith('{')
+      ? initializerItems(item.slice(1, -1)).map(value)
+      : evalExpr(item, constants) ?? 0;
+    // C lets an aggregate stop early; the fields it leaves out are zero, which
+    // is what the struct's own shape already builds.
+    const items = initializerItems(body);
+    if (items.length > fields.length) continue;
+    lifted.push({
+      name: name!,
+      valueType: type!,
+      fields,
+      initialValue: Object.fromEntries(items.map((item, index) => [fields[index]!.name, value(item)])),
+    });
+  }
+  return lifted;
+}
+
 function structDeclarations(
   sources: readonly { file: string; source: string }[],
   constants: Record<string, number>,
@@ -1834,18 +1922,21 @@ function structFieldList(
     const start = nested.exec(body);
     const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
     for (const field of scalars.matchAll(
-      /^\s*(?:const\s+)?([\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/gm,
+      // A builtin may take several words (`unsigned short energytable[...]`)
+      // and a table several bounds (`int ktable[MAX_K][MAX_SCALE]`); the LPC
+      // coefficient struct uses both, and missing either dropped the field.
+      /^\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?(?:\s*\[[^\]]+\])*\s*;/gm,
     )) {
       // A struct field is as wide as its type, exactly like a plain member.
       // Dropping the width let a `uint8_t` counter reach -1 instead of
       // wrapping to 0xff, and the DPC's `if (low == 0xff)` carry never fired.
-      const valueType = field[1]!;
+      const valueType = field[1]!.replace(/\s+/g, ' ');
       const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
         : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
-          : /16/.test(valueType) ? 16
+          : /16|\bshort\b/.test(valueType) ? 16
             : /8|bool|char/.test(valueType) ? 8
               : 32;
-      const signed = /^(?:int|s)/.test(valueType) && !/^uint/.test(valueType);
+      const signed = /^(?:int|s|short|char|long)/.test(valueType) && !/^(?:uint|unsigned)/.test(valueType);
       const length = bound(field[3]);
       fields.push({
         name: field[2]!,

@@ -1,6 +1,6 @@
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
-import { createCpu, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
+import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
 import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
 import {
   createDevice,
@@ -372,6 +372,12 @@ class IrBoard implements Board {
    */
   private readonly cpuSliceCycles = new Map<string, number>();
   /**
+   * Cycles the running processor's slice has executed, updated between
+   * instructions. A field rather than a map entry: every instruction writes
+   * it, and only the running processor's count is ever read mid-slice.
+   */
+  private runningSliceCycles = 0;
+  /**
    * The latest time each image transport has observed, so its reading never
    * rewinds. Only transports get this: a timer callback must read its own
    * expiry (the scheduler stands there, not at the end of the lump that
@@ -384,6 +390,8 @@ class IrBoard implements Board {
   private readonly observedTransportSeconds = new Map<string, number>();
   /** MAME `memory_bank::set_entry` per board bank tag. */
   private readonly bankEntry = new Map<string, (entry: number) => number>();
+  /** The live selection of each memory bank, by tag. */
+  private readonly bankSelection = new Map<string, { entry: number }>();
   /**
    * A device that powers on before its bank exists.
    *
@@ -483,6 +491,12 @@ class IrBoard implements Board {
     inputs: InputPorts,
     sinks: BoardSinks,
   ) {
+    // The screen is the board's own: a processor may reposition its visible
+    // area, and that must not carry into the next board built from this IR.
+    machine = {
+      ...machine,
+      execution: { ...machine.execution, screen: { ...machine.execution.screen } },
+    };
     this.machine = machine;
     this.inputs = inputs;
     this.regions = regions;
@@ -667,7 +681,16 @@ class IrBoard implements Board {
               machine.execution.cpus[0];
             if (!cpuSpec) return 0;
             return new Proxy({}, {
-              get: (_target, property) => {
+              get: (target, property) => {
+                // JavaScript's own object protocol, and the save-state
+                // walker's (machine-state.ts), are not MAME methods: a handler
+                // comparing `m_vlm != nullptr` asks for valueOf and the walker
+                // asks every object for stateKeys, and forwarding either made
+                // the device invoke a method it never had.
+                if (typeof property === 'symbol' ||
+                    ['valueOf', 'toString', 'toJSON', 'then', 'stateKeys', 'stateRestored'].includes(property)) {
+                  return Reflect.get(target, property);
+                }
                 const method = String(property);
                 // MAME `device_memory_interface::space(AS_PROGRAM)`. A device
                 // that reaches its host processor's bus takes this by
@@ -1116,6 +1139,12 @@ class IrBoard implements Board {
           at: this.machineSeconds() + seconds,
           param: Number(param) || 0,
         });
+        // `adjust(attotime::zero, param)` is MAME's synchronize(): due at the
+        // current time, once the processors behind this one catch up -- not at
+        // the next line. The Williams ADPCM board's sync_command is one; left
+        // for the line boundary, the restarted sound CPU cleared its latch
+        // first, then took the command's IRQ as a second command.
+        if (seconds === 0) this.synchronize(fire);
         return 0;
       };
       calls[`${timer.member}.reset`] = () => {
@@ -1269,7 +1298,7 @@ class IrBoard implements Board {
     this.installGeneratedDeviceBuses(machine, registry);
     this.cartridgeTaps = this.installCartridgeMemoryHandlers(machine, registry);
     this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
-    this.installMemoryBanks(machine, regions, registry);
+    this.installMemoryBanks(machine, regions, registry, sinks);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installSourceHandlerWidthAdapters(machine, registry);
     this.installInterruptVectorWriters(machine, registry);
@@ -1398,6 +1427,7 @@ class IrBoard implements Board {
         specification.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(type),
         regions,
         specification.space?.endianness ?? generatedCpuEndianness(type),
+        specification.unmapHigh === true,
       );
       this.cpuBuses.set(specification.tag, bus);
       // A cartridge's read taps observe the CPU's own space. They answer
@@ -1478,8 +1508,70 @@ class IrBoard implements Board {
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
+      // Cycles of the running slice already reported to a sound device, and
+      // the resolved hook itself (the runtime is installed after this closure).
+      const instructionTicks = this.hostModel(
+        `${specification.tag}.instructionTicks`, { previous: 0 },
+      );
+      const instructionTick: { resolved: boolean; tick?: (cycles: number) => void } =
+        { resolved: false };
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
+      // Delegates the machine configuration bound on this processor, by the
+      // name the core calls them: the TMS34010 draws each scanline through
+      // `scanline_ind16_cb` and moves VRAM rows through the shift-register
+      // pair, all of them methods of the video device.
+      const cpuFacts = generatedCpuFacts(type);
+      const cpuDelegates = new Map<string, { tag: string; method: string }>();
+      for (const binding of machine.devices?.find(device => device.tag === specification.tag)?.delegates ?? []) {
+        const name = cpuFacts.delegateSetters?.[binding.setter];
+        if (name) cpuDelegates.set(name, { tag: binding.tag, method: binding.method });
+      }
+      const screenSpec = machine.execution.screen;
       const cpu = createCpu(type, {
+        ...(cpuDelegates.size ? {
+          hasDelegate: (name: string) => cpuDelegates.has(name),
+          delegate: (name: string, ...args: unknown[]) => {
+            const target = cpuDelegates.get(name);
+            const device = target ? this.devices.get(target.tag) : undefined;
+            if (!target || !device) return 0;
+            return Number(device.invoke(target.method, ...args as GeneratedCallArgument[])) || 0;
+          },
+        } : {}),
+        // The screen a video processor drives, measured on the same beam the
+        // device timers use.
+        ...(cpuFacts.scanlineTimer ? {
+          screen: {
+            vpos: () => Math.floor(this.beamPosition()) % Math.max(1, screenSpec.vtotal),
+            hpos: () => Math.floor(this.currentLineFraction * (screenSpec.htotal ?? screenSpec.width)),
+            width: () => Math.max(1, screenSpec.htotal ?? screenSpec.width),
+            height: () => Math.max(1, screenSpec.vtotal),
+            visibleArea: () => ({
+              min_x: screenSpec.xOffset ?? 0,
+              max_x: (screenSpec.xOffset ?? 0) + screenSpec.width - 1,
+              min_y: screenSpec.yOffset ?? 0,
+              max_y: (screenSpec.yOffset ?? 0) + screenSpec.height - 1,
+            }),
+            updatePartial: (line: number) => {
+              if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
+            },
+            // A TMS34010 reprograms the visible area from HEBLNK/HSBLNK (Mortal
+            // Kombat moves it ten pixels left of its set_raw window). The
+            // framebuffer keeps its size, so a window of the same size moves
+            // and any other shape is left alone.
+            configure: (_width, _height, visarea) => {
+              const width = visarea.max_x - visarea.min_x + 1;
+              const height = visarea.max_y - visarea.min_y + 1;
+              if (width !== screenSpec.width || height !== screenSpec.height) return;
+              screenSpec.xOffset = visarea.min_x;
+              screenSpec.yOffset = visarea.min_y;
+            },
+            untilNextLine: () =>
+              (1 - this.currentLineFraction) / (screenSpec.refresh * Math.max(1, screenSpec.vtotal)),
+            // palette_device::black_pen(): the entry appended after the
+            // palette's own, which is black.
+            blackPen: () => machine.video?.ramPalette?.entries ?? 0,
+          },
+        } : {}),
         read: address => bus.read(busAddress(address)),
         // Keep native 16-bit address-map handlers atomic. In particular,
         // Neo Geo's palette RAM self-test writes complete 68000 words; losing
@@ -1509,13 +1601,27 @@ class IrBoard implements Board {
           ) ?? 0xff,
         } : {}),
         timing: (elapsed, target) => {
+          // Runs between every pair of instructions: what can be resolved once
+          // -- whether a sound device ticks on this processor -- is.
+          if (!instructionTick.resolved) {
+            const sound = this.soundRuntime;
+            instructionTick.resolved = true;
+            instructionTick.tick = sound?.tickInstruction &&
+              sound.instructionCpus?.has(specification.tag)
+              ? (cycles: number) => sound.tickInstruction!(specification.tag, cycles)
+              : undefined;
+          }
+          const clamped = elapsed < 0 ? 0 : elapsed > target ? target : elapsed;
+          if (instructionTick.tick) {
+            if (clamped > instructionTicks.previous) {
+              instructionTick.tick(clamped - instructionTicks.previous);
+            }
+            instructionTicks.previous = clamped === target ? 0 : clamped;
+          }
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
-          this.cpuSliceCycles.set(
-            specification.tag,
-            Math.max(0, Math.min(target, elapsed)),
-          );
+          this.runningSliceCycles = clamped;
           if (specification.tag === timerClockCpu?.tag) {
-            const current = Math.max(0, Math.min(target, elapsed));
+            const current = clamped;
             // run() calls timing(0,target) at the start of each slice and
             // timing(target,target) at its end. Advancing by instruction-time
             // deltas lets device timers assert lines between instructions,
@@ -2011,12 +2117,17 @@ class IrBoard implements Board {
       const deviceUpdate: DeviceScreenUpdate | undefined = deviceTag
         ? (screen, bitmap, cliprect) => {
             const device = this.devices.get(deviceTag);
-            if (!device) {
+            // A processor can own the screen: the TMS34010 draws each line
+            // through its own tms340x0_ind16.
+            const cpu = device ? undefined : this.cpus.get(deviceTag);
+            if (!device && !cpu?.hasMethod(updateMethod)) {
               throw new Error(
                 `${machine.game}: screen-update device "${deviceTag}" is not composed`,
               );
             }
-            return Number(device.invoke(updateMethod, screen, bitmap, cliprect) ?? 0);
+            return Number(device
+              ? device.invoke(updateMethod, screen, bitmap, cliprect)
+              : cpu!.invoke(updateMethod, screen as never, bitmap as never, cliprect as never)) || 0;
           }
         : undefined;
       video = new GeneratedVideoRenderer(machine, primitives, deviceUpdate);
@@ -2044,6 +2155,7 @@ class IrBoard implements Board {
               : 0);
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            this.runningSliceCycles = 0;
             this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
               specification.tag,
@@ -2093,6 +2205,12 @@ class IrBoard implements Board {
         this.currentLine = line;
         this.currentLineFraction = 0;
         if (phase === 'before-processors') {
+          // A processor's own scanline timer (the TMS34010's scanline_callback)
+          // fires at the start of each line, with that line.
+          for (const specification of machine.execution.cpus) {
+            const timer = generatedCpuFacts(specification.type ?? '').scanlineTimer;
+            if (timer) this.cpus.get(specification.tag)?.invoke(timer, line);
+          }
           // Driver-armed one-shots expire at the line boundary at or after
           // their time, which is the finest grain this schedule offers -- the
           // same grain MAME's own scanline timers are armed against.
@@ -2465,7 +2583,7 @@ class IrBoard implements Board {
 
   private beamPosition(): number {
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.cpuSliceCycles.get(this.runningCpu) ?? 0)
+      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
       : undefined;
     if (running !== undefined) return running - generatedTimerBacklog() / this.lineSeconds();
     return this.currentLine +
@@ -2476,7 +2594,7 @@ class IrBoard implements Board {
   private beamLine(): number {
     const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.cpuSliceCycles.get(this.runningCpu) ?? 0)
+      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
       : undefined;
     const line = running === undefined ? this.currentLine : Math.floor(running);
     return ((line % vtotal) + vtotal) % vtotal;
@@ -2617,7 +2735,8 @@ class IrBoard implements Board {
   stateKeys(): readonly string[] {
     return [
       'cpus', 'cpuBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
-      'cpuSliceCycles', 'devices', 'generatedBanks', 'observedTransportSeconds',
+      'cpuSliceCycles', 'runningSliceCycles', 'devices', 'generatedBanks',
+      'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
       'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'watchdogFrames',
@@ -2812,9 +2931,19 @@ class IrBoard implements Board {
             continue;
           }
           if (!device.methodNames().includes(method)) continue;
+          // A handler that declares `mem_mask` is told which data lanes the
+          // access drives, as MAME tells it; the T-Unit's VRAM writes test
+          // ACCESSING_BITS_0_7/8_15 and store nothing without it.
+          const masked = device.parameters(method).some(parameter => /\bmem_mask\b/.test(parameter));
           if (kind === 'read') {
-            registry.read[key] = (_address, offset) =>
-              device.arity(method) ? device.call(method, offset) : device.call(method);
+            registry.read[key] = masked
+              ? (_address, offset, memMask = 0xffff) => device.call(method, offset, memMask)
+              : (_address, offset) =>
+                device.arity(method) ? device.call(method, offset) : device.call(method);
+          } else if (masked) {
+            registry.write[key] = (_address, offset, data, memMask = 0xffff) => {
+              device.call(method, offset, data, memMask);
+            };
           } else {
             registry.write[key] = (_address, offset, data) => {
               const parameters = device.parameters(method);
@@ -2882,7 +3011,9 @@ class IrBoard implements Board {
 
   private totalCycles(cpuTag: string): number {
     return (this.cpuCycles.get(cpuTag) ?? 0)
-      + (this.cpuSliceCycles.get(cpuTag) ?? 0)
+      + (cpuTag === this.runningCpu
+        ? this.runningSliceCycles
+        : this.cpuSliceCycles.get(cpuTag) ?? 0)
       // The slice total only moves between instructions. A device read or
       // write happens *inside* one, and MAME counts the cycles the current
       // instruction has already paid for -- so a cycle-accurate core is asked
@@ -3985,6 +4116,24 @@ class IrBoard implements Board {
       Object.assign(registry.read, portHandlers(cpu.ranges ?? [], inputs));
       Object.assign(registry.read, portHandlers(cpu.io?.ranges ?? [], inputs));
     }
+    // A processor's own internal map (the TMS34010's I/O registers) names its
+    // handlers `<cpu tag>.<method>`; they are the core's own methods, found
+    // when first called because the cores are created after the buses.
+    const cpuTags = new Set(machine.execution.cpus.map(cpu => cpu.tag));
+    for (const kind of ['read', 'write'] as const) {
+      for (const key of usedHandlers(machine, kind)) {
+        const tag = key.slice(0, key.lastIndexOf('.'));
+        const method = key.slice(key.lastIndexOf('.') + 1);
+        if (!cpuTags.has(tag) || registry[kind][key]) continue;
+        if (kind === 'read') {
+          registry.read[key] = (_address, offset, memMask = 0xffff) =>
+            Number(this.cpus.get(tag)?.invoke(method, offset, memMask)) || 0;
+        } else {
+          registry.write[key] = (_address, offset, data, memMask = 0xffff) =>
+            void this.cpus.get(tag)?.invoke(method, offset, data, memMask);
+        }
+      }
+    }
     const customsByPort = new Map<string, NonNullable<BoardConfig['customs']>>();
     for (const custom of config.customs ?? []) {
       const entries = customsByPort.get(custom.port) ?? [];
@@ -4077,13 +4226,16 @@ class IrBoard implements Board {
           ] as Uint8Array | undefined) ?? new Uint8Array(0x10000);
           this.generatedResources[`registers:palette${ext ? ':ext' : ''}`] = bytes;
           if (key.includes('write16')) {
+            // memory_array::write16 stores the word in the share's own byte
+            // order, which read_entry reads back in the same order.
+            const high = machine.video?.ramPalette?.endianness === 'big' ? 0 : 1;
             if (memMask & 0xff00) {
-              bytes[(offset * 2) & 0xffff] = (data >>> 8) & 0xff;
-              this.videoPrimitives?.writePaletteRam?.(offset * 2, data >>> 8, ext);
+              bytes[(offset * 2 + high) & 0xffff] = (data >>> 8) & 0xff;
+              this.videoPrimitives?.writePaletteRam?.(offset * 2 + high, data >>> 8, ext);
             }
             if (memMask & 0x00ff) {
-              bytes[(offset * 2 + 1) & 0xffff] = data & 0xff;
-              this.videoPrimitives?.writePaletteRam?.(offset * 2 + 1, data, ext);
+              bytes[(offset * 2 + 1 - high) & 0xffff] = data & 0xff;
+              this.videoPrimitives?.writePaletteRam?.(offset * 2 + 1 - high, data, ext);
             }
           } else {
             bytes[offset & 0xffff] = data & 0xff;
@@ -4135,7 +4287,7 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (deviceType === 'UPD7759' || deviceType === 'VLM5030') {
+      if (deviceType === 'UPD7759') {
         // Keep the real command/control bus executable while the media
         // decoder remains a separately reported hardware gap.
         registry.write[key] = () => {};
@@ -4179,7 +4331,7 @@ class IrBoard implements Board {
         registry.read[key] = (_address, offset) => bytes[offset & 0xffff]!;
         continue;
       }
-      if (deviceType === 'UPD7759' || deviceType === 'VLM5030') {
+      if (deviceType === 'UPD7759') {
         registry.read[key] = () => 0;
         continue;
       }
@@ -4293,7 +4445,13 @@ class IrBoard implements Board {
     machine: BoardIr,
     regions: Regions,
     registry: HandlerRegistry,
+    sinks: BoardSinks,
   ): void {
+    // Banks a sound device reads its samples through (its own address map):
+    // the device runs in the audio engine, so a switch travels as a write.
+    const sampleBanks = new Set((machine.sound?.auxiliaryDevices ?? [])
+      .flatMap(device => device.sampleMap ?? [])
+      .flatMap(window => window.bank ? [window.bank.tag] : []));
     for (const bank of machine.execution.banks ?? []) {
       const region = bank.region ? regions[bank.region] : undefined;
       if (bank.region && !region) {
@@ -4341,9 +4499,13 @@ class IrBoard implements Board {
           );
         }
         selection.entry = value;
+        if (sampleBanks.has(bank.tag)) {
+          sinks.soundWrite(0, value, this.soundFraction(), `bank.${bank.tag}`);
+        }
         return value;
       };
       this.bankEntry.set(bank.tag, setEntry);
+      this.bankSelection.set(bank.tag, selection);
       const pending = this.pendingBankEntry.get(bank.tag);
       if (pending !== undefined) {
         setEntry(pending);
@@ -4434,6 +4596,7 @@ class IrBoard implements Board {
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
       deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
+      deviceStreamRate: tag => this.devices.get(tag)?.streamRate?.(),
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>
@@ -4451,6 +4614,7 @@ class IrBoard implements Board {
         return undefined;
       },
       readProgram: (cpuTag, address) => this.cpuBuses.get(cpuTag)?.read(address) ?? 0xff,
+      bankEntry: tag => this.bankSelection.get(tag)?.entry,
       stallCpu: (cpuTag, cycles) => {
         this.cpuStalls.set(cpuTag, (this.cpuStalls.get(cpuTag) ?? 0) + cycles);
       },
@@ -5158,10 +5322,12 @@ export function generatedStateArray(
 ): Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | undefined {
   const length = member.arrayLength;
   if (!length) return undefined;
-  if (member.bits === 8) return member.signed ? new Int8Array(length) : new Uint8Array(length);
-  if (member.bits === 16) return member.signed ? new Int16Array(length) : new Uint16Array(length);
-  if (member.bits === 32) return member.signed ? new Int32Array(length) : new Uint32Array(length);
-  return new Uint8Array(length);
+  const array = member.bits === 8 ? (member.signed ? new Int8Array(length) : new Uint8Array(length))
+    : member.bits === 16 ? (member.signed ? new Int16Array(length) : new Uint16Array(length))
+    : member.bits === 32 ? (member.signed ? new Int32Array(length) : new Uint32Array(length))
+    : new Uint8Array(length);
+  if (member.initialValues) array.set(member.initialValues.slice(0, length));
+  return array;
 }
 
 /** MAME's C integer conversion for one stored driver-state member. */

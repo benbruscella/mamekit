@@ -11,7 +11,9 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'gauntlet',
   'marble',
   'mario',
+  'mk',
   'mslug',
+  'nbajam',
   'polepos',
   'pooyan',
   'qbert',
@@ -20,7 +22,6 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'sinistar',
   'spyhunt',
   'timeplt',
-  'trackfld',
   'tutankhm',
   'venture',
   'wardner',
@@ -35,7 +36,8 @@ assert.equal(
 assert.equal(isRuntimeCertified('arkanoid', [], [], true), false);
 assert.equal(
   isRuntimeCertified('trackfld', ['vlm:VLM5030'], ['vlm.data_w'], true),
-  true,
+  false,
+  'VLM5030 is generated now, so the speech gap it once excused must not be accepted',
 );
 assert.equal(isRuntimeCertified('venture', [], [
   'soundbd:pia.read',

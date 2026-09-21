@@ -41,17 +41,38 @@ export interface GeneratedCpuMember {
    * `.w.h`/`.w.l` its halves and `.b.h`/`.b.l` the bytes of the low word.
    */
   pair32?: boolean;
-  values?: number[];
+  /**
+   * Array contents. Numbers for ordinary tables; a table of member-function
+   * pointers holds method names (and nests, for `s_pixel_write_ops[4][6]`).
+   */
+  values?: unknown[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
   /** Little-endian overlapping word/byte register file (x86/NEC style). */
   wordByteRegisters?: number;
   z8000Registers?: boolean;
+  /** A member-function pointer: holds a method name, empty for nullptr. */
+  text?: boolean;
+  /**
+   * Store \`values\` in a typed array of the member's width, so a host that is
+   * handed the member's address (\`&m_shiftreg[0]\`) can copy into it.
+   */
+  typed?: boolean;
+  /**
+   * TMS34010 register file: N unions of `int32_t reg` and `XY { int16 x, y }`,
+   * little-endian, so `xy.x` is the low half of `reg`.
+   */
+  xyRegisters?: number;
 }
 
 export interface GeneratedCpuMethod {
   name: string;
   parameters: string;
+  /**
+   * The C return type, when the core states C types: `int16_t PARAM_WORD()`
+   * returns a sign-extended word, and the emitter narrows to it on return.
+   */
+  returnType?: string;
   program: GeneratedHandlerProgram;
   source: BoardSourceRef;
 }
@@ -72,6 +93,24 @@ export interface GeneratedCpuDefinition {
   /** Clear address bit zero for CPU families whose word/long bus access does so. */
   alignDataWords?: boolean;
   dialect: string;
+  /**
+   * Emit C++ integer semantics from declared types: arithmetic right shift of
+   * signed values, 32-bit wrapping multiply, and exact 64-bit locals. Opt-in,
+   * because older cores were written against the unsigned-shift default.
+   */
+  cIntegerTypes?: boolean;
+  /** An unresolvable call fails code generation instead of emitting 0. */
+  strictCalls?: boolean;
+  /**
+   * A method the core's own timer calls at the start of every scanline, with
+   * the line number: a timer re-armed at `screen().time_until_pos(line)`.
+   */
+  scanlineTimer?: string;
+  /**
+   * Machine-configuration setters that bind a delegate, and the delegate each
+   * binds: `set_shiftreg_in_callback` -> `to_shiftreg_cb`.
+   */
+  delegateSetters?: Record<string, string>;
   /** Opcode-table timing already includes every memory access for the instruction. */
   fixedInstructionCycles?: boolean;
   sourceFiles: string[];
@@ -3575,6 +3614,9 @@ export function normalizeMameExecutionSource(source: string): string {
     /\bif\s+constexpr\s*\(\s*sizeof\s*\.\.\.\s*\([^)]*\)[^;{}]*\)\s*[^;{}]*;/g,
     '',
   );
+
+  // C++ attributes (`[[maybe_unused]] int endskip`) change no behaviour.
+  source = source.replace(/\[\[\s*\w+(?:::\w+)?(?:\([^)]*\))?\s*\]\]\s*/g, '');
 
   let normalized = stripTracingCalls(stripInactivePreprocessorBranches(source))
     .replace(/^[ \t]*#if\s+0[^\r\n]*\r?\n[\s\S]*?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm, '')

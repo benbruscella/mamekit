@@ -701,6 +701,17 @@ function preparedMachineCalls(
     if (!referenceCalls[scoped]) {
       referenceCalls[scoped] = (...values) => invoke(candidate, values);
     }
+    for (const alias of candidate.finderAliases ?? []) {
+      // A gap filler only: a runtime that already binds the call (a family
+      // package, a composed device's own bridge) keeps it. Checked at call time
+      // because those bindings land after this table is prepared.
+      referenceCalls[alias] ??= (...values) => {
+        const bound = bindings.calls?.[alias];
+        return bound ? bound(...values.map(callArgument)) : invoke(candidate, values);
+      };
+      callParameters[alias] = (candidate.parameters ?? '')
+        .split(',').map(parameter => parameter.trim()).filter(Boolean);
+    }
     if (!referenceCalls[candidate.method]) {
       referenceCalls[candidate.method] = (...values) => {
         const target = resolve(candidate.method);
@@ -1951,6 +1962,11 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'RES_K') return toNumber(args[0]) * 1e3;
   if (name === 'RES_M') return toNumber(args[0]) * 1e6;
   if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
+  // Durations are seconds here, as from_hz and from_ticks already are.
+  if (name === 'attotime::from_seconds' || name === 'attotime::from_double') return toNumber(args[0]);
+  if (name === 'attotime::from_msec') return toNumber(args[0]) * 1e-3;
+  if (name === 'attotime::from_usec') return toNumber(args[0]) * 1e-6;
+  if (name === 'attotime::from_nsec') return toNumber(args[0]) * 1e-9;
   if (name === 'attotime::from_ticks') {
     return toNumber(args[0]) / Math.max(1, toNumber(args[1]));
   }
@@ -2091,6 +2107,12 @@ function applyIdentifierCall(
     return args[0];
   }
   const handler = context.bindings.calls?.[name];
+  // A member-function pointer is the name of its method (member-pointers.ts);
+  // coercing it like any other argument would call method "0".
+  if (handler && name === 'CALL_METHOD') {
+    const target = isLValue(args[0]) ? args[0].get() : args[0];
+    return handler(target as number, ...args.slice(1).map(callArgument));
+  }
   if (handler) return handler(...args.map(callArgument));
   const member = context.bindings.members?.[name];
   if (typeof member === 'function') return member(...args.map(callArgument));

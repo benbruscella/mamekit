@@ -720,6 +720,23 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
       while (target.kind === 'index') target = target.object;
       if (target.kind === 'identifier') rebound.add(target.name);
     });
+    // A member whose address is taken is written through the pointer:
+    // `COMBINE_DATA(&m_midtunit_control)` updates it before the same method
+    // reads bit 5 back, and a hoisted copy kept NBA Jam on the wrong VRAM bank.
+    const addressed = (node: unknown): void => {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) { node.forEach(addressed); return; }
+      const record = node as Record<string, unknown>;
+      if (record.kind === 'unary' && record.operator === '&') {
+        let operand = record.operand as { kind?: string; name?: string; object?: unknown } | undefined;
+        while (operand?.kind === 'index' || operand?.kind === 'member') {
+          operand = operand.object as typeof operand;
+        }
+        if (operand?.kind === 'identifier' && operand.name) rebound.add(operand.name);
+      }
+      for (const value of Object.values(record)) addressed(value);
+    };
+    addressed(method.program.operations);
   }
   return new Set(
     definition.members.map(member => member.name).filter(name => !rebound.has(name)),

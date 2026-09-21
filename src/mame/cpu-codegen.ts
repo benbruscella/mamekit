@@ -10,6 +10,8 @@ interface EmitContext {
   definition: GeneratedCpuDefinition;
   locals: Map<string, string | undefined>;
   returnType: 'number' | 'void';
+  /** The method's C return type, which a strict-call core narrows to. */
+  returnValueType?: string;
 }
 
 const DEFAULT_CONSTANTS: Record<string, number> = {
@@ -203,6 +205,50 @@ class WordByteRegisterFile {
   }
 }
 
+/**
+ * The TMS34010 register file: each register is a union of \`int32_t reg\` and
+ * \`XY { int16_t x, y; }\`, laid out little-endian, so \`xy.x\` is the low
+ * half of \`reg\` and \`xy.y\` the high half. One Int32Array holds the file and
+ * both views read and write it, which is what the union does.
+ */
+class XyHalves {
+  private readonly cells: Int32Array;
+  private readonly index: number;
+  constructor(cells: Int32Array, index: number) { this.cells = cells; this.index = index; }
+  get x(): number { return (this.cells[this.index]! << 16) >> 16; }
+  set x(value: number) {
+    this.cells[this.index] = (this.cells[this.index]! & ~0xffff) | (value & 0xffff);
+  }
+  get y(): number { return this.cells[this.index]! >> 16; }
+  set y(value: number) {
+    this.cells[this.index] = (this.cells[this.index]! & 0xffff) | (value << 16);
+  }
+}
+
+class XyRegister {
+  private readonly cells: Int32Array;
+  private readonly index: number;
+  readonly xy: XyHalves;
+  constructor(cells: Int32Array, index: number) {
+    this.cells = cells;
+    this.index = index;
+    this.xy = new XyHalves(cells, index);
+  }
+  get reg(): number { return this.cells[this.index]!; }
+  set reg(value: number) { this.cells[this.index] = value; }
+}
+
+/** A local \`XY\` value: a copy with its own two int16 fields. */
+class XyValue {
+  private px = 0;
+  private py = 0;
+  constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+  get x(): number { return this.px; }
+  set x(value: number) { this.px = (value << 16) >> 16; }
+  get y(): number { return this.py; }
+  set y(value: number) { this.py = (value << 16) >> 16; }
+}
+
 class Z8000RegisterFile {
   readonly W = new Uint16Array(16);
   readonly B: Record<number, number>;
@@ -378,7 +424,7 @@ ${countsBusCycles ? `
   }
 
 ${emitInternalMethods(definition)}
-
+${definition.strictCalls ? emitStrictHelpers(definition) : ''}
   get(name: string): number {
     switch (name) {
 ${emitPublicGetCases(definition)}
@@ -440,11 +486,60 @@ ${methods}
 
 export const cpu: GeneratedCpuExecutable = {
   type: ${JSON.stringify(definition.type)},
-  summary: ${JSON.stringify(definition.summary)},
+  summary: ${JSON.stringify(definition.summary)},${definition.scanlineTimer
+    ? `\n  scanlineTimer: ${JSON.stringify(definition.scanlineTimer)},` : ''}${definition.delegateSetters
+    ? `\n  delegateSetters: ${JSON.stringify(definition.delegateSetters)},` : ''}
   create: (bus: CpuBus): Cpu => new Generated${safeName(definition.type)}(bus),
 };
 
 export default cpu;
+`;
+}
+
+/** Name dispatch and bit-addressed word access for a strict-call core. */
+function emitStrictHelpers(definition: GeneratedCpuDefinition): string {
+  // One entry per method, resolved once into a Map. A member-function-pointer
+  // call names its target at runtime (the TMS34010's opcode and raster-op
+  // tables), and a switch over a thousand names compared them one by one: it
+  // was 16% of an NBA Jam frame.
+  const entries = [...new Set(definition.methods.map(method => method.name))].map(name => {
+    const method = resolveMethod(definition, name, parseParameters(
+      definition.methods.find(candidate => candidate.name === name)!.parameters).length)!;
+    const arity = parseParameters(method.parameters).length;
+    const parameters = Array.from({ length: arity }, (_unused, index) => `a${index}: any`).join(', ');
+    const args = Array.from({ length: arity }, (_unused, index) => `a${index}`).join(', ');
+    return `    [${JSON.stringify(name)}, (${parameters}) => ` +
+      `this.method_${emittedMethodName(definition, method)}(${args})],`;
+  }).join('\n');
+  const widest = Math.max(0, ...definition.methods.map(method => parseParameters(method.parameters).length));
+  const slots = Array.from({ length: widest }, (_unused, index) => `a${index}: any = 0`).join(', ');
+  return `
+  private readonly methodTable = new Map<unknown, (...args: any[]) => number>([
+${entries}
+  ]);
+
+  private callMethod(name: unknown${slots ? `, ${slots}` : ''}): number {
+    const method = this.methodTable.get(name);
+    if (method === undefined) {
+      throw new Error('${definition.type} has no method "' + String(name) + '" to call');
+    }
+    return method(${Array.from({ length: widest }, (_unused, index) => `a${index}`).join(', ')});
+  }
+
+  private readWordLE(bitAddress: number): number {
+    const address = ((bitAddress >>> 3) & ~1) >>> 0;
+    const value = this.bus.read16be ? this.bus.read16be(address)
+      : ((this.bus.read(address) & 0xff) << 8) | (this.bus.read(address + 1) & 0xff);
+    return ((value & 0xff) << 8) | ((value >>> 8) & 0xff);
+  }
+
+  private writeWordLE(bitAddress: number, data: number): number {
+    const address = ((bitAddress >>> 3) & ~1) >>> 0;
+    const value = ((data & 0xff) << 8) | ((data >>> 8) & 0xff);
+    if (this.bus.write16be) this.bus.write16be(address, value);
+    else { this.bus.write(address, (value >>> 8) & 0xff); this.bus.write(address + 1, value & 0xff); }
+    return 0;
+  }
 `;
 }
 
@@ -597,8 +692,27 @@ ${updateInput}
 
 function emitMember(member: GeneratedCpuMember): string {
   if (member.z8000Registers) return `  private ${member.name} = new Z8000RegisterFile();`;
+  if (member.xyRegisters) {
+    return [
+      `  private readonly ${member.name}_cells = new Int32Array(${member.xyRegisters});`,
+      `  private readonly ${member.name} = Array.from({ length: ${member.xyRegisters} }, ` +
+        `(_unused, index) => new XyRegister(this.${member.name}_cells, index));`,
+    ].join('\n');
+  }
+  if (member.text) return `  private ${member.name} = "";`;
+  if (member.values && member.values.some(value => typeof value !== 'number')) {
+    return `  private readonly ${member.name}: readonly any[] = ${JSON.stringify(member.values)};`;
+  }
   if (member.wordByteRegisters) {
     return `  private ${member.name} = new WordByteRegisterFile(${member.wordByteRegisters});`;
+  }
+  if (member.values && member.typed) {
+    const array = member.bits === 8 ? (member.signed ? 'Int8Array' : 'Uint8Array')
+      : member.bits === 16 ? (member.signed ? 'Int16Array' : 'Uint16Array')
+        : member.signed ? 'Int32Array' : 'Uint32Array';
+    return member.values.every(value => value === 0)
+      ? `  private ${member.name} = new ${array}(${member.values.length});`
+      : `  private ${member.name} = ${array}.from([${member.values.join(', ')}]);`;
   }
   if (member.values) {
     return member.bits === 8
@@ -641,10 +755,16 @@ function emitMethod(
     'number',
   );
   const reference = parameters.find(parameter => parameter.reference);
+  if (method.returnType) context.returnValueType = method.returnType;
   const body = emitProgram(method.program, context, 4);
+  // A strict-call core passes objects too: a boxed \`int *\`, an \`XY *\`, the
+  // screen, bitmap and display_params a screen update receives.
+  const parameterType = (valueType: string) =>
+    definition.strictCalls && (valueType.includes('*') || !typeOfName(valueType.replace(/\bconst\b/g, '').trim()))
+      ? 'any' : 'number';
   return [
     `  private method_${emittedMethodName(definition, method)}(${parameters.map(parameter =>
-      `${parameter.name}: number = 0`).join(', ')}): number {`,
+      `${parameter.name}: ${parameterType(parameter.valueType)} = 0`).join(', ')}): number {`,
     body,
     reference ? `    return ${reference.name};` : '    return 0;',
     '  }',
@@ -717,7 +837,8 @@ function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
     lines.push(`      case ${JSON.stringify(name)}: return this.${name};`);
   }
   for (const member of definition.members) {
-    if (member.values || member.wordByteRegisters || member.z8000Registers) continue;
+    if (member.values || member.wordByteRegisters || member.z8000Registers ||
+        member.xyRegisters || member.text) continue;
     // A PAIR is one 32-bit cell, so only `.d` is enumerated for capture: the
     // word and byte views alias the same storage, and capturing them too
     // would restore the same register several times over.
@@ -750,7 +871,8 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
     );
   }
   for (const member of definition.members) {
-    if (member.values || member.wordByteRegisters || member.z8000Registers) continue;
+    if (member.values || member.wordByteRegisters || member.z8000Registers ||
+        member.xyRegisters || member.text) continue;
     if (member.pair32) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);
       lines.push(
@@ -814,10 +936,25 @@ function emitOperation(
 ): string {
   const pad = ' '.repeat(indentation);
   if (operation.op === 'declare') {
+    const declared = context.definition.cIntegerTypes ? typeOfName(operation.valueType) : undefined;
+    if (declared?.wide) {
+      const initial = operation.value
+        ? `BigInt.as${declared.signed ? 'Int' : 'Uint'}N(64, ${emitWide(operation.value, context)})`
+        : '0n';
+      return `${pad}let ${operation.name} = ${initial};`;
+    }
+    const loose = context.definition.strictCalls && !typeOfName(operation.valueType);
+    const structType = loose && !operation.valueType?.includes('*') &&
+      !/_func$/.test(operation.valueType?.trim() ?? '');
     const initial = operation.value
       ? wrapType(emitExpression(operation.value, context), operation.valueType)
-      : '0';
-    return `${pad}let ${operation.name} = ${initial};`;
+      : /^(?:const\s+)?XY$/.test(operation.valueType?.trim() ?? '') ? 'new XyValue()'
+        // A struct local (`display_params params;`) is an object its fields
+        // are stored into; a function pointer or scalar starts at 0.
+        : structType ? '{}' : '0';
+    // A local of a type that is not a C integer -- a member-function pointer,
+    // an XY -- holds whatever the source stores in it.
+    return `${pad}let ${operation.name}${loose ? ': any' : ''} = ${initial};`;
   }
   if (operation.op === 'assign') {
     return `${pad}${emitAssignment(operation.target, operation.operator, operation.value, context)};`;
@@ -830,6 +967,9 @@ function emitOperation(
       return operation.value
         ? `${pad}void (${emitExpression(operation.value, context)}); return;`
         : `${pad}return;`;
+    }
+    if (operation.value && context.returnValueType && context.definition.strictCalls) {
+      return `${pad}return ${wrapType(emitExpression(operation.value, context), context.returnValueType)};`;
     }
     return `${pad}return ${operation.value ? emitExpression(operation.value, context) : '0'};`;
   }
@@ -935,21 +1075,70 @@ function emitCallStatement(
 }
 
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
+  if (context.definition.cIntegerTypes && expression.kind !== 'cast' && expression.kind !== 'number' &&
+      cType(expression, context).wide) {
+    // A 64-bit value reaching 32-bit code: exact up to 2^53, then wrapped by
+    // whatever stores it.
+    return `Number(${emitWide(expression, context)})`;
+  }
   if (expression.kind === 'number') return String(expression.value);
   if (expression.kind === 'string') return JSON.stringify(expression.value);
   if (expression.kind === 'identifier') return emitIdentifier(expression.name, context);
+  if (expression.kind === 'unary' && context.definition.strictCalls &&
+      expression.operand.kind === 'identifier' && context.locals.has(expression.operand.name)) {
+    const local = expression.operand.name;
+    if (expression.operator === '*' && scalarPointerType(context.locals.get(local))) return `${local}[0]`;
+    // The address of a local struct is the object itself.
+    if (expression.operator === '&') return local;
+  }
+  // `&m_shiftreg[0]`: the address of a member array's element is the array
+  // from that element on.
+  if (expression.kind === 'unary' && expression.operator === '&' && context.definition.strictCalls &&
+      expression.operand.kind === 'index') {
+    const path = expressionPath(expression.operand.object);
+    const member = path ? memberForPath(path, context.definition) : undefined;
+    if (member?.values) {
+      const index = emitExpression(expression.operand.index, context);
+      return index === '0' ? `this.${member.name}` : `this.${member.name}.subarray(${index})`;
+    }
+  }
   if (expression.kind === 'unary') {
     if (expression.operator === '!') {
       return `((${emitExpression(expression.operand, context)}) ? 0 : 1)`;
     }
     return `(${expression.operator}${emitExpression(expression.operand, context)})`;
   }
+  const cTypes = context.definition.cIntegerTypes === true;
   if (expression.kind === 'cast') {
+    if (cTypes) {
+      const target = typeOfName(expression.valueType);
+      if (target?.wide) return `Number(${emitWide(expression, context)})`;
+      if (cType(expression.operand, context).wide) {
+        const bits = /(?:8|char)/.test(expression.valueType) ? 8 : /16|short/.test(expression.valueType) ? 16 : 32;
+        return wrapType(
+          `Number(BigInt.as${target?.signed === false ? 'Uint' : 'Int'}N(${bits}, ${emitWide(expression.operand, context)}))`,
+          expression.valueType,
+        );
+      }
+    }
     return wrapType(emitExpression(expression.operand, context), expression.valueType);
+  }
+  if (expression.kind === 'binary' && cTypes &&
+      ['==', '!=', '<', '<=', '>', '>='].includes(expression.operator) &&
+      (cType(expression.left, context).wide || cType(expression.right, context).wide)) {
+    const operator = expression.operator === '==' ? '===' : expression.operator === '!=' ? '!==' : expression.operator;
+    return `((${emitWide(expression.left, context)} ${operator} ${emitWide(expression.right, context)}) ? 1 : 0)`;
   }
   if (expression.kind === 'binary') {
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
+    if (cTypes && expression.operator === '>>') {
+      return cType(expression.left, context).signed ? `((${left}) >> (${right}))` : `((${left}) >>> (${right}))`;
+    }
+    if (cTypes && expression.operator === '*') {
+      const product = `Math.imul(${left}, ${right})`;
+      return cType(expression, context).signed ? product : `(${product} >>> 0)`;
+    }
     if (expression.operator === '/') return `Math.trunc((${left}) / (${right}))`;
     if (expression.operator === '&&' || expression.operator === '||') {
       return `(((${left}) ${expression.operator} (${right})) ? 1 : 0)`;
@@ -986,6 +1175,12 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     if (path) return emitPath(path, context);
     return `${emitExpression(expression.object, context)}.${expression.property}`;
   }
+  if (expression.kind === 'index' && context.definition.strictCalls &&
+      expression.object.kind === 'call' && /\.pix$/.test(expressionPath(expression.object.callee) ?? '')) {
+    // `bitmap.pix(y)[x]`: MAME's bitmap row, read through the host bitmap.
+    const bitmap = emitExpression((expression.object.callee as { object: GeneratedExpression }).object, context);
+    return `${bitmap}.pix(${emitExpression(expression.object.args[0]!, context)}, ${emitExpression(expression.index, context)})`;
+  }
   if (expression.kind === 'index') {
     return `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`;
   }
@@ -1001,7 +1196,19 @@ function emitCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: EmitContext,
 ): string {
+  const callee = expression.callee;
+  if (context.definition.strictCalls && callee.kind === 'member' && callee.property === 'black_pen' &&
+      callee.object.kind === 'call' && expressionPath(callee.object.callee) === 'screen.palette') {
+    return '(this.bus.screen?.blackPen() ?? 0)';
+  }
   const name = expressionPath(expression.callee) ?? '';
+  if (name === 'sizeof' && context.definition.strictCalls) {
+    const path = expression.args[0] ? expressionPath(expression.args[0]) : undefined;
+    const member = path ? memberForPath(path, context.definition) : undefined;
+    if (member?.xyRegisters) return String(member.xyRegisters * 4);
+    if (member?.values) return String(member.values.length * ((member.bits ?? 32) / 8));
+    throw new Error(`${context.definition.type}: cannot size ${path ?? 'expression'}`);
+  }
   const args = expression.args.map(argument => emitExpression(argument, context));
   const addressMask = context.definition.addressMask ?? 0xffff;
   const dataAddress = (value: string): string => context.definition.alignDataWords
@@ -1009,6 +1216,30 @@ function emitCall(
     : `(${value})`;
   const fixedInstructionCycles = context.definition.fixedInstructionCycles === true;
   const method = resolveMethod(context.definition, name, expression.args.length);
+  if (method && context.definition.strictCalls) {
+    // `&local` passed for an `int *` parameter: box it, call, and copy back,
+    // which is what writing through the pointer does to the caller's local.
+    const parameters = parseParameters(method.parameters);
+    const boxes: { local: string; box: string; valueType?: string }[] = [];
+    const boxedArgs = expression.args.map((argument, index) => {
+      const parameterType = parameters[index]?.valueType;
+      if (argument.kind === 'unary' && argument.operator === '&' &&
+          argument.operand.kind === 'identifier' && context.locals.has(argument.operand.name) &&
+          scalarPointerType(`${parameterType}*`.replace(/\*\*$/, '*'))) {
+        const local = argument.operand.name;
+        const box = `box_${local}`;
+        boxes.push({ local, box, valueType: context.locals.get(local) });
+        return box;
+      }
+      return args[index]!;
+    });
+    const call = `this.method_${emittedMethodName(context.definition, method)}(${boxedArgs.join(', ')})`;
+    if (!boxes.length) return call;
+    return `(() => { ${boxes.map(({ local, box }) => `const ${box} = [${local}];`).join(' ')} ` +
+      `const result = ${call}; ` +
+      `${boxes.map(({ local, box, valueType }) => `${local} = ${wrapType(`${box}[0]`, valueType)};`).join(' ')} ` +
+      'return result; })()';
+  }
   if (method) {
     return `this.method_${emittedMethodName(context.definition, method)}(${args.join(', ')})`;
   }
@@ -1231,11 +1462,82 @@ function emitCall(
     return `(this.bus.signal?.('irqack_cb', ${args[0] ?? '0'}) ?? 0)`;
   }
   if (name === 'm_irqack_cb.bind') return '0';
-  if (/^m_\w+_cb$/.test(name)) {
+  if (/^m_\w+_cb$/.test(name) && !(context.definition.strictCalls && args.length !== 1)) {
     return `(this.bus.signal?.(${JSON.stringify(name.slice(2))}, ${args[0] ?? '0'}) ?? 0)`;
   }
   if (name === 'LOG' || name === 'LOGMASKED' || name === 'logerror') return '0';
   if (name === 'total_cycles') return '1';
+
+  if (context.definition.strictCalls) {
+    // A method of an object the host passed in -- `bitmap.pix(y)` on the
+    // bitmap handed to a screen update.
+    const objectCall = /^(\w+)\.(\w+)$/.exec(name);
+    if (objectCall && context.locals.has(objectCall[1]!)) {
+      return `${objectCall[1]}.${objectCall[2]}(${args.join(', ')})`;
+    }
+    // A call through a member-function pointer: dispatch on the name it holds.
+    if (name === 'CALL_METHOD') {
+      return `this.callMethod(${args.join(', ')})`;
+    }
+    // Bit-addressed 16-bit little-endian program space (TMS34010, addrshift
+    // +3): the word at bit address A is the one at byte (A >> 3) & ~1.
+    if (name === 'TMS_READ16') return `this.readWordLE(${args[0] ?? '0'})`;
+    if (name === 'TMS_WRITE16') return `this.writeWordLE(${args[0] ?? '0'}, ${args[1] ?? '0'})`;
+    if (name === 'MAKE_XY') return `new XyValue(${args[0] ?? '0'}, ${args[1] ?? '0'})`;
+    // Whether the machine configuration bound a delegate or devcb.
+    const presence = /^m_(\w+_cb)\.(isnull|isunset)$/.exec(name);
+    if (presence) return `(this.bus.hasDelegate?.(${JSON.stringify(presence[1])}) ? 0 : 1)`;
+    // The screen the processor drives (device_video_interface::screen()).
+    const screenCall = /^screen\.(vpos|hpos|width|height|visible_area|update_partial|configure|time_until_pos)$/.exec(name);
+    if (screenCall) {
+      const [, method] = screenCall;
+      if (method === 'configure') {
+        return `(this.bus.screen?.configure?.(${args[0] ?? '0'}, ${args[1] ?? '0'}, ${args[2] ?? '{}'}), 0)`;
+      }
+      if (method === 'visible_area') return '(this.bus.screen?.visibleArea() ?? { min_x: 0, max_x: 0, min_y: 0, max_y: 0 })';
+      if (method === 'update_partial') return `(this.bus.screen?.updatePartial(${args[0] ?? '0'}), 0)`;
+      if (method === 'time_until_pos') return '0';
+      return `(this.bus.screen?.${method}() ?? 0)`;
+    }
+    // The scanline timer is driven by the board once per line, so re-arming it
+    // is already done; what is left is how long until it fires.
+    if (name === 'm_scantimer.adjust') return '0';
+    if (name === 'm_scantimer.remaining') return '(this.bus.screen?.untilNextLine() ?? 1)';
+    if (name === 'attotime::from_hz') return `(1 / (${args[0] ?? '1'}))`;
+    if (name === 'attotime') return `(${args[0] ?? '0'})`;
+    if (name === 'machine.side_effects_disabled') return '0';
+    if (name === 'util::sext') {
+      const shift = `(32 - (${args[1] ?? '32'}))`;
+      return `(((${args[0] ?? '0'}) << ${shift}) >> ${shift})`;
+    }
+    if (name === 'std::min') return `Math.min(${args.join(', ')})`;
+    if (name === 'std::max') return `Math.max(${args.join(', ')})`;
+    // screen().configure keeps the board's refresh; only the geometry moves.
+    if (name === 'HZ_TO_ATTOSECONDS') return '0';
+    if (name === 'rectangle') {
+      return args.length === 4
+        ? `{ min_x: ${args[0]}, max_x: ${args[1]}, min_y: ${args[2]}, max_y: ${args[3]} }`
+        : '{ min_x: 0, max_x: 0, min_y: 0, max_y: 0 }';
+    }
+    // Scheduler services the step already provides: HALT mirrors HSTCTL, and
+    // an interrupt is looked for at every instruction boundary.
+    if (name === 'set_input_line' || name === 'signal_interrupt_trigger') return '0';
+    if (name === 'memset') {
+      // Only ever whole-member clears in the cores that ask for strict calls.
+      const target = expression.args[0];
+      const path = target ? expressionPath(target) : undefined;
+      const member = path ? memberForPath(path, context.definition) : undefined;
+      if (member?.xyRegisters) return `(this.${member.name}_cells.fill(${args[1] ?? '0'}), 0)`;
+      if (member?.values) return `(this.${member.name}.fill(${args[1] ?? '0'}), 0)`;
+    }
+    // A machine-configured delegate whose arguments are objects -- a screen,
+    // a bitmap, a display_params, a shift-register buffer -- rather than one
+    // line state, so it goes to the board by name with everything intact.
+    if (/^m_\w+_cb$/.test(name)) {
+      return `(this.bus.delegate?.(${JSON.stringify(name.slice(2))}, ${args.join(', ')}) ?? 0)`;
+    }
+    throw new Error(`${context.definition.type} source calls "${name || JSON.stringify(expression.callee).slice(0, 300)}", which has no generated binding`);
+  }
 
   // Unbound MAME callbacks, debugger hooks, daisy-chain hooks and logging are
   // framework services outside the generated CPU's browser execution contract.
@@ -1264,12 +1566,42 @@ function emitAssignment(
         `${emitAssignment(whenFalse.operand, operator, value, context, postfix)}))`;
     }
   }
+  // `bitmap.pix(y)[x] = pen`: a store into MAME's bitmap row goes through the
+  // host bitmap, which clips it to the visible window.
+  if (context.definition.strictCalls && target.kind === 'index' && operator === '=' &&
+      target.object.kind === 'call' && /\.pix$/.test(expressionPath(target.object.callee) ?? '')) {
+    const bitmap = emitExpression((target.object.callee as { object: GeneratedExpression }).object, context);
+    return `${bitmap}['pix='](${emitExpression(target.object.args[0]!, context)}, ` +
+      `${emitExpression(target.index, context)}, ${emitExpression(value, context)})`;
+  }
+  // A whole XY is a struct: assigning one copies both fields, whether into a
+  // local pair or into a register's `.xy` view.
+  if (context.definition.strictCalls && operator === '=' &&
+      ((target.kind === 'member' && target.property === 'xy') ||
+       (target.kind === 'identifier' && /^(?:const\s+)?XY$/.test(context.locals.get(target.name)?.trim() ?? '')))) {
+    const destination = emitExpression(target, context);
+    const source = emitExpression(value, context);
+    return `(() => { const pair = ${source}; ${destination}.x = pair.x; ${destination}.y = pair.y; return 0; })()`;
+  }
   const targetValue = targetInfo(target, context);
+  const targetType = context.definition.cIntegerTypes ? typeOfName(targetValue.valueType) : undefined;
+  if (targetType?.wide) {
+    const operand = emitWide(value, context);
+    const combined = operator === '='
+      ? operand
+      : `((${targetValue.code}) ${operator.slice(0, -1)} (${operand}))`;
+    const assignment = `${targetValue.code} = BigInt.as${targetType.signed ? 'Int' : 'Uint'}N(64, ${combined})`;
+    return postfix ? `(() => { const previous = ${targetValue.code}; ${assignment}; return previous; })()` : assignment;
+  }
   const right = emitExpression(value, context);
-  // `>>=` follows the binary `>>` rule: these are unsigned C++ shifts.
+  // `>>=` follows the binary `>>` rule: unsigned unless the core states C
+  // types and the target is signed.
+  const shift = context.definition.cIntegerTypes && cType(target, context).signed ? '>>' : '>>>';
   const next = operator === '='
     ? right
-    : `((${targetValue.code}) ${operator === '>>=' ? '>>>' : operator.slice(0, -1)} (${right}))`;
+    : operator === '*=' && context.definition.cIntegerTypes
+      ? `Math.imul(${targetValue.code}, ${right})`
+      : `((${targetValue.code}) ${operator === '>>=' ? shift : operator.slice(0, -1)} (${right}))`;
   const assignment = `${targetValue.code} = ${wrapTarget(next, targetValue)}`;
   return postfix
     ? `(() => { const previous = ${targetValue.code}; ${assignment}; return previous; })()`
@@ -1280,6 +1612,12 @@ function targetInfo(
   expression: GeneratedExpression,
   context: EmitContext,
 ): { code: string; bits?: 1 | 8 | 16 | 32; valueType?: string; signed?: boolean } {
+  if (expression.kind === 'index' && context.definition.strictCalls && !expressionPath(expression.object)) {
+    // An element of an array a call returns: `bitmap.pix(y)[x] = pen`.
+    return {
+      code: `${emitExpression(expression.object, context)}[${emitExpression(expression.index, context)}]`,
+    };
+  }
   if (expression.kind === 'index') {
     const object = expressionPath(expression.object);
     if (!object) {
@@ -1294,6 +1632,16 @@ function targetInfo(
       signed: member?.signed,
     };
   }
+  if (expression.kind === 'unary' && expression.operator === '*' &&
+      expression.operand.kind === 'identifier') {
+    const pointee = scalarPointerType(context.locals.get(expression.operand.name));
+    if (pointee) return { code: `${expression.operand.name}[0]`, valueType: pointee };
+  }
+  // A field of an indexed element -- `m_regs[i].reg`, `m_regs[i].xy.x` --
+  // stores through the element's own accessor, which keeps the union's width.
+  if (expression.kind === 'member' && !expressionPath(expression)) {
+    return { code: emitExpression(expression, context) };
+  }
   const path = expressionPath(expression);
   if (!path) {
     throw new Error(
@@ -1304,6 +1652,8 @@ function targetInfo(
   if (context.locals.has(path)) {
     return { code: path, valueType: localType };
   }
+  // A field of a local struct (an XY value), which stores through its setter.
+  if (context.locals.has(path.split('.')[0]!)) return { code: path };
   const alias = context.definition.aliases[path];
   if (alias) return { code: `this.${path}`, bits: alias.bits };
 
@@ -1370,6 +1720,11 @@ function emitPath(path: string, context: EmitContext): string {
     if (path === member.name && member.pair32) return `this.${path}.d`;
     if (path === member.name && member.pair) return `this.${path}.w`;
     return `this.${path}`;
+  }
+  // A field of a local struct or object parameter (an XY, display_params).
+  if (context.locals.has(localRoot)) return path;
+  if (context.definition.strictCalls) {
+    throw new Error(`${context.definition.type} source reads unresolved path "${path}"`);
   }
   return '0';
 }
@@ -1479,6 +1834,124 @@ function wrapType(value: string, valueType?: string): string {
     return `((${value}) | 0)`;
   }
   return value;
+}
+
+/**
+ * The C type of an expression, enough to choose the operation JavaScript has
+ * to perform: whether a right shift fills with the sign, whether a multiply
+ * wraps at 32 bits, and whether the value is 64 bits wide. Only consulted for
+ * a core that opts in with \`cIntegerTypes\`.
+ */
+interface CType { signed: boolean; wide: boolean }
+
+const UNSIGNED_32: CType = { signed: false, wide: false };
+const SIGNED_32: CType = { signed: true, wide: false };
+
+/** `int *dx`, `uint32_t *srcaddr`: a pointer to one integer, boxed as [value]. */
+function scalarPointerType(valueType: string | undefined): string | undefined {
+  const match = /^\s*(?:const\s+)?([\w:]+(?:\s+[\w:]+)?)\s*\*\s*$/.exec(valueType ?? '');
+  return match && typeOfName(match[1]) ? match[1] : undefined;
+}
+
+function typeOfName(valueType: string | undefined): CType | undefined {
+  const normalized = valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+  if (!normalized) return undefined;
+  if (/^(?:u?int64_t|[us]64|(?:unsigned\s+)?long\s+long)$/.test(normalized)) {
+    return { signed: !/^(?:uint64_t|u64|unsigned)/.test(normalized), wide: true };
+  }
+  if (/^(?:uint32_t|u32|unsigned(?:\s+int)?|offs_t)$/.test(normalized)) return UNSIGNED_32;
+  // Narrower unsigned types promote to int, so they shift as signed values
+  // that happen never to be negative.
+  if (/^(?:u?int(?:8|16)_t|[us](?:8|16)|bool|char|short|unsigned\s+(?:char|short))$/.test(normalized)) {
+    return SIGNED_32;
+  }
+  if (/^(?:int32_t|s32|int|signed|long)$/.test(normalized)) return SIGNED_32;
+  return undefined;
+}
+
+function cType(expression: GeneratedExpression, context: EmitContext): CType {
+  switch (expression.kind) {
+    case 'number': return expression.value > 0x7fffffff ? UNSIGNED_32 : SIGNED_32;
+    case 'identifier': {
+      if (context.locals.has(expression.name)) {
+        return typeOfName(context.locals.get(expression.name)) ?? UNSIGNED_32;
+      }
+      const member = context.definition.members.find(candidate => candidate.name === expression.name);
+      if (member) return member.signed || (member.bits !== undefined && member.bits < 32) ? SIGNED_32 : UNSIGNED_32;
+      return SIGNED_32;
+    }
+    case 'member':
+      // The register union's views and an XY's fields are all signed.
+      if (['reg', 'x', 'y'].includes(expression.property)) return SIGNED_32;
+      return UNSIGNED_32;
+    case 'index': {
+      const path = expressionPath(expression.object);
+      const member = path ? memberForPath(path, context.definition) : undefined;
+      if (member) return member.signed || (member.bits !== undefined && member.bits < 32) ? SIGNED_32 : UNSIGNED_32;
+      return UNSIGNED_32;
+    }
+    case 'cast': return typeOfName(expression.valueType) ?? UNSIGNED_32;
+    case 'unary':
+      return expression.operator === '!' ? SIGNED_32 : cType(expression.operand, context);
+    case 'binary': {
+      if (['==', '!=', '<', '<=', '>', '>=', '&&', '||'].includes(expression.operator)) return SIGNED_32;
+      const left = cType(expression.left, context);
+      if (expression.operator === '<<' || expression.operator === '>>') return left;
+      const right = cType(expression.right, context);
+      if (left.wide || right.wide) {
+        return { wide: true, signed: (left.wide ? left.signed : true) && (right.wide ? right.signed : true) };
+      }
+      return left.signed && right.signed ? SIGNED_32 : UNSIGNED_32;
+    }
+    case 'conditional': return cType(expression.whenTrue, context);
+    case 'assignment': return cType(expression.target, context);
+    case 'call': {
+      const name = expressionPath(expression.callee) ?? '';
+      if (name === 'mul_32x32') return { signed: true, wide: true };
+      if (name === 'mulu_32x32') return { signed: false, wide: true };
+      const intrinsic = typeOfName(name);
+      return intrinsic ?? UNSIGNED_32;
+    }
+    default: return UNSIGNED_32;
+  }
+}
+
+/** An expression evaluated as a BigInt, for 64-bit arithmetic. */
+function emitWide(expression: GeneratedExpression, context: EmitContext): string {
+  const type = cType(expression, context);
+  const fit = (code: string, signed = type.signed) =>
+    `BigInt.as${signed ? 'Int' : 'Uint'}N(64, ${code})`;
+  if (expression.kind === 'cast' && type.wide) {
+    return fit(emitWide(expression.operand, context));
+  }
+  if (expression.kind === 'identifier' && type.wide && context.locals.has(expression.name)) {
+    return expression.name;
+  }
+  if (expression.kind === 'call') {
+    const name = expressionPath(expression.callee) ?? '';
+    if (name === 'mul_32x32' || name === 'mulu_32x32') {
+      const [left = '0', right = '0'] = expression.args.map(argument => emitExpression(argument, context));
+      const cast = name === 'mul_32x32' ? '| 0' : '>>> 0';
+      return `(BigInt((${left}) ${cast}) * BigInt((${right}) ${cast}))`;
+    }
+  }
+  if (expression.kind === 'binary' && type.wide) {
+    const left = emitWide(expression.left, context);
+    const right = emitWide(expression.right, context);
+    return fit(`((${left}) ${expression.operator} (${right}))`);
+  }
+  if (expression.kind === 'unary' && type.wide && (expression.operator === '-' || expression.operator === '~')) {
+    return fit(`(${expression.operator}${emitWide(expression.operand, context)})`);
+  }
+  if (expression.kind === 'conditional' && type.wide) {
+    return `((${emitExpression(expression.condition, context)}) ? ` +
+      `(${emitWide(expression.whenTrue, context)}) : (${emitWide(expression.whenFalse, context)}))`;
+  }
+  if (type.wide) {
+    throw new Error(`${context.definition.type}: unsupported 64-bit expression ${expression.kind}`);
+  }
+  // A 32-bit value widening: its own signedness decides the sign extension.
+  return `BigInt(${emitExpression(expression, context)})`;
 }
 
 function safeName(name: string): string {
