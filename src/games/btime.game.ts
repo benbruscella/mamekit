@@ -42,8 +42,8 @@ export const btime = sourceTarget({
       writes: 3783,
       nonzeroWrites: 1411,
       writeHash: '328a3d1c',
-      pcmHash: '29e83f4a',
-      rms: 0.059345,
+      pcmHash: '3d02621e',
+      rms: 0.117991,
     },
   },
 });

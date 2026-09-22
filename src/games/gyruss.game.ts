@@ -38,8 +38,8 @@ export const gyruss = sourceTarget({
       writes: 193973,
       nonzeroWrites: 151034,
       writeHash: '5f6be167',
-      pcmHash: '83f0d432',
-      rms: 0.097804,
+      pcmHash: '4bf5598c',
+      rms: 0.174124,
     },
   },
 });

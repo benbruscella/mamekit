@@ -42,8 +42,8 @@ export const bnj = sourceTarget({
       writes: 31982,
       nonzeroWrites: 30205,
       writeHash: '34738e17',
-      pcmHash: 'be9ac442',
-      rms: 0.049959,
+      pcmHash: '94ef5407',
+      rms: 0.08262,
     },
   },
 });
