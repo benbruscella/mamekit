@@ -780,7 +780,7 @@ export async function runShell(
   // artwork zip that cannot exist.
   if (cfg.kind !== 'console') {
     void loadArtwork(cfg.game).then(art => {
-      if (art?.window) ui.setBezel(art.bmp, art.window, art.tints);
+      if (art?.window) ui.setBezel(art.bmp, art.window, art.tints, art.backdrop);
     });
   }
 
@@ -2148,10 +2148,26 @@ function buildDom(cfg: ShellConfig) {
       bmp: ImageBitmap | HTMLCanvasElement,
       win: ArtWindow,
       tints: ArtTint[],
+      backdrop?: { alpha: number },
     ) => {
       bezelCanvas.width = bmp.width; bezelCanvas.height = bmp.height;
-      bezelCanvas.getContext('2d')!.drawImage(bmp, 0, 0);
-      holder.insertBefore(bezelCanvas, overlay); // above the game, below the overlay
+      const bezelCtx = bezelCanvas.getContext('2d')!;
+      if (backdrop) {
+        // A MAME backdrop is behind the screen, and the screen is added onto
+        // it: black leaves the art showing, a lit beam brightens it. The art is
+        // opaque where a bezel would have its window, so drawn in front it
+        // hid the whole game (Battlezone).
+        bezelCtx.fillStyle = '#000';
+        bezelCtx.fillRect(0, 0, bmp.width, bmp.height);
+        bezelCtx.globalAlpha = backdrop.alpha;
+        bezelCtx.drawImage(bmp, 0, 0);
+        bezelCtx.globalAlpha = 1;
+        holder.insertBefore(bezelCanvas, canvas);
+        canvas.style.mixBlendMode = 'plus-lighter';
+      } else {
+        bezelCtx.drawImage(bmp, 0, 0);
+        holder.insertBefore(bezelCanvas, overlay); // above the game, below the overlay
+      }
       bezel = { w: bmp.width, h: bmp.height, win };
       artworkTints = tints;
       fit();

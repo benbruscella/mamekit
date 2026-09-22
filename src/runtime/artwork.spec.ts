@@ -182,6 +182,27 @@ assert.equal(
   'a pack with no enclosing view keeps the one it has',
 );
 
+// A backdrop-only view (Battlezone's upright cabinet): the art is opaque
+// where the screen sits, so it must be drawn behind the game, not over it.
+// A legacy `<overlay element>` is a multiply layer and becomes the tints.
+const backdropView = parseArtworkLayout(`<mamelayout version="2">
+  <element name="backdrop"><image file="cab.png" /></element>
+  <element name="overlay">
+    <rect><bounds left="0" top="0" right="100" bottom="20" /><color red="1.0" green="0.125" blue="0.125" /></rect>
+    <rect><bounds left="0" top="20" right="100" bottom="100" /><color red="0.125" green="1.0" blue="0.125" /></rect>
+  </element>
+  <view name="Upright_Artwork">
+    <backdrop element="backdrop"><bounds x="0" y="0" width="400" height="300" /><color alpha=".8" /></backdrop>
+    <overlay element="overlay"><bounds x="100" y="50" width="200" height="150" /></overlay>
+    <screen index="0"><bounds x="100" y="50" width="200" height="150" /></screen>
+  </view>
+</mamelayout>`);
+assert.deepEqual(backdropView?.backdrop, { alpha: 0.8 });
+assert.deepEqual(backdropView?.tints.map(tint => [tint.y, tint.h, tint.red, tint.green]), [
+  [0, 0.2, 1, 0.125],
+  [0.2, 0.8, 0.125, 1],
+]);
+
 if (originalDocument === undefined) {
   delete (globalThis as { document?: Document }).document;
 } else {
