@@ -495,4 +495,48 @@ assert.ok(
   'the generated DAC reference input must control output amplitude',
 );
 
+// BurgerTime's network carries an op-amp band-pass, an op-amp mixer and two
+// CR filters, so it lowers node by node in MAME's own step order.
+const btimeDiscrete = compileDiscreteMixer(mameSrc, 'src/mame/dataeast/btime.cpp', 'btime_sound_discrete');
+assert.ok(btimeDiscrete?.graph, 'btime_sound_discrete must lower as a discrete graph');
+assert.deepEqual(
+  btimeDiscrete.graph.map(node => node.op),
+  [
+    'stream', 'stream', 'stream', 'stream', 'stream', 'stream',
+    'adder', 'adder', 'multiply', 'opAmpFilter', 'mixer', 'crFilter', 'crFilter', 'output',
+  ],
+);
+assert.deepEqual(btimeDiscrete.graph[9], {
+  op: 'opAmpFilter', node: 30, enable: { value: 1 }, inputs: [{ node: 4 }, { value: 0 }],
+  filterType: 'bandPass1M', r1: 5000, r2: 0, r3: 10000, rF: 47000, c1: 6.8e-8, c2: 6.8e-8,
+  vRef: 0, vMax: 3.5, vMin: -5,
+});
+const btimeMixer = btimeDiscrete.graph[10];
+assert.ok(btimeMixer?.op === 'mixer');
+assert.equal(btimeMixer.mixerType, 'opAmp');
+assert.deepEqual([btimeMixer.rF, btimeMixer.cF, btimeMixer.gain], [10000, 1.5e-10, 1]);
+assert.equal(btimeDiscrete.graph[13]?.op === 'output' && btimeDiscrete.graph[13].gain, 32767 / 5 * 35);
+const btimeNetwork = new ayModule.GeneratedAy8910Mixer(
+  1_500_000,
+  2,
+  48_000,
+  Array.from({ length: 6 }, (_, input) => ({
+    chip: input >= 3 ? 1 : 0,
+    channel: input % 3,
+    gain: 1,
+    target: 'discrete',
+    targetInput: input,
+  })),
+  [],
+  btimeDiscrete,
+);
+btimeNetwork.write(16 + 0, 0x40);
+btimeNetwork.write(16 + 7, 0x3e);
+btimeNetwork.write(16 + 8, 0x0f);
+const toned = Array.from({ length: 4800 }, () => btimeNetwork.sample());
+assert.ok(toned.some(sample => Math.abs(sample) > 0.01), 'a tone into the band-pass input must be heard');
+btimeNetwork.write(16 + 8, 0);
+for (let index = 0; index < 48_000; index++) btimeNetwork.sample();
+assert.ok(Math.abs(btimeNetwork.sample()) < 1e-4, 'the output CR filters must settle to zero');
+
 console.log('audio-compiler.spec: generated audio cores passed');

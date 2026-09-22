@@ -103,8 +103,65 @@ export interface GeneratedDiscreteMixerPlan {
     node: number;
     gain: number;
   }[];
+  /**
+   * The netlist in MAME's own step order with MAME's node equations, present
+   * when it carries a stage the linear sections above cannot express (an
+   * op-amp filter or mixer, a CR filter, a multiply). Node values are real
+   * volts: a stream input is scaled by 32768 and DISCRETE_OUTPUT divides it
+   * back out, so op-amp rail clipping sees the voltage the circuit does.
+   */
+  graph?: GeneratedDiscreteGraphNode[];
   source: { file: string; line: number; netlist: string };
 }
+
+/** A discrete node input: another node's output, or a constant. */
+export type GeneratedDiscreteOperand = { node: number } | { value: number };
+
+export type GeneratedDiscreteGraphNode =
+  | { op: 'stream'; node: number; input: number; gain: number; offset: number }
+  | { op: 'adder'; node: number; enable: GeneratedDiscreteOperand; inputs: GeneratedDiscreteOperand[] }
+  | { op: 'multiply'; node: number; inputs: GeneratedDiscreteOperand[] }
+  | {
+    op: 'crFilter';
+    node: number;
+    input: GeneratedDiscreteOperand;
+    resistance: number;
+    capacitance: number;
+    vRef: number;
+  }
+  | {
+    /** DST_OP_AMP_FILT, non-Norton. vMax already carries the rail offset. */
+    op: 'opAmpFilter';
+    node: number;
+    enable: GeneratedDiscreteOperand;
+    inputs: [GeneratedDiscreteOperand, GeneratedDiscreteOperand];
+    filterType: 'lowPass1' | 'highPass1' | 'bandPass1' | 'bandPass1M';
+    r1: number;
+    r2: number;
+    r3: number;
+    rF: number;
+    c1: number;
+    c2: number;
+    vRef: number;
+    vMax: number;
+    vMin: number;
+  }
+  | {
+    op: 'mixer';
+    node: number;
+    enable: GeneratedDiscreteOperand;
+    mixerType: 'resistor' | 'opAmp' | 'opAmpWithRi';
+    inputs: GeneratedDiscreteOperand[];
+    resistances: number[];
+    capacitors: number[];
+    rI: number;
+    rF: number;
+    cF: number;
+    cAmp: number;
+    vRef: number;
+    gain: number;
+  }
+  | { op: 'output'; node: number; input: GeneratedDiscreteOperand; gain: number };
 
 /** Source-derived DAC, resistor attenuator and CR-filter discrete topology. */
 export interface GeneratedDiscreteDacPlan {

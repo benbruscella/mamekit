@@ -165,6 +165,8 @@ export interface SoundSpec {
   filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
   discreteMixer?: GeneratedDiscreteMixerPlan;
+  /** Per AY chip, the load each of its three pins drives (set_resistors_load). */
+  resistorLoads?: number[][];
   discreteDac?: GeneratedDiscreteDacPlan;
   discreteEffects?: GeneratedDiscreteEffectsPlan;
   /** MAME's source-derived post-mix speaker effect. */
@@ -1116,6 +1118,7 @@ export async function runShell(
         })),
         filterChain: cfg.sound.filterChain,
         discreteMixer: cfg.sound.discreteMixer,
+        resistorLoads: cfg.sound.resistorLoads,
         discreteDac: cfg.sound.discreteDac,
         discreteEffects: cfg.sound.discreteEffects,
         speakerFilter: cfg.sound.speakerFilter,

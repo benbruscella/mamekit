@@ -424,6 +424,16 @@ Norton op-amp stages are lowered to stable browser component models; MAMEKIT
 does not yet implement MAME's complete analog discrete solver. The generated
 IR records that boundary instead of hiding it in a checked-in game sound class.
 
+An AY8910 routed into a `DISCRETE` network gets `sound.discreteMixer`. A
+network of streams, adders and resistor mixers keeps its linear sections. One
+that carries an op-amp filter or mixer, a CR filter or a multiply lowers to
+`discreteMixer.graph`: every node in MAME's step order with the equations of
+its MAME node class, in real volts, so op-amp rails clip where the circuit
+does. Any node or variant outside that set leaves the network unlowered rather
+than approximated. A per-channel `AY8910_DISCRETE_OUTPUT` chip also carries
+its `set_resistors_load` values as `sound.resistorLoads`, which shape each
+pin's volume curve as `build_single_table` does.
+
 A family's post-mix master gain is declared by its capability package and
 written into the generated config, so the shell applies whatever the family
 states rather than holding a table keyed by sound kind.

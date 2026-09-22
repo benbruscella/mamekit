@@ -44,6 +44,7 @@ import type {
 import type { GeneratedHandler } from '../ir/board.ts';
 import { compileMameVideo, gfxRenderScale } from '../mame/video-compiler.ts';
 import {
+  analogValue,
   compileDiscreteDacAttenuator,
   compileDiscreteDacReferenceLevels,
   compileDiscreteEffects,
@@ -56,7 +57,7 @@ import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.t
 import { indexMameHardware } from '../mame/hardware.ts';
 import { parseAddressMaps, stripComments } from '../kg/parse.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
-import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
+import { MameAstIndex, parseMameAst, splitMameArgs } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
@@ -1340,6 +1341,28 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     graph,
     ayChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
   );
+  // `set_resistors_load(r0, r1, r2)`: the load each output pin drives, which
+  // is one term of MAME's build_single_table voltage divider. MAME defaults
+  // every pin to 1k; Bump 'n' Jump loads its first AY with 5k on all three.
+  // build_mixer_table reads the loads through build_single_table only for a
+  // per-channel AY8910_DISCRETE_OUTPUT chip. RESISTOR_OUTPUT takes MAME's
+  // MOSFET table and SINGLE_OUTPUT its 3D table, neither of which the core
+  // models, so those keep the default table rather than a wrong curve.
+  const ayResistorLoads = ayChips.map(chip => {
+    const config = (chip.props.config as string[] | undefined) ?? [];
+    const flags = config.find(candidate => /\bset_flags\s*\(/.test(candidate)) ?? '';
+    if (
+      !/\bAY8910_DISCRETE_OUTPUT\b/.test(flags) ||
+      /\bAY8910_(?:RESISTOR|SINGLE)_OUTPUT\b/.test(flags)
+    ) return undefined;
+    const line = config
+      .find(candidate => /\bset_resistors_load\s*\(/.test(candidate));
+    const args = line
+      ? splitMameArgs(line.slice(line.indexOf('(', line.indexOf('set_resistors_load')) + 1, line.lastIndexOf(')')))
+      : [];
+    const loads = args.map(arg => analogValue(arg));
+    return loads.length === 3 && loads.every(load => load > 0) ? loads : undefined;
+  });
   let auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
     graph,
     devices.map(device => ({
@@ -1459,6 +1482,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             clock: Number(ayChips[0].props.clock),
             chips: ayChips.length,
             deviceTags: ayChips.map(chip => String(chip.props.tag)),
+            ...(ayResistorLoads.some(Boolean)
+              ? { resistorLoads: ayResistorLoads.map(loads => loads ?? [1000, 1000, 1000]) }
+              : {}),
             ...(ayRoutes.length ? { routes: ayRoutes } : {}),
             ...(auxiliaryAudioDevices.length
               ? { auxiliaryDevices: auxiliaryAudioDevices }
