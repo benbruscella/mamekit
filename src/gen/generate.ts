@@ -144,6 +144,12 @@ const KEYMAP: Record<string, string[]> = {
   IPT_BUTTON1: ['Space', 'KeyX'],
   IPT_BUTTON2: ['KeyZ'],
   IPT_BUTTON3: ['KeyC'],
+  // A fourth to sixth button sits on the row above: A S D over Z X C. Without
+  // these the generator dropped every such input, and Mortal Kombat's Low
+  // Punch, Low Kick and second Block had no keys at all.
+  IPT_BUTTON4: ['KeyA'],
+  IPT_BUTTON5: ['KeyS'],
+  IPT_BUTTON6: ['KeyD'],
   IPT_START1: ['Digit1'],
   IPT_START2: ['Digit2'],
   IPT_COIN1: ['Digit5'],
@@ -262,11 +268,20 @@ const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
 // panel has only Fire and Force; advertising BUTTON3 as C suggests a control
 // the game cannot respond to.
 const UNUSED_GAME_INPUTS: Record<string, ReadonlySet<string>> = {
-  rtype: new Set(['IPT_BUTTON3']),
+  rtype: new Set(['IPT_BUTTON3', 'IPT_BUTTON4']),
 };
 
 const GAME_INPUT_LABELS: Record<string, Record<string, string>> = {
   rtype: { IPT_BUTTON2: 'Force' },
+  // Asteroids names none of its buttons; asteroid.cpp's comments on each
+  // PORT_BIT say what it is ("// Left", "// Fire", "// Hyperspace").
+  asteroid: {
+    IPT_BUTTON1: 'Rotate left',
+    IPT_BUTTON2: 'Rotate right',
+    IPT_BUTTON3: 'Fire',
+    IPT_BUTTON4: 'Thrust',
+    IPT_BUTTON5: 'Hyperspace',
+  },
 };
 
 export function inputKeys(game: string, type: string): string[] | undefined {

@@ -1442,7 +1442,10 @@ function fnLabel(label: string): string {
     IPT_BUTTON1: 'fire', IPT_BUTTON2: 'fire 2', IPT_BUTTON3: 'fire 3',
     IPT_DIAL_LEFT: 'steer left', IPT_DIAL_RIGHT: 'steer right',
     IPT_PEDAL: 'accelerate', IPT_PEDAL2: 'brake',
-    IPT_SERVICE1: 'service', IPT_SERVICE: 'service',
+    // IPT_SERVICE is the operator's test switch; SERVICE1-4 are service
+    // credits. A board with both (Donkey Kong) listed "service" twice.
+    IPT_SERVICE1: 'service', IPT_SERVICE: 'test mode',
+    IPT_SERVICE2: 'service 2', IPT_SERVICE3: 'service 3', IPT_SERVICE4: 'service 4',
   };
   if (map[label]) return map[label];
   if (/JOYSTICK|_LEFT|_RIGHT|_UP|_DOWN/.test(label)) return 'move';
@@ -1462,10 +1465,12 @@ function fnLabel(label: string): string {
  * connected, each control also names the pad button that drives it, and the
  * pad itself is announced first.
  */
-function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerInput): string {
+export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerInput): string {
   const parts: string[] = [];
-  const dirKeys = new Set<string>();
-  const dirPads = new Set<string>();
+  // One entry per stick: a twin-stick panel (Battlezone's treads) names each.
+  const sticks = new Map<string, { keys: Map<string, number>; pads: Set<string> }>();
+  const direction = (label: string): number =>
+    ['_UP', '_DOWN', '_LEFT', '_RIGHT'].findIndex(suffix => label.endsWith(suffix));
   const seen = new Set<string>();
   const padNames = (b: FieldBinding): string[] => (pads?.controlNames(b) ?? []).map(name => `🎮 ${name}`);
   for (const b of cfg.bindings) {
@@ -1474,8 +1479,12 @@ function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerIn
     if ((b.player ?? 1) !== 1) continue;
     const fn = fnLabel(b.label);
     if (fn === 'move') {
-      for (const k of b.keys) dirKeys.add(k);
-      for (const name of padNames(b)) dirPads.add(name);
+      const side = /JOYSTICK(LEFT|RIGHT)_/.exec(b.label)?.[1]?.toLowerCase();
+      const name = side ? `${side} stick` : 'move';
+      const stick = sticks.get(name) ?? { keys: new Map<string, number>(), pads: new Set<string>() };
+      sticks.set(name, stick);
+      for (const k of b.keys) if (!stick.keys.has(k)) stick.keys.set(k, direction(b.label));
+      for (const pad of padNames(b)) stick.pads.add(pad);
       continue;
     }
     // One visible key per alias: a control bound to both the number row and the
@@ -1499,11 +1508,20 @@ function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerIn
     const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
     return [...head, 'Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
   }
-  if (dirKeys.size || dirPads.size) {
-    const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-    const arrows = !dirKeys.size ? []
-      : [order.every(k => dirKeys.has(k)) ? 'Arrows' : order.filter(k => dirKeys.has(k)).map(keyLabel).join('')];
-    head.push(`${[...arrows, ...dirPads].join(' or ')}: move`);
+  const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+  const stickOrder = ['move', 'left stick', 'right stick'];
+  for (const [name, { keys, pads: stickPads }] of [...sticks]
+    .sort(([a], [b]) => stickOrder.indexOf(a) - stickOrder.indexOf(b))) {
+    // Four arrows read as "Arrows" and a few as themselves ("←→"); other keys
+    // are named up, down, left, right ("W/S").
+    const codes = [...keys.keys()];
+    const named = order.every(k => keys.has(k))
+      ? 'Arrows'
+      : codes.every(k => order.includes(k))
+        ? order.filter(k => keys.has(k)).map(keyLabel).join('')
+        : codes.sort((a, b) => keys.get(a)! - keys.get(b)!).map(keyLabel).join('/');
+    const label = [named, ...stickPads].filter(Boolean).join(' or ');
+    if (label) head.push(`${label}: ${name}`);
   }
   return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');
 }
