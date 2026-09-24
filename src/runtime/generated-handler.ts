@@ -21,6 +21,7 @@ export {
   applyCombineData,
   applyGeneratedAndAssign,
   applyGeneratedDivision,
+  applyGeneratedShiftRight,
   applyGeneratedMacro,
   compileGeneratedMachineHandler,
   dereferenceGeneratedValue,

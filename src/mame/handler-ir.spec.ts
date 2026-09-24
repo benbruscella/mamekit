@@ -609,4 +609,34 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
   assert.deepEqual(backward.diagnostics, ['unsupported goto again']);
 }
 
-console.log('handler-ir.spec: 72 passed');
+// A goto between the case bodies of one switch, forward and back (MAME's
+// mathbox): the label is another entry into the switch, which the preceding
+// statements fall into.
+{
+  const run = (op: number) => executeGeneratedProgram(compileMameHandler(`
+    int r = 0;
+    switch (op) {
+    case 0: r += 1;
+    shared: r += 10; if (op == 2) break;
+    case 1: r += 100; break;
+    case 2: r += 1000; goto shared;
+    case 3: r += 5; goto tail;
+    case 4: r += 7;
+    tail: r *= 2; break;
+    }
+    return r;
+  `), { members: { op } }).value;
+  assert.deepEqual(compileMameHandler(`switch (op) { case 0: a: x = 1; break; case 1: goto a; }`).diagnostics, []);
+  assert.equal(run(0), 111);
+  assert.equal(run(1), 100);
+  assert.equal(run(2), 1010);
+  assert.equal(run(3), 10);
+  assert.equal(run(4), 14);
+  // Inside a loop in the case the jump would continue that loop instead.
+  assert.deepEqual(
+    compileMameHandler(`switch (op) { case 0: a: x = 1; break; case 1: while (y) goto a; }`).diagnostics,
+    ['unsupported goto a'],
+  );
+}
+
+console.log('handler-ir.spec: 73 passed');

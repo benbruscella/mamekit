@@ -46,6 +46,7 @@ export interface Artwork {
   bmp: ImageBitmap | HTMLCanvasElement;
   window: ArtWindow | null;
   tints: ArtTint[];
+  backdrop?: { alpha: number };
 }
 
 /**
@@ -72,6 +73,12 @@ export interface LayoutView {
   alphaFile?: string;
   rotate: number;
   tints: ArtTint[];
+  /**
+   * MAME draws a `<backdrop>` behind the screen and adds the screen onto it;
+   * a bezel sits in front with a window cut for the screen. Absent means
+   * bezel. `alpha` is the backdrop's own `<color alpha>`.
+   */
+  backdrop?: { alpha: number };
 }
 
 /**
@@ -177,6 +184,7 @@ export function composeBezel(
       h: view.screen.h * sy,
     },
     tints: view.tints,
+    ...(view.backdrop ? { backdrop: view.backdrop } : {}),
   };
 }
 
@@ -214,6 +222,7 @@ export function parseArtworkLayout(source: string): LayoutView | null {
 
     let artTag: string | undefined;
     let artElement: string | undefined;
+    let artKind: 'bezel' | 'backdrop' = 'bezel';
     for (const kind of ['bezel', 'backdrop'] as const) {
       const legacy = [...body.matchAll(new RegExp(
         `<${kind}\\s+[^>]*element="([^"]+)"[^>]*>[\\s\\S]*?<\\/${kind}>`,
@@ -229,6 +238,7 @@ export function parseArtworkLayout(source: string): LayoutView | null {
       if (legacy) {
         artTag = legacy[0];
         artElement = legacy[1];
+        artKind = kind;
         break;
       }
     }
@@ -250,10 +260,12 @@ export function parseArtworkLayout(source: string): LayoutView | null {
 
     const overlayCollection = /<collection\s+name="Overlay"[^>]*>([\s\S]*?)<\/collection>/i
       .exec(body)?.[1];
+    // Legacy `<overlay element="...">` is a multiply layer by definition.
     const overlayPlacement = overlayCollection
       ? placedLayoutElements(overlayCollection).find(candidate =>
         /\bblend="multiply"/.test(candidate.tag))
-      : undefined;
+      : [...body.matchAll(/<overlay\s+[^>]*element="([^"]+)"[^>]*>[\s\S]*?<\/overlay>/g)]
+        .map(match => ({ ref: match[1], tag: match[0] }))[0];
     const tints = overlayPlacement
       ? layoutTints(
         elementBodies.get(overlayPlacement.ref) ?? '',
@@ -273,6 +285,9 @@ export function parseArtworkLayout(source: string): LayoutView | null {
       ...(alphaFile ? { alphaFile } : {}),
       rotate,
       tints,
+      ...(artKind === 'backdrop'
+        ? { backdrop: { alpha: Number(/<color\s+[^>]*alpha="([\d.]+)"/.exec(artTag ?? '')?.[1] ?? 1) } }
+        : {}),
     });
   }
   // A cabinet bezel is the art the screen sits *inside*. That is geometry, not

@@ -528,6 +528,7 @@ function preparedHandlerRuntime(
     macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
     combineData: applyCombineData,
     divide: applyGeneratedDivision,
+    shiftRight: applyGeneratedShiftRight,
     same: generatedValuesEqual,
     andAssign: applyGeneratedAndAssign,
     // The board's state object only holds what a handler has written, so a
@@ -1991,6 +1992,17 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
  */
 export function applyGeneratedDivision(left: unknown, right: unknown): number {
   return BINARY_OPERATORS['/']!(toNumber(left), toNumber(right));
+}
+
+/**
+ * C++ `>>` as the interpreter applies it, for emitted code: arithmetic on a
+ * negative value, logical otherwise (see BINARY_OPERATORS). Emitted as a bare
+ * `>>>`, a negative left operand came back as a huge positive -- the
+ * Battlezone AVG's `(... - 0x200) * cycles * scale >> 4` threw every beam
+ * position off the screen.
+ */
+export function applyGeneratedShiftRight(left: unknown, right: unknown): number {
+  return BINARY_OPERATORS['>>']!(toNumber(left), toNumber(right));
 }
 
 /**

@@ -44,6 +44,7 @@ import type {
 import type { GeneratedHandler } from '../ir/board.ts';
 import { compileMameVideo, gfxRenderScale } from '../mame/video-compiler.ts';
 import {
+  analogValue,
   compileDiscreteDacAttenuator,
   compileDiscreteDacReferenceLevels,
   compileDiscreteEffects,
@@ -56,7 +57,7 @@ import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.t
 import { indexMameHardware } from '../mame/hardware.ts';
 import { parseAddressMaps, stripComments } from '../kg/parse.ts';
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
-import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
+import { MameAstIndex, parseMameAst, splitMameArgs } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
@@ -143,6 +144,12 @@ const KEYMAP: Record<string, string[]> = {
   IPT_BUTTON1: ['Space', 'KeyX'],
   IPT_BUTTON2: ['KeyZ'],
   IPT_BUTTON3: ['KeyC'],
+  // A fourth to sixth button sits on the row above: A S D over Z X C. Without
+  // these the generator dropped every such input, and Mortal Kombat's Low
+  // Punch, Low Kick and second Block had no keys at all.
+  IPT_BUTTON4: ['KeyA'],
+  IPT_BUTTON5: ['KeyS'],
+  IPT_BUTTON6: ['KeyD'],
   IPT_START1: ['Digit1'],
   IPT_START2: ['Digit2'],
   IPT_COIN1: ['Digit5'],
@@ -261,11 +268,20 @@ const GAME_KEYMAP: Record<string, Record<string, string[]>> = {
 // panel has only Fire and Force; advertising BUTTON3 as C suggests a control
 // the game cannot respond to.
 const UNUSED_GAME_INPUTS: Record<string, ReadonlySet<string>> = {
-  rtype: new Set(['IPT_BUTTON3']),
+  rtype: new Set(['IPT_BUTTON3', 'IPT_BUTTON4']),
 };
 
 const GAME_INPUT_LABELS: Record<string, Record<string, string>> = {
   rtype: { IPT_BUTTON2: 'Force' },
+  // Asteroids names none of its buttons; asteroid.cpp's comments on each
+  // PORT_BIT say what it is ("// Left", "// Fire", "// Hyperspace").
+  asteroid: {
+    IPT_BUTTON1: 'Rotate left',
+    IPT_BUTTON2: 'Rotate right',
+    IPT_BUTTON3: 'Fire',
+    IPT_BUTTON4: 'Thrust',
+    IPT_BUTTON5: 'Hyperspace',
+  },
 };
 
 export function inputKeys(game: string, type: string): string[] | undefined {
@@ -778,7 +794,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', DECO_CPU7: 'deco_cpu7', DECO_C10707: 'deco_c10707', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -1099,6 +1115,51 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     };
   });
 
+  // `address_map_bank_device`: an address space with no processor of its own,
+  // reached through the driver's `read8`/`write8` on it. Its map is lowered
+  // with the same range rules as a CPU's, so RAM, ROM, ports and device
+  // handlers inside it decode exactly as they would on a processor bus.
+  const bankDevices = devices
+    .filter(device => device.props.type === 'ADDRESS_MAP_BANK')
+    .flatMap(device => {
+      const map = g.out(device.id, 'HAS_MAP')
+        .find(ref => (ref.edge.props?.space ?? 'AS_PROGRAM') === 'AS_PROGRAM')?.node;
+      if (!map) return [];
+      const tag = String(device.props.tag);
+      const lines = (device.props.config as string[] | undefined) ?? [];
+      const setting = (method: string): string[] | undefined => {
+        const line = lines.find(candidate => candidate.includes(`->${method}(`) || candidate.includes(`.${method}(`));
+        const match = line && new RegExp(`${method}\\s*\\(([^)]*)\\)`).exec(line);
+        return match ? match[1]!.split(',').map(value => value.trim()) : undefined;
+      };
+      // Widths and strides are written as plain literals in every driver.
+      const number = (value: string | undefined): number | undefined =>
+        value !== undefined && /^(?:0x[\da-f]+|\d+)$/i.test(value) ? Number(value) : undefined;
+      const options = setting('set_options');
+      const dataWidth = number(options?.[1]) ?? number(setting('set_data_width')?.[0]) ?? 8;
+      const addrWidth = number(options?.[2]) ?? number(setting('set_addr_width')?.[0]) ?? 32;
+      const stride = number(setting('set_stride')?.[0]) ?? 0;
+      const mask = inheritedGlobalMask(map.id);
+      return [{
+        tag,
+        ...(device.props.member ? { member: String(device.props.member) } : {}),
+        dataWidth,
+        addrWidth,
+        stride,
+        // A processor's ROM comes from its own region, so rangeSpec leaves the
+        // region to the CPU; a bank device has no region of its own and every
+        // ROM window names one (`.rom().region("maincpu", 0x5000)`).
+        ranges: collectRanges(map.id).map(range => ({
+          ...rangeSpec(range, tag),
+          ...(range.props.rom && typeof range.props.region === 'string'
+            ? { region: range.props.region }
+            : {}),
+        })),
+        ...(mask !== undefined ? { mask } : {}),
+        ...(mapUnmapsHigh(map.id) ? { unmapHigh: true } : {}),
+      }];
+    });
+
   if (family === 'neogeo') {
     const main = cpus.find(cpu => cpu.tag === 'maincpu');
     if (main) {
@@ -1202,6 +1263,16 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   let pixclock: number, htotal: number, hbend: number, hbstart: number, vtotal: number, vbend: number, vbstart: number;
   if (raw) {
     [pixclock, htotal, hbend, hbstart, vtotal, vbend, vbstart] = raw;
+    // `set_raw` sets the visible rectangle as well as the timing, and a later
+    // `set_visarea` replaces only the rectangle -- which is also what MAME's
+    // vblank is timed from. Bump 'n' Jump inherits BurgerTime's 240-wide raw
+    // screen and widens it to 256 in its own config.
+    const patched = screenDev?.props.screenVisarea as number[] | undefined;
+    if (patched) {
+      const [x0, x1, y0, y1] = patched as [number, number, number, number];
+      hbend = x0; hbstart = x1 + 1;
+      vbend = y0; vbstart = y1 + 1;
+    }
   } else if (screenDev?.props.screenRefreshHz && screenDev.props.screenVisarea) {
     const [x0, x1, y0, y1] = screenDev.props.screenVisarea as number[];
     // A vector device has no blanking interval, so the visible rectangle bounds
@@ -1285,6 +1356,28 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     graph,
     ayChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
   );
+  // `set_resistors_load(r0, r1, r2)`: the load each output pin drives, which
+  // is one term of MAME's build_single_table voltage divider. MAME defaults
+  // every pin to 1k; Bump 'n' Jump loads its first AY with 5k on all three.
+  // build_mixer_table reads the loads through build_single_table only for a
+  // per-channel AY8910_DISCRETE_OUTPUT chip. RESISTOR_OUTPUT takes MAME's
+  // MOSFET table and SINGLE_OUTPUT its 3D table, neither of which the core
+  // models, so those keep the default table rather than a wrong curve.
+  const ayResistorLoads = ayChips.map(chip => {
+    const config = (chip.props.config as string[] | undefined) ?? [];
+    const flags = config.find(candidate => /\bset_flags\s*\(/.test(candidate)) ?? '';
+    if (
+      !/\bAY8910_DISCRETE_OUTPUT\b/.test(flags) ||
+      /\bAY8910_(?:RESISTOR|SINGLE)_OUTPUT\b/.test(flags)
+    ) return undefined;
+    const line = config
+      .find(candidate => /\bset_resistors_load\s*\(/.test(candidate));
+    const args = line
+      ? splitMameArgs(line.slice(line.indexOf('(', line.indexOf('set_resistors_load')) + 1, line.lastIndexOf(')')))
+      : [];
+    const loads = args.map(arg => analogValue(arg));
+    return loads.length === 3 && loads.every(load => load > 0) ? loads : undefined;
+  });
   let auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
     graph,
     devices.map(device => ({
@@ -1404,6 +1497,9 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
             clock: Number(ayChips[0].props.clock),
             chips: ayChips.length,
             deviceTags: ayChips.map(chip => String(chip.props.tag)),
+            ...(ayResistorLoads.some(Boolean)
+              ? { resistorLoads: ayResistorLoads.map(loads => loads ?? [1000, 1000, 1000]) }
+              : {}),
             ...(ayRoutes.length ? { routes: ayRoutes } : {}),
             ...(auxiliaryAudioDevices.length
               ? { auxiliaryDevices: auxiliaryAudioDevices }
@@ -2473,6 +2569,7 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
     board: {
       family,
       cpus,
+      ...(bankDevices.length ? { bankDevices } : {}),
       ranges,
       ...(io ? { io } : {}),
       ...(initialShares.length ? { initialShares } : {}),

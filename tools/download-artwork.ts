@@ -104,6 +104,12 @@ const fallbackBezels: Record<string, {
     url: 'https://raw.githubusercontent.com/thebezelproject/bezelproject-MAME/master/retroarch/overlay/ArcadeBezels/nbajam.png',
     screen: { x: 260, y: 20, width: 1398, height: 1038 },
   },
+  // The archive carries only the parent's pack, and brubber.zip is Burnin'
+  // Rubber's cabinet rather than the US Bump 'n' Jump one.
+  bnj: {
+    url: 'https://raw.githubusercontent.com/thebezelproject/bezelproject-MAME/master/retroarch/overlay/ArcadeBezels/bnj.png',
+    screen: { x: 552, y: 5, width: 815, height: 1070 },
+  },
 };
 
 function validPng(path: string): boolean {

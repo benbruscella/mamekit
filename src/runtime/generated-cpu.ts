@@ -100,7 +100,9 @@ export interface GeneratedCpuDefinition {
   aliases: Record<string, CpuAlias>;
   members: CpuMember[];
   methods: CpuMethod[];
-  callbacks?: Record<string, string>;
+callbacks?: Record<string, string>;
+  /** Driver-callable one-line state accessors: method name -> member. */
+  accessors?: Record<string, string>;
   start: GeneratedHandlerProgram;
   reset: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
@@ -146,6 +148,8 @@ export interface GeneratedCpuExecutable {
   scanlineTimer?: string;
   /** Config setters that bind a delegate, to the delegate they bind. */
   delegateSetters?: Record<string, string>;
+  /** Driver-callable one-line state accessors: method name -> member. */
+  accessors?: Record<string, string>;
   create(bus: CpuBus): Cpu;
 }
 
@@ -193,11 +197,16 @@ export function clearGeneratedCpus(): void {
 }
 
 /** Source facts a generated core exports beside its executable. */
-export function generatedCpuFacts(type: string): Pick<GeneratedCpuExecutable, 'scanlineTimer' | 'delegateSetters'> {
+export function generatedCpuFacts(type: string): Pick<GeneratedCpuExecutable, 'scanlineTimer' | 'delegateSetters' | 'accessors'> {
   const definition = DEFINITIONS.get(type.toUpperCase());
-  return definition && 'create' in definition
-    ? { scanlineTimer: definition.scanlineTimer, delegateSetters: definition.delegateSetters }
-    : {};
+  if (!definition) return {};
+  return 'create' in definition
+    ? {
+        scanlineTimer: definition.scanlineTimer,
+        delegateSetters: definition.delegateSetters,
+        accessors: definition.accessors,
+      }
+    : { accessors: definition.accessors };
 }
 
 export function hasGeneratedCpu(type: string): boolean {
@@ -466,6 +475,8 @@ class IrCpu implements Cpu {
     return {
       ...Object.fromEntries(Object.entries(this.definition.callbacks ?? {}).map(([member, signal]) =>
         [member, (state = 0) => Number(this.bus.signal?.(signal, state) ?? 0)])),
+      ...Object.fromEntries(Object.keys(this.definition.callbacks ?? {}).map(member =>
+        [`${member}.isunset`, () => (this.bus.signal ? 0 : 1)])),
       READ: address => {
         if (this.definition.dialect !== 'mame-musashi-generated-handler-table') {
           this.set('cycles', this.get('cycles') + 1);

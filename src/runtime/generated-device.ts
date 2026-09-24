@@ -2,6 +2,7 @@ import {
   applyCombineData,
   applyGeneratedAndAssign,
   applyGeneratedDivision,
+  applyGeneratedShiftRight,
   applyGeneratedMacro,
   dereferenceGeneratedValue,
   generatedPackedView,
@@ -142,6 +143,8 @@ export interface GeneratedDeviceExecutionContext {
   combineData(pointer: unknown, data: unknown, memMask: unknown): unknown;
   /** C++ `/`: integral between integers, exact otherwise. */
   divide(left: unknown, right: unknown): number;
+  /** C++ `>>`: arithmetic on a negative value, logical otherwise. */
+  shiftRight(left: unknown, right: unknown): number;
   /** C++ `==`/`!=` where an operand can be a pointer, not a number. */
   same(left: unknown, right: unknown): boolean;
   /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
@@ -345,8 +348,11 @@ export interface GeneratedDeviceOptions {
   /** Selected card option for a generated slot definition. */
   slot?: string | number;
   selectors?: Record<string, string | number | undefined>;
-  /** Resolve required/optional device finders to host/device proxies. */
-  finder?: (tag: string, member?: string) => unknown;
+  /**
+   * Resolve required/optional device finders to host/device proxies, and a
+   * `required_address_space` to a space its own `set_tag` points at a bus.
+   */
+  finder?: (tag: string, member?: string, kind?: 'space') => unknown;
   regions?: Record<string, Uint8Array>;
   configuration?: unknown;
   banks?: Record<string, GeneratedMemoryBank>;
@@ -573,6 +579,8 @@ class IrDevice implements Device {
           ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
           : member.finder?.kind === 'device'
             ? options.finder?.(member.finder.tag, member.name) ?? 0
+          : /^(?:required|optional)_address_space$/.test(member.valueType)
+            ? options.finder?.('', member.name, 'space') ?? 0
           : /^bitmap_(?:rgb32|ind16|ind8)$/.test(member.valueType)
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength },
@@ -602,7 +610,11 @@ class IrDevice implements Device {
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
         // indexes a number otherwise, and the write goes nowhere.
         : member.arrayShape ? nestedArrayMember(member.arrayShape)
-        : member.arrayLength ? Array(member.arrayLength).fill(0)
+        // A fixed-width integer array stores the way its C++ element does:
+        // `int16_t m_reg[16]` wraps a 0x8000 to -32768. A plain array kept the
+        // unwrapped value, and the Battlezone mathbox's signed products came
+        // out of range for every projected object.
+        : member.arrayLength ? integerArray(member.arrayLength, member.bits, member.signed)
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
@@ -900,6 +912,7 @@ class IrDevice implements Device {
       macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
       combineData: applyCombineData,
       divide: applyGeneratedDivision,
+      shiftRight: applyGeneratedShiftRight,
       same: generatedValuesEqual,
       andAssign: applyGeneratedAndAssign,
       // Devices declare every member up front, so an absent one is genuinely
@@ -1474,6 +1487,13 @@ function asBankBytes(
   return undefined;
 }
 
+function integerArray(length: number, bits: number | undefined, signed: boolean | undefined): number[] | ArrayLike<number> {
+  if (bits === 8) return signed ? new Int8Array(length) : new Uint8Array(length);
+  if (bits === 16) return signed ? new Int16Array(length) : new Uint16Array(length);
+  if (bits === 32) return signed ? new Int32Array(length) : new Uint32Array(length);
+  return Array(length).fill(0);
+}
+
 function resolveDeviceResource(
   resource: DeviceResource,
   options: GeneratedDeviceOptions,
@@ -1488,7 +1508,12 @@ function resolveDeviceResource(
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
   const resourceName = 'name' in resource ? resource.name : '';
-  const regionName = resourceName === 'self' ? options.tag ?? '' : resourceName;
+  // A finder resolves `*this, "prom"` as the device's own subtag first
+  // (Battlezone's AVG state PROM is region "avg:prom"), as MAME does.
+  const subtag = options.tag && resourceName !== 'self' ? `${options.tag}:${resourceName}` : undefined;
+  const regionName = resourceName === 'self'
+    ? options.tag ?? ''
+    : subtag && regions[subtag] ? subtag : resourceName;
   if (resource.kind === 'region') return regions[regionName] ?? new Uint8Array(0);
   // MAME's `memory_region *`. A device that is handed one asks it three
   // questions -- how big, where does it start, give me the bytes -- and a

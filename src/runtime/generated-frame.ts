@@ -52,6 +52,7 @@ export class GeneratedFrameRunner {
   private readonly machine: BoardIr;
   private readonly processors: {
     processor: GeneratedFrameProcessor;
+    /** Changes only through setClock (MAME set_unscaled_clock). */
     cyclesPerLine: number;
     carry: number;
   }[];
@@ -145,7 +146,11 @@ export class GeneratedFrameRunner {
     // the per-line schedule MAME's own timers would force anyway.
     this.perLineSchedule = this.periodicEvents.length > 0 ||
       options.machine.execution.perfectQuantum === true ||
-      options.machine.execution.screen.updateMode === 'scanline';
+      options.machine.execution.screen.updateMode === 'scanline' ||
+      // A driver's own emu_timers end MAME timeslices wherever they expire,
+      // and they are armed against raster positions; a round spanning lines
+      // would measure each re-arm from a beam the device clock has run past.
+      (options.machine.execution.genericTimers ?? []).some(timer => timer.driver);
 
     // A scanline TIMER fires on every increment, whether or not its callback
     // has work on that line, and MAME ends every timeslice there. The frame
@@ -180,6 +185,19 @@ export class GeneratedFrameRunner {
       options.machine.execution.screen.vbstart,
       options.machine.execution.screen.vtotal - 1,
     ]);
+  }
+
+  /**
+   * MAME `device_t::set_unscaled_clock` on a processor: from here on it runs
+   * at the new rate. Missile Command halves its CPU for the lines its video
+   * fetches steal, and puts it back at the top of the frame.
+   */
+  setClock(tag: string, cycleClock: number): void {
+    const denominator =
+      this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
+    for (const entry of this.processors) {
+      if (entry.processor.tag === tag) entry.cyclesPerLine = cycleClock / denominator;
+    }
   }
 
   /**

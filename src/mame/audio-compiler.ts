@@ -11,7 +11,9 @@ import type {
   GeneratedDacFilterPlan,
   GeneratedDiscreteDacPlan,
   GeneratedDiscreteEffectsPlan,
+  GeneratedDiscreteGraphNode,
   GeneratedDiscreteMixerPlan,
+  GeneratedDiscreteOperand,
   GeneratedSpeakerFilterPlan,
 } from '../ir/audio-protocol.ts';
 
@@ -301,15 +303,19 @@ export function compileDiscreteMixer(
   const { file: sourceFile, source } = sourceEntry;
   const body = discreteSoundBody(source, netlist);
   if (!body) return undefined;
-  const operations = [...body.matchAll(/\b(DISCRETE_[A-Z0-9_]+)\s*\(/g)]
-    .map(match => match[1]!)
-    .filter(operation =>
-      !/^DISCRETE_(?:INPUTX?_STREAM|INPUTX?_DATA|RCFILTER_SW|ADDER[2-8]|MIXER[2-8]|OUTPUT)$/
-        .test(operation));
+  const allOperations = [...body.matchAll(/\b(DISCRETE_[A-Z0-9_]+)\s*\(/g)]
+    .map(match => match[1]!);
+  const graphOperation = /^DISCRETE_(?:MULTIPLY|CRFILTER|OP_AMP_FILTER)$/;
+  const operations = allOperations.filter(operation =>
+    !graphOperation.test(operation) &&
+    !/^DISCRETE_(?:INPUTX?_STREAM|INPUTX?_DATA|RCFILTER_SW|ADDER[2-8]|MIXER[2-8]|OUTPUT)$/
+      .test(operation));
   if (operations.length) return undefined;
   const marker = markerPattern.exec(source)!;
   const ayHeader = readFileSync(join(mameSrc, 'src/devices/sound/ay8910.h'), 'utf8');
+  const discreteHeader = readFileSync(join(mameSrc, 'src/devices/sound/discrete.h'), 'utf8');
   const constants = new Map([
+    ...preprocessorMacros(discreteHeader),
     ...preprocessorMacros(ayHeader),
     ...preprocessorMacros(source),
   ]);
@@ -326,6 +332,51 @@ export function compileDiscreteMixer(
     if (!match) throw new Error(`${netlist}: unsupported discrete node ${expression}`);
     return Number(match[1]);
   };
+  const sourceLocation = {
+    file: sourceFile,
+    line: source.slice(0, marker.index).split('\n').length,
+    netlist,
+  };
+  const mixerTypeOf = (expression: string | undefined): number => analog(expression);
+  const needsGraph = allOperations.some(operation => graphOperation.test(operation)) ||
+    Array.from({ length: 7 }, (_, index) => index + 2)
+      .flatMap(count => callArgs(body, `DISCRETE_MIXER${count}`))
+      .some(args => {
+        const descriptor = symbolName(args.at(-1));
+        const type = descriptor ? structFields(source, descriptor)[0] : undefined;
+        return type !== undefined && analogValue(type) !== 0 &&
+          mixerTypeOf(type) !== analog('DISC_MIXER_IS_RESISTOR');
+      });
+  if (needsGraph) {
+    // A component expression outside what analog() reads leaves the network
+    // unlowered, exactly as an unmodelled node does.
+    let graph: GeneratedDiscreteGraphNode[] | undefined;
+    try {
+      graph = compileDiscreteGraph(body, source, analog, discreteHeader);
+    } catch {
+      graph = undefined;
+    }
+    if (!graph) return undefined;
+    const graphStreams = graph.flatMap(entry => entry.op === 'stream' ? [entry] : []);
+    const graphOutputs = graph.flatMap(entry =>
+      entry.op === 'output' && 'node' in entry.input
+        ? [{ node: entry.input.node, gain: entry.gain }]
+        : []);
+    if (!graphStreams.length || !graphOutputs.length) return undefined;
+    return {
+      schemaVersion: 1,
+      type: 'DISCRETE_MIXER',
+      streamInputs: graphStreams.map(({ node, input, gain, offset }) => ({ node, input, gain, offset })),
+      dataInputs: [],
+      controlInputs: [],
+      filters: [],
+      adders: [],
+      mixers: [],
+      outputs: graphOutputs,
+      graph,
+      source: sourceLocation,
+    };
+  }
   const streamInputs = callArgs(body, 'DISCRETE_INPUTX_STREAM').map(args => ({
     node: node(args[0]),
     input: Number(args[1]),
@@ -398,6 +449,135 @@ export function compileDiscreteMixer(
       netlist,
     },
   };
+}
+
+/** The raw initializer fields of a C struct constant, comments removed. */
+function structFields(source: string, name: string): string[] {
+  const body = structValues(source, name).body
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  return body ? splitMameArgs(body) : [];
+}
+
+function arrayFields(field: string | undefined): string[] {
+  const trimmed = field?.trim() ?? '';
+  return trimmed.startsWith('{')
+    ? splitMameArgs(trimmed.replace(/^\{/, '').replace(/\}\s*$/, ''))
+    : [];
+}
+
+/**
+ * Lower a discrete netlist node by node, in MAME's step order, with the
+ * equations of the MAME node classes each macro names (disc_flt.hxx,
+ * disc_mth.hxx, disc_inp.hxx). Returns undefined for any node or variant it
+ * does not model, so a partial network is never presented as the circuit.
+ */
+function compileDiscreteGraph(
+  body: string,
+  source: string,
+  analog: (expression: string | undefined) => number,
+  discreteHeader: string,
+): GeneratedDiscreteGraphNode[] | undefined {
+  const clean = body.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const railOffset = requiredAnalog(
+    /^#define\s+OP_AMP_VP_RAIL_OFFSET\s+([^\s/]+)/m.exec(discreteHeader)?.[1],
+  );
+  const operand = (expression: string | undefined): GeneratedDiscreteOperand => {
+    const text = expression?.trim() ?? '';
+    if (/^NODE_NC$/.test(text)) return { value: 0 };
+    const match = /^NODE_(\d+)$/.exec(text);
+    return match ? { node: Number(match[1]) } : { value: analog(text) };
+  };
+  const nodeId = (expression: string | undefined): number | undefined => {
+    const match = /^NODE_(\d+)$/.exec(expression?.trim() ?? '');
+    return match ? Number(match[1]) : undefined;
+  };
+  const constant = (name: string): number => analog(name);
+  const filterTypes = new Map([
+    [constant('DISC_OP_AMP_FILTER_IS_LOW_PASS_1'), 'lowPass1'],
+    [constant('DISC_OP_AMP_FILTER_IS_HIGH_PASS_1'), 'highPass1'],
+    [constant('DISC_OP_AMP_FILTER_IS_BAND_PASS_1'), 'bandPass1'],
+    [constant('DISC_OP_AMP_FILTER_IS_BAND_PASS_1M'), 'bandPass1M'],
+  ] as const);
+  const graph: GeneratedDiscreteGraphNode[] = [];
+  const pattern = /\b(DISCRETE_[A-Z0-9_]+)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(clean)) !== null) {
+    const open = clean.indexOf('(', match.index);
+    const close = matchingDelimiter(clean, open, '(', ')');
+    if (close < 0) return undefined;
+    pattern.lastIndex = close + 1;
+    const op = match[1]!;
+    const args = splitMameArgs(clean.slice(open + 1, close));
+    const count = Number(/^DISCRETE_(?:ADDER|MIXER)(\d)$/.exec(op)?.[1]);
+    if (op === 'DISCRETE_OUTPUT') {
+      graph.push({ op: 'output', node: -1, input: operand(args[0]), gain: analog(args[1]) });
+      continue;
+    }
+    const node = nodeId(args[0]);
+    if (node === undefined) return undefined;
+    if (op === 'DISCRETE_INPUTX_STREAM') {
+      graph.push({
+        op: 'stream', node, input: Number(args[1]), gain: analog(args[2]), offset: analog(args[3]),
+      });
+    } else if (op.startsWith('DISCRETE_ADDER') && count) {
+      graph.push({
+        op: 'adder', node, enable: operand(args[1]), inputs: args.slice(2, 2 + count).map(operand),
+      });
+    } else if (op === 'DISCRETE_MULTIPLY') {
+      graph.push({ op: 'multiply', node, inputs: args.slice(1, 3).map(operand) });
+    } else if (op === 'DISCRETE_CRFILTER') {
+      graph.push({
+        op: 'crFilter', node, input: operand(args[1]),
+        resistance: analog(args[2]), capacitance: analog(args[3]), vRef: 0,
+      });
+    } else if (op === 'DISCRETE_OP_AMP_FILTER') {
+      const filterType = filterTypes.get(analog(args[4]));
+      const descriptor = symbolName(args[5]);
+      const fields = descriptor ? structFields(source, descriptor).map(analog) : [];
+      if (!filterType || fields.length !== 11 || fields.some(value => !Number.isFinite(value))) {
+        return undefined;
+      }
+      const [r1, r2, r3, , rF, c1, c2, , vRef, vP, vN] = fields as number[];
+      if (!(r1! > 0)) return undefined;
+      graph.push({
+        op: 'opAmpFilter', node, enable: operand(args[1]),
+        inputs: [operand(args[2]), operand(args[3])], filterType,
+        r1: r1!, r2: r2!, r3: r3!, rF: rF!, c1: c1!, c2: c2!,
+        vRef: vRef!, vMax: vP! - railOffset, vMin: vN!,
+      });
+    } else if (op.startsWith('DISCRETE_MIXER') && count) {
+      const descriptor = symbolName(args.at(-1));
+      const fields = descriptor ? structFields(source, descriptor) : [];
+      const resistances = arrayFields(fields[1]).slice(0, count).map(analog);
+      const resistorNodes = arrayFields(fields[2]).slice(0, count).map(analog);
+      const capacitors = arrayFields(fields[3]).slice(0, count).map(analog);
+      const [rI, rF, cF, cAmp, vRef, gain] = fields.slice(4, 10).map(analog);
+      const declared = analog(fields[0]);
+      const mixerType = declared === constant('DISC_MIXER_IS_RESISTOR')
+        ? 'resistor'
+        : declared === constant('DISC_MIXER_IS_OP_AMP')
+          ? (rI ? 'opAmpWithRi' : 'opAmp')
+          : undefined;
+      const scalars = [rI, rF, cF, cAmp, vRef, gain];
+      if (
+        !mixerType || resistances.length !== count ||
+        resistances.some(value => !(value > 0)) ||
+        resistorNodes.some(value => value !== 0) ||
+        scalars.some(value => value === undefined || !Number.isFinite(value))
+      ) return undefined;
+      graph.push({
+        op: 'mixer', node, enable: operand(args[1]), mixerType,
+        inputs: args.slice(2, 2 + count).map(operand), resistances,
+        capacitors: Array.from({ length: count }, (_, index) =>
+          Number.isFinite(capacitors[index]) ? capacitors[index]! : 0),
+        rI: rI!, rF: rF!, cF: cF!, cAmp: cAmp!, vRef: vRef!, gain: gain!,
+      });
+    } else {
+      return undefined;
+    }
+  }
+  return graph;
 }
 
 /**
@@ -1773,7 +1953,9 @@ function matchingDelimiter(
  * the rest of rescap.h, in ohms and farads.
  */
 export function analogValue(expression: string): number {
-  let normalized = expression.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').trim();
+  let normalized = expression.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').trim()
+    // C's `5.` is 5.0; evalExpr only reads a fraction with its digits.
+    .replace(/(\d)\.(?![\d\w])/g, '$1');
   const units: [RegExp, number][] = [
     [/RES_K\(([^()]+)\)/g, 1e3],
     [/RES_M\(([^()]+)\)/g, 1e6],
@@ -2650,7 +2832,55 @@ export interface GeneratedDiscreteMixerPlanData {
     gain: number;
   }[];
   outputs: { node: number; gain: number }[];
+  graph?: GeneratedDiscreteGraphNodeData[];
   source: { file: string; line: number; netlist: string };
+}
+
+type GeneratedDiscreteOperandData = { node: number } | { value: number };
+
+interface GeneratedDiscreteGraphNodeData {
+  op: 'stream' | 'adder' | 'multiply' | 'crFilter' | 'opAmpFilter' | 'mixer' | 'output';
+  node: number;
+  input?: number | GeneratedDiscreteOperandData;
+  inputs?: GeneratedDiscreteOperandData[];
+  enable?: GeneratedDiscreteOperandData;
+  gain?: number;
+  offset?: number;
+  resistance?: number;
+  capacitance?: number;
+  filterType?: 'lowPass1' | 'highPass1' | 'bandPass1' | 'bandPass1M';
+  mixerType?: 'resistor' | 'opAmp' | 'opAmpWithRi';
+  r1?: number;
+  r2?: number;
+  r3?: number;
+  rI?: number;
+  rF?: number;
+  c1?: number;
+  c2?: number;
+  cF?: number;
+  cAmp?: number;
+  resistances?: number[];
+  capacitors?: number[];
+  vRef?: number;
+  vMax?: number;
+  vMin?: number;
+}
+
+/** One graph node with its MAME reset-time constants and step state. */
+interface GeneratedDiscreteGraphStep {
+  spec: GeneratedDiscreteGraphNodeData;
+  route?: GeneratedAyRoute;
+  /** RC_CHARGE_EXP per capacitor (filter C1/C2, mixer inputs, cF, cAmp). */
+  exponents: number[];
+  /** Capacitor voltages, and the biquad's x1/x2/y1/y2 for BAND_PASS_1M. */
+  state: number[];
+  rTotal: number;
+  filterGain: number;
+  a1: number;
+  a2: number;
+  b0: number;
+  b1: number;
+  b2: number;
 }
 
 export interface GeneratedAuxiliaryAudioDevice {
@@ -2698,9 +2928,22 @@ export class GeneratedAy8910Core {
   private envelopeHolding = false;
   private readonly mixedSamples = [0, 0, 0];
   private singleOutput = 0;
+  /** Each pin's volume curve: MAME's build_single_table for its own load. */
+  private readonly volumeTables: number[][];
 
-  constructor(clock: number) {
+  constructor(clock: number, resistorLoads?: readonly number[]) {
     this.nativeRate = clock / plan.clockDivider;
+    const table = (load: number): number[] => plan.singleOutput.resistances.map((resistance, index) => {
+      let total = 1 / plan.singleOutput.rDown + 1 / load + 1 / resistance;
+      let high = 1 / resistance;
+      if (index !== 0) {
+        total += 1 / plan.singleOutput.rUp;
+        high += 1 / plan.singleOutput.rUp;
+      }
+      return high / total;
+    });
+    this.volumeTables = Array.from({ length: plan.channels }, (_, channel) =>
+      resistorLoads?.[channel] ? table(resistorLoads[channel]!) : plan.volumeTable);
   }
 
   write(reg: number, data: number): void {
@@ -2781,7 +3024,7 @@ export class GeneratedAy8910Core {
       const level = envelopeEnabled ? envelope : volume & 0x0f;
       const gate = toneGate & noiseGate;
       if (analogOutputs) {
-        output[channel] = plan.volumeTable[gate ? level : 0];
+        output[channel] = this.volumeTables[channel]![gate ? level : 0]!;
       } else {
         const amplitude = plan.legacyVolumeTable[level] - plan.legacyVolumeTable[0];
         output[channel] = gate ? amplitude : -amplitude;
@@ -2968,6 +3211,9 @@ export class GeneratedAy8910Mixer {
   private readonly discreteMixer?: GeneratedDiscreteMixerPlanData;
   private readonly discreteValues = new Map<number, number>();
   private readonly discreteFilterMemory = new Map<number, number>();
+  private discreteGraph?: GeneratedDiscreteGraphStep[];
+  private readonly discreteGraphValues = new Map<number, number>();
+  private discreteGraphOutputs = 1;
   private readonly outputRate: number;
   private readonly deviceTags: string[];
   private muted = false;
@@ -2980,11 +3226,13 @@ export class GeneratedAy8910Mixer {
     auxiliaryDevices: GeneratedAuxiliaryAudioDevice[] = [],
     discreteMixer?: GeneratedDiscreteMixerPlanData,
     deviceTags: string[] = [],
+    resistorLoads: readonly (readonly number[])[] = [],
   ) {
     this.outputRate = outputRate;
     this.deviceTags = deviceTags;
     const count = Math.max(1, chips);
-    this.cores = Array.from({ length: count }, () => new GeneratedAy8910Core(clock));
+    this.cores = Array.from({ length: count }, (_, chip) =>
+      new GeneratedAy8910Core(clock, resistorLoads[chip]));
     this.phases = this.cores.map(() => 0);
     this.channelSamples = this.cores.map(() => [0, 0, 0]);
     this.nativeSamples = this.cores.map(() => [0, 0, 0]);
@@ -3082,6 +3330,7 @@ export class GeneratedAy8910Mixer {
       0,
     );
     this.discreteMixer = discreteMixer;
+    if (discreteMixer?.graph) this.resetDiscreteGraph(discreteMixer.graph);
     for (const input of discreteMixer?.dataInputs ?? []) {
       this.discreteValues.set(input.node, 0);
     }
@@ -3188,6 +3437,7 @@ export class GeneratedAy8910Mixer {
         this.singleSamples[chip] = this.singleSums[chip]! / nativeSamples;
       }
     }
+    if (this.discreteGraph) return this.sampleDiscreteGraph();
     if (this.discreteMixer) return this.sampleDiscreteMixer();
     let mixed = 0;
     for (const route of this.routes) {
@@ -3208,6 +3458,195 @@ export class GeneratedAy8910Mixer {
       ? mixed
       : mixed / (this.gainTotal + this.auxiliaryGainTotal);
     return Math.max(-1, Math.min(1, output));
+  }
+
+  // DISCRETE_RESET for each node class in the graph (disc_flt.hxx,
+  // disc_mth.hxx): the charge exponents and filter coefficients MAME derives
+  // once from the components and the stream's sample rate.
+  private resetDiscreteGraph(graph: GeneratedDiscreteGraphNodeData[]): void {
+    const rate = this.outputRate;
+    const charge = (rc: number): number => rc > 0 ? 1 - Math.exp(-1 / rate / rc) : 0;
+    this.discreteGraph = graph.map(spec => {
+      const step: GeneratedDiscreteGraphStep = {
+        spec, exponents: [], state: [0, 0, 0, 0], rTotal: 0, filterGain: 0,
+        a1: 0, a2: 0, b0: 0, b1: 0, b2: 0,
+      };
+      if (spec.op === 'stream') {
+        step.route = this.routes.find(candidate => candidate.targetInput === spec.input);
+      } else if (spec.op === 'crFilter') {
+        step.exponents = [charge(spec.resistance! * spec.capacitance!)];
+      } else if (spec.op === 'opAmpFilter') {
+        let conductance = 1 / spec.r1!;
+        if (spec.r2) conductance += 1 / spec.r2;
+        if (spec.r3) conductance += 1 / spec.r3;
+        const rTotal = 1 / conductance;
+        step.rTotal = rTotal;
+        step.filterGain = -spec.rF! / rTotal;
+        if (spec.filterType === 'lowPass1') {
+          step.exponents = [charge(spec.rF! * spec.c1!), 0];
+        } else if (spec.filterType === 'highPass1') {
+          step.exponents = [charge(rTotal * spec.c1!), 0];
+        } else if (spec.filterType === 'bandPass1') {
+          step.exponents = [charge(spec.rF! * spec.c1!), charge(rTotal * spec.c2!)];
+        } else {
+          const c1 = spec.c1!;
+          const c2 = spec.c2!;
+          const fc = 1 / (2 * Math.PI * Math.sqrt(rTotal * spec.rF! * c1 * c2));
+          const d = (c1 + c2) / Math.sqrt(spec.rF! / rTotal * c1 * c2);
+          const gain = -spec.rF! / rTotal * c2 / (c1 + c2);
+          // calculate_filter2_coefficients, DISC_FILTER_BANDPASS, pre-warped.
+          const twoOverT = 2 * rate;
+          const twoOverTSquared = twoOverT * twoOverT;
+          const wc = rate * 2 * Math.tan(Math.PI * fc / rate);
+          const wcSquared = wc * wc;
+          const den = twoOverTSquared + d * wc * twoOverT + wcSquared;
+          step.a1 = 2 * (-twoOverTSquared + wcSquared) / den;
+          step.a2 = (twoOverTSquared - d * wc * twoOverT + wcSquared) / den;
+          step.b0 = d * wc * twoOverT / den * gain;
+          step.b1 = 0;
+          step.b2 = -d * wc * twoOverT / den * gain;
+        }
+      } else if (spec.op === 'mixer') {
+        const type = spec.mixerType;
+        let conductance = 0;
+        for (const resistance of spec.resistances!) conductance += 1 / resistance;
+        if (spec.rF && type === 'resistor') conductance += 1 / spec.rF;
+        if (type === 'opAmpWithRi') conductance += 1 / spec.rI!;
+        step.rTotal = 1 / conductance;
+        step.exponents = spec.capacitors!.map((capacitance, index) => {
+          if (!capacitance) return 0;
+          const resistance = spec.resistances![index]!;
+          const r = type === 'resistor' && spec.rF
+            ? 1 / (1 / resistance + 1 / spec.rF)
+            : type === 'opAmpWithRi' ? resistance + spec.rI! : resistance;
+          return charge(r * capacitance);
+        });
+        // cF charges through rF on an op-amp (info->type, so with or without
+        // rI) and through the source network's resistance otherwise.
+        step.exponents.push(
+          spec.cF ? charge((type === 'resistor' ? step.rTotal : spec.rF!) * spec.cF) : 0,
+          // "We will use 100k ohms as an average final stage impedance."
+          spec.cAmp ? charge(100_000 * spec.cAmp) : 0,
+        );
+        step.filterGain = type === 'opAmpWithRi' ? spec.rF! / spec.rI! : 0;
+        step.state = new Array(spec.capacitors!.length + 2).fill(0);
+      }
+      return step;
+    });
+    this.discreteGraphOutputs = Math.max(1, graph.filter(spec => spec.op === 'output').length);
+  }
+
+  // DISCRETE_STEP for each node, in netlist order, in volts.
+  private sampleDiscreteGraph(): number {
+    const values = this.discreteGraphValues;
+    const read = (operand: GeneratedDiscreteOperandData | undefined): number =>
+      operand === undefined ? 0 : 'node' in operand ? values.get(operand.node) ?? 0 : operand.value;
+    let output = 0;
+    for (const step of this.discreteGraph!) {
+      const spec = step.spec;
+      const state = step.state;
+      switch (spec.op) {
+        case 'stream': {
+          const route = step.route;
+          const sample = !route
+            ? 0
+            : route.channel === -1
+              ? this.singleSamples[route.chip] ?? 0
+              : this.channelSamples[route.chip]?.[route.channel] ?? 0;
+          // dss_input_stream: the stream sample * 32768 * gain + offset.
+          values.set(spec.node, sample * (route?.gain ?? 1) * 32768 * spec.gain! + spec.offset!);
+          break;
+        }
+        case 'adder': {
+          let sum = 0;
+          if (read(spec.enable)) for (const input of spec.inputs!) sum += read(input);
+          values.set(spec.node, sum);
+          break;
+        }
+        case 'multiply':
+          values.set(spec.node, read(spec.inputs![0]) * read(spec.inputs![1]));
+          break;
+        case 'crFilter': {
+          const vOut = read(spec.input as GeneratedDiscreteOperandData) - state[0]!;
+          values.set(spec.node, vOut);
+          state[0] = state[0]! + (vOut - spec.vRef!) * step.exponents[0]!;
+          break;
+        }
+        case 'opAmpFilter': {
+          if (!read(spec.enable)) {
+            values.set(spec.node, 0);
+            break;
+          }
+          const vRef = spec.vRef!;
+          let current = (read(spec.inputs![0]) - vRef) / spec.r1!;
+          if (spec.r2) current += (read(spec.inputs![1]) - vRef) / spec.r2;
+          const v = current * step.rTotal;
+          let vOut = 0;
+          if (spec.filterType === 'lowPass1') {
+            state[0] = state[0]! + (v - state[0]!) * step.exponents[0]!;
+            vOut = state[0]! * step.filterGain + vRef;
+          } else if (spec.filterType === 'highPass1') {
+            vOut = (v - state[0]!) * step.filterGain + vRef;
+            state[0] = state[0]! + (v - state[0]!) * step.exponents[0]!;
+          } else if (spec.filterType === 'bandPass1') {
+            vOut = v - state[1]!;
+            state[1] = state[1]! + (v - state[1]!) * step.exponents[1]!;
+            state[0] = state[0]! + (vOut - state[0]!) * step.exponents[0]!;
+            vOut = state[0]! * step.filterGain + vRef;
+          } else {
+            // state = x1, x2, y1, y2
+            vOut = -step.a1 * state[2]! - step.a2 * state[3]! +
+              step.b0 * v + step.b1 * state[0]! + step.b2 * state[1]! + vRef;
+            state[1] = state[0]!;
+            state[0] = v;
+            state[3] = state[2]!;
+          }
+          // Clip to the rails: the circuit's own distortion.
+          if (vOut > spec.vMax!) vOut = spec.vMax!;
+          if (vOut < spec.vMin!) vOut = spec.vMin!;
+          if (spec.filterType === 'bandPass1M') state[2] = vOut - vRef;
+          values.set(spec.node, vOut);
+          break;
+        }
+        case 'mixer': {
+          if (!read(spec.enable)) {
+            values.set(spec.node, 0);
+            break;
+          }
+          const vRef = spec.vRef!;
+          const inputs = spec.inputs!;
+          const opAmp = spec.mixerType === 'opAmp';
+          let current = 0;
+          for (let index = 0; index < inputs.length; index++) {
+            let v = read(inputs[index]);
+            if (spec.capacitors![index]) {
+              state[index] = state[index]! + (v - vRef - state[index]!) * step.exponents[index]!;
+              v -= state[index]!;
+            }
+            current += (opAmp ? vRef - v : v) / spec.resistances![index]!;
+          }
+          if (spec.mixerType === 'opAmpWithRi') current += vRef / spec.rI!;
+          let v = current * (opAmp ? spec.rF! : step.rTotal);
+          if (spec.mixerType === 'opAmpWithRi') v = vRef + step.filterGain * (vRef - v);
+          const filterIndex = inputs.length;
+          if (spec.cF) {
+            state[filterIndex] = state[filterIndex]! + (v - vRef - state[filterIndex]!) * step.exponents[filterIndex]!;
+            v = state[filterIndex]!;
+          }
+          if (spec.cAmp) {
+            state[filterIndex + 1] = state[filterIndex + 1]! + (v - state[filterIndex + 1]!) * step.exponents[filterIndex + 1]!;
+            v -= state[filterIndex + 1]!;
+          }
+          values.set(spec.node, v * spec.gain!);
+          break;
+        }
+        case 'output':
+          // dso_output hands the stream value * gain / 32768.
+          output += read(spec.input as GeneratedDiscreteOperandData) * spec.gain! / 32768;
+          break;
+      }
+    }
+    return Math.max(-1, Math.min(1, output / this.discreteGraphOutputs));
   }
 
   private sampleDiscreteMixer(): number {
@@ -3419,6 +3858,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
         routes?: GeneratedAyRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         discreteMixer?: GeneratedDiscreteMixerPlanData;
+        resistorLoads?: number[][];
         refresh?: number;
         offset?: number;
         data?: number;
@@ -3434,6 +3874,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
           message.auxiliaryDevices,
           message.discreteMixer,
           message.deviceTags,
+          message.resistorLoads,
         );
         this.renderer = new GeneratedAy8910FrameRenderer(
           this.mixer,

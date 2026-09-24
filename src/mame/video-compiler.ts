@@ -103,7 +103,7 @@ export function compileMameVideo(
     const dvg = /\bDVG\s*\(\s*config\s*,\s*(m_\w+)[^)]*\)[\s\S]*?\1\s*->\s*set_memory\s*\([^,]+,[^,]+,\s*(0x[\da-f]+|\d+)\s*\)/i
       .exec(source);
     if (dvg) {
-      let doneInput: NonNullable<GeneratedVideoPlan['vector']>['doneInput'];
+      let doneInput: Extract<NonNullable<GeneratedVideoPlan['vector']>, { type: 'DVG' }>['doneInput'];
       for (const port of source.matchAll(
         /PORT_START\s*\(\s*"([^"]+)"\s*\)([\s\S]*?)(?=PORT_START\s*\(|INPUT_PORTS_END)/g,
       )) {
@@ -129,6 +129,25 @@ export function compileMameVideo(
             coordinateBits: 10,
             ...(doneInput ? { doneInput } : {}),
           },
+          ...(config ? { source: sourceRef(config) } : {}),
+        },
+        handlers: [],
+      };
+    }
+    // A vector generator the board composes as a generated device, pointed at
+    // the display with `set_vector` (Battlezone's AVG). It fills the display
+    // list itself; the plan only says whose list it is.
+    const generator = activeDevices.find(device =>
+      (Array.isArray(device.props.config) ? device.props.config.map(String) : [])
+        .some(line => /\bset_vector\s*\(/.test(line)));
+    if (generator) {
+      const config = ast.findFunction(String(machine.props.cls), String(machine.props.name));
+      return {
+        plan: {
+          gfx: [],
+          tilemaps: [],
+          initialState: memberDefaults,
+          vector: { type: 'device', generator: String(generator.props.tag) },
           ...(config ? { source: sourceRef(config) } : {}),
         },
         handlers: [],

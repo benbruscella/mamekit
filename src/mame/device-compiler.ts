@@ -505,6 +505,29 @@ export function compileMameDevice(
     replaceOrAppend(helper);
   }
 
+  // A static helper of another device class, called by its qualified name:
+  // the Battlezone AVG colours each beam with `vector_device::color111(7)`,
+  // declared inline in vector.h. That header is reached through MAME's global
+  // include path, so the family closure never parsed it and the call answered
+  // zero -- a black beam. The class is found by the hardware index, and only
+  // the called static method is lowered.
+  const helperBodies = [...methodBodies.values()].join('\n');
+  for (const call of new Set([...helperBodies.matchAll(/\b(\w+_device)::(\w+)\s*(?:<[^<>()]*>)?\s*\(/g)]
+    .map(match => `${match[1]}::${match[2]}`))) {
+    const [className, name] = call.split('::') as [string, string];
+    if (hierarchy.includes(className) || methods.some(candidate => candidate.name === call)) continue;
+    const owner = [...indexMameHardware(mameSrc).values()]
+      .find(candidate => candidate.className === className);
+    const header = owner?.sourceFile.replace(/\.cpp$/, '.h');
+    if (!header || !existsSync(join(mameSrc, header))) continue;
+    const declaration = parseMameAst([{ file: header, source: readFileSync(join(mameSrc, header), 'utf8') }])
+      .units.flatMap(unit => unit.classes).find(candidate => candidate.name === className);
+    const helper = declaration && inlineMethods(declaration).find(method => method.name === name);
+    if (!helper || !new RegExp(`\\bstatic\\b[^;{}]*\\b${name}\\s*\\(`).test(declaration!.body)) continue;
+    const compiled = compileMethod(helper, interruptCallbacks, sourceTables, functionMacros, memberAliases);
+    methods.push({ ...compiled, name: call });
+  }
+
   const callbacks: GeneratedDeviceCallback[] = [];
   const allocatedArrays = allocatedMemberArrays(
     sources.map(source => source.source).join('\n'),
@@ -539,15 +562,20 @@ export function compileMameDevice(
       const allocated = allocatedArrays.get(member.name) ?? fixedArrays.get(member.name);
       const memory = memoryContainer(member.valueType, member.name, constructorBindings);
       const finder = finderBinding(member.valueType, member.name, constructorBindings);
+      const structType = structFields.has(member.valueType.replace(/\*$/, '').trim());
       return [{
         name: member.name,
         valueType: member.valueType,
         ...(bits ? { bits } : {}),
         ...(signed ? { signed } : {}),
-        ...(allocated ? { values: allocated } : {}),
+        // An array of a struct the device declares is that many structs, not
+        // that many zeros (the AVG's `vgvector m_vectbuf[MAXVECT]`).
+        ...(allocated && !structType ? { values: allocated } : {}),
         ...(memory ? { memory } : {}),
         ...(finder ? { finder } : {}),
-        ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+        ...(member.arrayLength || (allocated && structType)
+          ? { arrayLength: member.arrayLength ?? allocated!.length }
+          : {}),
         ...(member.arrayShape ? { arrayShape: member.arrayShape } : {}),
         ...(structFields.get(member.valueType.replace(/\*$/, '').trim())
           ? { fields: structFields.get(member.valueType.replace(/\*$/, '').trim()) }
@@ -1550,7 +1578,7 @@ function coreLineStates(mameSrc: string): Record<string, number> {
  * emulator core rather than restated here. A device names them when it asks
  * for one of its own spaces: `space(AS_DATA)`.
  */
-function coreAddressSpaces(mameSrc: string): Record<string, number> {
+export function coreAddressSpaces(mameSrc: string): Record<string, number> {
   const header = join(mameSrc, 'src/emu/emumem.h');
   if (!existsSync(header)) return {};
   const spaces: Record<string, number> = {};
@@ -1925,7 +1953,9 @@ function structFieldList(
       // A builtin may take several words (`unsigned short energytable[...]`)
       // and a table several bounds (`int ktable[MAX_K][MAX_SCALE]`); the LPC
       // coefficient struct uses both, and missing either dropped the field.
-      /^\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?(?:\s*\[[^\]]+\])*\s*;/gm,
+      // Several may share a line (`int x; int y;` in the AVG's vgvector), so a
+      // field starts at a line or after the previous one's semicolon.
+      /(?:^|(?<=;))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+)\s+(\w+)\s*(?:\[\s*([^\]]+)\s*\])?(?:\s*\[[^\]]+\])*\s*;/gm,
     )) {
       // A struct field is as wide as its type, exactly like a plain member.
       // Dropping the width let a `uint8_t` counter reach -1 instead of

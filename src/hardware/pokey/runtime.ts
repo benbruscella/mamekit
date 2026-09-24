@@ -39,10 +39,15 @@ export function installPokeyRuntime(context: SoundRuntimeContext): SoundRuntimeH
       const register = offset & 0x0f;
       const state = registers.get(tag)!;
       switch (register) {
-        case ALLPOT:
-          // No POT conversion is active on Centipede; unset POT callbacks read
-          // ready/high once SKRESET is released.
-          return (state[SKCTL]! & 0x03) === 0 ? 0x00 : 0xff;
+        case ALLPOT: {
+          // pokey_device::read: held in SKRESET the register reads as stored
+          // (zero here); otherwise the driver's allpot_r answers when it bound
+          // one -- Missile Command and Battlezone read DIP switches through
+          // it -- and an unbound one reads every pot as settled.
+          if ((state[SKCTL]! & 0x03) === 0) return 0x00;
+          const bound = context.readSignal(tag, 'allpot_r');
+          return bound === undefined ? 0xff : bound & 0xff;
+        }
         case KBCODE:
           return 0x09;
         case RANDOM: {

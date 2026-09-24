@@ -37,6 +37,8 @@ export interface WorkletCoreConfig {
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   readonly filterChain?: GeneratedBiquadStage[];
   readonly discreteMixer?: GeneratedDiscreteMixerPlan;
+  /** Per AY chip, the load each of its three pins drives (set_resistors_load). */
+  readonly resistorLoads?: number[][];
   readonly discreteDac?: GeneratedDiscreteDacPlan;
   readonly discreteEffects?: GeneratedDiscreteEffectsPlan;
   readonly speakerFilter?: GeneratedSpeakerFilterPlan;
@@ -127,6 +129,7 @@ export class AudioOutput {
       auxiliaryDevices: core.auxiliaryDevices,
       filterChain: core.filterChain,
       discreteMixer: core.discreteMixer,
+      resistorLoads: core.resistorLoads,
       discreteDac: core.discreteDac,
       discreteEffects: core.discreteEffects,
       refresh: core.refresh,

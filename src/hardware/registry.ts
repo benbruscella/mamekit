@@ -134,6 +134,12 @@ import {
 } from './berzerk-sound/definition.ts';
 import { extractBerzerkSound } from './berzerk-sound/extract.ts';
 import { VECTOR_ID, VECTOR_MAME_TYPES, VECTOR_PORTS } from './vector/definition.ts';
+import {
+  ADDRESS_MAP_BANK_ID,
+  ADDRESS_MAP_BANK_MAME_TYPES,
+  ADDRESS_MAP_BANK_PORTS,
+} from './address-map-bank/definition.ts';
+import { extractAddressMapBank } from './address-map-bank/extract.ts';
 import { extractVector } from './vector/extract.ts';
 import {
   M68705_ID,
@@ -168,6 +174,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: VECTOR_MAME_TYPES,
     ports: VECTOR_PORTS,
     extract: extractVector,
+  },
+  {
+    id: ADDRESS_MAP_BANK_ID,
+    mameTypes: ADDRESS_MAP_BANK_MAME_TYPES,
+    ports: ADDRESS_MAP_BANK_PORTS,
+    extract: extractAddressMapBank,
   },
   {
     id: NES_ID,
