@@ -1,0 +1,53 @@
+{
+  "game": "bombjack",
+  "title": "Bomb Jack (Tehkan, 1984)",
+  "fullname": "Bomb Jack",
+  "year": "1984",
+  "manufacturer": "Tehkan",
+  "family": "bombjack",
+  "driverFile": "src/mame/tecmo/bombjack.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mirko Buffoni",
+  "credits": {
+    "people": [
+      {
+        "name": "Mirko Buffoni",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "jackson2k2",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.267",
+        "lastRelease": "0.267"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2024-09-25",
+    "commits": 120,
+    "authors": 26,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

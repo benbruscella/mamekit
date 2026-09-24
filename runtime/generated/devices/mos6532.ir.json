@@ -1,0 +1,4595 @@
+{
+  "type": "MOS6532",
+  "uses": [
+    {
+      "game": "a2600",
+      "tags": [
+        "riot"
+      ]
+    },
+    {
+      "game": "qbert",
+      "tags": [
+        "riot"
+      ]
+    },
+    {
+      "game": "venture",
+      "tags": [
+        "riot"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MOS6532",
+    "className": "mos6532_device",
+    "shortName": "mos6532",
+    "description": "MOS 6532 RIOT",
+    "sourceFile": "src/devices/machine/mos6530.cpp",
+    "sourceLine": 29,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MOS6532, mos6532_device, \"mos6532\", \"MOS 6532 RIOT\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 138,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6530_device_base::timer_end"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timershift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 10
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timerstate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "TIMER_COUNTING"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime::from_ticks"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 256
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_timershift"
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "clock"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pa_in"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pa_out"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pa_ddr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pa7"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pa7_dir"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pb_in"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pb_out"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pb_ddr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ie_timer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_timer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ie_edge"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_edge"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timershift"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timerstate"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timeout"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 172,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa_out"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa_ddr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_out"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_ddr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ie_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ie_edge"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_edge"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa7_dir"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_pa"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_pb"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_irq"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "edge_detect"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_pa",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 195,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pa_out"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pa_ddr"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pa_ddr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out8_pa_cb"
+                },
+                "property": "isunset"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_out_pa_cb"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "BIT"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_out8_pa_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_pb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 213,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pb_out"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pb_ddr"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pb_ddr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out8_pb_cb"
+                },
+                "property": "isunset"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_out_pb_cb"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "BIT"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_out8_pb_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_irq",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 255,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "CLEAR_LINE"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_ie_timer"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_irq_timer"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "ASSERT_LINE"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_ie_edge"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_irq_edge"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "ASSERT_LINE"
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_irq_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_irq_flags",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 275,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_irq_timer"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "IRQ_TIMER"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_irq_edge"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "IRQ_EDGE"
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_timer",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 299,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "shift",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_timerstate"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "TIMER_COUNTING"
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "m_timershift"
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "remain",
+            "valueType": "int64_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_timer"
+                    },
+                    "property": "remaining"
+                  },
+                  "args": []
+                },
+                "property": "as_ticks"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "val",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "remain"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "shift"
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "remain"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "shift"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "val"
+              },
+              "whenFalse": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_start",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 315,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timerstate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "TIMER_COUNTING"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "curtime",
+            "valueType": "attotime",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "machine"
+                  },
+                  "args": []
+                },
+                "property": "time"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "target",
+            "valueType": "int64_t",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "curtime"
+                    },
+                    "property": "as_ticks"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "clock"
+                      },
+                      "args": []
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_timershift"
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "attotime::from_ticks"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "target"
+                      },
+                      {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "clock"
+                        },
+                        "args": []
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "curtime"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "edge_detect",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 348,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pa_out"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pa_ddr"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pa_in"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_pa_ddr"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_pa7"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "binary",
+                    "operator": "^",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_pa7_dir"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_irq_edge"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_irq_edge"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_irq"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa7"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_w",
+      "parameters": "offs_t offset, uint8_t data, uint8_t mem_mask",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 369,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa_in"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pa_in"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "mem_mask"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "edge_detect"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_w",
+      "parameters": "offs_t offset, uint8_t data, uint8_t mem_mask",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 382,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_in"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pb_in"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "mem_mask"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_data_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 394,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "in",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in8_pa_cb"
+                },
+                "property": "isunset"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "in"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "conditional",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_in_pa_cb"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "i"
+                              }
+                            },
+                            "property": "isunset"
+                          },
+                          "args": []
+                        },
+                        "whenTrue": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "BIT"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_pa_in"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          ]
+                        },
+                        "whenFalse": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_in_pa_cb"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "args": []
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "in"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_in8_pa_cb"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pa_out"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pa_ddr"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "in"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_pa_ddr"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_data_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 418,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa_out"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_pa"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "edge_detect"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_ddr_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 433,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa_ddr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_pa"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "edge_detect"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_data_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 448,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "in",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in8_pb_cb"
+                },
+                "property": "isunset"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "in"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "conditional",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_in_pb_cb"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "i"
+                              }
+                            },
+                            "property": "isunset"
+                          },
+                          "args": []
+                        },
+                        "whenTrue": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "BIT"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_pb_in"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          ]
+                        },
+                        "whenFalse": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_in_pb_cb"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "args": []
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "in"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_in8_pb_cb"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_pb_out"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_pb_ddr"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "in"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_pb_ddr"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_data_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 472,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_out"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_pb"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_ddr_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 486,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pb_ddr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_pb"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_off_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 500,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_r"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_on_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 505,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_r"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_r",
+      "parameters": "bool ie",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 510,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_timeout"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "time"
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_hz"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "number",
+                            "value": 2
+                          },
+                          "right": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "clock"
+                            },
+                            "args": []
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_irq_timer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_timerstate"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "TIMER_SPINNING"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "timer_start"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ie_timer"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "ie"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_irq"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 540,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_irq_flags"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "side_effects_disabled"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_irq_edge"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_irq_edge"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_irq"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_off_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 558,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_on_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 563,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_w",
+      "parameters": "offs_t offset, uint8_t data, bool ie",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 568,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "select",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timershift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "select"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 0
+              },
+              "whenFalse": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "select"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 3
+                },
+                "whenFalse": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "select"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 6
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 10
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_start"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ie_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "ie"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_irq"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "edge_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 587,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pa7_dir"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ie_edge"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_irq"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timer_end",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 328,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_timerstate"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "TIMER_COUNTING"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_timeout"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_irq_timer"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_irq"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timerstate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "TIMER_SPINNING"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime::from_ticks"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 256
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "clock"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_rd_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in_pa_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_wr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_out_pa_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_rd_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in_pb_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_wr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 77,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_out_pb_cb"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pa_rd_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in8_pa_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pa_wr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 70,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out8_pa_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pb_rd_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in8_pb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pb_wr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out8_pb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_wr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 78,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_irq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_bit_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "pa_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_bit_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "pb_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rom_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_rom"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_ddr_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 127,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pa_ddr"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_ddr_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pb_ddr"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::irq_wr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_irq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pa_bit_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "pa_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pb_bit_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "pb_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "auto"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::rom_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_rom"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::ram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::ram_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 123,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pa_ddr_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 127,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pa_ddr"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mos6530_device_base::pb_ddr_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/mos6530.h",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pb_ddr"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "map"
+                },
+                "property": "global_mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 127
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 127
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::ram_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::ram_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "io_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/machine/mos6530.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "map"
+                },
+                "property": "global_mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 31
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pa_data_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pa_data_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pa_ddr_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pa_ddr_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 2
+                        },
+                        {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pb_data_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pb_data_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 3
+                        },
+                        {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pb_ddr_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::pb_ddr_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 20
+                    },
+                    {
+                      "kind": "number",
+                      "value": 23
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::timer_off_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 28
+                    },
+                    {
+                      "kind": "number",
+                      "value": 31
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::timer_on_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 4
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 18
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::timer_off_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 12
+                        },
+                        {
+                          "kind": "number",
+                          "value": 12
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 18
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::timer_on_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 5
+                        },
+                        {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 26
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::irq_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 4
+                        },
+                        {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mos6532_device::edge_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/mos6530.cpp",
+    "src/devices/machine/mos6530.h"
+  ]
+}

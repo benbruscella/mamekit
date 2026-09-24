@@ -1,0 +1,101 @@
+{
+  "game": "junglek",
+  "title": "Jungle King (Japan) (Taito, 1982)",
+  "fullname": "Jungle King (Japan)",
+  "year": "1982",
+  "manufacturer": "Taito",
+  "family": "taitosj",
+  "driverFile": "src/mame/taito/taitosj.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Angelo Salese",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.178",
+        "lastRelease": "0.178"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.233",
+        "lastRelease": "0.252"
+      },
+      {
+        "name": "CWorks",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.252",
+        "lastRelease": "0.252"
+      },
+      {
+        "name": "fipppi",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.192",
+        "lastRelease": "0.192"
+      },
+      {
+        "name": "jkburks",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.230",
+        "lastRelease": "0.230"
+      },
+      {
+        "name": "MetalGod",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.211",
+        "lastRelease": "0.211"
+      },
+      {
+        "name": "O. Galibert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.233",
+        "lastRelease": "0.233"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 218,
+    "authors": 32,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

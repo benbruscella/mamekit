@@ -1,0 +1,1003 @@
+{
+  "game": "nbajam",
+  "title": "NBA Jam (rev 3.01 4/07/93) (Midway, 1993)",
+  "fullname": "NBA Jam (rev 3.01 4/07/93)",
+  "year": "1993",
+  "company": "Midway",
+  "family": "midtunit",
+  "driverFile": "src/mame/williams/midtunit.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Alex Pasadyn, Zsolt Vasvari, Ernesto Corvi, Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "tms34010",
+      "clock": 50000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 524287,
+          "kind": "handler",
+          "read": "video.midtunit_vram_r",
+          "write": "video.midtunit_vram_w"
+        },
+        {
+          "start": 2097152,
+          "end": 2621439,
+          "kind": "ram"
+        },
+        {
+          "start": 2621440,
+          "end": 2637823,
+          "kind": "handler",
+          "share": "nvram",
+          "read": "midtunit_base_state.cmos_r",
+          "write": "midtunit_base_state.cmos_w"
+        },
+        {
+          "start": 2686976,
+          "end": 2752511,
+          "kind": "handler",
+          "write": "midtunit_base_state.cmos_enable_w"
+        },
+        {
+          "start": 2883584,
+          "end": 2883585,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 2883586,
+          "end": 2883587,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 2883588,
+          "end": 2883589,
+          "kind": "handler",
+          "read": "port.IN2"
+        },
+        {
+          "start": 2883590,
+          "end": 2883591,
+          "kind": "handler",
+          "read": "port.DSW"
+        },
+        {
+          "start": 3145728,
+          "end": 3211263,
+          "kind": "ram",
+          "share": "palette",
+          "write": "palette.write16"
+        },
+        {
+          "start": 3473408,
+          "end": 3473439,
+          "kind": "handler",
+          "read": "video.dma_r",
+          "write": "video.dma_w"
+        },
+        {
+          "start": 3538944,
+          "end": 3538947,
+          "kind": "handler",
+          "write": "video.midtunit_control_w"
+        },
+        {
+          "start": 3867148,
+          "end": 3867151,
+          "kind": "handler",
+          "write": "watchdog.reset16_w"
+        },
+        {
+          "start": 4063232,
+          "end": 4063235,
+          "kind": "handler",
+          "write": "video.midtunit_control_w"
+        },
+        {
+          "start": 4194304,
+          "end": 16777215,
+          "kind": "handler",
+          "share": "video",
+          "read": "video.midtunit_gfxrom_r"
+        },
+        {
+          "start": 66060288,
+          "end": 67108863,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 535822336,
+          "end": 536870911,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 3801088,
+          "end": 3801091,
+          "kind": "handler",
+          "read": "midtunit_adpcm_state.sound_state_r"
+        },
+        {
+          "start": 3801604,
+          "end": 3801607,
+          "kind": "handler",
+          "read": "midtunit_adpcm_state.sound_r",
+          "write": "midtunit_adpcm_state.sound_w"
+        },
+        {
+          "start": 402653184,
+          "end": 402653247,
+          "kind": "handler",
+          "read": "maincpu.io_register_r",
+          "write": "maincpu.io_register_w"
+        },
+        {
+          "start": 3549188,
+          "end": 3557895,
+          "kind": "handler",
+          "read": "midtunit_adpcm_state.nbajam_prot_r"
+        },
+        {
+          "start": 3549188,
+          "end": 3557895,
+          "kind": "handler",
+          "write": "midtunit_adpcm_state.nbajam_prot_w"
+        }
+      ],
+      "unmapHigh": true
+    },
+    {
+      "tag": "adpcm:cpu",
+      "type": "mc6809e",
+      "clock": 2000000,
+      "region": "adpcm:cpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "ram"
+        },
+        {
+          "start": 8192,
+          "end": 8192,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "williams_adpcm_sound_device.bank_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 9216,
+          "end": 9217,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "adpcm:ym2151.read",
+          "write": "adpcm:ym2151.write"
+        },
+        {
+          "start": 10240,
+          "end": 10240,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "adpcm:dac.data_w"
+        },
+        {
+          "start": 11264,
+          "end": 11264,
+          "kind": "handler",
+          "mirror": 1023,
+          "read": "adpcm:oki.read",
+          "write": "adpcm:oki.write"
+        },
+        {
+          "start": 12288,
+          "end": 12288,
+          "kind": "handler",
+          "mirror": 1023,
+          "read": "williams_adpcm_sound_device.command_r"
+        },
+        {
+          "start": 13312,
+          "end": 13312,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "williams_adpcm_sound_device.oki6295_bank_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 15360,
+          "end": 15360,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "williams_adpcm_sound_device.talkback_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.rombank",
+          "bank": "rombank"
+        },
+        {
+          "start": 49152,
+          "end": 65535,
+          "kind": "handler",
+          "read": "bank.romupper",
+          "bank": "romupper"
+        },
+        {
+          "start": 64426,
+          "end": 64468,
+          "kind": "ram"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.1,
+        "target": "^"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.1,
+        "target": "^"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.1,
+        "target": "^"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "AD7524",
+        "deviceTag": "adpcm:dac",
+        "dac": {
+          "bits": 8,
+          "mapper": "unsigned",
+          "gain": 1
+        },
+        "clock": 0,
+        "gain": 0.1,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ]
+      },
+      {
+        "type": "OKIM6295",
+        "deviceTag": "adpcm:oki",
+        "sampleMap": [
+          {
+            "start": 0,
+            "end": 131071,
+            "bank": {
+              "tag": "okibank",
+              "entryOffsets": [
+                262144,
+                262144,
+                131072,
+                0,
+                917504,
+                786432,
+                655360,
+                524288
+              ],
+              "initialEntry": 0
+            }
+          },
+          {
+            "start": 131072,
+            "end": 262143,
+            "regionOffset": 393216
+          }
+        ],
+        "clock": 1000000,
+        "sampleRegion": "adpcm:oki",
+        "initialMode": "PIN7_HIGH",
+        "gain": 0.15,
+        "target": "speaker",
+        "writeMethods": [
+          "write",
+          "set_pin7"
+        ]
+      }
+    ],
+    "sampleRegion": "adpcm:oki",
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 400,
+    "height": 254,
+    "xOffset": 100,
+    "yOffset": 20,
+    "refresh": 54.706839722636325,
+    "htotal": 506,
+    "vtotal": 289,
+    "vbstart": 274,
+    "vbend": 20,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "adpcm:cpu",
+      "size": 327680,
+      "loads": [
+        {
+          "file": "l2_nba_jam_u3_sound_rom.u3",
+          "offset": 65536,
+          "size": 131072,
+          "crc": "3a3ea480",
+          "alt": [
+            {
+              "file": "p1_nba_jam_u3_sound_rom.u3",
+              "crc": "3d13633c"
+            }
+          ],
+          "reloadOffsets": [
+            196608
+          ]
+        }
+      ]
+    },
+    {
+      "region": "adpcm:oki",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "l1_nba_jam_u12_sound_rom.u12",
+          "offset": 0,
+          "size": 524288,
+          "crc": "b94847f1",
+          "alt": [
+            {
+              "file": "p1_nba_jam_u12_sound_rom.u12",
+              "crc": "009aad42"
+            }
+          ]
+        },
+        {
+          "file": "l1_nba_jam_u13_sound_rom.u13",
+          "offset": 524288,
+          "size": 524288,
+          "crc": "b6fe24bd",
+          "alt": [
+            {
+              "file": "p1_nba_jam_u13_sound_rom.u13",
+              "crc": "248800c2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "maincpu",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "l3_nba_jam_game_rom_uj12.uj12",
+          "offset": 0,
+          "size": 524288,
+          "crc": "b93e271c",
+          "alt": [
+            {
+              "file": "l2_nba_jam_game_rom_uj12.uj12",
+              "crc": "0fe80b36"
+            },
+            {
+              "file": "l1_nba_jam_game_rom_uj12.uj12",
+              "crc": "4db672ec"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "l3_nba_jam_game_rom_ug12.ug12",
+          "offset": 1,
+          "size": 524288,
+          "crc": "407d3390",
+          "alt": [
+            {
+              "file": "l2_nba_jam_game_rom_ug12.ug12",
+              "crc": "5d106315"
+            },
+            {
+              "file": "l1_nba_jam_game_rom_ug12.ug12",
+              "crc": "ed1df3f7"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "video",
+      "size": 12582912,
+      "loads": [
+        {
+          "file": "l1_nba_jam_game_rom_ug14.ug14",
+          "offset": 0,
+          "size": 524288,
+          "crc": "04bb9f64",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug14.ug14",
+              "crc": "39e16e0b"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj14.uj14",
+          "offset": 1,
+          "size": 524288,
+          "crc": "b34b7af3",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj14.uj14",
+              "crc": "a9ef8b67"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug19.ug19",
+          "offset": 2,
+          "size": 524288,
+          "crc": "a8f22fbb",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug19.ug19",
+              "crc": "a88b961c"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj19.uj19",
+          "offset": 3,
+          "size": 524288,
+          "crc": "8130a8a2",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj19.uj19",
+              "crc": "a19d9889"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug16.ug16",
+          "offset": 2097152,
+          "size": 524288,
+          "crc": "8591c572",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug16.ug16",
+              "crc": "946b2ab0"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj16.uj16",
+          "offset": 2097153,
+          "size": 524288,
+          "crc": "d2e554f1",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj16.uj16",
+              "crc": "46e11687"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug20.ug20",
+          "offset": 2097154,
+          "size": 524288,
+          "crc": "44fd6221",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug20.ug20",
+              "crc": "d62be814"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj20.uj20",
+          "offset": 2097155,
+          "size": 524288,
+          "crc": "f9cebbb6",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj20.uj20",
+              "crc": "bf8081a5"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug17.ug17",
+          "offset": 4194304,
+          "size": 524288,
+          "crc": "6f921886",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug17.ug17",
+              "crc": "5e286f81"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj17.uj17",
+          "offset": 4194305,
+          "size": 524288,
+          "crc": "b2e14981",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj17.uj17",
+              "crc": "a86775e2"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug22.ug22",
+          "offset": 4194306,
+          "size": 524288,
+          "crc": "ab05ed89",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug22.ug22",
+              "crc": "b4ad0c2f"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj22.uj22",
+          "offset": 4194307,
+          "size": 524288,
+          "crc": "59a95878",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj22.uj22",
+              "crc": "5b1bb97d"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug18.ug18",
+          "offset": 6291456,
+          "size": 524288,
+          "crc": "5162d3d6",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug18.ug18",
+              "crc": "5acf3792"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj18.uj18",
+          "offset": 6291457,
+          "size": 524288,
+          "crc": "fdee0037",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj18.uj18",
+              "crc": "e00f906a"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_ug23.ug23",
+          "offset": 6291458,
+          "size": 524288,
+          "crc": "7b934c7a",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_ug23.ug23",
+              "crc": "d7f199f6"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "l1_nba_jam_game_rom_uj23.uj23",
+          "offset": 6291459,
+          "size": 524288,
+          "crc": "427d2eee",
+          "alt": [
+            {
+              "file": "p1_nba_jam_game_rom_uj23.uj23",
+              "crc": "5f87a4cf"
+            }
+          ],
+          "skip": 3
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "P1 Shoot / Block",
+      "type": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "P1 Pass / Steal",
+      "type": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "P1 Turbo",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 256,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 512,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 1024,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2048,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4096,
+      "keys": [],
+      "label": "P2 Shoot / Block",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8192,
+      "keys": [],
+      "label": "P2 Pass / Steal",
+      "type": "IPT_BUTTON3",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16384,
+      "keys": [],
+      "label": "P2 Turbo",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "type": "IPT_SERVICE1",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 1,
+      "name": "Test Switch"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 0,
+      "name": "Powerup Test"
+    },
+    {
+      "port": "DSW",
+      "mask": 4,
+      "value": 4,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 8,
+      "value": 8,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 16,
+      "value": 16,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 32,
+      "value": 32,
+      "name": "Video Clips"
+    },
+    {
+      "port": "DSW",
+      "mask": 64,
+      "value": 64,
+      "name": "Dollar Bill Validator"
+    },
+    {
+      "port": "DSW",
+      "mask": 128,
+      "value": 128,
+      "name": "Players"
+    },
+    {
+      "port": "DSW",
+      "mask": 768,
+      "value": 768,
+      "name": "Coin Counters"
+    },
+    {
+      "port": "DSW",
+      "mask": 3072,
+      "value": 3072,
+      "name": "Country"
+    },
+    {
+      "port": "DSW",
+      "mask": 28672,
+      "value": 28672,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW",
+      "mask": 32768,
+      "value": 0,
+      "name": "Coinage Source"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Alex Pasadyn",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.192",
+        "lastRelease": "0.193"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "cuavas",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.175",
+        "lastRelease": "0.175"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 131,
+    "authors": 30,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 33 years ago:\n\nNBA Jam (c) 1993 Midway Mfg. Co.\n\nTwo-on-two basketball with digitized images of real NBA players, monster dunks and no referee - it's a blowout!\n\n- TECHNICAL -\n\nMidway T Unit hardware\n\nMain CPU : TMS34010 (@ 6.25 Mhz)\nSound CPU : Motorola M6809 (@ 2 Mhz)\nSound Chips : Yamaha YM2151 (@ 3.57958 Mhz), DAC, OKI6295 (@ 8 Khz)\n\nPlayers : 4\nControl : 8-way joystick\nButtons : 3\n\n- TRIVIA -\n\nReleased in February 1993. Many critics claim that the release of NBA Jam gave rise to a new genre of sports games, which were based around action-packed, unrealistic game-play.\n\nMidway Games, no stranger to releasing landmark games having released \"Pac-Man\", had started experimenting with the ideas two years earlier, with the \"High Impact Football\" series. Both High Impact and Super High Impact had somewhat average success in arcades. It was not until the release of NBA Jam that gamers noticed the new genre. The game became exceptionally popular, and generated a lot of money for arcades after its release, largely because of the fairly expensive prices put on these games; a game quarter generally took two credits and a full game generally took eight, typically equal to $2.00 USD. Nonetheless, the game was a smash hit.\n\nNBA Jam was one of the first real playable basketball arcade games (It was the first game to be officially licensed by the NBA (National Basketball Association)), and was also one of the first sports games to feature real teams, real players, and their real digitized likenesses. However, the unrealism of the game was the major drawing point, as the high flying dunks (often featuring players jumping twice their own height in the air while making highly acrobatic slams) were the games' signature. Of course, seeing NBA superstars like Hakeem Olajuwon, Karl Malone, David Robinson, Charles Barkley, and Shaquille O'Neal flying through the air with the greatest of ease brought just as many fans back. In time, players discovered another major feature of the game, as it was filled with easter eggs, special features and players activated by initials or button/joystick combinations.\n\n- UPDATES -\n\nRevision 2\n* Software version 3.01.\n* Credit problems fixed.\n* Jersey color of special guests fixed.\n* Prevents games from ending at the Tank mini-game.\n* Added 'Fair Shake'.\n\nRevision 1\n* Software version: 2.00.\n\nProto V2\n* Dated Jan. 24, 1993.\n\nProto V1\n* Dated Jan. 23, 1993.\n\n- TIPS AND TRICKS -\n\n* Hidden Characters :\nAir Morris - WIL, Jan 1\nCarleton - JMC, Aug 5\nDivita - SAL, Feb 1 (Sal Divita did the artwork for NBA Jam, as well as some graphics work on Mortal Kombat)\nGoskie - TWG, Dec 7\nHey - JWH, Sep 20 (On the design team screen, Jon Hey is the one in the checkered shirt and glasses, sticking his tongue out to the rest of the world)\nHoward - HOW, Jul 15\nLiptak - SL(space), Jun 24 (Shawn Liptak is the one on the design team screen with a basketball for a brain)\nNewcomer - JRN, Jun 18\nOursler - SNO, Jan 3\nPetro - GNP, Oct 8 (George N. Petro is the main designer of \"Terminator 2 - Judgement day\")\nRivett - RJR, Jan 17 (Jamie Rivett helped with the autostat portion of NBA Jam)\nScott - TON, Jul 03 (Tony Scoot helped with digitizing the player movements and performed many of the special dunks)\nTurmell - MJT, Mar 22 (Mark J. Turmell is the main designer and programmer for NBA Jam)\n\n* Big Head : Hold Up+Turbo+Steal at 'Tonight's match up'.\n\n* Powerup :\nDefense - Press Steal or Block 8 times when it says 'Tonight's match up'.\nIntercept - Hold Down joystick and hold all three buttons during 'Tonight's match up'.\nOffense - press Steal or Block 21 times at 'Tonight's match up'.\nDefense and Intercept - At 'Tonight's Match-Up', Press the Shoot button 7 times, then all at once, hold Down the joystick and all three buttons.\nPowerup Defense and Big head - press Turbo 6 times, hold Turbo and Steal, then hold the joystick Up at 'Tonight's match-up'.\nFair Shake - Tap turbo 10 times when it says 'Tonight's match up'. The Fair shake can ONLY be done in Human vs. Human games and ONLY on machines that are version 3.0 or greater.\nFair Shake and Powerup Intercept - press Turbo 7 times, then hold Turbo+Pass+Shoot, then hold the joystick Down at 'Tonight's match-up'.\nFair Shake and Big head - Press turbo 8 times, then hold Turbo+Steal and hold the joystick Up.\n\n* Tank Mini-Game : Hold all buttons for all four players and press Down on all four joysticks at the 'Tonight's match up'. Keep the controls held until the mini-game begins.\n\n- STAFF -\n\nDesign team : Mark Turmell (MJT), Shawn Liptak (SL), Tony Goskie, John Carlton (JMC), Sal Divita (SAL), Jamie Rivett\nMusic and Sounds : Jon Hey (JWH)\nHardware support : Cary Mednick, Pat Cox, Ray Macika, Sheridan Oursler, Matt Booty, John Lowes, Al Lasko\nExecutive producers : Neil Nicastro, Ken Fedesna, Wally Smolucha\nCast : Stephen Howard, Willie Morris Jr., Todd Mcclearn, Tony Scoot, Kerri Hoskins, Lorraine Olivia, awards by Kaydan.\n\n- PORTS -\n\n* CONSOLES:\nNintendo Super Famicom (1993)\nSega Mega Drive (1993)\nSega Game Gear (1993)\nNintendo Game Boy (1993)\nSega Mega CD (1993)\n\n- SERIES -\n\n1. NBA Jam (1993)\n2. NBA Jam Tournament Edition (1994)\n3. NBA Hangtime (1996)\n4. NBA Maximum Hangtime (1996)\n5. NBA Jam Extreme (1996)\n6. NBA Jam 99 (1998, N64)\n7. NBA Showtime - NBA on NBC (1999)\n8. NBA Jam 2000 (1999, N64)\n9. NBA Jam 2001 (2000, GBC)\n10. NBA Jam 2002 (2002, GBA)\n11. NBA Jam (2003, PS2, X-Box)\n12. NBA Jam 2004 (2003, unreleased GameCube prototype)\n13. NBA Jam (2010, Nintendo Wii)\n14. NBA Jam - On Fire Edition (2011, PSN, XBOX Live)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1733/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,189 @@
+{
+  "type": "RAM",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "ram"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "ram"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "RAM",
+    "className": "ram_device",
+    "shortName": "ram",
+    "description": "RAM",
+    "sourceFile": "src/devices/machine/ram.cpp",
+    "sourceLine": 116,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(RAM, ram_device, \"ram\", \"RAM\")"
+  },
+  "methods": [
+    {
+      "name": "size",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/ram.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_size"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mask",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/ram.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_size"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pointer",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/ram.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "cast",
+              "valueType": "uint8_t",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_pointer"
+                  },
+                  "property": "get"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/ram.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "pointer"
+                },
+                "args": []
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "%",
+                "left": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_size"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/ram.h",
+      "sourceLine": 53,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "pointer"
+                },
+                "args": []
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "%",
+                "left": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_size"
+                }
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/ram.cpp",
+    "src/devices/machine/ram.h"
+  ]
+}

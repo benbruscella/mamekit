@@ -1,0 +1,28 @@
+{
+  "type": "DECO_CPU7",
+  "uses": [
+    {
+      "game": "btime",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DECO_CPU7",
+    "className": "deco_cpu7_device",
+    "shortName": "decocpu7",
+    "description": "DECO CPU-7",
+    "sourceFile": "src/mame/dataeast/decocpu7.cpp",
+    "sourceLine": 7,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DECO_CPU7, deco_cpu7_device, \"decocpu7\", \"DECO CPU-7\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/dataeast/decocpu7.cpp",
+    "src/mame/dataeast/decocpu7.h"
+  ]
+}

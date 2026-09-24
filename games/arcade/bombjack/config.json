@@ -1,0 +1,946 @@
+{
+  "game": "bombjack",
+  "title": "Bomb Jack (Tehkan, 1984)",
+  "family": "bombjack",
+  "dataPath": "games/arcade/bombjack",
+  "board": {
+    "family": "bombjack",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 4000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 32767,
+            "kind": "rom"
+          },
+          {
+            "start": 32768,
+            "end": 36863,
+            "kind": "ram",
+            "share": "mainram"
+          },
+          {
+            "start": 36864,
+            "end": 37887,
+            "kind": "ram",
+            "share": "videoram",
+            "write": "bombjack_state.videoram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 37888,
+            "end": 38911,
+            "kind": "ram",
+            "share": "colorram",
+            "write": "bombjack_state.colorram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 38912,
+            "end": 39039,
+            "kind": "ram",
+            "mirror": 384,
+            "share": "spriteram",
+            "writeOnly": true
+          },
+          {
+            "start": 39424,
+            "end": 39425,
+            "kind": "ram",
+            "mirror": 510,
+            "share": "spritectrl",
+            "writeOnly": true,
+            "write": "bombjack_state.spritectrl_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 39936,
+            "end": 40191,
+            "kind": "ram",
+            "mirror": 256,
+            "share": "palette",
+            "write": "palette.write8"
+          },
+          {
+            "start": 40448,
+            "end": 40448,
+            "kind": "ram",
+            "mirror": 511,
+            "writeOnly": true,
+            "write": "bombjack_state.background_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 40960,
+            "end": 45055,
+            "kind": "nop"
+          },
+          {
+            "start": 45056,
+            "end": 45056,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "bombjack_state.nmi_on_w",
+            "handlerWidth": 8,
+            "read": "port.P1"
+          },
+          {
+            "start": 45057,
+            "end": 45057,
+            "kind": "handler",
+            "mirror": 2040,
+            "readOnly": true,
+            "read": "port.P2"
+          },
+          {
+            "start": 45058,
+            "end": 45058,
+            "kind": "handler",
+            "mirror": 2040,
+            "readOnly": true,
+            "read": "port.SYSTEM"
+          },
+          {
+            "start": 45059,
+            "end": 45059,
+            "kind": "nop",
+            "mirror": 2040
+          },
+          {
+            "start": 45060,
+            "end": 45060,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "bombjack_state.flip_w",
+            "handlerWidth": 8,
+            "read": "port.SW1"
+          },
+          {
+            "start": 45061,
+            "end": 45061,
+            "kind": "handler",
+            "mirror": 2040,
+            "readOnly": true,
+            "read": "port.SW2"
+          },
+          {
+            "start": 45062,
+            "end": 45063,
+            "kind": "nop",
+            "mirror": 2040
+          },
+          {
+            "start": 47104,
+            "end": 47104,
+            "kind": "handler",
+            "mirror": 2047,
+            "write": "soundlatch.write"
+          },
+          {
+            "start": 45059,
+            "end": 45059,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "watchdog.reset_r",
+            "write": "bombjack_state.watchdog_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 49152,
+            "end": 57343,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "z80",
+        "clock": 3000000,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 18431,
+            "kind": "ram",
+            "mirror": 6144
+          },
+          {
+            "start": 24576,
+            "end": 24576,
+            "kind": "handler",
+            "mirror": 8191,
+            "read": "bombjack_state.soundlatch_r"
+          }
+        ],
+        "mask": 32767,
+        "io": {
+          "ranges": [
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "mirror": 110,
+              "read": "psg1.data_r"
+            },
+            {
+              "start": 0,
+              "end": 1,
+              "kind": "handler",
+              "mirror": 110,
+              "write": "psg1.address_data_w"
+            },
+            {
+              "start": 17,
+              "end": 17,
+              "kind": "handler",
+              "mirror": 110,
+              "read": "psg2.data_r"
+            },
+            {
+              "start": 16,
+              "end": 17,
+              "kind": "handler",
+              "mirror": 110,
+              "write": "psg2.address_data_w"
+            },
+            {
+              "start": 129,
+              "end": 129,
+              "kind": "handler",
+              "mirror": 110,
+              "read": "psg3.data_r"
+            },
+            {
+              "start": 128,
+              "end": 129,
+              "kind": "handler",
+              "mirror": 110,
+              "write": "psg3.address_data_w"
+            }
+          ],
+          "globalMask": 255
+        }
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 32767,
+        "kind": "rom"
+      },
+      {
+        "start": 32768,
+        "end": 36863,
+        "kind": "ram",
+        "share": "mainram"
+      },
+      {
+        "start": 36864,
+        "end": 37887,
+        "kind": "ram",
+        "share": "videoram",
+        "write": "bombjack_state.videoram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 37888,
+        "end": 38911,
+        "kind": "ram",
+        "share": "colorram",
+        "write": "bombjack_state.colorram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 38912,
+        "end": 39039,
+        "kind": "ram",
+        "mirror": 384,
+        "share": "spriteram",
+        "writeOnly": true
+      },
+      {
+        "start": 39424,
+        "end": 39425,
+        "kind": "ram",
+        "mirror": 510,
+        "share": "spritectrl",
+        "writeOnly": true,
+        "write": "bombjack_state.spritectrl_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 39936,
+        "end": 40191,
+        "kind": "ram",
+        "mirror": 256,
+        "share": "palette",
+        "write": "palette.write8"
+      },
+      {
+        "start": 40448,
+        "end": 40448,
+        "kind": "ram",
+        "mirror": 511,
+        "writeOnly": true,
+        "write": "bombjack_state.background_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 40960,
+        "end": 45055,
+        "kind": "nop"
+      },
+      {
+        "start": 45056,
+        "end": 45056,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "bombjack_state.nmi_on_w",
+        "handlerWidth": 8,
+        "read": "port.P1"
+      },
+      {
+        "start": 45057,
+        "end": 45057,
+        "kind": "handler",
+        "mirror": 2040,
+        "readOnly": true,
+        "read": "port.P2"
+      },
+      {
+        "start": 45058,
+        "end": 45058,
+        "kind": "handler",
+        "mirror": 2040,
+        "readOnly": true,
+        "read": "port.SYSTEM"
+      },
+      {
+        "start": 45059,
+        "end": 45059,
+        "kind": "nop",
+        "mirror": 2040
+      },
+      {
+        "start": 45060,
+        "end": 45060,
+        "kind": "handler",
+        "mirror": 2040,
+        "write": "bombjack_state.flip_w",
+        "handlerWidth": 8,
+        "read": "port.SW1"
+      },
+      {
+        "start": 45061,
+        "end": 45061,
+        "kind": "handler",
+        "mirror": 2040,
+        "readOnly": true,
+        "read": "port.SW2"
+      },
+      {
+        "start": 45062,
+        "end": 45063,
+        "kind": "nop",
+        "mirror": 2040
+      },
+      {
+        "start": 47104,
+        "end": 47104,
+        "kind": "handler",
+        "mirror": 2047,
+        "write": "soundlatch.write"
+      },
+      {
+        "start": 45059,
+        "end": 45059,
+        "kind": "handler",
+        "mirror": 2040,
+        "read": "watchdog.reset_r",
+        "write": "bombjack_state.watchdog_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 49152,
+        "end": 57343,
+        "kind": "rom"
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 59.18560606060606,
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "rotate": 90
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1500000,
+    "chips": 3,
+    "deviceTags": [
+      "psg1",
+      "psg2",
+      "psg3"
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 2,
+        "channel": 0,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 2,
+        "channel": 1,
+        "gain": 0.13,
+        "target": "speaker"
+      },
+      {
+        "chip": 2,
+        "channel": 2,
+        "gain": 0.13,
+        "target": "speaker"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "09_j01b.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "c668dc30"
+        },
+        {
+          "file": "10_l01b.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "52a1e5fb"
+        },
+        {
+          "file": "11_m01b.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "b68a062a"
+        },
+        {
+          "file": "12_n01b.bin",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "1d3ecee5",
+          "alt": [
+            {
+              "file": "12.bin",
+              "crc": "0f4d0726"
+            }
+          ]
+        },
+        {
+          "file": "13.1r",
+          "offset": 49152,
+          "size": 8192,
+          "crc": "70e0244d",
+          "alt": [
+            {
+              "file": "13_r01b.bin",
+              "crc": "bcafdd29"
+            },
+            {
+              "file": "13.1r",
+              "crc": "964ac5c5"
+            },
+            {
+              "file": "13.bin",
+              "crc": "9740f99b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 16384,
+      "loads": [
+        {
+          "file": "01_h03t.3h",
+          "offset": 0,
+          "size": 8192,
+          "crc": "8407917d"
+        }
+      ]
+    },
+    {
+      "region": "fgtiles",
+      "size": 12288,
+      "loads": [
+        {
+          "file": "03_e08t.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "9f0470d5"
+        },
+        {
+          "file": "04_h08t.bin",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "81ec12e6"
+        },
+        {
+          "file": "05_k08t.bin",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "e87ec8b1"
+        }
+      ]
+    },
+    {
+      "region": "bgtiles",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "06_l08t.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "51eebd89"
+        },
+        {
+          "file": "07_n08t.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "9dd98e9d"
+        },
+        {
+          "file": "08_r08t.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "3155ee7d"
+        }
+      ]
+    },
+    {
+      "region": "sprites",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "16_m07b.bin",
+          "offset": 0,
+          "size": 8192,
+          "crc": "94694097"
+        },
+        {
+          "file": "15_l07b.bin",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "013f58f2"
+        },
+        {
+          "file": "14_j07b.bin",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "101c858d"
+        }
+      ]
+    },
+    {
+      "region": "bgmaps",
+      "size": 8192,
+      "loads": [
+        {
+          "file": "02_p04t.bin",
+          "offset": 0,
+          "size": 4096,
+          "crc": "398d4a02",
+          "reloadOffsets": [
+            4096
+          ]
+        }
+      ]
+    }
+  ],
+  "hiscore": {
+    "rows": [
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 36959,
+        "length": 1,
+        "first": 48,
+        "last": 48
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 36991,
+        "length": 1,
+        "first": 48,
+        "last": 48
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 37023,
+        "length": 1,
+        "first": 48,
+        "last": 48
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 37055,
+        "length": 1,
+        "first": 48,
+        "last": 48
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 37086,
+        "length": 3,
+        "first": 83,
+        "last": 36
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 37118,
+        "length": 3,
+        "first": 45,
+        "last": 36
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 37151,
+        "length": 1,
+        "first": 0,
+        "last": 0
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 37183,
+        "length": 1,
+        "first": 0,
+        "last": 0
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 32994,
+        "length": 4,
+        "first": 0,
+        "last": 0
+      },
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 33024,
+        "length": 150,
+        "first": 0,
+        "last": 255
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "P2",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P2",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P2",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P2",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "P2",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "SW1",
+      "mask": 3,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "SW1",
+      "mask": 12,
+      "value": 0,
+      "name": "Coin B"
+    },
+    {
+      "port": "SW1",
+      "mask": 48,
+      "value": 0,
+      "name": "Lives"
+    },
+    {
+      "port": "SW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Cabinet"
+    },
+    {
+      "port": "SW1",
+      "mask": 128,
+      "value": 128,
+      "name": "Demo Sounds"
+    },
+    {
+      "port": "SW2",
+      "mask": 7,
+      "value": 0,
+      "name": "Bonus Life (Unused)"
+    },
+    {
+      "port": "SW2",
+      "mask": 24,
+      "value": 16,
+      "name": "Bird Speed"
+    },
+    {
+      "port": "SW2",
+      "mask": 96,
+      "value": 64,
+      "name": "Enemies Number & Speed"
+    },
+    {
+      "port": "SW2",
+      "mask": 128,
+      "value": 0,
+      "name": "Special Coin"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "P1",
+      "init": 0
+    },
+    {
+      "tag": "P2",
+      "init": 0
+    },
+    {
+      "tag": "SYSTEM",
+      "init": 240
+    },
+    {
+      "tag": "SW1",
+      "init": 192
+    },
+    {
+      "tag": "SW2",
+      "init": 80
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

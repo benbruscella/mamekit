@@ -1,0 +1,87 @@
+{
+  "game": "berzerk",
+  "title": "Berzerk (revision RC31A) (Stern Electronics, 1980)",
+  "fullname": "Berzerk (revision RC31A)",
+  "year": "1980",
+  "manufacturer": "Stern Electronics",
+  "family": "berzerk",
+  "driverFile": "src/mame/stern/berzerk.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Zsolt Vasvari, Aaron Giles, R. Belmont, Jonathan Gevaryahu",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Jonathan Gevaryahu",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "R. Belmont",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Kevin Eshbach",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.216",
+        "lastRelease": "0.216"
+      },
+      {
+        "name": "The Dumping Union",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.216",
+        "lastRelease": "0.216"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.255",
+        "lastRelease": "0.255"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.151",
+        "lastRelease": "0.151"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-29",
+    "commits": 209,
+    "authors": 33,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

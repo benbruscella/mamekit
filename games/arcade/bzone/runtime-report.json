@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "bzone",
+  "family": "bzone",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 65,
+    "total": 100,
+    "percent": 65
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "vector:VECTOR",
+        "status": "executable",
+        "source": "src/devices/video/vector.cpp:53"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "avg:AVG_BZONE",
+        "status": "executable",
+        "source": "src/devices/video/avgdvg.cpp:1504"
+      },
+      {
+        "name": "mathbox:MATHBOX",
+        "status": "executable",
+        "source": "src/mame/atari/mathbox.cpp:40"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "pokey:POKEY",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "discrete:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "avg.go_w",
+        "status": "executable",
+        "source": "src/devices/video/avgdvg.cpp:1504"
+      },
+      {
+        "name": "avg.reset_w",
+        "status": "executable",
+        "source": "src/devices/video/avgdvg.cpp:1504"
+      },
+      {
+        "name": "bzone_state.bzone_coin_counter_w",
+        "status": "generated",
+        "source": "src/mame/atari/bzone.cpp:281"
+      },
+      {
+        "name": "bzone_state.bzone_sounds_w",
+        "status": "generated",
+        "source": "src/mame/atari/bzone_a.cpp:391"
+      },
+      {
+        "name": "mathbox.go_w",
+        "status": "executable",
+        "source": "src/mame/atari/mathbox.cpp:40"
+      },
+      {
+        "name": "mathbox.hi_r",
+        "status": "executable",
+        "source": "src/mame/atari/mathbox.cpp:40"
+      },
+      {
+        "name": "mathbox.lo_r",
+        "status": "executable",
+        "source": "src/mame/atari/mathbox.cpp:40"
+      },
+      {
+        "name": "mathbox.status_r",
+        "status": "executable",
+        "source": "src/mame/atari/mathbox.cpp:40"
+      },
+      {
+        "name": "pokey.read",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "pokey.write",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      },
+      {
+        "name": "port.DSW0",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_periodic_int -> bzone_state.bzone_interrupt",
+        "status": "generated",
+        "source": "src/mame/atari/bzone.cpp:613"
+      },
+      {
+        "name": "screen.set_screen_update -> vector.screen_update",
+        "status": "generated",
+        "source": "src/mame/atari/bzone.cpp:623"
+      },
+      {
+        "name": "pokey.allpot_r -> IN3",
+        "status": "generated",
+        "source": "src/mame/atari/bzone_a.cpp:404"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/bzone/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 9,
+    "compiledMethods": 9,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 2,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "vector_device.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 13,
+    "generated": 10,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

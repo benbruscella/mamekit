@@ -1,0 +1,40 @@
+{
+  "type": "TMS34010",
+  "uses": [
+    {
+      "game": "mk",
+      "tags": [
+        "maincpu"
+      ]
+    },
+    {
+      "game": "nbajam",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TMS34010",
+    "className": "tms34010_device",
+    "shortName": "tms34010",
+    "description": "Texas Instruments TMS34010",
+    "sourceFile": "src/devices/cpu/tms34010/tms34010.cpp",
+    "sourceLine": 55,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TMS34010, tms34010_device, \"tms34010\", \"Texas Instruments TMS34010\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/tms34010/34010dsm.h",
+    "src/devices/cpu/tms34010/34010fld.hxx",
+    "src/devices/cpu/tms34010/34010gfx.hxx",
+    "src/devices/cpu/tms34010/34010ops.h",
+    "src/devices/cpu/tms34010/34010ops.hxx",
+    "src/devices/cpu/tms34010/34010tbl.hxx",
+    "src/devices/cpu/tms34010/tms34010.cpp",
+    "src/devices/cpu/tms34010/tms34010.h"
+  ]
+}

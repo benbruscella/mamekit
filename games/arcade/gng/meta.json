@@ -1,0 +1,93 @@
+{
+  "game": "gng",
+  "title": "Ghosts'n Goblins (World? set 1) (Capcom, 1985)",
+  "fullname": "Ghosts'n Goblins (World? set 1)",
+  "year": "1985",
+  "manufacturer": "Capcom",
+  "family": "gng",
+  "driverFile": "src/mame/capcom/gng.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Pierpaolo Prazzoli",
+  "credits": {
+    "people": [
+      {
+        "name": "Pierpaolo Prazzoli",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Tailsnic Retroworks",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 2,
+        "firstRelease": "0.287",
+        "lastRelease": "0.287"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.276",
+        "lastRelease": "0.287"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.194",
+        "lastRelease": "0.194"
+      },
+      {
+        "name": "BarbuDreadMon",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "Corrado Tomaselli",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.134",
+        "lastRelease": "0.134"
+      },
+      {
+        "name": "Jordi Beltrán",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.276",
+        "lastRelease": "0.276"
+      },
+      {
+        "name": "Jordi Tuells",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.276",
+        "lastRelease": "0.276"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-22",
+    "commits": 162,
+    "authors": 32,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

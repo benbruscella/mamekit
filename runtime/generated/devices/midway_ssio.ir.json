@@ -1,0 +1,3463 @@
+{
+  "type": "MIDWAY_SSIO",
+  "uses": [
+    {
+      "game": "spyhunt",
+      "tags": [
+        "ssio"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MIDWAY_SSIO",
+    "className": "midway_ssio_device",
+    "shortName": "midssio",
+    "description": "Midway SSIO Sound Board",
+    "sourceFile": "src/mame/bally/midway_sound.cpp",
+    "sourceLine": 32,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MIDWAY_SSIO,               midway_ssio_device,               \"midssio\", \"Midway SSIO Sound Board\")"
+  },
+  "methods": [
+    {
+      "name": "suspend_cpu",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "suspend"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "SUSPEND_REASON_DISABLE"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_status"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 92,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "midway_ssio_device::synced_write"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_write",
+      "parameters": "int state",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 102,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device_reset"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INPUT_LINE_RESET"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INPUT_LINE_RESET"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ioport_read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 123,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ports"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  }
+                },
+                "property": "read_safe"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 255
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_custom_input"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  },
+                  "property": "isnull"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "result"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "result"
+                    },
+                    "right": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_custom_input_mask"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "offset"
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_custom_input"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "offset"
+                        }
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_custom_input_mask"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "offset"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "result"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ioport_write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 138,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "which",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_custom_output"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "which"
+                    }
+                  },
+                  "property": "isnull"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_custom_output"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "which"
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_custom_output_mask"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "which"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "compute_ay8910_modulation",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 152,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "prom",
+            "valueType": "uint8_t*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memregion"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "proms"
+                    }
+                  ]
+                },
+                "property": "base"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "volval",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "volval"
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "volval"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "remaining_clocks",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "volval"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "cur",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "declare",
+                "name": "prev",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "declare",
+                "name": "curclock",
+                "valueType": "int"
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "curclock"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "curclock"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 160
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "remaining_clocks"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "curclock"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "cur"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "prom"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "curclock"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "number",
+                          "value": 128
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "%",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "curclock"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "==",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "cur"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "!=",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "prev"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "remaining_clocks"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "prev"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "cur"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ayvolume_lookup"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "number",
+                      "value": 15
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "volval"
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "curclock"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 160,
+                    "floating": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_clear",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 244,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_14024_count"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "status_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 260,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_status"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 270,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_data"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "porta0_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 280,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_duty_cycle"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_duty_cycle"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_volumes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "portb0_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 292,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_duty_cycle"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_overall"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 7
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_volumes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "porta1_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 304,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_duty_cycle"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_duty_cycle"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_volumes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "portb1_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 316,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_duty_cycle"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_overall"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 7
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mute"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 128
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_volumes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_volumes",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 330,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay0"
+                },
+                "property": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_mute"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0,
+                    "floating": true
+                  },
+                  "whenFalse": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ayvolume_lookup"
+                    },
+                    "index": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_duty_cycle"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay0"
+                },
+                "property": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_mute"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0,
+                    "floating": true
+                  },
+                  "whenFalse": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ayvolume_lookup"
+                    },
+                    "index": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_duty_cycle"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay0"
+                },
+                "property": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_mute"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0,
+                    "floating": true
+                  },
+                  "whenFalse": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ayvolume_lookup"
+                    },
+                    "index": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_duty_cycle"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay1"
+                },
+                "property": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_mute"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0,
+                    "floating": true
+                  },
+                  "whenFalse": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ayvolume_lookup"
+                    },
+                    "index": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_duty_cycle"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay1"
+                },
+                "property": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_mute"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0,
+                    "floating": true
+                  },
+                  "whenFalse": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ayvolume_lookup"
+                    },
+                    "index": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_duty_cycle"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay1"
+                },
+                "property": "set_output_gain"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_mute"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0,
+                    "floating": true
+                  },
+                  "whenFalse": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ayvolume_lookup"
+                    },
+                    "index": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_duty_cycle"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ssio_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 345,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "map"
+                },
+                "property": "unmap_value_high"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 16383
+                    }
+                  ]
+                },
+                "property": "rom"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 32768
+                        },
+                        {
+                          "kind": "number",
+                          "value": 33791
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 3072
+                    }
+                  ]
+                },
+                "property": "ram"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 36864
+                        },
+                        {
+                          "kind": "number",
+                          "value": 36867
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::data_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 40960
+                        },
+                        {
+                          "kind": "number",
+                          "value": 40960
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ay0"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ay8910_device::address_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 40961
+                        },
+                        {
+                          "kind": "number",
+                          "value": 40961
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ay0"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ay8910_device::data_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 40962
+                        },
+                        {
+                          "kind": "number",
+                          "value": 40962
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ay0"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ay8910_device::data_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 45056
+                        },
+                        {
+                          "kind": "number",
+                          "value": 45056
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ay1"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ay8910_device::address_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 45057
+                        },
+                        {
+                          "kind": "number",
+                          "value": 45057
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ay1"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ay8910_device::data_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 45058
+                        },
+                        {
+                          "kind": "number",
+                          "value": 45058
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4092
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ay1"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ay8910_device::data_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 49152
+                        },
+                        {
+                          "kind": "number",
+                          "value": 53247
+                        }
+                      ]
+                    },
+                    "property": "nopr"
+                  },
+                  "args": []
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::status_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 53248
+                    },
+                    {
+                      "kind": "number",
+                      "value": 57343
+                    }
+                  ]
+                },
+                "property": "nopw"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 57344
+                    },
+                    {
+                      "kind": "number",
+                      "value": 61439
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::irq_clear"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 61440
+                    },
+                    {
+                      "kind": "number",
+                      "value": 65535
+                    }
+                  ]
+                },
+                "property": "portr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "DIP"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ssio_input_ports",
+      "parameters": "address_map &map, const char *ssio",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 368,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ssio"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::ioport_read"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 7
+                        },
+                        {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 24
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ssio"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::read"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ssio"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::ioport_write"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 28
+                    },
+                    {
+                      "kind": "number",
+                      "value": 31
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ssio"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::write"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_region",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 392,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ROM_NAME"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "midway_ssio"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 402,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "Z80"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "number",
+                        "value": 2
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "midway_ssio_device::ssio_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_periodic_int"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "DEVICE_SELF"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "midway_ssio_device::clock_14024"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_hz"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "clock"
+                            },
+                            "args": []
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "*",
+                              "left": {
+                                "kind": "number",
+                                "value": 2
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 16
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 10
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "AY8910"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_ay0"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "number",
+                        "value": 2
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay0"
+                    },
+                    "property": "port_a_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::porta0_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay0"
+                    },
+                    "property": "port_b_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::portb0_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay0"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0.33,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "AY8910"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_ay1"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "number",
+                        "value": 2
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay1"
+                    },
+                    "property": "port_a_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::porta1_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay1"
+                    },
+                    "property": "port_b_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "midway_ssio_device::portb1_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay1"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0.33,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_input_ports",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 426,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 437,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_ay8910_modulation"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_status"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_14024_count"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_mute"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_overall"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_duty_cycle"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 453,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_data"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_status"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_14024_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clock_14024",
+      "parameters": "device_t &device",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 218,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_14024_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": "+",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_14024_count"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 127
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_14024_count"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 63
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_14024_count"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 64
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "ASSERT_LINE"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "CLEAR_LINE"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "synced_write",
+      "parameters": "int param",
+      "sourceFile": "src/mame/bally/midway_sound.cpp",
+      "sourceLine": 466,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_data"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "param"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "param"
+              },
+              "right": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/bally/midway_sound.cpp",
+    "src/mame/bally/midway_sound.h"
+  ],
+  "composedOf": [
+    "AY8910",
+    "Z80"
+  ]
+}

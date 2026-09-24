@@ -1,0 +1,27 @@
+{
+  "type": "DAC_1BIT",
+  "uses": [
+    {
+      "game": "panic",
+      "tags": [
+        "dac"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DAC_1BIT",
+    "className": "dac_1bit_device",
+    "description": "1-Bit DAC",
+    "shortName": "dac",
+    "sourceFile": "src/devices/sound/dac.h",
+    "sourceLine": 223,
+    "sourceColumn": 1,
+    "macro": "DAC_GENERATOR(DAC_1BIT,                      dac_1bit_device,                      dac_bit_device_base,  dac_mapper_unsigned,        1, 1.0,          \"1-Bit DAC\",                       \"dac\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/dac.h"
+  ]
+}

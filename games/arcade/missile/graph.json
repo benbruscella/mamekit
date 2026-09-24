@@ -1,0 +1,2253 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/atari/missile.cpp",
+    "generatedAt": "2026-09-24T02:28:36.216Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Aaron Giles"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/atari/missile.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/missile.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/bankdev.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/bankdev.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/pokey.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/pokey.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:missile",
+      "label": "Game",
+      "props": {
+        "name": "missile",
+        "year": "1980",
+        "company": "Atari",
+        "fullname": "Missile Command (rev 3, A035467-02/04 PCBs)",
+        "monitor": "ROT0",
+        "cls": "missile_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1402,
+        "sourceColumn": 1,
+        "sourceEndLine": 1402
+      }
+    },
+    {
+      "id": "romset:missile",
+      "label": "RomSet",
+      "props": {
+        "name": "missile",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1019,
+        "sourceColumn": 1,
+        "sourceEndLine": 1019
+      }
+    },
+    {
+      "id": "region:missile/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1020,
+        "sourceColumn": 2,
+        "sourceEndLine": 1020
+      }
+    },
+    {
+      "id": "rom:missile/maincpu/035820-02.h1",
+      "label": "Rom",
+      "props": {
+        "file": "035820-02.h1",
+        "offset": 20480,
+        "size": 2048,
+        "crc": "7a62ce6a",
+        "sha1": "9a39978138dc28fdefe193bfae1b226391e471db",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1021,
+        "sourceColumn": 2,
+        "sourceEndLine": 1021
+      }
+    },
+    {
+      "id": "rom:missile/maincpu/035821-02.jk1",
+      "label": "Rom",
+      "props": {
+        "file": "035821-02.jk1",
+        "offset": 22528,
+        "size": 2048,
+        "crc": "df3bd57f",
+        "sha1": "0916925d3c94d766d33f0e4badf6b0add835d748",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1022,
+        "sourceColumn": 2,
+        "sourceEndLine": 1022
+      }
+    },
+    {
+      "id": "rom:missile/maincpu/035822-03e.kl1",
+      "label": "Rom",
+      "props": {
+        "file": "035822-03e.kl1",
+        "offset": 24576,
+        "size": 2048,
+        "crc": "1a2f599a",
+        "sha1": "2deb1219223032a9c83114e4e8b2fc11a570754c",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1023,
+        "sourceColumn": 2,
+        "sourceEndLine": 1023
+      }
+    },
+    {
+      "id": "rom:missile/maincpu/035823-02.lm1",
+      "label": "Rom",
+      "props": {
+        "file": "035823-02.lm1",
+        "offset": 26624,
+        "size": 2048,
+        "crc": "82e552bb",
+        "sha1": "d0f22894f779c74ceef644c9f03d840d9545efea",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1024,
+        "sourceColumn": 2,
+        "sourceEndLine": 1024
+      }
+    },
+    {
+      "id": "rom:missile/maincpu/035824-02.np1",
+      "label": "Rom",
+      "props": {
+        "file": "035824-02.np1",
+        "offset": 28672,
+        "size": 2048,
+        "crc": "606e42e0",
+        "sha1": "9718f84a73c66b4e8ef7805a7ab638a7380624e1",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1025,
+        "sourceColumn": 2,
+        "sourceEndLine": 1025
+      }
+    },
+    {
+      "id": "rom:missile/maincpu/035825-02.r1",
+      "label": "Rom",
+      "props": {
+        "file": "035825-02.r1",
+        "offset": 30720,
+        "size": 2048,
+        "crc": "f752eaeb",
+        "sha1": "0339a6ce6744d2091cc7e07675e509b202b0f380",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1026,
+        "sourceColumn": 2,
+        "sourceEndLine": 1026
+      }
+    },
+    {
+      "id": "region:missile/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1028,
+        "sourceColumn": 2,
+        "sourceEndLine": 1028
+      }
+    },
+    {
+      "id": "rom:missile/proms/035826-01.l6",
+      "label": "Rom",
+      "props": {
+        "file": "035826-01.l6",
+        "offset": 0,
+        "size": 32,
+        "crc": "86a22140",
+        "sha1": "2beebf7855e29849ada1823eae031fc98220bc43",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1029,
+        "sourceColumn": 2,
+        "sourceEndLine": 1029
+      }
+    },
+    {
+      "id": "map:missile_state.trampoline_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "missile_state",
+        "name": "trampoline_map",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 807,
+        "sourceColumn": 1,
+        "sourceEndLine": 810
+      }
+    },
+    {
+      "id": "map:missile_state.trampoline_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 65535,
+        "raw": "map(0x0000, 0xffff).rw(FUNC(missile_state::trampoline_r), FUNC(missile_state::trampoline_w))",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809
+      }
+    },
+    {
+      "id": "handler:missile_state.trampoline_r",
+      "label": "Handler",
+      "props": {
+        "method": "trampoline_r",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 795,
+        "sourceColumn": 1,
+        "sourceEndLine": 805,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// if this is a MADSEL cycle, read from video RAM\n\tif (get_madsel())\n\t\treturn vram_mad_r(offset);\n\n\tuint8_t data = m_mainmap->read8(offset);\n\tload_madsel(data);\n\n\treturn data;"
+      }
+    },
+    {
+      "id": "handler:missile_state.load_madsel",
+      "label": "Handler",
+      "props": {
+        "method": "load_madsel",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 591,
+        "sourceColumn": 1,
+        "sourceEndLine": 597,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// MADSEL counter is loaded at SYNC when the low 5 bytes of the data bus are 0x01\n\t// and the IRQ signal is clear\n\tif (!m_irq_pin && ((data & 0x1f) == 0x01) && m_maincpu->get_sync() && !machine().side_effects_disabled())\n\t\tm_madsel_lastcycles = m_maincpu->total_cycles();"
+      }
+    },
+    {
+      "id": "handler:missile_state.get_madsel",
+      "label": "Handler",
+      "props": {
+        "method": "get_madsel",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 599,
+        "sourceColumn": 1,
+        "sourceEndLine": 615,
+        "sourceParameters": "",
+        "sourceBody": "// the MADSEL signal disables standard address decoding and routes writes to video RAM;\n\t// it goes high 5 cycles after loading the counter, and goes low again after 1 cycle\n\tbool madsel = false;\n\n\tif (m_madsel_lastcycles)\n\t{\n\t\tmadsel = (m_maincpu->total_cycles() - m_madsel_lastcycles) == 5;\n\n\t\t// reset the count until next time\n\t\tif (madsel && !machine().side_effects_disabled())\n\t\t\tm_madsel_lastcycles = 0;\n\t}\n\n\treturn madsel;"
+      }
+    },
+    {
+      "id": "handler:missile_state.vram_mad_r",
+      "label": "Handler",
+      "props": {
+        "method": "vram_mad_r",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 657,
+        "sourceColumn": 1,
+        "sourceEndLine": 690,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "offs_t vramaddr;\n\tuint8_t vramdata;\n\tuint8_t vrammask;\n\tuint8_t result = 0xff;\n\n\t// basic 2 bit VRAM reads go to addr >> 2\n\t// data goes to bits 6 and 7\n\t// this should only be called if MADSEL == 1\n\tvramaddr = offset >> 2;\n\tvrammask = 0x11 << (offset & 3);\n\tvramdata = m_videoram[vramaddr] & vrammask;\n\tif ((vramdata & 0xf0) == 0)\n\t\tresult &= ~0x80;\n\tif ((vramdata & 0x0f) == 0)\n\t\tresult &= ~0x40;\n\n\t// 3-bit VRAM reads use an extra clock to read the 3rd bit elsewhere\n\t// on the schematics, this is the MUSHROOM == 1 case\n\tif ((offset & 0xe000) == 0xe000)\n\t{\n\t\tvramaddr = get_bit3_addr(offset);\n\t\tvrammask = 1 << (offset & 7);\n\t\tvramdata = m_videoram[vramaddr] & vrammask;\n\t\tif (vramdata == 0)\n\t\t\tresult &= ~0x20;\n\n\t\t// account for the extra clock cycle\n\t\tif (!machine().side_effects_disabled())\n\t\t\tm_maincpu->adjust_icount(-1);\n\t}\n\treturn result;"
+      }
+    },
+    {
+      "id": "handler:missile_state.get_bit3_addr",
+      "label": "Handler",
+      "props": {
+        "method": "get_bit3_addr",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 1,
+        "sourceEndLine": 625,
+        "sourceParameters": "offs_t pixaddr",
+        "sourceBody": "// the 3rd bit of video RAM is scattered about various areas, we take a 16-bit pixel address here\n\t// and convert it into a video RAM address based on logic in the schematics\n\treturn  (( pixaddr & 0x0800) >> 1) |\n\t\t\t((~pixaddr & 0x0800) >> 2) |\n\t\t\t(( pixaddr & 0x07f8) >> 2) |\n\t\t\t(( pixaddr & 0x1000) >> 12);"
+      }
+    },
+    {
+      "id": "handler:missile_state.trampoline_w",
+      "label": "Handler",
+      "props": {
+        "method": "trampoline_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 786,
+        "sourceColumn": 1,
+        "sourceEndLine": 793,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// if this is a MADSEL cycle, write to video RAM\n\tif (get_madsel())\n\t\tvram_mad_w(offset, data);\n\telse\n\t\tm_mainmap->write8(offset, data);"
+      }
+    },
+    {
+      "id": "handler:missile_state.vram_mad_w",
+      "label": "Handler",
+      "props": {
+        "method": "vram_mad_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 627,
+        "sourceColumn": 1,
+        "sourceEndLine": 655,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "offs_t vramaddr;\n\tuint8_t vramdata;\n\tuint8_t vrammask;\n\n\t// basic 2 bit VRAM writes go to addr >> 2\n\t// data comes from bits 6 and 7\n\t// this should only be called if MADSEL == 1\n\tvramaddr = offset >> 2;\n\tvramdata = TABLE(data >> 6, 0x00, 0x0f, 0xf0, 0xff);\n\tvrammask = m_writeprom[(offset & 7) | 0x10];\n\tm_videoram[vramaddr] = (m_videoram[vramaddr] & vrammask) | (vramdata & ~vrammask);\n\n\t// 3-bit VRAM writes use an extra clock to write the 3rd bit elsewhere\n\t// on the schematics, this is the MUSHROOM == 1 case\n\tif ((offset & 0xe000) == 0xe000)\n\t{\n\t\tvramaddr = get_bit3_addr(offset);\n\t\tvramdata = -((data >> 5) & 1);\n\t\tvrammask = m_writeprom[(offset & 7) | 0x18];\n\t\tm_videoram[vramaddr] = (m_videoram[vramaddr] & vrammask) | (vramdata & ~vrammask);\n\n\t\t// account for the extra clock cycle\n\t\tif (!machine().side_effects_disabled())\n\t\t\tm_maincpu->adjust_icount(-1);\n\t}"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "missile_state",
+        "name": "base_map",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 1,
+        "sourceEndLine": 824,
+        "globalMask": 32767,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rw(FUNC(missile_state::vram_r), FUNC(missile_state::vram_w))",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 816,
+        "sourceColumn": 2,
+        "sourceEndLine": 816
+      }
+    },
+    {
+      "id": "handler:missile_state.vram_r",
+      "label": "Handler",
+      "props": {
+        "method": "vram_r",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 415,
+        "sourceColumn": 1,
+        "sourceEndLine": 415,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_videoram[offset];"
+      }
+    },
+    {
+      "id": "handler:missile_state.vram_w",
+      "label": "Handler",
+      "props": {
+        "method": "vram_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 42,
+        "sourceEndLine": 414,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 18432,
+        "end": 18432,
+        "raw": "map(0x4800, 0x4800).mirror(0x00ff).rw(FUNC(missile_state::trackball_r), FUNC(missile_state::output_w))",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 817,
+        "sourceColumn": 2,
+        "sourceEndLine": 817,
+        "mirror": 255
+      }
+    },
+    {
+      "id": "handler:missile_state.trackball_r",
+      "label": "Handler",
+      "props": {
+        "method": "trackball_r",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 739,
+        "sourceColumn": 1,
+        "sourceEndLine": 752,
+        "sourceParameters": "",
+        "sourceBody": "// read trackball\n\tif (m_ctrld)\n\t{\n\t\tif (!m_flipscreen)\n\t\t\treturn ((m_track[1]->read() << 4) & 0xf0) | (m_track[0]->read() & 0x0f);\n\t\telse\n\t\t\treturn ((m_track[3]->read() << 4) & 0xf0) | (m_track[2]->read() & 0x0f);\n\t}\n\n\t// normal buttons\n\treturn m_inputs[0]->read();",
+        "inputMembers": [
+          "m_inputs=IN0,IN1,R10,R8",
+          "m_track=TRACK0_X,TRACK0_Y,TRACK1_X,TRACK1_Y"
+        ]
+      }
+    },
+    {
+      "id": "handler:missile_state.output_w",
+      "label": "Handler",
+      "props": {
+        "method": "output_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 754,
+        "sourceColumn": 1,
+        "sourceEndLine": 770,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "// bit 0 selects trackball\n\tm_ctrld = data & 1;\n\n\t// leds\n\tm_leds[0] = BIT(~data, 1);\n\tm_leds[1] = BIT(~data, 2);\n\n\t// coin counters\n\tmachine().bookkeeping().coin_counter_w(0, data & 0x20);\n\tmachine().bookkeeping().coin_counter_w(1, data & 0x10);\n\tmachine().bookkeeping().coin_counter_w(2, data & 0x08);\n\n\t// flip screen\n\tm_flipscreen = ~data & 0x40;"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 18688,
+        "end": 18688,
+        "raw": "map(0x4900, 0x4900).mirror(0x00ff).portr(\"IN1\")",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 2,
+        "sourceEndLine": 818,
+        "mirror": 255,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 18944,
+        "end": 18944,
+        "raw": "map(0x4a00, 0x4a00).mirror(0x00ff).portr(\"R10\")",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 819,
+        "sourceColumn": 2,
+        "sourceEndLine": 819,
+        "mirror": 255,
+        "portRead": "R10"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 19200,
+        "end": 19207,
+        "raw": "map(0x4b00, 0x4b07).mirror(0x00f8).w(FUNC(missile_state::palette_w)).nopr()",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 820,
+        "sourceColumn": 2,
+        "sourceEndLine": 820,
+        "mirror": 248,
+        "nopr": true
+      }
+    },
+    {
+      "id": "handler:missile_state.palette_w",
+      "label": "Handler",
+      "props": {
+        "method": "palette_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 772,
+        "sourceColumn": 1,
+        "sourceEndLine": 776,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// color RAM\n\tm_palette->set_pen_color(offset & 7, pal1bit(~data >> 3), pal1bit(~data >> 2), pal1bit(~data >> 1));"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 19456,
+        "end": 19456,
+        "raw": "map(0x4c00, 0x4c00).mirror(0x00ff).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 821,
+        "sourceColumn": 2,
+        "sourceEndLine": 821,
+        "mirror": 255
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 841,
+        "sourceColumn": 2,
+        "sourceEndLine": 841
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 19712,
+        "end": 19712,
+        "raw": "map(0x4d00, 0x4d00).mirror(0x00ff).w(FUNC(missile_state::irqack_w))",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 822,
+        "sourceColumn": 2,
+        "sourceEndLine": 822,
+        "mirror": 255
+      }
+    },
+    {
+      "id": "handler:missile_state.irqack_w",
+      "label": "Handler",
+      "props": {
+        "method": "irqack_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 523,
+        "sourceColumn": 1,
+        "sourceEndLine": 526,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_irq_state = 0;"
+      }
+    },
+    {
+      "id": "map:missile_state.base_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 20480,
+        "end": 32767,
+        "raw": "map(0x5000, 0x7fff).rom().region(\"maincpu\", 0x5000)",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 823,
+        "sourceColumn": 2,
+        "sourceEndLine": 823,
+        "rom": true,
+        "region": "maincpu",
+        "regionOffset": 20480
+      }
+    },
+    {
+      "id": "map:missile_state.missile_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "missile_state",
+        "name": "missile_map",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 826,
+        "sourceColumn": 1,
+        "sourceEndLine": 830,
+        "calls": [
+          "base_map"
+        ]
+      }
+    },
+    {
+      "id": "map:missile_state.missile_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 16399,
+        "raw": "map(0x4000, 0x400f).mirror(0x07f0).rw(m_pokey, FUNC(pokey_device::read), FUNC(pokey_device::write))",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 2,
+        "sourceEndLine": 829,
+        "mirror": 2032
+      }
+    },
+    {
+      "id": "handler:pokey_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 2,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "id": "handler:pokey_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 2,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "id": "handler:missile_state.adjust_cpu_speed",
+      "label": "Handler",
+      "props": {
+        "method": "adjust_cpu_speed",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 542,
+        "sourceColumn": 1,
+        "sourceEndLine": 555,
+        "sourceConstants": [
+          "MASTER_CLOCK=10000000"
+        ],
+        "sourceParameters": "int param",
+        "sourceBody": "int curv = param;\n\n\t// starting at scanline 224, the CPU runs at half speed\n\tif (curv == 224)\n\t\tm_maincpu->set_unscaled_clock(MASTER_CLOCK/16);\n\telse\n\t\tm_maincpu->set_unscaled_clock(MASTER_CLOCK/8);\n\n\t// scanline for the next run\n\tcurv ^= 224;\n\tm_cpu_timer->adjust(m_screen->time_until_pos(v_to_scanline(curv)), curv);"
+      }
+    },
+    {
+      "id": "handler:missile_state.v_to_scanline",
+      "label": "Handler",
+      "props": {
+        "method": "v_to_scanline",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 479,
+        "sourceColumn": 1,
+        "sourceEndLine": 483,
+        "sourceParameters": "int v",
+        "sourceBody": "// same as a above, but the opposite transformation\n\treturn m_flipscreen ? (256 - v) : v;"
+      }
+    },
+    {
+      "id": "handler:missile_state.machine_start",
+      "label": "Handler",
+      "props": {
+        "method": "machine_start",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 557,
+        "sourceColumn": 1,
+        "sourceEndLine": 573,
+        "sourceParameters": "",
+        "sourceBody": "// create a timer to speed/slow the CPU\n\tm_cpu_timer = timer_alloc(FUNC(missile_state::adjust_cpu_speed), this);\n\tm_cpu_timer->adjust(m_screen->time_until_pos(v_to_scanline(0), 0));\n\n\t// create a timer for IRQs and set up the first callback\n\tm_irq_timer = timer_alloc(FUNC(missile_state::clock_irq), this);\n\tschedule_next_irq(-32);\n\n\t// setup for save states\n\tsave_item(NAME(m_irq_state));\n\tsave_item(NAME(m_irq_pin));\n\tsave_item(NAME(m_ctrld));\n\tsave_item(NAME(m_flipscreen));\n\tsave_item(NAME(m_madsel_lastcycles));"
+      }
+    },
+    {
+      "id": "handler:missile_state.schedule_next_irq",
+      "label": "Handler",
+      "props": {
+        "method": "schedule_next_irq",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 485,
+        "sourceColumn": 1,
+        "sourceEndLine": 497,
+        "sourceParameters": "int curv",
+        "sourceBody": "// IRQ = /32V, clocked by /16V ^ flip\n\t// When not flipped, clocks on 0, 64, 128, 192\n\t// When flipped, clocks on 16, 80, 144, 208\n\tif (m_flipscreen)\n\t\tcurv = ((curv - 32) & 0xff) | 0x10;\n\telse\n\t\tcurv = ((curv + 32) & 0xff) & ~0x10;\n\n\t// next one at the start of this scanline\n\tm_irq_timer->adjust(m_screen->time_until_pos(v_to_scanline(curv)), curv);"
+      }
+    },
+    {
+      "id": "handler:missile_state.clock_irq",
+      "label": "Handler",
+      "props": {
+        "method": "clock_irq",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 499,
+        "sourceColumn": 1,
+        "sourceEndLine": 511,
+        "sourceParameters": "int param",
+        "sourceBody": "int curv = param;\n\n\t// set pending IRQ change\n\tm_irq_state = BIT(~curv, 5);\n\n\t// force an update while we're here\n\tm_screen->update_partial(v_to_scanline(curv));\n\n\t// find the next edge\n\tschedule_next_irq(curv);"
+      }
+    },
+    {
+      "id": "machine:missile_state.missile",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "missile_state",
+        "name": "missile",
+        "calls": [],
+        "armedTimers": [
+          "m_cpu_timer=missile_state.adjust_cpu_speed@missile_state.machine_start",
+          "m_irq_timer=missile_state.clock_irq@missile_state.machine_start"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_irq_state\",\"bits\":8}",
+          "{\"name\":\"m_irq_pin\",\"bits\":8}",
+          "{\"name\":\"m_ctrld\",\"bits\":8}",
+          "{\"name\":\"m_flipscreen\",\"bits\":8}"
+        ],
+        "driverTimers": [
+          "m_cpu_timer=missile_state.adjust_cpu_speed",
+          "m_irq_timer=missile_state.clock_irq"
+        ],
+        "resetHandlers": [
+          "missile_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 963,
+        "sourceColumn": 1,
+        "sourceEndLine": 991
+      }
+    },
+    {
+      "id": "handler:missile_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 575,
+        "sourceColumn": 1,
+        "sourceEndLine": 581,
+        "sourceParameters": "",
+        "sourceBody": "m_maincpu->set_input_line(0, CLEAR_LINE);\n\tm_irq_pin = 0;\n\tm_irq_state = 0;\n\tm_madsel_lastcycles = 0;"
+      }
+    },
+    {
+      "id": "device:missile_state.missile/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "maincpu",
+        "clock": 1250000,
+        "config": [
+          "M6502(config, m_maincpu, MASTER_CLOCK/8)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &missile_state::trampoline_map)",
+          "m_maincpu->sync_cb().set(FUNC(missile_state::sync_w))"
+        ],
+        "member": "m_maincpu",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 966,
+        "sourceColumn": 2,
+        "sourceEndLine": 966
+      }
+    },
+    {
+      "id": "device:missile_state.missile/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "sync_cb",
+        "operation": "set",
+        "raw": "m_maincpu->sync_cb().set(FUNC(missile_state::sync_w))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 968,
+        "sourceColumn": 2,
+        "sourceEndLine": 968,
+        "targetClass": "missile_state",
+        "targetMethod": "sync_w"
+      }
+    },
+    {
+      "id": "handler:missile_state.sync_w",
+      "label": "Handler",
+      "props": {
+        "method": "sync_w",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 513,
+        "sourceColumn": 1,
+        "sourceEndLine": 521,
+        "sourceParameters": "int state",
+        "sourceBody": "// SYNC latches IRQ pin\n\tif (state && m_irq_state != m_irq_pin)\n\t{\n\t\tm_irq_pin = m_irq_state;\n\t\tm_maincpu->set_input_line(0, m_irq_pin ? ASSERT_LINE : CLEAR_LINE);\n\t}"
+      }
+    },
+    {
+      "id": "device:missile_state.missile/mainmap",
+      "label": "Device",
+      "props": {
+        "type": "ADDRESS_MAP_BANK",
+        "tag": "mainmap",
+        "clock": null,
+        "config": [
+          "ADDRESS_MAP_BANK(config, m_mainmap)",
+          "m_mainmap->set_options(ENDIANNESS_LITTLE, 8, 16)",
+          "m_mainmap->set_map(&missile_state::missile_map)"
+        ],
+        "member": "m_mainmap",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 970,
+        "sourceColumn": 2,
+        "sourceEndLine": 970
+      }
+    },
+    {
+      "id": "device:missile_state.missile/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, m_watchdog).set_vblank_count(m_screen, 8)"
+        ],
+        "member": "m_watchdog",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 974,
+        "sourceColumn": 2,
+        "sourceEndLine": 974
+      }
+    },
+    {
+      "id": "device:missile_state.missile/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_entries(8)"
+        ],
+        "member": "m_palette",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 977,
+        "sourceColumn": 2,
+        "sourceEndLine": 977,
+        "paletteEntries": 8
+      }
+    },
+    {
+      "id": "device:missile_state.missile/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_raw(PIXEL_CLOCK, HTOTAL, HBEND, HBSTART, VTOTAL, VBEND, VBSTART)",
+          "m_screen->set_screen_update(FUNC(missile_state::screen_update_missile))",
+          "m_screen->set_palette(m_palette)"
+        ],
+        "member": "m_screen",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 979,
+        "sourceColumn": 2,
+        "sourceEndLine": 979,
+        "configCalls": [
+          "set_raw(5000000,320,0,256,256,25,256)",
+          "set_palette(\"palette\")"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          5000000,
+          320,
+          0,
+          256,
+          256,
+          25,
+          256
+        ],
+        "screenRawExpr": [
+          "PIXEL_CLOCK",
+          "HTOTAL",
+          "HBEND",
+          "HBSTART",
+          "VTOTAL",
+          "VBEND",
+          "VBSTART"
+        ]
+      }
+    },
+    {
+      "id": "device:missile_state.missile/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(missile_state::screen_update_missile))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 981,
+        "sourceColumn": 2,
+        "sourceEndLine": 981,
+        "targetClass": "missile_state",
+        "targetMethod": "screen_update_missile"
+      }
+    },
+    {
+      "id": "handler:missile_state.screen_update_missile",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update_missile",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 700,
+        "sourceColumn": 1,
+        "sourceEndLine": 729,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// draw the bitmap to the screen, looping over Y\n\tfor (int y = cliprect.top(); y <= cliprect.bottom(); y++)\n\t{\n\t\tuint16_t *const dst = &bitmap.pix(y);\n\n\t\tint const effy = m_flipscreen ? ((256+24 - y) & 0xff) : y;\n\t\tuint8_t const *const src = &m_videoram[effy * 64];\n\t\tuint8_t const *src3 = nullptr;\n\n\t\t// compute the base of the 3rd pixel row\n\t\tif (effy >= 224)\n\t\t\tsrc3 = &m_videoram[get_bit3_addr(effy << 8)];\n\n\t\t// loop over X\n\t\tfor (int x = cliprect.left(); x <= cliprect.right(); x++)\n\t\t{\n\t\t\tuint8_t pix = src[x / 4] >> (x & 3);\n\t\t\tpix = ((pix >> 2) & 4) | ((pix << 1) & 2);\n\n\t\t\t// if we're in the lower region, get the 3rd bit\n\t\t\tif (src3)\n\t\t\t\tpix |= (src3[(x / 8) * 2] >> (x & 7)) & 1;\n\n\t\t\tdst[x] = pix;\n\t\t}\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "device:missile_state.missile/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 985,
+        "sourceColumn": 2,
+        "sourceEndLine": 985
+      }
+    },
+    {
+      "id": "device:missile_state.missile/pokey",
+      "label": "Device",
+      "props": {
+        "type": "POKEY",
+        "tag": "pokey",
+        "clock": 1250000,
+        "config": [
+          "POKEY(config, m_pokey, MASTER_CLOCK/8)",
+          "m_pokey->allpot_r().set_ioport(\"R8\")",
+          "m_pokey->set_output_rc(RES_K(10), CAP_U(0.1), 5.0)",
+          "m_pokey->add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "member": "m_pokey",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 987,
+        "sourceColumn": 2,
+        "sourceEndLine": 987
+      }
+    },
+    {
+      "id": "audioroute:device:missile_state.missile/pokey/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "m_pokey->add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 990,
+        "sourceColumn": 2,
+        "sourceEndLine": 990
+      }
+    },
+    {
+      "id": "device:missile_state.missile/pokey/callback:pokey:0",
+      "label": "Callback",
+      "props": {
+        "signal": "allpot_r",
+        "operation": "set_ioport",
+        "raw": "m_pokey->allpot_r().set_ioport(\"R8\")",
+        "ownerTag": "pokey",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 988,
+        "sourceColumn": 2,
+        "sourceEndLine": 988,
+        "targetTag": "R8",
+        "targetPort": "R8"
+      }
+    },
+    {
+      "id": "inputs:missile",
+      "label": "InputPorts",
+      "props": {
+        "name": "missile",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 853,
+        "sourceColumn": 8,
+        "sourceEndLine": 853
+      }
+    },
+    {
+      "id": "inputs:missile/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:missile/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:missile/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 24,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_TILT",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_SERVICE",
+        "modifiers": [
+          "PORT_TOGGLE"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:missile/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(missile_state::vblank_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "handler:missile_state.vblank_r",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_r",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 528,
+        "sourceColumn": 1,
+        "sourceEndLine": 532,
+        "sourceParameters": "",
+        "sourceBody": "int v = scanline_to_v(m_screen->vpos());\n\treturn v < 24;"
+      }
+    },
+    {
+      "id": "handler:missile_state.scanline_to_v",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_to_v",
+        "ownerClass": "missile_state",
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 472,
+        "sourceColumn": 1,
+        "sourceEndLine": 477,
+        "sourceParameters": "int scanline",
+        "sourceBody": "// since the vertical sync counter counts backwards when flipped, this function returns\n\t// the current effective V value, given that vpos() only counts forward\n\treturn m_flipscreen ? (256 - scanline) : scanline;"
+      }
+    },
+    {
+      "id": "inputs:missile/R10",
+      "label": "Port",
+      "props": {
+        "tag": "R10",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/R10/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R10:1,2\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 1,
+        "location": "R10:1,2",
+        "settings": [
+          "0=1C 1C",
+          "2=Free Play",
+          "1=2C 1C",
+          "3=1C 2C"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R10/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R10:3,4\")"
+        ],
+        "name": "Right Coin",
+        "defaultValue": 0,
+        "location": "R10:3,4",
+        "settings": [
+          "0=*1",
+          "4=*4",
+          "8=*5",
+          "12=*6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R10/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R10:5\")"
+        ],
+        "name": "Center Coin",
+        "defaultValue": 0,
+        "location": "R10:5",
+        "settings": [
+          "0=*1",
+          "16=*2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R10/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 96,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R10:6,7\")"
+        ],
+        "name": "Language",
+        "defaultValue": 0,
+        "location": "R10:6,7",
+        "settings": [
+          "0=English",
+          "32=French",
+          "64=German",
+          "96=Spanish"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R10/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R10:8\")"
+        ],
+        "name": "Unknown",
+        "defaultValue": 128,
+        "location": "R10:8",
+        "settings": [
+          "128=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R8",
+      "label": "Port",
+      "props": {
+        "tag": "R8",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/R8/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R8:!1,!2\")"
+        ],
+        "name": "Cities",
+        "defaultValue": 3,
+        "location": "R8:!1,!2",
+        "settings": [
+          "2=4",
+          "1=5",
+          "3=6",
+          "0=7"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R8/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R8:!3\")"
+        ],
+        "name": "Bonus Credit for 4 Coins",
+        "defaultValue": 0,
+        "location": "R8:!3",
+        "settings": [
+          "4=No",
+          "0=Yes"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R8/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R8:!4\")"
+        ],
+        "name": "Trackball Size",
+        "defaultValue": 0,
+        "location": "R8:!4",
+        "settings": [
+          "0=Mini",
+          "8=Large"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R8/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 112,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R8:!5,!6,!7\")"
+        ],
+        "name": "Bonus City",
+        "defaultValue": 112,
+        "location": "R8:!5,!6,!7",
+        "settings": [
+          "16=8000",
+          "112=10000",
+          "96=12000",
+          "80=14000",
+          "64=15000",
+          "48=18000",
+          "32=20000",
+          "0=None"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/R8/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"R8:!8\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "R8:!8",
+        "settings": [
+          "0=Upright",
+          "128=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK0_X",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK0_X",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK0_X/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(20)",
+          "PORT_KEYDELTA(10)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK0_Y",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK0_Y",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK0_Y/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(20)",
+          "PORT_KEYDELTA(10)",
+          "PORT_REVERSE"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK1_X",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK1_X",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK1_X/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(20)",
+          "PORT_KEYDELTA(10)",
+          "PORT_REVERSE",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK1_Y",
+      "label": "Port",
+      "props": {
+        "tag": "TRACK1_Y",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:missile/TRACK1_Y/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 15,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(20)",
+          "PORT_KEYDELTA(10)",
+          "PORT_REVERSE",
+          "PORT_COCKTAIL"
+        ],
+        "defaultValue": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:missile",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1402,
+        "sourceColumn": 1,
+        "sourceEndLine": 1402
+      }
+    },
+    {
+      "from": "game:missile",
+      "to": "machine:missile_state.missile",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:missile",
+      "to": "inputs:missile",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:missile",
+      "to": "romset:missile",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:machine/bankdev.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/missile.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "handler:missile_state.adjust_cpu_speed",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "handler:missile_state.machine_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "handler:missile_state.clock_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 963,
+        "sourceColumn": 1,
+        "sourceEndLine": 991
+      }
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "handler:missile_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/mainmap",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:missile_state.missile",
+      "to": "device:missile_state.missile/pokey",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 853,
+        "sourceColumn": 8,
+        "sourceEndLine": 853
+      }
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/R10",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/R8",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/TRACK0_X",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/TRACK0_Y",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/TRACK1_X",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:missile",
+      "to": "inputs:missile/TRACK1_Y",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:missile",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 1019,
+        "sourceColumn": 1,
+        "sourceEndLine": 1019
+      }
+    },
+    {
+      "from": "romset:missile",
+      "to": "region:missile/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:missile",
+      "to": "region:missile/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:missile_state.adjust_cpu_speed",
+      "to": "handler:missile_state.v_to_scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.machine_start",
+      "to": "handler:missile_state.schedule_next_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.machine_start",
+      "to": "handler:missile_state.v_to_scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.machine_start",
+      "to": "handler:missile_state.adjust_cpu_speed",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.machine_start",
+      "to": "handler:missile_state.clock_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.clock_irq",
+      "to": "handler:missile_state.schedule_next_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.clock_irq",
+      "to": "handler:missile_state.v_to_scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:missile_state.missile/maincpu",
+      "to": "device:missile_state.missile/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:missile_state.missile/maincpu",
+      "to": "map:missile_state.trampoline_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:missile_state.missile/mainmap",
+      "to": "map:missile_state.missile_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:missile_state.missile/screen",
+      "to": "device:missile_state.missile/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:missile_state.missile/pokey",
+      "to": "audioroute:device:missile_state.missile/pokey/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:missile_state.missile/pokey",
+      "to": "device:missile_state.missile/pokey/callback:pokey:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN0",
+      "to": "inputs:missile/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/IN1",
+      "to": "inputs:missile/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R10",
+      "to": "inputs:missile/R10/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R10",
+      "to": "inputs:missile/R10/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R10",
+      "to": "inputs:missile/R10/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R10",
+      "to": "inputs:missile/R10/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R10",
+      "to": "inputs:missile/R10/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R8",
+      "to": "inputs:missile/R8/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R8",
+      "to": "inputs:missile/R8/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R8",
+      "to": "inputs:missile/R8/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R8",
+      "to": "inputs:missile/R8/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/R8",
+      "to": "inputs:missile/R8/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/TRACK0_X",
+      "to": "inputs:missile/TRACK0_X/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/TRACK0_Y",
+      "to": "inputs:missile/TRACK0_Y/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/TRACK1_X",
+      "to": "inputs:missile/TRACK1_X/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:missile/TRACK1_Y",
+      "to": "inputs:missile/TRACK1_Y/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:missile/maincpu",
+      "to": "rom:missile/maincpu/035820-02.h1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:missile/maincpu",
+      "to": "rom:missile/maincpu/035821-02.jk1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:missile/maincpu",
+      "to": "rom:missile/maincpu/035822-03e.kl1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:missile/maincpu",
+      "to": "rom:missile/maincpu/035823-02.lm1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:missile/maincpu",
+      "to": "rom:missile/maincpu/035824-02.np1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:missile/maincpu",
+      "to": "rom:missile/maincpu/035825-02.r1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:missile/proms",
+      "to": "rom:missile/proms/035826-01.l6",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:missile_state.schedule_next_irq",
+      "to": "handler:missile_state.v_to_scanline",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:missile_state.missile/maincpu/callback:maincpu:0",
+      "to": "handler:missile_state.sync_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:missile_state.trampoline_map",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 807,
+        "sourceColumn": 1,
+        "sourceEndLine": 810
+      }
+    },
+    {
+      "from": "map:missile_state.trampoline_map",
+      "to": "map:missile_state.trampoline_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.missile_map",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 826,
+        "sourceColumn": 1,
+        "sourceEndLine": 830
+      }
+    },
+    {
+      "from": "map:missile_state.missile_map",
+      "to": "map:missile_state.base_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:missile_state.missile_map",
+      "to": "map:missile_state.missile_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:missile_state.missile/screen/callback:screen:0",
+      "to": "handler:missile_state.screen_update_missile",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:missile/IN1/f6",
+      "to": "handler:missile_state.vblank_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:missile_state.trampoline_map/range0",
+      "to": "handler:missile_state.trampoline_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:missile_state.trampoline_map/range0",
+      "to": "handler:missile_state.trampoline_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "file:src/mame/atari/missile.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/missile.cpp",
+        "sourceLine": 812,
+        "sourceColumn": 1,
+        "sourceEndLine": 824
+      }
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.base_map",
+      "to": "map:missile_state.base_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:missile_state.missile_map/range0",
+      "to": "handler:pokey_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:missile_state.missile_map/range0",
+      "to": "handler:pokey_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "handler:missile_state.screen_update_missile",
+      "to": "handler:missile_state.get_bit3_addr",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.vblank_r",
+      "to": "handler:missile_state.scanline_to_v",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.trampoline_r",
+      "to": "handler:missile_state.load_madsel",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.trampoline_r",
+      "to": "handler:missile_state.get_madsel",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.trampoline_r",
+      "to": "handler:missile_state.vram_mad_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.trampoline_w",
+      "to": "handler:missile_state.get_madsel",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.trampoline_w",
+      "to": "handler:missile_state.vram_mad_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:missile_state.base_map/range0",
+      "to": "handler:missile_state.vram_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:missile_state.base_map/range0",
+      "to": "handler:missile_state.vram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:missile_state.base_map/range1",
+      "to": "handler:missile_state.trackball_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:missile_state.base_map/range1",
+      "to": "handler:missile_state.output_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:missile_state.base_map/range4",
+      "to": "handler:missile_state.palette_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:missile_state.base_map/range5",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:missile_state.base_map/range6",
+      "to": "handler:missile_state.irqack_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:missile_state.vram_mad_r",
+      "to": "handler:missile_state.get_bit3_addr",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:missile_state.vram_mad_w",
+      "to": "handler:missile_state.get_bit3_addr",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

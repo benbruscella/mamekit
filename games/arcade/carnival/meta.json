@@ -1,0 +1,125 @@
+{
+  "game": "carnival",
+  "title": "Carnival (upright, AY8912 music) (Sega, 1980)",
+  "fullname": "Carnival (upright, AY8912 music)",
+  "year": "1980",
+  "manufacturer": "Sega",
+  "family": "vicdual",
+  "driverFile": "src/mame/sega/vicdual.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Zsolt Vasvari",
+  "credits": {
+    "people": [
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      },
+      {
+        "name": "Steven Coomber",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.242",
+        "lastRelease": "0.242"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.272",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "Jordi Tuells",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.272",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.286",
+        "lastRelease": "0.286"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.240",
+        "lastRelease": "0.240"
+      },
+      {
+        "name": "beta-tester",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.226",
+        "lastRelease": "0.226"
+      },
+      {
+        "name": "Jordi Beltrán",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.272",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "M.A.S.H.",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.173",
+        "lastRelease": "0.173"
+      },
+      {
+        "name": "SNESNESCUBE64",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.284",
+        "lastRelease": "0.284"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-22",
+    "commits": 255,
+    "authors": 35,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

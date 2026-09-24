@@ -1,0 +1,637 @@
+{
+  "game": "bzone",
+  "title": "Battlezone (rev 2) (Atari, 1980)",
+  "fullname": "Battlezone (rev 2)",
+  "year": "1980",
+  "company": "Atari",
+  "family": "bzone",
+  "driverFile": "src/mame/atari/bzone.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Brad Oliver, Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "m6502",
+      "clock": 1512000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 1023,
+          "kind": "ram"
+        },
+        {
+          "start": 2048,
+          "end": 2048,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 2560,
+          "end": 2560,
+          "kind": "handler",
+          "read": "port.DSW0"
+        },
+        {
+          "start": 3072,
+          "end": 3072,
+          "kind": "handler",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 4096,
+          "end": 4096,
+          "kind": "handler",
+          "write": "bzone_state.bzone_coin_counter_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 4608,
+          "end": 4608,
+          "kind": "handler",
+          "write": "avg.go_w"
+        },
+        {
+          "start": 5120,
+          "end": 5120,
+          "kind": "handler",
+          "write": "watchdog.reset_w"
+        },
+        {
+          "start": 5632,
+          "end": 5632,
+          "kind": "handler",
+          "write": "avg.reset_w"
+        },
+        {
+          "start": 6144,
+          "end": 6144,
+          "kind": "handler",
+          "read": "mathbox.status_r"
+        },
+        {
+          "start": 6160,
+          "end": 6160,
+          "kind": "handler",
+          "read": "mathbox.lo_r"
+        },
+        {
+          "start": 6168,
+          "end": 6168,
+          "kind": "handler",
+          "read": "mathbox.hi_r"
+        },
+        {
+          "start": 6176,
+          "end": 6191,
+          "kind": "handler",
+          "read": "pokey.read",
+          "write": "pokey.write"
+        },
+        {
+          "start": 6208,
+          "end": 6208,
+          "kind": "handler",
+          "write": "bzone_state.bzone_sounds_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 6240,
+          "end": 6271,
+          "kind": "handler",
+          "write": "mathbox.go_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 8192,
+          "end": 12287,
+          "kind": "ram"
+        },
+        {
+          "start": 12288,
+          "end": 32767,
+          "kind": "rom"
+        }
+      ],
+      "mask": 32767
+    }
+  ],
+  "sound": {
+    "kind": "pokey",
+    "clock": 1512000,
+    "chips": 1,
+    "deviceTags": [
+      "pokey"
+    ],
+    "clocks": [
+      1512000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 0
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 581,
+    "height": 401,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 41.015625,
+    "htotal": 400,
+    "vtotal": 300,
+    "vbstart": 401,
+    "vbend": 0,
+    "updateMode": "frame",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "036414-02.e1",
+          "offset": 20480,
+          "size": 2048,
+          "crc": "13de36d5",
+          "alt": [
+            {
+              "file": "036414-01.e1",
+              "crc": "efbc3fa0"
+            },
+            {
+              "file": "bz1f5000",
+              "crc": "dddfac9a"
+            }
+          ]
+        },
+        {
+          "file": "036413-01.h1",
+          "offset": 22528,
+          "size": 2048,
+          "crc": "5d9d9111",
+          "alt": [
+            {
+              "file": "bz1e5800",
+              "crc": "7e00e823"
+            }
+          ]
+        },
+        {
+          "file": "036412-01.j1",
+          "offset": 24576,
+          "size": 2048,
+          "crc": "ab55cbd2",
+          "alt": [
+            {
+              "file": "bz1d6000",
+              "crc": "c0f8c068"
+            },
+            {
+              "file": "300600_b_dxc.j1",
+              "crc": "8d45383f"
+            }
+          ]
+        },
+        {
+          "file": "036411-01.k1",
+          "offset": 26624,
+          "size": 2048,
+          "crc": "ad281297",
+          "alt": [
+            {
+              "file": "bz1c6800",
+              "crc": "5adc64bd"
+            },
+            {
+              "file": "300600_b_kx.k1",
+              "crc": "6e481957"
+            }
+          ]
+        },
+        {
+          "file": "036410-01.lm1",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "0b7bfaa4",
+          "alt": [
+            {
+              "file": "bz1b7000",
+              "crc": "ed8a860e"
+            },
+            {
+              "file": "300600_b.m1",
+              "crc": "ace7fbc8"
+            }
+          ]
+        },
+        {
+          "file": "036409-01.n1",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "1e14e919",
+          "alt": [
+            {
+              "file": "bz1a7800",
+              "crc": "04babf45"
+            }
+          ]
+        },
+        {
+          "file": "036422-01.bc3",
+          "offset": 12288,
+          "size": 2048,
+          "crc": "7414177b",
+          "alt": [
+            {
+              "file": "300600_b_gen_b.b3",
+              "crc": "9a25b1d4"
+            }
+          ]
+        },
+        {
+          "file": "036421-01.a3",
+          "offset": 14336,
+          "size": 2048,
+          "crc": "8ea8f939",
+          "alt": [
+            {
+              "file": "bz3b3800",
+              "crc": "76cf57f6"
+            },
+            {
+              "file": "300600_b_gen_a.a3",
+              "crc": "909550da"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "avg:prom",
+      "size": 256,
+      "loads": [
+        {
+          "file": "036408-01.k7",
+          "offset": 0,
+          "size": 256,
+          "crc": "5903af03"
+        }
+      ]
+    },
+    {
+      "region": "user2",
+      "size": 32,
+      "loads": [
+        {
+          "file": "036174-01.b1",
+          "offset": 0,
+          "size": 32,
+          "crc": "8b04f921"
+        }
+      ]
+    },
+    {
+      "region": "user3",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "036175-01.m1",
+          "offset": 0,
+          "size": 256,
+          "crc": "2af82e87",
+          "alt": [
+            {
+              "file": "036176-01.l1",
+              "crc": "b31f6e24"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "036176-01.l1",
+          "offset": 0,
+          "size": 256,
+          "crc": "b31f6e24",
+          "alt": [
+            {
+              "file": "036175-01.m1",
+              "crc": "2af82e87"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "036177-01.k1",
+          "offset": 1,
+          "size": 256,
+          "crc": "8119b847",
+          "alt": [
+            {
+              "file": "036178-01.j1",
+              "crc": "09f5a4d5"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "036178-01.j1",
+          "offset": 1,
+          "size": 256,
+          "crc": "09f5a4d5",
+          "alt": [
+            {
+              "file": "036177-01.k1",
+              "crc": "8119b847"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "036179-01.h1",
+          "offset": 2,
+          "size": 256,
+          "crc": "823b61ae",
+          "alt": [
+            {
+              "file": "036180-01.f1",
+              "crc": "276eadd5"
+            }
+          ],
+          "skip": 3
+        },
+        {
+          "file": "036180-01.f1",
+          "offset": 2,
+          "size": 256,
+          "crc": "276eadd5",
+          "alt": [
+            {
+              "file": "036179-01.h1",
+              "crc": "823b61ae"
+            }
+          ],
+          "skip": 3
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Diagnostic Step",
+      "type": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN3",
+      "mask": 1,
+      "keys": [
+        "KeyK"
+      ],
+      "label": "IPT_JOYSTICKRIGHT_DOWN",
+      "type": "IPT_JOYSTICKRIGHT_DOWN",
+      "activeLow": false,
+      "ways": 2
+    },
+    {
+      "port": "IN3",
+      "mask": 2,
+      "keys": [
+        "KeyI"
+      ],
+      "label": "IPT_JOYSTICKRIGHT_UP",
+      "type": "IPT_JOYSTICKRIGHT_UP",
+      "activeLow": false,
+      "ways": 2
+    },
+    {
+      "port": "IN3",
+      "mask": 4,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "IPT_JOYSTICKLEFT_DOWN",
+      "type": "IPT_JOYSTICKLEFT_DOWN",
+      "activeLow": false,
+      "ways": 2
+    },
+    {
+      "port": "IN3",
+      "mask": 8,
+      "keys": [
+        "KeyW"
+      ],
+      "label": "IPT_JOYSTICKLEFT_UP",
+      "type": "IPT_JOYSTICKLEFT_UP",
+      "activeLow": false,
+      "ways": 2
+    },
+    {
+      "port": "IN3",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN3",
+      "mask": 32,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN3",
+      "mask": 64,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN0",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW0",
+      "mask": 3,
+      "value": 1,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW0",
+      "mask": 12,
+      "value": 4,
+      "name": "Missile appears at"
+    },
+    {
+      "port": "DSW0",
+      "mask": 48,
+      "value": 16,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW0",
+      "mask": 192,
+      "value": 0,
+      "name": "Language"
+    },
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 0,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 224,
+      "value": 0,
+      "name": "Bonus Coins"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Brad Oliver",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "couriersud",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.130",
+        "lastRelease": "0.147"
+      },
+      {
+        "name": "125scratch",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.287",
+        "lastRelease": "0.287"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.253",
+        "lastRelease": "0.255"
+      },
+      {
+        "name": "MooglyGuy",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.150",
+        "lastRelease": "0.150"
+      },
+      {
+        "name": "zaxxon",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.205",
+        "lastRelease": "0.205"
+      },
+      {
+        "name": "Javier Blanco Ojeda",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.253",
+        "lastRelease": "0.253"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 166,
+    "authors": 27,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nBattlezone (c) 1980 Atari, Incorporated.\n\nBattlezone is a classic one-player first person 3-D wire frame shoot-em-up in which the player controls a tank patrolling a dangerous war zone. Set in a valley surrounded by mountains, the aim is to destroy as many enemy tanks as possible, while avoiding return fire and destroying or avoiding the homing missiles that occasionally appear.\n\nEnemy tanks come in two varieties; standard slow-moving tanks and fast-moving 'Super Tanks'. A single hit taken from either an enemy tank or homing missile will result in the loss of a player tank. A flying saucer also occasionally appears but does not attack the player and can be either ignored or destroyed for bonus points.\n\nA radar screen at the top of the play area shows the current position of any enemy tanks or missiles within range, and the war zone is littered with indestructible pyramids and boxes that can provide temporary cover. Only a single shot is allowed on screen at any one time so accuracy of shots is vital to survival.\n\n- TECHNICAL -\n\nUpright cabinet dimensions : \n74.82 in. (190 cm) high. \n25.25 in. (64.13 cm) wide. \n25.26 in. (64.16 cm) deep. \nWeight : 290 lbs (131.5 kg). \nMonitor : 19-in. QuadraScan. \n\nGame ID : 0364xx \n\nMain CPU : MOS Technology M6502 (@ 1.512 Mhz) \nCo-processor : Math Box \nSound Chips : POKEY (@ 1.512 Mhz), Custom (@ 1.512 Mhz) \n\nPalette colors : Black and White with green and red screen overlays. \n\nControl : Double 2-way joysticks (both vertical, side by side) with a button for firing shots atop the right hand joystick.\n\n- TRIVIA -\n\nBattlezone went into the arcades in November 1980 and created such a sensation that the U.S. army ordered modified versions of the games to use in training.\n\nBattlezone selling in 1980 at an MSRP of $2095. Exactly 13022 units were produced.\n\nBattlezone was the first environmental 3-D landscape game. The game used a system of bit-slice processors called a 'mathbox' to do 3-D calculations for the display. This kind of 'squeezing the most out of minimal hardware' mindset was what led Atari to create the innovative games it did in the 1980's. \n\nAs Battlezone was so innovative for its time, the US Army commissioned Atari to create a version of the game for infantry vehicle training (called \"Bradley Trainer\"). Ed Rotberg was assigned the project, but was very opposed to it. Major Dave Robinson and General Donn Starry of the U.S. Army were responsible for bringing Atari the idea of making a military version to be used in training. \n\n* The Creation of Battlezone : The idea of a tank simulator was championed by Morgan Hoff, who became the project leader for Battlezone, while Ed Rotberg was the principal programmer.\n\nEd Rotberg: 'Morgan Hoff more or less championed it and decided to put together a team to implement the game. Given the technology that we had, the real challenge was how to make the game appear as if we had more technology than we did. And the question was always : How do we involve the player? Meeting those needs was where the artistry was involved in designing a game in those days.' \n\nThe developers used brilliant software code and innovative circuitry to create a high tech look. But some low-technology tricks were used as well. For example, a simple band of red cellophane was applied to the inside of the Battlezone screen. Placed across the top of the screen, the result was red colors for the radar and warning messages, even though Battlezone didn't have a two-color display.\n\nA game takes on a life of its own, Rotberg said : \"Most games rarely turn out exactly the way that you plan them. Every time that you play the game, you try to amplify those things that are fun, and you try to pare away those things that are annoying and really not enjoyable. It is kind of like a story that grows in the telling.\". \n\n* Remembrances from the Video Game Masters : On the erupting volcano in the background of Battlezone, Ed Rotberg said : \"One of the other programmers who was working on another project in the same lab kept saying, \"Why don't you make the volcano active?\" I had enough to do just to make the game play. And everyday he would say \"You know, you really need to make that volcano active\". He is really currently one of my very best friends, and he is a wonderful guy. But he kept pestering me about this. One day I said, \"You're a programmer. If you want the volcano active, you write the code and I'll put it in\". So I came in the next day and there was this chunk of code on my desk describing the motion of the rocks and such. I took an afternoon off and put the code into the program. That's how the volcano became active. It was never in the design.\".\n\nAtari engineers were always amazed by the abilities of the players out in the arcades.\n\nMorgan Hoff : \"I remember a game that contained a succession of increasingly difficult mazes ranging from easy to difficult, to those requiring super human skill in timing. I was completely surprised to find players who could complete the most difficult levels. They were in a world of their own. They played the game with incredibly accurate hand and eye coordination and memory. One day I was in an arcade and... the best player was seven. He was extraordinary and he was standing on a chair to reach the controls.\". \n\nAlthough Atari engineers uniformly praised the best players out in the arcades, many of the engineers were awesome players themselves. Once two Atari engineers went on a skiing vacation in Utah and Dan Pliskin came back with the following story : \"We were at Snowbird, and we had only been there a few days when we started to miss video games. So, we found a little arcade and my friend got onto a Missile Command (which was a pretty old game by then) and I got onto some pinball machine. We broke the high-score tables, and he had, like, 200 free cities and I had, like, 60 free games. When we got tired of playing, we just left them to these kids that were just wide-eyed, staring at us. The kids were standing there with their mouths open. They had never seen pinball wizards and video game masters.\". \n\n* Popular from the Start : As Battlezone took shape, engineers in the lab wanted to play it, a lot.\n\nEd Rotberg : 'Usually when you have a winner you leave your lab for awhile and when you return there are people standing around playing your game, and that happens over and over again. You end up having to kick them off your machine to get any work done. That is your first indication that you have a winner. And I have never seen a really strong game that did not have that appeal. The guys in the labs are pretty good barometers\". \nAnother barometer, though after the fact, was to go into the arcades to watch others playing it. Rotberg continued : \"The best feeling for a game designer is to go out into an arcade and see people having fun playing the game that they created. There is nothing better than that. To walk around and see all the other games, and know that people can choose from anything in there, but they are playing your game. That is pretty heavy stuff.' \n\n* The Great 25-Cent Escape : Battlezone provided great escape for a quarter.\n\nRich Adam : 'Battlezone was a great one. I did love that game. Why was that business so phenomenal then? For a quarter you could be in a tank simulator, a pretty darn good one. That was pretty good value. That's what made Battlezone a phenomenon.'\n\nDan Pliskin : 'There's a certain class of games where you just get into a trance when you're playing them. As long as you're in this trance, you're doing fine.'\n\nThe attraction of Battlezone's world was so strong that many players wanted to turn their back on the fighting and drive their tank up into the mountains to go exploring. The designers of the game had to put in a routine to send a missile after would-be explorers so that arcade owners wouldn't lose money on the peaceful tourists who didn't want to fight. Many great legends emerged from the arcades that centered on finding a way to leave the fighting behind.\n\nLyle Rains : 'One letter came in from a Battlezone fan who said that a friend of his had told him that if you drove far enough you finally got to the volcano, and if you drove over the top of the volcano, you could go down into the crater. And he said that inside the crater there was a castle, and that you could go inside and explore the castle. Of course, none of this was true. It was a great little story to get from a fan. Who knows, we may yet do a volcano with a castle in it.'\n\nDavid Palmer holds the official record for this game with 23,000,000 points on August 30, 1985. \n\nA Battlezone unit appears in the 1982 movie 'Tron', in the 1983 movie 'Joysticks', in the 1984 movie 'The Philadelphia Experiment' and in the 1986 movie 'Running Scared' (the cab appears in Billy Crystal's apartment). \n\nIn 1982, Atari released a set of 12 collector pins including : \"Missile Command\", \"Battlezone\", \"Tempest\", \"Asteroids Deluxe\", \"Space Duel\", \"Centipede\", \"Gravitar\", \"Dig Dug\", \"Kangaroo\", \"Xevious\", \"Millipede\" and \"Food Fight\". \n\nAn upright Battlezone unit appears in the 38 Special music video 'Caught Up In You'.\n\n- SCORING -\n\nTank (Slow) : 1,000 points. \nSuper Tank (Fast) : 3,000 points. \nMissile : 2,000 points. \nSaucer : 5,000 points.\n\n- TIPS AND TRICKS -\n\n* When you start the game, you will be put into a surrealistic landscape. Almost immediately, an enemy will appear on the screen. You will know this by a warning sound the machine makes plus the enemy will show up on your radar. First of all, this game will be very different because you must look through a periscope apparatus. This is to give the feeling of being confined in a tank. Get used to limited movement of your head and use your eyes to quickly take in the entire battlefield in a glance. \n\n* You must be able to identify different sounds in this game. Sounds you need to know are : \n1) The warning that an enemy is on the battlefield. \n2) The sound of an incoming missile. \n3) The sound of a shot being fired (by you or at you). \n4) The sound of the saucer. \n5) The joyous sound of actually destroying something. \n6) The sound when your tank bumps into an object (enemy unit or battlefield obstacle). \n\n* Your field of vision is approximately 45 degrees. This means you will have to learn to use your radar effectively for anything out of your field of vision. The 45 degree wedge always faces forward (your line of site). Enemies (except the saucer) will show up on your radar as a dot. Plus you will hear the beep as the radar sweep continues to cross over it. \n\n* Be not only aware of where the enemies are, but also where the obstacles are also. There's nothing more frustrating then having the perfect shot lined up, or the perfect escape planned when you run into something. This is especially true when you are moving backwards. \n\n* In order to line up with an enemy tank, you must turn your entire tank toward the enemy. The turret and tank are one piece versus being able to turn the turret independently of the tank. \n\n* You can only have one shot out at a time. This can prove to be the difference between life and death since if you fire a stray shot, you must wait for that shot to hit an object or disappear into the horizon before your tank is loaded again. This can take a couple of seconds. On the same note, the enemy tanks also work under this restriction. In other words, make sure you have your target lined up before taking a shot. \n\n* The game starts out giving you the standard tanks. These tanks move slower then your tanks so they are pretty easy to kill. After scoring 20,000 points (not including the points earned for killing the flying saucers), however, the Supertanks make their appearance. These tanks are much quicker then your tank so you have to take them out quickly. \n\n* Tank killing isn't actually too hard once you get the rhythm of how to do it down. There are a few methods for killing tanks : \n\n1) When the tank first appears on your radar, turn around so that you are facing it, but keep moving. The enemy tank will of course take a shot at your tank. It aims at where you are, not at where you are going. When you hear the sound of an enemy tank shooting at you, move away from the line of fire and launch an attack before the enemy tank can fire again. Never drive straight toward an enemy tank. You'll put yourself in the line of fire. Use wide arching turns or a zigzagging path. \n\n2) Now, move backwards and turn slightly in the same direction of where the enemy tank is. In other words, if the enemy tank is slightly to your left, then go backwards while turning your own tank to the left. You may even see the enemy's tank shot appear in your field of vision. That means you have the right angle on the turn. Be cautious when backing up. You don't want to back into enemy fire.\n\n3) At the same time you are moving backwards, the enemy tank will be moving up to engage your tank. Continue the above until the enemy tank is practically on top of your tank. Then rapidly turn left or right and hit him with a point-blank shot. Sometimes the enemy tank hits yours. Just like an obstacle, the enemy tank will back up and speed away. Turn rapidly to hit him before he can set up for a shot. Again, the Supertanks recover much quicker then the standard tanks. \n\n4) This will work on both regular tanks and Supertanks. The difference is the fact that Supertanks close the distance much quicker than regular tanks. \n\n5) Another way is to put an obstacle between yourself and the enemy tank. When an enemy tank hits an obstacle, they back up and move quickly away for a brief moment before they turn again to fire on your tank. If you are good, you can 'lead' the target when they are backing up or going forward and score a kill that way. Of course, this method is much more difficult. Beware : Rectangular blocks are too low to offer protection.\n\n* Don't attempt to outrun a Supertank. They can easily catch up to you. Plus, they like to get behind your tank to blast you from the rear. Nothing like not hearing the shot that destroys your tank. \n\n* Another battlefield hazard is the missile. The first missile is dependent on the score setting. It is an easy one that comes straight for your tank. Just sit there and blow it apart. After that, though, things aren't as easy. As with the tanks, there is a method and certain rhythm to taking out missiles. \n\n1) The missile will come down and take a hard turn to the right (as you are facing it). Then it will take a hard turn to the left. Then another hard turn to the right to hit your tank. \n\n2) You can stay still and just turn your tank slightly. When the missile is turning to the left, fire ahead of it and you can destroy it. \n\n3) Move backwards and turn toward your left. That way the missile will go across your field of vision before it makes its right turn again. \n\n4) When the missile comes, move backward and take a 'blind' shot. You may get lucky. Even if you don't, moving backwards will enable you to get another shot. However, use patience when firing at missiles. If the first 'blind' shot misses, don't fire the next shot until after the missile has travelled at least part way up the screen because it can alter its course randomly and hitting it takes time.\n\n5) If you are really good, you can wait until it takes the last turn to the right toward your tank. Spin around and hit it like that. This is a very rough shot to execute. \n\n6) If you mess up, sometimes you can move forward and to the right to cause the missile to miss. You also can usually cause a miss by putting tall (not the short ones you can shoot over) obstacles in your way. \n\n7) Regardless of method, make sure there are not obstacles between you and the missile. The missile is capable of jumping all obstacles and it will also eliminate the missile's pattern. Nothing like a missile jumping over an obstacle and landing on top of your tank. \n\n8) For multiple missiles, you will have to adjust your direction so that when the next missile lands, it will be centered in your gunsight. You can also confirm this by using your radar. \n\n* You will usually get a missile after about five tanks. Missiles usually come in twos or threes to make your life more exciting. They appear more frequently after you've earned 10,000 points. The first missile will also appear if you don't fire a shot within the first 45 seconds of play.\n\n* Beware of Flying Saucers! They can't attack your tank, but they can create quite a distraction. Don't forget while you're going after the high scores, the enemy tank is still aiming and firing at you.\n\n* Saucers are a great way to earn points. They are, unfortunately, on the battlefield when other enemies are present. If you have a safe, clear shot, then go for them. If not, you can still take a pot shot at them. \nThis is usually when you are spinning your tank around to deal with another enemy. If a saucer happens to be in the way, take a shot at it. You don't get points, however, if an enemy tank takes out a saucer. \n\n* If you do want to try for the big points that flying saucers bring, listen for the warning sound and try to fire while the enemy tank is waiting for its last shot to land...but make sure it doesn't land on you.\n\n* Another great thing about this game is that you will only have to deal with one enemy at a time. For example, if the missile appears, then the tank will disappear so you can concentrate on the missile. \n\n* After destroying an enemy tank, prepare for the worst. Although there aren't formal levels to the game, Battlezone responds to your successes by increasing the speed and ferocity of enemy attacks.\n\n- STAFF -\n\nProject Leader : Morgan Hoff \nProgrammer : Ed Rotberg (Game Play, also the tank treads) \nHardware Engineer : Jed Margolin (3-D algorithms, Object Digitization, Hardware Sounds, Moon) \nTechnician : Doug Snyder (also hardware design) \nBit Slice Math Box : Mike Albaugh, Dan Pliskin   \nAnalog Vector Generator Design : Howard Delman \nDesign of 3D Objects : Harry Jenkins, Roger Hector \nVolcano : Owen Rubin\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 (1983) \"Battlezone [Model CX2681]\"\n[JP] Atari 2600 (1983) \n[EU] Atari 2600 (1988) \"Battlezone [Model CX2681P]\" \n[US] Atari 5200 \"Battlezone [Model CX5239]\" : prototype only\nAtari XEGS \n[US] Sony PlayStation (dec.31, 1996) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SLUS-00339]\" \n[EU] Sega Saturn (1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model T-25413H-50]\" \n[US] Sega Saturn (june.30, 1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model T-9706H]\" \n[US] Nintendo SNES (aug.1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SNS-AW7E-USA]\" \n[EU] Sony PlayStation (dec.1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SLES-00466]\" \n[EU] Nintendo SNES (feb.26, 1998) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SNSP-AW7P-EUR]\" \n[US] Sony PlayStation (2001) \"Atari Anniversary Edition Redux [Model SLUS-01427]\" \n[US] Sega Dreamcast (jul.2, 2001) \"Atari Anniversary Edition [Model T-15130N]\" \n[EU] Sony PlayStation (mar.1, 2002) \"Atari Anniversary Edition Redux [Model SLES-03808]\" \n[US] Microsoft XBOX (nov.16, 2004) \"Atari Anthology [Model 26084]\"  \n[US] Sony PS2 (nov.22, 2004) \"Atari Anthology [Model SLUS-21076]\" \n[EU] Microsoft XBOX (nov.26, 2004) \"Atari Anthology\" \n[EU] Sony PS2 (feb.18, 2005) \"Atari Anthology [Model SLES-53061]\" \n[JP] Microsoft XBOX (aug.4, 2005) \"Atari Anthology [Model B7X-00001]\" \n[US] [EU] Microsoft XBOX 360 [XBLA] (apr.16, 2008) \n\n* HANDHELDS: \n[US] Atari Lynx (1994) \"Battlezone 2000 [Model PA2088]\" \n[EU] Nintendo Game Boy (1996) \"Arcade Classics - Battlezone & Super Breakout [Model DMG-ABSE-EUR]\" \n[US] Nintendo Game Boy (oct.1996) \"Arcade Classics - Battlezone & Super Breakout [Model DMG-ABSE-USA]\" \n[US] Nintendo GBA (mar.25, 2002) \"Atari Anniversary Advance [Model AGB-AAVE-USA]\" \n[EU] Nintendo GBA (feb.14, 2003) \"Atari Anniversary Advance [Model AGB-AAVP]\" \n[US] Sony PSP (dec.19, 2007) \"Atari Classics Evolved [Model ULUS-10325]\" \n[AU] Sony PSP (mar.7, 2008) \"Atari Classics Evolved\" \n[US] Nintendo DS (nov.2, 2010) \"Atari Greatest Hits Vol.1 [Model NTR-BR6E-USA]\" \n[EU] Nintendo DS (feb.24, 2011) \"Atari Greatest Hits Vol.1 [Model NTR-BR6P-EUR]\" \n\n* COMPUTERS: \n[US] Apple II (1983) \n[US] Commodore VIC-20 (1983) \n[EU] Commodore C64 (1983) \n[US] Commodore C64 (1983) \"Battlezone [Model RX8548]\" \n[US] PC [Booter] (1983) \n[EU] Sinclair ZX Spectrum (1984) \n[US] Tandy Color Computer (1985) \"Rommel 3D\" \n[EU] Atari ST (1986) \n[US] Tandy Color Computer (1988) \"Turret\" : written completely in Extended BASIC. \n[US] PC [MS Windows 3.1x, 3.5\"] (1993) \"Microsoft Arcade\" \n[US] [EU] PC [MS Windows, CD-ROM] (2000) \"Atari Arcade Hits 2\" \n[US] PC [MS Windows, CD-ROM] (jul.9, 2001) \"Atari Anniversary Edition\" \n[EU] PC [MS Windows, CD-ROM] (dec.14, 2001) \"Atari Anniversary Edition\" \n[US] PC [MS Windows, CD-ROM] (2003) \"Centipede & Battlezone\" by Selectsoft \n[US] PC [MS Windows, CD-ROM] (nov.11, 2003) \"Atari - 80 Classic Games in One! [Model 25069J]\" \n[EU] PC [MS Windows, CD-ROM] (june.10, 2005) \"Atari - 80 Classic Games in One! [Replay]\" \n\n* OTHERS: \n[US] Nokia N-Gage (2005) \"Atari Masterpieces Vol. I\" \n[EU] Nokia N-Gage (oct.13, 2005) \"Atari Masterpieces Vol. I\" \nApple Store (2012) \"Atari Greatest Hits\" \nGoogle Play (2012) \"Atari Greatest Hits\"\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/210/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

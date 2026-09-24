@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "frogger",
+  "family": "galaxian",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 140,
+    "total": 171,
+    "percent": 81.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ppi8255_0:I8255A",
+        "status": "executable",
+        "source": "src/devices/machine/i8255.cpp:66"
+      },
+      {
+        "name": "ppi8255_1:I8255A",
+        "status": "executable",
+        "source": "src/devices/machine/i8255.cpp:66"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "8910.0:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "konami:NETLIST_SOUND",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:48"
+      },
+      {
+        "name": "konami:ctl0:NETLIST_LOGIC_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:55"
+      },
+      {
+        "name": "konami:ctl1:NETLIST_LOGIC_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:55"
+      },
+      {
+        "name": "konami:ctl2:NETLIST_LOGIC_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:55"
+      },
+      {
+        "name": "konami:ctl3:NETLIST_LOGIC_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:55"
+      },
+      {
+        "name": "konami:ctl4:NETLIST_LOGIC_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:55"
+      },
+      {
+        "name": "konami:ctl5:NETLIST_LOGIC_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:55"
+      },
+      {
+        "name": "konami:cin0:NETLIST_STREAM_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:56"
+      },
+      {
+        "name": "konami:cin1:NETLIST_STREAM_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:56"
+      },
+      {
+        "name": "konami:cin2:NETLIST_STREAM_INPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:56"
+      },
+      {
+        "name": "konami:cout0:NETLIST_STREAM_OUTPUT",
+        "status": "declarative-host",
+        "source": "src/devices/machine/netlist.cpp:60"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "galaxian_state.coin_count_0_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:810"
+      },
+      {
+        "name": "galaxian_state.coin_count_1_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:816"
+      },
+      {
+        "name": "galaxian_state.frogger_ay8910_r",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:1160"
+      },
+      {
+        "name": "galaxian_state.frogger_ay8910_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:1169"
+      },
+      {
+        "name": "galaxian_state.frogger_ppi8255_r",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:1142"
+      },
+      {
+        "name": "galaxian_state.frogger_ppi8255_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:1152"
+      },
+      {
+        "name": "galaxian_state.galaxian_flip_screen_x_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:670"
+      },
+      {
+        "name": "galaxian_state.galaxian_flip_screen_y_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:686"
+      },
+      {
+        "name": "galaxian_state.galaxian_objram_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:514"
+      },
+      {
+        "name": "galaxian_state.galaxian_videoram_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian_v.cpp:503"
+      },
+      {
+        "name": "galaxian_state.irq_enable_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:779"
+      },
+      {
+        "name": "galaxian_state.konami_sound_filter_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:904"
+      },
+      {
+        "name": "watchdog.reset_r",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> galaxian_state.screen_update_galaxian",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7500"
+      },
+      {
+        "name": "screen.screen_vblank -> galaxian_state.vblank_interrupt_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7501"
+      },
+      {
+        "name": "ppi8255_0.in_pa_callback -> IN0",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7530"
+      },
+      {
+        "name": "ppi8255_0.in_pb_callback -> IN1",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7531"
+      },
+      {
+        "name": "ppi8255_0.in_pc_callback -> IN2",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7532"
+      },
+      {
+        "name": "ppi8255_0.out_pc_callback -> galaxian_state.konami_portc_0_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7533"
+      },
+      {
+        "name": "ppi8255_1.out_pa_callback -> soundlatch.write",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7536"
+      },
+      {
+        "name": "ppi8255_1.out_pb_callback -> galaxian_state.konami_sound_control_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7537"
+      },
+      {
+        "name": "ppi8255_1.in_pc_callback -> IN3",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7538"
+      },
+      {
+        "name": "ppi8255_1.out_pc_callback -> galaxian_state.konami_portc_1_w",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7539"
+      },
+      {
+        "name": "8910.0.port_a_read_callback -> soundlatch.read",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7556"
+      },
+      {
+        "name": "8910.0.port_b_read_callback -> galaxian_state.frogger_sound_timer_r",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7557"
+      },
+      {
+        "name": "palette.palette_init -> galaxian_state.galaxian_palette",
+        "status": "generated",
+        "source": "src/mame/galaxian/galaxian.cpp:7496"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/frogger/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 38,
+    "compiledMethods": 38,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 12,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "galaxian_state.screen_update_galaxian",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 6,
+    "generated": 27,
+    "declarative-host": 16,
+    "blocked": 0,
+    "missing": 0
+  }
+}

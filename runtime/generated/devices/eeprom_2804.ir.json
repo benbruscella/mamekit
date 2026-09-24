@@ -1,0 +1,21 @@
+{
+  "type": "EEPROM_2804",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "eeprom"
+      ]
+    },
+    {
+      "game": "marble",
+      "tags": [
+        "eeprom"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

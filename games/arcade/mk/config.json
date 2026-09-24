@@ -1,0 +1,1003 @@
+{
+  "game": "mk",
+  "title": "Mortal Kombat (rev 5.0 T-Unit 03/19/93) (Midway, 1992)",
+  "family": "midtunit",
+  "dataPath": "games/arcade/mk",
+  "board": {
+    "family": "midtunit",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "tms34010",
+        "clock": 50000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 524287,
+            "kind": "handler",
+            "read": "video.midtunit_vram_r",
+            "write": "video.midtunit_vram_w"
+          },
+          {
+            "start": 2097152,
+            "end": 2621439,
+            "kind": "ram"
+          },
+          {
+            "start": 2621440,
+            "end": 2637823,
+            "kind": "handler",
+            "share": "nvram",
+            "read": "midtunit_base_state.cmos_r",
+            "write": "midtunit_base_state.cmos_w"
+          },
+          {
+            "start": 2686976,
+            "end": 2752511,
+            "kind": "handler",
+            "write": "midtunit_base_state.cmos_enable_w"
+          },
+          {
+            "start": 2883584,
+            "end": 2883585,
+            "kind": "handler",
+            "read": "port.IN0"
+          },
+          {
+            "start": 2883586,
+            "end": 2883587,
+            "kind": "handler",
+            "read": "port.IN1"
+          },
+          {
+            "start": 2883588,
+            "end": 2883589,
+            "kind": "handler",
+            "read": "port.IN2"
+          },
+          {
+            "start": 2883590,
+            "end": 2883591,
+            "kind": "handler",
+            "read": "port.DSW"
+          },
+          {
+            "start": 3145728,
+            "end": 3211263,
+            "kind": "ram",
+            "share": "palette",
+            "write": "palette.write16"
+          },
+          {
+            "start": 3473408,
+            "end": 3473439,
+            "kind": "handler",
+            "read": "video.dma_r",
+            "write": "video.dma_w"
+          },
+          {
+            "start": 3538944,
+            "end": 3538947,
+            "kind": "handler",
+            "write": "video.midtunit_control_w"
+          },
+          {
+            "start": 3867148,
+            "end": 3867151,
+            "kind": "handler",
+            "write": "watchdog.reset16_w"
+          },
+          {
+            "start": 4063232,
+            "end": 4063235,
+            "kind": "handler",
+            "write": "video.midtunit_control_w"
+          },
+          {
+            "start": 4194304,
+            "end": 16777215,
+            "kind": "handler",
+            "share": "video",
+            "read": "video.midtunit_gfxrom_r"
+          },
+          {
+            "start": 66060288,
+            "end": 67108863,
+            "kind": "rom",
+            "romOffset": 0
+          },
+          {
+            "start": 535822336,
+            "end": 536870911,
+            "kind": "rom",
+            "romOffset": 0
+          },
+          {
+            "start": 3801088,
+            "end": 3801091,
+            "kind": "handler",
+            "read": "midtunit_adpcm_state.sound_state_r"
+          },
+          {
+            "start": 3801604,
+            "end": 3801607,
+            "kind": "handler",
+            "read": "midtunit_adpcm_state.sound_r",
+            "write": "midtunit_adpcm_state.sound_w"
+          },
+          {
+            "start": 402653184,
+            "end": 402653247,
+            "kind": "handler",
+            "read": "maincpu.io_register_r",
+            "write": "maincpu.io_register_w"
+          },
+          {
+            "start": 3538944,
+            "end": 3596287,
+            "kind": "handler",
+            "read": "midtunit_adpcm_state.mk_prot_r"
+          },
+          {
+            "start": 3538944,
+            "end": 3596287,
+            "kind": "handler",
+            "write": "midtunit_adpcm_state.mk_prot_w"
+          }
+        ],
+        "unmapHigh": true
+      },
+      {
+        "tag": "adpcm:cpu",
+        "type": "mc6809e",
+        "clock": 2000000,
+        "region": "adpcm:cpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 8191,
+            "kind": "ram"
+          },
+          {
+            "start": 8192,
+            "end": 8192,
+            "kind": "handler",
+            "mirror": 1023,
+            "write": "williams_adpcm_sound_device.bank_select_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 9216,
+            "end": 9217,
+            "kind": "handler",
+            "mirror": 1022,
+            "read": "adpcm:ym2151.read",
+            "write": "adpcm:ym2151.write"
+          },
+          {
+            "start": 10240,
+            "end": 10240,
+            "kind": "handler",
+            "mirror": 1023,
+            "write": "adpcm:dac.data_w"
+          },
+          {
+            "start": 11264,
+            "end": 11264,
+            "kind": "handler",
+            "mirror": 1023,
+            "read": "adpcm:oki.read",
+            "write": "adpcm:oki.write"
+          },
+          {
+            "start": 12288,
+            "end": 12288,
+            "kind": "handler",
+            "mirror": 1023,
+            "read": "williams_adpcm_sound_device.command_r"
+          },
+          {
+            "start": 13312,
+            "end": 13312,
+            "kind": "handler",
+            "mirror": 1023,
+            "write": "williams_adpcm_sound_device.oki6295_bank_select_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 15360,
+            "end": 15360,
+            "kind": "handler",
+            "mirror": 1023,
+            "write": "williams_adpcm_sound_device.talkback_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16384,
+            "end": 49151,
+            "kind": "handler",
+            "read": "bank.rombank",
+            "bank": "rombank"
+          },
+          {
+            "start": 49152,
+            "end": 65535,
+            "kind": "handler",
+            "read": "bank.romupper",
+            "bank": "romupper"
+          },
+          {
+            "start": 64412,
+            "end": 64454,
+            "kind": "ram"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 524287,
+        "kind": "handler",
+        "read": "video.midtunit_vram_r",
+        "write": "video.midtunit_vram_w"
+      },
+      {
+        "start": 2097152,
+        "end": 2621439,
+        "kind": "ram"
+      },
+      {
+        "start": 2621440,
+        "end": 2637823,
+        "kind": "handler",
+        "share": "nvram",
+        "read": "midtunit_base_state.cmos_r",
+        "write": "midtunit_base_state.cmos_w"
+      },
+      {
+        "start": 2686976,
+        "end": 2752511,
+        "kind": "handler",
+        "write": "midtunit_base_state.cmos_enable_w"
+      },
+      {
+        "start": 2883584,
+        "end": 2883585,
+        "kind": "handler",
+        "read": "port.IN0"
+      },
+      {
+        "start": 2883586,
+        "end": 2883587,
+        "kind": "handler",
+        "read": "port.IN1"
+      },
+      {
+        "start": 2883588,
+        "end": 2883589,
+        "kind": "handler",
+        "read": "port.IN2"
+      },
+      {
+        "start": 2883590,
+        "end": 2883591,
+        "kind": "handler",
+        "read": "port.DSW"
+      },
+      {
+        "start": 3145728,
+        "end": 3211263,
+        "kind": "ram",
+        "share": "palette",
+        "write": "palette.write16"
+      },
+      {
+        "start": 3473408,
+        "end": 3473439,
+        "kind": "handler",
+        "read": "video.dma_r",
+        "write": "video.dma_w"
+      },
+      {
+        "start": 3538944,
+        "end": 3538947,
+        "kind": "handler",
+        "write": "video.midtunit_control_w"
+      },
+      {
+        "start": 3867148,
+        "end": 3867151,
+        "kind": "handler",
+        "write": "watchdog.reset16_w"
+      },
+      {
+        "start": 4063232,
+        "end": 4063235,
+        "kind": "handler",
+        "write": "video.midtunit_control_w"
+      },
+      {
+        "start": 4194304,
+        "end": 16777215,
+        "kind": "handler",
+        "share": "video",
+        "read": "video.midtunit_gfxrom_r"
+      },
+      {
+        "start": 66060288,
+        "end": 67108863,
+        "kind": "rom",
+        "romOffset": 0
+      },
+      {
+        "start": 535822336,
+        "end": 536870911,
+        "kind": "rom",
+        "romOffset": 0
+      },
+      {
+        "start": 3801088,
+        "end": 3801091,
+        "kind": "handler",
+        "read": "midtunit_adpcm_state.sound_state_r"
+      },
+      {
+        "start": 3801604,
+        "end": 3801607,
+        "kind": "handler",
+        "read": "midtunit_adpcm_state.sound_r",
+        "write": "midtunit_adpcm_state.sound_w"
+      },
+      {
+        "start": 402653184,
+        "end": 402653247,
+        "kind": "handler",
+        "read": "maincpu.io_register_r",
+        "write": "maincpu.io_register_w"
+      },
+      {
+        "start": 3538944,
+        "end": 3596287,
+        "kind": "handler",
+        "read": "midtunit_adpcm_state.mk_prot_r"
+      },
+      {
+        "start": 3538944,
+        "end": 3596287,
+        "kind": "handler",
+        "write": "midtunit_adpcm_state.mk_prot_w"
+      }
+    ],
+    "screen": {
+      "width": 400,
+      "height": 254,
+      "xOffset": 100,
+      "yOffset": 20,
+      "refresh": 54.706839722636325,
+      "htotal": 506,
+      "vtotal": 289,
+      "vbstart": 274,
+      "vbend": 20,
+      "updateMode": "partial",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.1,
+        "target": "^"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.1,
+        "target": "^"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.1,
+        "target": "^"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "AD7524",
+        "deviceTag": "adpcm:dac",
+        "dac": {
+          "bits": 8,
+          "mapper": "unsigned",
+          "gain": 1
+        },
+        "clock": 0,
+        "gain": 0.1,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ]
+      },
+      {
+        "type": "OKIM6295",
+        "deviceTag": "adpcm:oki",
+        "sampleMap": [
+          {
+            "start": 0,
+            "end": 131071,
+            "bank": {
+              "tag": "okibank",
+              "entryOffsets": [
+                262144,
+                262144,
+                131072,
+                0,
+                917504,
+                786432,
+                655360,
+                524288
+              ],
+              "initialEntry": 0
+            }
+          },
+          {
+            "start": 131072,
+            "end": 262143,
+            "regionOffset": 393216
+          }
+        ],
+        "clock": 1000000,
+        "sampleRegion": "adpcm:oki",
+        "initialMode": "PIN7_HIGH",
+        "gain": 0.15,
+        "target": "speaker",
+        "writeMethods": [
+          "write",
+          "set_pin7"
+        ]
+      }
+    ],
+    "sampleRegion": "adpcm:oki",
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "adpcm:cpu",
+      "size": 327680,
+      "loads": [
+        {
+          "file": "sl1_mortal_kombat_u3_sound_rom.u3",
+          "offset": 65536,
+          "size": 262144,
+          "crc": "c615844c"
+        }
+      ]
+    },
+    {
+      "region": "adpcm:oki",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "sl1_mortal_kombat_u12_sound_rom.u12",
+          "offset": 0,
+          "size": 262144,
+          "crc": "258bd7f9",
+          "reloadOffsets": [
+            262144
+          ]
+        },
+        {
+          "file": "sl1_mortal_kombat_u13_sound_rom.u13",
+          "offset": 524288,
+          "size": 262144,
+          "crc": "7b7ec3b6",
+          "reloadOffsets": [
+            786432
+          ]
+        }
+      ]
+    },
+    {
+      "region": "maincpu",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "l5_mortal_kombat_t-unit_uj12_game_rom.uj12",
+          "offset": 0,
+          "size": 524288,
+          "crc": "f4990bf2",
+          "alt": [
+            {
+              "file": "l4_mortal_kombat_t-unit_uj12_game_rom.uj12",
+              "crc": "a1b6635a"
+            },
+            {
+              "file": "kombo-rom-uj-12.bin",
+              "crc": "7a441f2d"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "l5_mortal_kombat_t-unit_ug12_game_rom.ug12",
+          "offset": 1,
+          "size": 524288,
+          "crc": "b06aeac1",
+          "alt": [
+            {
+              "file": "l4_mortal_kombat_t-unit_ug12_game_rom.ug12",
+              "crc": "aa94f7ea"
+            },
+            {
+              "file": "kombo-rom-ug-12.bin",
+              "crc": "45bed5a1"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "video",
+      "size": 12582912,
+      "loads": [
+        {
+          "file": "l1_mortal_kombat_t-unit_ug14_game_rom.ug14",
+          "offset": 0,
+          "size": 524288,
+          "crc": "9e00834e",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj14_game_rom.uj14",
+          "offset": 1,
+          "size": 524288,
+          "crc": "f4b0aaa7",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug19_game_rom.ug19",
+          "offset": 2,
+          "size": 524288,
+          "crc": "2d8c7ba1",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj19_game_rom.uj19",
+          "offset": 3,
+          "size": 524288,
+          "crc": "33b9b7a4",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug16_game_rom.ug16",
+          "offset": 2097152,
+          "size": 524288,
+          "crc": "52c9d1e5",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj16_game_rom.uj16",
+          "offset": 2097153,
+          "size": 524288,
+          "crc": "c94c58cf",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug20_game_rom.ug20",
+          "offset": 2097154,
+          "size": 524288,
+          "crc": "2f7e55d3",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj20_game_rom.uj20",
+          "offset": 2097155,
+          "size": 524288,
+          "crc": "eae96df0",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug17_game_rom.ug17",
+          "offset": 4194304,
+          "size": 524288,
+          "crc": "e34fe253",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj17_game_rom.uj17",
+          "offset": 4194305,
+          "size": 524288,
+          "crc": "a56e12f5",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug22_game_rom.ug22",
+          "offset": 4194306,
+          "size": 524288,
+          "crc": "b537bb4e",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj22_game_rom.uj22",
+          "offset": 4194307,
+          "size": 524288,
+          "crc": "5e12523b",
+          "skip": 3
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "P1 High Punch",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "P1 Block",
+      "type": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "P1 High Kick",
+      "type": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 256,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 512,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 1024,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2048,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4096,
+      "keys": [],
+      "label": "P2 High Punch",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8192,
+      "keys": [],
+      "label": "P2 Block",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16384,
+      "keys": [],
+      "label": "P2 High Kick",
+      "type": "IPT_BUTTON3",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "type": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 512,
+      "keys": [],
+      "label": "P2 Low Punch",
+      "type": "IPT_BUTTON4",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1024,
+      "keys": [],
+      "label": "P2 Low Kick",
+      "type": "IPT_BUTTON5",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2048,
+      "keys": [],
+      "label": "P2 Block 2",
+      "type": "IPT_BUTTON6",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4096,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "P1 Low Punch",
+      "type": "IPT_BUTTON4",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8192,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "P1 Low Kick",
+      "type": "IPT_BUTTON5",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32768,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "P1 Block 2",
+      "type": "IPT_BUTTON6",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 1,
+      "name": "Test Switch"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 0,
+      "name": "Counters"
+    },
+    {
+      "port": "DSW",
+      "mask": 124,
+      "value": 124,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW",
+      "mask": 128,
+      "value": 0,
+      "name": "Coinage Source"
+    },
+    {
+      "port": "DSW",
+      "mask": 256,
+      "value": 0,
+      "name": "Skip Post Test"
+    },
+    {
+      "port": "DSW",
+      "mask": 512,
+      "value": 512,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 1024,
+      "value": 1024,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 2048,
+      "value": 2048,
+      "name": "Comic Book Offer"
+    },
+    {
+      "port": "DSW",
+      "mask": 4096,
+      "value": 4096,
+      "name": "Attract Sound"
+    },
+    {
+      "port": "DSW",
+      "mask": 8192,
+      "value": 8192,
+      "name": "Low Blows"
+    },
+    {
+      "port": "DSW",
+      "mask": 16384,
+      "value": 16384,
+      "name": "Blood"
+    },
+    {
+      "port": "DSW",
+      "mask": 32768,
+      "value": 32768,
+      "name": "Violence"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 65535
+    },
+    {
+      "tag": "IN1",
+      "init": 65535
+    },
+    {
+      "tag": "IN2",
+      "init": 65535
+    },
+    {
+      "tag": "DSW",
+      "init": 65149
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

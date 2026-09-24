@@ -1,0 +1,1628 @@
+{
+  "type": "NEOGEO_CART_SLOT",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "cslot1"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NEOGEO_CART_SLOT",
+    "className": "neogeo_cart_slot_device",
+    "shortName": "neogeo_cart_slot",
+    "description": "Neo Geo Cartridge Slot",
+    "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+    "sourceLine": 16,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NEOGEO_CART_SLOT, neogeo_cart_slot_device, \"neogeo_cart_slot\", \"Neo Geo Cartridge Slot\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_card_device"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_cart_type",
+      "parameters": "const char *slot",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 218,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "neogeo_get_pcb_id"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "slot"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 227,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "loaded_through_softlist"
+                  },
+                  "args": []
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "ROM16",
+                    "valueType": "uint16_t*"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "ROM8",
+                    "valueType": "uint8_t*"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "len",
+                    "valueType": "uint32_t"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "pcb_name",
+                    "valueType": "char*",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_feature"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "slot"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "pcb_name"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_cart_type"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "pcb_name"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "maincpu"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "rom_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM16"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_rom_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM16"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "maincpu"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "fixed"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "fixed_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM8"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_fixed_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "fixed"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_software_region"
+                        },
+                        "args": [
+                          {
+                            "kind": "string",
+                            "value": "audiocpu"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "len"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "audiocpu"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "audio_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "len"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65536
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audio_base"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ROM8"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "audiocpu"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "ROM8"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65536
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "audiocpu"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "ymsnd:adpcma"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "ym_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM8"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ym_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "ymsnd:adpcma"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_software_region"
+                        },
+                        "args": [
+                          {
+                            "kind": "string",
+                            "value": "ymsnd:adpcmb"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "len"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "ymsnd:adpcmb"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "ymdelta_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ymdelta_base"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ROM8"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "ymsnd:adpcmb"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": []
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "sprites"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "sprites_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM8"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_sprites_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "sprites"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_software_region"
+                        },
+                        "args": [
+                          {
+                            "kind": "string",
+                            "value": "audiocrypt"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "len"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "audiocrypt"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "audiocrypt_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audiocrypt_base"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ROM8"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "audiocrypt"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "audio_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "len"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65536
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "decrypt_all"
+                      },
+                      "args": [
+                        {
+                          "kind": "cast",
+                          "valueType": "uint8_t",
+                          "pointer": true,
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_cart"
+                              },
+                              "property": "get_rom_base"
+                            },
+                            "args": []
+                          }
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_rom_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_fixed_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_fixed_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ym_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ym_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ymdelta_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ymdelta_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audio_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audio_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audiocrypt_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audiocrypt_size"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "optimize_sprites"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_size"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_pair"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::error_condition"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_unload",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 317,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_default_card_software",
+      "parameters": "get_default_card_software_hook &hook",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 325,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "software_get_default_slot"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "rom"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rom_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 334,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "rom_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "banksel_w",
+      "parameters": "uint16_t data",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 346,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "banksel_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 356,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "ram_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 368,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "ram_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mem_mask"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addon_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "addon_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "protection_r",
+      "parameters": "address_space &space, offs_t offset",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 390,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "protection_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "space"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "protection_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+      "sourceFile": "src/devices/bus/neogeo/slot.cpp",
+      "sourceLine": 402,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "protection_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mem_mask"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/neogeo/slot.cpp",
+    "src/devices/bus/neogeo/slot.h"
+  ]
+}

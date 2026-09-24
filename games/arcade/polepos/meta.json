@@ -1,0 +1,109 @@
+{
+  "game": "polepos",
+  "title": "Pole Position (World) (Namco, 1982)",
+  "fullname": "Pole Position (World)",
+  "year": "1982",
+  "manufacturer": "Namco",
+  "family": "polepos",
+  "driverFile": "src/mame/namco/polepos.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Ernesto Corvi, Juergen Buchmueller, Alex Pasadyn, Aaron Giles, Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Alex Pasadyn",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Juergen Buchmueller",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Andrew Welburn",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.150",
+        "lastRelease": "0.150"
+      },
+      {
+        "name": "The Dumping Union",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.150",
+        "lastRelease": "0.150"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.282",
+        "lastRelease": "0.282"
+      },
+      {
+        "name": "Cow",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.236",
+        "lastRelease": "0.236"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.154",
+        "lastRelease": "0.154"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.188",
+        "lastRelease": "0.188"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 262,
+    "authors": 33,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

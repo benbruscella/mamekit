@@ -1,0 +1,28 @@
+{
+  "type": "YM2149",
+  "uses": [
+    {
+      "game": "arkanoid",
+      "tags": [
+        "aysnd"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM2149",
+    "className": "ym2149_device",
+    "shortName": "ym2149",
+    "description": "YM2149 SSG",
+    "sourceFile": "src/devices/sound/ay8910.cpp",
+    "sourceLine": 1652,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM2149, ym2149_device, \"ym2149\", \"YM2149 SSG\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ay8910.cpp",
+    "src/devices/sound/ay8910.h"
+  ]
+}

@@ -1,0 +1,99 @@
+Arcade Video game published 45 years ago:
+
+Cosmic Avenger (c) 1981 Universal.
+
+An early space shoot'em up game.
+
+How to Play:
+1. Your Avenger can be moved in 8 directions. The speed increases as it advances, while it decreases as it retreats.
+2. Destroy the front enemy by pressing the Fire Button, and destroy the target below by pressing the Bomb Button.
+3. The enemy UFO will assault you flying either from in front of you or from behind you.  You can locate it by using the radar.
+4. A tough chase missile will pursue your Avenger persistently. Dodge it successfully, and you can cause the enemy to fight among themselves.
+5. When you pass the enemy radar site, an ant-aircraft gun will fire at your according to the altitude of your Avenger.
+6. When the screen advances further, the X station will appear. When you destroy it in good time, you can destroy all the targets appearing on the screen at once. You are then awarded a high score.
+7. Your Avenger will be destroyed when it is affected by any explosion.
+8. The 1st – 5th highest scores for the day can enter their names on the screen.
+
+- TECHNICAL -
+
+Main CPU : Zilog Z80 (@ 4 Mhz)
+Sound Chips : (2x) Texas Instruments SN76496 (@ 4 Mhz)
+
+Screen orientation : Horizontal
+Video resolution : 240 x 192 pixels
+Screen refresh : 60.00 Hz
+Palette colors : 32
+
+Players : 2
+Control : 8-way joystick
+Buttons : 2
+
+- TRIVIA -
+
+Released in July 1981.
+
+This game is the first continuous X-axis (Left-Right) scrolling video game.
+
+Wes Hupp holds the official record for this game with 117,290 points on November 17, 1982.
+
+- SCORING -
+
+UFO : 100 points.
+Chase Missile Station (loaded) : 80 points.
+Chase Missile Station (empty) : 50 points.
+Counter Missile Station (loaded) : 80 points.
+Counter Missile Station (empty) : 50 points.
+Station : 100 points.
+Anti-Aircraft Gun : 50 points.
+Tank (armed) : 130 points.
+Tank (empty) : 100 points.
+Submarine : 100 points.
+Mine : 50 points.
+Depth Bomb : 50 points.
+X Station : 300 points.
+Missile: 30 points.
+Smart Bomb (Large Box with Flashing 'X') awards points for all enemies destroyed.
+
+- TIPS AND TRICKS -
+
+* Alien UFO's can be destroyed by missiles or by contact with another UFO.
+
+* Maximise your score on the tank stage by moving as slowly as possible. Tanks will appear as fast as you can fire. Remember to destroy any missiles fired by the tanks.
+
+* Bomb diagonal missile launchers when they are below you, before they have a chance to launch.
+
+* Vertical missiles are fired before you reach them. Slow down and allow them to fire, then destroy the launcher before it reloads.
+
+* Destroy launchers situated on towers by firing missiles at them. This will clear the way for you well in advance.
+
+* Watch the scanner for any UFO's coming from behind to see if they are coming in low or high. This will enable you to avoid them, but watch out for bullets.
+
+* On the underwater stage destroy the mines so that alien subs are blown up in the subsequent explosion.
+
+* You can move above enemy subs and bomb them safely as they only fire horizontally. Watch out for depth charges falling from above though.
+
+o Don't miss the alien smart bombs as these clear a good few buildings in advance as well as awarding points.
+
+- PORTS -
+
+* CONSOLES:
+Colecovision (1982)
+
+- SERIES -
+
+Cosmic Series
+
+1. Cosmic Monsters [Upright model] (1979)
+2. Cosmic Monsters 2 (1979)
+3. Cosmic Guerilla (1979)
+4. Cosmic Alien (1980)
+5. Devil Zone (1980)
+6. Zero Hour (1980)
+7. Space Panic (1980)
+8. Cosmic Avenger (1981)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/506/?o=2
+
+— Gaming History (arcade-history.com)

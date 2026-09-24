@@ -1,0 +1,978 @@
+{
+  "game": "btime",
+  "title": "Burger Time (Data East set 1) (Data East Corporation, 1982)",
+  "fullname": "Burger Time (Data East set 1)",
+  "year": "1982",
+  "company": "Data East Corporation",
+  "family": "btime",
+  "driverFile": "src/mame/dataeast/btime.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Zsolt Vasvari, Couriersud, Nicola Salmoria",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "deco_cpu7",
+      "clock": 1500000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 2047,
+          "kind": "ram"
+        },
+        {
+          "start": 3072,
+          "end": 3087,
+          "kind": "ram",
+          "share": "palette",
+          "write": "palette.write8"
+        },
+        {
+          "start": 4096,
+          "end": 5119,
+          "kind": "ram",
+          "share": "videoram"
+        },
+        {
+          "start": 5120,
+          "end": 6143,
+          "kind": "ram",
+          "share": "colorram"
+        },
+        {
+          "start": 6144,
+          "end": 7167,
+          "kind": "handler",
+          "read": "btime_state.btime_mirrorvideoram_r",
+          "write": "btime_state.btime_mirrorvideoram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 7168,
+          "end": 8191,
+          "kind": "handler",
+          "read": "btime_state.btime_mirrorcolorram_r",
+          "write": "btime_state.btime_mirrorcolorram_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 16384,
+          "kind": "handler",
+          "readOnly": true,
+          "read": "port.P1"
+        },
+        {
+          "start": 16385,
+          "end": 16385,
+          "kind": "handler",
+          "read": "port.P2"
+        },
+        {
+          "start": 16386,
+          "end": 16386,
+          "kind": "handler",
+          "write": "btime_state.btime_video_control_w",
+          "handlerWidth": 8,
+          "read": "port.SYSTEM"
+        },
+        {
+          "start": 16387,
+          "end": 16387,
+          "kind": "handler",
+          "write": "soundlatch.write",
+          "read": "port.DSW1"
+        },
+        {
+          "start": 16388,
+          "end": 16388,
+          "kind": "handler",
+          "write": "btime_state.bnj_scroll_w_0",
+          "handlerWidth": 8,
+          "read": "port.DSW2"
+        },
+        {
+          "start": 45056,
+          "end": 65535,
+          "kind": "rom"
+        }
+      ]
+    },
+    {
+      "tag": "audiocpu",
+      "type": "m6502",
+      "clock": 500000,
+      "region": "audiocpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 1023,
+          "kind": "ram",
+          "mirror": 7168
+        },
+        {
+          "start": 8192,
+          "end": 16383,
+          "kind": "handler",
+          "write": "ay1.data_w"
+        },
+        {
+          "start": 16384,
+          "end": 24575,
+          "kind": "handler",
+          "write": "ay1.address_w"
+        },
+        {
+          "start": 24576,
+          "end": 32767,
+          "kind": "handler",
+          "write": "ay2.data_w"
+        },
+        {
+          "start": 32768,
+          "end": 40959,
+          "kind": "handler",
+          "write": "ay2.address_w"
+        },
+        {
+          "start": 40960,
+          "end": 49151,
+          "kind": "handler",
+          "read": "soundlatch.read"
+        },
+        {
+          "start": 49152,
+          "end": 57343,
+          "kind": "handler",
+          "write": "btime_state.audio_nmi_enable_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 57344,
+          "end": 61439,
+          "kind": "rom",
+          "mirror": 4096
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1500000,
+    "chips": 2,
+    "deviceTags": [
+      "ay1",
+      "ay2"
+    ],
+    "resistorLoads": [
+      [
+        5000,
+        5000,
+        5000
+      ],
+      [
+        1000,
+        5000,
+        5000
+      ]
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 1
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 2
+      },
+      {
+        "chip": 1,
+        "channel": 0,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 3
+      },
+      {
+        "chip": 1,
+        "channel": 1,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 4
+      },
+      {
+        "chip": 1,
+        "channel": 2,
+        "gain": 1,
+        "target": "discrete",
+        "targetInput": 5
+      }
+    ],
+    "masterGain": 0.7,
+    "discreteMixer": {
+      "schemaVersion": 1,
+      "type": "DISCRETE_MIXER",
+      "streamInputs": [
+        {
+          "node": 1,
+          "input": 0,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "node": 2,
+          "input": 1,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "node": 3,
+          "input": 2,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "node": 4,
+          "input": 3,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "node": 5,
+          "input": 4,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "node": 6,
+          "input": 5,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        }
+      ],
+      "dataInputs": [],
+      "controlInputs": [],
+      "filters": [],
+      "adders": [],
+      "mixers": [],
+      "outputs": [
+        {
+          "node": 43,
+          "gain": 229369
+        }
+      ],
+      "graph": [
+        {
+          "op": "stream",
+          "node": 1,
+          "input": 0,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "op": "stream",
+          "node": 2,
+          "input": 1,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "op": "stream",
+          "node": 3,
+          "input": 2,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "op": "stream",
+          "node": 4,
+          "input": 3,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "op": "stream",
+          "node": 5,
+          "input": 4,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "op": "stream",
+          "node": 6,
+          "input": 5,
+          "gain": 0.00015259254737998596,
+          "offset": 0
+        },
+        {
+          "op": "adder",
+          "node": 20,
+          "enable": {
+            "value": 1
+          },
+          "inputs": [
+            {
+              "node": 1
+            },
+            {
+              "node": 2
+            },
+            {
+              "node": 3
+            }
+          ]
+        },
+        {
+          "op": "adder",
+          "node": 21,
+          "enable": {
+            "value": 1
+          },
+          "inputs": [
+            {
+              "node": 20
+            },
+            {
+              "node": 5
+            },
+            {
+              "node": 6
+            }
+          ]
+        },
+        {
+          "op": "multiply",
+          "node": 22,
+          "inputs": [
+            {
+              "node": 21
+            },
+            {
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "op": "opAmpFilter",
+          "node": 30,
+          "enable": {
+            "value": 1
+          },
+          "inputs": [
+            {
+              "node": 4
+            },
+            {
+              "value": 0
+            }
+          ],
+          "filterType": "bandPass1M",
+          "r1": 5000,
+          "r2": 0,
+          "r3": 10000,
+          "rF": 47000,
+          "c1": 6.8e-8,
+          "c2": 6.8e-8,
+          "vRef": 0,
+          "vMax": 3.5,
+          "vMin": -5
+        },
+        {
+          "op": "mixer",
+          "node": 40,
+          "enable": {
+            "value": 1
+          },
+          "mixerType": "opAmp",
+          "inputs": [
+            {
+              "node": 22
+            },
+            {
+              "node": 30
+            }
+          ],
+          "resistances": [
+            100000,
+            100000
+          ],
+          "capacitors": [
+            0,
+            0
+          ],
+          "rI": 0,
+          "rF": 10000,
+          "cF": 1.5e-10,
+          "cAmp": 0,
+          "vRef": 0,
+          "gain": 1
+        },
+        {
+          "op": "crFilter",
+          "node": 41,
+          "input": {
+            "node": 40
+          },
+          "resistance": 10000,
+          "capacitance": 0.000009999999999999999,
+          "vRef": 0
+        },
+        {
+          "op": "crFilter",
+          "node": 43,
+          "input": {
+            "node": 41
+          },
+          "resistance": 3,
+          "capacitance": 0.00009999999999999999,
+          "vRef": 0
+        },
+        {
+          "op": "output",
+          "node": -1,
+          "input": {
+            "node": 43
+          },
+          "gain": 229369
+        }
+      ],
+      "source": {
+        "file": "src/mame/dataeast/btime.cpp",
+        "line": 2216,
+        "netlist": "btime_sound_discrete"
+      }
+    },
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 240,
+    "height": 240,
+    "xOffset": 8,
+    "yOffset": 8,
+    "refresh": 57.44485294117647,
+    "htotal": 384,
+    "vtotal": 272,
+    "vbstart": 248,
+    "vbend": 8,
+    "updateMode": "frame",
+    "rotate": 270
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "aa04.9b",
+          "offset": 49152,
+          "size": 4096,
+          "crc": "368a25b5",
+          "alt": [
+            {
+              "file": "aa04.9b2",
+              "crc": "a041e25b"
+            },
+            {
+              "file": "ab04-3.9b",
+              "crc": "5d90c696"
+            },
+            {
+              "file": "ab04.9b",
+              "crc": "797e5f75"
+            }
+          ]
+        },
+        {
+          "file": "aa06.13b",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "b4ba400d",
+          "alt": [
+            {
+              "file": "ab06-3.13b",
+              "crc": "e0b993ad"
+            },
+            {
+              "file": "ab06.13b",
+              "crc": "c77f3f64"
+            }
+          ]
+        },
+        {
+          "file": "aa05.10b",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "8005bffa",
+          "alt": [
+            {
+              "file": "ab05-3.10b",
+              "crc": "c2b44b7f"
+            },
+            {
+              "file": "ab05.10b",
+              "crc": "b0d3640f"
+            }
+          ]
+        },
+        {
+          "file": "aa07.15b",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "086440ad",
+          "alt": [
+            {
+              "file": "ab07-3.15b",
+              "crc": "91986594"
+            },
+            {
+              "file": "ab07.15b",
+              "crc": "a142f862"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "ab14.12h",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "f55e5211",
+          "alt": [
+            {
+              "file": "6f.6",
+              "crc": "6b8e0272"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "gfx1",
+      "size": 24576,
+      "loads": [
+        {
+          "file": "aa12.7k",
+          "offset": 0,
+          "size": 4096,
+          "crc": "c4617243",
+          "alt": [
+            {
+              "file": "ab12-1.7k",
+              "crc": "6c79f79f"
+            }
+          ]
+        },
+        {
+          "file": "ab13.9k",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "ac01042f"
+        },
+        {
+          "file": "ab10.10k",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "854a872a"
+        },
+        {
+          "file": "ab11.12k",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "d4848014"
+        },
+        {
+          "file": "aa8.13k",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "8650c788",
+          "alt": [
+            {
+              "file": "ab8-1.13k",
+              "crc": "70b35bbe"
+            }
+          ]
+        },
+        {
+          "file": "ab9.15k",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "8dec15e6"
+        }
+      ]
+    },
+    {
+      "region": "gfx2",
+      "size": 6144,
+      "loads": [
+        {
+          "file": "ab00.1b",
+          "offset": 0,
+          "size": 2048,
+          "crc": "c7a14485",
+          "alt": [
+            {
+              "file": "2f.3",
+              "crc": "28609a75"
+            }
+          ]
+        },
+        {
+          "file": "ab01.3b",
+          "offset": 2048,
+          "size": 2048,
+          "crc": "25b49078",
+          "alt": [
+            {
+              "file": "4f.4",
+              "crc": "7742e771"
+            }
+          ]
+        },
+        {
+          "file": "ab02.4b",
+          "offset": 4096,
+          "size": 2048,
+          "crc": "b8ef56c3",
+          "alt": [
+            {
+              "file": "5f.5",
+              "crc": "611c686f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "bg_map",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "ab03.6b",
+          "offset": 0,
+          "size": 2048,
+          "crc": "d26bc1f3",
+          "alt": [
+            {
+              "file": "ab03-3.6b",
+              "crc": "f699d797"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "P1",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P1",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P1",
+      "mask": 4,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P1",
+      "mask": 8,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P1",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "P2",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P2",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P2",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P2",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 4
+    },
+    {
+      "port": "P2",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 64,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "SYSTEM",
+      "mask": 128,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW1",
+      "mask": 12,
+      "value": 12,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW1",
+      "mask": 16,
+      "value": 16,
+      "name": "Leave Off"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 32,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 1,
+      "value": 1,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW2",
+      "mask": 6,
+      "value": 2,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW2",
+      "mask": 8,
+      "value": 8,
+      "name": "Enemies"
+    },
+    {
+      "port": "DSW2",
+      "mask": 16,
+      "value": 0,
+      "name": "End of Level Pepper"
+    },
+    {
+      "port": "DSW2",
+      "mask": 32,
+      "value": 32,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW2",
+      "mask": 64,
+      "value": 64,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW2",
+      "mask": 128,
+      "value": 128,
+      "name": "Unused"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Couriersud",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Aaron Giles",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.143",
+        "lastRelease": "0.143"
+      },
+      {
+        "name": "Alex Jackson",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.157",
+        "lastRelease": "0.157"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-03-16",
+    "commits": 225,
+    "authors": 29,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 44 years ago:\n\nBurger Time (c) 1982 Data East.\n\nStand-alone release of \"Hamburger [Model DT-126]\". For more information on the game itself, please see the original release entry.\n\n- TECHNICAL -\n\nMain CPU : MOS Technology M6502 (@ 1.5 Mhz)\nSound CPU : MOS Technology M6502 (@ 500 Khz)\nSound Chips : (2x) General Instrument AY8910 (@ 1.5 Mhz)\n\nPlayers : 2\nControl : 4-way joystick\nButtons : 1 (PEPPER)\n\n- TRIVIA -\n\nBurger Time was released in August 1982 in Japan. \n\nThe game was originally titled \"Hamburger\" in Japan, but was renamed \"Burger Time\" before being exported internationally. It was originally made for the DECO Cassette System, an early arcade format that pulled the game data from audio cassettes. The cassette system enjoyed a brief bit of popularity, until it was discovered that the cassettes quickly wore out, rendering the game useless. Bally/Midway licensed this title soon after its original release, and redesigned the hardware to drop the cassette altogether. The Bally/Midway version of the game sold vast quantities when compared to the original.\n\nThis stand-alone version, manufactured without Bally/Midway's involvement, features a different attract mode.\n\nWhen starting a new game (and a new life after getting caught), the game start display says 'Game Ready'. This was corrected to 'Get Ready' in the Bally/Midway version. It originally said 'Game Start' in \"Hamburger\".\n\nWhen the chef runs out of pepper, the 'Pepper' display blinks, but there is no warning sound.\n\nIn the Data East USA version : \n* Gameplay is noticeably much faster than the other versions.\n* 'Lives' dip switch can be set to 30,000, 50,000, 80,000, or None.\n* The attract mode is exactly the same as the Bally/Midway version except for the different copyright information on the title screen.\n\nBryan Wagner holds the official record for this game with 11,512,500 points on September 19, 2008.\n\n- TIPS AND TRICKS -\n\nStage 1\n\nThe introductory stage is very spacious and balanced, and you will only have to contend with three copies of Mr. Hot Dog and one copy of Mr. Egg. No one section of the stage presents any danger since ample escape routes can be found. At most, the burger layers only need to drop through five floors, so this stage won't take you as long as some of the other stages. Use this stage to understand the nature of the enemies' movement. Note how they tend to alternate between walking across a floor and using a ladder whenever they encounter one or the other that brings them closer to your position. Setting up the layers to allow enemies to drop with them is fairly easy to do.\n\nStage 2\n\nWhile this stage features the same number of enemies as the previous stage, the layout of the floors makes the top portion of the screen much safer than the bottom portion. With the limited space and choices in the lower half of the stage, it is best to save it for last when you have no choice but to clear it. Focus on getting to the top as quickly as possible, but watch out for where the enemies are appearing. Staying on a ladder for a little while is a great way to lure enemies to a lower floor than the one you intend to visit. Once the two side burgers are complete, you must venture down the center of the stage. Before you do, draw the enemies as high as possible before heading down the center. Once you're ready to clear the stage, try to lure an enemy on to a top bun before dropping it. If you time it well, the enemies can clear the stage for you faster than you could. Note that the lower floors where the burgers wait are dead ends.\n\nStage 3\n\nEven though you must build six burgers with only three layers each, this stage is a lot tougher than it looks. This time, six enemies will pursue you, including the never-before-seen Mr. Pickle. First and foremost, you need to get out of the bottom portion of the stage as quickly as possible. And the left is not a good choice for escape routes. If the copy of Mr. Pickle that enters from that side doesn't get you, another enemy is almost sure to come down that left ladder and trap you. Instead, head immediately for the right. If you're an expert player, you may choose to complete that lower right hamburger before continuing on to the top, but the more time you spend there, the bigger opportunity you give the enemies to trap you. Beginners should climb the right side of the stage all the way to the top in order to gain a little control over the enemies' movements. Like the previous stage, focus on completing the burgers at the top before tackling the lower burgers on either side.\n\nStage 4\n\nYou may feel a little daunted by the task at hand when you first see this stage: four hamburgers composed of eight layers. That's a lot of walking. But if you remember to focus your efforts on the top buns as much as possible, you won't waste a lot of time. The ladders are arranged in such a way that continuous climbing is difficult to accomplish. Instead, you and the enemies are more likely to staircase your way through the stage in order to get around. This can be a blessing and a curse. It's good because the enemies have few direct paths or multiple options to attack you from. It's bad because you need to become very skilled at controlling the chef in order not to slow down as you progress up or down the screen. The chef can feel very sluggish on ladders, and it can be difficult at first to properly time his transitions from ladder to floor and back to ladder again. By the time you complete this stage however, you'll have plenty of practice.\n\nStage 5\n\nIf you think that this stage is easier than the last stage because there's only half as many burgers to make, you're wrong. The layout of the stage is such that you have very few options to get from one section to another. Fewer options to move means fewer chances to escape so you must plot your course through this stage very carefully in order to avoid the six enemies that will be occupying the stage with you. There are two strategies to take. One involves luring the enemies to the lower right hand portion of the stage to keep them occupied for a while. This can be risky however, since you might become trapped from above and below. The other strategy is to employ pepper more liberally, provided you have a good supply by this stage. If you intend to use pepper, and wish to make the most use out of it, be sure to freeze enemies while they are standing on top of a layer so that you can walk across the layer and send it falling several stories with the enemy on board.\n\nStage 6\n\nThis is the last new stage that you will see before the game repeats the cycle of stages over again. In the heat of the moment, it's very easy to assume that certain paths on this stage connect when in fact they don't. Total comprehension of your available escape routes will decrease your chances of getting trapped and increase your chances of survival. The burgers on the side are especially dangerous since every layer is perched on a dead end. If an enemy is following you, it's relatively easy to drop a burger layer with the enemy standing on it, but getting out of the area can be tricky if you are too slow and allow another enemy to pursue you. You'll need to employ every trick that you've learned in the previous five stages to make it out of this one. The most important thing is not to panic.\n\nBeyond Stage 28\n\nThe game will continue normally until stage 28. Starting on stage 28 the enemies move about 2 1/2 times faster than they did before. After 90 seconds (if you can survive that long on one chef), they slow down to a crawl, moving one step every 5 seconds. You can still die if you run into the enemies. The chef's speed never changes. If you can make it to the top of the board (28), you can find the \"safe\" spot. You can hide out here until they slow down. You will need new patterns for each board to group the enemies, and wait each time for each drop. It can take 1-1 1/2 hour per board at this level.\n\n- PORTS -\n\nNOTE: Only ports released outside Japan and North America are listed here. For Japanese ports, please see the original Japanese release entry, \"Hamburger [Model DT-126]\". For ports released in North America, please see the Midway entry. \n\n* CONSOLES: \n[EU] Sony PlayStation (mar.1998) \"Arcade's Greatest Hits - The Midway Collection 2 [Model SLES-00739]\" \n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1991) \"BurgerTime Deluxe [Model DMG-GM-NOE]\" \n[UK] Nintendo Game Boy (1991) \"BurgerTime Deluxe [Model DMG-GM-UKV]\" \n\n* COMPUTERS:\n[EU] Commodore C64 (1984) \n[EU] BBC B (1984) \"Mr. Wimpy\" by Ocean \n[EU] Acorn Electron (1984) \"Mr. Wimpy\" by Ocean \n[EU] Oric (1984) \"Mr. Wimpy\" by Ocean \n[EU] Sinclair ZX Spectrum (1984) \"Mr. Wimpy\" by Ocean \n[EU] MSX (1986) \"Mac Attack\" \n[AU] VTech Laser-VZ \"Hamburger Sam\" \n[EU] Amstrad CPC\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/355/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

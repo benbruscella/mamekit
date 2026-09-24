@@ -1,0 +1,61 @@
+{
+  "game": "centiped",
+  "title": "Centipede (revision 4) (Atari, 1980)",
+  "fullname": "Centipede (revision 4)",
+  "year": "1980",
+  "manufacturer": "Atari",
+  "family": "centiped",
+  "driverFile": "src/mame/atari/centiped.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Devin Acker",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      },
+      {
+        "name": "couriersud",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.147",
+        "lastRelease": "0.147"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.156",
+        "lastRelease": "0.156"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2024-12-04",
+    "commits": 213,
+    "authors": 28,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,33 @@
+{
+  "type": "KONAMI",
+  "uses": [
+    {
+      "game": "simpsons",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "KONAMI",
+    "className": "konami_cpu_device",
+    "shortName": "konami_cpu",
+    "description": "KONAMI CPU",
+    "sourceFile": "src/devices/cpu/m6809/konami.cpp",
+    "sourceLine": 86,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(KONAMI, konami_cpu_device, \"konami_cpu\", \"KONAMI CPU\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m6809/konami.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6809/6x09dasm.h",
+    "src/devices/cpu/m6809/konami.cpp",
+    "src/devices/cpu/m6809/konami.h",
+    "src/devices/cpu/m6809/konami.lst",
+    "src/devices/cpu/m6809/m6809inl.h"
+  ]
+}

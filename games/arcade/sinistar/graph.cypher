@@ -1,0 +1,392 @@
+// mamekit knowledge graph — driver src/mame/williams/williams.cpp
+// generated 2026-09-24T02:30:25.444Z
+CREATE CONSTRAINT mamekit_id IF NOT EXISTS FOR (n:KG) REQUIRE n.id IS UNIQUE;
+MERGE (n:KG {id: 'file:src/mame/williams/williams.cpp'}) SET n:SourceFile SET n += {path: 'src/mame/williams/williams.cpp'};
+MERGE (n:KG {id: 'file:emu.h'}) SET n:SourceFile SET n += {path: 'emu.h', external: true};
+MERGE (n:KG {id: 'file:williams.h'}) SET n:SourceFile SET n += {path: 'williams.h', external: true};
+MERGE (n:KG {id: 'file:machine/input_merger.h'}) SET n:SourceFile SET n += {path: 'machine/input_merger.h', external: true};
+MERGE (n:KG {id: 'file:machine/nvram.h'}) SET n:SourceFile SET n += {path: 'machine/nvram.h', external: true};
+MERGE (n:KG {id: 'file:sound/dac.h'}) SET n:SourceFile SET n += {path: 'sound/dac.h', external: true};
+MERGE (n:KG {id: 'file:speaker.h'}) SET n:SourceFile SET n += {path: 'speaker.h', external: true};
+MERGE (n:KG {id: 'game:sinistar'}) SET n:Game SET n += {name: 'sinistar', year: '1982', company: 'Williams', fullname: 'Sinistar (revision 3, upright)', monitor: 'ROT270', cls: 'williams_state', init: 'empty_init', flags: 'MACHINE_SUPPORTS_SAVE', kind: 'arcade', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 4023, sourceColumn: 1, sourceEndLine: 4023};
+MERGE (n:KG {id: 'romset:sinistar'}) SET n:RomSet SET n += {name: 'sinistar', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3326, sourceColumn: 1, sourceEndLine: 3326};
+MERGE (n:KG {id: 'region:sinistar/maincpu'}) SET n:RomRegion SET n += {tag: 'maincpu', size: 65536, flags: '0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1986, sourceColumn: 2, sourceEndLine: 1986};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_1-b_16-3004-53.1d'}) SET n:Rom SET n += {file: 'sinistar_rom_1-b_16-3004-53.1d', offset: 0, size: 4096, crc: 'f6f3a22c', sha1: '026d8cab07734fa294a5645edbe65a904bcbc302', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3328, sourceColumn: 2, sourceEndLine: 3328};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_2-b_16-3004-54.1c'}) SET n:Rom SET n += {file: 'sinistar_rom_2-b_16-3004-54.1c', offset: 4096, size: 4096, crc: 'cab3185c', sha1: '423d1e3b0c07333ec582529bc4d0b7baf591820a', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3329, sourceColumn: 2, sourceEndLine: 3329};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_3-b_16-3004-55.1a'}) SET n:Rom SET n += {file: 'sinistar_rom_3-b_16-3004-55.1a', offset: 8192, size: 4096, crc: '1ce1b3cc', sha1: '5bc03d7249529d827dc60c087e074ab3e4ea7361', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3330, sourceColumn: 2, sourceEndLine: 3330};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_4-b_16-3004-56.2d'}) SET n:Rom SET n += {file: 'sinistar_rom_4-b_16-3004-56.2d', offset: 12288, size: 4096, crc: '6da632ba', sha1: '72c0c3d5a5ca87ca4d95fcedaf834206e4633950', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3331, sourceColumn: 2, sourceEndLine: 3331};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_5-b_16-3004-57.2c'}) SET n:Rom SET n += {file: 'sinistar_rom_5-b_16-3004-57.2c', offset: 16384, size: 4096, crc: 'b662e8fc', sha1: '828a89d2ea13d8a362dae708f86bff54cb231887', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3332, sourceColumn: 2, sourceEndLine: 3332};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_6-b_16-3004-58.2a'}) SET n:Rom SET n += {file: 'sinistar_rom_6-b_16-3004-58.2a', offset: 20480, size: 4096, crc: '2306183d', sha1: '703e29e6446856615760a4897c0f5d79cc7bdfb2', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3333, sourceColumn: 2, sourceEndLine: 3333};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_7-b_16-3004-59.3d'}) SET n:Rom SET n += {file: 'sinistar_rom_7-b_16-3004-59.3d', offset: 24576, size: 4096, crc: 'e5dd918e', sha1: 'bf4e2ada6a59d246218544d822ba5355da925924', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3334, sourceColumn: 2, sourceEndLine: 3334};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_8-b_16-3004-60.3c'}) SET n:Rom SET n += {file: 'sinistar_rom_8-b_16-3004-60.3c', offset: 28672, size: 4096, crc: '4785a787', sha1: '8c7eca656b2c23b0da41a8c7ce51a2735cab85a4', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3335, sourceColumn: 2, sourceEndLine: 3335};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_9-b_16-3004-61.3a'}) SET n:Rom SET n += {file: 'sinistar_rom_9-b_16-3004-61.3a', offset: 32768, size: 4096, crc: '50cb63ad', sha1: '96e28e4fef98fff2649741a266fa590e0313e3b0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3336, sourceColumn: 2, sourceEndLine: 3336};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_10-b_16-3004-62.4c'}) SET n:Rom SET n += {file: 'sinistar_rom_10-b_16-3004-62.4c', offset: 57344, size: 4096, crc: '3d670417', sha1: '81802622bee8dbea5c0f08019d87d941dcdbe292', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3337, sourceColumn: 2, sourceEndLine: 3337};
+MERGE (n:KG {id: 'rom:sinistar/maincpu/sinistar_rom_11-b_16-3004-63.4a'}) SET n:Rom SET n += {file: 'sinistar_rom_11-b_16-3004-63.4a', offset: 61440, size: 4096, crc: '3162bc50', sha1: '2f38e572ab9c731e38dfe9bad3cc8222a775c5ea', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3338, sourceColumn: 2, sourceEndLine: 3338};
+MERGE (n:KG {id: 'region:sinistar/soundcpu'}) SET n:RomRegion SET n += {tag: 'soundcpu', size: 65536, flags: '0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 2001, sourceColumn: 2, sourceEndLine: 2001};
+MERGE (n:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic7_r1_16-3004-52.ic7'}) SET n:Rom SET n += {file: '3004_speech_ic7_r1_16-3004-52.ic7', offset: 45056, size: 4096, crc: 'e1019568', sha1: '442f4f3ccd2e1db2136d2ffb121ea442921f87ca', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3341, sourceColumn: 2, sourceEndLine: 3341};
+MERGE (n:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic5_r1_16-3004-50.ic5'}) SET n:Rom SET n += {file: '3004_speech_ic5_r1_16-3004-50.ic5', offset: 49152, size: 4096, crc: 'cf3b5ffd', sha1: 'd5d51c550581c9d46ab331dd4fd32541a2ef598e', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3342, sourceColumn: 2, sourceEndLine: 3342};
+MERGE (n:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic6_r1_16-3004-51.ic6'}) SET n:Rom SET n += {file: '3004_speech_ic6_r1_16-3004-51.ic6', offset: 53248, size: 4096, crc: 'ff8d2645', sha1: '16fa2a602acbbc182dd96bab113ab18356f3daf0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3343, sourceColumn: 2, sourceEndLine: 3343};
+MERGE (n:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic4_r1_16-3004-49.ic4'}) SET n:Rom SET n += {file: '3004_speech_ic4_r1_16-3004-49.ic4', offset: 57344, size: 4096, crc: '4b56a626', sha1: '44430cd5c110ec751b0bfb8ae99b26d443350db1', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3344, sourceColumn: 2, sourceEndLine: 3344};
+MERGE (n:KG {id: 'rom:sinistar/soundcpu/video_sound_rom_9_std.808.ic12'}) SET n:Rom SET n += {file: 'video_sound_rom_9_std.808.ic12', offset: 61440, size: 4096, crc: 'b82f4ddb', sha1: 'c70c7dd6e88897920d7709a260f27810f66aade1', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3345, sourceColumn: 2, sourceEndLine: 3345};
+MERGE (n:KG {id: 'region:sinistar/proms'}) SET n:RomRegion SET n += {tag: 'proms', size: 1024, flags: '0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 2004, sourceColumn: 2, sourceEndLine: 2004};
+MERGE (n:KG {id: 'rom:sinistar/proms/decoder_rom_4.3g'}) SET n:Rom SET n += {file: 'decoder_rom_4.3g', offset: 0, size: 512, crc: 'e6631c23', sha1: '9988723269367fb44ef83f627186a1c88cf7877e', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 2605, sourceColumn: 2, sourceEndLine: 2605};
+MERGE (n:KG {id: 'rom:sinistar/proms/decoder_rom_6.3c'}) SET n:Rom SET n += {file: 'decoder_rom_6.3c', offset: 512, size: 512, crc: '83faf25e', sha1: '30002643d08ed983a6701a7c4b5ee74a2f4a1adb', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 2749, sourceColumn: 2, sourceEndLine: 2749};
+MERGE (n:KG {id: 'handler:pia6821_device.read'}) SET n:Handler SET n += {method: 'read', ownerClass: 'pia6821_device', sourceFile: 'src/mame/shared/williamssound.cpp', sourceLine: 1223, sourceColumn: 2, sourceEndLine: 1223};
+MERGE (n:KG {id: 'handler:pia6821_device.write'}) SET n:Handler SET n += {method: 'write', ownerClass: 'pia6821_device', sourceFile: 'src/mame/shared/williamssound.cpp', sourceLine: 1223, sourceColumn: 2, sourceEndLine: 1223};
+MERGE (n:KG {id: 'map:williams_state.main_map'}) SET n:AddressMap SET n += {cls: 'williams_state', name: 'main_map', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 530, sourceColumn: 1, sourceEndLine: 543};
+MERGE (n:KG {id: 'map:williams_state.main_map/range0'}) SET n:AddressRange SET n += {start: 0, end: 49151, raw: 'map(0x0000, 0xbfff).ram().share(m_videoram)', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 532, sourceColumn: 2, sourceEndLine: 532, ram: true, share: 'videoram'};
+MERGE (n:KG {id: 'map:williams_state.main_map/range1'}) SET n:AddressRange SET n += {start: 0, end: 36863, raw: 'map(0x0000, 0x8fff).view(m_rom_view)', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 533, sourceColumn: 2, sourceEndLine: 533};
+MERGE (n:KG {id: 'map:williams_state.main_map/range2'}) SET n:AddressRange SET n += {start: 0, end: 36863, raw: 'm_rom_view[0](0x0000, 0x8fff).rom().region("maincpu", 0x00000)', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 534, sourceColumn: 2, sourceEndLine: 534, rom: true, viewTag: 'm_rom_view', viewEntry: 0, region: 'maincpu', regionOffset: 0};
+MERGE (n:KG {id: 'map:williams_state.main_map/range3'}) SET n:AddressRange SET n += {start: 49152, end: 49167, raw: 'map(0xc000, 0xc00f).mirror(0x03f0).writeonly().share(m_paletteram)', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 535, sourceColumn: 2, sourceEndLine: 535, mirror: 1008, writeonly: true, share: 'paletteram'};
+MERGE (n:KG {id: 'map:williams_state.main_map/range4'}) SET n:AddressRange SET n += {start: 51204, end: 51207, raw: 'map(0xc804, 0xc807).mirror(0x00f0).rw(m_pia[0], FUNC(pia6821_device::read), FUNC(pia6821_device::write))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 536, sourceColumn: 2, sourceEndLine: 536, mirror: 240};
+MERGE (n:KG {id: 'map:williams_state.main_map/range5'}) SET n:AddressRange SET n += {start: 51212, end: 51215, raw: 'map(0xc80c, 0xc80f).mirror(0x00f0).rw(m_pia[1], FUNC(pia6821_device::read), FUNC(pia6821_device::write))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 537, sourceColumn: 2, sourceEndLine: 537, mirror: 240};
+MERGE (n:KG {id: 'map:williams_state.main_map/range6'}) SET n:AddressRange SET n += {start: 51456, end: 51711, raw: 'map(0xc900, 0xc9ff).w(FUNC(williams_state::vram_select_w))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 538, sourceColumn: 2, sourceEndLine: 538};
+MERGE (n:KG {id: 'handler:williams_state.vram_select_w'}) SET n:Handler SET n += {method: 'vram_select_w', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 112, sourceColumn: 1, sourceEndLine: 122, sourceParameters: 'u8 data', sourceBody: '// VRAM/ROM banking from bit 0
+	if (BIT(data, 0))
+		m_rom_view.select(0);
+	else
+		m_rom_view.disable();
+
+	// cocktail flip from bit 1
+	m_cocktail = BIT(data, 1);'};
+MERGE (n:KG {id: 'map:williams_state.main_map/range7'}) SET n:AddressRange SET n += {start: 51968, end: 52223, raw: 'map(0xcb00, 0xcbff).r(FUNC(williams_state::video_counter_r))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 539, sourceColumn: 2, sourceEndLine: 539};
+MERGE (n:KG {id: 'handler:williams_state.video_counter_r'}) SET n:Handler SET n += {method: 'video_counter_r', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_v.cpp', sourceLine: 485, sourceColumn: 1, sourceEndLine: 491, sourceParameters: '', sourceBody: 'if (m_screen->vpos() < 0x100)
+		return m_screen->vpos() & 0xfc;
+	else
+		return 0xfc;'};
+MERGE (n:KG {id: 'map:williams_state.main_map/range8'}) SET n:AddressRange SET n += {start: 52223, end: 52223, raw: 'map(0xcbff, 0xcbff).w(FUNC(williams_state::watchdog_reset_w))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 540, sourceColumn: 2, sourceEndLine: 540};
+MERGE (n:KG {id: 'handler:williams_state.watchdog_reset_w'}) SET n:Handler SET n += {method: 'watchdog_reset_w', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 247, sourceColumn: 1, sourceEndLine: 252, sourceParameters: 'u8 data', sourceBody: '// yes, the data bits are checked for this specific value
+	if (data == 0x39)
+		m_watchdog->watchdog_reset();'};
+MERGE (n:KG {id: 'map:williams_state.main_map/range9'}) SET n:AddressRange SET n += {start: 52224, end: 53247, raw: 'map(0xcc00, 0xcfff).ram().w(FUNC(williams_state::cmos_4bit_w)).share("nvram")', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 541, sourceColumn: 2, sourceEndLine: 541, ram: true, share: 'nvram'};
+MERGE (n:KG {id: 'handler:williams_state.cmos_4bit_w'}) SET n:Handler SET n += {method: 'cmos_4bit_w', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 233, sourceColumn: 1, sourceEndLine: 237, sourceParameters: 'offs_t offset, u8 data', sourceBody: '// only 4 bits are valid
+	m_nvram[offset] = data | 0xf0;'};
+MERGE (n:KG {id: 'map:williams_state.main_map/range10'}) SET n:AddressRange SET n += {start: 53248, end: 65535, raw: 'map(0xd000, 0xffff).rom()', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 542, sourceColumn: 2, sourceEndLine: 542, rom: true};
+MERGE (n:KG {id: 'map:williams_state.main_map_blitter'}) SET n:AddressMap SET n += {cls: 'williams_state', name: 'main_map_blitter', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 545, sourceColumn: 1, sourceEndLine: 549, calls: ['main_map']};
+MERGE (n:KG {id: 'map:williams_state.main_map_blitter/range0'}) SET n:AddressRange SET n += {start: 51712, end: 51719, raw: 'map(0xca00, 0xca07).mirror(0x00f8).m(m_blitter, FUNC(williams_blitter_device::map))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 548, sourceColumn: 2, sourceEndLine: 548, mirror: 248};
+MERGE (n:KG {id: 'map:williams_state.sinistar_main_map'}) SET n:AddressMap SET n += {cls: 'williams_state', name: 'sinistar_main_map', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 551, sourceColumn: 1, sourceEndLine: 559, calls: ['main_map_blitter']};
+MERGE (n:KG {id: 'map:williams_state.sinistar_main_map/range0'}) SET n:AddressRange SET n += {start: 51456, end: 51711, raw: 'map(0xc900, 0xc9ff).w(FUNC(williams_state::sinistar_vram_select_w))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 555, sourceColumn: 2, sourceEndLine: 555};
+MERGE (n:KG {id: 'handler:williams_state.sinistar_vram_select_w'}) SET n:Handler SET n += {method: 'sinistar_vram_select_w', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 372, sourceColumn: 1, sourceEndLine: 379, sourceParameters: 'u8 data', sourceBody: '// low two bits are standard
+	vram_select_w(data);
+
+	// window enable from bit 2 (clips to 0x7400)
+	m_blitter->window_enable_w(BIT(data, 2));'};
+MERGE (n:KG {id: 'handler:williams_blitter_device.window_enable_w'}) SET n:Handler SET n += {method: 'window_enable_w', ownerClass: 'williams_blitter_device', sourceFile: 'src/mame/williams/williamsblitter.cpp', sourceLine: 147, sourceColumn: 1, sourceEndLine: 150, sourceParameters: 'u8 data', sourceBody: 'm_window_enable = BIT(data, 0);'};
+MERGE (n:KG {id: 'map:williams_state.sinistar_main_map/range1'}) SET n:AddressRange SET n += {start: 53248, end: 57343, raw: 'map(0xd000, 0xdfff).ram()', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 557, sourceColumn: 2, sourceEndLine: 557, ram: true};
+MERGE (n:KG {id: 'map:williams_state.sinistar_main_map/range2'}) SET n:AddressRange SET n += {start: 57344, end: 65535, raw: 'map(0xe000, 0xffff).rom()', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 558, sourceColumn: 2, sourceEndLine: 558, rom: true};
+MERGE (n:KG {id: 'map:williams_state.sound_map'}) SET n:AddressMap SET n += {cls: 'williams_state', name: 'sound_map', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 691, sourceColumn: 1, sourceEndLine: 697};
+MERGE (n:KG {id: 'map:williams_state.sound_map/range0'}) SET n:AddressRange SET n += {start: 0, end: 127, raw: 'map(0x0000, 0x007f).ram()', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 693, sourceColumn: 2, sourceEndLine: 693, ram: true};
+MERGE (n:KG {id: 'map:williams_state.sound_map/range1'}) SET n:AddressRange SET n += {start: 128, end: 255, raw: 'map(0x0080, 0x00ff).ram()', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 694, sourceColumn: 2, sourceEndLine: 694, ram: true};
+MERGE (n:KG {id: 'map:williams_state.sound_map/range2'}) SET n:AddressRange SET n += {start: 1024, end: 1027, raw: 'map(0x0400, 0x0403).mirror(0x8000).rw(m_pia[2], FUNC(pia6821_device::read), FUNC(pia6821_device::write))', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 695, sourceColumn: 2, sourceEndLine: 695, mirror: 32768};
+MERGE (n:KG {id: 'map:williams_state.sound_map/range3'}) SET n:AddressRange SET n += {start: 45056, end: 65535, raw: 'map(0xb000, 0xffff).rom()', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 696, sourceColumn: 2, sourceEndLine: 696, rom: true};
+MERGE (n:KG {id: 'handler:dac_byte_interface.data_w'}) SET n:Handler SET n += {method: 'data_w', ownerClass: 'dac_byte_interface', sourceFile: 'src/mame/shared/williamssound.cpp', sourceLine: 1242, sourceColumn: 2, sourceEndLine: 1242};
+MERGE (n:KG {id: 'machine:williams_state.williams_base'}) SET n:MachineConfig SET n += {cls: 'williams_state', name: 'williams_base', calls: [], stateMembers: ['{"name":"m_cocktail","bits":8}'], resetHandlers: ['williams_state.machine_reset'], startHandlers: ['williams_state.video_start'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1534, sourceColumn: 1, sourceEndLine: 1584};
+MERGE (n:KG {id: 'handler:williams_state.machine_reset'}) SET n:Handler SET n += {method: 'machine_reset', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 47, sourceColumn: 1, sourceEndLine: 50, sourceParameters: '', sourceBody: 'm_rom_view.disable();'};
+MERGE (n:KG {id: 'handler:williams_state.video_start'}) SET n:Handler SET n += {method: 'video_start', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_v.cpp', sourceLine: 163, sourceColumn: 1, sourceEndLine: 166, sourceParameters: '', sourceBody: 'save_item(NAME(m_cocktail));'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/maincpu'}) SET n:Device SET n += {type: 'MC6809E', tag: 'maincpu', clock: 1000000, config: ['MC6809E(config, m_maincpu, MASTER_CLOCK/3/4)', 'm_maincpu->set_addrmap(AS_PROGRAM, &williams_state::main_map)'], member: 'm_maincpu', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1537, sourceColumn: 2, sourceEndLine: 1537};
+MERGE (n:KG {id: 'device:williams_state.williams_base/soundcpu'}) SET n:Device SET n += {type: 'M6808', tag: 'soundcpu', clock: 3579545, config: ['M6808(config, m_soundcpu, SOUND_CLOCK)', 'm_soundcpu->set_addrmap(AS_PROGRAM, &williams_state::sound_map)'], member: 'm_soundcpu', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1540, sourceColumn: 2, sourceEndLine: 1540};
+MERGE (n:KG {id: 'device:williams_state.williams_base/nvram'}) SET n:Device SET n += {type: 'NVRAM', tag: 'nvram', clock: null, config: ['NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1543, sourceColumn: 2, sourceEndLine: 1543, clockExpr: 'nvram_device::DEFAULT_ALL_0'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/scan_timer'}) SET n:Device SET n += {type: 'TIMER', tag: 'scan_timer', clock: null, config: ['TIMER(config, "scan_timer").configure_scanline(FUNC(williams_state::va11_callback), "screen", 0, 32)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1546, sourceColumn: 2, sourceEndLine: 1546};
+MERGE (n:KG {id: 'device:williams_state.williams_base/scan_timer/callback:scan_timer:0'}) SET n:Callback SET n += {signal: 'configure_scanline', operation: 'configure_scanline', raw: 'TIMER(config, "scan_timer").configure_scanline(FUNC(williams_state::va11_callback), "screen", 0, 32)', ownerTag: 'scan_timer', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1546, sourceColumn: 2, sourceEndLine: 1546, scanlineStart: 0, scanlineIncrement: 32, targetClass: 'williams_state', targetMethod: 'va11_callback'};
+MERGE (n:KG {id: 'handler:williams_state.va11_callback'}) SET n:Handler SET n += {method: 'va11_callback', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 19, sourceColumn: 1, sourceEndLine: 29, sourceParameters: 'int param', sourceBody: 'int const scanline = param;
+
+	// must not fire at line 256
+	if (scanline == 256)
+		return;
+
+	// the IRQ signal comes into CB1, and is set to VA11
+	m_pia[1]->cb1_w(BIT(scanline, 5));'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/240_timer'}) SET n:Device SET n += {type: 'TIMER', tag: '240_timer', clock: null, config: ['TIMER(config, "240_timer").configure_scanline(FUNC(williams_state::count240_callback), "screen", 0, 240)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1549, sourceColumn: 2, sourceEndLine: 1549};
+MERGE (n:KG {id: 'device:williams_state.williams_base/240_timer/callback:240_timer:0'}) SET n:Callback SET n += {signal: 'configure_scanline', operation: 'configure_scanline', raw: 'TIMER(config, "240_timer").configure_scanline(FUNC(williams_state::count240_callback), "screen", 0, 240)', ownerTag: '240_timer', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1549, sourceColumn: 2, sourceEndLine: 1549, scanlineStart: 0, scanlineIncrement: 240, targetClass: 'williams_state', targetMethod: 'count240_callback'};
+MERGE (n:KG {id: 'handler:williams_state.count240_callback'}) SET n:Handler SET n += {method: 'count240_callback', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 32, sourceColumn: 1, sourceEndLine: 38, sourceParameters: 'int param', sourceBody: 'int const scanline = param;
+
+	// the COUNT240 signal comes into CA1, and is set to the logical AND of VA10-VA13
+	m_pia[1]->ca1_w(scanline >= 240 ? 1 : 0);'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/watchdog'}) SET n:Device SET n += {type: 'WATCHDOG_TIMER', tag: 'watchdog', clock: null, config: ['WATCHDOG_TIMER(config, m_watchdog)'], member: 'm_watchdog', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1551, sourceColumn: 2, sourceEndLine: 1551};
+MERGE (n:KG {id: 'device:williams_state.williams_base/screen'}) SET n:Device SET n += {type: 'SCREEN', tag: 'screen', clock: null, config: ['SCREEN(config, m_screen, SCREEN_TYPE_RASTER)', 'm_screen->set_video_attributes(VIDEO_UPDATE_SCANLINE | VIDEO_ALWAYS_UPDATE)', 'm_screen->set_raw(MASTER_CLOCK*2/3, 512, 6, 298, 260, 7, 247)', 'm_screen->set_screen_update(FUNC(williams_state::screen_update))'], member: 'm_screen', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1554, sourceColumn: 2, sourceEndLine: 1554, configCalls: ['set_raw(8000000,512,6,298,260,7,247)'], clockExpr: 'SCREEN_TYPE_RASTER', screenRaw: [8000000, 512, 6, 298, 260, 7, 247], screenRawExpr: ['MASTER_CLOCK*2/3', '512', '6', '298', '260', '7', '247'], screenVideoAttributes: ['VIDEO_UPDATE_SCANLINE', 'VIDEO_ALWAYS_UPDATE']};
+MERGE (n:KG {id: 'device:williams_state.williams_base/screen/callback:screen:0'}) SET n:Callback SET n += {signal: 'set_screen_update', operation: 'set_screen_update', raw: 'm_screen->set_screen_update(FUNC(williams_state::screen_update))', ownerTag: 'screen', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1557, sourceColumn: 2, sourceEndLine: 1557, targetClass: 'williams_state', targetMethod: 'screen_update'};
+MERGE (n:KG {id: 'handler:williams_state.screen_update'}) SET n:Handler SET n += {method: 'screen_update', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_v.cpp', sourceLine: 200, sourceColumn: 1, sourceEndLine: 222, sourceParameters: 'screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect', sourceBody: '// precompute the palette
+	rgb_t pens[16];
+	for (int x = 0; x < 16; x++)
+		pens[x] = m_palette->pen_color(m_paletteram[x]);
+
+	// loop over rows
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
+	{
+		uint8_t const *const source = &m_videoram[y];
+		uint32_t *const dest = &bitmap.pix(y);
+
+		// loop over columns
+		for (int x = cliprect.min_x & ~1; x <= cliprect.max_x; x += 2)
+		{
+			uint8_t const pix = source[(x / 2) * 256];
+			dest[x + 0] = pens[pix >> 4];
+			dest[x + 1] = pens[pix & 0x0f];
+		}
+	}
+	return 0;'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/palette'}) SET n:Device SET n += {type: 'PALETTE', tag: 'palette', clock: null, config: ['PALETTE(config, m_palette, FUNC(williams_state::palette_init), 256)'], member: 'm_palette', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1559, sourceColumn: 2, sourceEndLine: 1559, clockExpr: 'FUNC(williams_state::palette_init)', paletteEntries: 256};
+MERGE (n:KG {id: 'device:williams_state.williams_base/speaker'}) SET n:Device SET n += {type: 'SPEAKER', tag: 'speaker', clock: null, config: ['SPEAKER(config, "speaker").front_center()'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1562, sourceColumn: 2, sourceEndLine: 1562};
+MERGE (n:KG {id: 'device:williams_state.williams_base/dac'}) SET n:Device SET n += {type: 'MC1408', tag: 'dac', clock: 0, config: ['MC1408(config, "dac", 0).add_route(ALL_OUTPUTS, "speaker", 0.25)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1563, sourceColumn: 2, sourceEndLine: 1563};
+MERGE (n:KG {id: 'audioroute:device:williams_state.williams_base/dac/0'}) SET n:AudioRoute SET n += {output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.25, raw: 'MC1408(config, "dac", 0).add_route(ALL_OUTPUTS, "speaker", 0.25)', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1563, sourceColumn: 2, sourceEndLine: 1563};
+MERGE (n:KG {id: 'device:williams_state.williams_base/mainirq'}) SET n:Device SET n += {type: 'INPUT_MERGER_ANY_HIGH', tag: 'mainirq', clock: null, config: ['INPUT_MERGER_ANY_HIGH(config, "mainirq").output_handler().set_inputline(m_maincpu, M6809_IRQ_LINE)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1566, sourceColumn: 2, sourceEndLine: 1566};
+MERGE (n:KG {id: 'device:williams_state.williams_base/mainirq/callback:mainirq:0'}) SET n:Callback SET n += {signal: 'output_handler', operation: 'set_inputline', raw: 'INPUT_MERGER_ANY_HIGH(config, "mainirq").output_handler().set_inputline(m_maincpu, M6809_IRQ_LINE)', ownerTag: 'mainirq', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1566, sourceColumn: 2, sourceEndLine: 1566, inputLine: 'M6809_IRQ_LINE', targetTag: 'maincpu'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/soundirq'}) SET n:Device SET n += {type: 'INPUT_MERGER_ANY_HIGH', tag: 'soundirq', clock: null, config: ['INPUT_MERGER_ANY_HIGH(config, "soundirq").output_handler().set_inputline(m_soundcpu, M6808_IRQ_LINE)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1568, sourceColumn: 2, sourceEndLine: 1568};
+MERGE (n:KG {id: 'device:williams_state.williams_base/soundirq/callback:soundirq:0'}) SET n:Callback SET n += {signal: 'output_handler', operation: 'set_inputline', raw: 'INPUT_MERGER_ANY_HIGH(config, "soundirq").output_handler().set_inputline(m_soundcpu, M6808_IRQ_LINE)', ownerTag: 'soundirq', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1568, sourceColumn: 2, sourceEndLine: 1568, inputLine: 'M6808_IRQ_LINE', targetTag: 'soundcpu'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_0'}) SET n:Device SET n += {type: 'PIA6821', tag: 'pia_0', clock: null, config: ['PIA6821(config, m_pia[0])', 'm_pia[0]->readpa_handler().set_ioport("IN0")', 'm_pia[0]->readpb_handler().set_ioport("IN1")', 'm_pia[0]->readpa_handler().set(FUNC(williams_state::port_0_49way_r))'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1570, sourceColumn: 2, sourceEndLine: 1570};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_0/callback:pia_0:1'}) SET n:Callback SET n += {signal: 'readpb_handler', operation: 'set_ioport', raw: 'm_pia[0]->readpb_handler().set_ioport("IN1")', ownerTag: 'pia_0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1572, sourceColumn: 2, sourceEndLine: 1572, targetTag: 'IN1', targetPort: 'IN1'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_1'}) SET n:Device SET n += {type: 'PIA6821', tag: 'pia_1', clock: null, config: ['PIA6821(config, m_pia[1])', 'm_pia[1]->readpa_handler().set_ioport("IN2")', 'm_pia[1]->writepb_handler().set(FUNC(williams_state::snd_cmd_w))', 'm_pia[1]->irqa_handler().set("mainirq", FUNC(input_merger_any_high_device::in_w<0>))', 'm_pia[1]->irqb_handler().set("mainirq", FUNC(input_merger_any_high_device::in_w<1>))'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1574, sourceColumn: 2, sourceEndLine: 1574};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:0'}) SET n:Callback SET n += {signal: 'readpa_handler', operation: 'set_ioport', raw: 'm_pia[1]->readpa_handler().set_ioport("IN2")', ownerTag: 'pia_1', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1575, sourceColumn: 2, sourceEndLine: 1575, targetTag: 'IN2', targetPort: 'IN2'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:1'}) SET n:Callback SET n += {signal: 'writepb_handler', operation: 'set', raw: 'm_pia[1]->writepb_handler().set(FUNC(williams_state::snd_cmd_w))', ownerTag: 'pia_1', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1576, sourceColumn: 2, sourceEndLine: 1576, targetClass: 'williams_state', targetMethod: 'snd_cmd_w'};
+MERGE (n:KG {id: 'handler:williams_state.snd_cmd_w'}) SET n:Handler SET n += {method: 'snd_cmd_w', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 171, sourceColumn: 1, sourceEndLine: 175, sourceParameters: 'u8 data', sourceBody: '// the high two bits are set externally, and should be 1
+	machine().scheduler().synchronize(timer_expired_delegate(FUNC(williams_state::deferred_snd_cmd_w<2>), this), data | 0xc0);'};
+MERGE (n:KG {id: 'handler:williams_state.deferred_snd_cmd_w_2'}) SET n:Handler SET n += {method: 'deferred_snd_cmd_w_2', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 162, sourceColumn: 1, sourceEndLine: 169, sourceConstants: ['B=81', 'A=2'], sourceParameters: 'int param', sourceBody: 'm_pia[A]->portb_w(param);
+	m_pia[A]->cb1_w((param == 0xff) ? 0 : 1);
+
+	if constexpr (sizeof...(B) > 0)
+		deferred_snd_cmd_w<B...>(param);'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:2'}) SET n:Callback SET n += {signal: 'irqa_handler', operation: 'set', raw: 'm_pia[1]->irqa_handler().set("mainirq", FUNC(input_merger_any_high_device::in_w<0>))', ownerTag: 'pia_1', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1577, sourceColumn: 2, sourceEndLine: 1577, targetTag: 'mainirq', targetClass: 'input_merger_any_high_device', targetMethod: 'in_w_0'};
+MERGE (n:KG {id: 'handler:input_merger_any_high_device.in_w_0'}) SET n:Handler SET n += {method: 'in_w_0', ownerClass: 'input_merger_any_high_device', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1964, sourceColumn: 2, sourceEndLine: 1964};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:3'}) SET n:Callback SET n += {signal: 'irqb_handler', operation: 'set', raw: 'm_pia[1]->irqb_handler().set("mainirq", FUNC(input_merger_any_high_device::in_w<1>))', ownerTag: 'pia_1', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1578, sourceColumn: 2, sourceEndLine: 1578, targetTag: 'mainirq', targetClass: 'input_merger_any_high_device', targetMethod: 'in_w_1'};
+MERGE (n:KG {id: 'handler:input_merger_any_high_device.in_w_1'}) SET n:Handler SET n += {method: 'in_w_1', ownerClass: 'input_merger_any_high_device', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1965, sourceColumn: 2, sourceEndLine: 1965};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_2'}) SET n:Device SET n += {type: 'PIA6821', tag: 'pia_2', clock: null, config: ['PIA6821(config, m_pia[2])', 'm_pia[2]->writepa_handler().set("dac", FUNC(dac_byte_interface::data_w))', 'm_pia[2]->irqa_handler().set("soundirq", FUNC(input_merger_any_high_device::in_w<0>))', 'm_pia[2]->irqb_handler().set("soundirq", FUNC(input_merger_any_high_device::in_w<1>))', 'm_pia[2]->ca2_handler().set("cvsd", FUNC(hc55516_device::digit_w))', 'm_pia[2]->cb2_handler().set("cvsd", FUNC(hc55516_device::clock_w))'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1580, sourceColumn: 2, sourceEndLine: 1580};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:0'}) SET n:Callback SET n += {signal: 'writepa_handler', operation: 'set', raw: 'm_pia[2]->writepa_handler().set("dac", FUNC(dac_byte_interface::data_w))', ownerTag: 'pia_2', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1581, sourceColumn: 2, sourceEndLine: 1581, targetTag: 'dac', targetClass: 'dac_byte_interface', targetMethod: 'data_w'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:1'}) SET n:Callback SET n += {signal: 'irqa_handler', operation: 'set', raw: 'm_pia[2]->irqa_handler().set("soundirq", FUNC(input_merger_any_high_device::in_w<0>))', ownerTag: 'pia_2', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1582, sourceColumn: 2, sourceEndLine: 1582, targetTag: 'soundirq', targetClass: 'input_merger_any_high_device', targetMethod: 'in_w_0'};
+MERGE (n:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:2'}) SET n:Callback SET n += {signal: 'irqb_handler', operation: 'set', raw: 'm_pia[2]->irqb_handler().set("soundirq", FUNC(input_merger_any_high_device::in_w<1>))', ownerTag: 'pia_2', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1583, sourceColumn: 2, sourceEndLine: 1583, targetTag: 'soundirq', targetClass: 'input_merger_any_high_device', targetMethod: 'in_w_1'};
+MERGE (n:KG {id: 'machine:williams_state.sinistar_upright'}) SET n:MachineConfig SET n += {cls: 'williams_state', name: 'sinistar_upright', calls: ['williams_base'], stateMembers: ['{"name":"m_cocktail","bits":8}'], resetHandlers: ['williams_state.machine_reset'], startHandlers: ['williams_state.video_start'], devicePatches: ['{"tag":"pia_0","config":["m_pia[0]->readpa_handler().set(FUNC(williams_state::port_0_49way_r))"]}', '{"tag":"pia_2","config":["m_pia[2]->ca2_handler().set(\\"cvsd\\", FUNC(hc55516_device::digit_w))","m_pia[2]->cb2_handler().set(\\"cvsd\\", FUNC(hc55516_device::clock_w))"]}'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1687, sourceColumn: 1, sourceEndLine: 1703};
+MERGE (n:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_0:0'}) SET n:Callback SET n += {signal: 'readpa_handler', operation: 'set', raw: 'm_pia[0]->readpa_handler().set(FUNC(williams_state::port_0_49way_r))', ownerTag: 'pia_0', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1696, sourceColumn: 2, sourceEndLine: 1696, targetClass: 'williams_state', targetMethod: 'port_0_49way_r'};
+MERGE (n:KG {id: 'handler:williams_state.port_0_49way_r'}) SET n:Handler SET n += {method: 'port_0_49way_r', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_m.cpp', sourceLine: 219, sourceColumn: 1, sourceEndLine: 223, sourceParameters: '', sourceBody: 'return (TABLE(m_49way_x->read() >> 4, 0x0, 0x4, 0x6, 0x7, 0xb, 0x9, 0x8) << 4) | TABLE(m_49way_y->read() >> 4, 0x0, 0x4, 0x6, 0x7, 0xb, 0x9, 0x8);', inputMembers: ['m_49way_x=49WAYX', 'm_49way_y=49WAYY']};
+MERGE (n:KG {id: 'handler:williams_narc_sound_device.read'}) SET n:Handler SET n += {method: 'read', ownerClass: 'williams_narc_sound_device', sourceFile: 'src/mame/shared/williamssound.cpp', sourceLine: 296, sourceColumn: 1, sourceEndLine: 299, sourceParameters: '', sourceBody: 'return m_talkback | (m_audio_sync << 8);'};
+MERGE (n:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_2:0'}) SET n:Callback SET n += {signal: 'ca2_handler', operation: 'set', raw: 'm_pia[2]->ca2_handler().set("cvsd", FUNC(hc55516_device::digit_w))', ownerTag: 'pia_2', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1698, sourceColumn: 2, sourceEndLine: 1698, targetTag: 'cvsd', targetClass: 'hc55516_device', targetMethod: 'digit_w'};
+MERGE (n:KG {id: 'handler:hc55516_device.digit_w'}) SET n:Handler SET n += {method: 'digit_w', ownerClass: 'hc55516_device', sourceFile: 'src/mame/shared/williamssound.cpp', sourceLine: 1244, sourceColumn: 2, sourceEndLine: 1244};
+MERGE (n:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_2:1'}) SET n:Callback SET n += {signal: 'cb2_handler', operation: 'set', raw: 'm_pia[2]->cb2_handler().set("cvsd", FUNC(hc55516_device::clock_w))', ownerTag: 'pia_2', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1699, sourceColumn: 2, sourceEndLine: 1699, targetTag: 'cvsd', targetClass: 'hc55516_device', targetMethod: 'clock_w'};
+MERGE (n:KG {id: 'handler:hc55516_device.clock_w'}) SET n:Handler SET n += {method: 'clock_w', ownerClass: 'hc55516_device', sourceFile: 'src/mame/shared/williamssound.cpp', sourceLine: 1243, sourceColumn: 2, sourceEndLine: 1243};
+MERGE (n:KG {id: 'device:williams_state.sinistar_upright/blitter'}) SET n:Device SET n += {type: 'WILLIAMS_BLITTER_SC1', tag: 'blitter', clock: 29696, config: ['WILLIAMS_BLITTER_SC1(config, m_blitter, 0x7400, m_maincpu, m_videoram)'], member: 'm_blitter', cls: 'williams_blitter_sc1_device', clsHierarchy: ['williams_blitter_sc1_device', 'williams_blitter_device'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1691, sourceColumn: 2, sourceEndLine: 1691, startHandler: 'williams_blitter_device.device_start'};
+MERGE (n:KG {id: 'device:williams_state.sinistar_upright/cvsd'}) SET n:Device SET n += {type: 'HC55516', tag: 'cvsd', clock: null, config: ['HC55516(config, "cvsd").add_route(ALL_OUTPUTS, "speaker", 0.8)'], sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1702, sourceColumn: 2, sourceEndLine: 1702};
+MERGE (n:KG {id: 'audioroute:device:williams_state.sinistar_upright/cvsd/0'}) SET n:AudioRoute SET n += {output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.8, raw: 'HC55516(config, "cvsd").add_route(ALL_OUTPUTS, "speaker", 0.8)', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1702, sourceColumn: 2, sourceEndLine: 1702};
+MERGE (n:KG {id: 'handler:williams_blitter_device.device_start'}) SET n:Handler SET n += {method: 'device_start', ownerClass: 'williams_blitter_device', sourceFile: 'src/mame/williams/williamsblitter.cpp', sourceLine: 48, sourceColumn: 1, sourceEndLine: 78, sourceParameters: '', sourceBody: 'm_window_enable = 0;
+
+	// create the remap table; if no PROM, make an identity remap table
+	m_remap_lookup = std::make_unique<uint8_t[]>(256 * 256);
+	m_remap = m_remap_lookup.get();
+	for (int i = 0; i < 256; i++)
+	{
+		const u8 *table = m_proms.found() ? &m_proms[(i & 0x7f) * 16] : dummy_table;
+		for (int j = 0; j < 256; j++)
+		{
+			m_remap_lookup[i * 256 + j] = (table[j >> 4] << 4) | table[j & 0x0f];
+		}
+	}
+
+	save_item(NAME(m_window_enable));
+	save_item(NAME(m_control));
+	save_item(NAME(m_no_even));
+	save_item(NAME(m_no_odd));
+	save_item(NAME(m_solid));
+	save_item(NAME(m_fg_only));
+	save_item(NAME(m_solid_color));
+	save_item(NAME(m_sstart));
+	save_item(NAME(m_dstart));
+	save_item(NAME(m_width));
+	save_item(NAME(m_height));
+	save_item(NAME(m_remap_index));'};
+MERGE (n:KG {id: 'inputs:sinistar'}) SET n:InputPorts SET n += {name: 'sinistar', sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1103, sourceColumn: 8, sourceEndLine: 1103};
+MERGE (n:KG {id: 'inputs:sinistar/IN0'}) SET n:Port SET n += {tag: 'IN0', modify: false};
+MERGE (n:KG {id: 'inputs:sinistar/IN1'}) SET n:Port SET n += {tag: 'IN1', modify: false};
+MERGE (n:KG {id: 'inputs:sinistar/IN1/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: false, type: 'IPT_BUTTON1', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN1/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: false, type: 'IPT_BUTTON2', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN1/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: false, type: 'IPT_START1', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN1/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: false, type: 'IPT_START2', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN1/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 192, activeLow: false, type: 'IPT_UNKNOWN', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2'}) SET n:Port SET n += {tag: 'IN2', modify: false};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 1, activeLow: false, type: 'IPT_SERVICE1', modifiers: ['PORT_NAME("Auto Up / Manual Down")', 'PORT_TOGGLE'], defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f1'}) SET n:PortField SET n += {kind: 'bit', mask: 2, activeLow: false, type: 'IPT_SERVICE', modifiers: ['PORT_NAME("Advance")'], defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f2'}) SET n:PortField SET n += {kind: 'bit', mask: 4, activeLow: false, type: 'IPT_COIN3', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f3'}) SET n:PortField SET n += {kind: 'bit', mask: 8, activeLow: false, type: 'IPT_MEMORY_RESET', modifiers: ['PORT_NAME("High Score Reset")'], defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f4'}) SET n:PortField SET n += {kind: 'bit', mask: 16, activeLow: false, type: 'IPT_COIN1', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f5'}) SET n:PortField SET n += {kind: 'bit', mask: 32, activeLow: false, type: 'IPT_COIN2', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f6'}) SET n:PortField SET n += {kind: 'bit', mask: 64, activeLow: false, type: 'IPT_TILT', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/IN2/f7'}) SET n:PortField SET n += {kind: 'bit', mask: 128, activeLow: false, type: 'IPT_UNKNOWN', defaultValue: 0};
+MERGE (n:KG {id: 'inputs:sinistar/49WAYX'}) SET n:Port SET n += {tag: '49WAYX', modify: false};
+MERGE (n:KG {id: 'inputs:sinistar/49WAYX/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 255, activeLow: false, type: 'IPT_AD_STICK_X', modifiers: ['PORT_MINMAX(0x00,0x6f)', 'PORT_SENSITIVITY(100)', 'PORT_KEYDELTA(10)'], defaultValue: 56};
+MERGE (n:KG {id: 'inputs:sinistar/49WAYY'}) SET n:Port SET n += {tag: '49WAYY', modify: false};
+MERGE (n:KG {id: 'inputs:sinistar/49WAYY/f0'}) SET n:PortField SET n += {kind: 'bit', mask: 255, activeLow: false, type: 'IPT_AD_STICK_Y', modifiers: ['PORT_MINMAX(0x00,0x6f)', 'PORT_SENSITIVITY(100)', 'PORT_KEYDELTA(10)', 'PORT_REVERSE'], defaultValue: 56};
+MERGE (n:KG {id: 'device:williams_state.williams_base/palette/callback:palette_init'}) SET n:Callback SET n += {signal: 'palette_init', operation: 'palette_init', raw: 'PALETTE(config, m_palette, FUNC(williams_state::palette_init), 256)', ownerTag: 'palette', targetClass: 'williams_state', targetMethod: 'palette_init', entries: 256, sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1559};
+MERGE (n:KG {id: 'handler:williams_state.palette_init'}) SET n:Handler SET n += {method: 'palette_init', ownerClass: 'williams_state', sourceFile: 'src/mame/williams/williams_v.cpp', sourceLine: 340, sourceColumn: 1, sourceEndLine: 363, sourceParameters: 'palette_device &palette', sourceBody: '// compute palette information
+	// note that there really are pullup/pulldown resistors, but this situation is complicated
+	// by the use of transistors, so we ignore that and just use the relative resistor weights
+	double weights_r[3], weights_g[3], weights_b[2];
+	compute_resistor_weights(0, 255, -1.0,
+			3, resistances_rg, weights_r, 0, 0,
+			3, resistances_rg, weights_g, 0, 0,
+			2, resistances_b,  weights_b, 0, 0);
+
+	// build a palette lookup
+	for (int i = 0; i < 256; i++)
+	{
+		int const r = combine_weights(weights_r, BIT(i, 0), BIT(i, 1), BIT(i, 2));
+		int const g = combine_weights(weights_g, BIT(i, 3), BIT(i, 4), BIT(i, 5));
+		int const b = combine_weights(weights_b, BIT(i, 6), BIT(i, 7));
+
+		palette.set_pen_color(i, rgb_t(r, g, b));
+	}'};
+MATCH (a:KG {id: 'game:sinistar'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 4023, sourceColumn: 1, sourceEndLine: 4023};
+MATCH (a:KG {id: 'game:sinistar'}), (b:KG {id: 'machine:williams_state.sinistar_upright'}) MERGE (a)-[r:USES_MACHINE]->(b);
+MATCH (a:KG {id: 'game:sinistar'}), (b:KG {id: 'inputs:sinistar'}) MERGE (a)-[r:USES_INPUTS]->(b);
+MATCH (a:KG {id: 'game:sinistar'}), (b:KG {id: 'romset:sinistar'}) MERGE (a)-[r:USES_ROMSET]->(b);
+MATCH (a:KG {id: 'file:src/mame/williams/williams.cpp'}), (b:KG {id: 'file:emu.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/williams/williams.cpp'}), (b:KG {id: 'file:williams.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/williams/williams.cpp'}), (b:KG {id: 'file:machine/input_merger.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/williams/williams.cpp'}), (b:KG {id: 'file:machine/nvram.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/williams/williams.cpp'}), (b:KG {id: 'file:sound/dac.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'file:src/mame/williams/williams.cpp'}), (b:KG {id: 'file:speaker.h'}) MERGE (a)-[r:INCLUDES]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1687, sourceColumn: 1, sourceEndLine: 1703};
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'handler:williams_state.machine_reset'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'handler:williams_state.video_start'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'machine:williams_state.williams_base'}) MERGE (a)-[r:CALLS]->(b) SET r += {order: 0};
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'map:williams_state.sinistar_main_map'}) MERGE (a)-[r:PATCHES_MAP]->(b) SET r += {space: 'AS_PROGRAM', deviceTag: 'maincpu'};
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_0:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_2:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_2:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'device:williams_state.sinistar_upright/blitter'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright'}), (b:KG {id: 'device:williams_state.sinistar_upright/cvsd'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'inputs:sinistar'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1103, sourceColumn: 8, sourceEndLine: 1103};
+MATCH (a:KG {id: 'inputs:sinistar'}), (b:KG {id: 'inputs:sinistar/IN0'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:sinistar'}), (b:KG {id: 'inputs:sinistar/IN1'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:sinistar'}), (b:KG {id: 'inputs:sinistar/IN2'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:sinistar'}), (b:KG {id: 'inputs:sinistar/49WAYX'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'inputs:sinistar'}), (b:KG {id: 'inputs:sinistar/49WAYY'}) MERGE (a)-[r:HAS_PORT]->(b);
+MATCH (a:KG {id: 'romset:sinistar'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 3326, sourceColumn: 1, sourceEndLine: 3326};
+MATCH (a:KG {id: 'romset:sinistar'}), (b:KG {id: 'region:sinistar/maincpu'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:sinistar'}), (b:KG {id: 'region:sinistar/soundcpu'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'romset:sinistar'}), (b:KG {id: 'region:sinistar/proms'}) MERGE (a)-[r:HAS_REGION]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 1534, sourceColumn: 1, sourceEndLine: 1584};
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'handler:williams_state.machine_reset'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'handler:williams_state.video_start'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/maincpu'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/soundcpu'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/nvram'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/scan_timer'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/240_timer'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/watchdog'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/screen'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/palette'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/speaker'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/dac'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/mainirq'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/soundirq'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/pia_0'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/pia_1'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.williams_base'}), (b:KG {id: 'device:williams_state.williams_base/pia_2'}) MERGE (a)-[r:HAS_DEVICE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sinistar_main_map'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 551, sourceColumn: 1, sourceEndLine: 559};
+MATCH (a:KG {id: 'map:williams_state.sinistar_main_map'}), (b:KG {id: 'map:williams_state.main_map_blitter'}) MERGE (a)-[r:INCLUDES_MAP]->(b);
+MATCH (a:KG {id: 'map:williams_state.sinistar_main_map'}), (b:KG {id: 'map:williams_state.sinistar_main_map/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sinistar_main_map'}), (b:KG {id: 'map:williams_state.sinistar_main_map/range1'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sinistar_main_map'}), (b:KG {id: 'map:williams_state.sinistar_main_map/range2'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_0:0'}), (b:KG {id: 'handler:williams_state.port_0_49way_r'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_2:0'}), (b:KG {id: 'handler:hc55516_device.digit_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'machine:williams_state.sinistar_upright/callback:pia_2:1'}), (b:KG {id: 'handler:hc55516_device.clock_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.sinistar_upright/blitter'}), (b:KG {id: 'handler:williams_blitter_device.device_start'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.sinistar_upright/cvsd'}), (b:KG {id: 'audioroute:device:williams_state.sinistar_upright/cvsd/0'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN1'}), (b:KG {id: 'inputs:sinistar/IN1/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN1'}), (b:KG {id: 'inputs:sinistar/IN1/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN1'}), (b:KG {id: 'inputs:sinistar/IN1/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN1'}), (b:KG {id: 'inputs:sinistar/IN1/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN1'}), (b:KG {id: 'inputs:sinistar/IN1/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f1'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f2'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f3'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f4'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f5'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f6'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/IN2'}), (b:KG {id: 'inputs:sinistar/IN2/f7'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/49WAYX'}), (b:KG {id: 'inputs:sinistar/49WAYX/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'inputs:sinistar/49WAYY'}), (b:KG {id: 'inputs:sinistar/49WAYY/f0'}) MERGE (a)-[r:HAS_FIELD]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_1-b_16-3004-53.1d'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_2-b_16-3004-54.1c'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_3-b_16-3004-55.1a'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_4-b_16-3004-56.2d'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_5-b_16-3004-57.2c'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_6-b_16-3004-58.2a'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_7-b_16-3004-59.3d'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_8-b_16-3004-60.3c'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_9-b_16-3004-61.3a'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_10-b_16-3004-62.4c'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/maincpu'}), (b:KG {id: 'rom:sinistar/maincpu/sinistar_rom_11-b_16-3004-63.4a'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/soundcpu'}), (b:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic7_r1_16-3004-52.ic7'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/soundcpu'}), (b:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic5_r1_16-3004-50.ic5'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/soundcpu'}), (b:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic6_r1_16-3004-51.ic6'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/soundcpu'}), (b:KG {id: 'rom:sinistar/soundcpu/3004_speech_ic4_r1_16-3004-49.ic4'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/soundcpu'}), (b:KG {id: 'rom:sinistar/soundcpu/video_sound_rom_9_std.808.ic12'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/proms'}), (b:KG {id: 'rom:sinistar/proms/decoder_rom_4.3g'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'region:sinistar/proms'}), (b:KG {id: 'rom:sinistar/proms/decoder_rom_6.3c'}) MERGE (a)-[r:LOADS]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/maincpu'}), (b:KG {id: 'map:williams_state.main_map'}) MERGE (a)-[r:HAS_MAP]->(b) SET r += {space: 'AS_PROGRAM'};
+MATCH (a:KG {id: 'device:williams_state.williams_base/soundcpu'}), (b:KG {id: 'map:williams_state.sound_map'}) MERGE (a)-[r:HAS_MAP]->(b) SET r += {space: 'AS_PROGRAM'};
+MATCH (a:KG {id: 'device:williams_state.williams_base/scan_timer'}), (b:KG {id: 'device:williams_state.williams_base/scan_timer/callback:scan_timer:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/240_timer'}), (b:KG {id: 'device:williams_state.williams_base/240_timer/callback:240_timer:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/screen'}), (b:KG {id: 'device:williams_state.williams_base/screen/callback:screen:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/palette'}), (b:KG {id: 'device:williams_state.williams_base/palette/callback:palette_init'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/dac'}), (b:KG {id: 'audioroute:device:williams_state.williams_base/dac/0'}) MERGE (a)-[r:HAS_AUDIO_ROUTE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/mainirq'}), (b:KG {id: 'device:williams_state.williams_base/mainirq/callback:mainirq:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/soundirq'}), (b:KG {id: 'device:williams_state.williams_base/soundirq/callback:soundirq:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_0'}), (b:KG {id: 'device:williams_state.williams_base/pia_0/callback:pia_0:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1'}), (b:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1'}), (b:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1'}), (b:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:2'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1'}), (b:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:3'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2'}), (b:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:0'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2'}), (b:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:1'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2'}), (b:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:2'}) MERGE (a)-[r:HAS_CALLBACK]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map_blitter'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 545, sourceColumn: 1, sourceEndLine: 549};
+MATCH (a:KG {id: 'map:williams_state.main_map_blitter'}), (b:KG {id: 'map:williams_state.main_map'}) MERGE (a)-[r:INCLUDES_MAP]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map_blitter'}), (b:KG {id: 'map:williams_state.main_map_blitter/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sinistar_main_map/range0'}), (b:KG {id: 'handler:williams_state.sinistar_vram_select_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'handler:williams_state.port_0_49way_r'}), (b:KG {id: 'handler:williams_narc_sound_device.read'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 530, sourceColumn: 1, sourceEndLine: 543};
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range1'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range2'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range3'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range4'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range5'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range6'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range7'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range8'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range9'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map'}), (b:KG {id: 'map:williams_state.main_map/range10'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sound_map'}), (b:KG {id: 'file:src/mame/williams/williams.cpp'}) MERGE (a)-[r:DEFINED_IN]->(b) SET r += {sourceFile: 'src/mame/williams/williams.cpp', sourceLine: 691, sourceColumn: 1, sourceEndLine: 697};
+MATCH (a:KG {id: 'map:williams_state.sound_map'}), (b:KG {id: 'map:williams_state.sound_map/range0'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sound_map'}), (b:KG {id: 'map:williams_state.sound_map/range1'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sound_map'}), (b:KG {id: 'map:williams_state.sound_map/range2'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'map:williams_state.sound_map'}), (b:KG {id: 'map:williams_state.sound_map/range3'}) MERGE (a)-[r:HAS_RANGE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/scan_timer/callback:scan_timer:0'}), (b:KG {id: 'handler:williams_state.va11_callback'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/240_timer/callback:240_timer:0'}), (b:KG {id: 'handler:williams_state.count240_callback'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/screen/callback:screen:0'}), (b:KG {id: 'handler:williams_state.screen_update'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/palette/callback:palette_init'}), (b:KG {id: 'handler:williams_state.palette_init'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/mainirq/callback:mainirq:0'}), (b:KG {id: 'device:williams_state.williams_base/maincpu'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/soundirq/callback:soundirq:0'}), (b:KG {id: 'device:williams_state.williams_base/soundcpu'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:1'}), (b:KG {id: 'handler:williams_state.snd_cmd_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:2'}), (b:KG {id: 'handler:input_merger_any_high_device.in_w_0'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:2'}), (b:KG {id: 'device:williams_state.williams_base/mainirq'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:3'}), (b:KG {id: 'handler:input_merger_any_high_device.in_w_1'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_1/callback:pia_1:3'}), (b:KG {id: 'device:williams_state.williams_base/mainirq'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:0'}), (b:KG {id: 'handler:dac_byte_interface.data_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:0'}), (b:KG {id: 'device:williams_state.williams_base/dac'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:1'}), (b:KG {id: 'handler:input_merger_any_high_device.in_w_0'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:1'}), (b:KG {id: 'device:williams_state.williams_base/soundirq'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:2'}), (b:KG {id: 'handler:input_merger_any_high_device.in_w_1'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'device:williams_state.williams_base/pia_2/callback:pia_2:2'}), (b:KG {id: 'device:williams_state.williams_base/soundirq'}) MERGE (a)-[r:TARGETS_DEVICE]->(b);
+MATCH (a:KG {id: 'handler:williams_state.sinistar_vram_select_w'}), (b:KG {id: 'handler:williams_state.vram_select_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'handler:williams_state.sinistar_vram_select_w'}), (b:KG {id: 'handler:williams_blitter_device.window_enable_w'}) MERGE (a)-[r:CALLS_HANDLER]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map/range4'}), (b:KG {id: 'handler:pia6821_device.read'}) MERGE (a)-[r:READS]->(b) SET r += {deviceTag: 'pia_0'};
+MATCH (a:KG {id: 'map:williams_state.main_map/range4'}), (b:KG {id: 'handler:pia6821_device.write'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'pia_0'};
+MATCH (a:KG {id: 'map:williams_state.main_map/range5'}), (b:KG {id: 'handler:pia6821_device.read'}) MERGE (a)-[r:READS]->(b) SET r += {deviceTag: 'pia_1'};
+MATCH (a:KG {id: 'map:williams_state.main_map/range5'}), (b:KG {id: 'handler:pia6821_device.write'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'pia_1'};
+MATCH (a:KG {id: 'map:williams_state.main_map/range6'}), (b:KG {id: 'handler:williams_state.vram_select_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map/range7'}), (b:KG {id: 'handler:williams_state.video_counter_r'}) MERGE (a)-[r:READS]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map/range8'}), (b:KG {id: 'handler:williams_state.watchdog_reset_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:williams_state.main_map/range9'}), (b:KG {id: 'handler:williams_state.cmos_4bit_w'}) MERGE (a)-[r:WRITES]->(b);
+MATCH (a:KG {id: 'map:williams_state.sound_map/range2'}), (b:KG {id: 'handler:pia6821_device.read'}) MERGE (a)-[r:READS]->(b) SET r += {deviceTag: 'pia_2'};
+MATCH (a:KG {id: 'map:williams_state.sound_map/range2'}), (b:KG {id: 'handler:pia6821_device.write'}) MERGE (a)-[r:WRITES]->(b) SET r += {deviceTag: 'pia_2'};
+MATCH (a:KG {id: 'handler:williams_state.snd_cmd_w'}), (b:KG {id: 'handler:williams_state.deferred_snd_cmd_w_2'}) MERGE (a)-[r:CALLS_HANDLER]->(b);

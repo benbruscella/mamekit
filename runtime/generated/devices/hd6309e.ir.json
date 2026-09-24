@@ -1,0 +1,33 @@
+{
+  "type": "HD6309E",
+  "uses": [
+    {
+      "game": "ddragon",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "HD6309E",
+    "className": "hd6309e_device",
+    "shortName": "hd6309e",
+    "description": "Hitachi HD6309E",
+    "sourceFile": "src/devices/cpu/m6809/hd6309.cpp",
+    "sourceLine": 130,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(HD6309E, hd6309e_device, \"hd6309e\", \"Hitachi HD6309E\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m6809/hd6309.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6809/6x09dasm.h",
+    "src/devices/cpu/m6809/hd6309.cpp",
+    "src/devices/cpu/m6809/hd6309.h",
+    "src/devices/cpu/m6809/hd6309.lst",
+    "src/devices/cpu/m6809/m6809inl.h"
+  ]
+}

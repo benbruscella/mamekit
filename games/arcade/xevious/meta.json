@@ -1,0 +1,117 @@
+{
+  "game": "xevious",
+  "title": "Xevious (Namco) (Namco, 1982)",
+  "fullname": "Xevious (Namco)",
+  "year": "1982",
+  "manufacturer": "Namco",
+  "family": "galaga",
+  "driverFile": "src/mame/namco/galaga.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hackbar",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.222",
+        "lastRelease": "0.254"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.145",
+        "lastRelease": "0.226"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.225",
+        "lastRelease": "0.225"
+      },
+      {
+        "name": "Alex Jackson",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.140",
+        "lastRelease": "0.140"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "neSneSgB",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.250",
+        "lastRelease": "0.250"
+      },
+      {
+        "name": "Osso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.177",
+        "lastRelease": "0.177"
+      },
+      {
+        "name": "Recreativas.org",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "s.ronco",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.147",
+        "lastRelease": "0.147"
+      },
+      {
+        "name": "Xavier Panadero",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 283,
+    "authors": 37,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

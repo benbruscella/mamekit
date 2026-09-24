@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "mspacman",
+  "family": "pacman",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 117,
+    "total": 148,
+    "percent": 79.1
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mainlatch:LS259",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "namco:NAMCO_WSG",
+        "status": "executable",
+        "source": "src/devices/sound/namco.cpp:58"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bank.bank1",
+        "status": "generated"
+      },
+      {
+        "name": "mainlatch.write_d0",
+        "status": "executable",
+        "source": "src/devices/machine/74259.cpp:95"
+      },
+      {
+        "name": "namco.pacman_sound_w",
+        "status": "executable",
+        "source": "src/devices/sound/namco.cpp:58"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_16368",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_32768",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_38896",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_56",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_5632",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_8480",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_r_944",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1022"
+      },
+      {
+        "name": "pacman_state.mspacman_disable_decode_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1016"
+      },
+      {
+        "name": "pacman_state.mspacman_enable_decode_r_16376",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1007"
+      },
+      {
+        "name": "pacman_state.mspacman_enable_decode_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1001"
+      },
+      {
+        "name": "pacman_state.pacman_colorram_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman_v.cpp:241"
+      },
+      {
+        "name": "pacman_state.pacman_interrupt_vector_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:394"
+      },
+      {
+        "name": "pacman_state.pacman_read_nop",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:1030"
+      },
+      {
+        "name": "pacman_state.pacman_videoram_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman_v.cpp:235"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "watchdog.reset_w",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_irq_acknowledge_callback -> pacman_state.interrupt_vector_r",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3711"
+      },
+      {
+        "name": "mainlatch.q_out_cb<0> -> pacman_state.irq_mask_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3714"
+      },
+      {
+        "name": "mainlatch.q_out_cb<1> -> namco.sound_enable_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3715"
+      },
+      {
+        "name": "mainlatch.q_out_cb<3> -> pacman_state.flipscreen_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3716"
+      },
+      {
+        "name": "mainlatch.q_out_cb<7> -> pacman_state.coin_counter_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3717"
+      },
+      {
+        "name": "screen.set_screen_update -> pacman_state.screen_update_pacman",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3736"
+      },
+      {
+        "name": "screen.screen_vblank -> pacman_state.vblank_irq",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3738"
+      },
+      {
+        "name": "mainlatch.q_out_cb<6> -> pacman_state.coin_lockout_global_w",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3815"
+      },
+      {
+        "name": "palette.palette_init -> pacman_state.pacman_palette",
+        "status": "generated",
+        "source": "src/mame/pacman/pacman.cpp:3731"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/mspacman/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 27,
+    "compiledMethods": 27,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 14,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 1,
+    "screenUpdate": "pacman_state.screen_update_pacman",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 5,
+    "generated": 30,
+    "declarative-host": 5,
+    "blocked": 0,
+    "missing": 0
+  }
+}

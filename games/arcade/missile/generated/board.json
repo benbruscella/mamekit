@@ -1,0 +1,4212 @@
+{
+    "schemaVersion": 4,
+    "game": "missile",
+    "family": "missile",
+    "driverFile": "src/mame/atari/missile.cpp",
+    "callbacks": [
+        {
+            "id": "device:missile_state.missile/maincpu/callback:maincpu:0",
+            "ownerTag": "maincpu",
+            "signal": "sync_cb",
+            "operation": "set",
+            "targetClass": "missile_state",
+            "targetMethod": "sync_w",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 968,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "missile_state",
+            "targetMethod": "screen_update_missile",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 981,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/pokey/callback:pokey:0",
+            "ownerTag": "pokey",
+            "signal": "allpot_r",
+            "operation": "set_ioport",
+            "targetTag": "R8",
+            "targetPort": "R8",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 988,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:missile_state.missile/maincpu/callback:maincpu:0",
+            "effect": {
+                "kind": "handler",
+                "handler": "missile_state.sync_w"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 968,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:missile_state.missile/pokey/callback:pokey:0",
+            "effect": {
+                "kind": "port-read",
+                "port": "R8"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 988,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "regionBindings": {
+            "m_maincpu": "maincpu",
+            "m_proms": "proms",
+            "m_writeprom": "proms"
+        },
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "m6502",
+                "clock": 1250000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 65535,
+                        "kind": "handler",
+                        "read": "missile_state.trampoline_r",
+                        "write": "missile_state.trampoline_w",
+                        "handlerWidth": 8
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 1250000,
+                "source": {
+                    "file": "src/mame/atari/missile.cpp",
+                    "line": 966,
+                    "column": 2
+                }
+            }
+        ],
+        "bankDevices": [
+            {
+                "tag": "mainmap",
+                "member": "m_mainmap",
+                "dataWidth": 8,
+                "addrWidth": 16,
+                "stride": 0,
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 16383,
+                        "kind": "handler",
+                        "read": "missile_state.vram_r",
+                        "write": "missile_state.vram_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 18432,
+                        "end": 18432,
+                        "kind": "handler",
+                        "mirror": 255,
+                        "read": "missile_state.trackball_r",
+                        "write": "missile_state.output_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 18688,
+                        "end": 18688,
+                        "kind": "handler",
+                        "mirror": 255,
+                        "read": "port.IN1"
+                    },
+                    {
+                        "start": 18944,
+                        "end": 18944,
+                        "kind": "handler",
+                        "mirror": 255,
+                        "read": "port.R10"
+                    },
+                    {
+                        "start": 19200,
+                        "end": 19207,
+                        "kind": "handler",
+                        "mirror": 248,
+                        "writeOnly": true,
+                        "write": "missile_state.palette_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 19456,
+                        "end": 19456,
+                        "kind": "handler",
+                        "mirror": 255,
+                        "write": "watchdog.reset_w"
+                    },
+                    {
+                        "start": 19712,
+                        "end": 19712,
+                        "kind": "handler",
+                        "mirror": 255,
+                        "write": "missile_state.irqack_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 20480,
+                        "end": 32767,
+                        "kind": "rom",
+                        "romOffset": 20480,
+                        "region": "maincpu"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 16399,
+                        "kind": "handler",
+                        "mirror": 2032,
+                        "read": "pokey.read",
+                        "write": "pokey.write"
+                    }
+                ],
+                "mask": 32767,
+                "unmapHigh": true
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 1250000,
+                "cycleClock": 1250000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "genericTimers": [
+            {
+                "tag": "cpu_timer",
+                "member": "m_cpu_timer",
+                "handler": "missile_state.adjust_cpu_speed",
+                "driver": true
+            },
+            {
+                "tag": "irq_timer",
+                "member": "m_irq_timer",
+                "handler": "missile_state.clock_irq",
+                "driver": true
+            }
+        ],
+        "startHandlers": [
+            "missile_state.machine_start"
+        ],
+        "resetHandlers": [
+            "missile_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 231,
+            "xOffset": 0,
+            "yOffset": 25,
+            "refresh": 61.03515625,
+            "htotal": 320,
+            "vtotal": 256,
+            "vbstart": 256,
+            "vbend": 25,
+            "updateMode": "partial",
+            "rotate": 0,
+            "ownerTag": "screen",
+            "ownerKind": "screen",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 979,
+                "column": 2
+            }
+        },
+        "customs": [
+            {
+                "port": "IN1",
+                "mask": 128,
+                "member": "vblank_r",
+                "handler": "missile_state.vblank_r",
+                "activeLow": false
+            }
+        ],
+        "inputMembers": [
+            {
+                "member": "m_inputs",
+                "tags": [
+                    "IN0",
+                    "IN1",
+                    "R10",
+                    "R8"
+                ]
+            },
+            {
+                "member": "m_track",
+                "tags": [
+                    "TRACK0_X",
+                    "TRACK0_Y",
+                    "TRACK1_X",
+                    "TRACK1_Y"
+                ]
+            }
+        ],
+        "frameEvents": [],
+        "screenUpdate": {
+            "handler": "missile_state.screen_update_missile",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 700,
+                "column": 1
+            }
+        },
+        "paletteDevice": {
+            "tag": "palette",
+            "entries": 8,
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 977,
+                "column": 2
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:missile_state.missile/maincpu",
+            "tag": "maincpu",
+            "type": "M6502",
+            "member": "m_maincpu",
+            "clock": 1250000,
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 966,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/mainmap",
+            "tag": "mainmap",
+            "type": "ADDRESS_MAP_BANK",
+            "member": "m_mainmap",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 970,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "member": "m_watchdog",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 974,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 977,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        5000000,
+                        320,
+                        0,
+                        256,
+                        256,
+                        25,
+                        256
+                    ]
+                },
+                {
+                    "method": "set_palette",
+                    "args": [
+                        "palette"
+                    ]
+                }
+            ],
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 979,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/mono",
+            "tag": "mono",
+            "type": "SPEAKER",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 985,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:missile_state.missile/pokey",
+            "tag": "pokey",
+            "type": "POKEY",
+            "member": "m_pokey",
+            "clock": 1250000,
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 987,
+                "column": 2
+            }
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:missile_state.trampoline_r",
+            "ownerClass": "missile_state",
+            "method": "trampoline_r",
+            "parameters": "offs_t offset",
+            "body": "// if this is a MADSEL cycle, read from video RAM\n\tif (get_madsel())\n\t\treturn vram_mad_r(offset);\n\n\tuint8_t data = m_mainmap->read8(offset);\n\tload_madsel(data);\n\n\treturn data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "get_madsel"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "return",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "vram_mad_r"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "declare",
+                        "name": "data",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_mainmap"
+                                },
+                                "property": "read8"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "load_madsel"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 795,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.load_madsel",
+            "ownerClass": "missile_state",
+            "method": "load_madsel",
+            "parameters": "uint8_t data",
+            "body": "// MADSEL counter is loaded at SYNC when the low 5 bytes of the data bus are 0x01\n\t// and the IRQ signal is clear\n\tif (!m_irq_pin && ((data & 0x1f) == 0x01) && m_maincpu->get_sync() && !machine().side_effects_disabled())\n\t\tm_madsel_lastcycles = m_maincpu->total_cycles();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                        "kind": "unary",
+                                        "operator": "!",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_irq_pin"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "==",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 31
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                },
+                                "right": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "get_sync"
+                                    },
+                                    "args": []
+                                }
+                            },
+                            "right": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "side_effects_disabled"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_madsel_lastcycles"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "total_cycles"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 591,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.get_madsel",
+            "ownerClass": "missile_state",
+            "method": "get_madsel",
+            "body": "// the MADSEL signal disables standard address decoding and routes writes to video RAM;\n\t// it goes high 5 cycles after loading the counter, and goes low again after 1 cycle\n\tbool madsel = false;\n\n\tif (m_madsel_lastcycles)\n\t{\n\t\tmadsel = (m_maincpu->total_cycles() - m_madsel_lastcycles) == 5;\n\n\t\t// reset the count until next time\n\t\tif (madsel && !machine().side_effects_disabled())\n\t\t\tm_madsel_lastcycles = 0;\n\t}\n\n\treturn madsel;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "madsel",
+                        "valueType": "bool",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_madsel_lastcycles"
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "madsel"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "-",
+                                        "left": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "total_cycles"
+                                            },
+                                            "args": []
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "m_madsel_lastcycles"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 5
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "madsel"
+                                    },
+                                    "right": {
+                                        "kind": "unary",
+                                        "operator": "!",
+                                        "operand": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "machine"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "property": "side_effects_disabled"
+                                            },
+                                            "args": []
+                                        }
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "m_madsel_lastcycles"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "madsel"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 599,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.vram_mad_r",
+            "ownerClass": "missile_state",
+            "method": "vram_mad_r",
+            "parameters": "offs_t offset",
+            "body": "offs_t vramaddr;\n\tuint8_t vramdata;\n\tuint8_t vrammask;\n\tuint8_t result = 0xff;\n\n\t// basic 2 bit VRAM reads go to addr >> 2\n\t// data goes to bits 6 and 7\n\t// this should only be called if MADSEL == 1\n\tvramaddr = offset >> 2;\n\tvrammask = 0x11 << (offset & 3);\n\tvramdata = m_videoram[vramaddr] & vrammask;\n\tif ((vramdata & 0xf0) == 0)\n\t\tresult &= ~0x80;\n\tif ((vramdata & 0x0f) == 0)\n\t\tresult &= ~0x40;\n\n\t// 3-bit VRAM reads use an extra clock to read the 3rd bit elsewhere\n\t// on the schematics, this is the MUSHROOM == 1 case\n\tif ((offset & 0xe000) == 0xe000)\n\t{\n\t\tvramaddr = get_bit3_addr(offset);\n\t\tvrammask = 1 << (offset & 7);\n\t\tvramdata = m_videoram[vramaddr] & vrammask;\n\t\tif (vramdata == 0)\n\t\t\tresult &= ~0x20;\n\n\t\t// account for the extra clock cycle\n\t\tif (!machine().side_effects_disabled())\n\t\t\tm_maincpu->adjust_icount(-1);\n\t}\n\treturn result;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "vramaddr",
+                        "valueType": "offs_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "vramdata",
+                        "valueType": "uint8_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "vrammask",
+                        "valueType": "uint8_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "result",
+                        "valueType": "uint8_t",
+                        "value": {
+                            "kind": "number",
+                            "value": 255
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "vramaddr"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "vrammask"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "number",
+                                "value": 17
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "vramdata"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "vramaddr"
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "vrammask"
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "vramdata"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 240
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "result"
+                                },
+                                "operator": "&=",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 128
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "vramdata"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "result"
+                                },
+                                "operator": "&=",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 64
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 57344
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 57344
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vramaddr"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "get_bit3_addr"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vrammask"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                        "kind": "number",
+                                        "value": 1
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vramdata"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videoram"
+                                        },
+                                        "index": {
+                                            "kind": "identifier",
+                                            "name": "vramaddr"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "vrammask"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "vramdata"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "result"
+                                        },
+                                        "operator": "&=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "side_effects_disabled"
+                                        },
+                                        "args": []
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "adjust_icount"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "-",
+                                                    "operand": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "result"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 657,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.get_bit3_addr",
+            "ownerClass": "missile_state",
+            "method": "get_bit3_addr",
+            "parameters": "offs_t pixaddr",
+            "body": "// the 3rd bit of video RAM is scattered about various areas, we take a 16-bit pixel address here\n\t// and convert it into a video RAM address based on logic in the schematics\n\treturn  (( pixaddr & 0x0800) >> 1) |\n\t\t\t((~pixaddr & 0x0800) >> 2) |\n\t\t\t(( pixaddr & 0x07f8) >> 2) |\n\t\t\t(( pixaddr & 0x1000) >> 12);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "pixaddr"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2048
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": ">>",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "pixaddr"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2048
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                },
+                                "right": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "pixaddr"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2040
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 2
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": ">>",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "pixaddr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4096
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 12
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 617,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.trampoline_w",
+            "ownerClass": "missile_state",
+            "method": "trampoline_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "// if this is a MADSEL cycle, write to video RAM\n\tif (get_madsel())\n\t\tvram_mad_w(offset, data);\n\telse\n\t\tm_mainmap->write8(offset, data);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "get_madsel"
+                            },
+                            "args": []
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "vram_mad_w"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_mainmap"
+                                        },
+                                        "property": "write8"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 786,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.vram_mad_w",
+            "ownerClass": "missile_state",
+            "method": "vram_mad_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "offs_t vramaddr;\n\tuint8_t vramdata;\n\tuint8_t vrammask;\n\n\t// basic 2 bit VRAM writes go to addr >> 2\n\t// data comes from bits 6 and 7\n\t// this should only be called if MADSEL == 1\n\tvramaddr = offset >> 2;\n\tvramdata = TABLE(data >> 6, 0x00, 0x0f, 0xf0, 0xff);\n\tvrammask = m_writeprom[(offset & 7) | 0x10];\n\tm_videoram[vramaddr] = (m_videoram[vramaddr] & vrammask) | (vramdata & ~vrammask);\n\n\t// 3-bit VRAM writes use an extra clock to write the 3rd bit elsewhere\n\t// on the schematics, this is the MUSHROOM == 1 case\n\tif ((offset & 0xe000) == 0xe000)\n\t{\n\t\tvramaddr = get_bit3_addr(offset);\n\t\tvramdata = -((data >> 5) & 1);\n\t\tvrammask = m_writeprom[(offset & 7) | 0x18];\n\t\tm_videoram[vramaddr] = (m_videoram[vramaddr] & vrammask) | (vramdata & ~vrammask);\n\n\t\t// account for the extra clock cycle\n\t\tif (!machine().side_effects_disabled())\n\t\t\tm_maincpu->adjust_icount(-1);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "vramaddr",
+                        "valueType": "offs_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "vramdata",
+                        "valueType": "uint8_t"
+                    },
+                    {
+                        "op": "declare",
+                        "name": "vrammask",
+                        "valueType": "uint8_t"
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "vramaddr"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 2
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "vramdata"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "TABLE"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 6
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 15
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 240
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 255
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "vrammask"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_writeprom"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "|",
+                                "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 7
+                                    }
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 16
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "vramaddr"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "vramaddr"
+                                    }
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "vrammask"
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "vramdata"
+                                },
+                                "right": {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "vrammask"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 57344
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 57344
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vramaddr"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "get_bit3_addr"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vramdata"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "data"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 5
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "vrammask"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_writeprom"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "&",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "offset"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 7
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 24
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "vramaddr"
+                                    }
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "m_videoram"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "vramaddr"
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "vrammask"
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "vramdata"
+                                        },
+                                        "right": {
+                                            "kind": "unary",
+                                            "operator": "~",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "vrammask"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "side_effects_disabled"
+                                        },
+                                        "args": []
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "call",
+                                        "expression": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_maincpu"
+                                                },
+                                                "property": "adjust_icount"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "unary",
+                                                    "operator": "-",
+                                                    "operand": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 627,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.vram_r",
+            "ownerClass": "missile_state",
+            "method": "vram_r",
+            "parameters": "offs_t offset",
+            "body": "return m_videoram[offset];",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 415,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.vram_w",
+            "ownerClass": "missile_state",
+            "method": "vram_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "m_videoram[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 413,
+                "column": 42
+            }
+        },
+        {
+            "id": "handler:missile_state.trackball_r",
+            "ownerClass": "missile_state",
+            "method": "trackball_r",
+            "body": "// read trackball\n\tif (m_ctrld)\n\t{\n\t\tif (!m_flipscreen)\n\t\t\treturn ((m_track[1]->read() << 4) & 0xf0) | (m_track[0]->read() & 0x0f);\n\t\telse\n\t\t\treturn ((m_track[3]->read() << 4) & 0xf0) | (m_track[2]->read() & 0x0f);\n\t}\n\n\t// normal buttons\n\treturn m_inputs[0]->read();",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_ctrld"
+                        },
+                        "then": [
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "m_flipscreen"
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "<<",
+                                                    "left": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "index",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_track"
+                                                                },
+                                                                "index": {
+                                                                    "kind": "number",
+                                                                    "value": 1
+                                                                }
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 4
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 240
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_track"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 0
+                                                            }
+                                                        },
+                                                        "property": "read"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 15
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "else": [
+                                    {
+                                        "op": "return",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "<<",
+                                                    "left": {
+                                                        "kind": "call",
+                                                        "callee": {
+                                                            "kind": "member",
+                                                            "object": {
+                                                                "kind": "index",
+                                                                "object": {
+                                                                    "kind": "identifier",
+                                                                    "name": "m_track"
+                                                                },
+                                                                "index": {
+                                                                    "kind": "number",
+                                                                    "value": 3
+                                                                }
+                                                            },
+                                                            "property": "read"
+                                                        },
+                                                        "args": []
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 4
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 240
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "member",
+                                                        "object": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "m_track"
+                                                            },
+                                                            "index": {
+                                                                "kind": "number",
+                                                                "value": 2
+                                                            }
+                                                        },
+                                                        "property": "read"
+                                                    },
+                                                    "args": []
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 15
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_inputs"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 739,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.output_w",
+            "ownerClass": "missile_state",
+            "method": "output_w",
+            "parameters": "uint8_t data",
+            "body": "// bit 0 selects trackball\n\tm_ctrld = data & 1;\n\n\t// leds\n\tm_leds[0] = BIT(~data, 1);\n\tm_leds[1] = BIT(~data, 2);\n\n\t// coin counters\n\tmachine().bookkeeping().coin_counter_w(0, data & 0x20);\n\tmachine().bookkeeping().coin_counter_w(1, data & 0x10);\n\tmachine().bookkeeping().coin_counter_w(2, data & 0x08);\n\n\t// flip screen\n\tm_flipscreen = ~data & 0x40;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_ctrld"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_leds"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_leds"
+                            },
+                            "index": {
+                                "kind": "number",
+                                "value": 1
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "machine"
+                                            },
+                                            "args": []
+                                        },
+                                        "property": "bookkeeping"
+                                    },
+                                    "args": []
+                                },
+                                "property": "coin_counter_w"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 2
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "data"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 8
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_flipscreen"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 64
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 754,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.palette_w",
+            "ownerClass": "missile_state",
+            "method": "palette_w",
+            "parameters": "offs_t offset, uint8_t data",
+            "body": "// color RAM\n\tm_palette->set_pen_color(offset & 7, pal1bit(~data >> 3), pal1bit(~data >> 2), pal1bit(~data >> 1));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_palette"
+                                },
+                                "property": "set_pen_color"
+                            },
+                            "args": [
+                                {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 7
+                                    }
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal1bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 3
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal1bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 2
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "pal1bit"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "unary",
+                                                "operator": "~",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "data"
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 772,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_w",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_w",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 841,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:missile_state.irqack_w",
+            "ownerClass": "missile_state",
+            "method": "irqack_w",
+            "parameters": "uint8_t data",
+            "body": "m_irq_state = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_state"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 523,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:pokey_device.read",
+            "ownerClass": "pokey_device",
+            "method": "read",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 829,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:pokey_device.write",
+            "ownerClass": "pokey_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 829,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:missile_state.adjust_cpu_speed",
+            "ownerClass": "missile_state",
+            "method": "adjust_cpu_speed",
+            "parameters": "int param",
+            "body": "int curv = param;\n\n\t// starting at scanline 224, the CPU runs at half speed\n\tif (curv == 224)\n\t\tm_maincpu->set_unscaled_clock(MASTER_CLOCK/16);\n\telse\n\t\tm_maincpu->set_unscaled_clock(MASTER_CLOCK/8);\n\n\t// scanline for the next run\n\tcurv ^= 224;\n\tm_cpu_timer->adjust(m_screen->time_until_pos(v_to_scanline(curv)), curv);",
+            "constants": {
+                "MASTER_CLOCK": 10000000
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "curv",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "curv"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 224
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_unscaled_clock"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "/",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "MASTER_CLOCK"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 16
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_unscaled_clock"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": "/",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "MASTER_CLOCK"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 8
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "curv"
+                        },
+                        "operator": "^=",
+                        "value": {
+                            "kind": "number",
+                            "value": 224
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_cpu_timer"
+                                },
+                                "property": "adjust"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "time_until_pos"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "v_to_scanline"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "curv"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "curv"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 542,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.v_to_scanline",
+            "ownerClass": "missile_state",
+            "method": "v_to_scanline",
+            "parameters": "int v",
+            "body": "// same as a above, but the opposite transformation\n\treturn m_flipscreen ? (256 - v) : v;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "identifier",
+                                "name": "m_flipscreen"
+                            },
+                            "whenTrue": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 256
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "v"
+                                }
+                            },
+                            "whenFalse": {
+                                "kind": "identifier",
+                                "name": "v"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 479,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.machine_start",
+            "ownerClass": "missile_state",
+            "method": "machine_start",
+            "body": "// create a timer to speed/slow the CPU\n\tm_cpu_timer = timer_alloc(FUNC(missile_state::adjust_cpu_speed), this);\n\tm_cpu_timer->adjust(m_screen->time_until_pos(v_to_scanline(0), 0));\n\n\t// create a timer for IRQs and set up the first callback\n\tm_irq_timer = timer_alloc(FUNC(missile_state::clock_irq), this);\n\tschedule_next_irq(-32);\n\n\t// setup for save states\n\tsave_item(NAME(m_irq_state));\n\tsave_item(NAME(m_irq_pin));\n\tsave_item(NAME(m_ctrld));\n\tsave_item(NAME(m_flipscreen));\n\tsave_item(NAME(m_madsel_lastcycles));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_cpu_timer"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "timer_alloc"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "FUNC"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "missile_state::adjust_cpu_speed"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "this"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_cpu_timer"
+                                },
+                                "property": "adjust"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "time_until_pos"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "v_to_scanline"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_timer"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "timer_alloc"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "FUNC"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "missile_state::clock_irq"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "this"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "schedule_next_irq"
+                            },
+                            "args": [
+                                {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_irq_state"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_irq_pin"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_ctrld"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_flipscreen"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_madsel_lastcycles"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 557,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.schedule_next_irq",
+            "ownerClass": "missile_state",
+            "method": "schedule_next_irq",
+            "parameters": "int curv",
+            "body": "// IRQ = /32V, clocked by /16V ^ flip\n\t// When not flipped, clocks on 0, 64, 128, 192\n\t// When flipped, clocks on 16, 80, 144, 208\n\tif (m_flipscreen)\n\t\tcurv = ((curv - 32) & 0xff) | 0x10;\n\telse\n\t\tcurv = ((curv + 32) & 0xff) & ~0x10;\n\n\t// next one at the start of this scanline\n\tm_irq_timer->adjust(m_screen->time_until_pos(v_to_scanline(curv)), curv);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "identifier",
+                            "name": "m_flipscreen"
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "curv"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "curv"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 255
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                }
+                            }
+                        ],
+                        "else": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "curv"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "+",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "curv"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 32
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 255
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "unary",
+                                        "operator": "~",
+                                        "operand": {
+                                            "kind": "number",
+                                            "value": 16
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_irq_timer"
+                                },
+                                "property": "adjust"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "time_until_pos"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "v_to_scanline"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "curv"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "curv"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 485,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.clock_irq",
+            "ownerClass": "missile_state",
+            "method": "clock_irq",
+            "parameters": "int param",
+            "body": "int curv = param;\n\n\t// set pending IRQ change\n\tm_irq_state = BIT(~curv, 5);\n\n\t// force an update while we're here\n\tm_screen->update_partial(v_to_scanline(curv));\n\n\t// find the next edge\n\tschedule_next_irq(curv);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "curv",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "param"
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_state"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "unary",
+                                    "operator": "~",
+                                    "operand": {
+                                        "kind": "identifier",
+                                        "name": "curv"
+                                    }
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 5
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_screen"
+                                },
+                                "property": "update_partial"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "v_to_scanline"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "curv"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "schedule_next_irq"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "curv"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 499,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.machine_reset",
+            "ownerClass": "missile_state",
+            "method": "machine_reset",
+            "body": "m_maincpu->set_input_line(0, CLEAR_LINE);\n\tm_irq_pin = 0;\n\tm_irq_state = 0;\n\tm_madsel_lastcycles = 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "set_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "CLEAR_LINE"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_pin"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_irq_state"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_madsel_lastcycles"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 575,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.sync_w",
+            "ownerClass": "missile_state",
+            "method": "sync_w",
+            "parameters": "int state",
+            "body": "// SYNC latches IRQ pin\n\tif (state && m_irq_state != m_irq_pin)\n\t{\n\t\tm_irq_pin = m_irq_state;\n\t\tm_maincpu->set_input_line(0, m_irq_pin ? ASSERT_LINE : CLEAR_LINE);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "state"
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "!=",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_irq_state"
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "m_irq_pin"
+                                }
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_irq_pin"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "m_irq_state"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "conditional",
+                                            "condition": {
+                                                "kind": "identifier",
+                                                "name": "m_irq_pin"
+                                            },
+                                            "whenTrue": {
+                                                "kind": "identifier",
+                                                "name": "ASSERT_LINE"
+                                            },
+                                            "whenFalse": {
+                                                "kind": "identifier",
+                                                "name": "CLEAR_LINE"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 513,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.screen_update_missile",
+            "ownerClass": "missile_state",
+            "method": "screen_update_missile",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+            "body": "// draw the bitmap to the screen, looping over Y\n\tfor (int y = cliprect.top(); y <= cliprect.bottom(); y++)\n\t{\n\t\tuint16_t *const dst = &bitmap.pix(y);\n\n\t\tint const effy = m_flipscreen ? ((256+24 - y) & 0xff) : y;\n\t\tuint8_t const *const src = &m_videoram[effy * 64];\n\t\tuint8_t const *src3 = nullptr;\n\n\t\t// compute the base of the 3rd pixel row\n\t\tif (effy >= 224)\n\t\t\tsrc3 = &m_videoram[get_bit3_addr(effy << 8)];\n\n\t\t// loop over X\n\t\tfor (int x = cliprect.left(); x <= cliprect.right(); x++)\n\t\t{\n\t\t\tuint8_t pix = src[x / 4] >> (x & 3);\n\t\t\tpix = ((pix >> 2) & 4) | ((pix << 1) & 2);\n\n\t\t\t// if we're in the lower region, get the 3rd bit\n\t\t\tif (src3)\n\t\t\t\tpix |= (src3[(x / 8) * 2] >> (x & 7)) & 1;\n\n\t\t\tdst[x] = pix;\n\t\t}\n\t}\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "y",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        "property": "top"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "<=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "y"
+                            },
+                            "right": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "cliprect"
+                                    },
+                                    "property": "bottom"
+                                },
+                                "args": []
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "y"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "dst",
+                                "valueType": "auto*",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "&",
+                                    "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "bitmap"
+                                            },
+                                            "property": "pix"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "effy",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "m_flipscreen"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "+",
+                                                "left": {
+                                                    "kind": "number",
+                                                    "value": 256
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 24
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "y"
+                                            }
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 255
+                                        }
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "y"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "src",
+                                "valueType": "auto*",
+                                "value": {
+                                    "kind": "unary",
+                                    "operator": "&",
+                                    "operand": {
+                                        "kind": "index",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_videoram"
+                                        },
+                                        "index": {
+                                            "kind": "binary",
+                                            "operator": "*",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "effy"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 64
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "src3",
+                                "valueType": "auto*",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": ">=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "effy"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 224
+                                    }
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "src3"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "&",
+                                            "operand": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_videoram"
+                                                },
+                                                "index": {
+                                                    "kind": "call",
+                                                    "callee": {
+                                                        "kind": "identifier",
+                                                        "name": "get_bit3_addr"
+                                                    },
+                                                    "args": [
+                                                        {
+                                                            "kind": "binary",
+                                                            "operator": "<<",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "effy"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 8
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "for",
+                                "initialize": [
+                                    {
+                                        "op": "declare",
+                                        "name": "x",
+                                        "valueType": "int",
+                                        "value": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "cliprect"
+                                                },
+                                                "property": "left"
+                                            },
+                                            "args": []
+                                        }
+                                    }
+                                ],
+                                "condition": {
+                                    "kind": "binary",
+                                    "operator": "<=",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                    },
+                                    "right": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "cliprect"
+                                            },
+                                            "property": "right"
+                                        },
+                                        "args": []
+                                    }
+                                },
+                                "iterate": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "x"
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                ],
+                                "body": [
+                                    {
+                                        "op": "declare",
+                                        "name": "pix",
+                                        "valueType": "uint8_t",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "index",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "src"
+                                                },
+                                                "index": {
+                                                    "kind": "binary",
+                                                    "operator": "/",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "x"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 4
+                                                    }
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "identifier",
+                                                    "name": "x"
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 3
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "pix"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "|",
+                                            "left": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": ">>",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "pix"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 2
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 4
+                                                }
+                                            },
+                                            "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                    "kind": "binary",
+                                                    "operator": "<<",
+                                                    "left": {
+                                                        "kind": "identifier",
+                                                        "name": "pix"
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                },
+                                                "right": {
+                                                    "kind": "number",
+                                                    "value": 2
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "src3"
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "pix"
+                                                },
+                                                "operator": "|=",
+                                                "value": {
+                                                    "kind": "binary",
+                                                    "operator": "&",
+                                                    "left": {
+                                                        "kind": "binary",
+                                                        "operator": ">>",
+                                                        "left": {
+                                                            "kind": "index",
+                                                            "object": {
+                                                                "kind": "identifier",
+                                                                "name": "src3"
+                                                            },
+                                                            "index": {
+                                                                "kind": "binary",
+                                                                "operator": "*",
+                                                                "left": {
+                                                                    "kind": "binary",
+                                                                    "operator": "/",
+                                                                    "left": {
+                                                                        "kind": "identifier",
+                                                                        "name": "x"
+                                                                    },
+                                                                    "right": {
+                                                                        "kind": "number",
+                                                                        "value": 8
+                                                                    }
+                                                                },
+                                                                "right": {
+                                                                    "kind": "number",
+                                                                    "value": 2
+                                                                }
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "kind": "binary",
+                                                            "operator": "&",
+                                                            "left": {
+                                                                "kind": "identifier",
+                                                                "name": "x"
+                                                            },
+                                                            "right": {
+                                                                "kind": "number",
+                                                                "value": 7
+                                                            }
+                                                        }
+                                                    },
+                                                    "right": {
+                                                        "kind": "number",
+                                                        "value": 1
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "index",
+                                            "object": {
+                                                "kind": "identifier",
+                                                "name": "dst"
+                                            },
+                                            "index": {
+                                                "kind": "identifier",
+                                                "name": "x"
+                                            }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "identifier",
+                                            "name": "pix"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 700,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.vblank_r",
+            "ownerClass": "missile_state",
+            "method": "vblank_r",
+            "body": "int v = scanline_to_v(m_screen->vpos());\n\treturn v < 24;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "v",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "scanline_to_v"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_screen"
+                                        },
+                                        "property": "vpos"
+                                    },
+                                    "args": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "v"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 24
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 528,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:missile_state.scanline_to_v",
+            "ownerClass": "missile_state",
+            "method": "scanline_to_v",
+            "parameters": "int scanline",
+            "body": "// since the vertical sync counter counts backwards when flipped, this function returns\n\t// the current effective V value, given that vpos() only counts forward\n\treturn m_flipscreen ? (256 - scanline) : scanline;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "identifier",
+                                "name": "m_flipscreen"
+                            },
+                            "whenTrue": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                    "kind": "number",
+                                    "value": 256
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "scanline"
+                                }
+                            },
+                            "whenFalse": {
+                                "kind": "identifier",
+                                "name": "scanline"
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 472,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:missile_state.trampoline_map",
+            "className": "missile_state",
+            "name": "trampoline_map",
+            "ranges": [
+                {
+                    "id": "map:missile_state.trampoline_map/range0",
+                    "start": 0,
+                    "end": 65535,
+                    "raw": "map(0x0000, 0xffff).rw(FUNC(missile_state::trampoline_r), FUNC(missile_state::trampoline_w))",
+                    "read": "missile_state.trampoline_r",
+                    "write": "missile_state.trampoline_w",
+                    "props": {
+                        "start": 0,
+                        "end": 65535,
+                        "raw": "map(0x0000, 0xffff).rw(FUNC(missile_state::trampoline_r), FUNC(missile_state::trampoline_w))",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 809,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 809
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 809,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 807,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:missile_state.base_map",
+            "className": "missile_state",
+            "name": "base_map",
+            "ranges": [
+                {
+                    "id": "map:missile_state.base_map/range0",
+                    "start": 0,
+                    "end": 16383,
+                    "raw": "map(0x0000, 0x3fff).rw(FUNC(missile_state::vram_r), FUNC(missile_state::vram_w))",
+                    "read": "missile_state.vram_r",
+                    "write": "missile_state.vram_w",
+                    "props": {
+                        "start": 0,
+                        "end": 16383,
+                        "raw": "map(0x0000, 0x3fff).rw(FUNC(missile_state::vram_r), FUNC(missile_state::vram_w))",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 816,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 816
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 816,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range1",
+                    "start": 18432,
+                    "end": 18432,
+                    "raw": "map(0x4800, 0x4800).mirror(0x00ff).rw(FUNC(missile_state::trackball_r), FUNC(missile_state::output_w))",
+                    "read": "missile_state.trackball_r",
+                    "write": "missile_state.output_w",
+                    "props": {
+                        "start": 18432,
+                        "end": 18432,
+                        "raw": "map(0x4800, 0x4800).mirror(0x00ff).rw(FUNC(missile_state::trackball_r), FUNC(missile_state::output_w))",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 817,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 817,
+                        "mirror": 255
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 817,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range2",
+                    "start": 18688,
+                    "end": 18688,
+                    "raw": "map(0x4900, 0x4900).mirror(0x00ff).portr(\"IN1\")",
+                    "props": {
+                        "start": 18688,
+                        "end": 18688,
+                        "raw": "map(0x4900, 0x4900).mirror(0x00ff).portr(\"IN1\")",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 818,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 818,
+                        "mirror": 255,
+                        "portRead": "IN1"
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 818,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range3",
+                    "start": 18944,
+                    "end": 18944,
+                    "raw": "map(0x4a00, 0x4a00).mirror(0x00ff).portr(\"R10\")",
+                    "props": {
+                        "start": 18944,
+                        "end": 18944,
+                        "raw": "map(0x4a00, 0x4a00).mirror(0x00ff).portr(\"R10\")",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 819,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 819,
+                        "mirror": 255,
+                        "portRead": "R10"
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 819,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range4",
+                    "start": 19200,
+                    "end": 19207,
+                    "raw": "map(0x4b00, 0x4b07).mirror(0x00f8).w(FUNC(missile_state::palette_w)).nopr()",
+                    "write": "missile_state.palette_w",
+                    "props": {
+                        "start": 19200,
+                        "end": 19207,
+                        "raw": "map(0x4b00, 0x4b07).mirror(0x00f8).w(FUNC(missile_state::palette_w)).nopr()",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 820,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 820,
+                        "mirror": 248,
+                        "nopr": true
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 820,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range5",
+                    "start": 19456,
+                    "end": 19456,
+                    "raw": "map(0x4c00, 0x4c00).mirror(0x00ff).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+                    "write": "watchdog.reset_w",
+                    "props": {
+                        "start": 19456,
+                        "end": 19456,
+                        "raw": "map(0x4c00, 0x4c00).mirror(0x00ff).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 821,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 821,
+                        "mirror": 255
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 821,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range6",
+                    "start": 19712,
+                    "end": 19712,
+                    "raw": "map(0x4d00, 0x4d00).mirror(0x00ff).w(FUNC(missile_state::irqack_w))",
+                    "write": "missile_state.irqack_w",
+                    "props": {
+                        "start": 19712,
+                        "end": 19712,
+                        "raw": "map(0x4d00, 0x4d00).mirror(0x00ff).w(FUNC(missile_state::irqack_w))",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 822,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 822,
+                        "mirror": 255
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 822,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:missile_state.base_map/range7",
+                    "start": 20480,
+                    "end": 32767,
+                    "raw": "map(0x5000, 0x7fff).rom().region(\"maincpu\", 0x5000)",
+                    "props": {
+                        "start": 20480,
+                        "end": 32767,
+                        "raw": "map(0x5000, 0x7fff).rom().region(\"maincpu\", 0x5000)",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 823,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 823,
+                        "rom": true,
+                        "region": "maincpu",
+                        "regionOffset": 20480
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 823,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 812,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:missile_state.missile_map",
+            "className": "missile_state",
+            "name": "missile_map",
+            "ranges": [
+                {
+                    "id": "map:missile_state.missile_map/range0",
+                    "start": 16384,
+                    "end": 16399,
+                    "raw": "map(0x4000, 0x400f).mirror(0x07f0).rw(m_pokey, FUNC(pokey_device::read), FUNC(pokey_device::write))",
+                    "read": "pokey.read",
+                    "write": "pokey.write",
+                    "props": {
+                        "start": 16384,
+                        "end": 16399,
+                        "raw": "map(0x4000, 0x400f).mirror(0x07f0).rw(m_pokey, FUNC(pokey_device::read), FUNC(pokey_device::write))",
+                        "sourceFile": "src/mame/atari/missile.cpp",
+                        "sourceLine": 829,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 829,
+                        "mirror": 2032
+                    },
+                    "source": {
+                        "file": "src/mame/atari/missile.cpp",
+                        "line": 829,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/atari/missile.cpp",
+                "line": 826,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_irq_state",
+            "bits": 8
+        },
+        {
+            "name": "m_irq_pin",
+            "bits": 8
+        },
+        {
+            "name": "m_ctrld",
+            "bits": 8
+        },
+        {
+            "name": "m_flipscreen",
+            "bits": 8
+        }
+    ],
+    "sound": {
+        "kind": "pokey",
+        "deviceTag": "pokey",
+        "deviceTags": [
+            "pokey"
+        ],
+        "deviceType": "POKEY",
+        "writeMethods": [
+            "write"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 1,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 1,
+                "target": "mono"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 1,
+                "target": "mono"
+            }
+        ]
+    }
+}

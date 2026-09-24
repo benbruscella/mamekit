@@ -1,0 +1,893 @@
+{
+  "type": "ADDRESS_MAP_BANK",
+  "uses": [
+    {
+      "game": "missile",
+      "tags": [
+        "mainmap"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "ADDRESS_MAP_BANK",
+    "className": "address_map_bank_device",
+    "shortName": "address_map_bank",
+    "description": "Address Map Bank",
+    "sourceFile": "src/devices/machine/bankdev.cpp",
+    "sourceLine": 7,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(ADDRESS_MAP_BANK, address_map_bank_device, \"address_map_bank\", \"Address Map Bank\")"
+  },
+  "methods": [
+    {
+      "name": "memory_space_config",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 22,
+      "program": {
+        "operations": [],
+        "diagnostics": [
+          "invalid return statement"
+        ]
+      }
+    },
+    {
+      "name": "amap8",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4294967295
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::read8"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::write8"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "amap16",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4294967295
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::read16"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::write16"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "amap32",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4294967295
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::read32"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::write32"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "amap64",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4294967295
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::read64"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address_map_bank_device::write64"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write8",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 49,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "write_byte"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write16",
+      "parameters": "offs_t offset, u16 data, u16 mem_mask",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "write_word"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write32",
+      "parameters": "offs_t offset, u32 data, u32 mem_mask",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 59,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "write_dword"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write64",
+      "parameters": "offs_t offset, u64 data, u64 mem_mask",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "write_qword"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read8",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "read_byte"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read16",
+      "parameters": "offs_t offset, u16 mem_mask",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 74,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "read_word"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read32",
+      "parameters": "offs_t offset, u32 mem_mask",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "read_dword"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read64",
+      "parameters": "offs_t offset, u64 mem_mask",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "read_qword"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_offset"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "mem_mask"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_config_complete",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_program_config"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "address_space_config"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "program"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_endianness"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_data_width"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_addr_width"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_shift"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_program"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_PROGRAM"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_offset"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_bank",
+      "parameters": "offs_t bank",
+      "sourceFile": "src/devices/machine/bankdev.cpp",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "bank"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_stride"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/bankdev.cpp",
+    "src/devices/machine/bankdev.h"
+  ]
+}

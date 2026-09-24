@@ -1,0 +1,4014 @@
+{
+    "schemaVersion": 4,
+    "game": "bombjack",
+    "family": "bombjack",
+    "driverFile": "src/mame/tecmo/bombjack.cpp",
+    "callbacks": [
+        {
+            "id": "device:bombjack_state.bombjack/screen/callback:screen:0",
+            "ownerTag": "screen",
+            "signal": "set_screen_update",
+            "operation": "set_screen_update",
+            "targetClass": "bombjack_state",
+            "targetMethod": "screen_update"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/screen/callback:screen:1",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "set",
+            "targetClass": "bombjack_state",
+            "targetMethod": "vblank_nmi"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/screen/callback:screen:2",
+            "ownerTag": "screen",
+            "signal": "screen_vblank",
+            "operation": "append_inputline",
+            "targetTag": "audiocpu",
+            "inputLine": "INPUT_LINE_NMI"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg1/callback:psg1:0",
+            "ownerTag": "psg1",
+            "signal": "port_a_write_callback",
+            "operation": "set_nop",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 765,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg1/callback:psg1:1",
+            "ownerTag": "psg1",
+            "signal": "port_b_write_callback",
+            "operation": "set_nop",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 766,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg2/callback:psg2:0",
+            "ownerTag": "psg2",
+            "signal": "port_a_write_callback",
+            "operation": "set_nop",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 767,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg2/callback:psg2:1",
+            "ownerTag": "psg2",
+            "signal": "port_b_write_callback",
+            "operation": "set_nop",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 768,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg3/callback:psg3:0",
+            "ownerTag": "psg3",
+            "signal": "port_a_write_callback",
+            "operation": "set_nop",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 769,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg3/callback:psg3:1",
+            "ownerTag": "psg3",
+            "signal": "port_b_write_callback",
+            "operation": "set_nop",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 770,
+                "column": 2
+            }
+        }
+    ],
+    "connections": [
+        {
+            "callbackId": "device:bombjack_state.bombjack/screen/callback:screen:1",
+            "effect": {
+                "kind": "handler",
+                "handler": "bombjack_state.vblank_nmi"
+            },
+            "transforms": []
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/screen/callback:screen:2",
+            "effect": {
+                "kind": "cpu-line",
+                "tag": "audiocpu",
+                "line": "nmi",
+                "delivery": "level"
+            },
+            "transforms": []
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/psg1/callback:psg1:0",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 765,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/psg1/callback:psg1:1",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 766,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/psg2/callback:psg2:0",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 767,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/psg2/callback:psg2:1",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 768,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/psg3/callback:psg3:0",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 769,
+                "column": 2
+            }
+        },
+        {
+            "callbackId": "device:bombjack_state.bombjack/psg3/callback:psg3:1",
+            "effect": {
+                "kind": "unconnected"
+            },
+            "transforms": [],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 770,
+                "column": 2
+            }
+        }
+    ],
+    "execution": {
+        "regionBindings": {
+            "m_maincpu": "maincpu",
+            "m_audiocpu": "audiocpu",
+            "m_fgtiles": "fgtiles",
+            "m_bgtiles": "bgtiles",
+            "m_sprites": "sprites",
+            "m_bgmaps": "bgmaps"
+        },
+        "cpus": [
+            {
+                "tag": "maincpu",
+                "type": "z80",
+                "clock": 4000000,
+                "region": "maincpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 32767,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 32768,
+                        "end": 36863,
+                        "kind": "ram",
+                        "share": "mainram"
+                    },
+                    {
+                        "start": 36864,
+                        "end": 37887,
+                        "kind": "ram",
+                        "share": "videoram",
+                        "write": "bombjack_state.videoram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 37888,
+                        "end": 38911,
+                        "kind": "ram",
+                        "share": "colorram",
+                        "write": "bombjack_state.colorram_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 38912,
+                        "end": 39039,
+                        "kind": "ram",
+                        "mirror": 384,
+                        "share": "spriteram",
+                        "writeOnly": true
+                    },
+                    {
+                        "start": 39424,
+                        "end": 39425,
+                        "kind": "ram",
+                        "mirror": 510,
+                        "share": "spritectrl",
+                        "writeOnly": true,
+                        "write": "bombjack_state.spritectrl_w",
+                        "writeHandlerOwnsRam": true,
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 39936,
+                        "end": 40191,
+                        "kind": "ram",
+                        "mirror": 256,
+                        "share": "palette",
+                        "write": "palette.write8"
+                    },
+                    {
+                        "start": 40448,
+                        "end": 40448,
+                        "kind": "ram",
+                        "mirror": 511,
+                        "writeOnly": true,
+                        "write": "bombjack_state.background_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 40960,
+                        "end": 45055,
+                        "kind": "nop"
+                    },
+                    {
+                        "start": 45056,
+                        "end": 45056,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "bombjack_state.nmi_on_w",
+                        "handlerWidth": 8,
+                        "read": "port.P1"
+                    },
+                    {
+                        "start": 45057,
+                        "end": 45057,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "readOnly": true,
+                        "read": "port.P2"
+                    },
+                    {
+                        "start": 45058,
+                        "end": 45058,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "readOnly": true,
+                        "read": "port.SYSTEM"
+                    },
+                    {
+                        "start": 45059,
+                        "end": 45059,
+                        "kind": "nop",
+                        "mirror": 2040
+                    },
+                    {
+                        "start": 45060,
+                        "end": 45060,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "write": "bombjack_state.flip_w",
+                        "handlerWidth": 8,
+                        "read": "port.SW1"
+                    },
+                    {
+                        "start": 45061,
+                        "end": 45061,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "readOnly": true,
+                        "read": "port.SW2"
+                    },
+                    {
+                        "start": 45062,
+                        "end": 45063,
+                        "kind": "nop",
+                        "mirror": 2040
+                    },
+                    {
+                        "start": 47104,
+                        "end": 47104,
+                        "kind": "handler",
+                        "mirror": 2047,
+                        "write": "soundlatch.write"
+                    },
+                    {
+                        "start": 45059,
+                        "end": 45059,
+                        "kind": "handler",
+                        "mirror": 2040,
+                        "read": "watchdog.reset_r",
+                        "write": "bombjack_state.watchdog_w",
+                        "handlerWidth": 8
+                    },
+                    {
+                        "start": 49152,
+                        "end": 57343,
+                        "kind": "rom"
+                    }
+                ],
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 4000000,
+                "source": {
+                    "file": "src/mame/tecmo/bombjack.cpp",
+                    "line": 758,
+                    "column": 2
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "type": "z80",
+                "clock": 3000000,
+                "region": "audiocpu",
+                "ranges": [
+                    {
+                        "start": 0,
+                        "end": 16383,
+                        "kind": "rom"
+                    },
+                    {
+                        "start": 16384,
+                        "end": 18431,
+                        "kind": "ram",
+                        "mirror": 6144
+                    },
+                    {
+                        "start": 24576,
+                        "end": 24576,
+                        "kind": "handler",
+                        "mirror": 8191,
+                        "read": "bombjack_state.soundlatch_r"
+                    }
+                ],
+                "mask": 32767,
+                "io": {
+                    "ranges": [
+                        {
+                            "start": 1,
+                            "end": 1,
+                            "kind": "handler",
+                            "mirror": 110,
+                            "read": "psg1.data_r"
+                        },
+                        {
+                            "start": 0,
+                            "end": 1,
+                            "kind": "handler",
+                            "mirror": 110,
+                            "write": "psg1.address_data_w"
+                        },
+                        {
+                            "start": 17,
+                            "end": 17,
+                            "kind": "handler",
+                            "mirror": 110,
+                            "read": "psg2.data_r"
+                        },
+                        {
+                            "start": 16,
+                            "end": 17,
+                            "kind": "handler",
+                            "mirror": 110,
+                            "write": "psg2.address_data_w"
+                        },
+                        {
+                            "start": 129,
+                            "end": 129,
+                            "kind": "handler",
+                            "mirror": 110,
+                            "read": "psg3.data_r"
+                        },
+                        {
+                            "start": 128,
+                            "end": 129,
+                            "kind": "handler",
+                            "mirror": 110,
+                            "write": "psg3.address_data_w"
+                        }
+                    ],
+                    "globalMask": 255,
+                    "space": {
+                        "ownerTag": "audiocpu",
+                        "name": "io",
+                        "dataWidth": 8,
+                        "addressShift": 0,
+                        "endianness": "big"
+                    }
+                },
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                },
+                "cycleClock": 3000000
+            }
+        ],
+        "participants": [
+            {
+                "tag": "maincpu",
+                "kind": "cpu",
+                "clock": 4000000,
+                "cycleClock": 4000000,
+                "space": {
+                    "ownerTag": "maincpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            },
+            {
+                "tag": "audiocpu",
+                "kind": "cpu",
+                "clock": 3000000,
+                "cycleClock": 3000000,
+                "space": {
+                    "ownerTag": "audiocpu",
+                    "name": "program",
+                    "dataWidth": 8,
+                    "addressShift": 0,
+                    "endianness": "big"
+                }
+            }
+        ],
+        "shareBindings": [
+            {
+                "share": "videoram",
+                "member": "m_videoram"
+            },
+            {
+                "share": "colorram",
+                "member": "m_colorram"
+            },
+            {
+                "share": "spritectrl",
+                "member": "m_spritectrl"
+            }
+        ],
+        "startHandlers": [
+            "bombjack_state.video_start"
+        ],
+        "resetHandlers": [
+            "bombjack_state.machine_reset"
+        ],
+        "screen": {
+            "width": 256,
+            "height": 224,
+            "xOffset": 0,
+            "yOffset": 16,
+            "refresh": 59.18560606060606,
+            "htotal": 384,
+            "vtotal": 264,
+            "vbstart": 240,
+            "vbend": 16,
+            "updateMode": "frame",
+            "rotate": 90,
+            "ownerTag": "screen",
+            "ownerKind": "screen"
+        },
+        "frameEvents": [
+            {
+                "callbackId": "device:bombjack_state.bombjack/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 16,
+                "state": 0
+            },
+            {
+                "callbackId": "device:bombjack_state.bombjack/screen/callback:screen:2",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 16,
+                "state": 0
+            },
+            {
+                "callbackId": "device:bombjack_state.bombjack/screen/callback:screen:1",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1
+            },
+            {
+                "callbackId": "device:bombjack_state.bombjack/screen/callback:screen:2",
+                "ownerTag": "screen",
+                "signal": "screen_vblank",
+                "line": 240,
+                "state": 1
+            }
+        ],
+        "screenUpdate": {
+            "handler": "bombjack_state.screen_update",
+            "indexed": true,
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 403,
+                "column": 1
+            }
+        }
+    },
+    "devices": [
+        {
+            "id": "device:bombjack_state.bombjack/maincpu",
+            "tag": "maincpu",
+            "type": "Z80",
+            "member": "m_maincpu",
+            "clock": 4000000,
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 758,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/watchdog",
+            "tag": "watchdog",
+            "type": "WATCHDOG_TIMER",
+            "member": "m_watchdog",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 761,
+                "column": 2
+            }
+        },
+        {
+            "id": "device:bombjack_state.bombjack/screen",
+            "tag": "screen",
+            "type": "SCREEN",
+            "member": "m_screen",
+            "configuration": [
+                {
+                    "method": "set_raw",
+                    "args": [
+                        6000000,
+                        384,
+                        0,
+                        256,
+                        264,
+                        16,
+                        240
+                    ]
+                },
+                {
+                    "method": "set_palette",
+                    "args": [
+                        "palette"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "device:bombjack_state.bombjack/gfxdecode",
+            "tag": "gfxdecode",
+            "type": "GFXDECODE",
+            "member": "m_gfxdecode"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/palette",
+            "tag": "palette",
+            "type": "PALETTE",
+            "member": "m_palette"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/audiocpu",
+            "tag": "audiocpu",
+            "type": "Z80",
+            "member": "m_audiocpu",
+            "clock": 3000000
+        },
+        {
+            "id": "device:bombjack_state.bombjack/soundlatch",
+            "tag": "soundlatch",
+            "type": "GENERIC_LATCH_8",
+            "member": "m_soundlatch"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/speaker",
+            "tag": "speaker",
+            "type": "SPEAKER"
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg1",
+            "tag": "psg1",
+            "type": "AY8910",
+            "member": "m_ay8910[0]",
+            "clock": 1500000
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg2",
+            "tag": "psg2",
+            "type": "AY8910",
+            "member": "m_ay8910[1]",
+            "clock": 1500000
+        },
+        {
+            "id": "device:bombjack_state.bombjack/psg3",
+            "tag": "psg3",
+            "type": "AY8910",
+            "member": "m_ay8910[2]",
+            "clock": 1500000
+        }
+    ],
+    "handlers": [
+        {
+            "id": "handler:bombjack_state.videoram_w",
+            "ownerClass": "bombjack_state",
+            "method": "videoram_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "if (m_videoram[offset] != data)\n\t{\n\t\tm_videoram[offset] = data;\n\t\tm_fg_tilemap->mark_tile_dirty(offset);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_videoram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_videoram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    }
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_fg_tilemap"
+                                        },
+                                        "property": "mark_tile_dirty"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 236,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.colorram_w",
+            "ownerClass": "bombjack_state",
+            "method": "colorram_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "if (m_colorram[offset] != data)\n\t{\n\t\tm_colorram[offset] = data;\n\t\tm_fg_tilemap->mark_tile_dirty(offset);\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "index",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_colorram"
+                                },
+                                "index": {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                }
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_colorram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offset"
+                                    }
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_fg_tilemap"
+                                        },
+                                        "property": "mark_tile_dirty"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "offset"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 245,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.spritectrl_w",
+            "ownerClass": "bombjack_state",
+            "method": "spritectrl_w",
+            "parameters": "offs_t offset, u8 data",
+            "body": "data &= 0x0f; // four bits, addresses 16 sprites\n\tm_spritectrl[offset] = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "data"
+                        },
+                        "operator": "&=",
+                        "value": {
+                            "kind": "number",
+                            "value": 15
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_spritectrl"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "offset"
+                            }
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 254,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:palette_device.write8",
+            "ownerClass": "palette_device",
+            "method": "write8",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 429,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:bombjack_state.background_w",
+            "ownerClass": "bombjack_state",
+            "method": "background_w",
+            "parameters": "u8 data",
+            "body": "data &= 0x1f; // four address bits + a \"KILL\" bit\n\tif (m_bg_image != data)\n\t{\n\t\tm_bg_image = data;\n\t\tm_bg_tilemap->mark_all_dirty();\n\t}",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "data"
+                        },
+                        "operator": "&=",
+                        "value": {
+                            "kind": "number",
+                            "value": 31
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "m_bg_image"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_image"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                }
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "mark_all_dirty"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 260,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.nmi_on_w",
+            "ownerClass": "bombjack_state",
+            "method": "nmi_on_w",
+            "parameters": "u8 data",
+            "body": "data = BIT(data, 0);\n\tif (!data)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);\n\tm_nmi_on = data;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "data"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "identifier",
+                                "name": "data"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_NMI"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "CLEAR_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_nmi_on"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 278,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.flip_w",
+            "ownerClass": "bombjack_state",
+            "method": "flip_w",
+            "parameters": "u8 data",
+            "body": "m_flip = BIT(data, 0);\n\n\tm_bg_tilemap->set_flip(m_flip ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0);\n\tm_fg_tilemap->set_flip(m_flip ? (TILEMAP_FLIPY | TILEMAP_FLIPX) : 0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_flip"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "data"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_tilemap"
+                                },
+                                "property": "set_flip"
+                            },
+                            "args": [
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "m_flip"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_FLIPY"
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_FLIPX"
+                                        }
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "set_flip"
+                            },
+                            "args": [
+                                {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "m_flip"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "binary",
+                                        "operator": "|",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_FLIPY"
+                                        },
+                                        "right": {
+                                            "kind": "identifier",
+                                            "name": "TILEMAP_FLIPX"
+                                        }
+                                    },
+                                    "whenFalse": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 270,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:generic_latch_8_device.write",
+            "ownerClass": "generic_latch_8_device",
+            "method": "write",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 439,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:watchdog_timer_device.reset_r",
+            "ownerClass": "watchdog_timer_device",
+            "method": "reset_r",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 446,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:bombjack_state.watchdog_w",
+            "ownerClass": "bombjack_state",
+            "method": "watchdog_w",
+            "parameters": "u8 data",
+            "body": "m_watchdog->watchdog_enable(BIT(data, 0));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_watchdog"
+                                },
+                                "property": "watchdog_enable"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "data"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 292,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.soundlatch_r",
+            "ownerClass": "bombjack_state",
+            "method": "soundlatch_r",
+            "body": "// An extra flip-flop is used to clear the LS273 after\n\t// reading it through a LS245 (this flip-flop is then\n\t// cleared in sync with /1H leading to the audio clock\n\t// TODO: This is affected by both /MREQ access to the\n\t// soundlatch and /SRD (Z80 /RD connected to an LS32)\n\tu8 const res = m_soundlatch->read();\n\tif (!machine().side_effects_disabled())\n\t\tm_soundlatch->clear_w();\n\treturn res;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "res",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_soundlatch"
+                                },
+                                "property": "read"
+                            },
+                            "args": []
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "machine"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "side_effects_disabled"
+                                },
+                                "args": []
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_soundlatch"
+                                        },
+                                        "property": "clear_w"
+                                    },
+                                    "args": []
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "identifier",
+                            "name": "res"
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 206,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:ay8910_device.data_r",
+            "ownerClass": "ay8910_device",
+            "method": "data_r",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 491,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:ay8910_device.address_data_w",
+            "ownerClass": "ay8910_device",
+            "method": "address_data_w",
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 492,
+                "column": 2
+            }
+        },
+        {
+            "id": "handler:bombjack_state.machine_reset",
+            "ownerClass": "bombjack_state",
+            "method": "machine_reset",
+            "body": "m_maincpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);\n\t// TODO: CLEAR line should be toggled when both the sound\n\t// latch is actively being read and the RESET line is on\n\tm_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_maincpu"
+                                },
+                                "property": "pulse_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "INPUT_LINE_RESET"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "attotime::zero"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_audiocpu"
+                                },
+                                "property": "pulse_input_line"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "INPUT_LINE_RESET"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "attotime::zero"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 719,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.video_start",
+            "ownerClass": "bombjack_state",
+            "method": "video_start",
+            "body": "save_item(NAME(m_bg_image));\n\tsave_item(NAME(m_flip));\n\n\tm_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(bombjack_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 16, 16, 16, 16);\n\tm_fg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(bombjack_state::get_fg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 32, 32);\n\tm_fg_tilemap->set_transparent_pen(0);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_bg_image"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "save_item"
+                            },
+                            "args": [
+                                {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "NAME"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "m_flip"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_bg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "bombjack_state::get_bg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 16
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 16
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 16
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 16
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "m_fg_tilemap"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "unary",
+                            "operator": "&",
+                            "operand": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "member",
+                                    "object": {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "member",
+                                            "object": {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "machine"
+                                                },
+                                                "args": []
+                                            },
+                                            "property": "tilemap"
+                                        },
+                                        "args": []
+                                    },
+                                    "property": "create"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "unary",
+                                        "operator": "*",
+                                        "operand": {
+                                            "kind": "identifier",
+                                            "name": "m_gfxdecode"
+                                        }
+                                    },
+                                    {
+                                        "kind": "call",
+                                        "callee": {
+                                            "kind": "identifier",
+                                            "name": "tilemap_get_info_delegate"
+                                        },
+                                        "args": [
+                                            {
+                                                "kind": "unary",
+                                                "operator": "*",
+                                                "operand": {
+                                                    "kind": "identifier",
+                                                    "name": "this"
+                                                }
+                                            },
+                                            {
+                                                "kind": "call",
+                                                "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "FUNC"
+                                                },
+                                                "args": [
+                                                    {
+                                                        "kind": "identifier",
+                                                        "name": "bombjack_state::get_fg_tile_info"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "identifier",
+                                        "name": "TILEMAP_SCAN_ROWS"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 8
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 32
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "set_transparent_pen"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 226,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.get_bg_tile_info",
+            "ownerClass": "bombjack_state",
+            "method": "get_bg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "tile_index |= (m_bg_image & 0x0f) << 9;\n\n\tu8 const attr = m_bgmaps[tile_index + 0x100];\n\tu16 code = m_bgmaps[tile_index];\n\tu8 color = 0;\n\tbool flipx = false, flipy = false;\n\n\tset_bg_tile_info(attr, code, color, flipx, flipy);\n\ttileinfo.set(1, code, color, (flipx ? TILE_FLIPX : 0) |\n\t\t\t(flipy ? TILE_FLIPY : 0));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "tile_index"
+                        },
+                        "operator": "|=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "m_bg_image"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                }
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 9
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "attr",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_bgmaps"
+                            },
+                            "index": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "tile_index"
+                                },
+                                "right": {
+                                    "kind": "number",
+                                    "value": 256
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "u16",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_bgmaps"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flipx",
+                        "valueType": "bool",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flipy",
+                        "valueType": "bool",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_bg_tile_info"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "attr"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flipx"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flipy"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 1
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "conditional",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "flipx"
+                                        },
+                                        "whenTrue": {
+                                            "kind": "identifier",
+                                            "name": "TILE_FLIPX"
+                                        },
+                                        "whenFalse": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "conditional",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "flipy"
+                                        },
+                                        "whenTrue": {
+                                            "kind": "identifier",
+                                            "name": "TILE_FLIPY"
+                                        },
+                                        "whenFalse": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 311,
+                "column": 1
+            },
+            "constants": {
+                "TILE_FLIPX": 1,
+                "TILE_FLIPY": 2
+            }
+        },
+        {
+            "id": "handler:bombjack_state.set_bg_tile_info",
+            "ownerClass": "bombjack_state",
+            "method": "set_bg_tile_info",
+            "parameters": "u8 const attr, u16 &code, u8 &color, bool &flipx, bool &flipy",
+            "body": "color = attr & 0x0f;\n\tflipy = BIT(attr, 7);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "color"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "attr"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 15
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "flipy"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "attr"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 7
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 297,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:bombjack_state.get_fg_tile_info",
+            "ownerClass": "bombjack_state",
+            "method": "get_fg_tile_info",
+            "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+            "body": "u8 const attr = m_colorram[tile_index];\n\tu16 code = m_videoram[tile_index];\n\tu8 color = 0;\n\tbool flipx = false, flipy = false;\n\n\tset_fg_tile_info(attr, code, color, flipx, flipy);\n\ttileinfo.set(0, code, color, (flipx ? TILE_FLIPX : 0) |\n\t\t\t(flipy ? TILE_FLIPY : 0));",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "attr",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_colorram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "code",
+                        "valueType": "u16",
+                        "value": {
+                            "kind": "index",
+                            "object": {
+                                "kind": "identifier",
+                                "name": "m_videoram"
+                            },
+                            "index": {
+                                "kind": "identifier",
+                                "name": "tile_index"
+                            }
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "color",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flipx",
+                        "valueType": "bool",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "flipy",
+                        "valueType": "bool",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "set_fg_tile_info"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "attr"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flipx"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "flipy"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "tileinfo"
+                                },
+                                "property": "set"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "code"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "color"
+                                },
+                                {
+                                    "kind": "binary",
+                                    "operator": "|",
+                                    "left": {
+                                        "kind": "conditional",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "flipx"
+                                        },
+                                        "whenTrue": {
+                                            "kind": "identifier",
+                                            "name": "TILE_FLIPX"
+                                        },
+                                        "whenFalse": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "conditional",
+                                        "condition": {
+                                            "kind": "identifier",
+                                            "name": "flipy"
+                                        },
+                                        "whenTrue": {
+                                            "kind": "identifier",
+                                            "name": "TILE_FLIPY"
+                                        },
+                                        "whenFalse": {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 340,
+                "column": 1
+            },
+            "constants": {
+                "TILE_FLIPX": 1,
+                "TILE_FLIPY": 2
+            }
+        },
+        {
+            "id": "handler:bombjack_state.set_fg_tile_info",
+            "ownerClass": "bombjack_state",
+            "method": "set_fg_tile_info",
+            "parameters": "u8 const attr, u16 &code, u8 &color, bool &flipx, bool &flipy",
+            "body": "code |= BIT(attr, 4) << 8;\n\tcolor = BIT(attr, 0, 4);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "code"
+                        },
+                        "operator": "|=",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                                "kind": "call",
+                                "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                },
+                                "args": [
+                                    {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                ]
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 8
+                            }
+                        }
+                    },
+                    {
+                        "op": "assign",
+                        "target": {
+                            "kind": "identifier",
+                            "name": "color"
+                        },
+                        "operator": "=",
+                        "value": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "attr"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 325,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:bombjack_state.screen_update",
+            "ownerClass": "bombjack_state",
+            "method": "screen_update",
+            "parameters": "screen_device &screen, bitmap_ind16 &bitmap, rectangle const &cliprect",
+            "body": "bitmap.fill(0, cliprect);\n\n\tif (BIT(m_bg_image, 4))\n\t\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tm_fg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\n\treturn 0;",
+            "program": {
+                "operations": [
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                "property": "fill"
+                            },
+                            "args": [
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "m_bg_image"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 4
+                                }
+                            ]
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_bg_tilemap"
+                                        },
+                                        "property": "draw"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "screen"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "member",
+                                "object": {
+                                    "kind": "identifier",
+                                    "name": "m_fg_tilemap"
+                                },
+                                "property": "draw"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "screen"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                },
+                                {
+                                    "kind": "number",
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "call",
+                        "expression": {
+                            "kind": "call",
+                            "callee": {
+                                "kind": "identifier",
+                                "name": "draw_sprites"
+                            },
+                            "args": [
+                                {
+                                    "kind": "identifier",
+                                    "name": "bitmap"
+                                },
+                                {
+                                    "kind": "identifier",
+                                    "name": "cliprect"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "number",
+                            "value": 0
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 403,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:bombjack_state.draw_sprites",
+            "ownerClass": "bombjack_state",
+            "method": "draw_sprites",
+            "parameters": "bitmap_ind16 &bitmap, rectangle const &cliprect",
+            "body": "int const max = 31, fill = HTOTAL / 16;\n\tfor (int sprite = max; sprite > max - fill; sprite--)\n\t{\n\t\tint const offs = sprite * 4;\n\t\tint code = m_spriteram[offs];\n\t\tint const attr = m_spriteram[offs + 1];\n\t\tint const color = attr & 0x0f;\n\t\t// BIT(attr, 4) - internal tag for bonus objects\n\t\t// BIT(attr, 5) - internal tag for large objects\n\t\tbool flipx = BIT(attr, 6);\n\t\tbool flipy = BIT(attr, 7);\n\t\tint ypos = m_spriteram[offs + 2];\n\t\tint xpos = m_spriteram[offs + 3];\n\n\t\tbool const large = large_sprite(sprite >> 1, attr);\n\t\tif (large)\n\t\t{\n\t\t\tif (BIT(sprite, 0))\n\t\t\t\tcontinue;\n\t\t\telse\n\t\t\t\tcode |= 0x40;\n\t\t}\n\n\t\tint const vpos = large ? VBSTART - 16 : VBSTART;\n\t\typos = (vpos + 1) - ypos;\n\t\tif (m_flip)\n\t\t{\n\t\t\txpos = vpos - xpos;\n\t\t\typos = vpos - ypos;\n\t\t\tflipx = !flipx;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\tm_gfxdecode->gfx(large ? 3 : 2)->transpen(bitmap, cliprect,\n\t\t\t\tcode, color, flipx, flipy, xpos, ypos, 0);\n\t}",
+            "constants": {
+                "HTOTAL": 384,
+                "VBSTART": 240
+            },
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "max",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "number",
+                            "value": 31
+                        }
+                    },
+                    {
+                        "op": "declare",
+                        "name": "fill",
+                        "valueType": "int",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "HTOTAL"
+                            },
+                            "right": {
+                                "kind": "number",
+                                "value": 16
+                            }
+                        }
+                    },
+                    {
+                        "op": "for",
+                        "initialize": [
+                            {
+                                "op": "declare",
+                                "name": "sprite",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "identifier",
+                                    "name": "max"
+                                }
+                            }
+                        ],
+                        "condition": {
+                            "kind": "binary",
+                            "operator": ">",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "sprite"
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "max"
+                                },
+                                "right": {
+                                    "kind": "identifier",
+                                    "name": "fill"
+                                }
+                            }
+                        },
+                        "iterate": [
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "sprite"
+                                },
+                                "operator": "-=",
+                                "value": {
+                                    "kind": "number",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "op": "declare",
+                                "name": "offs",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "sprite"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "code",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "offs"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "attr",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "color",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                        "kind": "identifier",
+                                        "name": "attr"
+                                    },
+                                    "right": {
+                                        "kind": "number",
+                                        "value": 15
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flipx",
+                                "valueType": "bool",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "attr"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 6
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "flipy",
+                                "valueType": "bool",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "attr"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 7
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "ypos",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "xpos",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spriteram"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "offs"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 3
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "op": "declare",
+                                "name": "large",
+                                "valueType": "bool",
+                                "value": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "identifier",
+                                        "name": "large_sprite"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "binary",
+                                            "operator": ">>",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "sprite"
+                                            },
+                                            "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                            }
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "attr"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "identifier",
+                                    "name": "large"
+                                },
+                                "then": [
+                                    {
+                                        "op": "if",
+                                        "condition": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "identifier",
+                                                "name": "BIT"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "identifier",
+                                                    "name": "sprite"
+                                                },
+                                                {
+                                                    "kind": "number",
+                                                    "value": 0
+                                                }
+                                            ]
+                                        },
+                                        "then": [
+                                            {
+                                                "op": "continue"
+                                            }
+                                        ],
+                                        "else": [
+                                            {
+                                                "op": "assign",
+                                                "target": {
+                                                    "kind": "identifier",
+                                                    "name": "code"
+                                                },
+                                                "operator": "|=",
+                                                "value": {
+                                                    "kind": "number",
+                                                    "value": 64
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "declare",
+                                "name": "vpos",
+                                "valueType": "int",
+                                "value": {
+                                    "kind": "conditional",
+                                    "condition": {
+                                        "kind": "identifier",
+                                        "name": "large"
+                                    },
+                                    "whenTrue": {
+                                        "kind": "binary",
+                                        "operator": "-",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "VBSTART"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 16
+                                        }
+                                    },
+                                    "whenFalse": {
+                                        "kind": "identifier",
+                                        "name": "VBSTART"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "assign",
+                                "target": {
+                                    "kind": "identifier",
+                                    "name": "ypos"
+                                },
+                                "operator": "=",
+                                "value": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "vpos"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    },
+                                    "right": {
+                                        "kind": "identifier",
+                                        "name": "ypos"
+                                    }
+                                }
+                            },
+                            {
+                                "op": "if",
+                                "condition": {
+                                    "kind": "identifier",
+                                    "name": "m_flip"
+                                },
+                                "then": [
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "xpos"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "vpos"
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "xpos"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "ypos"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "binary",
+                                            "operator": "-",
+                                            "left": {
+                                                "kind": "identifier",
+                                                "name": "vpos"
+                                            },
+                                            "right": {
+                                                "kind": "identifier",
+                                                "name": "ypos"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "flipx"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "!",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "flipx"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "op": "assign",
+                                        "target": {
+                                            "kind": "identifier",
+                                            "name": "flipy"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                            "kind": "unary",
+                                            "operator": "!",
+                                            "operand": {
+                                                "kind": "identifier",
+                                                "name": "flipy"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "call",
+                                            "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_gfxdecode"
+                                                },
+                                                "property": "gfx"
+                                            },
+                                            "args": [
+                                                {
+                                                    "kind": "conditional",
+                                                    "condition": {
+                                                        "kind": "identifier",
+                                                        "name": "large"
+                                                    },
+                                                    "whenTrue": {
+                                                        "kind": "number",
+                                                        "value": 3
+                                                    },
+                                                    "whenFalse": {
+                                                        "kind": "number",
+                                                        "value": 2
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "property": "transpen"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "bitmap"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "code"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "color"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "flipx"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "flipy"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "xpos"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ypos"
+                                        },
+                                        {
+                                            "kind": "number",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 363,
+                "column": 1
+            }
+        },
+        {
+            "id": "handler:bombjack_state.large_sprite",
+            "ownerClass": "bombjack_state",
+            "method": "large_sprite",
+            "parameters": "int const index, u8 const attr",
+            "body": "u8 const rev = (m_spritectrl[0] > m_spritectrl[1]) ? 1 : 0;\n\treturn (index > m_spritectrl[rev]) && (index <= m_spritectrl[rev ^ 1]);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "declare",
+                        "name": "rev",
+                        "valueType": "u8",
+                        "value": {
+                            "kind": "conditional",
+                            "condition": {
+                                "kind": "binary",
+                                "operator": ">",
+                                "left": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spritectrl"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                    }
+                                },
+                                "right": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spritectrl"
+                                    },
+                                    "index": {
+                                        "kind": "number",
+                                        "value": 1
+                                    }
+                                }
+                            },
+                            "whenTrue": {
+                                "kind": "number",
+                                "value": 1
+                            },
+                            "whenFalse": {
+                                "kind": "number",
+                                "value": 0
+                            }
+                        }
+                    },
+                    {
+                        "op": "return",
+                        "value": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "binary",
+                                "operator": ">",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "index"
+                                },
+                                "right": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spritectrl"
+                                    },
+                                    "index": {
+                                        "kind": "identifier",
+                                        "name": "rev"
+                                    }
+                                }
+                            },
+                            "right": {
+                                "kind": "binary",
+                                "operator": "<=",
+                                "left": {
+                                    "kind": "identifier",
+                                    "name": "index"
+                                },
+                                "right": {
+                                    "kind": "index",
+                                    "object": {
+                                        "kind": "identifier",
+                                        "name": "m_spritectrl"
+                                    },
+                                    "index": {
+                                        "kind": "binary",
+                                        "operator": "^",
+                                        "left": {
+                                            "kind": "identifier",
+                                            "name": "rev"
+                                        },
+                                        "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 352,
+                "column": 1
+            },
+            "constants": {}
+        },
+        {
+            "id": "handler:bombjack_state.vblank_nmi",
+            "ownerClass": "bombjack_state",
+            "method": "vblank_nmi",
+            "parameters": "int state",
+            "body": "if (state && m_nmi_on)\n\t\tm_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);",
+            "program": {
+                "operations": [
+                    {
+                        "op": "if",
+                        "condition": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                                "kind": "identifier",
+                                "name": "state"
+                            },
+                            "right": {
+                                "kind": "identifier",
+                                "name": "m_nmi_on"
+                            }
+                        },
+                        "then": [
+                            {
+                                "op": "call",
+                                "expression": {
+                                    "kind": "call",
+                                    "callee": {
+                                        "kind": "member",
+                                        "object": {
+                                            "kind": "identifier",
+                                            "name": "m_maincpu"
+                                        },
+                                        "property": "set_input_line"
+                                    },
+                                    "args": [
+                                        {
+                                            "kind": "identifier",
+                                            "name": "INPUT_LINE_NMI"
+                                        },
+                                        {
+                                            "kind": "identifier",
+                                            "name": "ASSERT_LINE"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "diagnostics": []
+            },
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 286,
+                "column": 1
+            }
+        }
+    ],
+    "maps": [
+        {
+            "id": "map:bombjack_state.bombjack_map",
+            "className": "bombjack_state",
+            "name": "bombjack_map",
+            "ranges": [
+                {
+                    "id": "map:bombjack_state.bombjack_map/range0",
+                    "start": 0,
+                    "end": 32767,
+                    "raw": "map(0x0000, 0x7fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 32767,
+                        "raw": "map(0x0000, 0x7fff).rom()",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 444,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 444,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 444,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range1",
+                    "start": 32768,
+                    "end": 36863,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x0000, 0x0fff).ram().share(m_mainram)",
+                    "props": {
+                        "start": 32768,
+                        "end": 36863,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x0000, 0x0fff).ram().share(m_mainram)",
+                        "ram": true,
+                        "share": "mainram"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range2",
+                    "start": 36864,
+                    "end": 37887,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1000, 0x13ff).ram().w(FUNC(bombjack_state::videoram_w)).share(m_videoram)",
+                    "write": "bombjack_state.videoram_w",
+                    "props": {
+                        "start": 36864,
+                        "end": 37887,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1000, 0x13ff).ram().w(FUNC(bombjack_state::videoram_w)).share(m_videoram)",
+                        "ram": true,
+                        "share": "videoram"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range3",
+                    "start": 37888,
+                    "end": 38911,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1400, 0x17ff).ram().w(FUNC(bombjack_state::colorram_w)).share(m_colorram)",
+                    "write": "bombjack_state.colorram_w",
+                    "props": {
+                        "start": 37888,
+                        "end": 38911,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1400, 0x17ff).ram().w(FUNC(bombjack_state::colorram_w)).share(m_colorram)",
+                        "ram": true,
+                        "share": "colorram"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range4",
+                    "start": 38912,
+                    "end": 39039,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1800, 0x187f).mirror(0x0180).writeonly().share(m_spriteram)",
+                    "props": {
+                        "start": 38912,
+                        "end": 39039,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1800, 0x187f).mirror(0x0180).writeonly().share(m_spriteram)",
+                        "mirror": 384,
+                        "writeonly": true,
+                        "share": "spriteram"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range5",
+                    "start": 39424,
+                    "end": 39425,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1a00, 0x1a01).mirror(0x01fe).writeonly().w(FUNC(bombjack_state::spritectrl_w)).share(m_spritectrl)",
+                    "write": "bombjack_state.spritectrl_w",
+                    "props": {
+                        "start": 39424,
+                        "end": 39425,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1a00, 0x1a01).mirror(0x01fe).writeonly().w(FUNC(bombjack_state::spritectrl_w)).share(m_spritectrl)",
+                        "mirror": 510,
+                        "writeonly": true,
+                        "share": "spritectrl"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range6",
+                    "start": 39936,
+                    "end": 40191,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1c00, 0x1cff).mirror(0x0100).ram().w(m_palette, FUNC(palette_device::write8)).share(\"palette\")",
+                    "write": "palette.write8",
+                    "props": {
+                        "start": 39936,
+                        "end": 40191,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1c00, 0x1cff).mirror(0x0100).ram().w(m_palette, FUNC(palette_device::write8)).share(\"palette\")",
+                        "mirror": 256,
+                        "ram": true,
+                        "share": "palette"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range7",
+                    "start": 40448,
+                    "end": 40448,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1e00, 0x1e00).mirror(0x01ff).writeonly().w(FUNC(bombjack_state::background_w))",
+                    "write": "bombjack_state.background_w",
+                    "props": {
+                        "start": 40448,
+                        "end": 40448,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x1e00, 0x1e00).mirror(0x01ff).writeonly().w(FUNC(bombjack_state::background_w))",
+                        "mirror": 511,
+                        "writeonly": true
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range8",
+                    "start": 40960,
+                    "end": 45055,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x2000, 0x2fff).noprw()",
+                    "props": {
+                        "start": 40960,
+                        "end": 45055,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x2000, 0x2fff).noprw()"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range9",
+                    "start": 45056,
+                    "end": 45056,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3000, 0x3000).mirror(0x07f8).portr(\"P1\").w(FUNC(bombjack_state::nmi_on_w))",
+                    "write": "bombjack_state.nmi_on_w",
+                    "props": {
+                        "start": 45056,
+                        "end": 45056,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3000, 0x3000).mirror(0x07f8).portr(\"P1\").w(FUNC(bombjack_state::nmi_on_w))",
+                        "mirror": 2040,
+                        "portRead": "P1"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range10",
+                    "start": 45057,
+                    "end": 45057,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3001, 0x3001).mirror(0x07f8).portr(\"P2\").nopw()",
+                    "props": {
+                        "start": 45057,
+                        "end": 45057,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3001, 0x3001).mirror(0x07f8).portr(\"P2\").nopw()",
+                        "mirror": 2040,
+                        "nopw": true,
+                        "portRead": "P2"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range11",
+                    "start": 45058,
+                    "end": 45058,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3002, 0x3002).mirror(0x07f8).portr(\"SYSTEM\").nopw()",
+                    "props": {
+                        "start": 45058,
+                        "end": 45058,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3002, 0x3002).mirror(0x07f8).portr(\"SYSTEM\").nopw()",
+                        "mirror": 2040,
+                        "nopw": true,
+                        "portRead": "SYSTEM"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range12",
+                    "start": 45059,
+                    "end": 45059,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3003, 0x3003).mirror(0x07f8).unmaprw()",
+                    "props": {
+                        "start": 45059,
+                        "end": 45059,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3003, 0x3003).mirror(0x07f8).unmaprw()",
+                        "mirror": 2040
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range13",
+                    "start": 45060,
+                    "end": 45060,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3004, 0x3004).mirror(0x07f8).portr(\"SW1\").w(FUNC(bombjack_state::flip_w))",
+                    "write": "bombjack_state.flip_w",
+                    "props": {
+                        "start": 45060,
+                        "end": 45060,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3004, 0x3004).mirror(0x07f8).portr(\"SW1\").w(FUNC(bombjack_state::flip_w))",
+                        "mirror": 2040,
+                        "portRead": "SW1"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range14",
+                    "start": 45061,
+                    "end": 45061,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3005, 0x3005).mirror(0x07f8).portr(\"SW2\").nopw()",
+                    "props": {
+                        "start": 45061,
+                        "end": 45061,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3005, 0x3005).mirror(0x07f8).portr(\"SW2\").nopw()",
+                        "mirror": 2040,
+                        "nopw": true,
+                        "portRead": "SW2"
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range15",
+                    "start": 45062,
+                    "end": 45063,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3006, 0x3007).mirror(0x07f8).noprw()",
+                    "props": {
+                        "start": 45062,
+                        "end": 45063,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3006, 0x3007).mirror(0x07f8).noprw()",
+                        "mirror": 2040
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range16",
+                    "start": 47104,
+                    "end": 47104,
+                    "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3800, 0x3800).mirror(0x07ff).w(m_soundlatch, FUNC(generic_latch_8_device::write))",
+                    "write": "soundlatch.write",
+                    "props": {
+                        "start": 47104,
+                        "end": 47104,
+                        "raw": "map(0x8000, 0xbfff).m(FUNC(bombjack_state::program_map)) -> map(0x3800, 0x3800).mirror(0x07ff).w(m_soundlatch, FUNC(generic_latch_8_device::write))",
+                        "mirror": 2047
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range17",
+                    "start": 45059,
+                    "end": 45059,
+                    "raw": "map(0xb003, 0xb003).mirror(0x07f8).r(m_watchdog, FUNC(watchdog_timer_device::reset_r)).w(FUNC(bombjack_state::watchdog_w))",
+                    "read": "watchdog.reset_r",
+                    "write": "bombjack_state.watchdog_w",
+                    "props": {
+                        "start": 45059,
+                        "end": 45059,
+                        "raw": "map(0xb003, 0xb003).mirror(0x07f8).r(m_watchdog, FUNC(watchdog_timer_device::reset_r)).w(FUNC(bombjack_state::watchdog_w))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 446,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 446,
+                        "mirror": 2040
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 446,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_map/range18",
+                    "start": 49152,
+                    "end": 57343,
+                    "raw": "map(0xc000, 0xdfff).rom()",
+                    "props": {
+                        "start": 49152,
+                        "end": 57343,
+                        "raw": "map(0xc000, 0xdfff).rom()",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 447,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 447,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 447,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 442,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:bombjack_state.bombjack_audio_map",
+            "className": "bombjack_state",
+            "name": "bombjack_audio_map",
+            "ranges": [
+                {
+                    "id": "map:bombjack_state.bombjack_audio_map/range0",
+                    "start": 0,
+                    "end": 16383,
+                    "raw": "map(0x0000, 0x3fff).rom()",
+                    "props": {
+                        "start": 0,
+                        "end": 16383,
+                        "raw": "map(0x0000, 0x3fff).rom()",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 470,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 470,
+                        "rom": true
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 470,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_map/range1",
+                    "start": 16384,
+                    "end": 18431,
+                    "raw": "map(0x4000, 0x47ff).mirror(0x1800).ram()",
+                    "props": {
+                        "start": 16384,
+                        "end": 18431,
+                        "raw": "map(0x4000, 0x47ff).mirror(0x1800).ram()",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 471,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 471,
+                        "mirror": 6144,
+                        "ram": true
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 471,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_map/range2",
+                    "start": 24576,
+                    "end": 24576,
+                    "raw": "map(0x6000, 0x6000).mirror(0x1fff).r(FUNC(bombjack_state::soundlatch_r))",
+                    "read": "bombjack_state.soundlatch_r",
+                    "props": {
+                        "start": 24576,
+                        "end": 24576,
+                        "raw": "map(0x6000, 0x6000).mirror(0x1fff).r(FUNC(bombjack_state::soundlatch_r))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 472,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 472,
+                        "mirror": 8191
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 472,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 466,
+                "column": 1
+            }
+        },
+        {
+            "id": "map:bombjack_state.bombjack_audio_portmap",
+            "className": "bombjack_state",
+            "name": "bombjack_audio_portmap",
+            "ranges": [
+                {
+                    "id": "map:bombjack_state.bombjack_audio_portmap/range0",
+                    "start": 1,
+                    "end": 1,
+                    "raw": "map(0x01, 0x01).mirror(0x6e).r(m_ay8910[0], FUNC(ay8910_device::data_r))",
+                    "read": "psg1.data_r",
+                    "props": {
+                        "start": 1,
+                        "end": 1,
+                        "raw": "map(0x01, 0x01).mirror(0x6e).r(m_ay8910[0], FUNC(ay8910_device::data_r))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 487,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 487,
+                        "mirror": 110
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 487,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_portmap/range1",
+                    "start": 0,
+                    "end": 1,
+                    "raw": "map(0x00, 0x01).mirror(0x6e).w(m_ay8910[0], FUNC(ay8910_device::address_data_w))",
+                    "write": "psg1.address_data_w",
+                    "props": {
+                        "start": 0,
+                        "end": 1,
+                        "raw": "map(0x00, 0x01).mirror(0x6e).w(m_ay8910[0], FUNC(ay8910_device::address_data_w))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 488,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 488,
+                        "mirror": 110
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 488,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_portmap/range2",
+                    "start": 17,
+                    "end": 17,
+                    "raw": "map(0x11, 0x11).mirror(0x6e).r(m_ay8910[1], FUNC(ay8910_device::data_r))",
+                    "read": "psg2.data_r",
+                    "props": {
+                        "start": 17,
+                        "end": 17,
+                        "raw": "map(0x11, 0x11).mirror(0x6e).r(m_ay8910[1], FUNC(ay8910_device::data_r))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 489,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 489,
+                        "mirror": 110
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 489,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_portmap/range3",
+                    "start": 16,
+                    "end": 17,
+                    "raw": "map(0x10, 0x11).mirror(0x6e).w(m_ay8910[1], FUNC(ay8910_device::address_data_w))",
+                    "write": "psg2.address_data_w",
+                    "props": {
+                        "start": 16,
+                        "end": 17,
+                        "raw": "map(0x10, 0x11).mirror(0x6e).w(m_ay8910[1], FUNC(ay8910_device::address_data_w))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 490,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 490,
+                        "mirror": 110
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 490,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_portmap/range4",
+                    "start": 129,
+                    "end": 129,
+                    "raw": "map(0x81, 0x81).mirror(0x6e).r(m_ay8910[2], FUNC(ay8910_device::data_r))",
+                    "read": "psg3.data_r",
+                    "props": {
+                        "start": 129,
+                        "end": 129,
+                        "raw": "map(0x81, 0x81).mirror(0x6e).r(m_ay8910[2], FUNC(ay8910_device::data_r))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 491,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 491,
+                        "mirror": 110
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 491,
+                        "column": 2
+                    }
+                },
+                {
+                    "id": "map:bombjack_state.bombjack_audio_portmap/range5",
+                    "start": 128,
+                    "end": 129,
+                    "raw": "map(0x80, 0x81).mirror(0x6e).w(m_ay8910[2], FUNC(ay8910_device::address_data_w))",
+                    "write": "psg3.address_data_w",
+                    "props": {
+                        "start": 128,
+                        "end": 129,
+                        "raw": "map(0x80, 0x81).mirror(0x6e).w(m_ay8910[2], FUNC(ay8910_device::address_data_w))",
+                        "sourceFile": "src/mame/tecmo/bombjack.cpp",
+                        "sourceLine": 492,
+                        "sourceColumn": 2,
+                        "sourceEndLine": 492,
+                        "mirror": 110
+                    },
+                    "source": {
+                        "file": "src/mame/tecmo/bombjack.cpp",
+                        "line": 492,
+                        "column": 2
+                    }
+                }
+            ],
+            "source": {
+                "file": "src/mame/tecmo/bombjack.cpp",
+                "line": 483,
+                "column": 1
+            }
+        }
+    ],
+    "stateMembers": [
+        {
+            "name": "m_bg_image",
+            "bits": 8
+        },
+        {
+            "name": "m_flip",
+            "bits": 1
+        },
+        {
+            "name": "m_nmi_on",
+            "bits": 1
+        }
+    ],
+    "video": {
+        "gfx": [
+            {
+                "region": "fgtiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 8,
+                    "height": 8,
+                    "total": "RGN_FRAC(1,3)",
+                    "planes": 3,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,3)",
+                        "RGN_FRAC(1,3)",
+                        "RGN_FRAC(2,3)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56
+                    ],
+                    "charIncrement": 64
+                }
+            },
+            {
+                "region": "bgtiles",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": "RGN_FRAC(1,3)",
+                    "planes": 3,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,3)",
+                        "RGN_FRAC(1,3)",
+                        "RGN_FRAC(2,3)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        64,
+                        65,
+                        66,
+                        67,
+                        68,
+                        69,
+                        70,
+                        71
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        128,
+                        136,
+                        144,
+                        152,
+                        160,
+                        168,
+                        176,
+                        184
+                    ],
+                    "charIncrement": 256
+                }
+            },
+            {
+                "region": "sprites",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 16,
+                    "height": 16,
+                    "total": "RGN_FRAC(1,3)",
+                    "planes": 3,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,3)",
+                        "RGN_FRAC(1,3)",
+                        "RGN_FRAC(2,3)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        64,
+                        65,
+                        66,
+                        67,
+                        68,
+                        69,
+                        70,
+                        71
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        128,
+                        136,
+                        144,
+                        152,
+                        160,
+                        168,
+                        176,
+                        184
+                    ],
+                    "charIncrement": 256
+                }
+            },
+            {
+                "region": "sprites",
+                "offset": 0,
+                "decodeMember": "m_gfxdecode",
+                "paletteMember": "m_palette",
+                "colorBase": 0,
+                "colorCount": 16,
+                "xscale": 1,
+                "yscale": 1,
+                "layout": {
+                    "width": 32,
+                    "height": 32,
+                    "total": "RGN_FRAC(1,3)",
+                    "planes": 3,
+                    "planeOffsets": [
+                        "RGN_FRAC(0,3)",
+                        "RGN_FRAC(1,3)",
+                        "RGN_FRAC(2,3)"
+                    ],
+                    "xOffsets": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        64,
+                        65,
+                        66,
+                        67,
+                        68,
+                        69,
+                        70,
+                        71,
+                        256,
+                        257,
+                        258,
+                        259,
+                        260,
+                        261,
+                        262,
+                        263,
+                        320,
+                        321,
+                        322,
+                        323,
+                        324,
+                        325,
+                        326,
+                        327
+                    ],
+                    "yOffsets": [
+                        0,
+                        8,
+                        16,
+                        24,
+                        32,
+                        40,
+                        48,
+                        56,
+                        128,
+                        136,
+                        144,
+                        152,
+                        160,
+                        168,
+                        176,
+                        184,
+                        512,
+                        520,
+                        528,
+                        536,
+                        544,
+                        552,
+                        560,
+                        568,
+                        640,
+                        648,
+                        656,
+                        664,
+                        672,
+                        680,
+                        688,
+                        696
+                    ],
+                    "charIncrement": 1024
+                }
+            }
+        ],
+        "regionBindings": {
+            "m_bgmaps": "bgmaps"
+        },
+        "ramPalette": {
+            "tag": "palette",
+            "endianness": "little",
+            "entries": 128,
+            "bytesPerEntry": 2,
+            "channels": [
+                {
+                    "channel": "r",
+                    "bits": 4,
+                    "shift": 0
+                },
+                {
+                    "channel": "g",
+                    "bits": 4,
+                    "shift": 4
+                },
+                {
+                    "channel": "b",
+                    "bits": 4,
+                    "shift": 8
+                }
+            ],
+            "source": {
+                "file": "src/emu/emupal.cpp",
+                "line": 205
+            }
+        },
+        "tilemaps": [
+            {
+                "member": "m_bg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 16,
+                "tileHeight": 16,
+                "columns": 16,
+                "rows": 16,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "bombjack_state.get_bg_tile_info",
+                "source": {
+                    "file": "src/mame/tecmo/bombjack.cpp",
+                    "line": 226,
+                    "column": 1
+                }
+            },
+            {
+                "member": "m_fg_tilemap",
+                "decodeMember": "m_gfxdecode",
+                "tileWidth": 8,
+                "tileHeight": 8,
+                "columns": 32,
+                "rows": 32,
+                "mapper": "TILEMAP_SCAN_ROWS",
+                "tileInfo": "bombjack_state.get_fg_tile_info",
+                "transparentPen": 0,
+                "source": {
+                    "file": "src/mame/tecmo/bombjack.cpp",
+                    "line": 226,
+                    "column": 1
+                }
+            }
+        ],
+        "initialState": {},
+        "source": {
+            "file": "src/mame/tecmo/bombjack.cpp",
+            "line": 226,
+            "column": 1
+        }
+    },
+    "sound": {
+        "kind": "ay8910",
+        "deviceTag": "psg1",
+        "deviceTags": [
+            "psg1",
+            "psg2",
+            "psg3"
+        ],
+        "deviceType": "AY8910",
+        "writeMethods": [
+            "address_w",
+            "data_w"
+        ],
+        "enableMethods": [],
+        "controlOffset": -1,
+        "routes": [
+            {
+                "chip": 0,
+                "channel": 0,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 0,
+                "channel": 1,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 0,
+                "channel": 2,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 1,
+                "channel": 0,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 1,
+                "channel": 1,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 1,
+                "channel": 2,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 2,
+                "channel": 0,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 2,
+                "channel": 1,
+                "gain": 0.13,
+                "target": "speaker"
+            },
+            {
+                "chip": 2,
+                "channel": 2,
+                "gain": 0.13,
+                "target": "speaker"
+            }
+        ]
+    }
+}

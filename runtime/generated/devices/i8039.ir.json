@@ -1,0 +1,35 @@
+{
+  "type": "I8039",
+  "uses": [
+    {
+      "game": "gyruss",
+      "tags": [
+        "audio2"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8039",
+    "className": "i8039_device",
+    "shortName": "i8039",
+    "description": "Intel 8039",
+    "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+    "sourceLine": 187,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8039,   i8039_device,   \"i8039\",   \"Intel 8039\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mcs48/mcs48.cpp",
+    "src/devices/cpu/mcs48/mcs48.h",
+    "src/devices/cpu/mcs48/mcs48dsm.h"
+  ]
+}

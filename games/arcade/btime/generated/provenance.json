@@ -1,0 +1,639 @@
+{
+  "generatedFrom": "src/mame/dataeast/btime.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2307,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2312,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2322,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2327,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2316
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2307,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2322,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2327,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2300,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2303,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2310,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/5/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/6/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/7/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/8/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/9/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/10/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/11/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/12/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/13/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/14/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/15/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/16/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/17/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/18/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/19/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/20/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/21/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/22/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/23/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/24/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/25/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/26/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/27/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/28/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/29/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/30/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/31/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/32/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/33/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 764,
+      "column": 1
+    },
+    {
+      "path": "/execution/paletteInit/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 429,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2300,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2303,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2305,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2307,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2310,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2315,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2316,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2319,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2321,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2324,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2332,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2339,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1154,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 534,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 554,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 544,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 574,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 606,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1169,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 601,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1231,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1232,
+      "column": 2
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1233,
+      "column": 2
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1012,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 2272,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1028,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 764,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 683,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 728,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 655,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1021,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 429,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1238,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1036,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1037,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1038,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1039,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1040,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1041,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1042,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1043,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1044,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1045,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1046,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1047,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1034,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1216,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1217,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1218,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1219,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1220,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1221,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1222,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/7/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1223,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 1214,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/emu/emupal.cpp",
+      "line": 152
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/dataeast/btime.cpp",
+      "line": 764,
+      "column": 1
+    }
+  ]
+}

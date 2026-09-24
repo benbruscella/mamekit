@@ -1,0 +1,3655 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/konami/hyperspt.cpp",
+    "generatedAt": "2026-09-24T02:28:00.276Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Chris Hardy"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/konami/hyperspt.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/konami/hyperspt.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:hyprolyb.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "hyprolyb.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konami1.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konami1.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:konamipt.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "konamipt.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:trackfld_a.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "trackfld_a.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6800/m6800.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6800/m6800.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/z80/z80.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/z80/z80.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/74259.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/74259.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/gen_latch.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/gen_latch.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/dac.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/dac.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/sn76496.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/sn76496.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/vlm5030.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/vlm5030.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/resnet.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/resnet.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:emupal.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emupal.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:tilemap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "tilemap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:hyperspt",
+      "label": "Game",
+      "props": {
+        "name": "hyperspt",
+        "year": "1984",
+        "company": "Konami (Centuri license)",
+        "fullname": "Hyper Sports",
+        "monitor": "ROT0",
+        "cls": "hyperspt_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 949,
+        "sourceColumn": 1,
+        "sourceEndLine": 949
+      }
+    },
+    {
+      "id": "romset:hyperspt",
+      "label": "RomSet",
+      "props": {
+        "name": "hyperspt",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 713,
+        "sourceColumn": 1,
+        "sourceEndLine": 713
+      }
+    },
+    {
+      "id": "region:hyperspt/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 714,
+        "sourceColumn": 2,
+        "sourceEndLine": 714
+      }
+    },
+    {
+      "id": "rom:hyperspt/maincpu/c01",
+      "label": "Rom",
+      "props": {
+        "file": "c01",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "0c720eeb",
+        "sha1": "cc0719db7e59c72e603ab2ca42565303bc41d281",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 715,
+        "sourceColumn": 2,
+        "sourceEndLine": 715
+      }
+    },
+    {
+      "id": "rom:hyperspt/maincpu/c02",
+      "label": "Rom",
+      "props": {
+        "file": "c02",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "560258e0",
+        "sha1": "788d0d3cbbd97fb54eceb3281ccf84a31e5e3e98",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 716,
+        "sourceColumn": 2,
+        "sourceEndLine": 716
+      }
+    },
+    {
+      "id": "rom:hyperspt/maincpu/c03",
+      "label": "Rom",
+      "props": {
+        "file": "c03",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "9b01c7e6",
+        "sha1": "0106f94b38ad62e7514e56aab35581968074bbe0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 717,
+        "sourceColumn": 2,
+        "sourceEndLine": 717
+      }
+    },
+    {
+      "id": "rom:hyperspt/maincpu/c04",
+      "label": "Rom",
+      "props": {
+        "file": "c04",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "10d7e9a2",
+        "sha1": "ebf1dd7ba10179c41b42358c45e49424ce8495cd",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 718,
+        "sourceColumn": 2,
+        "sourceEndLine": 718
+      }
+    },
+    {
+      "id": "rom:hyperspt/maincpu/c05",
+      "label": "Rom",
+      "props": {
+        "file": "c05",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "b105a8cd",
+        "sha1": "7d77ab4d75c0bff7ac7372a5ff5fe55839b57d19",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 719,
+        "sourceColumn": 2,
+        "sourceEndLine": 719
+      }
+    },
+    {
+      "id": "rom:hyperspt/maincpu/c06",
+      "label": "Rom",
+      "props": {
+        "file": "c06",
+        "offset": 57344,
+        "size": 8192,
+        "crc": "1a34a849",
+        "sha1": "daa42a959ea162ca7f098010c85a7453a8805df8",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 720,
+        "sourceColumn": 2,
+        "sourceEndLine": 720
+      }
+    },
+    {
+      "id": "region:hyperspt/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 722,
+        "sourceColumn": 2,
+        "sourceEndLine": 722
+      }
+    },
+    {
+      "id": "rom:hyperspt/audiocpu/c10",
+      "label": "Rom",
+      "props": {
+        "file": "c10",
+        "offset": 0,
+        "size": 8192,
+        "crc": "3dc1a6ff",
+        "sha1": "1e67cac46b6c8a9a0bb1560e135983435520f1fc",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 723,
+        "sourceColumn": 2,
+        "sourceEndLine": 723
+      }
+    },
+    {
+      "id": "rom:hyperspt/audiocpu/c09",
+      "label": "Rom",
+      "props": {
+        "file": "c09",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "9b525c3e",
+        "sha1": "d8775ec3b4f12117431a2b7c7eaa038c1255241b",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 724,
+        "sourceColumn": 2,
+        "sourceEndLine": 724
+      }
+    },
+    {
+      "id": "region:hyperspt/sprites",
+      "label": "RomRegion",
+      "props": {
+        "tag": "sprites",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 726,
+        "sourceColumn": 2,
+        "sourceEndLine": 726
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c14",
+      "label": "Rom",
+      "props": {
+        "file": "c14",
+        "offset": 0,
+        "size": 8192,
+        "crc": "c72d63be",
+        "sha1": "0677b4f7196551ebc1bbbecd0e15d79f8e32857d",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 727,
+        "sourceColumn": 2,
+        "sourceEndLine": 727
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c13",
+      "label": "Rom",
+      "props": {
+        "file": "c13",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "76565608",
+        "sha1": "418fb9a81c0583d0214afb27fea28794563b8460",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 728,
+        "sourceColumn": 2,
+        "sourceEndLine": 728
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c12",
+      "label": "Rom",
+      "props": {
+        "file": "c12",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "74d2cc69",
+        "sha1": "684b65455217f243b3690822d445efdcb18211bb",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 729,
+        "sourceColumn": 2,
+        "sourceEndLine": 729
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c11",
+      "label": "Rom",
+      "props": {
+        "file": "c11",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "66cbcb4d",
+        "sha1": "c4ea51a6f30d2cd0cd6e22fdadb83d889f2cc471",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 730,
+        "sourceColumn": 2,
+        "sourceEndLine": 730
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c18",
+      "label": "Rom",
+      "props": {
+        "file": "c18",
+        "offset": 32768,
+        "size": 8192,
+        "crc": "ed25e669",
+        "sha1": "2e306db101cd4443b0a81cecf817e5ebbdaf1bba",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 731,
+        "sourceColumn": 2,
+        "sourceEndLine": 731
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c17",
+      "label": "Rom",
+      "props": {
+        "file": "c17",
+        "offset": 40960,
+        "size": 8192,
+        "crc": "b145b39f",
+        "sha1": "e696e1f9b44aa44360ea9962c4ee9b61db8e53f5",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 732,
+        "sourceColumn": 2,
+        "sourceEndLine": 732
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c16",
+      "label": "Rom",
+      "props": {
+        "file": "c16",
+        "offset": 49152,
+        "size": 8192,
+        "crc": "d7ff9f2b",
+        "sha1": "b0e6a056db96027ba0c10d3ee3bfdef145a236e2",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 733,
+        "sourceColumn": 2,
+        "sourceEndLine": 733
+      }
+    },
+    {
+      "id": "rom:hyperspt/sprites/c15",
+      "label": "Rom",
+      "props": {
+        "file": "c15",
+        "offset": 57344,
+        "size": 8192,
+        "crc": "f3d454e6",
+        "sha1": "9d04dcd1b0354e01773923295bba2602e00467f9",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 734,
+        "sourceColumn": 2,
+        "sourceEndLine": 734
+      }
+    },
+    {
+      "id": "region:hyperspt/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 736,
+        "sourceColumn": 2,
+        "sourceEndLine": 736
+      }
+    },
+    {
+      "id": "rom:hyperspt/tiles/c26",
+      "label": "Rom",
+      "props": {
+        "file": "c26",
+        "offset": 0,
+        "size": 8192,
+        "crc": "a6897eac",
+        "sha1": "a1dd950c29885f7bb4784fed46810ae47bff87dd",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 737,
+        "sourceColumn": 2,
+        "sourceEndLine": 737
+      }
+    },
+    {
+      "id": "rom:hyperspt/tiles/c24",
+      "label": "Rom",
+      "props": {
+        "file": "c24",
+        "offset": 8192,
+        "size": 8192,
+        "crc": "5fb230c0",
+        "sha1": "8caebf3788c1fb71c1ba72b0045503d45936d4ce",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 738,
+        "sourceColumn": 2,
+        "sourceEndLine": 738
+      }
+    },
+    {
+      "id": "rom:hyperspt/tiles/c22",
+      "label": "Rom",
+      "props": {
+        "file": "c22",
+        "offset": 16384,
+        "size": 8192,
+        "crc": "ed9271a0",
+        "sha1": "a458ad79922383f45f6522775e19cf693e226883",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 739,
+        "sourceColumn": 2,
+        "sourceEndLine": 739
+      }
+    },
+    {
+      "id": "rom:hyperspt/tiles/c20",
+      "label": "Rom",
+      "props": {
+        "file": "c20",
+        "offset": 24576,
+        "size": 8192,
+        "crc": "183f4324",
+        "sha1": "f6bcd03c25dea300876ace950f118a971557168f",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 2,
+        "sourceEndLine": 740
+      }
+    },
+    {
+      "id": "region:hyperspt/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 544,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742
+      }
+    },
+    {
+      "id": "rom:hyperspt/proms/c03_c27.bin",
+      "label": "Rom",
+      "props": {
+        "file": "c03_c27.bin",
+        "offset": 0,
+        "size": 32,
+        "crc": "bc8a5956",
+        "sha1": "90746145d9f380c29919edea3ef7a8434c48c9d9",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 743,
+        "sourceColumn": 2,
+        "sourceEndLine": 743
+      }
+    },
+    {
+      "id": "rom:hyperspt/proms/j12_c28.bin",
+      "label": "Rom",
+      "props": {
+        "file": "j12_c28.bin",
+        "offset": 32,
+        "size": 256,
+        "crc": "2c891d59",
+        "sha1": "79050fbe058c24349927edc7937ec68a77f450f1",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 2,
+        "sourceEndLine": 744
+      }
+    },
+    {
+      "id": "rom:hyperspt/proms/a09_c29.bin",
+      "label": "Rom",
+      "props": {
+        "file": "a09_c29.bin",
+        "offset": 288,
+        "size": 256,
+        "crc": "811a3f3f",
+        "sha1": "474f03345847cd9791ff6b7161286bbfef3f990a",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 745,
+        "sourceColumn": 2,
+        "sourceEndLine": 745
+      }
+    },
+    {
+      "id": "region:hyperspt/vlm",
+      "label": "RomRegion",
+      "props": {
+        "tag": "vlm",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 747,
+        "sourceColumn": 2,
+        "sourceEndLine": 747
+      }
+    },
+    {
+      "id": "rom:hyperspt/vlm/c08",
+      "label": "Rom",
+      "props": {
+        "file": "c08",
+        "offset": 0,
+        "size": 8192,
+        "crc": "e8f8ea78",
+        "sha1": "8d37818e5a2740c96696f37996f2a3f870386690",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 748,
+        "sourceColumn": 2,
+        "sourceEndLine": 748
+      }
+    },
+    {
+      "id": "map:base_state.common_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "base_state",
+        "name": "common_map",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 345,
+        "sourceColumn": 1,
+        "sourceEndLine": 360
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4287,
+        "raw": "map(0x1000, 0x10bf).ram().share(m_spriteram)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 347,
+        "sourceColumn": 2,
+        "sourceEndLine": 347,
+        "ram": true,
+        "share": "spriteram"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 4288,
+        "end": 4351,
+        "raw": "map(0x10c0, 0x10ff).ram().share(m_scroll)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 348,
+        "sourceColumn": 2,
+        "sourceEndLine": 348,
+        "ram": true,
+        "share": "scroll"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 5120,
+        "end": 5120,
+        "raw": "map(0x1400, 0x1400).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 349,
+        "sourceColumn": 2,
+        "sourceEndLine": 349
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 349,
+        "sourceColumn": 2,
+        "sourceEndLine": 349
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 5248,
+        "end": 5255,
+        "raw": "map(0x1480, 0x1487).w(\"mainlatch\", FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 350,
+        "sourceColumn": 2,
+        "sourceEndLine": 350
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 350,
+        "sourceColumn": 2,
+        "sourceEndLine": 350
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 5376,
+        "end": 5376,
+        "raw": "map(0x1500, 0x1500).w(\"soundlatch\", FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 351,
+        "sourceColumn": 2,
+        "sourceEndLine": 351
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 351,
+        "sourceColumn": 2,
+        "sourceEndLine": 351
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 5632,
+        "end": 5632,
+        "raw": "map(0x1600, 0x1600).portr(\"DSW2\")",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 352,
+        "sourceColumn": 2,
+        "sourceEndLine": 352,
+        "portRead": "DSW2"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 5760,
+        "end": 5760,
+        "raw": "map(0x1680, 0x1680).portr(\"SYSTEM\")",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 353,
+        "sourceColumn": 2,
+        "sourceEndLine": 353,
+        "portRead": "SYSTEM"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 5763,
+        "end": 5763,
+        "raw": "map(0x1683, 0x1683).portr(\"DSW1\")",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 354,
+        "sourceColumn": 2,
+        "sourceEndLine": 354,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 10239,
+        "raw": "map(0x2000, 0x27ff).ram().w(FUNC(base_state::videoram_w)).share(m_videoram)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 355,
+        "sourceColumn": 2,
+        "sourceEndLine": 355,
+        "ram": true,
+        "share": "videoram"
+      }
+    },
+    {
+      "id": "handler:base_state.videoram_w",
+      "label": "Handler",
+      "props": {
+        "method": "videoram_w",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 232,
+        "sourceColumn": 1,
+        "sourceEndLine": 236,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_videoram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 12287,
+        "raw": "map(0x2800, 0x2fff).ram().w(FUNC(base_state::colorram_w)).share(m_colorram)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 356,
+        "sourceColumn": 2,
+        "sourceEndLine": 356,
+        "ram": true,
+        "share": "colorram"
+      }
+    },
+    {
+      "id": "handler:base_state.colorram_w",
+      "label": "Handler",
+      "props": {
+        "method": "colorram_w",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 238,
+        "sourceColumn": 1,
+        "sourceEndLine": 242,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "m_colorram[offset] = data;\n\tm_bg_tilemap->mark_tile_dirty(offset);"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 14335,
+        "raw": "map(0x3000, 0x37ff).ram()",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 357,
+        "sourceColumn": 2,
+        "sourceEndLine": 357,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 14336,
+        "end": 16383,
+        "raw": "map(0x3800, 0x3fff).ram().share(\"nvram\")",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 358,
+        "sourceColumn": 2,
+        "sourceEndLine": 358,
+        "ram": true,
+        "share": "nvram"
+      }
+    },
+    {
+      "id": "map:base_state.common_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 65535,
+        "raw": "map(0x4000, 0xffff).rom()",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 359,
+        "sourceColumn": 2,
+        "sourceEndLine": 359,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:base_state.hyperspt_common_main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "base_state",
+        "name": "hyperspt_common_main_map",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 362,
+        "sourceColumn": 1,
+        "sourceEndLine": 367,
+        "calls": [
+          "common_map"
+        ]
+      }
+    },
+    {
+      "id": "map:base_state.hyperspt_common_main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 5761,
+        "end": 5761,
+        "raw": "map(0x1681, 0x1681).portr(\"P1_P2\")",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 365,
+        "sourceColumn": 2,
+        "sourceEndLine": 365,
+        "portRead": "P1_P2"
+      }
+    },
+    {
+      "id": "map:base_state.hyperspt_common_main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 5762,
+        "end": 5762,
+        "raw": "map(0x1682, 0x1682).portr(\"P3_P4\")",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 366,
+        "sourceColumn": 2,
+        "sourceEndLine": 366,
+        "portRead": "P3_P4"
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "base_state",
+        "name": "common_sound_map",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 376,
+        "sourceColumn": 1,
+        "sourceEndLine": 385
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 16383,
+        "raw": "map(0x0000, 0x3fff).rom()",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 378,
+        "sourceColumn": 2,
+        "sourceEndLine": 378,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 20479,
+        "raw": "map(0x4000, 0x4fff).ram()",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 379,
+        "sourceColumn": 2,
+        "sourceEndLine": 379,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 24576,
+        "end": 24576,
+        "raw": "map(0x6000, 0x6000).r(\"soundlatch\", FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 380,
+        "sourceColumn": 2,
+        "sourceEndLine": 380
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 380,
+        "sourceColumn": 2,
+        "sourceEndLine": 380
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 32768,
+        "end": 32768,
+        "raw": "map(0x8000, 0x8000).r(m_soundbrd, FUNC(trackfld_audio_device::hyperspt_sh_timer_r))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 381,
+        "sourceColumn": 2,
+        "sourceEndLine": 381
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.hyperspt_sh_timer_r",
+      "label": "Handler",
+      "props": {
+        "method": "hyperspt_sh_timer_r",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 72,
+        "sourceColumn": 1,
+        "sourceEndLine": 80,
+        "sourceConstants": [
+          "TIMER_RATE=1024"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "uint32_t clock = m_audiocpu->total_cycles() / TIMER_RATE;\n\n\tif (m_vlm != nullptr)\n\t\treturn (clock & 0x3) | (m_vlm->bsy_r() ? 0x04 : 0);\n\telse\n\t\treturn (clock & 0x3);"
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 57344,
+        "end": 57344,
+        "raw": "map(0xe000, 0xe000).w(m_dac, FUNC(dac_byte_interface::data_w))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 382,
+        "sourceColumn": 2,
+        "sourceEndLine": 382
+      }
+    },
+    {
+      "id": "handler:dac_byte_interface.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "dac_byte_interface",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 382,
+        "sourceColumn": 2,
+        "sourceEndLine": 382
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 57345,
+        "end": 57345,
+        "raw": "map(0xe001, 0xe001).w(FUNC(hyperspt_state::konami_sn76489a_latch_w))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 383,
+        "sourceColumn": 2,
+        "sourceEndLine": 383
+      }
+    },
+    {
+      "id": "handler:hyperspt_state.konami_sn76489a_latch_w",
+      "label": "Handler",
+      "props": {
+        "method": "konami_sn76489a_latch_w",
+        "ownerClass": "hyperspt_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 91,
+        "sourceColumn": 31,
+        "sourceEndLine": 93,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_sn76489a_latch = data;"
+      }
+    },
+    {
+      "id": "map:base_state.common_sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 57346,
+        "end": 57346,
+        "raw": "map(0xe002, 0xe002).w(FUNC(hyperspt_state::konami_sn76489a_w))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 384,
+        "sourceColumn": 2,
+        "sourceEndLine": 384
+      }
+    },
+    {
+      "id": "handler:hyperspt_state.konami_sn76489a_w",
+      "label": "Handler",
+      "props": {
+        "method": "konami_sn76489a_w",
+        "ownerClass": "hyperspt_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 94,
+        "sourceColumn": 1,
+        "sourceEndLine": 94,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_sn->write(m_sn76489a_latch);"
+      }
+    },
+    {
+      "id": "handler:hyprolyb_adpcm_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "hyprolyb_adpcm_device",
+        "sourceFile": "src/mame/konami/hyprolyb.cpp",
+        "sourceLine": 43,
+        "sourceColumn": 1,
+        "sourceEndLine": 47,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_soundlatch2->write(data);\n\tm_adpcm_ready = 0x80;"
+      }
+    },
+    {
+      "id": "map:hyperspt_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "hyperspt_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 387,
+        "sourceColumn": 1,
+        "sourceEndLine": 392,
+        "calls": [
+          "common_sound_map"
+        ]
+      }
+    },
+    {
+      "id": "map:hyperspt_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 40960,
+        "end": 40960,
+        "raw": "map(0xa000, 0xa000).w(m_vlm, FUNC(vlm5030_device::data_w))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 390,
+        "sourceColumn": 2,
+        "sourceEndLine": 390
+      }
+    },
+    {
+      "id": "handler:vlm5030_device.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "vlm5030_device",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 390,
+        "sourceColumn": 2,
+        "sourceEndLine": 390
+      }
+    },
+    {
+      "id": "map:hyperspt_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 57343,
+        "raw": "map(0xc000, 0xdfff).w(m_soundbrd, FUNC(trackfld_audio_device::hyperspt_sound_w))",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 391,
+        "sourceColumn": 2,
+        "sourceEndLine": 391
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.hyperspt_sound_w",
+      "label": "Handler",
+      "props": {
+        "method": "hyperspt_sound_w",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 82,
+        "sourceColumn": 1,
+        "sourceEndLine": 96,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "// A3 = data enable for VLM5030 (don't care )\n\t// A4 = STA pin (1->0 data data, 0->1 start speech)\n\t// A5 = RST pin 1=reset\n\t// A6 = VLM5030    output disable (don't care )\n\t// A7 = kONAMI DAC output disable (don't care )\n\t// A8 = SN76489AN  output disable (don't care )\n\n\t// A4 VLM5030 ST pin\n\tm_vlm->st_w(BIT(offset, 4));\n\n\t// A5 VLM5030 RST pin\n\tm_vlm->rst_w(BIT(offset, 5));"
+      }
+    },
+    {
+      "id": "machine:base_state.base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "base_state",
+        "name": "base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_sn76489a_latch\",\"bits\":8}",
+          "{\"name\":\"m_irq_mask\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "base_state.video_start"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 1,
+        "sourceEndLine": 654
+      }
+    },
+    {
+      "id": "handler:base_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 253,
+        "sourceColumn": 1,
+        "sourceEndLine": 257,
+        "sourceParameters": "",
+        "sourceBody": "m_bg_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(base_state::get_bg_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);\n\tm_bg_tilemap->set_scroll_rows(32);"
+      }
+    },
+    {
+      "id": "handler:base_state.get_bg_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_bg_tile_info",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 244,
+        "sourceColumn": 1,
+        "sourceEndLine": 251,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "int const code = m_videoram[tile_index] + ((m_colorram[tile_index] & 0x80) << 1) + ((m_colorram[tile_index] & 0x40) << 3);\n\tint const color = m_colorram[tile_index] & 0x0f;\n\tint const flags = ((m_colorram[tile_index] & 0x10) ? TILE_FLIPX : 0) | ((m_colorram[tile_index] & 0x20) ? TILE_FLIPY : 0);\n\n\ttileinfo.set(1, code, color, flags);"
+      }
+    },
+    {
+      "id": "device:base_state.base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "KONAMI1",
+        "tag": "maincpu",
+        "clock": 1536000,
+        "config": [
+          "KONAMI1(config, m_maincpu, XTAL(18'432'000) / 12)"
+        ],
+        "member": "m_maincpu",
+        "cls": "konami1_device",
+        "clsHierarchy": [
+          "konami1_device"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 2,
+        "sourceEndLine": 613
+      }
+    },
+    {
+      "id": "device:base_state.base/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "Z80",
+        "tag": "audiocpu",
+        "clock": 3579545.25,
+        "config": [
+          "Z80(config, m_audiocpu, XTAL(14'318'181) / 4)"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "ls259_device &mainlatch(LS259(config, \"mainlatch\"))",
+          "mainlatch.q_out_cb<0>().set(FUNC(base_state::flip_screen_set))",
+          "mainlatch.q_out_cb<1>().set(m_soundbrd, FUNC(trackfld_audio_device::sh_irqtrigger_w))",
+          "mainlatch.q_out_cb<2>().set_nop()",
+          "mainlatch.q_out_cb<3>().set(FUNC(base_state::coin_counter_w<0>))",
+          "mainlatch.q_out_cb<4>().set(FUNC(base_state::coin_counter_w<1>))",
+          "mainlatch.q_out_cb<5>().set_nop()",
+          "mainlatch.q_out_cb<7>().set(FUNC(base_state::irq_mask_w))"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 2,
+        "sourceEndLine": 617
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<0>().set(FUNC(base_state::flip_screen_set))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618,
+        "slot": "0",
+        "targetClass": "base_state",
+        "targetMethod": "flip_screen_set"
+      }
+    },
+    {
+      "id": "handler:base_state.flip_screen_set",
+      "label": "Handler",
+      "props": {
+        "method": "flip_screen_set",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<1>().set(m_soundbrd, FUNC(trackfld_audio_device::sh_irqtrigger_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 619,
+        "sourceColumn": 2,
+        "sourceEndLine": 619,
+        "slot": "1",
+        "targetClass": "trackfld_audio_device",
+        "targetMethod": "sh_irqtrigger_w",
+        "targetTag": "trackfld_audio"
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.sh_irqtrigger_w",
+      "label": "Handler",
+      "props": {
+        "method": "sh_irqtrigger_w",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 100,
+        "sourceColumn": 1,
+        "sourceEndLine": 107,
+        "sourceParameters": "int state",
+        "sourceBody": "// setting bit 0 low then high triggers IRQ on the sound CPU\n\tif (!m_last_irq && state)\n\t\tm_audiocpu->set_input_line(0, HOLD_LINE); // Z80 IM1\n\n\tm_last_irq = state;"
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "mainlatch.q_out_cb<2>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 620,
+        "sourceColumn": 2,
+        "sourceEndLine": 620,
+        "slot": "2"
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:3",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<3>().set(FUNC(base_state::coin_counter_w<0>))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 621,
+        "sourceColumn": 2,
+        "sourceEndLine": 621,
+        "slot": "3",
+        "targetClass": "base_state",
+        "targetMethod": "coin_counter_w_0"
+      }
+    },
+    {
+      "id": "handler:base_state.coin_counter_w_0",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w_0",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 333,
+        "sourceColumn": 1,
+        "sourceEndLine": 336,
+        "sourceConstants": [
+          "Which=0"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(Which, state);"
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:4",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<4>().set(FUNC(base_state::coin_counter_w<1>))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 622,
+        "sourceColumn": 2,
+        "sourceEndLine": 622,
+        "slot": "4",
+        "targetClass": "base_state",
+        "targetMethod": "coin_counter_w_1"
+      }
+    },
+    {
+      "id": "handler:base_state.coin_counter_w_1",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_w_1",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 333,
+        "sourceColumn": 1,
+        "sourceEndLine": 336,
+        "sourceConstants": [
+          "Which=1"
+        ],
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(Which, state);"
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:5",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set_nop",
+        "raw": "mainlatch.q_out_cb<5>().set_nop()",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623,
+        "slot": "5"
+      }
+    },
+    {
+      "id": "device:base_state.base/mainlatch/callback:mainlatch:6",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "mainlatch.q_out_cb<7>().set(FUNC(base_state::irq_mask_w))",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 624,
+        "sourceColumn": 2,
+        "sourceEndLine": 624,
+        "slot": "7",
+        "targetClass": "base_state",
+        "targetMethod": "irq_mask_w"
+      }
+    },
+    {
+      "id": "handler:base_state.irq_mask_w",
+      "label": "Handler",
+      "props": {
+        "method": "irq_mask_w",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 338,
+        "sourceColumn": 1,
+        "sourceEndLine": 343,
+        "sourceParameters": "int state",
+        "sourceBody": "m_irq_mask = state;\n\tif (!m_irq_mask)\n\t\tm_maincpu->set_input_line(0, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:base_state.base/nvram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "nvram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 626,
+        "sourceColumn": 2,
+        "sourceEndLine": 626,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "device:base_state.base/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 628,
+        "sourceColumn": 2,
+        "sourceEndLine": 628
+      }
+    },
+    {
+      "id": "device:base_state.base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_refresh_hz(60)",
+          "m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(0))",
+          "m_screen->set_size(32*8, 32*8)",
+          "m_screen->set_visarea(0*8, 32*8-1, 2*8, 30*8-1)",
+          "m_screen->set_screen_update(FUNC(base_state::screen_update))",
+          "m_screen->set_palette(m_palette)",
+          "m_screen->screen_vblank().set(FUNC(base_state::vblank_irq))"
+        ],
+        "member": "m_screen",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 2,
+        "sourceEndLine": 631,
+        "configCalls": [
+          "set_refresh_hz(60)",
+          "set_size(256,256)",
+          "set_visarea(0,255,16,239)",
+          "set_palette(\"palette\")"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRefreshHz": 60,
+        "screenSize": [
+          256,
+          256
+        ],
+        "screenVisarea": [
+          0,
+          255,
+          16,
+          239
+        ]
+      }
+    },
+    {
+      "id": "device:base_state.base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(base_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 2,
+        "sourceEndLine": 636,
+        "targetClass": "base_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:base_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 295,
+        "sourceColumn": 1,
+        "sourceEndLine": 307,
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "for (int row = 0; row < 32; row++)\n\t{\n\t\tint scrollx = m_scroll[row * 2] + (m_scroll[(row * 2) + 1] & 0x01) * 256;\n\t\tif (flip_screen()) scrollx = -scrollx;\n\t\tm_bg_tilemap->set_scrollx(row, scrollx);\n\t}\n\n\tm_bg_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\tdraw_sprites(bitmap, cliprect);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:base_state.draw_sprites",
+      "label": "Handler",
+      "props": {
+        "method": "draw_sprites",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 259,
+        "sourceColumn": 1,
+        "sourceEndLine": 293,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "for (int offs = m_spriteram.bytes() - 4; offs >= 0; offs -= 4)\n\t{\n\t\tint sx = m_spriteram[offs + 3];\n\t\tint sy = 240 - m_spriteram[offs + 1];\n\t\tint const code = m_spriteram[offs + 2] + 8 * (m_spriteram[offs] & 0x20);\n\t\tint const color = m_spriteram[offs] & 0x0f;\n\t\tint const flipx = ~m_spriteram[offs] & 0x40;\n\t\tint flipy = m_spriteram[offs] & 0x80;\n\n\t\tif (flip_screen())\n\t\t{\n\t\t\tsy = 240 - sy;\n\t\t\tflipy = !flipy;\n\t\t}\n\n\t\t/* Note that this adjustment must be done AFTER handling flip_screen(), thus\n\t\t   proving that this is a hardware related \"feature\" */\n\t\tsy += 1;\n\n\t\tm_gfxdecode->gfx(0)->transmask(bitmap, cliprect,\n\t\tcode, color,\n\t\tflipx, flipy,\n\t\tsx, sy,\n\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(0), color, 0));\n\n\t\t// redraw with wraparound\n\t\tm_gfxdecode->gfx(0)->transmask(bitmap, cliprect,\n\t\tcode, color,\n\t\tflipx, flipy,\n\t\tsx - 256, sy,\n\t\tm_palette->transpen_mask(*m_gfxdecode->gfx(0), color, 0));\n\t}"
+      }
+    },
+    {
+      "id": "device:base_state.base/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set",
+        "raw": "m_screen->screen_vblank().set(FUNC(base_state::vblank_irq))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 638,
+        "sourceColumn": 2,
+        "sourceEndLine": 638,
+        "targetClass": "base_state",
+        "targetMethod": "vblank_irq"
+      }
+    },
+    {
+      "id": "handler:base_state.vblank_irq",
+      "label": "Handler",
+      "props": {
+        "method": "vblank_irq",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 604,
+        "sourceColumn": 1,
+        "sourceEndLine": 608,
+        "sourceParameters": "int state",
+        "sourceBody": "if (state && m_irq_mask)\n\t\tm_maincpu->set_input_line(0, ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "device:base_state.base/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_hyperspt)"
+        ],
+        "member": "m_gfxdecode",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 2,
+        "sourceEndLine": 640,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:base_state.base/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette, FUNC(base_state::palette), 16*16+16*16, 32)"
+        ],
+        "member": "m_palette",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 641,
+        "sourceColumn": 2,
+        "sourceEndLine": 641,
+        "clockExpr": "FUNC(base_state::palette)",
+        "paletteEntries": 32
+      }
+    },
+    {
+      "id": "device:base_state.base/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 644,
+        "sourceColumn": 2,
+        "sourceEndLine": 644
+      }
+    },
+    {
+      "id": "device:base_state.base/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, \"soundlatch\")"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 646,
+        "sourceColumn": 2,
+        "sourceEndLine": 646
+      }
+    },
+    {
+      "id": "device:base_state.base/trackfld_audio",
+      "label": "Device",
+      "props": {
+        "type": "TRACKFLD_AUDIO",
+        "tag": "trackfld_audio",
+        "clock": null,
+        "config": [
+          "TRACKFLD_AUDIO(config, m_soundbrd, m_audiocpu, finder_base::DUMMY_TAG)",
+          "TRACKFLD_AUDIO(config.replace(), m_soundbrd, 0, m_audiocpu, m_vlm)"
+        ],
+        "member": "m_soundbrd",
+        "cls": "trackfld_audio_device",
+        "clsHierarchy": [
+          "trackfld_audio_device"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 648,
+        "sourceColumn": 2,
+        "sourceEndLine": 648,
+        "clockExpr": "m_audiocpu",
+        "startHandler": "trackfld_audio_device.device_start"
+      }
+    },
+    {
+      "id": "device:base_state.base/dac",
+      "label": "Device",
+      "props": {
+        "type": "DAC_8BIT_R2R",
+        "tag": "dac",
+        "clock": 0,
+        "config": [
+          "DAC_8BIT_R2R(config, m_dac, 0).add_route(ALL_OUTPUTS, \"speaker\", 0.4)"
+        ],
+        "member": "m_dac",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 2,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "id": "audioroute:device:base_state.base/dac/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.4,
+        "raw": "DAC_8BIT_R2R(config, m_dac, 0).add_route(ALL_OUTPUTS, \"speaker\", 0.4)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 650,
+        "sourceColumn": 2,
+        "sourceEndLine": 650
+      }
+    },
+    {
+      "id": "device:base_state.base/snsnd",
+      "label": "Device",
+      "props": {
+        "type": "SN76489A",
+        "tag": "snsnd",
+        "clock": 1789772.625,
+        "config": [
+          "SN76489A(config, m_sn, XTAL(14'318'181)/8).add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ],
+        "member": "m_sn",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 653,
+        "sourceColumn": 2,
+        "sourceEndLine": 653
+      }
+    },
+    {
+      "id": "audioroute:device:base_state.base/snsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 1,
+        "raw": "SN76489A(config, m_sn, XTAL(14'318'181)/8).add_route(ALL_OUTPUTS, \"speaker\", 1.0)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 653,
+        "sourceColumn": 2,
+        "sourceEndLine": 653
+      }
+    },
+    {
+      "id": "machine:hyperspt_state.hyperspt",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "hyperspt_state",
+        "name": "hyperspt",
+        "calls": [
+          "base"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_sn76489a_latch\",\"bits\":8}",
+          "{\"name\":\"m_irq_mask\",\"bits\":8}"
+        ],
+        "startHandlers": [
+          "base_state.video_start"
+        ],
+        "devicePatches": [
+          "{\"tag\":\"trackfld_audio\",\"config\":[\"TRACKFLD_AUDIO(config.replace(), m_soundbrd, 0, m_audiocpu, m_vlm)\"],\"replacementType\":\"TRACKFLD_AUDIO\"}"
+        ],
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 656,
+        "sourceColumn": 1,
+        "sourceEndLine": 667
+      }
+    },
+    {
+      "id": "device:hyperspt_state.hyperspt/vlm",
+      "label": "Device",
+      "props": {
+        "type": "VLM5030",
+        "tag": "vlm",
+        "clock": 3579545,
+        "config": [
+          "VLM5030(config, m_vlm, XTAL(3'579'545))",
+          "m_vlm->add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ],
+        "member": "m_vlm",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 665,
+        "sourceColumn": 2,
+        "sourceEndLine": 665
+      }
+    },
+    {
+      "id": "audioroute:device:hyperspt_state.hyperspt/vlm/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 1,
+        "raw": "m_vlm->add_route(ALL_OUTPUTS, \"speaker\", 1.0)",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 666,
+        "sourceColumn": 2,
+        "sourceEndLine": 666
+      }
+    },
+    {
+      "id": "handler:trackfld_audio_device.device_start",
+      "label": "Handler",
+      "props": {
+        "method": "device_start",
+        "ownerClass": "trackfld_audio_device",
+        "sourceFile": "src/mame/konami/trackfld_a.cpp",
+        "sourceLine": 23,
+        "sourceColumn": 1,
+        "sourceEndLine": 26,
+        "sourceParameters": "",
+        "sourceBody": "save_item(NAME(m_last_irq));"
+      }
+    },
+    {
+      "id": "inputs:hyperspt",
+      "label": "InputPorts",
+      "props": {
+        "name": "hyperspt",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 430,
+        "sourceColumn": 8,
+        "sourceEndLine": 430
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM",
+      "label": "Port",
+      "props": {
+        "tag": "SYSTEM",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_COIN4",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:hyperspt/SYSTEM/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2",
+      "label": "Port",
+      "props": {
+        "tag": "P1_P2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START3",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P1_P2/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4",
+      "label": "Port",
+      "props": {
+        "tag": "P3_P4",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(3)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_START4",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_PLAYER(4)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:hyperspt/P3_P4/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 15,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":1,2,3,4\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 15,
+        "location": "#SW1\":1,2,3,4\"",
+        "settings": [
+          "2=4C 1C",
+          "5=3C 1C",
+          "8=2C 1C",
+          "4=3C 2C",
+          "1=4C 3C",
+          "15=1C 1C",
+          "3=3C 4C",
+          "7=2C 3C",
+          "14=1C 2C",
+          "6=2C 5C",
+          "13=1C 3C",
+          "12=1C 4C",
+          "11=1C 5C",
+          "10=1C 6C",
+          "9=1C 7C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_DIPLOCATION(#SW1\":5,6,7,8\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 240,
+        "location": "#SW1\":5,6,7,8\"",
+        "settings": [
+          "32=4C 1C",
+          "80=3C 1C",
+          "128=2C 1C",
+          "64=3C 2C",
+          "16=4C 3C",
+          "240=1C 1C",
+          "48=3C 4C",
+          "112=2C 3C",
+          "224=1C 2C",
+          "96=2C 5C",
+          "208=1C 3C",
+          "192=1C 4C",
+          "176=1C 5C",
+          "160=1C 6C",
+          "144=1C 7C",
+          "0=No Coin B"
+        ]
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW2",
+      "label": "Port",
+      "props": {
+        "tag": "DSW2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:1\")"
+        ],
+        "name": "After Last Event",
+        "defaultValue": 1,
+        "location": "SW2:1",
+        "settings": [
+          "1=Game Over",
+          "0=Game Continues"
+        ]
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW2/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:2\")"
+        ],
+        "name": "Cabinet",
+        "defaultValue": 0,
+        "location": "SW2:2",
+        "settings": [
+          "0=Upright",
+          "2=Cocktail"
+        ]
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW2/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:3\")"
+        ],
+        "name": "Demo Sounds",
+        "defaultValue": 0,
+        "location": "SW2:3",
+        "settings": [
+          "4=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW2/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:4\")"
+        ],
+        "name": "World Records",
+        "defaultValue": 8,
+        "location": "SW2:4",
+        "settings": [
+          "8=Don't Erase",
+          "0=Erase on Reset"
+        ]
+      }
+    },
+    {
+      "id": "inputs:hyperspt/DSW2/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 240,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"SW2:5,6,7,8\")"
+        ],
+        "name": "Difficulty",
+        "defaultValue": 64,
+        "location": "SW2:5,6,7,8",
+        "settings": [
+          "240=Easy 1",
+          "224=Easy 2",
+          "208=Easy 3",
+          "192=Easy 4",
+          "176=Normal 1",
+          "160=Normal 2",
+          "144=Normal 3",
+          "128=Normal 4",
+          "112=Normal 5",
+          "96=Normal 6",
+          "80=Normal 7",
+          "64=Normal 8",
+          "48=Difficult 1",
+          "32=Difficult 2",
+          "16=Difficult 3",
+          "0=Difficult 4"
+        ]
+      }
+    },
+    {
+      "id": "gfxlayout:hyperspt_charlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "hyperspt_charlayout",
+        "width": 8,
+        "height": 8,
+        "total": 1024,
+        "planes": 4,
+        "planeOffsets": [
+          131076,
+          131072,
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxlayout:hyperspt_spritelayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "hyperspt_spritelayout",
+        "width": 16,
+        "height": 16,
+        "total": 512,
+        "planes": 4,
+        "planeOffsets": [
+          262148,
+          262144,
+          4,
+          0
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          64,
+          65,
+          66,
+          67,
+          128,
+          129,
+          130,
+          131,
+          192,
+          193,
+          194,
+          195
+        ],
+        "yOffsets": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312
+        ],
+        "charIncrement": 512
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_hyperspt",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_hyperspt",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 569,
+        "sourceColumn": 8,
+        "sourceEndLine": 569
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_hyperspt/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "sprites",
+        "offset": 0,
+        "layout": "hyperspt_spritelayout",
+        "colorBase": 0,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_hyperspt/e1",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "tiles",
+        "offset": 0,
+        "layout": "hyperspt_charlayout",
+        "colorBase": 256,
+        "colorCount": 16,
+        "xscale": 1,
+        "yscale": 1
+      }
+    },
+    {
+      "id": "device:base_state.base/palette/callback:palette_init",
+      "label": "Callback",
+      "props": {
+        "signal": "palette_init",
+        "operation": "palette_init",
+        "raw": "PALETTE(config, m_palette, FUNC(base_state::palette), 16*16+16*16, 32)",
+        "ownerTag": "palette",
+        "targetClass": "base_state",
+        "targetMethod": "palette",
+        "entries": 32,
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 641
+      }
+    },
+    {
+      "id": "handler:base_state.palette",
+      "label": "Handler",
+      "props": {
+        "method": "palette",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 176,
+        "sourceColumn": 1,
+        "sourceEndLine": 230,
+        "sourceParameters": "palette_device &palette",
+        "sourceBody": "const uint8_t *color_prom = memregion(\"proms\")->base();\n\t\n\t\n\n\t// compute the color output resistor weights\n\tdouble rweights[3], gweights[3], bweights[2];\n\tcompute_resistor_weights(0, 255, -1.0,\n\t\t\t3, &TABLE(0, 1000, 470, 220), rweights, 1000, 0,\n\t\t\t3, &TABLE(0, 1000, 470, 220), gweights, 1000, 0,\n\t\t\t2, &TABLE(0, 470, 220),  bweights, 1000, 0);\n\n\t// create a lookup table for the palette\n\tfor (int i = 0; i < 0x20; i++)\n\t{\n\t\tint bit0, bit1, bit2;\n\n\t\t// red component\n\t\tbit0 = BIT(color_prom[i], 0);\n\t\tbit1 = BIT(color_prom[i], 1);\n\t\tbit2 = BIT(color_prom[i], 2);\n\t\tint const r = combine_weights(rweights, bit0, bit1, bit2);\n\n\t\t// green component\n\t\tbit0 = BIT(color_prom[i], 3);\n\t\tbit1 = BIT(color_prom[i], 4);\n\t\tbit2 = BIT(color_prom[i], 5);\n\t\tint const g = combine_weights(gweights, bit0, bit1, bit2);\n\n\t\t// blue component\n\t\tbit0 = BIT(color_prom[i], 6);\n\t\tbit1 = BIT(color_prom[i], 7);\n\t\tint const b = combine_weights(bweights, bit0, bit1);\n\n\t\tpalette.set_indirect_color(i, rgb_t(r, g, b));\n\t}\n\n\t// color_prom now points to the beginning of the lookup table\n\tcolor_prom += 0x20;\n\n\t// sprites\n\tfor (int i = 0; i < 0x100; i++)\n\t{\n\t\tuint8_t const ctabentry = color_prom[i] & 0x0f;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}\n\n\t// characters\n\tfor (int i = 0x100; i < 0x200; i++)\n\t{\n\t\tuint8_t const ctabentry = (color_prom[i] & 0x0f) | 0x10;\n\t\tpalette.set_pen_indirect(i, ctabentry);\n\t}"
+      }
+    },
+    {
+      "id": "handler:base_state.base",
+      "label": "Handler",
+      "props": {
+        "method": "base",
+        "ownerClass": "base_state",
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 1,
+        "sourceEndLine": 654,
+        "sourceConstants": [
+          "DEFAULT_ALL_0=0",
+          "nvram_device::DEFAULT_ALL_0=0"
+        ],
+        "sourceParameters": "machine_config &config",
+        "sourceBody": "// basic machine hardware\n\tKONAMI1(config, m_maincpu, XTAL(18'432'000) / 12);    // verified on PCB\n\n\tZ80(config, m_audiocpu, XTAL(14'318'181) / 4);        // verified on PCB\n\n\tls259_device &mainlatch(LS259(config, \"mainlatch\")); // F2\n\tmainlatch.q_out_cb<0>().set(FUNC(base_state::flip_screen_set));\n\tmainlatch.q_out_cb<1>().set(m_soundbrd, FUNC(trackfld_audio_device::sh_irqtrigger_w)); // SOUND ON\n\tmainlatch.q_out_cb<2>().set_nop(); // END\n\tmainlatch.q_out_cb<3>().set(FUNC(base_state::coin_counter_w<0>)); // COIN 1\n\tmainlatch.q_out_cb<4>().set(FUNC(base_state::coin_counter_w<1>)); // COIN 2\n\tmainlatch.q_out_cb<5>().set_nop(); // SA\n\tmainlatch.q_out_cb<7>().set(FUNC(base_state::irq_mask_w)); // INT\n\n\tNVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0);\n\n\tWATCHDOG_TIMER(config, \"watchdog\");\n\n\t// video hardware\n\tSCREEN(config, m_screen, SCREEN_TYPE_RASTER);\n\tm_screen->set_refresh_hz(60);\n\tm_screen->set_vblank_time(ATTOSECONDS_IN_USEC(0));\n\tm_screen->set_size(32*8, 32*8);\n\tm_screen->set_visarea(0*8, 32*8-1, 2*8, 30*8-1);\n\tm_screen->set_screen_update(FUNC(base_state::screen_update));\n\tm_screen->set_palette(m_palette);\n\tm_screen->screen_vblank().set(FUNC(base_state::vblank_irq));\n\n\tGFXDECODE(config, m_gfxdecode, m_palette, gfx_hyperspt);\n\tPALETTE(config, m_palette, FUNC(base_state::palette), 16*16+16*16, 32);\n\n\t// sound hardware\n\tSPEAKER(config, \"speaker\").front_center();\n\n\tGENERIC_LATCH_8(config, \"soundlatch\");\n\n\tTRACKFLD_AUDIO(config, m_soundbrd, m_audiocpu, finder_base::DUMMY_TAG);\n\n\tDAC_8BIT_R2R(config, m_dac, 0).add_route(ALL_OUTPUTS, \"speaker\", 0.4); // unknown DAC\n\n\t// According to the schematics, part number scratched off\n\tSN76489A(config, m_sn, XTAL(14'318'181)/8).add_route(ALL_OUTPUTS, \"speaker\", 1.0);  // clock verified on PCB"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:hyperspt",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 949,
+        "sourceColumn": 1,
+        "sourceEndLine": 949
+      }
+    },
+    {
+      "from": "game:hyperspt",
+      "to": "machine:hyperspt_state.hyperspt",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:hyperspt",
+      "to": "inputs:hyperspt",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:hyperspt",
+      "to": "romset:hyperspt",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:hyprolyb.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:konami1.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:konamipt.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:trackfld_a.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:cpu/m6800/m6800.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:cpu/z80/z80.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:machine/74259.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:machine/gen_latch.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:sound/dac.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:sound/sn76496.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:sound/vlm5030.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:video/resnet.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:emupal.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/konami/hyperspt.cpp",
+      "to": "file:tilemap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:hyperspt_state.hyperspt",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 656,
+        "sourceColumn": 1,
+        "sourceEndLine": 667
+      }
+    },
+    {
+      "from": "machine:hyperspt_state.hyperspt",
+      "to": "handler:base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:hyperspt_state.hyperspt",
+      "to": "machine:base_state.base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:hyperspt_state.hyperspt",
+      "to": "map:base_state.hyperspt_common_main_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:hyperspt_state.hyperspt",
+      "to": "map:hyperspt_state.sound_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "audiocpu"
+      }
+    },
+    {
+      "from": "machine:hyperspt_state.hyperspt",
+      "to": "device:hyperspt_state.hyperspt/vlm",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:hyperspt",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 430,
+        "sourceColumn": 8,
+        "sourceEndLine": 430
+      }
+    },
+    {
+      "from": "inputs:hyperspt",
+      "to": "inputs:hyperspt/SYSTEM",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:hyperspt",
+      "to": "inputs:hyperspt/P1_P2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:hyperspt",
+      "to": "inputs:hyperspt/P3_P4",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:hyperspt",
+      "to": "inputs:hyperspt/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:hyperspt",
+      "to": "inputs:hyperspt/DSW2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 713,
+        "sourceColumn": 1,
+        "sourceEndLine": 713
+      }
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "region:hyperspt/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "region:hyperspt/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "region:hyperspt/sprites",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "region:hyperspt/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "region:hyperspt/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:hyperspt",
+      "to": "region:hyperspt/vlm",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:base_state.video_start",
+      "to": "handler:base_state.get_bg_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 610,
+        "sourceColumn": 1,
+        "sourceEndLine": 654
+      }
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "handler:base_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/nvram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "gfxdecode:gfx_hyperspt",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/trackfld_audio",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:base_state.base",
+      "to": "device:base_state.base/snsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "map:base_state.hyperspt_common_main_map",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 362,
+        "sourceColumn": 1,
+        "sourceEndLine": 367
+      }
+    },
+    {
+      "from": "map:base_state.hyperspt_common_main_map",
+      "to": "map:base_state.common_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:base_state.hyperspt_common_main_map",
+      "to": "map:base_state.hyperspt_common_main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.hyperspt_common_main_map",
+      "to": "map:base_state.hyperspt_common_main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:hyperspt_state.sound_map",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 387,
+        "sourceColumn": 1,
+        "sourceEndLine": 392
+      }
+    },
+    {
+      "from": "map:hyperspt_state.sound_map",
+      "to": "map:base_state.common_sound_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:hyperspt_state.sound_map",
+      "to": "map:hyperspt_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:hyperspt_state.sound_map",
+      "to": "map:hyperspt_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:hyperspt_state.hyperspt/vlm",
+      "to": "audioroute:device:hyperspt_state.hyperspt/vlm/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/SYSTEM",
+      "to": "inputs:hyperspt/SYSTEM/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P1_P2",
+      "to": "inputs:hyperspt/P1_P2/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/P3_P4",
+      "to": "inputs:hyperspt/P3_P4/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW1",
+      "to": "inputs:hyperspt/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW1",
+      "to": "inputs:hyperspt/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW2",
+      "to": "inputs:hyperspt/DSW2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW2",
+      "to": "inputs:hyperspt/DSW2/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW2",
+      "to": "inputs:hyperspt/DSW2/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW2",
+      "to": "inputs:hyperspt/DSW2/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:hyperspt/DSW2",
+      "to": "inputs:hyperspt/DSW2/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:hyperspt/maincpu",
+      "to": "rom:hyperspt/maincpu/c01",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/maincpu",
+      "to": "rom:hyperspt/maincpu/c02",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/maincpu",
+      "to": "rom:hyperspt/maincpu/c03",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/maincpu",
+      "to": "rom:hyperspt/maincpu/c04",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/maincpu",
+      "to": "rom:hyperspt/maincpu/c05",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/maincpu",
+      "to": "rom:hyperspt/maincpu/c06",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/audiocpu",
+      "to": "rom:hyperspt/audiocpu/c10",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/audiocpu",
+      "to": "rom:hyperspt/audiocpu/c09",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c14",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c13",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c11",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c18",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c16",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/sprites",
+      "to": "rom:hyperspt/sprites/c15",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/tiles",
+      "to": "rom:hyperspt/tiles/c26",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/tiles",
+      "to": "rom:hyperspt/tiles/c24",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/tiles",
+      "to": "rom:hyperspt/tiles/c22",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/tiles",
+      "to": "rom:hyperspt/tiles/c20",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/proms",
+      "to": "rom:hyperspt/proms/c03_c27.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/proms",
+      "to": "rom:hyperspt/proms/j12_c28.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/proms",
+      "to": "rom:hyperspt/proms/a09_c29.bin",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:hyperspt/vlm",
+      "to": "rom:hyperspt/vlm/c08",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:3",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:4",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:5",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/mainlatch",
+      "to": "device:base_state.base/mainlatch/callback:mainlatch:6",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/screen",
+      "to": "device:base_state.base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/screen",
+      "to": "device:base_state.base/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_hyperspt",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 569,
+        "sourceColumn": 8,
+        "sourceEndLine": 569
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_hyperspt",
+      "to": "gfxdecode:gfx_hyperspt/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "gfxdecode:gfx_hyperspt",
+      "to": "gfxdecode:gfx_hyperspt/e1",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:base_state.base/palette",
+      "to": "device:base_state.base/palette/callback:palette_init",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:base_state.base/trackfld_audio",
+      "to": "handler:trackfld_audio_device.device_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/dac",
+      "to": "audioroute:device:base_state.base/dac/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:base_state.base/snsnd",
+      "to": "audioroute:device:base_state.base/snsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 345,
+        "sourceColumn": 1,
+        "sourceEndLine": 360
+      }
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_map",
+      "to": "map:base_state.common_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/konami/hyperspt.cpp",
+        "sourceLine": 376,
+        "sourceColumn": 1,
+        "sourceEndLine": 385
+      }
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:base_state.common_sound_map",
+      "to": "map:base_state.common_sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:hyperspt_state.sound_map/range0",
+      "to": "handler:vlm5030_device.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "vlm"
+      }
+    },
+    {
+      "from": "map:hyperspt_state.sound_map/range1",
+      "to": "handler:trackfld_audio_device.hyperspt_sound_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "trackfld_audio"
+      }
+    },
+    {
+      "from": "device:base_state.base/mainlatch/callback:mainlatch:0",
+      "to": "handler:base_state.flip_screen_set",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/mainlatch/callback:mainlatch:1",
+      "to": "handler:trackfld_audio_device.sh_irqtrigger_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/mainlatch/callback:mainlatch:3",
+      "to": "handler:base_state.coin_counter_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/mainlatch/callback:mainlatch:4",
+      "to": "handler:base_state.coin_counter_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/mainlatch/callback:mainlatch:6",
+      "to": "handler:base_state.irq_mask_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/screen/callback:screen:0",
+      "to": "handler:base_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:base_state.base/screen/callback:screen:1",
+      "to": "handler:base_state.vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_hyperspt/e0",
+      "to": "gfxlayout:hyperspt_spritelayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "gfxdecode:gfx_hyperspt/e1",
+      "to": "gfxlayout:hyperspt_charlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:base_state.base/palette/callback:palette_init",
+      "to": "handler:base_state.palette",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:base_state.common_map/range2",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:base_state.common_map/range3",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:base_state.common_map/range4",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:base_state.common_map/range8",
+      "to": "handler:base_state.videoram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:base_state.common_map/range9",
+      "to": "handler:base_state.colorram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:base_state.common_sound_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:base_state.common_sound_map/range3",
+      "to": "handler:trackfld_audio_device.hyperspt_sh_timer_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "trackfld_audio"
+      }
+    },
+    {
+      "from": "map:base_state.common_sound_map/range4",
+      "to": "handler:dac_byte_interface.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dac"
+      }
+    },
+    {
+      "from": "map:base_state.common_sound_map/range5",
+      "to": "handler:hyperspt_state.konami_sn76489a_latch_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:base_state.common_sound_map/range6",
+      "to": "handler:hyperspt_state.konami_sn76489a_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:base_state.screen_update",
+      "to": "handler:base_state.draw_sprites",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:hyperspt_spritelayout",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "gfxlayout:hyperspt_charlayout",
+      "to": "file:src/mame/konami/hyperspt.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:base_state.palette",
+      "to": "handler:base_state.base",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:hyperspt_state.konami_sn76489a_w",
+      "to": "handler:hyprolyb_adpcm_device.write",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:trackfld_audio_device.sh_irqtrigger_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:base_state.coin_counter_w_0",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:base_state.coin_counter_w_1",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:base_state.irq_mask_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:base_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:base_state.vblank_irq",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:base_state.base",
+      "to": "handler:base_state.palette",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

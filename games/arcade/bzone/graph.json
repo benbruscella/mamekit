@@ -1,0 +1,2259 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/atari/bzone.cpp",
+    "generatedAt": "2026-09-24T02:26:47.775Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Brad Oliver, Nicola Salmoria"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/atari/bzone.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/bzone.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bzone.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "bzone.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/avgdvg.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/avgdvg.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:video/vector.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "video/vector.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ay8910.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ay8910.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/pokey.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/pokey.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:bzone.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "bzone.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:redbaron.lh",
+      "label": "SourceFile",
+      "props": {
+        "path": "redbaron.lh",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/discrete.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/discrete.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/atari/bzone_a.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/bzone_a.cpp"
+      }
+    },
+    {
+      "id": "game:bzone",
+      "label": "Game",
+      "props": {
+        "name": "bzone",
+        "year": "1980",
+        "company": "Atari",
+        "fullname": "Battlezone (rev 2)",
+        "monitor": "ROT0",
+        "cls": "bzone_state",
+        "init": "empty_init",
+        "flags": "MACHINE_SUPPORTS_SAVE, layout_bzone",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 1014,
+        "sourceColumn": 1,
+        "sourceEndLine": 1014
+      }
+    },
+    {
+      "id": "romset:bzone",
+      "label": "RomSet",
+      "props": {
+        "name": "bzone",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 713,
+        "sourceColumn": 1,
+        "sourceEndLine": 713
+      }
+    },
+    {
+      "id": "region:bzone/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 32768,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 714,
+        "sourceColumn": 2,
+        "sourceEndLine": 714
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036414-02.e1",
+      "label": "Rom",
+      "props": {
+        "file": "036414-02.e1",
+        "offset": 20480,
+        "size": 2048,
+        "crc": "13de36d5",
+        "sha1": "40e356ddc5c042bc1ce0b71f51e8b6de72daf1e4",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 715,
+        "sourceColumn": 2,
+        "sourceEndLine": 715
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036413-01.h1",
+      "label": "Rom",
+      "props": {
+        "file": "036413-01.h1",
+        "offset": 22528,
+        "size": 2048,
+        "crc": "5d9d9111",
+        "sha1": "42638cff53a9791a0f18d316f62a0ea8eea4e194",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 716,
+        "sourceColumn": 2,
+        "sourceEndLine": 716
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036412-01.j1",
+      "label": "Rom",
+      "props": {
+        "file": "036412-01.j1",
+        "offset": 24576,
+        "size": 2048,
+        "crc": "ab55cbd2",
+        "sha1": "6bbb8316d9f8588ea0893932f9174788292b8edc",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 717,
+        "sourceColumn": 2,
+        "sourceEndLine": 717
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036411-01.k1",
+      "label": "Rom",
+      "props": {
+        "file": "036411-01.k1",
+        "offset": 26624,
+        "size": 2048,
+        "crc": "ad281297",
+        "sha1": "54c5e06b2e69eb731a6c9b1704e4340f493e7ea5",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 718,
+        "sourceColumn": 2,
+        "sourceEndLine": 718
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036410-01.lm1",
+      "label": "Rom",
+      "props": {
+        "file": "036410-01.lm1",
+        "offset": 28672,
+        "size": 2048,
+        "crc": "0b7bfaa4",
+        "sha1": "33ae0f68b4e2eae9f3aecbee2d0b29003ce460b2",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 719,
+        "sourceColumn": 2,
+        "sourceEndLine": 719
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036409-01.n1",
+      "label": "Rom",
+      "props": {
+        "file": "036409-01.n1",
+        "offset": 30720,
+        "size": 2048,
+        "crc": "1e14e919",
+        "sha1": "448fab30535e6fad7e0ab4427bc06bbbe075e797",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 720,
+        "sourceColumn": 2,
+        "sourceEndLine": 720
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036422-01.bc3",
+      "label": "Rom",
+      "props": {
+        "file": "036422-01.bc3",
+        "offset": 12288,
+        "size": 2048,
+        "crc": "7414177b",
+        "sha1": "147d97a3b475e738ce00b1a7909bbd787ad06eda",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 722,
+        "sourceColumn": 2,
+        "sourceEndLine": 722
+      }
+    },
+    {
+      "id": "rom:bzone/maincpu/036421-01.a3",
+      "label": "Rom",
+      "props": {
+        "file": "036421-01.a3",
+        "offset": 14336,
+        "size": 2048,
+        "crc": "8ea8f939",
+        "sha1": "b71e0ab0e220c3e64dc2b094c701fb1a960b64e4",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 723,
+        "sourceColumn": 2,
+        "sourceEndLine": 723
+      }
+    },
+    {
+      "id": "region:bzone/avg:prom",
+      "label": "RomRegion",
+      "props": {
+        "tag": "avg:prom",
+        "size": 256,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 726,
+        "sourceColumn": 2,
+        "sourceEndLine": 726
+      }
+    },
+    {
+      "id": "rom:bzone/avg:prom/036408-01.k7",
+      "label": "Rom",
+      "props": {
+        "file": "036408-01.k7",
+        "offset": 0,
+        "size": 256,
+        "crc": "5903af03",
+        "sha1": "24bc0366f394ad0ec486919212e38be0f08d0239",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 727,
+        "sourceColumn": 2,
+        "sourceEndLine": 727
+      }
+    },
+    {
+      "id": "region:bzone/user2",
+      "label": "RomRegion",
+      "props": {
+        "tag": "user2",
+        "size": 32,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 730,
+        "sourceColumn": 2,
+        "sourceEndLine": 730
+      }
+    },
+    {
+      "id": "rom:bzone/user2/036174-01.b1",
+      "label": "Rom",
+      "props": {
+        "file": "036174-01.b1",
+        "offset": 0,
+        "size": 32,
+        "crc": "8b04f921",
+        "sha1": "317b3397482f13b2d1bc21f296d3b3f9a118787b",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 731,
+        "sourceColumn": 2,
+        "sourceEndLine": 731
+      }
+    },
+    {
+      "id": "region:bzone/user3",
+      "label": "RomRegion",
+      "props": {
+        "tag": "user3",
+        "size": 1024,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:bzone/user3/036175-01.m1",
+      "label": "Rom",
+      "props": {
+        "file": "036175-01.m1",
+        "offset": 0,
+        "size": 256,
+        "crc": "2af82e87",
+        "sha1": "3816835a9ccf99a76d246adf204989d9261bb065",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:bzone/user3/036176-01.l1",
+      "label": "Rom",
+      "props": {
+        "file": "036176-01.l1",
+        "offset": 0,
+        "size": 256,
+        "crc": "b31f6e24",
+        "sha1": "ce5f8ca34d06a5cfa0076b47400e61e0130ffe74",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:bzone/user3/036177-01.k1",
+      "label": "Rom",
+      "props": {
+        "file": "036177-01.k1",
+        "offset": 1,
+        "size": 256,
+        "crc": "8119b847",
+        "sha1": "c4fbaedd4ce1ad6a4128cbe902b297743edb606a",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:bzone/user3/036178-01.j1",
+      "label": "Rom",
+      "props": {
+        "file": "036178-01.j1",
+        "offset": 1,
+        "size": 256,
+        "crc": "09f5a4d5",
+        "sha1": "d6f2ac07ca9ee385c08831098b0dcaf56808993b",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:bzone/user3/036179-01.h1",
+      "label": "Rom",
+      "props": {
+        "file": "036179-01.h1",
+        "offset": 2,
+        "size": 256,
+        "crc": "823b61ae",
+        "sha1": "d99a839874b45f64e14dae92a036e47a53705d16",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:bzone/user3/036180-01.f1",
+      "label": "Rom",
+      "props": {
+        "file": "036180-01.f1",
+        "offset": 2,
+        "size": 256,
+        "crc": "276eadd5",
+        "sha1": "55718cd8ec4bcf75076d5ef0ee1ed2551e19d9ba",
+        "skip": 3
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "bzone_state",
+        "name": "bzone_map",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 339,
+        "sourceColumn": 1,
+        "sourceEndLine": 358,
+        "globalMask": 32767
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 1023,
+        "raw": "map(0x0000, 0x03ff).ram()",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 342,
+        "sourceColumn": 2,
+        "sourceEndLine": 342,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 2048,
+        "end": 2048,
+        "raw": "map(0x0800, 0x0800).portr(\"IN0\")",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 343,
+        "sourceColumn": 2,
+        "sourceEndLine": 343,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 2560,
+        "end": 2560,
+        "raw": "map(0x0a00, 0x0a00).portr(\"DSW0\")",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 344,
+        "sourceColumn": 2,
+        "sourceEndLine": 344,
+        "portRead": "DSW0"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 3072,
+        "end": 3072,
+        "raw": "map(0x0c00, 0x0c00).portr(\"DSW1\")",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 345,
+        "sourceColumn": 2,
+        "sourceEndLine": 345,
+        "portRead": "DSW1"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 4096,
+        "end": 4096,
+        "raw": "map(0x1000, 0x1000).w(FUNC(bzone_state::bzone_coin_counter_w))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 346,
+        "sourceColumn": 2,
+        "sourceEndLine": 346
+      }
+    },
+    {
+      "id": "handler:bzone_state.bzone_coin_counter_w",
+      "label": "Handler",
+      "props": {
+        "method": "bzone_coin_counter_w",
+        "ownerClass": "bzone_state",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 281,
+        "sourceColumn": 1,
+        "sourceEndLine": 284,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(offset,data);"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 4608,
+        "end": 4608,
+        "raw": "map(0x1200, 0x1200).w(\"avg\", FUNC(avg_device::go_w))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 347,
+        "sourceColumn": 2,
+        "sourceEndLine": 347
+      }
+    },
+    {
+      "id": "handler:avg_device.go_w",
+      "label": "Handler",
+      "props": {
+        "method": "go_w",
+        "ownerClass": "avg_device",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 400,
+        "sourceColumn": 2,
+        "sourceEndLine": 400
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 5120,
+        "end": 5120,
+        "raw": "map(0x1400, 0x1400).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 348,
+        "sourceColumn": 2,
+        "sourceEndLine": 348
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 401,
+        "sourceColumn": 2,
+        "sourceEndLine": 401
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 5632,
+        "end": 5632,
+        "raw": "map(0x1600, 0x1600).w(\"avg\", FUNC(avg_device::reset_w))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 349,
+        "sourceColumn": 2,
+        "sourceEndLine": 349
+      }
+    },
+    {
+      "id": "handler:avg_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "avg_device",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 402,
+        "sourceColumn": 2,
+        "sourceEndLine": 402
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 6144,
+        "raw": "map(0x1800, 0x1800).r(m_mathbox, FUNC(mathbox_device::status_r))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 350,
+        "sourceColumn": 2,
+        "sourceEndLine": 350
+      }
+    },
+    {
+      "id": "handler:mathbox_device.status_r",
+      "label": "Handler",
+      "props": {
+        "method": "status_r",
+        "ownerClass": "mathbox_device",
+        "sourceFile": "src/mame/atari/mathbox.cpp",
+        "sourceLine": 292,
+        "sourceColumn": 1,
+        "sourceEndLine": 295,
+        "sourceParameters": "",
+        "sourceBody": "return 0x00; /* always done! */"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 6160,
+        "end": 6160,
+        "raw": "map(0x1810, 0x1810).r(m_mathbox, FUNC(mathbox_device::lo_r))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 351,
+        "sourceColumn": 2,
+        "sourceEndLine": 351
+      }
+    },
+    {
+      "id": "handler:mathbox_device.lo_r",
+      "label": "Handler",
+      "props": {
+        "method": "lo_r",
+        "ownerClass": "mathbox_device",
+        "sourceFile": "src/mame/atari/mathbox.cpp",
+        "sourceLine": 297,
+        "sourceColumn": 1,
+        "sourceEndLine": 300,
+        "sourceParameters": "",
+        "sourceBody": "return m_result & 0xff;"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 6168,
+        "end": 6168,
+        "raw": "map(0x1818, 0x1818).r(m_mathbox, FUNC(mathbox_device::hi_r))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 352,
+        "sourceColumn": 2,
+        "sourceEndLine": 352
+      }
+    },
+    {
+      "id": "handler:mathbox_device.hi_r",
+      "label": "Handler",
+      "props": {
+        "method": "hi_r",
+        "ownerClass": "mathbox_device",
+        "sourceFile": "src/mame/atari/mathbox.cpp",
+        "sourceLine": 302,
+        "sourceColumn": 1,
+        "sourceEndLine": 305,
+        "sourceParameters": "",
+        "sourceBody": "return (m_result >> 8) & 0xff;"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 6176,
+        "end": 6191,
+        "raw": "map(0x1820, 0x182f).rw(\"pokey\", FUNC(pokey_device::read), FUNC(pokey_device::write))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 353,
+        "sourceColumn": 2,
+        "sourceEndLine": 353
+      }
+    },
+    {
+      "id": "handler:pokey_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 410,
+        "sourceColumn": 2,
+        "sourceEndLine": 410
+      }
+    },
+    {
+      "id": "handler:pokey_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 410,
+        "sourceColumn": 2,
+        "sourceEndLine": 410
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 6208,
+        "end": 6208,
+        "raw": "map(0x1840, 0x1840).w(FUNC(bzone_state::bzone_sounds_w))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 354,
+        "sourceColumn": 2,
+        "sourceEndLine": 354
+      }
+    },
+    {
+      "id": "handler:bzone_state.bzone_sounds_w",
+      "label": "Handler",
+      "props": {
+        "method": "bzone_sounds_w",
+        "ownerClass": "bzone_state",
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 391,
+        "sourceColumn": 1,
+        "sourceEndLine": 397,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_discrete->write(BZ_INPUT, data);\n\n\tm_startled = BIT(data, 6);\n\tmachine().sound().system_mute(!BIT(data, 5));"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 6240,
+        "end": 6271,
+        "raw": "map(0x1860, 0x187f).w(m_mathbox, FUNC(mathbox_device::go_w))",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 355,
+        "sourceColumn": 2,
+        "sourceEndLine": 355
+      }
+    },
+    {
+      "id": "handler:mathbox_device.go_w",
+      "label": "Handler",
+      "props": {
+        "method": "go_w",
+        "ownerClass": "mathbox_device",
+        "sourceFile": "src/mame/atari/mathbox.cpp",
+        "sourceLine": 69,
+        "sourceColumn": 1,
+        "sourceEndLine": 290,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "int32_t mb_temp;  /* temp 32-bit multiply results */\n\tint16_t mb_q;     /* temp used in division */\n\tint msb;\n\n\tLOG((\"math box command %02x data %02x  \", offset, data));\n\n\tswitch (offset)\n\t{\n\tcase 0x00: m_result = m_reg [0x00] = (m_reg [0x00] & 0xff00) | data;        break;\n\tcase 0x01: m_result = m_reg [0x00] = (m_reg [0x00] & 0x00ff) | (data << 8); break;\n\tcase 0x02: m_result = m_reg [0x01] = (m_reg [0x01] & 0xff00) | data;        break;\n\tcase 0x03: m_result = m_reg [0x01] = (m_reg [0x01] & 0x00ff) | (data << 8); break;\n\tcase 0x04: m_result = m_reg [0x02] = (m_reg [0x02] & 0xff00) | data;        break;\n\tcase 0x05: m_result = m_reg [0x02] = (m_reg [0x02] & 0x00ff) | (data << 8); break;\n\tcase 0x06: m_result = m_reg [0x03] = (m_reg [0x03] & 0xff00) | data;        break;\n\tcase 0x07: m_result = m_reg [0x03] = (m_reg [0x03] & 0x00ff) | (data << 8); break;\n\tcase 0x08: m_result = m_reg [0x04] = (m_reg [0x04] & 0xff00) | data;        break;\n\tcase 0x09: m_result = m_reg [0x04] = (m_reg [0x04] & 0x00ff) | (data << 8); break;\n\n\tcase 0x0a: m_result = m_reg [0x05] = (m_reg [0x05] & 0xff00) | data;        break;\n\t\t/* note: no function loads low part of m_reg [0x05] without performing a computation */\n\n\tcase 0x0c: m_result = m_reg [0x06] = data; break;\n\t\t/* note: no function loads high part of m_reg [0x06] */\n\n\tcase 0x15: m_result = m_reg [0x07] = (m_reg [0x07] & 0xff00) | data;        break;\n\tcase 0x16: m_result = m_reg [0x07] = (m_reg [0x07] & 0x00ff) | (data << 8); break;\n\n\tcase 0x1a: m_result = m_reg [0x08] = (m_reg [0x08] & 0xff00) | data;        break;\n\tcase 0x1b: m_result = m_reg [0x08] = (m_reg [0x08] & 0x00ff) | (data << 8); break;\n\n\tcase 0x0d: m_result = REGa = (REGa & 0xff00) | data;        break;\n\tcase 0x0e: m_result = REGa = (REGa & 0x00ff) | (data << 8); break;\n\tcase 0x0f: m_result = REGb = (REGb & 0xff00) | data;        break;\n\tcase 0x10: m_result = REGb = (REGb & 0x00ff) | (data << 8); break;\n\n\tcase 0x17: m_result = m_reg [0x07]; break;\n\tcase 0x19: m_result = m_reg [0x08]; break;\n\tcase 0x18: m_result = m_reg [0x09]; break;\n\n\tcase 0x0b:\n\n\t\tm_reg [0x05] = (m_reg [0x05] & 0x00ff) | (data << 8);\n\n\t\tREGf = (int16_t)0xffff;\n\t\tm_reg [0x04] -= m_reg [0x02];\n\t\tm_reg [0x05] -= m_reg [0x03];\n\n\tstep_048:\n\n\t\tmb_temp = ((int32_t) m_reg [0x00]) * ((int32_t) m_reg [0x04]);\n\t\tREGc = mb_temp >> 16;\n\t\tREGe = mb_temp & 0xffff;\n\n\t\tmb_temp = ((int32_t) -m_reg [0x01]) * ((int32_t) m_reg [0x05]);\n\t\tm_reg [0x07] = mb_temp >> 16;\n\t\tmb_q = mb_temp & 0xffff;\n\n\t\tm_reg [0x07] += REGc;\n\n\t\t/* rounding */\n\t\tREGe = (REGe >> 1) & 0x7fff;\n\t\tREGc = (mb_q >> 1) & 0x7fff;\n\t\tmb_q = REGc + REGe;\n\t\tif (mb_q < 0)\n\t\t\tm_reg [0x07]++;\n\n\t\tm_result = m_reg [0x07];\n\n\t\tif (REGf < 0)\n\t\t\tbreak;\n\n\t\tm_reg [0x07] += m_reg [0x02];\n\n\t\t/* fall into command 12 */\n\t\t[[fallthrough]];\n\n\tcase 0x12:\n\n\t\tmb_temp = ((int32_t) m_reg [0x01]) * ((int32_t) m_reg [0x04]);\n\t\tREGc = mb_temp >> 16;\n\t\tm_reg [0x09] = mb_temp & 0xffff;\n\n\t\tmb_temp = ((int32_t) m_reg [0x00]) * ((int32_t) m_reg [0x05]);\n\t\tm_reg [0x08] = mb_temp >> 16;\n\t\tmb_q = mb_temp & 0xffff;\n\n\t\tm_reg [0x08] += REGc;\n\n\t\t/* rounding */\n\t\tm_reg [0x09] = (m_reg [0x09] >> 1) & 0x7fff;\n\t\tREGc = (mb_q >> 1) & 0x7fff;\n\t\tm_reg [0x09] += REGc;\n\t\tif (m_reg [0x09] < 0)\n\t\t\tm_reg [0x08]++;\n\t\tm_reg [0x09] <<= 1;  /* why? only to get the desired load address? */\n\n\t\tm_result = m_reg [0x08];\n\n\t\tif (REGf < 0)\n\t\t\tbreak;\n\n\t\tm_reg [0x08] += m_reg [0x03];\n\n\t\tm_reg [0x09] &= 0xff00;\n\n\t\t/* fall into command 13 */\n\t\t[[fallthrough]];\n\n\tcase 0x13:\n\t\tLOG((\"\\nR7: %04x  R8: %04x  R9: %04x\\n\", m_reg [0x07], m_reg [0x08], m_reg [0x09]));\n\n\t\tREGc = m_reg [0x09];\n\t\tmb_q = m_reg [0x08];\n\t\tgoto step_0bf;\n\n\tcase 0x14:\n\t\tREGc = REGa;\n\t\tmb_q = REGb;\n\n\tstep_0bf:\n\t\tREGe = m_reg [0x07] ^ mb_q;  /* save sign of result */\n\t\tREGd = mb_q;\n\t\tif (mb_q >= 0)\n\t\t\tmb_q = REGc;\n\t\telse\n\t\t{\n\t\t\tREGd = - mb_q - 1;\n\t\t\tmb_q = - REGc - 1;\n\t\t\tif ((mb_q < 0) && ((mb_q + 1) < 0))\n\t\t\t\tREGd++;\n\t\t\tmb_q++;\n\t\t}\n\n\t/* step 0c9: */\n\t\t/* REGc = abs (m_reg [0x07]) */\n\t\tif (m_reg [0x07] >= 0)\n\t\t\tREGc = m_reg [0x07];\n\t\telse\n\t\t\tREGc = -m_reg [0x07];\n\n\t\tREGf = m_reg [0x06];  /* step counter */\n\n\t\tdo\n\t\t{\n\t\t\tREGd -= REGc;\n\t\t\tmsb = ((mb_q & 0x8000) != 0);\n\t\t\tmb_q <<= 1;\n\t\t\tif (REGd >= 0)\n\t\t\t\tmb_q++;\n\t\t\telse\n\t\t\t\tREGd += REGc;\n\t\t\tREGd <<= 1;\n\t\t\tREGd += msb;\n\t\t}\n\t\twhile (--REGf >= 0);\n\n\t\tif (REGe >= 0)\n\t\t\tm_result = mb_q;\n\t\telse\n\t\t\tm_result = - mb_q;\n\t\tbreak;\n\n\tcase 0x11:\n\t\tm_reg [0x05] = (m_reg [0x05] & 0x00ff) | (data << 8);\n\t\tREGf = 0x0000;  /* do everything in one step */\n\t\tgoto step_048;\n\t\t//break; // never reached\n\n\tcase 0x1c:\n\t\t/* window test? */\n\t\tm_reg [0x05] = (m_reg [0x05] & 0x00ff) | (data << 8);\n\t\tdo\n\t\t{\n\t\t\tREGe = (m_reg [0x04] + m_reg [0x07]) >> 1;\n\t\t\tREGf = (m_reg [0x05] + m_reg [0x08]) >> 1;\n\t\t\tif ((REGb < REGe) && (REGf < REGe) && ((REGe + REGf) >= 0))\n\t\t\t{ m_reg [0x07] = REGe; m_reg [0x08] = REGf; }\n\t\t\telse\n\t\t\t{ m_reg [0x04] = REGe; m_reg [0x05] = REGf; }\n\t\t}\n\t\twhile (--m_reg [0x06] >= 0);\n\n\t\tm_result = m_reg [0x08];\n\t\tbreak;\n\n\tcase 0x1d:\n\t\tm_reg [0x03] = (m_reg [0x03] & 0x00ff) | (data << 8);\n\n\t\tm_reg [0x02] -= m_reg [0x00];\n\t\tif (m_reg [0x02] < 0)\n\t\t\tm_reg [0x02] = -m_reg [0x02];\n\n\t\tm_reg [0x03] -= m_reg [0x01];\n\t\tif (m_reg [0x03] < 0)\n\t\t\tm_reg [0x03] = -m_reg [0x03];\n\n\t\t/* fall into command 1e */\n\t\t[[fallthrough]];\n\n\tcase 0x1e:\n\t\t/* result = max (m_reg [0x02], m_reg [0x03]) + 3/8 * min (m_reg [0x02], m_reg [0x03]) */\n\t\tif (m_reg [0x03] >= m_reg [0x02])\n\t\t{ REGc = m_reg [0x02]; REGd = m_reg [0x03]; }\n\t\telse\n\t\t{ REGd = m_reg [0x02]; REGc = m_reg [0x03]; }\n\t\tREGc >>= 2;\n\t\tREGd += REGc;\n\t\tREGc >>= 1;\n\t\tm_result = REGd = (REGc + REGd);\n\t\tbreak;\n\n\tcase 0x1f:\n\t\tlogerror(\"math box function 0x1f\\n\");\n\t\t/* $$$ do some computation here (selftest? signature analysis? */\n\t\tbreak;\n\t}\n\n\tLOG((\"  result %04x\\n\", m_result & 0xffff));"
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 12287,
+        "raw": "map(0x2000, 0x2fff).ram()",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 356,
+        "sourceColumn": 2,
+        "sourceEndLine": 356,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:bzone_state.bzone_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 32767,
+        "raw": "map(0x3000, 0x7fff).rom()",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 357,
+        "sourceColumn": 2,
+        "sourceEndLine": 357,
+        "rom": true
+      }
+    },
+    {
+      "id": "machine:bzone_state.bzone_base",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "bzone_state",
+        "name": "bzone_base",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_analog_data\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 1,
+        "sourceEndLine": 631
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "maincpu",
+        "clock": 1512000,
+        "config": [
+          "M6502(config, m_maincpu, BZONE_MASTER_CLOCK / 8)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &bzone_state::bzone_map)",
+          "m_maincpu->set_periodic_int(FUNC(bzone_state::bzone_interrupt), attotime::from_hz(BZONE_CLOCK_3KHZ / 12))"
+        ],
+        "member": "m_maincpu",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 611,
+        "sourceColumn": 2,
+        "sourceEndLine": 611
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_periodic_int",
+        "operation": "set_periodic_int",
+        "raw": "m_maincpu->set_periodic_int(FUNC(bzone_state::bzone_interrupt), attotime::from_hz(BZONE_CLOCK_3KHZ / 12))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 613,
+        "sourceColumn": 2,
+        "sourceEndLine": 613,
+        "periodHz": 246.09375,
+        "periodExpr": "attotime::from_hz(BZONE_CLOCK_3KHZ / 12)",
+        "targetClass": "bzone_state",
+        "targetMethod": "bzone_interrupt"
+      }
+    },
+    {
+      "id": "handler:bzone_state.bzone_interrupt",
+      "label": "Handler",
+      "props": {
+        "method": "bzone_interrupt",
+        "ownerClass": "bzone_state",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 261,
+        "sourceColumn": 1,
+        "sourceEndLine": 265,
+        "sourceParameters": "device_t &device",
+        "sourceBody": "if (ioport(\"IN0\")->read() & 0x10)\n\t\tdevice.execute().pulse_input_line(INPUT_LINE_NMI, attotime::zero);"
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 615,
+        "sourceColumn": 2,
+        "sourceEndLine": 615
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/vector",
+      "label": "Device",
+      "props": {
+        "type": "VECTOR",
+        "tag": "vector",
+        "clock": null,
+        "config": [
+          "VECTOR(config, \"vector\")"
+        ],
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_VECTOR)",
+          "m_screen->set_refresh_hz(BZONE_CLOCK_3KHZ / 12 / 6)",
+          "m_screen->set_size(400, 300)",
+          "m_screen->set_visarea(0, 580, 0, 400)",
+          "m_screen->set_screen_update(\"vector\", FUNC(vector_device::screen_update))"
+        ],
+        "member": "m_screen",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 619,
+        "sourceColumn": 2,
+        "sourceEndLine": 619,
+        "configCalls": [
+          "set_refresh_hz(41.015625)",
+          "set_size(400,300)",
+          "set_visarea(0,580,0,400)"
+        ],
+        "clockExpr": "SCREEN_TYPE_VECTOR",
+        "screenRefreshHz": 41.015625,
+        "screenSize": [
+          400,
+          300
+        ],
+        "screenVisarea": [
+          0,
+          580,
+          0,
+          400
+        ]
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(\"vector\", FUNC(vector_device::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623,
+        "targetTag": "vector",
+        "targetClass": "vector_device",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:vector_device.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "vector_device",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/avg",
+      "label": "Device",
+      "props": {
+        "type": "AVG_BZONE",
+        "tag": "avg",
+        "clock": null,
+        "config": [
+          "avg_device &avg(AVG_BZONE(config, \"avg\"))",
+          "avg.set_vector(\"vector\")",
+          "avg.set_memory(m_maincpu, AS_PROGRAM, 0x2000)"
+        ],
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 625,
+        "sourceColumn": 2,
+        "sourceEndLine": 625,
+        "configCalls": [
+          "set_vector(\"vector\")",
+          "set_memory(\"maincpu\",0,8192)"
+        ]
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_base/mathbox",
+      "label": "Device",
+      "props": {
+        "type": "MATHBOX",
+        "tag": "mathbox",
+        "clock": 0,
+        "config": [
+          "MATHBOX(config, m_mathbox)"
+        ],
+        "member": "m_mathbox",
+        "cls": "mathbox_device",
+        "clsHierarchy": [
+          "mathbox_device"
+        ],
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 630,
+        "sourceColumn": 2,
+        "sourceEndLine": 630,
+        "startHandler": "mathbox_device.device_start"
+      }
+    },
+    {
+      "id": "machine:bzone_state.bzone",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "bzone_state",
+        "name": "bzone",
+        "calls": [
+          "bzone_base",
+          "bzone_audio"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_analog_data\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 633,
+        "sourceColumn": 1,
+        "sourceEndLine": 639
+      }
+    },
+    {
+      "id": "machine:bzone_state.bzone_audio",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "bzone_state",
+        "name": "bzone_audio",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_analog_data\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 399,
+        "sourceColumn": 1,
+        "sourceEndLine": 409
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_audio/mono",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "mono",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"mono\").front_center()"
+        ],
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 401,
+        "sourceColumn": 2,
+        "sourceEndLine": 401
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_audio/pokey",
+      "label": "Device",
+      "props": {
+        "type": "POKEY",
+        "tag": "pokey",
+        "clock": 1512000,
+        "config": [
+          "pokey_device &pokey(POKEY(config, \"pokey\", BZONE_MASTER_CLOCK / 8))",
+          "pokey.allpot_r().set_ioport(\"IN3\")",
+          "pokey.set_output_rc(RES_K(10), CAP_U(0.015), 5.0)",
+          "pokey.add_route(0, \"discrete\", 1.0, 0)"
+        ],
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 403,
+        "sourceColumn": 2,
+        "sourceEndLine": 403,
+        "configCalls": [
+          "add_route(0,\"discrete\",1,0)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:bzone_state.bzone_audio/pokey/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "discrete",
+        "gain": 1,
+        "input": 0,
+        "raw": "pokey.add_route(0, \"discrete\", 1.0, 0)",
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 406,
+        "sourceColumn": 2,
+        "sourceEndLine": 406
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_audio/pokey/callback:pokey:0",
+      "label": "Callback",
+      "props": {
+        "signal": "allpot_r",
+        "operation": "set_ioport",
+        "raw": "pokey.allpot_r().set_ioport(\"IN3\")",
+        "ownerTag": "pokey",
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 404,
+        "sourceColumn": 2,
+        "sourceEndLine": 404,
+        "targetTag": "IN3",
+        "targetPort": "IN3"
+      }
+    },
+    {
+      "id": "device:bzone_state.bzone_audio/discrete",
+      "label": "Device",
+      "props": {
+        "type": "DISCRETE",
+        "tag": "discrete",
+        "clock": null,
+        "config": [
+          "DISCRETE(config, \"discrete\", bzone_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.0)"
+        ],
+        "member": "m_discrete",
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 408,
+        "sourceColumn": 2,
+        "sourceEndLine": 408,
+        "clockExpr": "bzone_discrete"
+      }
+    },
+    {
+      "id": "audioroute:device:bzone_state.bzone_audio/discrete/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "mono",
+        "gain": 1,
+        "raw": "DISCRETE(config, \"discrete\", bzone_discrete).add_route(ALL_OUTPUTS, \"mono\", 1.0)",
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 408,
+        "sourceColumn": 2,
+        "sourceEndLine": 408
+      }
+    },
+    {
+      "id": "handler:mathbox_device.device_start",
+      "label": "Handler",
+      "props": {
+        "method": "device_start",
+        "ownerClass": "mathbox_device",
+        "sourceFile": "src/mame/atari/mathbox.cpp",
+        "sourceLine": 51,
+        "sourceColumn": 1,
+        "sourceEndLine": 56,
+        "sourceParameters": "",
+        "sourceBody": "/* register for save states */\n\tsave_item(NAME(m_result));\n\tsave_item(NAME(m_reg));"
+      }
+    },
+    {
+      "id": "inputs:bzone",
+      "label": "InputPorts",
+      "props": {
+        "name": "bzone",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 488,
+        "sourceColumn": 8,
+        "sourceEndLine": 488
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 12,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 12
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 16,
+        "activeLow": true,
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "modifiers": [
+          "PORT_NAME(\"Diagnostic Step\")"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"avg\", FUNC(avg_device::done_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_MEMBER(FUNC(bzone_state::clock_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "handler:bzone_state.clock_r",
+      "label": "Handler",
+      "props": {
+        "method": "clock_r",
+        "ownerClass": "bzone_state",
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 275,
+        "sourceColumn": 1,
+        "sourceEndLine": 278,
+        "sourceParameters": "",
+        "sourceBody": "return (m_maincpu->total_cycles() & 0x100) ? 1 : 0;"
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW0",
+      "label": "Port",
+      "props": {
+        "tag": "DSW0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"M10:1,2\")"
+        ],
+        "name": "Lives",
+        "defaultValue": 1,
+        "location": "M10:1,2",
+        "settings": [
+          "0=2",
+          "1=3",
+          "2=4",
+          "3=5"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"M10:3,4\")"
+        ],
+        "name": "Missile appears at",
+        "defaultValue": 4,
+        "location": "M10:3,4",
+        "settings": [
+          "0=5000",
+          "4=10000",
+          "8=20000",
+          "12=30000"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 48,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"M10:5,6\")"
+        ],
+        "name": "Bonus Life",
+        "defaultValue": 16,
+        "location": "M10:5,6",
+        "settings": [
+          "16=15k and 100k",
+          "32=25k and 100k",
+          "48=50k and 100k",
+          "0=None"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 192,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"M10:7,8\")"
+        ],
+        "name": "Language",
+        "defaultValue": 0,
+        "location": "M10:7,8",
+        "settings": [
+          "0=English",
+          "64=German",
+          "128=French",
+          "192=Spanish"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW1",
+      "label": "Port",
+      "props": {
+        "tag": "DSW1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 3,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"P10:1,2\")"
+        ],
+        "name": "Coinage",
+        "defaultValue": 3,
+        "location": "P10:1,2",
+        "settings": [
+          "3=2C 1C",
+          "2=1C 1C",
+          "1=1C 2C",
+          "0=Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 12,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"P10:3,4\")"
+        ],
+        "name": "Coin B",
+        "defaultValue": 0,
+        "location": "P10:3,4",
+        "settings": [
+          "0=*1",
+          "4=*4",
+          "8=*5",
+          "12=*6"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"P10:5\")"
+        ],
+        "name": "Coin A",
+        "defaultValue": 0,
+        "location": "P10:5",
+        "settings": [
+          "0=*1",
+          "16=*2"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/DSW1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 224,
+        "modifiers": [
+          "PORT_DIPLOCATION(\"P10:6,7,8\")"
+        ],
+        "name": "Bonus Coins",
+        "defaultValue": 0,
+        "location": "P10:6,7,8",
+        "settings": [
+          "0=None",
+          "32=3 credits/2 coins",
+          "64=5 credits/4 coins",
+          "96=6 credits/4 coins",
+          "128=6 credits/5 coins"
+        ]
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3",
+      "label": "Port",
+      "props": {
+        "tag": "IN3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": false,
+        "type": "IPT_JOYSTICKRIGHT_DOWN",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": false,
+        "type": "IPT_JOYSTICKRIGHT_UP",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": false,
+        "type": "IPT_JOYSTICKLEFT_DOWN",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_JOYSTICKLEFT_UP",
+        "modifiers": [
+          "PORT_2WAY"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_BUTTON1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": false,
+        "type": "IPT_START1",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": false,
+        "type": "IPT_START2",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/IN3/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:bzone/R11",
+      "label": "Port",
+      "props": {
+        "tag": "R11",
+        "modify": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:bzone",
+      "to": "file:src/mame/atari/bzone.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 1014,
+        "sourceColumn": 1,
+        "sourceEndLine": 1014
+      }
+    },
+    {
+      "from": "game:bzone",
+      "to": "machine:bzone_state.bzone",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:bzone",
+      "to": "inputs:bzone",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:bzone",
+      "to": "romset:bzone",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:bzone.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:video/avgdvg.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:video/vector.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:sound/ay8910.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:bzone.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone.cpp",
+      "to": "file:redbaron.lh",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:bzone_state.bzone",
+      "to": "file:src/mame/atari/bzone.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 633,
+        "sourceColumn": 1,
+        "sourceEndLine": 639
+      }
+    },
+    {
+      "from": "machine:bzone_state.bzone",
+      "to": "machine:bzone_state.bzone_base",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:bzone_state.bzone",
+      "to": "machine:bzone_state.bzone_audio",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "inputs:bzone",
+      "to": "file:src/mame/atari/bzone.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 488,
+        "sourceColumn": 8,
+        "sourceEndLine": 488
+      }
+    },
+    {
+      "from": "inputs:bzone",
+      "to": "inputs:bzone/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bzone",
+      "to": "inputs:bzone/DSW0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bzone",
+      "to": "inputs:bzone/DSW1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bzone",
+      "to": "inputs:bzone/IN3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:bzone",
+      "to": "inputs:bzone/R11",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:bzone",
+      "to": "file:src/mame/atari/bzone.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 713,
+        "sourceColumn": 1,
+        "sourceEndLine": 713
+      }
+    },
+    {
+      "from": "romset:bzone",
+      "to": "region:bzone/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:bzone",
+      "to": "region:bzone/avg:prom",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:bzone",
+      "to": "region:bzone/user2",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:bzone",
+      "to": "region:bzone/user3",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "file:src/mame/atari/bzone.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 1,
+        "sourceEndLine": 631
+      }
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "device:bzone_state.bzone_base/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "device:bzone_state.bzone_base/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "device:bzone_state.bzone_base/vector",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "device:bzone_state.bzone_base/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "device:bzone_state.bzone_base/avg",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_base",
+      "to": "device:bzone_state.bzone_base/mathbox",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_audio",
+      "to": "file:src/mame/atari/bzone_a.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone_a.cpp",
+        "sourceLine": 399,
+        "sourceColumn": 1,
+        "sourceEndLine": 409
+      }
+    },
+    {
+      "from": "machine:bzone_state.bzone_audio",
+      "to": "device:bzone_state.bzone_audio/mono",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_audio",
+      "to": "device:bzone_state.bzone_audio/pokey",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:bzone_state.bzone_audio",
+      "to": "device:bzone_state.bzone_audio/discrete",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN0",
+      "to": "inputs:bzone/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW0",
+      "to": "inputs:bzone/DSW0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW0",
+      "to": "inputs:bzone/DSW0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW0",
+      "to": "inputs:bzone/DSW0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW0",
+      "to": "inputs:bzone/DSW0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW1",
+      "to": "inputs:bzone/DSW1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW1",
+      "to": "inputs:bzone/DSW1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW1",
+      "to": "inputs:bzone/DSW1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/DSW1",
+      "to": "inputs:bzone/DSW1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:bzone/IN3",
+      "to": "inputs:bzone/IN3/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036414-02.e1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036413-01.h1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036412-01.j1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036411-01.k1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036410-01.lm1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036409-01.n1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036422-01.bc3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/maincpu",
+      "to": "rom:bzone/maincpu/036421-01.a3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/avg:prom",
+      "to": "rom:bzone/avg:prom/036408-01.k7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user2",
+      "to": "rom:bzone/user2/036174-01.b1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user3",
+      "to": "rom:bzone/user3/036175-01.m1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user3",
+      "to": "rom:bzone/user3/036176-01.l1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user3",
+      "to": "rom:bzone/user3/036177-01.k1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user3",
+      "to": "rom:bzone/user3/036178-01.j1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user3",
+      "to": "rom:bzone/user3/036179-01.h1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:bzone/user3",
+      "to": "rom:bzone/user3/036180-01.f1",
+      "rel": "LOADS"
+    },
+    {
+      "from": "device:bzone_state.bzone_base/maincpu",
+      "to": "device:bzone_state.bzone_base/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:bzone_state.bzone_base/maincpu",
+      "to": "map:bzone_state.bzone_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:bzone_state.bzone_base/screen",
+      "to": "device:bzone_state.bzone_base/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:bzone_state.bzone_base/mathbox",
+      "to": "handler:mathbox_device.device_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "file:src/mame/atari/bzone_a.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone_a.cpp",
+      "to": "file:bzone.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone_a.cpp",
+      "to": "file:sound/discrete.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone_a.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/bzone_a.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "device:bzone_state.bzone_audio/pokey",
+      "to": "audioroute:device:bzone_state.bzone_audio/pokey/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:bzone_state.bzone_audio/pokey",
+      "to": "device:bzone_state.bzone_audio/pokey/callback:pokey:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:bzone_state.bzone_audio/discrete",
+      "to": "audioroute:device:bzone_state.bzone_audio/discrete/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "inputs:bzone/IN0/f6",
+      "to": "handler:bzone_state.clock_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:bzone_state.bzone_base/maincpu/callback:maincpu:0",
+      "to": "handler:bzone_state.bzone_interrupt",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "file:src/mame/atari/bzone.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/bzone.cpp",
+        "sourceLine": 339,
+        "sourceColumn": 1,
+        "sourceEndLine": 358
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map",
+      "to": "map:bzone_state.bzone_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:bzone_state.bzone_base/screen/callback:screen:0",
+      "to": "handler:vector_device.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:bzone_state.bzone_base/screen/callback:screen:0",
+      "to": "device:bzone_state.bzone_base/vector",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range4",
+      "to": "handler:bzone_state.bzone_coin_counter_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range5",
+      "to": "handler:avg_device.go_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "avg"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range6",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range7",
+      "to": "handler:avg_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "avg"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range8",
+      "to": "handler:mathbox_device.status_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "mathbox"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range9",
+      "to": "handler:mathbox_device.lo_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "mathbox"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range10",
+      "to": "handler:mathbox_device.hi_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "mathbox"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range11",
+      "to": "handler:pokey_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range11",
+      "to": "handler:pokey_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range12",
+      "to": "handler:bzone_state.bzone_sounds_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:bzone_state.bzone_map/range13",
+      "to": "handler:mathbox_device.go_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mathbox"
+      }
+    }
+  ]
+}

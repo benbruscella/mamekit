@@ -1,0 +1,49 @@
+Arcade Video game published 34 years ago:
+
+Street Fighter II' - Champion Edition (c) 1992 Capcom Company, Limited.
+
+Export release. Game developed in Japan. For more information about the game itself, please see the original Japanese release entry; "Street Fighter II' - Champion Edition [B-Board 91634B-2]".
+
+- TECHNICAL -
+
+Capcom Play System hardware (CP-S) 
+B-Board #: 91635B-2
+
+- PORTS -
+
+Here is a list of ports released outside Japan. To see Japanese ports, please see the original Japanese version entry; "Street Fighter II' - Champion Edition [B-Board 91634B-2]".
+
+* CONSOLES: 
+[AU] Nintendo SNES (1993) "Street Fighter II Turbo - Hyper Fighting" 
+[AU] Sega Mega Drive (1993) "Street Fighter II' - Special Champion Edition [Sega Gold Collection]" 
+[BR] Sega Mega Drive (1993) "Street Fighter II' - Special Champion Edition [Model 047020]" by Tec Toy 
+[EU] Nintendo SNES (aug.1993) "Street Fighter II Turbo - Hyper Fighting [Model SNSP-TI-EUR]" 
+[US] Nintendo SNES (aug.1993) "Street Fighter II Turbo - Hyper Fighting [Model SNS-TI-USA]" 
+[US] Sega Genesis (sept.27, 1993) "Street Fighter II' - Special Champion Edition [Model T-12016]" 
+[EU] Sega Mega Drive (oct.1993) "Street Fighter II' - Special Champion Edition [Model 670-4179]" 
+[BR] Sega Master System (1997) "Street Fighter II [Model 030.010]" by Tec Toy 
+[EU] Sony PlayStation (1998) "Street Fighter Collection 2 [Model SLES-01721]" 
+[US] Sony PlayStation (oct.31, 1998) "Street Fighter Collection 2 [Model SLUS-00746]" 
+[US] Microsoft XBOX (sept.27, 2005) "Capcom Classics Collection" 
+[US] Sony PS2 (sept.27, 2005) "Capcom Classics Collection [Model SLUS-21316]" 
+[EU] Microsoft XBOX (nov.18, 2005) "Capcom Classics Collection" 
+[EU] Sony PS2 (nov.18, 2005) "Capcom Classics Collection [Model SLES-53661]" 
+
+* HANDHELDS: 
+[US] Sony PSP (oct.24, 2006) "Capcom Classics Collection Reloaded [Model ULUS-10134]" 
+[EU] Sony PSP (nov.10, 2006) "Capcom Classics Collection Reloaded [Model ULES-00377]" 
+[AU] Sony PSP (nov.16, 2006) "Capcom Classics Collection Reloaded" 
+
+* COMPUTERS: 
+[US] PC [MS Windows, CD-ROM] (2003) "Capcom Arcade Hits Volume 1" 
+
+* OTHERS: 
+[US] Mobile Phones (2008) 
+[US] Apple iPhone/iPad (nov.4, 2010) "Capcom Arcade [Model 397347348]" 
+[US] Apple iPhone/iPod (sept.15, 2011) "Street Fighter II Collection [Model 459660048]"
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/69767/?o=2
+
+— Gaming History (arcade-history.com)

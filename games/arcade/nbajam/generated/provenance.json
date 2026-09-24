@@ -1,0 +1,657 @@
+{
+  "generatedFrom": "src/mame/williams/midtunit.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 609,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 616,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 617,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 618,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 631,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 772,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/williams/midtview.ipp",
+      "line": 46,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 609,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 772,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 612,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 768,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 787,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/1/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 787,
+      "column": 1
+    },
+    {
+      "path": "/execution/banks/2/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 787,
+      "column": 1
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 628,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 631,
+      "column": 2
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 608,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 612,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 621,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 623,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 626,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 628,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 643,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/williams/midtview.ipp",
+      "line": 44,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/williams/midtview.ipp",
+      "line": 48,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 768,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 771,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 775,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 777,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 254,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 265,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 301,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 261,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 93,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 78,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 72,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 54,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 640,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 697,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 870,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 351,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 58,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 238,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 527,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 540,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 548,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 657,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 688,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 820,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 647,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 740,
+      "column": 2
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 740,
+      "column": 2
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 1242,
+      "column": 2
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 710,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 699,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 725,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 616,
+      "column": 2
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 617,
+      "column": 2
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 618,
+      "column": 2
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 631,
+      "column": 2
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/williams/midtunit_m.cpp",
+      "line": 501,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/williams/midtview.ipp",
+      "line": 263,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/williams/midtview.ipp",
+      "line": 70,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/williams/midtview.ipp",
+      "line": 60,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 191,
+      "column": 1
+    },
+    {
+      "path": "/handlers/38/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 91,
+      "column": 1
+    },
+    {
+      "path": "/handlers/39/source",
+      "file": "src/mame/williams/midtunit_v.cpp",
+      "line": 626,
+      "column": 1
+    },
+    {
+      "path": "/handlers/40/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 787,
+      "column": 1
+    },
+    {
+      "path": "/handlers/41/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 837,
+      "column": 1
+    },
+    {
+      "path": "/handlers/42/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 848,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 46,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 47,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 48,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 49,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 50,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 51,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 52,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 53,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 54,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 55,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 56,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 58,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 59,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 60,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 61,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 62,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 43,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 69,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 70,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 65,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 738,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 739,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 740,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 741,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 742,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/5/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 743,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/6/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 744,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/7/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 745,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/8/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 746,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/9/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 747,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 736,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 757,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 758,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/shared/williamssound.cpp",
+      "line": 755,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/emu/emupal.cpp",
+      "line": 247
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/williams/midtunit.cpp",
+      "line": 631
+    }
+  ]
+}

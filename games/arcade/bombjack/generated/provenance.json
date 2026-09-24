@@ -1,0 +1,352 @@
+{
+  "generatedFrom": "src/mame/tecmo/bombjack.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 765,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 767,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 768,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 769,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 770,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 765,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 766,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 767,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 768,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 769,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 770,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 758,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 403,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 758,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 761,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 236,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 245,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 254,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 429,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 260,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 278,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 270,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 439,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 446,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 292,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 206,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 491,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 492,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 719,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 226,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 311,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 297,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 340,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 325,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 403,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 363,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 352,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 286,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 444,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/17/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 446,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/18/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 447,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 442,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 470,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 471,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 472,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 466,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 487,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 488,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 489,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 490,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 491,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/5/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 492,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 483,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/emu/emupal.cpp",
+      "line": 205
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 226,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 226,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/tecmo/bombjack.cpp",
+      "line": 226,
+      "column": 1
+    }
+  ]
+}

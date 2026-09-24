@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "bnj",
+  "family": "btime",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 122,
+    "total": 173,
+    "percent": 70.5
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:DECO_C10707",
+        "status": "executable",
+        "source": "src/mame/dataeast/deco222.cpp:12"
+      },
+      {
+        "name": "audiocpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "8vck:TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/timer.cpp:30"
+      },
+      {
+        "name": "audionmi:INPUT_MERGER_ALL_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:44"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "ay1:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "discrete:DISCRETE",
+        "status": "declarative-host",
+        "source": "src/devices/sound/discrete.cpp:50"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "ay1.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay1.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2.address_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "ay2.data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "btime_state.audio_nmi_enable_w",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:1012"
+      },
+      {
+        "name": "btime_state.bnj_scroll_w_0",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:601"
+      },
+      {
+        "name": "btime_state.bnj_scroll_w_1",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:601"
+      },
+      {
+        "name": "btime_state.bnj_video_control_w",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:616"
+      },
+      {
+        "name": "btime_state.btime_mirrorcolorram_r",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:544"
+      },
+      {
+        "name": "btime_state.btime_mirrorcolorram_w",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:574"
+      },
+      {
+        "name": "btime_state.btime_mirrorvideoram_r",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:534"
+      },
+      {
+        "name": "btime_state.btime_mirrorvideoram_w",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:554"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.DSW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "8vck.configure_scanline -> btime_state.audio_nmi_gen",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:2305"
+      },
+      {
+        "name": "audionmi.output_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:2307"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:2322"
+      },
+      {
+        "name": "ay1.port_a_write_callback -> btime_state.ay_audio_nmi_enable_w",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:2327"
+      },
+      {
+        "name": "screen.set_screen_update -> btime_state.screen_update_bnj",
+        "status": "generated"
+      },
+      {
+        "name": "palette.palette_init -> btime_state.btime_palette",
+        "status": "generated",
+        "source": "src/mame/dataeast/btime.cpp:2316"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/bnj/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 17,
+    "compiledMethods": 17,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 8,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 1,
+    "screenUpdate": "btime_state.screen_update_bnj",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 12,
+    "generated": 20,
+    "declarative-host": 7,
+    "blocked": 0,
+    "missing": 0
+  }
+}

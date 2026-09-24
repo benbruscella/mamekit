@@ -1,0 +1,4520 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/atari/atarisy1.cpp",
+    "generatedAt": "2026-09-24T02:28:30.974Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Aaron Giles"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/atari/atarisy1.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/atari/atarisy1.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:atarisy1.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "atarisy1.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m68000/m68010.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m68000/m68010.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6502/m6502.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6502/m6502.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/eeprompar.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/eeprompar.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/pokey.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/pokey.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:atarimo.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "atarimo.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "game:atarisy1",
+      "label": "Game",
+      "props": {
+        "name": "atarisy1",
+        "year": "1984",
+        "company": "Atari Games",
+        "fullname": "Atari System 1 BIOS",
+        "monitor": "ROT0",
+        "cls": "atarisy1_state",
+        "init": "init_peterpak",
+        "flags": "MACHINE_IS_BIOS_ROOT",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 2669,
+        "sourceColumn": 1,
+        "sourceEndLine": 2669
+      }
+    },
+    {
+      "id": "game:marble",
+      "label": "Game",
+      "props": {
+        "name": "marble",
+        "year": "1984",
+        "company": "Atari Games",
+        "fullname": "Marble Madness (set 1)",
+        "monitor": "ROT0",
+        "cls": "atarisy1_state",
+        "init": "init_marble",
+        "flags": "0",
+        "kind": "arcade",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 2671,
+        "sourceColumn": 1,
+        "sourceEndLine": 2671
+      }
+    },
+    {
+      "id": "romset:atarisy1",
+      "label": "RomSet",
+      "props": {
+        "name": "atarisy1",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 1,
+        "sourceEndLine": 975
+      }
+    },
+    {
+      "id": "region:atarisy1/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 557056,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 976,
+        "sourceColumn": 2,
+        "sourceEndLine": 976
+      }
+    },
+    {
+      "id": "rom:atarisy1/maincpu/136032.205.l13",
+      "label": "Rom",
+      "props": {
+        "file": "136032.205.l13",
+        "offset": 0,
+        "size": 16384,
+        "crc": "88d0be26",
+        "sha1": "d124045eccc562ff0423b23a240e27ad740fa0c9",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:atarisy1/maincpu/136032.206.l12",
+      "label": "Rom",
+      "props": {
+        "file": "136032.206.l12",
+        "offset": 1,
+        "size": 16384,
+        "crc": "3c79ef05",
+        "sha1": "20fdca7131478e1ee12691bdafd2d5bb74cbd16f",
+        "skip": 1
+      }
+    },
+    {
+      "id": "region:atarisy1/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 979,
+        "sourceColumn": 2,
+        "sourceEndLine": 979
+      }
+    },
+    {
+      "id": "region:atarisy1/alpha",
+      "label": "RomRegion",
+      "props": {
+        "tag": "alpha",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 981,
+        "sourceColumn": 2,
+        "sourceEndLine": 981
+      }
+    },
+    {
+      "id": "rom:atarisy1/alpha/136032.104.f5",
+      "label": "Rom",
+      "props": {
+        "file": "136032.104.f5",
+        "offset": 0,
+        "size": 8192,
+        "crc": "7a29dc07",
+        "sha1": "72ba464da01bd6d3a91b8d9997d5ac14b6f47aad"
+      }
+    },
+    {
+      "id": "region:atarisy1/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 1048576,
+        "flags": "ROMREGION_INVERT | ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 984,
+        "sourceColumn": 2,
+        "sourceEndLine": 984
+      }
+    },
+    {
+      "id": "region:atarisy1/motherbrd_proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "motherbrd_proms",
+        "size": 513,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 986,
+        "sourceColumn": 2,
+        "sourceEndLine": 986
+      }
+    },
+    {
+      "id": "rom:atarisy1/motherbrd_proms/136032.101.e3",
+      "label": "Rom",
+      "props": {
+        "file": "136032.101.e3",
+        "offset": 0,
+        "size": 256,
+        "crc": "7e84972a",
+        "sha1": "84d422b53547271e3a07342704a05ef481db3f99"
+      }
+    },
+    {
+      "id": "rom:atarisy1/motherbrd_proms/136032.102.e5",
+      "label": "Rom",
+      "props": {
+        "file": "136032.102.e5",
+        "offset": 0,
+        "size": 256,
+        "crc": "ebf1e0ae",
+        "sha1": "2d327e78832edd67ca3909c25b8c8c839637a1ed"
+      }
+    },
+    {
+      "id": "rom:atarisy1/motherbrd_proms/136032.103.f7",
+      "label": "Rom",
+      "props": {
+        "file": "136032.103.f7",
+        "offset": 0,
+        "size": 235,
+        "crc": "92d6a0b4",
+        "sha1": "0a42a4816c89447b16e1f3245409591efea98a4a"
+      }
+    },
+    {
+      "id": "region:atarisy1/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 1024,
+        "flags": "ROMREGION_ERASE00",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 989,
+        "sourceColumn": 2,
+        "sourceEndLine": 989
+      }
+    },
+    {
+      "id": "romset:marble",
+      "label": "RomSet",
+      "props": {
+        "name": "marble",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1003,
+        "sourceColumn": 1,
+        "sourceEndLine": 1003
+      }
+    },
+    {
+      "id": "region:marble/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 557056,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 976,
+        "sourceColumn": 2,
+        "sourceEndLine": 976
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136032.205.l13",
+      "label": "Rom",
+      "props": {
+        "file": "136032.205.l13",
+        "offset": 0,
+        "size": 16384,
+        "crc": "88d0be26",
+        "sha1": "d124045eccc562ff0423b23a240e27ad740fa0c9",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136032.206.l12",
+      "label": "Rom",
+      "props": {
+        "file": "136032.206.l12",
+        "offset": 1,
+        "size": 16384,
+        "crc": "3c79ef05",
+        "sha1": "20fdca7131478e1ee12691bdafd2d5bb74cbd16f",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.623",
+      "label": "Rom",
+      "props": {
+        "file": "136033.623",
+        "offset": 65536,
+        "size": 16384,
+        "crc": "284ed2e9",
+        "sha1": "a24d2fd587dffcc8536ef28fcbcf5c964a6b67a9",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.624",
+      "label": "Rom",
+      "props": {
+        "file": "136033.624",
+        "offset": 65537,
+        "size": 16384,
+        "crc": "d541b021",
+        "sha1": "978b1565da746f7389eaf7646604990fb28d47ed",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.625",
+      "label": "Rom",
+      "props": {
+        "file": "136033.625",
+        "offset": 98304,
+        "size": 16384,
+        "crc": "563755c7",
+        "sha1": "a444b72ff4cdecee3b9dd7e636d658c31ecc186c",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.626",
+      "label": "Rom",
+      "props": {
+        "file": "136033.626",
+        "offset": 98305,
+        "size": 16384,
+        "crc": "860feeb3",
+        "sha1": "d6059c1fe13f28ada27f6586215a16e2117e3ecd",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.627",
+      "label": "Rom",
+      "props": {
+        "file": "136033.627",
+        "offset": 131072,
+        "size": 16384,
+        "crc": "d1dbd439",
+        "sha1": "cefc0fa9c71512c961272fcf0f9c069f1396468e",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.628",
+      "label": "Rom",
+      "props": {
+        "file": "136033.628",
+        "offset": 131073,
+        "size": 16384,
+        "crc": "957d6801",
+        "sha1": "b007d9e45a1442ab1c9ec1463f9f46ea85fb0659",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.229",
+      "label": "Rom",
+      "props": {
+        "file": "136033.229",
+        "offset": 163840,
+        "size": 16384,
+        "crc": "c81d5c14",
+        "sha1": "0464ea183685de83e797b9d946b4acc409f4c451",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.630",
+      "label": "Rom",
+      "props": {
+        "file": "136033.630",
+        "offset": 163841,
+        "size": 16384,
+        "crc": "687a09f7",
+        "sha1": "95e31acf29cd8d51beefa9b0e4acd92b81980c2f",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.107",
+      "label": "Rom",
+      "props": {
+        "file": "136033.107",
+        "offset": 524288,
+        "size": 16384,
+        "crc": "f3b8745b",
+        "sha1": "4754eac5e6d8547b3ee00f3f48eaa560eb403862",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:marble/maincpu/136033.108",
+      "label": "Rom",
+      "props": {
+        "file": "136033.108",
+        "offset": 524289,
+        "size": 16384,
+        "crc": "e51eecaa",
+        "sha1": "37d51a9e9cb33d1156d02a312ac8e202a18d7c20",
+        "skip": 1
+      }
+    },
+    {
+      "id": "region:marble/audiocpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "audiocpu",
+        "size": 65536,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 979,
+        "sourceColumn": 2,
+        "sourceEndLine": 979
+      }
+    },
+    {
+      "id": "rom:marble/audiocpu/136033.421",
+      "label": "Rom",
+      "props": {
+        "file": "136033.421",
+        "offset": 32768,
+        "size": 16384,
+        "crc": "78153dc3",
+        "sha1": "d4e68226b87df8834dc3d6daa9d683f17896c32e",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1018,
+        "sourceColumn": 2,
+        "sourceEndLine": 1018
+      }
+    },
+    {
+      "id": "rom:marble/audiocpu/136033.422",
+      "label": "Rom",
+      "props": {
+        "file": "136033.422",
+        "offset": 49152,
+        "size": 16384,
+        "crc": "2e66300e",
+        "sha1": "49acb9443c5d2c1016cde7f489deab2575dd82ca",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1019,
+        "sourceColumn": 2,
+        "sourceEndLine": 1019
+      }
+    },
+    {
+      "id": "region:marble/alpha",
+      "label": "RomRegion",
+      "props": {
+        "tag": "alpha",
+        "size": 8192,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 981,
+        "sourceColumn": 2,
+        "sourceEndLine": 981
+      }
+    },
+    {
+      "id": "rom:marble/alpha/136032.104.f5",
+      "label": "Rom",
+      "props": {
+        "file": "136032.104.f5",
+        "offset": 0,
+        "size": 8192,
+        "crc": "7a29dc07",
+        "sha1": "72ba464da01bd6d3a91b8d9997d5ac14b6f47aad"
+      }
+    },
+    {
+      "id": "region:marble/tiles",
+      "label": "RomRegion",
+      "props": {
+        "tag": "tiles",
+        "size": 1048576,
+        "flags": "ROMREGION_INVERT | ROMREGION_ERASEFF",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 984,
+        "sourceColumn": 2,
+        "sourceEndLine": 984
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.137",
+      "label": "Rom",
+      "props": {
+        "file": "136033.137",
+        "offset": 0,
+        "size": 16384,
+        "crc": "7a45f5c1",
+        "sha1": "b826a178660ff2e278558e4779586737751dca5e",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1025,
+        "sourceColumn": 2,
+        "sourceEndLine": 1025
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.138",
+      "label": "Rom",
+      "props": {
+        "file": "136033.138",
+        "offset": 16384,
+        "size": 16384,
+        "crc": "7e954a88",
+        "sha1": "238a913529781f424a6f49c3fba1524684d0cbcf",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1026,
+        "sourceColumn": 2,
+        "sourceEndLine": 1026
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.139",
+      "label": "Rom",
+      "props": {
+        "file": "136033.139",
+        "offset": 65536,
+        "size": 16384,
+        "crc": "1eb1bb5f",
+        "sha1": "987a8289fd4be06b6899bb8c620ddfa4c4b966b0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1027,
+        "sourceColumn": 2,
+        "sourceEndLine": 1027
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.140",
+      "label": "Rom",
+      "props": {
+        "file": "136033.140",
+        "offset": 81920,
+        "size": 16384,
+        "crc": "8a82467b",
+        "sha1": "25538e98e5fdadfa6de3bd57ee8658c7add0169d",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1028,
+        "sourceColumn": 2,
+        "sourceEndLine": 1028
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.141",
+      "label": "Rom",
+      "props": {
+        "file": "136033.141",
+        "offset": 131072,
+        "size": 16384,
+        "crc": "52448965",
+        "sha1": "e2ce22f89304b2d6858d0c61040d8ff2ee33347f",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1029,
+        "sourceColumn": 2,
+        "sourceEndLine": 1029
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.142",
+      "label": "Rom",
+      "props": {
+        "file": "136033.142",
+        "offset": 147456,
+        "size": 16384,
+        "crc": "b4a70e4f",
+        "sha1": "d8e4d6dbbef3be86558ab23646c77400793a5eb1",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1030,
+        "sourceColumn": 2,
+        "sourceEndLine": 1030
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.143",
+      "label": "Rom",
+      "props": {
+        "file": "136033.143",
+        "offset": 196608,
+        "size": 16384,
+        "crc": "7156e449",
+        "sha1": "361e024e1173299d0e6b776a7c1be10767cfab0d",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1031,
+        "sourceColumn": 2,
+        "sourceEndLine": 1031
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.144",
+      "label": "Rom",
+      "props": {
+        "file": "136033.144",
+        "offset": 212992,
+        "size": 16384,
+        "crc": "4c3e4c79",
+        "sha1": "642e469ce10067502ce3a920066184a9c73a44c5",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1032,
+        "sourceColumn": 2,
+        "sourceEndLine": 1032
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.145",
+      "label": "Rom",
+      "props": {
+        "file": "136033.145",
+        "offset": 262144,
+        "size": 16384,
+        "crc": "9062be7f",
+        "sha1": "ae372433da441b69345d67f5e838b8479557517b",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1033,
+        "sourceColumn": 2,
+        "sourceEndLine": 1033
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.146",
+      "label": "Rom",
+      "props": {
+        "file": "136033.146",
+        "offset": 278528,
+        "size": 16384,
+        "crc": "14566dca",
+        "sha1": "7134c233daba3b2510d1c08d9efde79c0eec6c20",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1034,
+        "sourceColumn": 2,
+        "sourceEndLine": 1034
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.149",
+      "label": "Rom",
+      "props": {
+        "file": "136033.149",
+        "offset": 540672,
+        "size": 16384,
+        "crc": "b6658f06",
+        "sha1": "e719d956f4f9d703a12e2c5520cac0a2f47ea058",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1036,
+        "sourceColumn": 2,
+        "sourceEndLine": 1036
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.151",
+      "label": "Rom",
+      "props": {
+        "file": "136033.151",
+        "offset": 606208,
+        "size": 16384,
+        "crc": "84ee1c80",
+        "sha1": "5192c0a2887f46b616d130bdbfffbbd5e394e9a3",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1037,
+        "sourceColumn": 2,
+        "sourceEndLine": 1037
+      }
+    },
+    {
+      "id": "rom:marble/tiles/136033.153",
+      "label": "Rom",
+      "props": {
+        "file": "136033.153",
+        "offset": 671744,
+        "size": 16384,
+        "crc": "daa02926",
+        "sha1": "33c7a38c66fb4d67a6ee88ef2da2bba091439e0c",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1038,
+        "sourceColumn": 2,
+        "sourceEndLine": 1038
+      }
+    },
+    {
+      "id": "region:marble/proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "proms",
+        "size": 1024,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 989,
+        "sourceColumn": 2,
+        "sourceEndLine": 989
+      }
+    },
+    {
+      "id": "rom:marble/proms/136033.118",
+      "label": "Rom",
+      "props": {
+        "file": "136033.118",
+        "offset": 0,
+        "size": 512,
+        "crc": "2101b0ed",
+        "sha1": "e4fb8dfa80ed78847c697f9de2bd8540b0c04889",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1041,
+        "sourceColumn": 2,
+        "sourceEndLine": 1041
+      }
+    },
+    {
+      "id": "rom:marble/proms/136033.119",
+      "label": "Rom",
+      "props": {
+        "file": "136033.119",
+        "offset": 512,
+        "size": 512,
+        "crc": "19f6e767",
+        "sha1": "041f24cc03c9043c31c3294c9565dfda9bdada74",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1042,
+        "sourceColumn": 2,
+        "sourceEndLine": 1042
+      }
+    },
+    {
+      "id": "region:marble/motherbrd_proms",
+      "label": "RomRegion",
+      "props": {
+        "tag": "motherbrd_proms",
+        "size": 513,
+        "flags": "0",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 986,
+        "sourceColumn": 2,
+        "sourceEndLine": 986
+      }
+    },
+    {
+      "id": "rom:marble/motherbrd_proms/136032.101.e3",
+      "label": "Rom",
+      "props": {
+        "file": "136032.101.e3",
+        "offset": 0,
+        "size": 256,
+        "crc": "7e84972a",
+        "sha1": "84d422b53547271e3a07342704a05ef481db3f99"
+      }
+    },
+    {
+      "id": "rom:marble/motherbrd_proms/136032.102.e5",
+      "label": "Rom",
+      "props": {
+        "file": "136032.102.e5",
+        "offset": 0,
+        "size": 256,
+        "crc": "ebf1e0ae",
+        "sha1": "2d327e78832edd67ca3909c25b8c8c839637a1ed"
+      }
+    },
+    {
+      "id": "rom:marble/motherbrd_proms/136032.103.f7",
+      "label": "Rom",
+      "props": {
+        "file": "136032.103.f7",
+        "offset": 0,
+        "size": 235,
+        "crc": "92d6a0b4",
+        "sha1": "0a42a4816c89447b16e1f3245409591efea98a4a"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic",
+      "label": "AddressMap",
+      "props": {
+        "cls": "atarisy1_state",
+        "name": "main_map_noslapstic",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 405,
+        "sourceColumn": 1,
+        "sourceEndLine": 429
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 524287,
+        "raw": "map(0x000000, 0x07ffff).rom()",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 2,
+        "sourceEndLine": 407,
+        "rom": true
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 3014656,
+        "end": 3014657,
+        "raw": "map(0x2e0000, 0x2e0001).r(FUNC(atarisy1_state::int3state_r))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 408,
+        "sourceColumn": 2,
+        "sourceEndLine": 408
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.int3state_r",
+      "label": "Handler",
+      "props": {
+        "method": "int3state_r",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 394,
+        "sourceColumn": 1,
+        "sourceEndLine": 397,
+        "sourceParameters": "",
+        "sourceBody": "return m_scanline_int_state ? 0x0080 : 0x0000;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 4194304,
+        "end": 4202495,
+        "raw": "map(0x400000, 0x401fff).ram()",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 409,
+        "sourceColumn": 2,
+        "sourceEndLine": 409,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 8388608,
+        "end": 8388609,
+        "raw": "map(0x800000, 0x800001).w(FUNC(atarisy1_state::xscroll_w)).share(m_xscroll)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 410,
+        "sourceColumn": 2,
+        "sourceEndLine": 410,
+        "share": "xscroll"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.xscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "xscroll_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 258,
+        "sourceColumn": 1,
+        "sourceEndLine": 273,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "uint16_t const oldscroll = *m_xscroll;\n\tuint16_t newscroll = oldscroll;\n\n\t/* force a partial update in case this changes mid-screen */\n\tCOMBINE_DATA(&newscroll);\n\tif (oldscroll != newscroll)\n\t\tm_screen->update_partial(m_screen->vpos());\n\n\t/* set the new scroll value */\n\tm_playfield_tilemap->set_scrollx(0, newscroll);\n\n\t/* update the data */\n\t*m_xscroll = newscroll;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 8519680,
+        "end": 8519681,
+        "raw": "map(0x820000, 0x820001).w(FUNC(atarisy1_state::yscroll_w)).share(m_yscroll)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 411,
+        "sourceColumn": 2,
+        "sourceEndLine": 411,
+        "share": "yscroll"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.yscroll_w",
+      "label": "Handler",
+      "props": {
+        "method": "yscroll_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 289,
+        "sourceColumn": 1,
+        "sourceEndLine": 312,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "uint16_t const oldscroll = *m_yscroll;\n\tuint16_t newscroll = oldscroll;\n\tint const scanline = m_screen->vpos();\n\n\t/* force a partial update in case this changes mid-screen */\n\tCOMBINE_DATA(&newscroll);\n\tm_screen->update_partial(scanline);\n\n\t/* because this latches a new value into the scroll base,\n\t   we need to adjust for the scanline */\n\tint adjusted_scroll = newscroll;\n\tif (scanline <= m_screen->visible_area().bottom())\n\t\tadjusted_scroll -= (scanline + 1);\n\tm_playfield_tilemap->set_scrolly(0, adjusted_scroll);\n\n\t/* but since we've adjusted it, we must reset it to the normal value\n\t   once we hit scanline 0 again */\n\tm_yscroll_reset_timer->adjust(m_screen->time_until_pos(0), newscroll);\n\n\t/* update the data */\n\t*m_yscroll = newscroll;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 8650752,
+        "end": 8650753,
+        "raw": "map(0x840000, 0x840001).w(FUNC(atarisy1_state::priority_w))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 412,
+        "sourceColumn": 2,
+        "sourceEndLine": 412
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.priority_w",
+      "label": "Handler",
+      "props": {
+        "method": "priority_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 238,
+        "sourceColumn": 1,
+        "sourceEndLine": 248,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "uint16_t const oldpens = m_playfield_priority_pens;\n\tuint16_t newpens = oldpens;\n\n\t/* force a partial update in case this changes mid-screen */\n\tCOMBINE_DATA(&newpens);\n\tif (oldpens != newpens)\n\t\tm_screen->update_partial(m_screen->vpos());\n\tm_playfield_priority_pens = newpens;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 8781825,
+        "end": 8781825,
+        "raw": "map(0x860001, 0x860001).w(FUNC(atarisy1_state::bankselect_w))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 413,
+        "sourceColumn": 2,
+        "sourceEndLine": 413
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.bankselect_w",
+      "label": "Handler",
+      "props": {
+        "method": "bankselect_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 189,
+        "sourceColumn": 1,
+        "sourceEndLine": 228,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "uint8_t const oldselect = m_bankselect;\n\tuint8_t const newselect = data;\n\tint const scanline = m_screen->vpos();\n\n\t// update memory\n\tuint8_t const diff = oldselect ^ newselect;\n\n\t// sound CPU reset\n\tif (BIT(diff, 7))\n\t{\n\t\tm_outlatch->clear_w(BIT(newselect, 7));\n\t\tm_audiocpu->set_input_line(INPUT_LINE_RESET, BIT(newselect, 7) ? CLEAR_LINE : ASSERT_LINE);\n\t\tif (!BIT(newselect, 7))\n\t\t{\n\t\t\tm_mainlatch->acknowledge_w();\n\t\t\tif (m_via.found())\n\t\t\t\tm_via->reset();\n\t\t}\n\t}\n\n\t// if MO or playfield banks change, force a partial update\n\tif (diff & 0x3c)\n\t\tm_screen->update_partial(scanline);\n\n\t// motion object bank select\n\tm_mob->set_bank((newselect >> 3) & 7);\n\tupdate_timers(scanline);\n\n\t// playfield bank select\n\tif (BIT(diff, 2))\n\t{\n\t\tm_playfield_tile_bank = BIT(newselect, 2);\n\t\tm_playfield_tilemap->mark_all_dirty();\n\t}\n\n\t// stash the new value\n\tm_bankselect = newselect;"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.update_timers",
+      "label": "Handler",
+      "props": {
+        "method": "update_timers",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 407,
+        "sourceColumn": 1,
+        "sourceEndLine": 409,
+        "sourceParameters": "int scanline",
+        "sourceBody": ""
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.bank",
+      "label": "Handler",
+      "props": {
+        "method": "bank",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.h",
+        "sourceLine": 93,
+        "sourceColumn": 1,
+        "sourceEndLine": 95,
+        "sourceParameters": "",
+        "sourceBody": "return m_bank;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 8912897,
+        "end": 8912897,
+        "raw": "map(0x880001, 0x880001).w(\"watchdog\", FUNC(watchdog_timer_device::reset_w))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 414,
+        "sourceColumn": 2,
+        "sourceEndLine": 414
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 414,
+        "sourceColumn": 2,
+        "sourceEndLine": 414
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 9043969,
+        "end": 9043969,
+        "raw": "map(0x8a0001, 0x8a0001).w(FUNC(atarisy1_state::video_int_ack_w))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 415,
+        "sourceColumn": 2,
+        "sourceEndLine": 415
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.video_int_ack_w",
+      "label": "Handler",
+      "props": {
+        "method": "video_int_ack_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 215,
+        "sourceColumn": 1,
+        "sourceEndLine": 218,
+        "sourceParameters": "uint8_t data",
+        "sourceBody": "m_maincpu->set_input_line(M68K_IRQ_4, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 9175041,
+        "end": 9175041,
+        "raw": "map(0x8c0001, 0x8c0001).w(\"eeprom\", FUNC(eeprom_parallel_28xx_device::unlock_write8))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 416,
+        "sourceColumn": 2,
+        "sourceEndLine": 416
+      }
+    },
+    {
+      "id": "handler:eeprom_parallel_28xx_device.unlock_write8",
+      "label": "Handler",
+      "props": {
+        "method": "unlock_write8",
+        "ownerClass": "eeprom_parallel_28xx_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 416,
+        "sourceColumn": 2,
+        "sourceEndLine": 416
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 9437184,
+        "end": 10485759,
+        "raw": "map(0x900000, 0x9fffff).ram()",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 417,
+        "sourceColumn": 2,
+        "sourceEndLine": 417,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 10485760,
+        "end": 10493951,
+        "raw": "map(0xa00000, 0xa01fff).ram().w(m_playfield_tilemap, FUNC(tilemap_device::write16)).share(\"playfield\")",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 418,
+        "sourceColumn": 2,
+        "sourceEndLine": 418,
+        "ram": true,
+        "share": "playfield"
+      }
+    },
+    {
+      "id": "handler:tilemap_device.write16",
+      "label": "Handler",
+      "props": {
+        "method": "write16",
+        "ownerClass": "tilemap_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 420,
+        "sourceColumn": 2,
+        "sourceEndLine": 420
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 10493952,
+        "end": 10498047,
+        "raw": "map(0xa02000, 0xa02fff).ram().w(FUNC(atarisy1_state::spriteram_w)).share(\"mob\")",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 419,
+        "sourceColumn": 2,
+        "sourceEndLine": 419,
+        "ram": true,
+        "share": "mob"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.spriteram_w",
+      "label": "Handler",
+      "props": {
+        "method": "spriteram_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 322,
+        "sourceColumn": 1,
+        "sourceEndLine": 352,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "int const active_bank = m_mob->bank();\n\tuint16_t *spriteram = m_mob->spriteram();\n\tint const oldword = spriteram[offset];\n\tint newword = oldword;\n\tCOMBINE_DATA(&newword);\n\n\t/* if the data changed, and it modified the live sprite bank, do some extra work */\n\tif (oldword != newword && (offset >> 8) == active_bank)\n\t{\n\t\t/* if modifying a timer, beware */\n\t\tif (((offset & 0xc0) == 0x00 && spriteram[offset | 0x40] == 0xffff) ||\n\t\t\t((offset & 0xc0) == 0x40 && (newword == 0xffff || oldword == 0xffff)))\n\t\t{\n\t\t\t/* if the timer is in the active bank, update the display list */\n\t\t\tspriteram[offset] = data;\n\t\t\tupdate_timers(m_screen->vpos());\n\t\t}\n\n\t\t/* if we're about to modify data in the active sprite bank, make sure the video is up-to-date */\n\t\t/* Road Runner needs this to work; note the +2 kludge -- +1 would be correct since the video */\n\t\t/* renders the next scanline's sprites to the line buffers, but Road Runner still glitches */\n\t\t/* without the extra +1 */\n\t\telse\n\t\t\tm_screen->update_partial(m_screen->vpos() + 2);\n\t}\n\n\t/* let the MO handler do the basic work */\n\tspriteram[offset] = data;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 10498048,
+        "end": 10502143,
+        "raw": "map(0xa03000, 0xa03fff).ram().w(m_alpha_tilemap, FUNC(tilemap_device::write16)).share(\"alpha\")",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 420,
+        "sourceColumn": 2,
+        "sourceEndLine": 420,
+        "ram": true,
+        "share": "alpha"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 11534336,
+        "end": 11536383,
+        "raw": "map(0xb00000, 0xb007ff).ram().w(m_palette, FUNC(palette_device::write16)).share(\"palette\")",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 2,
+        "sourceEndLine": 421,
+        "ram": true,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write16",
+      "label": "Handler",
+      "props": {
+        "method": "write16",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 2,
+        "sourceEndLine": 421
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 15728640,
+        "end": 15729663,
+        "raw": "map(0xf00000, 0xf003ff).rw(\"eeprom\", FUNC(eeprom_parallel_28xx_device::read), FUNC(eeprom_parallel_28xx_device::write)).umask16(0x00ff)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 2,
+        "sourceEndLine": 422,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:eeprom_parallel_28xx_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "eeprom_parallel_28xx_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 2,
+        "sourceEndLine": 422
+      }
+    },
+    {
+      "id": "handler:eeprom_parallel_28xx_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "eeprom_parallel_28xx_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 422,
+        "sourceColumn": 2,
+        "sourceEndLine": 422
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range16",
+      "label": "AddressRange",
+      "props": {
+        "start": 15859712,
+        "end": 15859719,
+        "raw": "map(0xf20000, 0xf20007).r(FUNC(atarisy1_state::trakball_r))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 423,
+        "sourceColumn": 2,
+        "sourceEndLine": 423
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.trakball_r",
+      "label": "Handler",
+      "props": {
+        "method": "trakball_r",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 281,
+        "sourceColumn": 1,
+        "sourceEndLine": 319,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "int result = 0xff;\n\n\t/* Marble Madness trackball type -- rotated 45 degrees! */\n\tif (m_trackball_type == 1)\n\t{\n\t\tint player = (offset >> 1) & 1;\n\t\tint which = offset & 1;\n\n\t\t/* when reading the even ports, do a real analog port update */\n\t\tif (which == 0)\n\t\t{\n\t\t\tuint8_t posx,posy;\n\n\t\t\tif (player == 0)\n\t\t\t{\n\t\t\t\tposx = (int8_t)ioport(\"IN0\")->read();\n\t\t\t\tposy = (int8_t)ioport(\"IN1\")->read();\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tposx = (int8_t)ioport(\"IN2\")->read();\n\t\t\t\tposy = (int8_t)ioport(\"IN3\")->read();\n\t\t\t}\n\n\t\t\tm_cur[player][0] = posx + posy;\n\t\t\tm_cur[player][1] = posx - posy;\n\t\t}\n\n\t\tresult = m_cur[player][which];\n\t}\n\n\t/* Road Blasters steering wheel */\n\telse if (m_trackball_type == 2)\n\t\tresult = ioport(\"IN0\")->read();\n\n\treturn result;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range17",
+      "label": "AddressRange",
+      "props": {
+        "start": 15990784,
+        "end": 15990815,
+        "raw": "map(0xf40000, 0xf4001f).rw(FUNC(atarisy1_state::adc_r), FUNC(atarisy1_state::adc_w)).umask16(0x00ff)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 424,
+        "sourceColumn": 2,
+        "sourceEndLine": 424,
+        "umask": 255
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.adc_r",
+      "label": "Handler",
+      "props": {
+        "method": "adc_r",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 248,
+        "sourceColumn": 1,
+        "sourceEndLine": 259,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (!m_adc.found())\n\t\treturn 0xff;\n\n\tconst u8 value = m_adc->data_r();\n\n\tif (!machine().side_effects_disabled())\n\t\tadc_w(offset, 0);\n\n\treturn value;"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.adc_w",
+      "label": "Handler",
+      "props": {
+        "method": "adc_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 262,
+        "sourceColumn": 1,
+        "sourceEndLine": 271,
+        "sourceParameters": "offs_t offset, uint8_t data",
+        "sourceBody": "if (!m_adc.found())\n\t\treturn;\n\n\tm_adc->address_offset_start_w(offset & 7, 0);\n\n\t// the A4 bit enables/disables joystick IRQs\n\tm_ajsint->in_w<0>(!BIT(offset, 3));"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range18",
+      "label": "AddressRange",
+      "props": {
+        "start": 16121856,
+        "end": 16121859,
+        "raw": "map(0xf60000, 0xf60003).portr(\"F60000\")",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 425,
+        "sourceColumn": 2,
+        "sourceEndLine": 425,
+        "portRead": "F60000"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range19",
+      "label": "AddressRange",
+      "props": {
+        "start": 16252929,
+        "end": 16252929,
+        "raw": "map(0xf80001, 0xf80001).w(m_soundlatch, FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 426,
+        "sourceColumn": 2,
+        "sourceEndLine": 426
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 448,
+        "sourceColumn": 2,
+        "sourceEndLine": 448
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range20",
+      "label": "AddressRange",
+      "props": {
+        "start": 16515073,
+        "end": 16515073,
+        "raw": "map(0xfc0001, 0xfc0001).r(m_mainlatch, FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 427,
+        "sourceColumn": 2,
+        "sourceEndLine": 427
+      }
+    },
+    {
+      "id": "handler:generic_latch_8_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "generic_latch_8_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 447,
+        "sourceColumn": 2,
+        "sourceEndLine": 447
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map_noslapstic/range21",
+      "label": "AddressRange",
+      "props": {
+        "start": 16646145,
+        "end": 16646145,
+        "raw": "map(0xfe0001, 0xfe0001).w(m_soundlatch, FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 428,
+        "sourceColumn": 2,
+        "sourceEndLine": 428
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "atarisy1_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 1,
+        "sourceEndLine": 435,
+        "calls": [
+          "main_map_noslapstic"
+        ]
+      }
+    },
+    {
+      "id": "map:atarisy1_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 524288,
+        "end": 532479,
+        "raw": "map(0x080000, 0x081fff).mirror(0x6000).bankr(m_slapstic_bank)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 434,
+        "sourceColumn": 2,
+        "sourceEndLine": 434,
+        "mirror": 24576,
+        "bankRead": "slapstic_bank"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "atarisy1_state",
+        "name": "sound_map",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 443,
+        "sourceColumn": 1,
+        "sourceEndLine": 453
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4095,
+        "raw": "map(0x0000, 0x0fff).mirror(0x2000).ram()",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 445,
+        "sourceColumn": 2,
+        "sourceEndLine": 445,
+        "mirror": 8192,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 6144,
+        "end": 6145,
+        "raw": "map(0x1800, 0x1801).mirror(0x278e).rw(\"ymsnd\", FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 446,
+        "sourceColumn": 2,
+        "sourceEndLine": 446,
+        "mirror": 10126
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 446,
+        "sourceColumn": 2,
+        "sourceEndLine": 446
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 446,
+        "sourceColumn": 2,
+        "sourceEndLine": 446
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 6160,
+        "end": 6160,
+        "raw": "map(0x1810, 0x1810).mirror(0x278f).r(m_soundlatch, FUNC(generic_latch_8_device::read))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 447,
+        "sourceColumn": 2,
+        "sourceEndLine": 447,
+        "mirror": 10127
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 6160,
+        "end": 6160,
+        "raw": "map(0x1810, 0x1810).mirror(0x278f).w(m_mainlatch, FUNC(generic_latch_8_device::write))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 448,
+        "sourceColumn": 2,
+        "sourceEndLine": 448,
+        "mirror": 10127
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 6176,
+        "end": 6176,
+        "raw": "map(0x1820, 0x1820).mirror(0x278f).r(FUNC(atarisy1_state::switch_6502_r))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 449,
+        "sourceColumn": 2,
+        "sourceEndLine": 449,
+        "mirror": 10127
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.switch_6502_r",
+      "label": "Handler",
+      "props": {
+        "method": "switch_6502_r",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 329,
+        "sourceColumn": 1,
+        "sourceEndLine": 334,
+        "sourceParameters": "",
+        "sourceBody": "int temp = ioport(\"1820\")->read();\n\tif (!(ioport(\"F60000\")->read() & 0x0040)) temp ^= 0x80;\n\treturn temp;"
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 6176,
+        "end": 6183,
+        "raw": "map(0x1820, 0x1827).mirror(0x2788).w(m_outlatch, FUNC(ls259_device::write_d0))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 450,
+        "sourceColumn": 2,
+        "sourceEndLine": 450,
+        "mirror": 10120
+      }
+    },
+    {
+      "id": "handler:ls259_device.write_d0",
+      "label": "Handler",
+      "props": {
+        "method": "write_d0",
+        "ownerClass": "ls259_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 450,
+        "sourceColumn": 2,
+        "sourceEndLine": 450
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 6256,
+        "end": 6271,
+        "raw": "map(0x1870, 0x187f).mirror(0x2780).rw(\"pokey\", FUNC(pokey_device::read), FUNC(pokey_device::write))",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 451,
+        "sourceColumn": 2,
+        "sourceEndLine": 451,
+        "mirror": 10112
+      }
+    },
+    {
+      "id": "handler:pokey_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 451,
+        "sourceColumn": 2,
+        "sourceEndLine": 451
+      }
+    },
+    {
+      "id": "handler:pokey_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "pokey_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 451,
+        "sourceColumn": 2,
+        "sourceEndLine": 451
+      }
+    },
+    {
+      "id": "map:atarisy1_state.sound_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 65535,
+        "raw": "map(0x4000, 0xffff).rom()",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 452,
+        "sourceColumn": 2,
+        "sourceEndLine": 452,
+        "rom": true
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 226,
+        "sourceColumn": 1,
+        "sourceEndLine": 232,
+        "sourceParameters": "",
+        "sourceBody": "bankselect_w(0);\n\n\tif (m_adc.found())\n\t\tm_ajsint->in_w<0>(0);"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.video_start",
+      "label": "Handler",
+      "props": {
+        "method": "video_start",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 146,
+        "sourceColumn": 1,
+        "sourceEndLine": 179,
+        "sourceParameters": "",
+        "sourceBody": "// first decode the graphics\n\tuint16_t motable[256];\n\tdecode_gfx(m_playfield_lookup, motable);\n\n\t// modify the motion object code lookup\n\tstd::vector<uint32_t> &codelookup = m_mob->code_lookup();\n\tfor (unsigned int i = 0; i < codelookup.size(); i++)\n\t\tcodelookup[i] = (i & 0xff) | ((motable[i >> 8] & 0xff) << 8);\n\n\t// modify the motion object color and gfx lookups\n\tstd::vector<uint8_t> &colorlookup = m_mob->color_lookup();\n\tstd::vector<uint8_t> &gfxlookup = m_mob->gfx_lookup();\n\tfor (unsigned int i = 0; i < colorlookup.size(); i++)\n\t{\n\t\tcolorlookup[i] = ((motable[i] >> 12) & 15) << 1;\n\t\tgfxlookup[i] = (motable[i] >> 8) & 15;\n\t}\n\n\t// reset the statics\n\tm_mob->set_yscroll(256);\n\tm_next_timer_scanline = -1;\n\tm_scanline_int_state = false;\n\tm_bankselect = 0xff;\n\tm_playfield_tile_bank = 0;\n\n\t// save state\n\tsave_item(NAME(m_playfield_tile_bank));\n\tsave_item(NAME(m_playfield_priority_pens));\n\tsave_item(NAME(m_next_timer_scanline));\n\tsave_item(NAME(m_scanline_int_state));\n\tsave_item(NAME(m_bankselect));"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.decode_gfx",
+      "label": "Handler",
+      "props": {
+        "method": "decode_gfx",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 528,
+        "sourceColumn": 1,
+        "sourceEndLine": 579,
+        "sourceConstants": [
+          "PROM1_OFFSET_MASK=15",
+          "PROM2_PLANE_5_ENABLE=32",
+          "PROM2_PLANE_4_ENABLE=16",
+          "PROM2_PF_COLOR_MASK=15",
+          "PROM2_MO_COLOR_MASK=7"
+        ],
+        "sourceParameters": "uint16_t *pflookup, uint16_t *molookup",
+        "sourceBody": "uint8_t const *prom1 = &memregion(\"proms\")->as_u8(0x000);\n\tuint8_t const *prom2 = &memregion(\"proms\")->as_u8(0x200);\n\n\t/* reset the globals */\n\tmemset(&m_bank_gfx[0][0], 0, sizeof(m_bank_gfx));\n\n\t/* loop for two sets of objects */\n\tfor (int obj = 0; obj < 2; obj++)\n\t{\n\t\t/* loop for 256 objects in the set */\n\t\tfor (int i = 0; i < 256; i++, prom1++, prom2++)\n\t\t{\n\t\t\tint bank, bpp, color, offset;\n\n\t\t\t/* determine the bpp */\n\t\t\tbpp = 4;\n\t\t\tif (*prom2 & PROM2_PLANE_4_ENABLE)\n\t\t\t{\n\t\t\t\tbpp = 5;\n\t\t\t\tif (*prom2 & PROM2_PLANE_5_ENABLE)\n\t\t\t\t\tbpp = 6;\n\t\t\t}\n\n\t\t\t/* determine the offset */\n\t\t\toffset = *prom1 & PROM1_OFFSET_MASK;\n\n\t\t\t/* determine the bank */\n\t\t\tbank = get_bank(*prom1, *prom2, bpp);\n\n\t\t\t/* set the value */\n\t\t\tif (obj == 0)\n\t\t\t{\n\t\t\t\t/* playfield case */\n\t\t\t\tcolor = (~*prom2 & PROM2_PF_COLOR_MASK) >> (bpp - 4);\n\t\t\t\tif (bank == 0)\n\t\t\t\t{\n\t\t\t\t\tbank = 1;\n\t\t\t\t\toffset = color = 0;\n\t\t\t\t}\n\t\t\t\tpflookup[i] = offset | (bank << 8) | (color << 12);\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t/* motion objects (high bit ignored) */\n\t\t\t\tcolor = (~*prom2 & PROM2_MO_COLOR_MASK) >> (bpp - 4);\n\t\t\t\tmolookup[i] = offset | (bank << 8) | (color << 12);\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.get_bank",
+      "label": "Handler",
+      "props": {
+        "method": "get_bank",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 589,
+        "sourceColumn": 1,
+        "sourceEndLine": 655,
+        "sourceConstants": [
+          "MAX_GFX_ELEMENTS=32",
+          "PROM1_BANK_4=128",
+          "PROM1_BANK_3=64",
+          "PROM1_BANK_2=32",
+          "PROM1_BANK_1=16",
+          "PROM2_BANK_6_OR_7=128",
+          "PROM2_BANK_5=64",
+          "PROM2_BANK_7=8"
+        ],
+        "sourceParameters": "uint8_t prom1, uint8_t prom2, int bpp",
+        "sourceBody": "int bank_index, gfx_index;\n\n\t/* determine the bank index */\n\tif ((prom1 & PROM1_BANK_1) == 0)\n\t\tbank_index = 1;\n\telse if ((prom1 & PROM1_BANK_2) == 0)\n\t\tbank_index = 2;\n\telse if ((prom1 & PROM1_BANK_3) == 0)\n\t\tbank_index = 3;\n\telse if ((prom1 & PROM1_BANK_4) == 0)\n\t\tbank_index = 4;\n\telse if ((prom2 & PROM2_BANK_5) == 0)\n\t\tbank_index = 5;\n\telse if ((prom2 & PROM2_BANK_6_OR_7) == 0)\n\t{\n\t\tif ((prom2 & PROM2_BANK_7) == 0)\n\t\t\tbank_index = 7;\n\t\telse\n\t\t\tbank_index = 6;\n\t}\n\telse\n\t\treturn 0;\n\n\t/* find the bank */\n\tif (m_bank_gfx[bpp - 4][bank_index])\n\t\treturn m_bank_gfx[bpp - 4][bank_index];\n\n\t/* if the bank is out of range, call it 0 */\n\tmemory_region *tiles = memregion(\"tiles\");\n\tif (0x80000 * (bank_index - 1) >= tiles->bytes())\n\t\treturn 0;\n\n\t/* don't have one? let's make it ... first find any empty slot */\n\tfor (gfx_index = 0; gfx_index < MAX_GFX_ELEMENTS; gfx_index++)\n\t\tif (m_gfxdecode->gfx(gfx_index) == nullptr)\n\t\t\tbreak;\n\tassert(gfx_index != MAX_GFX_ELEMENTS);\n\n\t/* decode the graphics */\n\tconst uint8_t *srcdata = &tiles->as_u8(0x80000 * (bank_index - 1));\n\tswitch (bpp)\n\t{\n\tcase 4:\n\t\tm_gfxdecode->set_gfx(gfx_index,std::make_unique<gfx_element>(m_palette, objlayout_4bpp, srcdata, 0, 0x40, 256));\n\t\tbreak;\n\n\tcase 5:\n\t\tm_gfxdecode->set_gfx(gfx_index,std::make_unique<gfx_element>(m_palette, objlayout_5bpp, srcdata, 0, 0x40, 256));\n\t\tbreak;\n\n\tcase 6:\n\t\tm_gfxdecode->set_gfx(gfx_index,std::make_unique<gfx_element>(m_palette, objlayout_6bpp, srcdata, 0, 0x40, 256));\n\t\tbreak;\n\n\tdefault:\n\t\tfatalerror(\"Unsupported bpp\\n\");\n\t}\n\n\t/* set the color information */\n\tm_gfxdecode->gfx(gfx_index)->set_granularity(8);\n\tm_bank_color_shift[gfx_index] = bpp - 3;\n\n\t/* set the entry and return it */\n\treturn m_bank_gfx[bpp - 4][bank_index] = gfx_index;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.code_lookup",
+      "label": "Handler",
+      "props": {
+        "method": "code_lookup",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.h",
+        "sourceLine": 98,
+        "sourceColumn": 1,
+        "sourceEndLine": 98,
+        "sourceParameters": "",
+        "sourceBody": "return m_codelookup;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.color_lookup",
+      "label": "Handler",
+      "props": {
+        "method": "color_lookup",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.h",
+        "sourceLine": 99,
+        "sourceColumn": 1,
+        "sourceEndLine": 99,
+        "sourceParameters": "",
+        "sourceBody": "return m_colorlookup;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.gfx_lookup",
+      "label": "Handler",
+      "props": {
+        "method": "gfx_lookup",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.h",
+        "sourceLine": 100,
+        "sourceColumn": 1,
+        "sourceEndLine": 100,
+        "sourceParameters": "",
+        "sourceBody": "return m_gfxlookup;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.set_yscroll",
+      "label": "Handler",
+      "props": {
+        "method": "set_yscroll",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.h",
+        "sourceLine": 105,
+        "sourceColumn": 1,
+        "sourceEndLine": 105,
+        "sourceParameters": "int yscroll",
+        "sourceBody": "m_yscroll = yscroll & m_bitmapymask;"
+      }
+    },
+    {
+      "id": "machine:atarisy1_state.atarisy1",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "atarisy1_state",
+        "name": "atarisy1",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_joystick_type\",\"bits\":8}",
+          "{\"name\":\"m_trackball_type\",\"bits\":8}",
+          "{\"name\":\"m_playfield_lookup\",\"bits\":16,\"arrayLength\":256}",
+          "{\"name\":\"m_playfield_tile_bank\",\"bits\":8}",
+          "{\"name\":\"m_playfield_priority_pens\",\"bits\":16}",
+          "{\"name\":\"m_next_timer_scanline\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_scanline_int_state\",\"bits\":1}",
+          "{\"name\":\"m_bank_color_shift\",\"bits\":8}",
+          "{\"name\":\"m_bankselect\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "atarisy1_state.machine_reset"
+        ],
+        "startHandlers": [
+          "atarisy1_state.video_start"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 769,
+        "sourceColumn": 1,
+        "sourceEndLine": 831
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "M68010",
+        "tag": "maincpu",
+        "clock": 7159090.5,
+        "config": [
+          "M68010(config, m_maincpu, 14.318181_MHz_XTAL/2)",
+          "m_maincpu->set_addrmap(AS_PROGRAM, &atarisy1_state::main_map)"
+        ],
+        "member": "m_maincpu",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 772,
+        "sourceColumn": 2,
+        "sourceEndLine": 772
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/audiocpu",
+      "label": "Device",
+      "props": {
+        "type": "M6502",
+        "tag": "audiocpu",
+        "clock": 1789772.625,
+        "config": [
+          "M6502(config, m_audiocpu, 14.318181_MHz_XTAL/8)",
+          "m_audiocpu->set_addrmap(AS_PROGRAM, &atarisy1_state::sound_map)"
+        ],
+        "member": "m_audiocpu",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 2,
+        "sourceEndLine": 775
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/eeprom",
+      "label": "Device",
+      "props": {
+        "type": "EEPROM_2804",
+        "tag": "eeprom",
+        "clock": null,
+        "config": [
+          "EEPROM_2804(config, \"eeprom\").lock_after_write(true)"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 778,
+        "sourceColumn": 2,
+        "sourceEndLine": 778
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/outlatch",
+      "label": "Device",
+      "props": {
+        "type": "LS259",
+        "tag": "outlatch",
+        "clock": null,
+        "config": [
+          "LS259(config, m_outlatch)",
+          "m_outlatch->q_out_cb<0>().set(\"ymsnd\", FUNC(ym2151_device::reset_w))",
+          "m_outlatch->q_out_cb<4>().set_output(\"led0\").invert()",
+          "m_outlatch->q_out_cb<5>().set_output(\"led1\").invert()",
+          "m_outlatch->q_out_cb<6>().set(FUNC(atarisy1_state::coin_counter_right_w))",
+          "m_outlatch->q_out_cb<7>().set(FUNC(atarisy1_state::coin_counter_left_w))"
+        ],
+        "member": "m_outlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 780,
+        "sourceColumn": 2,
+        "sourceEndLine": 780
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<0>().set(\"ymsnd\", FUNC(ym2151_device::reset_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 781,
+        "sourceColumn": 2,
+        "sourceEndLine": 781,
+        "slot": "0",
+        "targetTag": "ymsnd",
+        "targetClass": "ym2151_device",
+        "targetMethod": "reset_w"
+      }
+    },
+    {
+      "id": "handler:ym2151_device.reset_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset_w",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 781,
+        "sourceColumn": 2,
+        "sourceEndLine": 781
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<6>().set(FUNC(atarisy1_state::coin_counter_right_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 784,
+        "sourceColumn": 2,
+        "sourceEndLine": 784,
+        "slot": "6",
+        "targetClass": "atarisy1_state",
+        "targetMethod": "coin_counter_right_w"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.coin_counter_right_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_right_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 386,
+        "sourceColumn": 1,
+        "sourceEndLine": 389,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(0, state);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:2",
+      "label": "Callback",
+      "props": {
+        "signal": "q_out_cb",
+        "operation": "set",
+        "raw": "m_outlatch->q_out_cb<7>().set(FUNC(atarisy1_state::coin_counter_left_w))",
+        "ownerTag": "outlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 785,
+        "sourceColumn": 2,
+        "sourceEndLine": 785,
+        "slot": "7",
+        "targetClass": "atarisy1_state",
+        "targetMethod": "coin_counter_left_w"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.coin_counter_left_w",
+      "label": "Handler",
+      "props": {
+        "method": "coin_counter_left_w",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 392,
+        "sourceColumn": 1,
+        "sourceEndLine": 395,
+        "sourceParameters": "int state",
+        "sourceBody": "machine().bookkeeping().coin_counter_w(1, state);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\").set_vblank_count(m_screen, 8)"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 2,
+        "sourceEndLine": 787
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/scan_timer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "scan_timer",
+        "clock": null,
+        "config": [
+          "TIMER(config, m_scanline_timer).configure_generic(FUNC(atarisy1_state::int3_callback))"
+        ],
+        "member": "m_scanline_timer",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 789,
+        "sourceColumn": 2,
+        "sourceEndLine": 789
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/scan_timer/callback:scan_timer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_generic",
+        "operation": "configure_generic",
+        "raw": "TIMER(config, m_scanline_timer).configure_generic(FUNC(atarisy1_state::int3_callback))",
+        "ownerTag": "scan_timer",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 789,
+        "sourceColumn": 2,
+        "sourceEndLine": 789,
+        "targetClass": "atarisy1_state",
+        "targetMethod": "int3_callback"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.int3_callback",
+      "label": "Handler",
+      "props": {
+        "method": "int3_callback",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 370,
+        "sourceColumn": 1,
+        "sourceEndLine": 384,
+        "sourceParameters": "int param",
+        "sourceBody": "int const scanline = param;\n\n\t// update the state\n\tm_scanline_int_state = true;\n\tm_maincpu->set_input_line(M68K_IRQ_3, ASSERT_LINE);\n\n\t// set a timer to turn it off\n\tm_int3off_timer->adjust(m_screen->scan_period());\n\n\t// determine the time of the next one\n\tm_next_timer_scanline = -1;\n\tupdate_timers(scanline);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/int3off_timer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "int3off_timer",
+        "clock": null,
+        "config": [
+          "TIMER(config, m_int3off_timer).configure_generic(FUNC(atarisy1_state::int3off_callback))"
+        ],
+        "member": "m_int3off_timer",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 790,
+        "sourceColumn": 2,
+        "sourceEndLine": 790
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/int3off_timer/callback:int3off_timer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_generic",
+        "operation": "configure_generic",
+        "raw": "TIMER(config, m_int3off_timer).configure_generic(FUNC(atarisy1_state::int3off_callback))",
+        "ownerTag": "int3off_timer",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 790,
+        "sourceColumn": 2,
+        "sourceEndLine": 790,
+        "targetClass": "atarisy1_state",
+        "targetMethod": "int3off_callback"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.int3off_callback",
+      "label": "Handler",
+      "props": {
+        "method": "int3off_callback",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 362,
+        "sourceColumn": 1,
+        "sourceEndLine": 367,
+        "sourceParameters": "int param",
+        "sourceBody": "// clear the state\n\tm_scanline_int_state = false;\n\tm_maincpu->set_input_line(M68K_IRQ_3, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/yreset_timer",
+      "label": "Device",
+      "props": {
+        "type": "TIMER",
+        "tag": "yreset_timer",
+        "clock": null,
+        "config": [
+          "TIMER(config, m_yscroll_reset_timer).configure_generic(FUNC(atarisy1_state::reset_yscroll_callback))"
+        ],
+        "member": "m_yscroll_reset_timer",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 791,
+        "sourceColumn": 2,
+        "sourceEndLine": 791
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/yreset_timer/callback:yreset_timer:0",
+      "label": "Callback",
+      "props": {
+        "signal": "configure_generic",
+        "operation": "configure_generic",
+        "raw": "TIMER(config, m_yscroll_reset_timer).configure_generic(FUNC(atarisy1_state::reset_yscroll_callback))",
+        "ownerTag": "yreset_timer",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 791,
+        "sourceColumn": 2,
+        "sourceEndLine": 791,
+        "targetClass": "atarisy1_state",
+        "targetMethod": "reset_yscroll_callback"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.reset_yscroll_callback",
+      "label": "Handler",
+      "props": {
+        "method": "reset_yscroll_callback",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 283,
+        "sourceColumn": 1,
+        "sourceEndLine": 286,
+        "sourceParameters": "int param",
+        "sourceBody": "m_playfield_tilemap->set_scrolly(0, param);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/gfxdecode",
+      "label": "Device",
+      "props": {
+        "type": "GFXDECODE",
+        "tag": "gfxdecode",
+        "clock": null,
+        "config": [
+          "GFXDECODE(config, m_gfxdecode, m_palette, gfx_atarisy1)"
+        ],
+        "member": "m_gfxdecode",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 794,
+        "sourceColumn": 2,
+        "sourceEndLine": 794,
+        "clockExpr": "m_palette"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::IRGB_4444, 1024)"
+        ],
+        "member": "m_palette",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 796,
+        "sourceColumn": 2,
+        "sourceEndLine": 796,
+        "paletteEntries": 1024
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/playfield",
+      "label": "Device",
+      "props": {
+        "type": "TILEMAP",
+        "tag": "playfield",
+        "clock": null,
+        "config": [
+          "TILEMAP(config, m_playfield_tilemap, m_gfxdecode, 2, 8,8, TILEMAP_SCAN_ROWS, 64,64).set_info_callback(FUNC(atarisy1_state::get_playfield_tile_info))"
+        ],
+        "member": "m_playfield_tilemap",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798,
+        "clockExpr": "m_gfxdecode"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/playfield/callback:playfield:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_info_callback",
+        "delegate": 1,
+        "operation": "set_info_callback",
+        "raw": "TILEMAP(config, m_playfield_tilemap, m_gfxdecode, 2, 8,8, TILEMAP_SCAN_ROWS, 64,64).set_info_callback(FUNC(atarisy1_state::get_playfield_tile_info))",
+        "ownerTag": "playfield",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 798,
+        "sourceColumn": 2,
+        "sourceEndLine": 798,
+        "targetClass": "atarisy1_state",
+        "targetMethod": "get_playfield_tile_info"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.get_playfield_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_playfield_tile_info",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 95,
+        "sourceColumn": 1,
+        "sourceEndLine": 103,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint16_t const data = m_playfield_tilemap->basemem_read(tile_index);\n\tuint16_t const lookup = m_playfield_lookup[((data >> 8) & 0x7f) | (m_playfield_tile_bank << 7)];\n\tint const gfxindex = (lookup >> 8) & 15;\n\tint const code = ((lookup & 0xff) << 8) | (data & 0xff);\n\tint const color = 0x20 + (((lookup >> 12) & 15) << m_bank_color_shift[gfxindex]);\n\ttileinfo.set(gfxindex, code, color, (data >> 15) & 1);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/alpha",
+      "label": "Device",
+      "props": {
+        "type": "TILEMAP",
+        "tag": "alpha",
+        "clock": null,
+        "config": [
+          "TILEMAP(config, m_alpha_tilemap, m_gfxdecode, 2, 8,8, TILEMAP_SCAN_ROWS, 64,32, 0).set_info_callback(FUNC(atarisy1_state::get_alpha_tile_info))"
+        ],
+        "member": "m_alpha_tilemap",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 799,
+        "sourceColumn": 2,
+        "sourceEndLine": 799,
+        "clockExpr": "m_gfxdecode"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/alpha/callback:alpha:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_info_callback",
+        "delegate": 1,
+        "operation": "set_info_callback",
+        "raw": "TILEMAP(config, m_alpha_tilemap, m_gfxdecode, 2, 8,8, TILEMAP_SCAN_ROWS, 64,32, 0).set_info_callback(FUNC(atarisy1_state::get_alpha_tile_info))",
+        "ownerTag": "alpha",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 799,
+        "sourceColumn": 2,
+        "sourceEndLine": 799,
+        "targetClass": "atarisy1_state",
+        "targetMethod": "get_alpha_tile_info"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.get_alpha_tile_info",
+      "label": "Handler",
+      "props": {
+        "method": "get_alpha_tile_info",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 85,
+        "sourceColumn": 1,
+        "sourceEndLine": 92,
+        "sourceParameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+        "sourceBody": "uint16_t const data = m_alpha_tilemap->basemem_read(tile_index);\n\tint const code = data & 0x3ff;\n\tint const color = (data >> 10) & 0x07;\n\tint const opaque = data & 0x2000;\n\ttileinfo.set(0, code, color, opaque ? TILE_FORCE_LAYER0 : 0);"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/mob",
+      "label": "Device",
+      "props": {
+        "type": "ATARI_MOTION_OBJECTS",
+        "tag": "mob",
+        "clock": null,
+        "config": [
+          "ATARI_MOTION_OBJECTS(config, m_mob, m_screen, atarisy1_state::s_mob_config)",
+          "m_mob->set_gfxdecode(m_gfxdecode)"
+        ],
+        "member": "m_mob",
+        "cls": "atari_motion_objects_device",
+        "clsHierarchy": [
+          "atari_motion_objects_device",
+          "atari_motion_objects_config"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 801,
+        "sourceColumn": 2,
+        "sourceEndLine": 801,
+        "configCalls": [
+          "set_gfxdecode(\"gfxdecode\")"
+        ],
+        "clockExpr": "m_screen",
+        "startHandler": "atari_motion_objects_device.device_start",
+        "deviceTimers": [
+          "m_force_update_timer=atari_motion_objects_device.force_update"
+        ]
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "SCREEN(config, m_screen, SCREEN_TYPE_RASTER)",
+          "m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK)",
+          "m_screen->set_raw(14.318181_MHz_XTAL/2, 456, 0, 336, 262, 0, 240)",
+          "m_screen->set_screen_update(FUNC(atarisy1_state::screen_update))",
+          "m_screen->set_palette(m_palette)",
+          "m_screen->screen_vblank().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE)"
+        ],
+        "member": "m_screen",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 804,
+        "sourceColumn": 2,
+        "sourceEndLine": 804,
+        "configCalls": [
+          "set_raw(7159090.5,456,0,336,262,0,240)",
+          "set_palette(\"palette\")"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          7159090.5,
+          456,
+          0,
+          336,
+          262,
+          0,
+          240
+        ],
+        "screenRawExpr": [
+          "14.318181_MHz_XTAL/2",
+          "456",
+          "0",
+          "336",
+          "262",
+          "0",
+          "240"
+        ],
+        "screenVideoAttributes": [
+          "VIDEO_UPDATE_BEFORE_VBLANK"
+        ]
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "m_screen->set_screen_update(FUNC(atarisy1_state::screen_update))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 809,
+        "sourceColumn": 2,
+        "sourceEndLine": 809,
+        "targetClass": "atarisy1_state",
+        "targetMethod": "screen_update"
+      }
+    },
+    {
+      "id": "handler:atarisy1_state.screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "screen_update",
+        "ownerClass": "atarisy1_state",
+        "sourceFile": "src/mame/atari/atarisy1_v.cpp",
+        "sourceLine": 476,
+        "sourceColumn": 1,
+        "sourceEndLine": 518,
+        "sourceConstants": [
+          "PRIORITY_MASK=61440",
+          "atari_motion_objects_device::PRIORITY_MASK=61440"
+        ],
+        "sourceParameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// start drawing\n\tm_mob->draw_async(cliprect);\n\n\t// draw the playfield\n\tm_playfield_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\n\t// draw and merge the MO\n\tbitmap_ind16 &mobitmap = m_mob->bitmap();\n\tm_mob->iterate_dirty_rects(\n\t\t\tcliprect,\n\t\t\t[this, &bitmap, &mobitmap] (rectangle const &rect)\n\t\t\t{\n\t\t\t\tfor (int y = rect.top(); y <= rect.bottom(); y++)\n\t\t\t\t{\n\t\t\t\t\tuint16_t const *const mo = &mobitmap.pix(y);\n\t\t\t\t\tuint16_t *const pf = &bitmap.pix(y);\n\t\t\t\t\tfor (int x = rect.left(); x <= rect.right(); x++)\n\t\t\t\t\t{\n\t\t\t\t\t\tif (mo[x] != 0xffff)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tif (mo[x] & atari_motion_objects_device::PRIORITY_MASK)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t// high priority MO - only gets priority if MO pen is not 1\n\t\t\t\t\t\t\t\tif ((mo[x] & 0x0f) != 1)\n\t\t\t\t\t\t\t\t\tpf[x] = 0x300 + ((pf[x] & 0x0f) << 4) + (mo[x] & 0x0f);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\telse\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t// low priority - priority pens for playfield color 0\n\t\t\t\t\t\t\t\tif ((pf[x] & 0xf8) != 0 || !(m_playfield_priority_pens & (1 << (pf[x] & 0x07))))\n\t\t\t\t\t\t\t\t\tpf[x] = mo[x];\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t});\n\n\t// add the alpha on top\n\tm_alpha_tilemap->draw(screen, bitmap, cliprect, 0, 0);\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.draw",
+      "label": "Handler",
+      "props": {
+        "method": "draw",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 163,
+        "sourceColumn": 1,
+        "sourceEndLine": 230,
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+        "sourceBody": "// compute start/stop bands\n\tint startband = ((cliprect.top() + m_yscroll - m_slipoffset) & m_bitmapymask) >> m_slipshift;\n\tint stopband = ((cliprect.bottom() + m_yscroll - m_slipoffset) & m_bitmapymask) >> m_slipshift;\n\tif (startband > stopband)\n\t\tstartband -= m_bitmapheight >> m_slipshift;\n\tif (m_slipshift == 0)\n\t\tstopband = startband;\n\n\t// loop over SLIP bands\n\tfor (int band = startband; band <= stopband; band++)\n\t{\n\t\t// compute the starting link and clip for the current band\n\t\trectangle bandclip = cliprect;\n\t\tint link = 0;\n\t\tif (m_slipshift != 0)\n\t\t{\n\t\t\t// extract the link from the SLIP RAM\n\t\t\tlink = (m_slipram[band & m_sliprammask] >> m_linkmask.shift()) & m_linkmask.mask();\n\n\t\t\t// compute minimum Y and wrap around if necessary\n\t\t\tbandclip.min_y = ((band << m_slipshift) - m_yscroll + m_slipoffset) & m_bitmapymask;\n\t\t\tif (bandclip.min_y >= bitmap.height())\n\t\t\t\tbandclip.min_y -= m_bitmapheight;\n\n\t\t\t// maximum Y is based on the minimum\n\t\t\tbandclip.set_height(1 << m_slipshift);\n\n\t\t\t// keep within the cliprect\n\t\t\tbandclip &= cliprect;\n\t\t}\n\n\t\t// if this matches the last link, we don't need to re-process the list\n\t\tbuild_active_list(link);\n\n\t\t// initialize the parameters\n\t\tm_next_xpos = 123456;\n\n\t\t// safety check\n\t\tif (m_activelist == m_activelast)\n\t\t\tcontinue;\n\n\t\t// set the start and end points\n\t\tuint16_t *first, *last;\n\t\tint step;\n\t\tif (m_reverse)\n\t\t{\n\t\t\tfirst = m_activelast - 4;\n\t\t\tlast = m_activelist;\n\t\t\tstep = -4;\n\t\t}\n\t\telse\n\t\t{\n\t\t\tfirst = m_activelist;\n\t\t\tlast = m_activelast - 4;\n\t\t\tstep = 4;\n\t\t}\n\n\t\t// render the mos\n\t\tfor (uint16_t *current = first; ; current += step)\n\t\t{\n\t\t\trender_object(bitmap, bandclip, current);\n\t\t\tif (current == last)\n\t\t\t\tbreak;\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.build_active_list",
+      "label": "Handler",
+      "props": {
+        "method": "build_active_list",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 374,
+        "sourceColumn": 1,
+        "sourceEndLine": 412,
+        "sourceConstants": [
+          "MAX_PER_BANK=1024"
+        ],
+        "sourceParameters": "int link",
+        "sourceBody": "uint16_t const *bankbase = &spriteram()[m_bank << (m_entrybits + 2)];\n\tuint16_t *current = &m_activelist[0];\n\n\t// visit all the motion objects and copy their data into the display list\n\tuint8_t visited[MAX_PER_BANK] = {0};\n\tfor (int i = 0; i < m_maxperline && !visited[link]; i++)\n\t{\n\t\t// copy the current entry into the list\n\t\tuint16_t *modata = current;\n\t\tif (!m_split)\n\t\t{\n\t\t\tuint16_t const *srcdata = &bankbase[link * 4];\n\t\t\t*current++ = srcdata[0];\n\t\t\t*current++ = srcdata[1];\n\t\t\t*current++ = srcdata[2];\n\t\t\t*current++ = srcdata[3];\n\t\t}\n\t\telse\n\t\t{\n\t\t\tuint16_t const *srcdata = &bankbase[link];\n\t\t\t*current++ = srcdata[uint32_t(0 << m_entrybits)];\n\t\t\t*current++ = srcdata[uint32_t(1 << m_entrybits)];\n\t\t\t*current++ = srcdata[uint32_t(2 << m_entrybits)];\n\t\t\t*current++ = srcdata[uint32_t(3 << m_entrybits)];\n\t\t}\n\n\t\t// link to the next object\n\t\tvisited[link] = 1;\n\t\tif (m_linked)\n\t\t\tlink = m_linkmask.extract(modata);\n\t\telse\n\t\t\tlink = (link + 1) & m_linkmask.mask();\n\t}\n\n\t// note the last entry\n\tm_activelast = current;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.render_object",
+      "label": "Handler",
+      "props": {
+        "method": "render_object",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 421,
+        "sourceColumn": 1,
+        "sourceEndLine": 552,
+        "sourceConstants": [
+          "PRIORITY_SHIFT=12"
+        ],
+        "sourceParameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, const uint16_t *entry",
+        "sourceBody": "// select the gfx element and save off key information\n\tint const rawcode = m_codemask.extract(entry);\n\tgfx_element *gfx = m_gfxdecode->gfx(m_gfxlookup[rawcode >> 8]);\n\n\t// extract data from the various words\n\tint code = m_codelookup[rawcode];\n\tint color = m_colorlookup[m_colormask.extract(entry)];\n\tint xpos = m_xposmask.extract(entry) + m_xoffset;\n\tint ypos = -m_yposmask.extract(entry);\n\tint const hflip = m_hflipmask.extract(entry);\n\tint const vflip = m_vflipmask.extract(entry);\n\tint const width = m_widthmask.extract(entry) + 1;\n\tint const height = m_heightmask.extract(entry) + 1;\n\tint const priority = m_prioritymask.extract(entry);\n\n\t// compute the effective color, merging in priority\n\tcolor = (color * gfx->granularity()) | (priority << PRIORITY_SHIFT);\n\tcolor += m_palettebase;\n\n\t// add in the scroll positions if we're not in absolute coordinates\n\tif (!m_absolutemask.extract(entry))\n\t{\n\t\txpos -= m_xscroll;\n\t\typos -= m_yscroll;\n\t}\n\n\t// adjust for height\n\typos -= height << m_tileyshift;\n\n\t// handle previous hold bits\n\tif (m_next_xpos != 123456)\n\t\txpos = m_next_xpos;\n\tm_next_xpos = 123456;\n\n\t// check for the hold bit\n\tif (m_neighbormask.extract(entry) != 0)\n\t{\n\t\tif (!m_nextneighbor)\n\t\t\txpos = m_last_xpos + m_tilewidth;\n\t\telse\n\t\t\tm_next_xpos = xpos + m_tilewidth;\n\t}\n\tm_last_xpos = xpos;\n\n\t// adjust the final coordinates\n\txpos &= m_bitmapxmask;\n\typos &= m_bitmapymask;\n\tif (xpos >= bitmap.width())\n\t\txpos -= m_bitmapwidth;\n\tif (ypos >= bitmap.height())\n\t\typos -= m_bitmapheight;\n\n\t// is this one special?\n\tif (m_specialmask.mask() == 0 || m_specialmask.extract(entry) != m_specialvalue)\n\t{\n\t\t// adjust for h flip\n\t\tint xadv = m_tilewidth;\n\t\tif (hflip)\n\t\t{\n\t\t\txpos += (width - 1) << m_tilexshift;\n\t\t\txadv = -xadv;\n\t\t}\n\n\t\t// adjust for v flip\n\t\tint yadv = m_tileheight;\n\t\tif (vflip)\n\t\t{\n\t\t\typos += (height - 1) << m_tileyshift;\n\t\t\tyadv = -yadv;\n\t\t}\n\n\t\t// standard order is: loop over Y first, then X\n\t\tif (!m_swapxy)\n\t\t{\n\t\t\t// loop over the height\n\t\t\tfor (int y = 0, sy = ypos; y < height; y++, sy += yadv)\n\t\t\t{\n\t\t\t\t// clip the Y coordinate\n\t\t\t\tif (sy <= cliprect.top() - m_tileheight)\n\t\t\t\t{\n\t\t\t\t\tcode += width;\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\telse if (sy > cliprect.bottom())\n\t\t\t\t\tbreak;\n\n\t\t\t\t// loop over the width\n\t\t\t\tfor (int x = 0, sx = xpos; x < width; x++, sx += xadv, code++)\n\t\t\t\t{\n\t\t\t\t\t// clip the X coordinate\n\t\t\t\t\tif (sx <= -cliprect.left() - m_tilewidth || sx > cliprect.right())\n\t\t\t\t\t\tcontinue;\n\n\t\t\t\t\t// draw the sprite\n\t\t\t\t\tgfx->transpen_raw(bitmap, cliprect, code, color, hflip, vflip, sx, sy, m_transpen);\n\t\t\t\t\tmark_dirty(sx, sx + m_tilewidth - 1, sy, sy + m_tileheight - 1);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\t// alternative order is swapped\n\t\telse\n\t\t{\n\t\t\t// loop over the width\n\t\t\tfor (int x = 0, sx = xpos; x < width; x++, sx += xadv)\n\t\t\t{\n\t\t\t\t// clip the X coordinate\n\t\t\t\tif (sx <= cliprect.left() - m_tilewidth)\n\t\t\t\t{\n\t\t\t\t\tcode += height;\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\telse if (sx > cliprect.right())\n\t\t\t\t\tbreak;\n\n\t\t\t\t// loop over the height\n\t\t\t\tfor (int y = 0, sy = ypos; y < height; y++, sy += yadv, code++)\n\t\t\t\t{\n\t\t\t\t\t// clip the X coordinate\n\t\t\t\t\tif (sy <= -cliprect.top() - m_tileheight || sy > cliprect.bottom())\n\t\t\t\t\t\tcontinue;\n\n\t\t\t\t\t// draw the sprite\n\t\t\t\t\tgfx->transpen_raw(bitmap, cliprect, code, color, hflip, vflip, sx, sy, m_transpen);\n\t\t\t\t\tmark_dirty(sx, sx + m_tilewidth - 1, sy, sy + m_tileheight - 1);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/screen/callback:screen:1",
+      "label": "Callback",
+      "props": {
+        "signal": "screen_vblank",
+        "operation": "set_inputline",
+        "raw": "m_screen->screen_vblank().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE)",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 811,
+        "sourceColumn": 2,
+        "sourceEndLine": 811,
+        "inputLine": "M68K_IRQ_4",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": 2,
+        "config": [
+          "SPEAKER(config, \"speaker\", 2).front()"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 814,
+        "sourceColumn": 2,
+        "sourceEndLine": 814
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/soundlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "soundlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_soundlatch)",
+          "m_soundlatch->data_pending_callback().set_inputline(m_audiocpu, m6502_device::NMI_LINE)",
+          "m_soundlatch->data_pending_callback().append([this](int state) { if (state) machine().scheduler().perfect_quantum(attotime::from_usec(100)); })"
+        ],
+        "member": "m_soundlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 816,
+        "sourceColumn": 2,
+        "sourceEndLine": 816
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/soundlatch/callback:soundlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "m_soundlatch->data_pending_callback().set_inputline(m_audiocpu, m6502_device::NMI_LINE)",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 817,
+        "sourceColumn": 2,
+        "sourceEndLine": 817,
+        "inputLine": "m6502_device::NMI_LINE",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/soundlatch/callback:soundlatch:1",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "perfect_quantum",
+        "raw": "m_soundlatch->data_pending_callback().append([this](int state) { if (state) machine().scheduler().perfect_quantum(attotime::from_usec(100)); })",
+        "ownerTag": "soundlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 818,
+        "sourceColumn": 2,
+        "sourceEndLine": 818,
+        "quantumSeconds": 0.00009999999999999999
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/mainlatch",
+      "label": "Device",
+      "props": {
+        "type": "GENERIC_LATCH_8",
+        "tag": "mainlatch",
+        "clock": null,
+        "config": [
+          "GENERIC_LATCH_8(config, m_mainlatch)",
+          "m_mainlatch->data_pending_callback().set_inputline(m_maincpu, M68K_IRQ_6)"
+        ],
+        "member": "m_mainlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 820,
+        "sourceColumn": 2,
+        "sourceEndLine": 820
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/mainlatch/callback:mainlatch:0",
+      "label": "Callback",
+      "props": {
+        "signal": "data_pending_callback",
+        "operation": "set_inputline",
+        "raw": "m_mainlatch->data_pending_callback().set_inputline(m_maincpu, M68K_IRQ_6)",
+        "ownerTag": "mainlatch",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 821,
+        "sourceColumn": 2,
+        "sourceEndLine": 821,
+        "inputLine": "M68K_IRQ_6",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/ymsnd",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "ymsnd",
+        "clock": 3579545.25,
+        "config": [
+          "ym2151_device &ymsnd(YM2151(config, \"ymsnd\", 14.318181_MHz_XTAL/4))",
+          "ymsnd.irq_handler().set_inputline(m_audiocpu, m6502_device::IRQ_LINE)",
+          "ymsnd.add_route(0, \"speaker\", 0.48, 0)",
+          "ymsnd.add_route(1, \"speaker\", 0.48, 1)"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 823,
+        "sourceColumn": 2,
+        "sourceEndLine": 823,
+        "configCalls": [
+          "add_route(0,\"speaker\",0.48,0)",
+          "add_route(1,\"speaker\",0.48,1)"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:atarisy1_state.atarisy1/ymsnd/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "0",
+        "target": "speaker",
+        "gain": 0.48,
+        "input": 0,
+        "raw": "ymsnd.add_route(0, \"speaker\", 0.48, 0)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 825,
+        "sourceColumn": 2,
+        "sourceEndLine": 825
+      }
+    },
+    {
+      "id": "audioroute:device:atarisy1_state.atarisy1/ymsnd/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "1",
+        "target": "speaker",
+        "gain": 0.48,
+        "input": 1,
+        "raw": "ymsnd.add_route(1, \"speaker\", 0.48, 1)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 826,
+        "sourceColumn": 2,
+        "sourceEndLine": 826
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/ymsnd/callback:ymsnd:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "ymsnd.irq_handler().set_inputline(m_audiocpu, m6502_device::IRQ_LINE)",
+        "ownerTag": "ymsnd",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 824,
+        "sourceColumn": 2,
+        "sourceEndLine": 824,
+        "inputLine": "m6502_device::IRQ_LINE",
+        "targetTag": "audiocpu"
+      }
+    },
+    {
+      "id": "device:atarisy1_state.atarisy1/pokey",
+      "label": "Device",
+      "props": {
+        "type": "POKEY",
+        "tag": "pokey",
+        "clock": 1789772.625,
+        "config": [
+          "pokey_device &pokey(POKEY(config, \"pokey\", 14.318181_MHz_XTAL/8))",
+          "pokey.add_route(ALL_OUTPUTS, \"speaker\", 0.24, 0)",
+          "pokey.add_route(ALL_OUTPUTS, \"speaker\", 0.24, 1)"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 828,
+        "sourceColumn": 2,
+        "sourceEndLine": 828
+      }
+    },
+    {
+      "id": "audioroute:device:atarisy1_state.atarisy1/pokey/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.24,
+        "input": 0,
+        "raw": "pokey.add_route(ALL_OUTPUTS, \"speaker\", 0.24, 0)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 829,
+        "sourceColumn": 2,
+        "sourceEndLine": 829
+      }
+    },
+    {
+      "id": "audioroute:device:atarisy1_state.atarisy1/pokey/1",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 0.24,
+        "input": 1,
+        "raw": "pokey.add_route(ALL_OUTPUTS, \"speaker\", 0.24, 1)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 830,
+        "sourceColumn": 2,
+        "sourceEndLine": 830
+      }
+    },
+    {
+      "id": "machine:atarisy1_state.marble",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "atarisy1_state",
+        "name": "marble",
+        "calls": [
+          "atarisy1"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_joystick_type\",\"bits\":8}",
+          "{\"name\":\"m_trackball_type\",\"bits\":8}",
+          "{\"name\":\"m_playfield_lookup\",\"bits\":16,\"arrayLength\":256}",
+          "{\"name\":\"m_playfield_tile_bank\",\"bits\":8}",
+          "{\"name\":\"m_playfield_priority_pens\",\"bits\":16}",
+          "{\"name\":\"m_next_timer_scanline\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_scanline_int_state\",\"bits\":1}",
+          "{\"name\":\"m_bank_color_shift\",\"bits\":8}",
+          "{\"name\":\"m_bankselect\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "atarisy1_state.machine_reset"
+        ],
+        "startHandlers": [
+          "atarisy1_state.video_start"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 833,
+        "sourceColumn": 1,
+        "sourceEndLine": 839
+      }
+    },
+    {
+      "id": "bank:atarisy1_state.marble/slapstic_bank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "slapstic_bank",
+        "member": "m_slapstic_bank",
+        "startEntry": 0,
+        "entries": 4,
+        "region": "maincpu",
+        "offset": 524288,
+        "stride": 8192,
+        "raw": "m_slapstic_bank->configure_entries(0, 4, memregion(\"maincpu\")->base() + 0x80000, 0x2000)",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 2612,
+        "sourceColumn": 1,
+        "sourceEndLine": 2615
+      }
+    },
+    {
+      "id": "device:atarisy1_state.marble/slapstic",
+      "label": "Device",
+      "props": {
+        "type": "SLAPSTIC",
+        "tag": "slapstic",
+        "clock": 103,
+        "config": [
+          "SLAPSTIC(config, m_slapstic, 103)",
+          "m_slapstic->set_range(m_maincpu, AS_PROGRAM, 0x80000, 0x87fff, 0)",
+          "m_slapstic->set_bank(m_slapstic_bank)"
+        ],
+        "member": "m_slapstic",
+        "cls": "atari_slapstic_device",
+        "clsHierarchy": [
+          "atari_slapstic_device"
+        ],
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 836,
+        "sourceColumn": 2,
+        "sourceEndLine": 836,
+        "configCalls": [
+          "set_range(\"maincpu\",0,524288,557055,0)",
+          "set_bank(\"slapstic_bank\")"
+        ]
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.device_start",
+      "label": "Handler",
+      "props": {
+        "method": "device_start",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 259,
+        "sourceColumn": 1,
+        "sourceEndLine": 336,
+        "sourceConstants": [
+          "MAX_PER_BANK=1024"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "// call parent\n\tsprite16_device_ind16::device_start();\n\n\t// verify configuration\n\tgfx_element *gfx = m_gfxdecode->gfx(m_gfxindex);\n\tif (gfx == nullptr)\n\t\tthrow emu_fatalerror(\"No gfxelement #%d!\", m_gfxindex);\n\n\t// determine the masks\n\tm_linkmask.set(m_link_entry);\n\tm_codemask.set(m_code_entry);\n\tm_colormask.set(m_color_entry);\n\tm_xposmask.set(m_xpos_entry);\n\tm_yposmask.set(m_ypos_entry);\n\tm_widthmask.set(m_width_entry);\n\tm_heightmask.set(m_height_entry);\n\tm_hflipmask.set(m_hflip_entry);\n\tm_vflipmask.set(m_vflip_entry);\n\tm_prioritymask.set(m_priority_entry);\n\tm_neighbormask.set(m_neighbor_entry);\n\tm_absolutemask.set(m_absolute_entry);\n\n\t// derive tile information\n\tm_tilewidth = gfx->width();\n\tm_tileheight = gfx->height();\n\tm_tilexshift = compute_log(m_tilewidth);\n\tm_tileyshift = compute_log(m_tileheight);\n\n\t// derive bitmap information\n\tm_bitmapwidth = round_to_powerof2(m_xposmask.mask());\n\tm_bitmapheight = round_to_powerof2(m_yposmask.mask());\n\tm_bitmapxmask = m_bitmapwidth - 1;\n\tm_bitmapymask = m_bitmapheight - 1;\n\n\t// derive sprite information\n\tm_entrycount = round_to_powerof2(m_linkmask.mask());\n\tm_entrybits = compute_log(m_entrycount);\n\tm_spriteramsize = m_bankcount * m_entrycount;\n\tm_spriterammask = m_spriteramsize - 1;\n\tm_slipshift = (m_slipheight != 0) ? compute_log(m_slipheight) : 0;\n\tm_slipramsize = m_bitmapheight >> m_slipshift;\n\tm_sliprammask = m_slipramsize - 1;\n\tif (m_maxperline == 0)\n\t\tm_maxperline = MAX_PER_BANK;\n\n\t// Get the slipram from the share if not already explicitly set\n\tif (!m_slipram)\n\t\tm_slipram = m_slipramshare;\n\n\t// allocate and initialize the code lookup\n\tint const codesize = round_to_powerof2(m_codemask.mask());\n\tm_codelookup.resize(codesize);\n\tfor (int i = 0; i < codesize; i++)\n\t\tm_codelookup[i] = i;\n\n\t// allocate and initialize the color lookup\n\tint const colorsize = round_to_powerof2(m_colormask.mask());\n\tm_colorlookup.resize(colorsize);\n\tfor (int i = 0; i < colorsize; i++)\n\t\tm_colorlookup[i] = i;\n\n\t// allocate and the gfx lookup\n\tint const gfxsize = codesize / 256;\n\tm_gfxlookup.resize(gfxsize);\n\tfor (int i = 0; i < gfxsize; i++)\n\t\tm_gfxlookup[i] = m_gfxindex;\n\n\t// allocate a timer to periodically force update\n\tm_force_update_timer = timer_alloc(FUNC(atari_motion_objects_device::force_update), this);\n\tm_force_update_timer->adjust(screen().time_until_pos(0));\n\n\t// register for save states\n\tsave_item(NAME(m_bank));\n\tsave_item(NAME(m_xscroll));\n\tsave_item(NAME(m_yscroll));"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.compute_log",
+      "label": "Handler",
+      "props": {
+        "method": "compute_log",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 82,
+        "sourceColumn": 1,
+        "sourceEndLine": 93,
+        "sourceParameters": "int value",
+        "sourceBody": "int log = 0;\n\n\tif (value == 0)\n\t\treturn -1;\n\twhile (!(value & 1))\n\t\tlog++, value >>= 1;\n\tif (value != 1)\n\t\treturn -1;\n\treturn log;"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.round_to_powerof2",
+      "label": "Handler",
+      "props": {
+        "method": "round_to_powerof2",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 103,
+        "sourceColumn": 1,
+        "sourceEndLine": 112,
+        "sourceParameters": "int value",
+        "sourceBody": "int log = 0;\n\n\tif (value == 0)\n\t\treturn 1;\n\twhile ((value >>= 1) != 0)\n\t\tlog++;\n\treturn 1 << (log + 1);"
+      }
+    },
+    {
+      "id": "handler:atari_motion_objects_device.force_update",
+      "label": "Handler",
+      "props": {
+        "method": "force_update",
+        "ownerClass": "atari_motion_objects_device",
+        "sourceFile": "src/mame/atari/atarimo.cpp",
+        "sourceLine": 358,
+        "sourceColumn": 1,
+        "sourceEndLine": 366,
+        "sourceParameters": "int param",
+        "sourceBody": "if (param > 0)\n\t\tscreen().update_partial(param - 1);\n\tparam += 64;\n\tif (param >= screen().visible_area().bottom())\n\t\tparam = 0;\n\tm_force_update_timer->adjust(screen().time_until_pos(param), param);"
+      }
+    },
+    {
+      "id": "inputs:marble",
+      "label": "InputPorts",
+      "props": {
+        "name": "marble",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 8,
+        "sourceEndLine": 468
+      }
+    },
+    {
+      "id": "inputs:marble/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:marble/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(30)",
+          "PORT_KEYDELTA(30)",
+          "PORT_REVERSE",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:marble/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(30)",
+          "PORT_KEYDELTA(30)",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:marble/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_X",
+        "modifiers": [
+          "PORT_SENSITIVITY(30)",
+          "PORT_KEYDELTA(30)",
+          "PORT_REVERSE",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/IN3",
+      "label": "Port",
+      "props": {
+        "tag": "IN3",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:marble/IN3/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 255,
+        "activeLow": false,
+        "type": "IPT_TRACKBALL_Y",
+        "modifiers": [
+          "PORT_SENSITIVITY(30)",
+          "PORT_KEYDELTA(30)",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/F60000",
+      "label": "Port",
+      "props": {
+        "tag": "F60000",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"screen\", FUNC(screen_device::vblank))"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 64,
+        "activeLow": true,
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"soundlatch\", FUNC(generic_latch_8_device::pending_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/F60000/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65280,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 65280
+      }
+    },
+    {
+      "id": "inputs:marble/1820",
+      "label": "Port",
+      "props": {
+        "tag": "1820",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"soundlatch\", FUNC(generic_latch_8_device::pending_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": false,
+        "type": "IPT_CUSTOM",
+        "modifiers": [
+          "PORT_READ_LINE_DEVICE_MEMBER(\"mainlatch\", FUNC(generic_latch_8_device::pending_r))"
+        ],
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 96,
+        "activeLow": false,
+        "type": "IPT_UNUSED",
+        "defaultValue": 0
+      }
+    },
+    {
+      "id": "inputs:marble/1820/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_CUSTOM",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "gfxlayout:anlayout",
+      "label": "GfxLayout",
+      "props": {
+        "name": "anlayout",
+        "width": 8,
+        "height": 8,
+        "total": "RGN_FRAC(1,1)",
+        "planes": 2,
+        "planeOffsets": [
+          0,
+          4
+        ],
+        "xOffsets": [
+          0,
+          1,
+          2,
+          3,
+          8,
+          9,
+          10,
+          11
+        ],
+        "yOffsets": [
+          0,
+          16,
+          32,
+          48,
+          64,
+          80,
+          96,
+          112
+        ],
+        "charIncrement": 128
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_atarisy1",
+      "label": "GfxDecode",
+      "props": {
+        "name": "gfx_atarisy1",
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 725,
+        "sourceColumn": 8,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "id": "gfxdecode:gfx_atarisy1/e0",
+      "label": "GfxDecodeEntry",
+      "props": {
+        "region": "alpha",
+        "offset": 0,
+        "layout": "anlayout",
+        "colorBase": 0,
+        "colorCount": 64,
+        "xscale": 1,
+        "yscale": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:marble",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 2671,
+        "sourceColumn": 1,
+        "sourceEndLine": 2671
+      }
+    },
+    {
+      "from": "game:marble",
+      "to": "game:atarisy1",
+      "rel": "CLONE_OF"
+    },
+    {
+      "from": "game:marble",
+      "to": "machine:atarisy1_state.marble",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:marble",
+      "to": "inputs:marble",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:marble",
+      "to": "romset:marble",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:atarisy1.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:cpu/m68000/m68010.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:cpu/m6502/m6502.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:machine/eeprompar.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:sound/pokey.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:atarimo.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/atari/atarisy1.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "game:atarisy1",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 2669,
+        "sourceColumn": 1,
+        "sourceEndLine": 2669
+      }
+    },
+    {
+      "from": "game:atarisy1",
+      "to": "romset:atarisy1",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "machine:atarisy1_state.marble",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 833,
+        "sourceColumn": 1,
+        "sourceEndLine": 839
+      }
+    },
+    {
+      "from": "machine:atarisy1_state.marble",
+      "to": "handler:atarisy1_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:atarisy1_state.marble",
+      "to": "handler:atarisy1_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:atarisy1_state.marble",
+      "to": "machine:atarisy1_state.atarisy1",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:atarisy1_state.marble",
+      "to": "bank:atarisy1_state.marble/slapstic_bank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:atarisy1_state.marble",
+      "to": "device:atarisy1_state.marble/slapstic",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:marble",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 468,
+        "sourceColumn": 8,
+        "sourceEndLine": 468
+      }
+    },
+    {
+      "from": "inputs:marble",
+      "to": "inputs:marble/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:marble",
+      "to": "inputs:marble/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:marble",
+      "to": "inputs:marble/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:marble",
+      "to": "inputs:marble/IN3",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:marble",
+      "to": "inputs:marble/F60000",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:marble",
+      "to": "inputs:marble/1820",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:marble",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 1003,
+        "sourceColumn": 1,
+        "sourceEndLine": 1003
+      }
+    },
+    {
+      "from": "romset:marble",
+      "to": "region:marble/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:marble",
+      "to": "region:marble/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:marble",
+      "to": "region:marble/alpha",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:marble",
+      "to": "region:marble/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:marble",
+      "to": "region:marble/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:marble",
+      "to": "region:marble/motherbrd_proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 975,
+        "sourceColumn": 1,
+        "sourceEndLine": 975
+      }
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "region:atarisy1/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "region:atarisy1/audiocpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "region:atarisy1/alpha",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "region:atarisy1/tiles",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "region:atarisy1/motherbrd_proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:atarisy1",
+      "to": "region:atarisy1/proms",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:atarisy1_state.machine_reset",
+      "to": "handler:atarisy1_state.bankselect_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.video_start",
+      "to": "handler:atarisy1_state.decode_gfx",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.video_start",
+      "to": "handler:atari_motion_objects_device.code_lookup",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.video_start",
+      "to": "handler:atari_motion_objects_device.color_lookup",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.video_start",
+      "to": "handler:atari_motion_objects_device.gfx_lookup",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.video_start",
+      "to": "handler:atari_motion_objects_device.set_yscroll",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 769,
+        "sourceColumn": 1,
+        "sourceEndLine": 831
+      }
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "handler:atarisy1_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "handler:atarisy1_state.video_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/audiocpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/eeprom",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/outlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/scan_timer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/int3off_timer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/yreset_timer",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/gfxdecode",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "gfxdecode:gfx_atarisy1",
+      "rel": "DECODES",
+      "props": {
+        "deviceTag": "gfxdecode"
+      }
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/playfield",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/alpha",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/mob",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/soundlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/mainlatch",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/ymsnd",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:atarisy1_state.atarisy1",
+      "to": "device:atarisy1_state.atarisy1/pokey",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "bank:atarisy1_state.marble/slapstic_bank",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 2612,
+        "sourceColumn": 1,
+        "sourceEndLine": 2615
+      }
+    },
+    {
+      "from": "inputs:marble/IN0",
+      "to": "inputs:marble/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/IN1",
+      "to": "inputs:marble/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/IN2",
+      "to": "inputs:marble/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/IN3",
+      "to": "inputs:marble/IN3/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/F60000",
+      "to": "inputs:marble/F60000/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:marble/1820",
+      "to": "inputs:marble/1820/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136032.205.l13",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136032.206.l12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.623",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.624",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.625",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.626",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.627",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.628",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.229",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.630",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.107",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/maincpu",
+      "to": "rom:marble/maincpu/136033.108",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/audiocpu",
+      "to": "rom:marble/audiocpu/136033.421",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/audiocpu",
+      "to": "rom:marble/audiocpu/136033.422",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/alpha",
+      "to": "rom:marble/alpha/136032.104.f5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.137",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.138",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.139",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.140",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.141",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.142",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.143",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.144",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.145",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.146",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.149",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.151",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/tiles",
+      "to": "rom:marble/tiles/136033.153",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/proms",
+      "to": "rom:marble/proms/136033.118",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/proms",
+      "to": "rom:marble/proms/136033.119",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/motherbrd_proms",
+      "to": "rom:marble/motherbrd_proms/136032.101.e3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/motherbrd_proms",
+      "to": "rom:marble/motherbrd_proms/136032.102.e5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:marble/motherbrd_proms",
+      "to": "rom:marble/motherbrd_proms/136032.103.f7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:atarisy1/maincpu",
+      "to": "rom:atarisy1/maincpu/136032.205.l13",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:atarisy1/maincpu",
+      "to": "rom:atarisy1/maincpu/136032.206.l12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:atarisy1/alpha",
+      "to": "rom:atarisy1/alpha/136032.104.f5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:atarisy1/motherbrd_proms",
+      "to": "rom:atarisy1/motherbrd_proms/136032.101.e3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:atarisy1/motherbrd_proms",
+      "to": "rom:atarisy1/motherbrd_proms/136032.102.e5",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:atarisy1/motherbrd_proms",
+      "to": "rom:atarisy1/motherbrd_proms/136032.103.f7",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:atarisy1_state.bankselect_w",
+      "to": "handler:atarisy1_state.update_timers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.decode_gfx",
+      "to": "handler:atarisy1_state.get_bank",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/maincpu",
+      "to": "map:atarisy1_state.main_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/audiocpu",
+      "to": "map:atarisy1_state.sound_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/outlatch",
+      "to": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/outlatch",
+      "to": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/outlatch",
+      "to": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/scan_timer",
+      "to": "device:atarisy1_state.atarisy1/scan_timer/callback:scan_timer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/int3off_timer",
+      "to": "device:atarisy1_state.atarisy1/int3off_timer/callback:int3off_timer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/yreset_timer",
+      "to": "device:atarisy1_state.atarisy1/yreset_timer/callback:yreset_timer:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "gfxdecode:gfx_atarisy1",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 725,
+        "sourceColumn": 8,
+        "sourceEndLine": 725
+      }
+    },
+    {
+      "from": "gfxdecode:gfx_atarisy1",
+      "to": "gfxdecode:gfx_atarisy1/e0",
+      "rel": "HAS_ENTRY"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/playfield",
+      "to": "device:atarisy1_state.atarisy1/playfield/callback:playfield:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/alpha",
+      "to": "device:atarisy1_state.atarisy1/alpha/callback:alpha:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/mob",
+      "to": "handler:atari_motion_objects_device.device_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/screen",
+      "to": "device:atarisy1_state.atarisy1/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/screen",
+      "to": "device:atarisy1_state.atarisy1/screen/callback:screen:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/soundlatch",
+      "to": "device:atarisy1_state.atarisy1/soundlatch/callback:soundlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/soundlatch",
+      "to": "device:atarisy1_state.atarisy1/soundlatch/callback:soundlatch:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/mainlatch",
+      "to": "device:atarisy1_state.atarisy1/mainlatch/callback:mainlatch:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/ymsnd",
+      "to": "audioroute:device:atarisy1_state.atarisy1/ymsnd/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/ymsnd",
+      "to": "audioroute:device:atarisy1_state.atarisy1/ymsnd/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/ymsnd",
+      "to": "device:atarisy1_state.atarisy1/ymsnd/callback:ymsnd:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/pokey",
+      "to": "audioroute:device:atarisy1_state.atarisy1/pokey/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/pokey",
+      "to": "audioroute:device:atarisy1_state.atarisy1/pokey/1",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 431,
+        "sourceColumn": 1,
+        "sourceEndLine": 435
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map",
+      "to": "map:atarisy1_state.main_map_noslapstic",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:atarisy1_state.main_map",
+      "to": "map:atarisy1_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 443,
+        "sourceColumn": 1,
+        "sourceEndLine": 453
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map",
+      "to": "map:atarisy1_state.sound_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:0",
+      "to": "handler:ym2151_device.reset_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:1",
+      "to": "handler:atarisy1_state.coin_counter_right_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/outlatch/callback:outlatch:2",
+      "to": "handler:atarisy1_state.coin_counter_left_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/scan_timer/callback:scan_timer:0",
+      "to": "handler:atarisy1_state.int3_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/int3off_timer/callback:int3off_timer:0",
+      "to": "handler:atarisy1_state.int3off_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/yreset_timer/callback:yreset_timer:0",
+      "to": "handler:atarisy1_state.reset_yscroll_callback",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxdecode:gfx_atarisy1/e0",
+      "to": "gfxlayout:anlayout",
+      "rel": "USES_LAYOUT"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/playfield/callback:playfield:0",
+      "to": "handler:atarisy1_state.get_playfield_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/alpha/callback:alpha:0",
+      "to": "handler:atarisy1_state.get_alpha_tile_info",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atari_motion_objects_device.device_start",
+      "to": "handler:atari_motion_objects_device.compute_log",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atari_motion_objects_device.device_start",
+      "to": "handler:atari_motion_objects_device.round_to_powerof2",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atari_motion_objects_device.device_start",
+      "to": "handler:atari_motion_objects_device.force_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/screen/callback:screen:0",
+      "to": "handler:atarisy1_state.screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/screen/callback:screen:1",
+      "to": "device:atarisy1_state.atarisy1/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/soundlatch/callback:soundlatch:0",
+      "to": "device:atarisy1_state.atarisy1/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/mainlatch/callback:mainlatch:0",
+      "to": "device:atarisy1_state.atarisy1/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:atarisy1_state.atarisy1/ymsnd/callback:ymsnd:0",
+      "to": "device:atarisy1_state.atarisy1/audiocpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/atari/atarisy1.cpp",
+        "sourceLine": 405,
+        "sourceColumn": 1,
+        "sourceEndLine": 429
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range16",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range17",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range18",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range19",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range20",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic",
+      "to": "map:atarisy1_state.main_map_noslapstic/range21",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range1",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range1",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ymsnd"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range2",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range3",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range4",
+      "to": "handler:atarisy1_state.switch_6502_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range5",
+      "to": "handler:ls259_device.write_d0",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "outlatch"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range6",
+      "to": "handler:pokey_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.sound_map/range6",
+      "to": "handler:pokey_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "pokey"
+      }
+    },
+    {
+      "from": "handler:atarisy1_state.int3_callback",
+      "to": "handler:atarisy1_state.update_timers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "gfxlayout:anlayout",
+      "to": "file:src/mame/atari/atarisy1.cpp",
+      "rel": "DEFINED_IN"
+    },
+    {
+      "from": "handler:atarisy1_state.screen_update",
+      "to": "handler:atari_motion_objects_device.draw",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range1",
+      "to": "handler:atarisy1_state.int3state_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range3",
+      "to": "handler:atarisy1_state.xscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range4",
+      "to": "handler:atarisy1_state.yscroll_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range5",
+      "to": "handler:atarisy1_state.priority_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range6",
+      "to": "handler:atarisy1_state.bankselect_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range7",
+      "to": "handler:watchdog_timer_device.reset_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range8",
+      "to": "handler:atarisy1_state.video_int_ack_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range9",
+      "to": "handler:eeprom_parallel_28xx_device.unlock_write8",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "eeprom"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range11",
+      "to": "handler:tilemap_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "playfield"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range12",
+      "to": "handler:atarisy1_state.spriteram_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range13",
+      "to": "handler:tilemap_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "alpha"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range14",
+      "to": "handler:palette_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range15",
+      "to": "handler:eeprom_parallel_28xx_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "eeprom"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range15",
+      "to": "handler:eeprom_parallel_28xx_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "eeprom"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range16",
+      "to": "handler:atarisy1_state.trakball_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range17",
+      "to": "handler:atarisy1_state.adc_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range17",
+      "to": "handler:atarisy1_state.adc_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range19",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range20",
+      "to": "handler:generic_latch_8_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "mainlatch"
+      }
+    },
+    {
+      "from": "map:atarisy1_state.main_map_noslapstic/range21",
+      "to": "handler:generic_latch_8_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "soundlatch"
+      }
+    },
+    {
+      "from": "handler:atari_motion_objects_device.draw",
+      "to": "handler:atari_motion_objects_device.build_active_list",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atari_motion_objects_device.draw",
+      "to": "handler:atari_motion_objects_device.render_object",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.spriteram_w",
+      "to": "handler:atari_motion_objects_device.bank",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.spriteram_w",
+      "to": "handler:atarisy1_state.update_timers",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:atarisy1_state.adc_r",
+      "to": "handler:atarisy1_state.adc_w",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

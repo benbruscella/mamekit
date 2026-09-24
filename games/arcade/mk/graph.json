@@ -1,0 +1,4348 @@
+{
+  "meta": {
+    "tool": "mamekit",
+    "version": "0.1.0",
+    "schemaVersion": 2,
+    "mameSrc": "/Users/benbruscella/Projects/Github/mame",
+    "driverFile": "src/mame/williams/midtunit.cpp",
+    "generatedAt": "2026-09-24T02:29:11.384Z",
+    "license": "BSD-3-Clause",
+    "copyrightHolders": "Alex Pasadyn, Zsolt Vasvari, Ernesto Corvi, Aaron Giles"
+  },
+  "nodes": [
+    {
+      "id": "file:src/mame/williams/midtunit.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/williams/midtunit.cpp"
+      }
+    },
+    {
+      "id": "file:emu.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "emu.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:midtunit.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "midtunit.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/nvram.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/nvram.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/watchdog.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/watchdog.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:screen.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "screen.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:speaker.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "speaker.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:williamssound.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "williamssound.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6809/m6809.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6809/m6809.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:machine/6821pia.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/6821pia.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:cpu/m6800/m6800.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "cpu/m6800/m6800.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/hc55516.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/hc55516.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/okim6295.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/okim6295.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/ymopm.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/ymopm.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/shared/williamssound.cpp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/shared/williamssound.cpp"
+      }
+    },
+    {
+      "id": "file:machine/rescap.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "machine/rescap.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:sound/dac.h",
+      "label": "SourceFile",
+      "props": {
+        "path": "sound/dac.h",
+        "external": true
+      }
+    },
+    {
+      "id": "file:src/mame/williams/midtview.ipp",
+      "label": "SourceFile",
+      "props": {
+        "path": "src/mame/williams/midtview.ipp"
+      }
+    },
+    {
+      "id": "game:mk",
+      "label": "Game",
+      "props": {
+        "name": "mk",
+        "year": "1992",
+        "company": "Midway",
+        "fullname": "Mortal Kombat (rev 5.0 T-Unit 03/19/93)",
+        "monitor": "ROT0",
+        "cls": "midtunit_adpcm_state",
+        "init": "init_mktunit",
+        "flags": "MACHINE_SUPPORTS_SAVE",
+        "kind": "arcade",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 1814,
+        "sourceColumn": 1,
+        "sourceEndLine": 1814,
+        "installedHandlers": [
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"read\",\"target\":\"m_maincpu\",\"start\":28311552,\"end\":28770303,\"className\":\"midtunit_adpcm_state\",\"method\":\"mk_prot_r\",\"cpu\":\"maincpu\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"write\",\"target\":\"m_maincpu\",\"start\":28311552,\"end\":28770303,\"className\":\"midtunit_adpcm_state\",\"method\":\"mk_prot_w\",\"cpu\":\"maincpu\"}",
+          "{\"space\":\"AS_PROGRAM\",\"kind\":\"ram\",\"target\":\"m_adpcm_sound->get_cpu()\",\"start\":64412,\"end\":64454,\"className\":\"\",\"method\":\"\",\"cpu\":\"adpcm:cpu\"}"
+        ]
+      }
+    },
+    {
+      "id": "handler:midtunit_adpcm_state.mk_prot_r",
+      "label": "Handler",
+      "props": {
+        "method": "mk_prot_r",
+        "ownerClass": "midtunit_adpcm_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 117,
+        "sourceColumn": 1,
+        "sourceEndLine": 135,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t\tLOGPROT(\"%s:Protection R @ %05X = %04X\\n\", machine().describe_context(), offset, TABLE(m_mk_prot_index, 0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37, 0x2e, 0x1c, 0x38, 0x31, 0x22, 0x05, 0x0a, 0x15, 0x2b, 0x16, 0x2d, 0x1a, 0x34, 0x28, 0x10, 0x21, 0x03, 0x06, 0x0c, 0x19, 0x32, 0x24, 0x09, 0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37, 0x2e, 0x1c, 0x38, 0x31, 0x22, 0x05, 0x0a, 0x15, 0x2b, 0x16, 0x2d, 0x1a, 0x34, 0x28, 0x10, 0x21, 0x03, 0xff) << 9);\n\n\t// just in case\n\tif (m_mk_prot_index >= sizeof(mk_prot_values))\n\t{\n\t\tif (!machine().side_effects_disabled())\n\t\t\tLOGPROT(\"%s:Unexpected protection R @ %05X\\n\", machine().describe_context(), offset);\n\t\tm_mk_prot_index = 0;\n\t}\n\n\tuint16_t const result = TABLE(m_mk_prot_index, 0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37, 0x2e, 0x1c, 0x38, 0x31, 0x22, 0x05, 0x0a, 0x15, 0x2b, 0x16, 0x2d, 0x1a, 0x34, 0x28, 0x10, 0x21, 0x03, 0x06, 0x0c, 0x19, 0x32, 0x24, 0x09, 0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37, 0x2e, 0x1c, 0x38, 0x31, 0x22, 0x05, 0x0a, 0x15, 0x2b, 0x16, 0x2d, 0x1a, 0x34, 0x28, 0x10, 0x21, 0x03, 0xff) << 9;\n\tif (!machine().side_effects_disabled())\n\t\tm_mk_prot_index++;\n\n\treturn result;"
+      }
+    },
+    {
+      "id": "handler:midtunit_adpcm_state.mk_prot_w",
+      "label": "Handler",
+      "props": {
+        "method": "mk_prot_w",
+        "ownerClass": "midtunit_adpcm_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 137,
+        "sourceColumn": 1,
+        "sourceEndLine": 161,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "if (ACCESSING_BITS_8_15)\n\t{\n\t\tint const first_val = (data >> 9) & 0x3f;\n\t\tint i;\n\n\t\t// find the desired first value and stop then\n\t\tfor (i = 0; i < sizeof(mk_prot_values); i++)\n\t\t\tif (TABLE(i, 0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37, 0x2e, 0x1c, 0x38, 0x31, 0x22, 0x05, 0x0a, 0x15, 0x2b, 0x16, 0x2d, 0x1a, 0x34, 0x28, 0x10, 0x21, 0x03, 0x06, 0x0c, 0x19, 0x32, 0x24, 0x09, 0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37, 0x2e, 0x1c, 0x38, 0x31, 0x22, 0x05, 0x0a, 0x15, 0x2b, 0x16, 0x2d, 0x1a, 0x34, 0x28, 0x10, 0x21, 0x03, 0xff) == first_val)\n\t\t\t{\n\t\t\t\tm_mk_prot_index = i;\n\t\t\t\tbreak;\n\t\t\t}\n\n\t\t// just in case\n\t\tif (i == sizeof(mk_prot_values))\n\t\t{\n\t\t\tLOGPROT(\"%s:Unhandled protection W @ %05X = %04X\\n\", machine().describe_context(), offset, data);\n\t\t\tm_mk_prot_index = 0;\n\t\t}\n\n\t\tLOGPROT(\"%s:Protection W @ %05X = %04X\\n\", machine().describe_context(), offset, data);\n\t}"
+      }
+    },
+    {
+      "id": "romset:mk",
+      "label": "RomSet",
+      "props": {
+        "name": "mk",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 673,
+        "sourceColumn": 1,
+        "sourceEndLine": 673
+      }
+    },
+    {
+      "id": "region:mk/adpcm:cpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "adpcm:cpu",
+        "size": 327680,
+        "flags": "0",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 674,
+        "sourceColumn": 2,
+        "sourceEndLine": 674
+      }
+    },
+    {
+      "id": "rom:mk/adpcm:cpu/sl1_mortal_kombat_u3_sound_rom.u3",
+      "label": "Rom",
+      "props": {
+        "file": "sl1_mortal_kombat_u3_sound_rom.u3",
+        "offset": 65536,
+        "size": 262144,
+        "crc": "c615844c",
+        "sha1": "5732f9053a5f73b0cc3b0166d7dc4430829d5bc7",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 675,
+        "sourceColumn": 2,
+        "sourceEndLine": 675
+      }
+    },
+    {
+      "id": "region:mk/adpcm:oki",
+      "label": "RomRegion",
+      "props": {
+        "tag": "adpcm:oki",
+        "size": 1048576,
+        "flags": "0",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 677,
+        "sourceColumn": 2,
+        "sourceEndLine": 677
+      }
+    },
+    {
+      "id": "rom:mk/adpcm:oki/sl1_mortal_kombat_u12_sound_rom.u12",
+      "label": "Rom",
+      "props": {
+        "file": "sl1_mortal_kombat_u12_sound_rom.u12",
+        "offset": 0,
+        "size": 262144,
+        "crc": "258bd7f9",
+        "sha1": "463890b23f17350fb9b8a85897b0777c45bc2d54",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 678,
+        "sourceColumn": 2,
+        "sourceEndLine": 678,
+        "reloadOffsets": [
+          262144
+        ]
+      }
+    },
+    {
+      "id": "rom:mk/adpcm:oki/sl1_mortal_kombat_u13_sound_rom.u13",
+      "label": "Rom",
+      "props": {
+        "file": "sl1_mortal_kombat_u13_sound_rom.u13",
+        "offset": 524288,
+        "size": 262144,
+        "crc": "7b7ec3b6",
+        "sha1": "6eec1b90d4a4855f34a7ebfbf93f3358d5627db4",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 680,
+        "sourceColumn": 2,
+        "sourceEndLine": 680,
+        "reloadOffsets": [
+          786432
+        ]
+      }
+    },
+    {
+      "id": "region:mk/maincpu",
+      "label": "RomRegion",
+      "props": {
+        "tag": "maincpu",
+        "size": 1048576,
+        "flags": "0"
+      }
+    },
+    {
+      "id": "rom:mk/maincpu/l5_mortal_kombat_t-unit_uj12_game_rom.uj12",
+      "label": "Rom",
+      "props": {
+        "file": "l5_mortal_kombat_t-unit_uj12_game_rom.uj12",
+        "offset": 0,
+        "size": 524288,
+        "crc": "f4990bf2",
+        "sha1": "796ec84d37c8d20ca36d6439c14dee626fb8481e",
+        "skip": 1
+      }
+    },
+    {
+      "id": "rom:mk/maincpu/l5_mortal_kombat_t-unit_ug12_game_rom.ug12",
+      "label": "Rom",
+      "props": {
+        "file": "l5_mortal_kombat_t-unit_ug12_game_rom.ug12",
+        "offset": 1,
+        "size": 524288,
+        "crc": "b06aeac1",
+        "sha1": "f66655eeab67c8cf5e496ae42dbae54d6400586f",
+        "skip": 1
+      }
+    },
+    {
+      "id": "region:mk/video",
+      "label": "RomRegion",
+      "props": {
+        "tag": "video",
+        "size": 12582912,
+        "flags": "0",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 687,
+        "sourceColumn": 2,
+        "sourceEndLine": 687
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_ug14_game_rom.ug14",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_ug14_game_rom.ug14",
+        "offset": 0,
+        "size": 524288,
+        "crc": "9e00834e",
+        "sha1": "2b97b63f52ba1dba6af6ae56c223519a52b2ab9d",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_uj14_game_rom.uj14",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_uj14_game_rom.uj14",
+        "offset": 1,
+        "size": 524288,
+        "crc": "f4b0aaa7",
+        "sha1": "4cc6ee34c89e3cde325ad24b29511f70ae6a5a72",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_ug19_game_rom.ug19",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_ug19_game_rom.ug19",
+        "offset": 2,
+        "size": 524288,
+        "crc": "2d8c7ba1",
+        "sha1": "f891d6eb618dbf3e77f02e0f93da216e20571905",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_uj19_game_rom.uj19",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_uj19_game_rom.uj19",
+        "offset": 3,
+        "size": 524288,
+        "crc": "33b9b7a4",
+        "sha1": "e8ceca4c049e1f55d480a03ff793b595bd04d344",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_ug16_game_rom.ug16",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_ug16_game_rom.ug16",
+        "offset": 2097152,
+        "size": 524288,
+        "crc": "52c9d1e5",
+        "sha1": "7b1880fca0a11544782b70365c7dd96381ac48e7",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_uj16_game_rom.uj16",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_uj16_game_rom.uj16",
+        "offset": 2097153,
+        "size": 524288,
+        "crc": "c94c58cf",
+        "sha1": "974d75667eee779497325d5be8df937f15417edf",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_ug20_game_rom.ug20",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_ug20_game_rom.ug20",
+        "offset": 2097154,
+        "size": 524288,
+        "crc": "2f7e55d3",
+        "sha1": "bda6892ee6fcb46959e4d0892bbe7d9fc6072dd3",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_uj20_game_rom.uj20",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_uj20_game_rom.uj20",
+        "offset": 2097155,
+        "size": 524288,
+        "crc": "eae96df0",
+        "sha1": "b40532312ba61e4065abfd733dd0c93eecad48e9",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_ug17_game_rom.ug17",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_ug17_game_rom.ug17",
+        "offset": 4194304,
+        "size": 524288,
+        "crc": "e34fe253",
+        "sha1": "6b010bee795c1770297c9557ded1fe83425857f2",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_uj17_game_rom.uj17",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_uj17_game_rom.uj17",
+        "offset": 4194305,
+        "size": 524288,
+        "crc": "a56e12f5",
+        "sha1": "5db637c4710990cd06bb0069714b19621532e431",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_ug22_game_rom.ug22",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_ug22_game_rom.ug22",
+        "offset": 4194306,
+        "size": 524288,
+        "crc": "b537bb4e",
+        "sha1": "05a447deee2e89b49bdb3ca2161a021d7ec5f11e",
+        "skip": 3
+      }
+    },
+    {
+      "id": "rom:mk/video/l1_mortal_kombat_t-unit_uj22_game_rom.uj22",
+      "label": "Rom",
+      "props": {
+        "file": "l1_mortal_kombat_t-unit_uj22_game_rom.uj22",
+        "offset": 4194307,
+        "size": 524288,
+        "crc": "5e12523b",
+        "sha1": "468f93ef9bb6addb45c1c939d24b6511f255426a",
+        "skip": 3
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "midtunit_base_state",
+        "name": "main_map",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 43,
+        "sourceColumn": 1,
+        "sourceEndLine": 63,
+        "unmapHigh": true
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 4194303,
+        "raw": "map(0x00000000, 0x003fffff).rw(m_video, FUNC(midtunit_video_device::midtunit_vram_r), FUNC(midtunit_video_device::midtunit_vram_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 46,
+        "sourceColumn": 2,
+        "sourceEndLine": 46
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.midtunit_vram_r",
+      "label": "Handler",
+      "props": {
+        "method": "midtunit_vram_r",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 301,
+        "sourceColumn": 1,
+        "sourceEndLine": 308,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "offset *= 2;\n\tif (m_videobank_select)\n\t\treturn (m_local_videoram[offset] & 0x00ff) | (m_local_videoram[offset + 1] << 8);\n\telse\n\t\treturn (m_local_videoram[offset] >> 8) | (m_local_videoram[offset + 1] & 0xff00);"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.midtunit_vram_w",
+      "label": "Handler",
+      "props": {
+        "method": "midtunit_vram_w",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 261,
+        "sourceColumn": 1,
+        "sourceEndLine": 278,
+        "sourceConstants": [
+          "DMA_PALETTE=8"
+        ],
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "offset *= 2;\n\tif (m_videobank_select)\n\t{\n\t\tif (ACCESSING_BITS_0_7)\n\t\t\tm_local_videoram[offset] = (data & 0xff) | ((m_dma_register[DMA_PALETTE] & 0xff) << 8);\n\t\tif (ACCESSING_BITS_8_15)\n\t\t\tm_local_videoram[offset + 1] = ((data >> 8) & 0xff) | (m_dma_register[DMA_PALETTE] & 0xff00);\n\t}\n\telse\n\t{\n\t\tif (ACCESSING_BITS_0_7)\n\t\t\tm_local_videoram[offset] = (m_local_videoram[offset] & 0xff) | ((data & 0xff) << 8);\n\t\tif (ACCESSING_BITS_8_15)\n\t\t\tm_local_videoram[offset + 1] = (m_local_videoram[offset + 1] & 0xff) | (data & 0xff00);\n\t}"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 16777216,
+        "end": 20971519,
+        "raw": "map(0x01000000, 0x013fffff).ram()",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 47,
+        "sourceColumn": 2,
+        "sourceEndLine": 47,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 20971520,
+        "end": 21102591,
+        "raw": "map(0x01400000, 0x0141ffff).rw(FUNC(midtunit_base_state::cmos_r), FUNC(midtunit_base_state::cmos_w)).share(m_nvram)",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 48,
+        "sourceColumn": 2,
+        "sourceEndLine": 48,
+        "share": "nvram"
+      }
+    },
+    {
+      "id": "handler:midtunit_base_state.cmos_r",
+      "label": "Handler",
+      "props": {
+        "method": "cmos_r",
+        "ownerClass": "midtunit_base_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 93,
+        "sourceColumn": 1,
+        "sourceEndLine": 96,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "return m_nvram[offset];"
+      }
+    },
+    {
+      "id": "handler:midtunit_base_state.cmos_w",
+      "label": "Handler",
+      "props": {
+        "method": "cmos_w",
+        "ownerClass": "midtunit_base_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 78,
+        "sourceColumn": 1,
+        "sourceEndLine": 90,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "if (1)// m_cmos_write_enable\n\t{\n\t\tCOMBINE_DATA(m_nvram+offset);\n\t\tm_cmos_write_enable = 0;\n\t}\n\telse\n\t{\n\t\tLOGCMOS(\"%08X:Unexpected CMOS W @ %05X\\n\", m_maincpu->pc(), offset);\n\t\tpopmessage(\"Bad CMOS write\");\n\t}"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 21495808,
+        "end": 22020095,
+        "raw": "map(0x01480000, 0x014fffff).w(FUNC(midtunit_base_state::cmos_enable_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 49,
+        "sourceColumn": 2,
+        "sourceEndLine": 49
+      }
+    },
+    {
+      "id": "handler:midtunit_base_state.cmos_enable_w",
+      "label": "Handler",
+      "props": {
+        "method": "cmos_enable_w",
+        "ownerClass": "midtunit_base_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 72,
+        "sourceColumn": 1,
+        "sourceEndLine": 75,
+        "sourceParameters": "uint16_t data",
+        "sourceBody": "m_cmos_write_enable = 1;"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 23068672,
+        "end": 23068687,
+        "raw": "map(0x01600000, 0x0160000f).portr(\"IN0\")",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 50,
+        "sourceColumn": 2,
+        "sourceEndLine": 50,
+        "portRead": "IN0"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 23068688,
+        "end": 23068703,
+        "raw": "map(0x01600010, 0x0160001f).portr(\"IN1\")",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 51,
+        "sourceColumn": 2,
+        "sourceEndLine": 51,
+        "portRead": "IN1"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 23068704,
+        "end": 23068719,
+        "raw": "map(0x01600020, 0x0160002f).portr(\"IN2\")",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 52,
+        "sourceColumn": 2,
+        "sourceEndLine": 52,
+        "portRead": "IN2"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 23068720,
+        "end": 23068735,
+        "raw": "map(0x01600030, 0x0160003f).portr(\"DSW\")",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 53,
+        "sourceColumn": 2,
+        "sourceEndLine": 53,
+        "portRead": "DSW"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 25165824,
+        "end": 25690111,
+        "raw": "map(0x01800000, 0x0187ffff).ram().w(m_palette, FUNC(palette_device::write16)).share(\"palette\")",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 54,
+        "sourceColumn": 2,
+        "sourceEndLine": 54,
+        "ram": true,
+        "share": "palette"
+      }
+    },
+    {
+      "id": "handler:palette_device.write16",
+      "label": "Handler",
+      "props": {
+        "method": "write16",
+        "ownerClass": "palette_device",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 54,
+        "sourceColumn": 2,
+        "sourceEndLine": 54
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 27787264,
+        "end": 27787519,
+        "raw": "map(0x01a80000, 0x01a800ff).rw(m_video, FUNC(midtunit_video_device::dma_r), FUNC(midtunit_video_device::dma_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 55,
+        "sourceColumn": 2,
+        "sourceEndLine": 55
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.dma_r",
+      "label": "Handler",
+      "props": {
+        "method": "dma_r",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 640,
+        "sourceColumn": 1,
+        "sourceEndLine": 648,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "// rmpgwt sometimes reads register 0, expecting it to return the\n\t// current DMA status; thus we map register 0 to register 1\n\t// openice does it as well\n\tif (offset == 0)\n\t\toffset = 1;\n\treturn m_dma_register[offset];"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.dma_w",
+      "label": "Handler",
+      "props": {
+        "method": "dma_w",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 697,
+        "sourceColumn": 1,
+        "sourceEndLine": 838,
+        "sourceConstants": [
+          "LOG_DMA=0",
+          "DEBUG_MIDTUNIT_BLITTER=0",
+          "XPOSMASK=1023",
+          "YPOSMASK=511",
+          "DMA_LRSKIP=0",
+          "DMA_COMMAND=1",
+          "DMA_OFFSETLO=2",
+          "DMA_OFFSETHI=3",
+          "DMA_XSTART=4",
+          "DMA_YSTART=5",
+          "DMA_WIDTH=6",
+          "DMA_HEIGHT=7",
+          "DMA_PALETTE=8",
+          "DMA_COLOR=9",
+          "DMA_SCALE_X=10",
+          "DMA_SCALE_Y=11",
+          "DMA_TOPCLIP=12",
+          "DMA_BOTCLIP=13",
+          "DMA_UNKNOWN_E=14",
+          "DMA_CONFIG=15",
+          "DMA_LEFTCLIP=16",
+          "DMA_RIGHTCLIP=17"
+        ],
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "static const uint8_t register_map[2][16] =\n\t{\n\t\t{ 0,1,2,3,4,5,6,7,8,9,10,11,16,17,14,15 },\n\t\t{ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 }\n\t};\n\tint const regbank = (m_dma_register[DMA_CONFIG] >> 5) & 1;\n\tint pixels = 0;\n\n\t// blend with the current register contents\n\tint regnum = register_map[regbank][offset];\n\tCOMBINE_DATA(&m_dma_register[regnum]);\n\n\t// only writes to DMA_COMMAND actually cause actions\n\tif (regnum != DMA_COMMAND)\n\t\treturn;\n\n\t// high bit triggers action\n\tint const command = m_dma_register[DMA_COMMAND];\n\tm_dma_irq_cb(CLEAR_LINE);\n\tif (!(command & 0x8000))\n\t\treturn;\n\n\tauto profile = g_profiler.start(PROFILER_USER1);\n\n\t// determine bpp\n\tint const bpp = (command >> 12) & 7;\n\n\t// fill in the basic data\n\tm_dma_state.xpos = m_dma_register[DMA_XSTART] & XPOSMASK;\n\tm_dma_state.ypos = m_dma_register[DMA_YSTART] & YPOSMASK;\n\tm_dma_state.width = m_dma_register[DMA_WIDTH] & 0x3ff;\n\tm_dma_state.height = m_dma_register[DMA_HEIGHT] & 0x3ff;\n\tm_dma_state.palette = m_dma_register[DMA_PALETTE] & 0x7f00;\n\tm_dma_state.color = m_dma_register[DMA_COLOR] & 0xff;\n\n\t// fill in the rev 2 data\n\tm_dma_state.yflip = (command & 0x20) >> 5;\n\tm_dma_state.preskip = (command >> 8) & 3;\n\tm_dma_state.postskip = (command >> 10) & 3;\n\tm_dma_state.xstep = m_dma_register[DMA_SCALE_X] ? m_dma_register[DMA_SCALE_X] : 0x100;\n\tm_dma_state.ystep = m_dma_register[DMA_SCALE_Y] ? m_dma_register[DMA_SCALE_Y] : 0x100;\n\n\t// clip the clippers\n\tm_dma_state.topclip = m_dma_register[DMA_TOPCLIP] & 0x1ff;\n\tm_dma_state.botclip = m_dma_register[DMA_BOTCLIP] & 0x1ff;\n\tm_dma_state.leftclip = m_dma_register[DMA_LEFTCLIP] & 0x3ff;\n\tm_dma_state.rightclip = m_dma_register[DMA_RIGHTCLIP] & 0x3ff;\n\n\t// determine the offset\n\tuint32_t gfxoffset = m_dma_register[DMA_OFFSETLO] | (m_dma_register[DMA_OFFSETHI] << 16);\n\n\t// special case: drawing mode C doesn't need to know about any pixel data\n\tif ((command & 0x0f) == 0x0c)\n\t\tgfxoffset = 0;\n\n\t// determine the location\n\tif (!m_gfx_rom_large && gfxoffset >= 0x2000000)\n\t\tgfxoffset -= 0x2000000;\n\tif (gfxoffset >= 0xf8000000)\n\t\tgfxoffset -= 0xf8000000;\n\tif (gfxoffset < 0x10000000)\n\t\tm_dma_state.offset = gfxoffset;\n\telse\n\t{\n\t\tLOGDMACTRL(\"DMA source out of range: %08X\\n\", gfxoffset);\n\t\tgoto skipdma;\n\t}\n\n\tif (LOG_DMA || DEBUG_MIDTUNIT_BLITTER)\n\t{\n\t\tif (machine().input().code_pressed(KEYCODE_COLON))\n\t\t{\n\t\t\tlogerror(\"DMA command %04X: (bpp=%d skip=%d xflip=%d yflip=%d preskip=%d postskip=%d)\\n\",\n\t\t\t\t\tcommand, (command >> 12) & 7, (command >> 7) & 1, (command >> 4) & 1, (command >> 5) & 1, (command >> 8) & 3, (command >> 10) & 3);\n\t\t\tlogerror(\"  offset=%08X pos=(%d,%d) w=%d h=%d clip=(%d,%d)-(%d,%d)\\n\", gfxoffset, m_dma_state.xpos, m_dma_state.ypos,\n\t\t\t\t\tm_dma_state.width, m_dma_state.height, m_dma_state.leftclip, m_dma_state.topclip, m_dma_state.rightclip, m_dma_state.botclip);\n\t\t\tlogerror(\"  palette=%04X color=%04X lskip=%02X rskip=%02X xstep=%04X ystep=%04X test=%04X config=%04X\\n\",\n\t\t\t\t\tm_dma_register[DMA_PALETTE], m_dma_register[DMA_COLOR],\n\t\t\t\t\tm_dma_register[DMA_LRSKIP] >> 8, m_dma_register[DMA_LRSKIP] & 0xff,\n\t\t\t\t\tm_dma_register[DMA_SCALE_X], m_dma_register[DMA_SCALE_Y], m_dma_register[DMA_UNKNOWN_E],\n\t\t\t\t\tm_dma_register[DMA_CONFIG]);\n\t\t\tlogerror(\"----\\n\");\n\t\t}\n\t}\n\n\t// there seems to be two types of behavior for the DMA chip\n\t// for MK1 and MK2, the upper byte of the LRSKIP is the\n\t// starting skip value, and the lower byte is the ending\n\t// skip value; for the NBA Jam, Hangtime, and Open Ice, the\n\t// full word seems to be the starting skip value.\n\tif (command & 0x40)\n\t{\n\t\tm_dma_state.startskip = m_dma_register[DMA_LRSKIP] & 0xff;\n\t\tm_dma_state.endskip = m_dma_register[DMA_LRSKIP] >> 8;\n\t}\n\telse\n\t{\n\t\tm_dma_state.startskip = 0;\n\t\tm_dma_state.endskip = m_dma_register[DMA_LRSKIP];\n\t}\n\n\tif (m_log_png)\n\t{\n\t\tif (command & 0x80)\n\t\t{\n\t\t\tlog_bitmap(command, bpp ? bpp : 8, true);\n\t\t}\n\t\telse\n\t\t{\n\t\t\tlog_bitmap(command, bpp ? bpp : 8, false);\n\t\t}\n\t}\n\n\t// then draw\n\tif (m_dma_state.xstep == 0x100 && m_dma_state.ystep == 0x100)\n\t{\n\t\tif (command & 0x80)\n\t\t\t((this)->*(m_dma_draw_skip_noscale[(command & 0x1f)*8 + bpp]))();\n\t\telse\n\t\t\t((this)->*(m_dma_draw_noskip_noscale[(command & 0x1f)*8 + bpp]))();\n\n\t\tpixels = m_dma_state.width * m_dma_state.height;\n\t}\n\telse\n\t{\n\t\tif (command & 0x80)\n\t\t\t((this)->*(m_dma_draw_skip_scale[(command & 0x1f)*8 + bpp]))();\n\t\telse\n\t\t\t((this)->*(m_dma_draw_noskip_scale[(command & 0x1f)*8 + bpp]))();\n\n\t\tif (m_dma_state.xstep && m_dma_state.ystep)\n\t\t\tpixels = ((m_dma_state.width << 8) / m_dma_state.xstep) * ((m_dma_state.height << 8) / m_dma_state.ystep);\n\t\telse\n\t\t\tpixels = 0;\n\t}\n\n\t// signal we're done\nskipdma:\n\tm_dma_timer->adjust(attotime::from_nsec(41 * pixels));"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.log_bitmap",
+      "label": "Handler",
+      "props": {
+        "method": "log_bitmap",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 870,
+        "sourceColumn": 1,
+        "sourceEndLine": 1087,
+        "sourceConstants": [
+          "PIXEL_SKIP=0",
+          "PIXEL_COLOR=1",
+          "PIXEL_COPY=2",
+          "DMA_OFFSETLO=2",
+          "DMA_OFFSETHI=3"
+        ],
+        "sourceParameters": "int command, int bpp, bool Skip",
+        "sourceBody": "uint32_t const raw_offset = m_dma_register[DMA_OFFSETLO] | (m_dma_register[DMA_OFFSETHI] << 16);\n\tif (m_logged_rom[raw_offset >> 6] & (1ULL << (raw_offset & 0x3f)))\n\t\treturn;\n\n\tint Zero = PIXEL_SKIP;\n\tint NonZero = PIXEL_SKIP;\n\tswitch (command & 0xf)\n\t{\n\tcase 1:  Zero = PIXEL_COPY;  NonZero = PIXEL_SKIP;  break;\n\tcase 2:  Zero = PIXEL_SKIP;  NonZero = PIXEL_COPY;  break;\n\tcase 3:  Zero = PIXEL_COPY;  NonZero = PIXEL_COPY;  break;\n\tcase 4:  Zero = PIXEL_COLOR; NonZero = PIXEL_SKIP;  break;\n\tcase 5:  Zero = PIXEL_COLOR; NonZero = PIXEL_SKIP;  break;\n\tcase 6:  Zero = PIXEL_COLOR; NonZero = PIXEL_COPY;  break;\n\tcase 7:  Zero = PIXEL_COLOR; NonZero = PIXEL_COPY;  break;\n\tcase 8:  Zero = PIXEL_SKIP;  NonZero = PIXEL_COLOR; break;\n\tcase 9:  Zero = PIXEL_COPY;  NonZero = PIXEL_COLOR; break;\n\tcase 10: Zero = PIXEL_SKIP;  NonZero = PIXEL_COLOR; break;\n\tcase 11: Zero = PIXEL_COPY;  NonZero = PIXEL_COLOR; break;\n\tcase 12: Zero = PIXEL_COLOR; NonZero = PIXEL_COLOR; break;\n\tcase 13: Zero = PIXEL_COLOR; NonZero = PIXEL_COLOR; break;\n\tcase 14: Zero = PIXEL_COLOR; NonZero = PIXEL_COLOR; break;\n\tcase 15: Zero = PIXEL_COLOR; NonZero = PIXEL_COLOR; break;\n\tdefault: return;\n\t}\n\n\temu_file file(m_log_path, OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);\n\n\tchar name_buf[256];\n\tsnprintf(name_buf, 255, \"0x%08x.png\", raw_offset);\n\tauto const filerr = file.open(name_buf);\n\tif (filerr)\n\t{\n\t\treturn;\n\t}\n\n\tm_logged_rom[raw_offset >> 6] |= 1ULL << (raw_offset & 0x3f);\n\n\tm_log_bitmap.allocate(m_dma_state.width, m_dma_state.height);\n\tm_log_bitmap.fill(0);\n\n\tuint8_t const *const base = m_dma_state.gfxrom;\n\tuint32_t offset = m_dma_state.offset;\n\tuint16_t const pal = m_dma_state.palette;\n\tuint16_t const color = pal | m_dma_state.color;\n\tint const mask = (1 << bpp) - 1;\n\n\t// loop over the height\n\tfor (int y = 0; y < m_dma_state.height; y++)\n\t{\n\t\tint const startskip = m_dma_state.startskip;\n\t\t[[maybe_unused]] int endskip = m_dma_state.endskip;\n\t\tint width = m_dma_state.width;\n\t\tint ix = 0;\n\t\tint tx;\n\t\tuint32_t o = offset;\n\t\tint pre = 0, post = 0;\n\n\t\t// handle skipping\n\t\tif (Skip)\n\t\t{\n\t\t\tuint8_t const value = EXTRACTGEN(0xff);\n\t\t\to += 8;\n\n\t\t\t// adjust for preskip\n\t\t\tpre = (value & 0x0f) << m_dma_state.preskip;\n\t\t\ttx = pre;\n\t\t\tix += tx;\n\n\t\t\t// adjust for postskip\n\t\t\tpost = ((value >> 4) & 0x0f) << m_dma_state.postskip;\n\t\t\twidth -= post;\n\t\t\tendskip -= post;\n\t\t}\n\n\t\t// handle start skip\n\t\tif (ix < startskip)\n\t\t{\n\t\t\ttx = (startskip - ix);\n\t\t\tix += tx;\n\t\t\to += tx * bpp;\n\t\t}\n\n\t\t// handle end skip\n\t\tif (width > m_dma_state.width - m_dma_state.endskip)\n\t\t\twidth = m_dma_state.width - m_dma_state.endskip;\n\n\t\tbitmap_rgb32::pixel_t *d = &m_log_bitmap.pix(y, ix);\n\n\t\t// determine destination pointer\n\n\t\t// loop until we draw the entire width\n\t\twhile (ix < width)\n\t\t{\n\t\t\tif (Zero == NonZero)\n\t\t\t{\n\t\t\t\t// special case similar handling of zero/non-zero\n\t\t\t\tif (Zero == PIXEL_COLOR)\n\t\t\t\t\t*d = m_palette->palette()->entry_list_raw()[color];\n\t\t\t\telse if (Zero == PIXEL_COPY)\n\t\t\t\t\t*d = m_palette->palette()->entry_list_raw()[(EXTRACTGEN(mask)) | pal];\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t// otherwise, read the pixel and look\n\t\t\t\tint const pixel = (EXTRACTGEN(mask));\n\n\t\t\t\t// non-zero pixel case\n\t\t\t\tif (pixel)\n\t\t\t\t{\n\t\t\t\t\tif (NonZero == PIXEL_COLOR)\n\t\t\t\t\t\t*d = m_palette->palette()->entry_list_raw()[color];\n\t\t\t\t\telse if (NonZero == PIXEL_COPY)\n\t\t\t\t\t\t*d = m_palette->palette()->entry_list_raw()[pixel | pal];\n\t\t\t\t}\n\n\t\t\t\t// zero pixel case\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tif (Zero == PIXEL_COLOR)\n\t\t\t\t\t\t*d = m_palette->palette()->entry_list_raw()[color];\n\t\t\t\t\telse if (Zero == PIXEL_COPY)\n\t\t\t\t\t\t*d = m_palette->palette()->entry_list_raw()[pal];\n\t\t\t\t}\n\t\t\t}\n\n\t\t\t// advance to the next pixel\n\t\t\tix++;\n\t\t\td++;\n\t\t\to += bpp;\n\t\t}\n\n\t\t// advance to the next row\n\t\twidth = m_dma_state.width;\n\t\tif (Skip)\n\t\t{\n\t\t\toffset += 8;\n\t\t\twidth -= pre + post;\n\t\t\tif (width > 0) offset += width * bpp;\n\t\t}\n\t\telse\n\t\t{\n\t\t\toffset += width * bpp;\n\t\t}\n\t}\n\n\tutil::png_write_bitmap(file, nullptr, m_log_bitmap, 0, nullptr);\n\n\tif (m_log_json)\n\t{\n\t\trapidjson::StringBuffer s;\n\t\trapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);\n\t\temu_file json(m_log_path, OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);\n\n\t\tsnprintf(name_buf, 255, \"0x%08x.json\", raw_offset);\n\t\tauto const jsonerr = json.open(name_buf);\n\t\tif (jsonerr)\n\t\t{\n\t\t\treturn;\n\t\t}\n\n\t\twriter.StartObject();\n\t\twriter.Key(\"DMAState\");\n\t\twriter.StartObject();\n\n\t\tauto hex_buf = util::string_format(\"0x%08x\", raw_offset);\n\t\twriter.Key(\"MemoryAddress\");\n\t\twriter.String(hex_buf.c_str());\n\n\t\thex_buf = util::string_format(\"0x%08x\", m_dma_state.offset >> 3);\n\t\twriter.Key(\"ROMSourceOffsetByte\");\n\t\twriter.String(hex_buf.c_str());\n\n\t\twriter.Key(\"ROMSourceOffsetBit\");\n\t\twriter.Int(m_dma_state.offset & 7);\n\n\t\twriter.Key(\"Size\");\n\t\twriter.StartArray();\n\t\twriter.Int(m_dma_state.width);\n\t\twriter.Int(m_dma_state.height);\n\t\twriter.EndArray();\n\n\t\twriter.Key(\"BitsPerPixel\");\n\t\twriter.Uint(bpp);\n\n\t\twriter.Key(\"PaletteBank\");\n\t\twriter.Uint(m_dma_state.palette >> 8);\n\n\t\twriter.Key(\"FGColor\");\n\t\twriter.Uint(m_dma_state.color);\n\n\t\twriter.Key(\"YFlip\");\n\t\twriter.Bool(m_dma_state.yflip ? true : false);\n\n\t\twriter.Key(\"PreSkipScale\");\n\t\twriter.Uint(m_dma_state.preskip);\n\n\t\twriter.Key(\"PostSkipScale\");\n\t\twriter.Uint(m_dma_state.postskip);\n\n\t\twriter.Key(\"RowSkipBits\");\n\t\twriter.Int(m_dma_state.rowbits);\n\n\t\twriter.Key(\"StartPixelsToSkip\");\n\t\twriter.Int(m_dma_state.startskip);\n\n\t\twriter.Key(\"EndPixelsToSkip\");\n\t\twriter.Int(m_dma_state.endskip);\n\n\t\twriter.EndObject();\n\t\twriter.EndObject();\n\n\t\tjson.puts(s.GetString());\n\t\tjson.close();\n\t}"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range10",
+      "label": "AddressRange",
+      "props": {
+        "start": 28311552,
+        "end": 28311583,
+        "raw": "map(0x01b00000, 0x01b0001f).w(m_video, FUNC(midtunit_video_device::midtunit_control_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 56,
+        "sourceColumn": 2,
+        "sourceEndLine": 56
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.midtunit_control_w",
+      "label": "Handler",
+      "props": {
+        "method": "midtunit_control_w",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 351,
+        "sourceColumn": 1,
+        "sourceEndLine": 369,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "/*\n\t    other important bits:\n\t        bit 2 (0x0004) is toggled periodically\n\t*/\n\tLOGCTRL(\"T-unit control = %04X\\n\", data);\n\n\tCOMBINE_DATA(&m_midtunit_control);\n\n\t// gfx bank select is bit 7\n\tif (!(m_midtunit_control & 0x0080) || !m_gfx_rom_large)\n\t\tm_gfxbank_offset[0] = 0x000000;\n\telse\n\t\tm_gfxbank_offset[0] = 0x800000;\n\n\t// video bank select is bit 5\n\tm_videobank_select = (m_midtunit_control >> 5) & 1;"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range11",
+      "label": "AddressRange",
+      "props": {
+        "start": 30937184,
+        "end": 30937215,
+        "raw": "map(0x01d81060, 0x01d8107f).w(\"watchdog\", FUNC(watchdog_timer_device::reset16_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 58,
+        "sourceColumn": 2,
+        "sourceEndLine": 58
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset16_w",
+      "label": "Handler",
+      "props": {
+        "method": "reset16_w",
+        "ownerClass": "watchdog_timer_device",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 58,
+        "sourceColumn": 2,
+        "sourceEndLine": 58
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range12",
+      "label": "AddressRange",
+      "props": {
+        "start": 32505856,
+        "end": 32505887,
+        "raw": "map(0x01f00000, 0x01f0001f).w(m_video, FUNC(midtunit_video_device::midtunit_control_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 59,
+        "sourceColumn": 2,
+        "sourceEndLine": 59
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range13",
+      "label": "AddressRange",
+      "props": {
+        "start": 33554432,
+        "end": 134217727,
+        "raw": "map(0x02000000, 0x07ffffff).r(m_video, FUNC(midtunit_video_device::midtunit_gfxrom_r)).share(\"video\")",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 60,
+        "sourceColumn": 2,
+        "sourceEndLine": 60,
+        "share": "video"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.midtunit_gfxrom_r",
+      "label": "Handler",
+      "props": {
+        "method": "midtunit_gfxrom_r",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 238,
+        "sourceColumn": 1,
+        "sourceEndLine": 243,
+        "sourceParameters": "offs_t offset",
+        "sourceBody": "uint8_t const *const base = &m_gfxrom[m_gfxbank_offset[(offset >> 21) & 1]];\n\toffset = (offset & 0x01fffff) * 2;\n\treturn base[offset] | (base[offset + 1] << 8);"
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range14",
+      "label": "AddressRange",
+      "props": {
+        "start": 528482304,
+        "end": 536870911,
+        "raw": "map(0x1f800000, 0x1fffffff).rom().region(\"maincpu\", 0)",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 61,
+        "sourceColumn": 2,
+        "sourceEndLine": 61,
+        "rom": true,
+        "region": "maincpu",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:midtunit_base_state.main_map/range15",
+      "label": "AddressRange",
+      "props": {
+        "start": 4286578688,
+        "end": 4294967295,
+        "raw": "map(0xff800000, 0xffffffff).rom().region(\"maincpu\", 0)",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 62,
+        "sourceColumn": 2,
+        "sourceEndLine": 62,
+        "rom": true,
+        "region": "maincpu",
+        "regionOffset": 0
+      }
+    },
+    {
+      "id": "map:midtunit_adpcm_state.main_adpcm_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "midtunit_adpcm_state",
+        "name": "main_adpcm_map",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 65,
+        "sourceColumn": 1,
+        "sourceEndLine": 71,
+        "calls": [
+          "main_map"
+        ]
+      }
+    },
+    {
+      "id": "map:midtunit_adpcm_state.main_adpcm_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 30408704,
+        "end": 30408735,
+        "raw": "map(0x01d00000, 0x01d0001f).r(FUNC(midtunit_adpcm_state::sound_state_r))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 69,
+        "sourceColumn": 2,
+        "sourceEndLine": 69
+      }
+    },
+    {
+      "id": "handler:midtunit_adpcm_state.sound_state_r",
+      "label": "Handler",
+      "props": {
+        "method": "sound_state_r",
+        "ownerClass": "midtunit_adpcm_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 527,
+        "sourceColumn": 1,
+        "sourceEndLine": 538,
+        "sourceParameters": "",
+        "sourceBody": "//  LOGSOUND(\"%s:Sound status read\\n\", machine().describe_context());\n\n\tif (m_fake_sound_state)\n\t{\n\t\tif (!machine().side_effects_disabled())\n\t\t\tm_fake_sound_state--;\n\t\treturn 0;\n\t}\n\treturn ~0;"
+      }
+    },
+    {
+      "id": "map:midtunit_adpcm_state.main_adpcm_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 30412832,
+        "end": 30412863,
+        "raw": "map(0x01d01020, 0x01d0103f).rw(FUNC(midtunit_adpcm_state::sound_r), FUNC(midtunit_adpcm_state::sound_w))",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 70,
+        "sourceColumn": 2,
+        "sourceEndLine": 70
+      }
+    },
+    {
+      "id": "handler:midtunit_adpcm_state.sound_r",
+      "label": "Handler",
+      "props": {
+        "method": "sound_r",
+        "ownerClass": "midtunit_adpcm_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 540,
+        "sourceColumn": 1,
+        "sourceEndLine": 546,
+        "sourceParameters": "",
+        "sourceBody": "if (!machine().side_effects_disabled())\n\t\tLOGSOUND(\"%08X:Sound data read\\n\", m_maincpu->pc());\n\n\treturn ~0;"
+      }
+    },
+    {
+      "id": "handler:midtunit_adpcm_state.sound_w",
+      "label": "Handler",
+      "props": {
+        "method": "sound_w",
+        "ownerClass": "midtunit_adpcm_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 548,
+        "sourceColumn": 1,
+        "sourceEndLine": 566,
+        "sourceParameters": "offs_t offset, uint16_t data, uint16_t mem_mask",
+        "sourceBody": "// check for out-of-bounds accesses\n\tif (!offset)\n\t{\n\t\tLOGSOUND(\"%08X:Unexpected write to sound (lo) = %04X\\n\", m_maincpu->pc(), data);\n\t\treturn;\n\t}\n\n\t// call through based on the sound type\n\tif (ACCESSING_BITS_0_7 && ACCESSING_BITS_8_15)\n\t{\n\t\tm_adpcm_sound->reset_write(~data & 0x100);\n\t\tm_adpcm_sound->write(data & 0xff);\n\n\t\t// the games seem to check for $82 loops, so this should be just barely enough\n\t\tm_fake_sound_state = 128;\n\t}"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.reset_write",
+      "label": "Handler",
+      "props": {
+        "method": "reset_write",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 657,
+        "sourceColumn": 1,
+        "sourceEndLine": 670,
+        "sourceParameters": "int state",
+        "sourceBody": "// going high halts the CPU\n\tif (state)\n\t{\n\t\tbank_select_w(0);\n\t\tdevice_reset();\n\t\tm_cpu->set_input_line(INPUT_LINE_RESET, ASSERT_LINE);\n\t}\n\n\t// going low resets and reactivates the CPU\n\telse\n\t\tm_cpu->set_input_line(INPUT_LINE_RESET, CLEAR_LINE);"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.bank_select_w",
+      "label": "Handler",
+      "props": {
+        "method": "bank_select_w",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 688,
+        "sourceColumn": 1,
+        "sourceEndLine": 691,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_rombank->set_entry(data & 0x07);"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.device_reset",
+      "label": "Handler",
+      "props": {
+        "method": "device_reset",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 820,
+        "sourceColumn": 1,
+        "sourceEndLine": 830,
+        "sourceConstants": [
+          "M6809_IRQ_LINE=0",
+          "M6809_FIRQ_LINE=1"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "// reset interrupt states\n\tm_sound_int_state = 0;\n\tm_cpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);\n\tm_cpu->set_input_line(M6809_IRQ_LINE, CLEAR_LINE);\n\tm_cpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);\n\n\tm_sync_command_timer->adjust(attotime::never);\n\tm_irq_clear_timer->adjust(attotime::never);"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 647,
+        "sourceColumn": 1,
+        "sourceEndLine": 650,
+        "sourceParameters": "u16 data",
+        "sourceBody": "m_sync_command_timer->adjust(attotime::zero, data);"
+      }
+    },
+    {
+      "id": "handler:ym2151_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 2,
+        "sourceEndLine": 740
+      }
+    },
+    {
+      "id": "handler:ym2151_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "ym2151_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 2,
+        "sourceEndLine": 740
+      }
+    },
+    {
+      "id": "handler:dac_byte_interface.data_w",
+      "label": "Handler",
+      "props": {
+        "method": "data_w",
+        "ownerClass": "dac_byte_interface",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 1242,
+        "sourceColumn": 2,
+        "sourceEndLine": 1242
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "williams_adpcm_sound_device",
+        "name": "williams_adpcm_map",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 736,
+        "sourceColumn": 1,
+        "sourceEndLine": 748
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 8191,
+        "raw": "map(0x0000, 0x1fff).ram()",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 738,
+        "sourceColumn": 2,
+        "sourceEndLine": 738,
+        "ram": true
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 8192,
+        "end": 8192,
+        "raw": "map(0x2000, 0x2000).mirror(0x03ff).w(FUNC(williams_adpcm_sound_device::bank_select_w))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 739,
+        "sourceColumn": 2,
+        "sourceEndLine": 739,
+        "mirror": 1023
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range2",
+      "label": "AddressRange",
+      "props": {
+        "start": 9216,
+        "end": 9217,
+        "raw": "map(0x2400, 0x2401).mirror(0x03fe).rw(\"ym2151\", FUNC(ym2151_device::read), FUNC(ym2151_device::write))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 740,
+        "sourceColumn": 2,
+        "sourceEndLine": 740,
+        "mirror": 1022
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range3",
+      "label": "AddressRange",
+      "props": {
+        "start": 10240,
+        "end": 10240,
+        "raw": "map(0x2800, 0x2800).mirror(0x03ff).w(\"dac\", FUNC(dac_byte_interface::data_w))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 741,
+        "sourceColumn": 2,
+        "sourceEndLine": 741,
+        "mirror": 1023
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range4",
+      "label": "AddressRange",
+      "props": {
+        "start": 11264,
+        "end": 11264,
+        "raw": "map(0x2c00, 0x2c00).mirror(0x03ff).rw(\"oki\", FUNC(okim6295_device::read), FUNC(okim6295_device::write))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742,
+        "mirror": 1023
+      }
+    },
+    {
+      "id": "handler:okim6295_device.read",
+      "label": "Handler",
+      "props": {
+        "method": "read",
+        "ownerClass": "okim6295_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742
+      }
+    },
+    {
+      "id": "handler:okim6295_device.write",
+      "label": "Handler",
+      "props": {
+        "method": "write",
+        "ownerClass": "okim6295_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 742,
+        "sourceColumn": 2,
+        "sourceEndLine": 742
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range5",
+      "label": "AddressRange",
+      "props": {
+        "start": 12288,
+        "end": 12288,
+        "raw": "map(0x3000, 0x3000).mirror(0x03ff).r(FUNC(williams_adpcm_sound_device::command_r))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 743,
+        "sourceColumn": 2,
+        "sourceEndLine": 743,
+        "mirror": 1023
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.command_r",
+      "label": "Handler",
+      "props": {
+        "method": "command_r",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 710,
+        "sourceColumn": 1,
+        "sourceEndLine": 718,
+        "sourceConstants": [
+          "M6809_IRQ_LINE=0"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "m_cpu->set_input_line(M6809_IRQ_LINE, CLEAR_LINE);\n\n\t// don't clear the external IRQ state for a short while; this allows the\n\t// self-tests to pass\n\tm_irq_clear_timer->adjust(attotime::from_usec(10));\n\treturn m_latch;"
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range6",
+      "label": "AddressRange",
+      "props": {
+        "start": 13312,
+        "end": 13312,
+        "raw": "map(0x3400, 0x3400).mirror(0x03ff).w(FUNC(williams_adpcm_sound_device::oki6295_bank_select_w))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 744,
+        "sourceColumn": 2,
+        "sourceEndLine": 744,
+        "mirror": 1023
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.oki6295_bank_select_w",
+      "label": "Handler",
+      "props": {
+        "method": "oki6295_bank_select_w",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 699,
+        "sourceColumn": 1,
+        "sourceEndLine": 702,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_okibank->set_entry(data & 7);"
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range7",
+      "label": "AddressRange",
+      "props": {
+        "start": 15360,
+        "end": 15360,
+        "raw": "map(0x3c00, 0x3c00).mirror(0x03ff).w(FUNC(williams_adpcm_sound_device::talkback_w))",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 745,
+        "sourceColumn": 2,
+        "sourceEndLine": 745,
+        "mirror": 1023
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.talkback_w",
+      "label": "Handler",
+      "props": {
+        "method": "talkback_w",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 725,
+        "sourceColumn": 1,
+        "sourceEndLine": 729,
+        "sourceParameters": "u8 data",
+        "sourceBody": "m_talkback = data;\n\tlogerror(\"ADPCM Talkback = %02X\\n\", data);"
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range8",
+      "label": "AddressRange",
+      "props": {
+        "start": 16384,
+        "end": 49151,
+        "raw": "map(0x4000, 0xbfff).bankr(\"rombank\")",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 746,
+        "sourceColumn": 2,
+        "sourceEndLine": 746,
+        "bankRead": "rombank"
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_map/range9",
+      "label": "AddressRange",
+      "props": {
+        "start": 49152,
+        "end": 65535,
+        "raw": "map(0xc000, 0xffff).bankr(\"romupper\")",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 747,
+        "sourceColumn": 2,
+        "sourceEndLine": 747,
+        "bankRead": "romupper"
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_oki_map",
+      "label": "AddressMap",
+      "props": {
+        "cls": "williams_adpcm_sound_device",
+        "name": "williams_adpcm_oki_map",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 1,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_oki_map/range0",
+      "label": "AddressRange",
+      "props": {
+        "start": 0,
+        "end": 131071,
+        "raw": "map(0x00000, 0x1ffff).bankr(\"okibank\")",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 757,
+        "sourceColumn": 2,
+        "sourceEndLine": 757,
+        "bankRead": "okibank"
+      }
+    },
+    {
+      "id": "map:williams_adpcm_sound_device.williams_adpcm_oki_map/range1",
+      "label": "AddressRange",
+      "props": {
+        "start": 131072,
+        "end": 262143,
+        "raw": "map(0x20000, 0x3ffff).rom().region(\"oki\", 0x60000)",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 758,
+        "sourceColumn": 2,
+        "sourceEndLine": 758,
+        "rom": true,
+        "region": "oki",
+        "regionOffset": 393216
+      }
+    },
+    {
+      "id": "machine:midtunit_base_state.tunit_core",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "midtunit_base_state",
+        "name": "tunit_core",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_cmos_write_enable\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 1,
+        "sourceEndLine": 633
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/video",
+      "label": "Device",
+      "props": {
+        "type": "MIDTUNIT_VIDEO",
+        "tag": "video",
+        "clock": null,
+        "config": [
+          "MIDTUNIT_VIDEO(config, m_video, m_palette)",
+          "m_video->dma_irq_cb().set_inputline(m_maincpu, 0)"
+        ],
+        "member": "m_video",
+        "cls": "midtunit_video_device",
+        "clsHierarchy": [
+          "midtunit_video_device"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 608,
+        "sourceColumn": 2,
+        "sourceEndLine": 608,
+        "clockExpr": "m_palette",
+        "startHandler": "midtunit_video_device.device_start",
+        "deviceTimers": [
+          "m_dma_timer=midtunit_video_device.dma_done"
+        ]
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/video/callback:video:0",
+      "label": "Callback",
+      "props": {
+        "signal": "dma_irq_cb",
+        "operation": "set_inputline",
+        "raw": "m_video->dma_irq_cb().set_inputline(m_maincpu, 0)",
+        "ownerTag": "video",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 609,
+        "sourceColumn": 2,
+        "sourceEndLine": 609,
+        "inputLine": "0",
+        "targetTag": "maincpu"
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/maincpu",
+      "label": "Device",
+      "props": {
+        "type": "TMS34010",
+        "tag": "maincpu",
+        "clock": 50000000,
+        "config": [
+          "TMS34010(config, m_maincpu, CPU_CLOCK)",
+          "m_maincpu->set_halt_on_reset(false)",
+          "m_maincpu->set_pixel_clock(PIXEL_CLOCK)",
+          "m_maincpu->set_pixels_per_clock(2)",
+          "m_maincpu->set_scanline_ind16_callback(m_video, FUNC(midtunit_video_device::scanline_update))",
+          "m_maincpu->set_shiftreg_in_callback(m_video, FUNC(midtunit_video_device::to_shiftreg))",
+          "m_maincpu->set_shiftreg_out_callback(m_video, FUNC(midtunit_video_device::from_shiftreg))",
+          "m_maincpu->set_screen(\"screen\")"
+        ],
+        "member": "m_maincpu",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 612,
+        "sourceColumn": 2,
+        "sourceEndLine": 612,
+        "configCalls": [
+          "set_pixel_clock(4000000)",
+          "set_pixels_per_clock(2)",
+          "set_screen(\"screen\")"
+        ]
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_scanline_ind16_callback",
+        "delegate": 1,
+        "operation": "set_scanline_ind16_callback",
+        "raw": "m_maincpu->set_scanline_ind16_callback(m_video, FUNC(midtunit_video_device::scanline_update))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 2,
+        "sourceEndLine": 616,
+        "targetClass": "midtunit_video_device",
+        "targetMethod": "scanline_update",
+        "targetTag": "video"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.scanline_update",
+      "label": "Handler",
+      "props": {
+        "method": "scanline_update",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 616,
+        "sourceColumn": 2,
+        "sourceEndLine": 616
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:1",
+      "label": "Callback",
+      "props": {
+        "signal": "set_shiftreg_in_callback",
+        "delegate": 1,
+        "operation": "set_shiftreg_in_callback",
+        "raw": "m_maincpu->set_shiftreg_in_callback(m_video, FUNC(midtunit_video_device::to_shiftreg))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 2,
+        "sourceEndLine": 617,
+        "targetClass": "midtunit_video_device",
+        "targetMethod": "to_shiftreg",
+        "targetTag": "video"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.to_shiftreg",
+      "label": "Handler",
+      "props": {
+        "method": "to_shiftreg",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 617,
+        "sourceColumn": 2,
+        "sourceEndLine": 617
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:2",
+      "label": "Callback",
+      "props": {
+        "signal": "set_shiftreg_out_callback",
+        "delegate": 1,
+        "operation": "set_shiftreg_out_callback",
+        "raw": "m_maincpu->set_shiftreg_out_callback(m_video, FUNC(midtunit_video_device::from_shiftreg))",
+        "ownerTag": "maincpu",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618,
+        "targetClass": "midtunit_video_device",
+        "targetMethod": "from_shiftreg",
+        "targetTag": "video"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.from_shiftreg",
+      "label": "Handler",
+      "props": {
+        "method": "from_shiftreg",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 618,
+        "sourceColumn": 2,
+        "sourceEndLine": 618
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/nvram",
+      "label": "Device",
+      "props": {
+        "type": "NVRAM",
+        "tag": "nvram",
+        "clock": null,
+        "config": [
+          "NVRAM(config, \"nvram\", nvram_device::DEFAULT_ALL_0)"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 621,
+        "sourceColumn": 2,
+        "sourceEndLine": 621,
+        "clockExpr": "nvram_device::DEFAULT_ALL_0"
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/watchdog",
+      "label": "Device",
+      "props": {
+        "type": "WATCHDOG_TIMER",
+        "tag": "watchdog",
+        "clock": null,
+        "config": [
+          "WATCHDOG_TIMER(config, \"watchdog\")"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 623,
+        "sourceColumn": 2,
+        "sourceEndLine": 623
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/palette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "palette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_palette).set_format(palette_device::xRGB_555, 32768)"
+        ],
+        "member": "m_palette",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 626,
+        "sourceColumn": 2,
+        "sourceEndLine": 626,
+        "paletteEntries": 32768
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/screen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "screen",
+        "clock": null,
+        "config": [
+          "screen_device &screen(SCREEN(config, \"screen\", SCREEN_TYPE_RASTER))",
+          "screen.set_raw(PIXEL_CLOCK * 2, 506, 100, 500, 289, 20, 274)",
+          "screen.set_screen_update(\"maincpu\", FUNC(tms34010_device::tms340x0_ind16))",
+          "screen.set_palette(m_palette)"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 628,
+        "sourceColumn": 2,
+        "sourceEndLine": 628,
+        "configCalls": [
+          "set_raw(8000000,506,100,500,289,20,274)",
+          "set_palette(\"palette\")"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          8000000,
+          506,
+          100,
+          500,
+          289,
+          20,
+          274
+        ],
+        "screenRawExpr": [
+          "PIXEL_CLOCK * 2",
+          "506",
+          "100",
+          "500",
+          "289",
+          "20",
+          "274"
+        ]
+      }
+    },
+    {
+      "id": "device:midtunit_base_state.tunit_core/screen/callback:screen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "screen.set_screen_update(\"maincpu\", FUNC(tms34010_device::tms340x0_ind16))",
+        "ownerTag": "screen",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 2,
+        "sourceEndLine": 631,
+        "targetTag": "maincpu",
+        "targetClass": "tms34010_device",
+        "targetMethod": "tms340x0_ind16",
+        "indexed": 1
+      }
+    },
+    {
+      "id": "handler:tms34010_device.tms340x0_ind16",
+      "label": "Handler",
+      "props": {
+        "method": "tms340x0_ind16",
+        "ownerClass": "tms34010_device",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 631,
+        "sourceColumn": 2,
+        "sourceEndLine": 631
+      }
+    },
+    {
+      "id": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "midtunit_adpcm_state",
+        "name": "tunit_adpcm",
+        "calls": [
+          "tunit_core"
+        ],
+        "stateMembers": [
+          "{\"name\":\"m_cmos_write_enable\",\"bits\":8}",
+          "{\"name\":\"m_fake_sound_state\",\"bits\":8}",
+          "{\"name\":\"m_mk_prot_index\",\"bits\":8}",
+          "{\"name\":\"m_nbajam_prot_queue\",\"bits\":16,\"arrayLength\":5}",
+          "{\"name\":\"m_nbajam_prot_index\",\"bits\":8}",
+          "{\"name\":\"m_jdredd_prot_index\",\"bits\":8}",
+          "{\"name\":\"m_jdredd_prot_max\",\"bits\":8}"
+        ],
+        "resetHandlers": [
+          "midtunit_adpcm_state.machine_reset"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 1,
+        "sourceEndLine": 646
+      }
+    },
+    {
+      "id": "handler:midtunit_adpcm_state.machine_reset",
+      "label": "Handler",
+      "props": {
+        "method": "machine_reset",
+        "ownerClass": "midtunit_adpcm_state",
+        "sourceFile": "src/mame/williams/midtunit_m.cpp",
+        "sourceLine": 501,
+        "sourceColumn": 1,
+        "sourceEndLine": 508,
+        "sourceParameters": "",
+        "sourceBody": "midtunit_base_state::machine_reset();\n\n\t// reset sound\n\tm_adpcm_sound->reset_write(1);\n\tm_adpcm_sound->reset_write(0);"
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/rombank",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "rombank",
+        "member": "m_rombank",
+        "startEntry": 0,
+        "entries": 8,
+        "region": "adpcm:cpu",
+        "offset": 65536,
+        "stride": 32768,
+        "raw": "m_rombank->configure_entries(0, 8, &rom[0x10000], 0x8000)",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/romupper",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "romupper",
+        "member": "romupper",
+        "startEntry": 0,
+        "entries": 1,
+        "region": "adpcm:cpu",
+        "offset": 311296,
+        "stride": 0,
+        "raw": "membank(\"romupper\")->set_base(&rom[0x10000 + 0x4000 + 7 * 0x8000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/2",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 0,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 262144,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(0, &rom[0x40000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/3",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 1,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 262144,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(1, &rom[0x40000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/4",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 2,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 131072,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(2, &rom[0x20000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/5",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 3,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 0,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(3, &rom[0x00000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/6",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 4,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 917504,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(4, &rom[0xe0000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/7",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 5,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 786432,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(5, &rom[0xc0000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/8",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 6,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 655360,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(6, &rom[0xa0000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/9",
+      "label": "MemoryBank",
+      "props": {
+        "tag": "okibank",
+        "member": "m_okibank",
+        "startEntry": 7,
+        "entries": 1,
+        "region": "adpcm:oki",
+        "offset": 524288,
+        "stride": 0,
+        "raw": "m_okibank->configure_entry(7, &rom[0x80000])",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "id": "device:midtunit_adpcm_state.tunit_adpcm/speaker",
+      "label": "Device",
+      "props": {
+        "type": "SPEAKER",
+        "tag": "speaker",
+        "clock": null,
+        "config": [
+          "SPEAKER(config, \"speaker\").front_center()"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 643,
+        "sourceColumn": 2,
+        "sourceEndLine": 643
+      }
+    },
+    {
+      "id": "device:midtunit_adpcm_state.tunit_adpcm/adpcm",
+      "label": "Device",
+      "props": {
+        "type": "WILLIAMS_ADPCM_SOUND",
+        "tag": "adpcm",
+        "clock": null,
+        "config": [
+          "WILLIAMS_ADPCM_SOUND(config, m_adpcm_sound).add_route(ALL_OUTPUTS, \"speaker\", 1.0)"
+        ],
+        "member": "m_adpcm_sound",
+        "cls": "williams_adpcm_sound_device",
+        "clsHierarchy": [
+          "williams_adpcm_sound_device"
+        ],
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645,
+        "startHandler": "williams_adpcm_sound_device.device_start",
+        "deviceTimers": [
+          "m_sync_command_timer=williams_adpcm_sound_device.sync_command",
+          "m_irq_clear_timer=williams_adpcm_sound_device.irq_clear"
+        ]
+      }
+    },
+    {
+      "id": "audioroute:device:midtunit_adpcm_state.tunit_adpcm/adpcm/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "speaker",
+        "gain": 1,
+        "raw": "WILLIAMS_ADPCM_SOUND(config, m_adpcm_sound).add_route(ALL_OUTPUTS, \"speaker\", 1.0)",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 645,
+        "sourceColumn": 2,
+        "sourceEndLine": 645
+      }
+    },
+    {
+      "id": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "williams_adpcm_sound_device",
+        "name": "device_add_mconfig",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_latch\",\"bits\":8}",
+          "{\"name\":\"m_talkback\",\"bits\":8}",
+          "{\"name\":\"m_sound_int_state\",\"bits\":8}"
+        ],
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 766,
+        "sourceColumn": 1,
+        "sourceEndLine": 780
+      }
+    },
+    {
+      "id": "device:williams_adpcm_sound_device.device_add_mconfig/cpu",
+      "label": "Device",
+      "props": {
+        "type": "MC6809E",
+        "tag": "cpu",
+        "clock": 2000000,
+        "config": [
+          "MC6809E(config, m_cpu, ADPCM_MASTER_CLOCK / 4)",
+          "m_cpu->set_addrmap(AS_PROGRAM, &williams_adpcm_sound_device::williams_adpcm_map)"
+        ],
+        "member": "m_cpu",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 768,
+        "sourceColumn": 2,
+        "sourceEndLine": 768
+      }
+    },
+    {
+      "id": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151",
+      "label": "Device",
+      "props": {
+        "type": "YM2151",
+        "tag": "ym2151",
+        "clock": 3579545,
+        "config": [
+          "ym2151_device &ym2151(YM2151(config, \"ym2151\", ADPCM_FM_CLOCK))",
+          "ym2151.irq_handler().set_inputline(\"cpu\", M6809_FIRQ_LINE)",
+          "ym2151.add_route(ALL_OUTPUTS, *this, 0.10)"
+        ],
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 771,
+        "sourceColumn": 2,
+        "sourceEndLine": 771
+      }
+    },
+    {
+      "id": "audioroute:device:williams_adpcm_sound_device.device_add_mconfig/ym2151/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "^",
+        "gain": 0.1,
+        "raw": "ym2151.add_route(ALL_OUTPUTS, *this, 0.10)",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 773,
+        "sourceColumn": 2,
+        "sourceEndLine": 773
+      }
+    },
+    {
+      "id": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151/callback:ym2151:0",
+      "label": "Callback",
+      "props": {
+        "signal": "irq_handler",
+        "operation": "set_inputline",
+        "raw": "ym2151.irq_handler().set_inputline(\"cpu\", M6809_FIRQ_LINE)",
+        "ownerTag": "ym2151",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 772,
+        "sourceColumn": 2,
+        "sourceEndLine": 772,
+        "targetTag": "cpu",
+        "inputLine": "M6809_FIRQ_LINE"
+      }
+    },
+    {
+      "id": "device:williams_adpcm_sound_device.device_add_mconfig/dac",
+      "label": "Device",
+      "props": {
+        "type": "AD7524",
+        "tag": "dac",
+        "clock": 0,
+        "config": [
+          "AD7524(config, \"dac\", 0).add_route(ALL_OUTPUTS, *this, 0.10)"
+        ],
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 2,
+        "sourceEndLine": 775
+      }
+    },
+    {
+      "id": "audioroute:device:williams_adpcm_sound_device.device_add_mconfig/dac/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "^",
+        "gain": 0.1,
+        "raw": "AD7524(config, \"dac\", 0).add_route(ALL_OUTPUTS, *this, 0.10)",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 775,
+        "sourceColumn": 2,
+        "sourceEndLine": 775
+      }
+    },
+    {
+      "id": "device:williams_adpcm_sound_device.device_add_mconfig/oki",
+      "label": "Device",
+      "props": {
+        "type": "OKIM6295",
+        "tag": "oki",
+        "clock": 1000000,
+        "config": [
+          "okim6295_device &oki(OKIM6295(config, \"oki\", ADPCM_MASTER_CLOCK/8, okim6295_device::PIN7_HIGH))",
+          "oki.set_addrmap(0, &williams_adpcm_sound_device::williams_adpcm_oki_map)",
+          "oki.add_route(ALL_OUTPUTS, *this, 0.15)"
+        ],
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 777,
+        "sourceColumn": 2,
+        "sourceEndLine": 777
+      }
+    },
+    {
+      "id": "audioroute:device:williams_adpcm_sound_device.device_add_mconfig/oki/0",
+      "label": "AudioRoute",
+      "props": {
+        "output": "ALL_OUTPUTS",
+        "target": "^",
+        "gain": 0.15,
+        "raw": "oki.add_route(ALL_OUTPUTS, *this, 0.15)",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 779,
+        "sourceColumn": 2,
+        "sourceEndLine": 779
+      }
+    },
+    {
+      "id": "machine:midtunit_video_device.device_add_mconfig",
+      "label": "MachineConfig",
+      "props": {
+        "cls": "midtunit_video_device",
+        "name": "device_add_mconfig",
+        "calls": [],
+        "stateMembers": [
+          "{\"name\":\"m_midtunit_control\",\"bits\":16}",
+          "{\"name\":\"m_gfx_rom_large\",\"bits\":1}",
+          "{\"name\":\"m_gfxbank_offset\",\"bits\":32,\"arrayLength\":2}",
+          "{\"name\":\"m_videobank_select\",\"bits\":8}",
+          "{\"name\":\"m_dma_register\",\"bits\":16,\"arrayLength\":18}",
+          "{\"name\":\"m_dma_debug\",\"bits\":1}",
+          "{\"name\":\"m_doing_debug_dma\",\"bits\":1}",
+          "{\"name\":\"m_debug_dma_bpp\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_debug_dma_mode\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_debug_dma_command\",\"bits\":32,\"signed\":true}",
+          "{\"name\":\"m_log_png\",\"bits\":1}",
+          "{\"name\":\"m_log_json\",\"bits\":1}"
+        ],
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 42,
+        "sourceColumn": 1,
+        "sourceEndLine": 49
+      }
+    },
+    {
+      "id": "device:midtunit_video_device.device_add_mconfig/debugscreen",
+      "label": "Device",
+      "props": {
+        "type": "SCREEN",
+        "tag": "debugscreen",
+        "clock": null,
+        "config": [
+          "screen_device &debugscreen(SCREEN(config, \"debugscreen\", SCREEN_TYPE_RASTER))",
+          "debugscreen.set_raw(8000000 * 2, 506, 100, 500, 289, 20, 274)",
+          "debugscreen.set_screen_update(FUNC(midtunit_video_device::debug_screen_update))"
+        ],
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 44,
+        "sourceColumn": 2,
+        "sourceEndLine": 44,
+        "configCalls": [
+          "set_raw(16000000,506,100,500,289,20,274)"
+        ],
+        "clockExpr": "SCREEN_TYPE_RASTER",
+        "screenRaw": [
+          16000000,
+          506,
+          100,
+          500,
+          289,
+          20,
+          274
+        ],
+        "screenRawExpr": [
+          "8000000 * 2",
+          "506",
+          "100",
+          "500",
+          "289",
+          "20",
+          "274"
+        ]
+      }
+    },
+    {
+      "id": "device:midtunit_video_device.device_add_mconfig/debugscreen/callback:debugscreen:0",
+      "label": "Callback",
+      "props": {
+        "signal": "set_screen_update",
+        "operation": "set_screen_update",
+        "raw": "debugscreen.set_screen_update(FUNC(midtunit_video_device::debug_screen_update))",
+        "ownerTag": "debugscreen",
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 46,
+        "sourceColumn": 2,
+        "sourceEndLine": 46,
+        "targetClass": "midtunit_video_device",
+        "targetMethod": "debug_screen_update"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.debug_screen_update",
+      "label": "Handler",
+      "props": {
+        "method": "debug_screen_update",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 263,
+        "sourceColumn": 1,
+        "sourceEndLine": 279,
+        "sourceParameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+        "sourceBody": "do_dma_debug_inputs();\n\tconst pen_t *pens = m_debug_palette->pens();\n\tfor (int y = 0; y <= cliprect.max_y; y++)\n\t{\n\t\tuint32_t *dest = &bitmap.pix(y);\n\t\tuint16_t *src = &m_debug_videoram[y * 512];\n\t\tfor (int x = 0; x < cliprect.max_x; x++)\n\t\t{\n\t\t\t*dest = pens[*src & 0x7fff];\n\t\t\tsrc++;\n\t\t\tdest++;\n\t\t}\n\t}\n\treturn 0;"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.do_dma_debug_inputs",
+      "label": "Handler",
+      "props": {
+        "method": "do_dma_debug_inputs",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 70,
+        "sourceColumn": 1,
+        "sourceEndLine": 261,
+        "sourceParameters": "",
+        "sourceBody": "static const char* const mode_strs[0x20] = {\n\t\t\"None\", \"P0\", \"P1\", \"P0P1\", \"C0\", \"C0\", \"C0P1\", \"C0P1\", \"C1\", \"P0C1\", \"C1\", \"P0C1\", \"C0C1\", \"C0C1\", \"C0C1\", \"C0C1\",\n\t\t\"None\", \"P0F\", \"P1F\", \"P0P1F\", \"C0F\", \"C0F\", \"C0P1F\", \"C0P1F\", \"C1F\", \"P0C1F\", \"C1F\", \"P0C1F\", \"C0C1F\", \"C0C1F\", \"C0C1F\", \"C0C1F\"\n\t};\n\n\tbool do_blit = false;\n\tif (machine().input().code_pressed_once(KEYCODE_M))\n\t{\n\t\tm_dma_debug = !m_dma_debug;\n\t\tif (m_dma_debug)\n\t\t{\n\t\t\tfor (pen_t i = 0; i < 32768; i++)\n\t\t\t{\n\t\t\t\tm_debug_palette->set_pen_color(i, m_palette->pen_color(i));\n\t\t\t}\n\t\t\tdo_blit = true;\n\t\t}\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_O))\n\t{\n\t\tm_debug_dma_state.rowbits++;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA RowBits: %d\", m_debug_dma_state.rowbits);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_U))\n\t{\n\t\tm_debug_dma_state.rowbits--;\n\t\tif (m_debug_dma_state.rowbits < 0)\n\t\t\tm_debug_dma_state.rowbits = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA RowBits: %d\", m_debug_dma_state.rowbits);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_PGDN))\n\t{\n\t\tm_debug_dma_state.offset += 0x10000;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Offset: %08x\", m_debug_dma_state.offset);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_PGUP))\n\t{\n\t\tuint32_t old_offset = m_debug_dma_state.offset;\n\t\tm_debug_dma_state.offset -= 0x10000;\n\t\tif (old_offset < m_debug_dma_state.offset)\n\t\t\tm_debug_dma_state.offset = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Offset: %08x\", m_debug_dma_state.offset);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_END))\n\t{\n\t\tm_debug_dma_state.offset += 0x100;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Offset: %08x\", m_debug_dma_state.offset);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_HOME))\n\t{\n\t\tuint32_t old_offset = m_debug_dma_state.offset;\n\t\tm_debug_dma_state.offset -= 0x100;\n\t\tif (old_offset < m_debug_dma_state.offset)\n\t\t\tm_debug_dma_state.offset = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Offset: %08x\", m_debug_dma_state.offset);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_DEL))\n\t{\n\t\tm_debug_dma_state.offset++;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Offset: %08x\", m_debug_dma_state.offset);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_INSERT))\n\t{\n\t\tuint32_t old_offset = m_debug_dma_state.offset;\n\t\tm_debug_dma_state.offset--;\n\t\tif (old_offset < m_debug_dma_state.offset)\n\t\t\tm_debug_dma_state.offset = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Offset: %08x\", m_debug_dma_state.offset);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_RIGHT))\n\t{\n\t\tm_debug_dma_state.width += machine().input().code_pressed(KEYCODE_LCONTROL) ? 16 : 1;\n\t\tif (m_debug_dma_state.width > 512)\n\t\t\tm_debug_dma_state.width = 512;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Width: %d\", m_debug_dma_state.width);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_LEFT))\n\t{\n\t\tm_debug_dma_state.width -= machine().input().code_pressed(KEYCODE_LCONTROL) ? 16 : 1;\n\t\tif (m_debug_dma_state.width < 0)\n\t\t\tm_debug_dma_state.width = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Width: %d\", m_debug_dma_state.width);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_UP))\n\t{\n\t\tm_debug_dma_state.height += machine().input().code_pressed(KEYCODE_LCONTROL) ? 16 : 1;\n\t\tif (m_debug_dma_state.height > 512)\n\t\t\tm_debug_dma_state.height = 512;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Height: %d\", m_debug_dma_state.height);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_DOWN))\n\t{\n\t\tm_debug_dma_state.height -= machine().input().code_pressed(KEYCODE_LCONTROL) ? 16 : 1;\n\t\tif (m_debug_dma_state.height < 0)\n\t\t\tm_debug_dma_state.height = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Height: %d\", m_debug_dma_state.height);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_I))\n\t{\n\t\tm_debug_dma_state.palette += 0x0100;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Palette: %04x\", m_debug_dma_state.palette);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_K))\n\t{\n\t\tm_debug_dma_state.palette -= 0x0100;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Palette: %04x\", m_debug_dma_state.palette);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_L))\n\t{\n\t\tm_debug_dma_state.color++;\n\t\tif (m_debug_dma_state.color == 0x0100)\n\t\t\tm_debug_dma_state.color = 0;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Color: %02x\", m_debug_dma_state.color);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_J))\n\t{\n\t\tm_debug_dma_state.color--;\n\t\tif (m_debug_dma_state.color == 0xffff)\n\t\t\tm_debug_dma_state.color = 0x00ff;\n\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Color: %02x\", m_debug_dma_state.color);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_H))\n\t{\n\t\tm_debug_dma_bpp++;\n\t\tif (m_debug_dma_bpp > 7)\n\t\t\tm_debug_dma_bpp = 7;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA BitsPerPixel: %d\", m_debug_dma_bpp ? m_debug_dma_bpp : 8);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_G))\n\t{\n\t\tm_debug_dma_bpp--;\n\t\tif (m_debug_dma_bpp < 0)\n\t\t\tm_debug_dma_bpp = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA BitsPerPixel: %d\", m_debug_dma_bpp ? m_debug_dma_bpp : 8);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_Y))\n\t{\n\t\tm_debug_dma_mode++;\n\t\tif (m_debug_dma_mode > 0x1f)\n\t\t\tm_debug_dma_mode = 0x1f;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Mode: %s (%02x)\", mode_strs[m_debug_dma_mode], m_debug_dma_mode);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_T))\n\t{\n\t\tm_debug_dma_mode--;\n\t\tif (m_debug_dma_mode < 0)\n\t\t\tm_debug_dma_mode = 0;\n\t\telse\n\t\t\tdo_blit = true;\n\t\tpopmessage(\"DMA Mode: %s (%02x)\", mode_strs[m_debug_dma_mode], m_debug_dma_mode);\n\t}\n\telse if (machine().input().code_pressed_once(KEYCODE_F))\n\t{\n\t\tm_debug_dma_state.yflip = 1 - m_debug_dma_state.yflip;\n\t\tdo_blit = true;\n\t}\n\n\tif (do_blit)\n\t\tdo_debug_blit();"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.do_debug_blit",
+      "label": "Handler",
+      "props": {
+        "method": "do_debug_blit",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 60,
+        "sourceColumn": 1,
+        "sourceEndLine": 68,
+        "sourceParameters": "",
+        "sourceBody": "m_dma_state = m_debug_dma_state;\n\tm_debug_dma_command = m_debug_dma_mode * 8 + m_debug_dma_bpp;\n\tm_doing_debug_dma = true;\n\tmemset(&m_debug_videoram[0], 0, 0x100000);\n\t((this)->*(m_dma_draw_noskip_noscale[m_debug_dma_command]))();\n\tm_doing_debug_dma = false;"
+      }
+    },
+    {
+      "id": "device:midtunit_video_device.device_add_mconfig/debugpalette",
+      "label": "Device",
+      "props": {
+        "type": "PALETTE",
+        "tag": "debugpalette",
+        "clock": null,
+        "config": [
+          "PALETTE(config, m_debug_palette).set_format(palette_device::xRGB_555, 32768)"
+        ],
+        "member": "m_debug_palette",
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 48,
+        "sourceColumn": 2,
+        "sourceEndLine": 48,
+        "paletteEntries": 32768
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.device_start",
+      "label": "Handler",
+      "props": {
+        "method": "device_start",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 191,
+        "sourceColumn": 1,
+        "sourceEndLine": 222,
+        "sourceConstants": [
+          "DEBUG_MIDTUNIT_BLITTER=0"
+        ],
+        "sourceParameters": "",
+        "sourceBody": "debug_init();\n\n\t// allocate memory\n\tm_local_videoram = std::make_unique<uint16_t[]>(0x100000/2);\n\n#if DEBUG_MIDTUNIT_BLITTER\n\tm_debug_videoram = std::make_unique<uint16_t[]>(0x100000/2);\n#endif\n\n\tm_logged_rom.reset();\n\tm_log_png = false;\n\n\tm_dma_timer = timer_alloc(FUNC(midtunit_video_device::dma_done), this);\n\n\t// reset all the globals\n\tmemset(&m_dma_state, 0, sizeof(dma_state));\n\tm_dma_state.gfxrom = &m_gfxrom[0];\n\n\t// register for state saving\n\tsave_item(NAME(m_midtunit_control));\n\tsave_item(NAME(m_gfxbank_offset));\n\tsave_pointer(NAME(m_local_videoram), 0x100000/sizeof(m_local_videoram[0]));\n\tsave_item(NAME(m_videobank_select));\n\tsave_item(NAME(m_dma_register));\n\n\tINIT_TEMPLATED_DMA_DRAW_GROUP(m_dma_draw_skip_scale,     true,  true);\n\tINIT_TEMPLATED_DMA_DRAW_GROUP(m_dma_draw_noskip_scale,   false, true);\n\tINIT_TEMPLATED_DMA_DRAW_GROUP(m_dma_draw_skip_noscale,   true,  false);\n\tINIT_TEMPLATED_DMA_DRAW_GROUP(m_dma_draw_noskip_noscale, false, false);"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.debug_init",
+      "label": "Handler",
+      "props": {
+        "method": "debug_init",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 91,
+        "sourceColumn": 1,
+        "sourceEndLine": 98,
+        "sourceParameters": "",
+        "sourceBody": "if (machine().debug_flags & DEBUG_FLAG_ENABLED)\n\t{\n\t\tusing namespace std::placeholders;\n\t\tmachine().debugger().console().register_command(\"midblit\", CMDFLAG_CUSTOM_HELP, 1, 4, std::bind(&midtunit_video_device::debug_commands, this, _1));\n\t}"
+      }
+    },
+    {
+      "id": "handler:midtunit_video_device.dma_done",
+      "label": "Handler",
+      "props": {
+        "method": "dma_done",
+        "ownerClass": "midtunit_video_device",
+        "sourceFile": "src/mame/williams/midtunit_v.cpp",
+        "sourceLine": 626,
+        "sourceColumn": 1,
+        "sourceEndLine": 630,
+        "sourceConstants": [
+          "DMA_COMMAND=1"
+        ],
+        "sourceParameters": "int param",
+        "sourceBody": "m_dma_register[DMA_COMMAND] &= ~0x8000; // tell the cpu we're done\n\tm_dma_irq_cb(ASSERT_LINE);"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.device_start",
+      "label": "Handler",
+      "props": {
+        "method": "device_start",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813,
+        "sourceParameters": "",
+        "sourceBody": "// configure banks\n\tu8 *rom = memregion(\"cpu\")->base();\n\tm_rombank->configure_entries(0, 8, &rom[0x10000], 0x8000);\n\tmembank(\"romupper\")->set_base(&rom[0x10000 + 0x4000 + 7 * 0x8000]);\n\n\t// expand ADPCM data\n\trom = memregion(\"oki\")->base();\n\t// it is assumed that U12 is loaded @ 0x00000 and U13 is loaded @ 0x40000\n\tm_okibank->configure_entry(0, &rom[0x40000]);\n\tm_okibank->configure_entry(1, &rom[0x40000]);\n\tm_okibank->configure_entry(2, &rom[0x20000]);\n\tm_okibank->configure_entry(3, &rom[0x00000]);\n\tm_okibank->configure_entry(4, &rom[0xe0000]);\n\tm_okibank->configure_entry(5, &rom[0xc0000]);\n\tm_okibank->configure_entry(6, &rom[0xa0000]);\n\tm_okibank->configure_entry(7, &rom[0x80000]);\n\n\t// register for save states\n\tsave_item(NAME(m_latch));\n\tsave_item(NAME(m_talkback));\n\tsave_item(NAME(m_sound_int_state));\n\n\tm_sync_command_timer = timer_alloc(FUNC(williams_adpcm_sound_device::sync_command), this);\n\tm_irq_clear_timer = timer_alloc(FUNC(williams_adpcm_sound_device::irq_clear), this);"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.sync_command",
+      "label": "Handler",
+      "props": {
+        "method": "sync_command",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 837,
+        "sourceColumn": 1,
+        "sourceEndLine": 846,
+        "sourceConstants": [
+          "M6809_IRQ_LINE=0"
+        ],
+        "sourceParameters": "int param",
+        "sourceBody": "m_latch = param & 0xff;\n\tif (!(param & 0x200))\n\t{\n\t\tm_cpu->set_input_line(M6809_IRQ_LINE, ASSERT_LINE);\n\t\tm_sound_int_state = 1;\n\t\tmachine().scheduler().perfect_quantum(attotime::from_usec(100));\n\t}"
+      }
+    },
+    {
+      "id": "handler:williams_adpcm_sound_device.irq_clear",
+      "label": "Handler",
+      "props": {
+        "method": "irq_clear",
+        "ownerClass": "williams_adpcm_sound_device",
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 848,
+        "sourceColumn": 1,
+        "sourceEndLine": 851,
+        "sourceParameters": "int param",
+        "sourceBody": "m_sound_int_state = 0;"
+      }
+    },
+    {
+      "id": "inputs:mk",
+      "label": "InputPorts",
+      "props": {
+        "name": "mk",
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 89,
+        "sourceColumn": 8,
+        "sourceEndLine": 89
+      }
+    },
+    {
+      "id": "inputs:mk/IN0",
+      "label": "Port",
+      "props": {
+        "tag": "IN0",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"P1 High Punch\")",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"P1 Block\")",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_NAME(\"P1 High Kick\")",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_UP",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_DOWN",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_LEFT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_JOYSTICK_RIGHT",
+        "modifiers": [
+          "PORT_8WAY",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4096,
+        "activeLow": true,
+        "type": "IPT_BUTTON1",
+        "modifiers": [
+          "PORT_NAME(\"P2 High Punch\")",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 4096
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8192,
+        "activeLow": true,
+        "type": "IPT_BUTTON2",
+        "modifiers": [
+          "PORT_NAME(\"P2 Block\")",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 8192
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f14",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_BUTTON3",
+        "modifiers": [
+          "PORT_NAME(\"P2 High Kick\")",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:mk/IN0/f15",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:mk/IN1",
+      "label": "Port",
+      "props": {
+        "tag": "IN1",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1,
+        "activeLow": true,
+        "type": "IPT_COIN1",
+        "defaultValue": 1
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2,
+        "activeLow": true,
+        "type": "IPT_COIN2",
+        "defaultValue": 2
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4,
+        "activeLow": true,
+        "type": "IPT_START1",
+        "defaultValue": 4
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8,
+        "activeLow": true,
+        "type": "IPT_TILT",
+        "defaultValue": 8
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "service",
+        "mask": 16,
+        "activeLow": true,
+        "defaultValue": 16
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32,
+        "activeLow": true,
+        "type": "IPT_START2",
+        "defaultValue": 32
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 64,
+        "activeLow": true,
+        "type": "IPT_SERVICE1",
+        "defaultValue": 64
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 128,
+        "activeLow": true,
+        "type": "IPT_COIN3",
+        "defaultValue": 128
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 256,
+        "activeLow": true,
+        "type": "IPT_COIN4",
+        "defaultValue": 256
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 512,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_NAME(\"P2 Low Punch\")",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 512
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 1024,
+        "activeLow": true,
+        "type": "IPT_BUTTON5",
+        "modifiers": [
+          "PORT_NAME(\"P2 Low Kick\")",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 1024
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 2048,
+        "activeLow": true,
+        "type": "IPT_BUTTON6",
+        "modifiers": [
+          "PORT_NAME(\"P2 Block 2\")",
+          "PORT_PLAYER(2)"
+        ],
+        "defaultValue": 2048
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f12",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 4096,
+        "activeLow": true,
+        "type": "IPT_BUTTON4",
+        "modifiers": [
+          "PORT_NAME(\"P1 Low Punch\")",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 4096
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f13",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 8192,
+        "activeLow": true,
+        "type": "IPT_BUTTON5",
+        "modifiers": [
+          "PORT_NAME(\"P1 Low Kick\")",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 8192
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f14",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 16384,
+        "activeLow": true,
+        "type": "IPT_UNUSED",
+        "defaultValue": 16384
+      }
+    },
+    {
+      "id": "inputs:mk/IN1/f15",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 32768,
+        "activeLow": true,
+        "type": "IPT_BUTTON6",
+        "modifiers": [
+          "PORT_NAME(\"P1 Block 2\")",
+          "PORT_PLAYER(1)"
+        ],
+        "defaultValue": 32768
+      }
+    },
+    {
+      "id": "inputs:mk/IN2",
+      "label": "Port",
+      "props": {
+        "tag": "IN2",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mk/IN2/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "bit",
+        "mask": 65535,
+        "activeLow": true,
+        "type": "IPT_UNKNOWN",
+        "defaultValue": 65535
+      }
+    },
+    {
+      "id": "inputs:mk/DSW",
+      "label": "Port",
+      "props": {
+        "tag": "DSW",
+        "modify": false
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f0",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1,
+        "name": "Test Switch",
+        "defaultValue": 1,
+        "settings": [
+          "1=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f1",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2,
+        "name": "Counters",
+        "defaultValue": 0,
+        "settings": [
+          "2=One",
+          "0=Two"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f2",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 124,
+        "name": "Coinage",
+        "defaultValue": 124,
+        "settings": [
+          "124=USA-1",
+          "60=USA-2",
+          "92=USA-3",
+          "28=USA-4",
+          "108=USA-ECA",
+          "12=USA-Free Play",
+          "116=German-1",
+          "52=German-2",
+          "84=German-3",
+          "20=German-4",
+          "100=German-5",
+          "36=German-ECA",
+          "4=German-Free Play",
+          "120=French-1",
+          "56=French-2",
+          "88=French-3",
+          "24=French-4",
+          "104=French-ECA",
+          "8=French-Free Play"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f3",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 128,
+        "name": "Coinage Source",
+        "defaultValue": 0,
+        "settings": [
+          "128=Dipswitch",
+          "0=CMOS"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f4",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 256,
+        "name": "Skip Post Test",
+        "defaultValue": 0,
+        "settings": [
+          "256=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f5",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 512,
+        "name": "Unused",
+        "defaultValue": 512,
+        "settings": [
+          "512=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f6",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 1024,
+        "name": "Unused",
+        "defaultValue": 1024,
+        "settings": [
+          "1024=Off",
+          "0=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f7",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 2048,
+        "name": "Comic Book Offer",
+        "defaultValue": 2048,
+        "settings": [
+          "0=Off",
+          "2048=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f8",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 4096,
+        "name": "Attract Sound",
+        "defaultValue": 4096,
+        "settings": [
+          "0=Off",
+          "4096=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f9",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 8192,
+        "name": "Low Blows",
+        "defaultValue": 8192,
+        "settings": [
+          "0=Off",
+          "8192=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f10",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 16384,
+        "name": "Blood",
+        "defaultValue": 16384,
+        "settings": [
+          "0=Off",
+          "16384=On"
+        ]
+      }
+    },
+    {
+      "id": "inputs:mk/DSW/f11",
+      "label": "PortField",
+      "props": {
+        "kind": "dip",
+        "mask": 32768,
+        "name": "Violence",
+        "defaultValue": 32768,
+        "settings": [
+          "0=Off",
+          "32768=On"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "game:mk",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 1814,
+        "sourceColumn": 1,
+        "sourceEndLine": 1814
+      }
+    },
+    {
+      "from": "game:mk",
+      "to": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "rel": "USES_MACHINE"
+    },
+    {
+      "from": "game:mk",
+      "to": "inputs:mk",
+      "rel": "USES_INPUTS"
+    },
+    {
+      "from": "game:mk",
+      "to": "romset:mk",
+      "rel": "USES_ROMSET"
+    },
+    {
+      "from": "game:mk",
+      "to": "handler:midtunit_adpcm_state.mk_prot_r",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "game:mk",
+      "to": "handler:midtunit_adpcm_state.mk_prot_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "file:src/mame/williams/midtunit.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/midtunit.cpp",
+      "to": "file:midtunit.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/midtunit.cpp",
+      "to": "file:machine/nvram.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/midtunit.cpp",
+      "to": "file:machine/watchdog.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/midtunit.cpp",
+      "to": "file:screen.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/williams/midtunit.cpp",
+      "to": "file:speaker.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 636,
+        "sourceColumn": 1,
+        "sourceEndLine": 646
+      }
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "handler:midtunit_adpcm_state.machine_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "machine:midtunit_base_state.tunit_core",
+      "rel": "CALLS",
+      "props": {
+        "order": 0
+      }
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/rombank",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/romupper",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/2",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/3",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/4",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/5",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/6",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/7",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/8",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/9",
+      "rel": "HAS_BANK"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "map:midtunit_adpcm_state.main_adpcm_map",
+      "rel": "PATCHES_MAP",
+      "props": {
+        "space": "AS_PROGRAM",
+        "deviceTag": "maincpu"
+      }
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "device:midtunit_adpcm_state.tunit_adpcm/speaker",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_adpcm_state.tunit_adpcm",
+      "to": "device:midtunit_adpcm_state.tunit_adpcm/adpcm",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "inputs:mk",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 89,
+        "sourceColumn": 8,
+        "sourceEndLine": 89
+      }
+    },
+    {
+      "from": "inputs:mk",
+      "to": "inputs:mk/IN0",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mk",
+      "to": "inputs:mk/IN1",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mk",
+      "to": "inputs:mk/IN2",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "inputs:mk",
+      "to": "inputs:mk/DSW",
+      "rel": "HAS_PORT"
+    },
+    {
+      "from": "romset:mk",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 673,
+        "sourceColumn": 1,
+        "sourceEndLine": 673
+      }
+    },
+    {
+      "from": "romset:mk",
+      "to": "region:mk/adpcm:cpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mk",
+      "to": "region:mk/adpcm:oki",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mk",
+      "to": "region:mk/maincpu",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "romset:mk",
+      "to": "region:mk/video",
+      "rel": "HAS_REGION"
+    },
+    {
+      "from": "handler:midtunit_adpcm_state.machine_reset",
+      "to": "handler:williams_adpcm_sound_device.reset_write",
+      "rel": "CALLS_HANDLER",
+      "props": {
+        "finder": "m_adpcm_sound.reset_write"
+      }
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 603,
+        "sourceColumn": 1,
+        "sourceEndLine": 633
+      }
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "device:midtunit_base_state.tunit_core/video",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "device:midtunit_base_state.tunit_core/maincpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "device:midtunit_base_state.tunit_core/nvram",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "device:midtunit_base_state.tunit_core/watchdog",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "device:midtunit_base_state.tunit_core/palette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_base_state.tunit_core",
+      "to": "device:midtunit_base_state.tunit_core/screen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/rombank",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/romupper",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/2",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/3",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/4",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/5",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/6",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/7",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/8",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "bank:midtunit_adpcm_state.tunit_adpcm/okibank/9",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 787,
+        "sourceColumn": 1,
+        "sourceEndLine": 813
+      }
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 65,
+        "sourceColumn": 1,
+        "sourceEndLine": 71
+      }
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map",
+      "to": "map:midtunit_base_state.main_map",
+      "rel": "INCLUDES_MAP"
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map",
+      "to": "map:midtunit_adpcm_state.main_adpcm_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map",
+      "to": "map:midtunit_adpcm_state.main_adpcm_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:midtunit_adpcm_state.tunit_adpcm/adpcm",
+      "to": "audioroute:device:midtunit_adpcm_state.tunit_adpcm/adpcm/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:midtunit_adpcm_state.tunit_adpcm/adpcm",
+      "to": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "device:midtunit_adpcm_state.tunit_adpcm/adpcm",
+      "to": "handler:williams_adpcm_sound_device.device_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f14",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN0",
+      "to": "inputs:mk/IN0/f15",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f12",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f13",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f14",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN1",
+      "to": "inputs:mk/IN1/f15",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/IN2",
+      "to": "inputs:mk/IN2/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f0",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f1",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f2",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f3",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f4",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f5",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f6",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f7",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f8",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f9",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f10",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "inputs:mk/DSW",
+      "to": "inputs:mk/DSW/f11",
+      "rel": "HAS_FIELD"
+    },
+    {
+      "from": "region:mk/adpcm:cpu",
+      "to": "rom:mk/adpcm:cpu/sl1_mortal_kombat_u3_sound_rom.u3",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/adpcm:oki",
+      "to": "rom:mk/adpcm:oki/sl1_mortal_kombat_u12_sound_rom.u12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/adpcm:oki",
+      "to": "rom:mk/adpcm:oki/sl1_mortal_kombat_u13_sound_rom.u13",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/maincpu",
+      "to": "rom:mk/maincpu/l5_mortal_kombat_t-unit_uj12_game_rom.uj12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/maincpu",
+      "to": "rom:mk/maincpu/l5_mortal_kombat_t-unit_ug12_game_rom.ug12",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_ug14_game_rom.ug14",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_uj14_game_rom.uj14",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_ug19_game_rom.ug19",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_uj19_game_rom.uj19",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_ug16_game_rom.ug16",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_uj16_game_rom.uj16",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_ug20_game_rom.ug20",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_uj20_game_rom.uj20",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_ug17_game_rom.ug17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_uj17_game_rom.uj17",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_ug22_game_rom.ug22",
+      "rel": "LOADS"
+    },
+    {
+      "from": "region:mk/video",
+      "to": "rom:mk/video/l1_mortal_kombat_t-unit_uj22_game_rom.uj22",
+      "rel": "LOADS"
+    },
+    {
+      "from": "handler:williams_adpcm_sound_device.reset_write",
+      "to": "handler:williams_adpcm_sound_device.bank_select_w",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:williams_adpcm_sound_device.reset_write",
+      "to": "handler:williams_adpcm_sound_device.device_reset",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/video",
+      "to": "device:midtunit_base_state.tunit_core/video/callback:video:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/video",
+      "to": "machine:midtunit_video_device.device_add_mconfig",
+      "rel": "CALLS"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/video",
+      "to": "handler:midtunit_video_device.device_start",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu",
+      "to": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu",
+      "to": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:1",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu",
+      "to": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:2",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/screen",
+      "to": "device:midtunit_base_state.tunit_core/screen/callback:screen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:emu.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:williamssound.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:machine/6821pia.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:machine/rescap.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:cpu/m6809/m6809.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:cpu/m6800/m6800.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:sound/dac.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:sound/hc55516.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:sound/okim6295.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "file:src/mame/shared/williamssound.cpp",
+      "to": "file:sound/ymopm.h",
+      "rel": "INCLUDES"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "file:src/mame/williams/midtunit.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtunit.cpp",
+        "sourceLine": 43,
+        "sourceColumn": 1,
+        "sourceEndLine": 63
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range10",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range11",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range12",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range13",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range14",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map",
+      "to": "map:midtunit_base_state.main_map/range15",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map/range0",
+      "to": "handler:midtunit_adpcm_state.sound_state_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map/range1",
+      "to": "handler:midtunit_adpcm_state.sound_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:midtunit_adpcm_state.main_adpcm_map/range1",
+      "to": "handler:midtunit_adpcm_state.sound_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 766,
+        "sourceColumn": 1,
+        "sourceEndLine": 780
+      }
+    },
+    {
+      "from": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "to": "device:williams_adpcm_sound_device.device_add_mconfig/cpu",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "to": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "to": "device:williams_adpcm_sound_device.device_add_mconfig/dac",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:williams_adpcm_sound_device.device_add_mconfig",
+      "to": "device:williams_adpcm_sound_device.device_add_mconfig/oki",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "handler:williams_adpcm_sound_device.device_start",
+      "to": "handler:williams_adpcm_sound_device.sync_command",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:williams_adpcm_sound_device.device_start",
+      "to": "handler:williams_adpcm_sound_device.irq_clear",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "machine:midtunit_video_device.device_add_mconfig",
+      "to": "file:src/mame/williams/midtview.ipp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/williams/midtview.ipp",
+        "sourceLine": 42,
+        "sourceColumn": 1,
+        "sourceEndLine": 49
+      }
+    },
+    {
+      "from": "machine:midtunit_video_device.device_add_mconfig",
+      "to": "device:midtunit_video_device.device_add_mconfig/debugscreen",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "machine:midtunit_video_device.device_add_mconfig",
+      "to": "device:midtunit_video_device.device_add_mconfig/debugpalette",
+      "rel": "HAS_DEVICE"
+    },
+    {
+      "from": "handler:midtunit_video_device.device_start",
+      "to": "handler:midtunit_video_device.debug_init",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:midtunit_video_device.device_start",
+      "to": "handler:midtunit_video_device.dma_done",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:0",
+      "to": "handler:midtunit_video_device.scanline_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:0",
+      "to": "device:midtunit_base_state.tunit_core/video",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:1",
+      "to": "handler:midtunit_video_device.to_shiftreg",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:1",
+      "to": "device:midtunit_base_state.tunit_core/video",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:2",
+      "to": "handler:midtunit_video_device.from_shiftreg",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/maincpu/callback:maincpu:2",
+      "to": "device:midtunit_base_state.tunit_core/video",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/screen/callback:screen:0",
+      "to": "handler:tms34010_device.tms340x0_ind16",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "device:midtunit_base_state.tunit_core/screen/callback:screen:0",
+      "to": "device:midtunit_base_state.tunit_core/maincpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range0",
+      "to": "handler:midtunit_video_device.midtunit_vram_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range0",
+      "to": "handler:midtunit_video_device.midtunit_vram_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range2",
+      "to": "handler:midtunit_base_state.cmos_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range2",
+      "to": "handler:midtunit_base_state.cmos_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range3",
+      "to": "handler:midtunit_base_state.cmos_enable_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range8",
+      "to": "handler:palette_device.write16",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "palette"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range9",
+      "to": "handler:midtunit_video_device.dma_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range9",
+      "to": "handler:midtunit_video_device.dma_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range10",
+      "to": "handler:midtunit_video_device.midtunit_control_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range11",
+      "to": "handler:watchdog_timer_device.reset16_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "watchdog"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range12",
+      "to": "handler:midtunit_video_device.midtunit_control_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "map:midtunit_base_state.main_map/range13",
+      "to": "handler:midtunit_video_device.midtunit_gfxrom_r",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "video"
+      }
+    },
+    {
+      "from": "handler:midtunit_adpcm_state.sound_w",
+      "to": "handler:williams_adpcm_sound_device.reset_write",
+      "rel": "CALLS_HANDLER",
+      "props": {
+        "finder": "m_adpcm_sound.reset_write"
+      }
+    },
+    {
+      "from": "handler:midtunit_adpcm_state.sound_w",
+      "to": "handler:williams_adpcm_sound_device.write",
+      "rel": "CALLS_HANDLER",
+      "props": {
+        "finder": "m_adpcm_sound.write"
+      }
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/cpu",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "AS_PROGRAM"
+      }
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151",
+      "to": "audioroute:device:williams_adpcm_sound_device.device_add_mconfig/ym2151/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151",
+      "to": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151/callback:ym2151:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/dac",
+      "to": "audioroute:device:williams_adpcm_sound_device.device_add_mconfig/dac/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/oki",
+      "to": "audioroute:device:williams_adpcm_sound_device.device_add_mconfig/oki/0",
+      "rel": "HAS_AUDIO_ROUTE"
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/oki",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_oki_map",
+      "rel": "HAS_MAP",
+      "props": {
+        "space": "0"
+      }
+    },
+    {
+      "from": "device:midtunit_video_device.device_add_mconfig/debugscreen",
+      "to": "device:midtunit_video_device.device_add_mconfig/debugscreen/callback:debugscreen:0",
+      "rel": "HAS_CALLBACK"
+    },
+    {
+      "from": "handler:midtunit_video_device.dma_w",
+      "to": "handler:midtunit_video_device.log_bitmap",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 736,
+        "sourceColumn": 1,
+        "sourceEndLine": 748
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range2",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range3",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range4",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range5",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range6",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range7",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range8",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_map/range9",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:williams_adpcm_sound_device.device_add_mconfig/ym2151/callback:ym2151:0",
+      "to": "device:williams_adpcm_sound_device.device_add_mconfig/cpu",
+      "rel": "TARGETS_DEVICE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_oki_map",
+      "to": "file:src/mame/shared/williamssound.cpp",
+      "rel": "DEFINED_IN",
+      "props": {
+        "sourceFile": "src/mame/shared/williamssound.cpp",
+        "sourceLine": 755,
+        "sourceColumn": 1,
+        "sourceEndLine": 759
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_oki_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_oki_map/range0",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_oki_map",
+      "to": "map:williams_adpcm_sound_device.williams_adpcm_oki_map/range1",
+      "rel": "HAS_RANGE"
+    },
+    {
+      "from": "device:midtunit_video_device.device_add_mconfig/debugscreen/callback:debugscreen:0",
+      "to": "handler:midtunit_video_device.debug_screen_update",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range1",
+      "to": "handler:williams_adpcm_sound_device.bank_select_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range2",
+      "to": "handler:ym2151_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "ym2151"
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range2",
+      "to": "handler:ym2151_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "ym2151"
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range3",
+      "to": "handler:dac_byte_interface.data_w",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "dac"
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range4",
+      "to": "handler:okim6295_device.read",
+      "rel": "READS",
+      "props": {
+        "deviceTag": "oki"
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range4",
+      "to": "handler:okim6295_device.write",
+      "rel": "WRITES",
+      "props": {
+        "deviceTag": "oki"
+      }
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range5",
+      "to": "handler:williams_adpcm_sound_device.command_r",
+      "rel": "READS"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range6",
+      "to": "handler:williams_adpcm_sound_device.oki6295_bank_select_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "map:williams_adpcm_sound_device.williams_adpcm_map/range7",
+      "to": "handler:williams_adpcm_sound_device.talkback_w",
+      "rel": "WRITES"
+    },
+    {
+      "from": "handler:midtunit_video_device.debug_screen_update",
+      "to": "handler:midtunit_video_device.do_dma_debug_inputs",
+      "rel": "CALLS_HANDLER"
+    },
+    {
+      "from": "handler:midtunit_video_device.do_dma_debug_inputs",
+      "to": "handler:midtunit_video_device.do_debug_blit",
+      "rel": "CALLS_HANDLER"
+    }
+  ]
+}

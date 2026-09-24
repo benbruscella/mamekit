@@ -1,0 +1,105 @@
+// GENERATED executable machine composition from src/mame/gottlieb/gottlieb.cpp; do not edit.
+import { decodeBoardIr } from '../../../../runtime/ir/decode.js';
+import { createGeneratedBoard } from '../../../../runtime/core/generated-board.js';
+import boardData from './board.json' with { type: 'json' };
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, 'qbert');
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = {
+    ...(() => {
+        const methods = (() => {
+            function method_video_control_w(runtime, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                if (((Number((members.m_background_priority ?? runtime.member("m_background_priority"))) !== Number((((data) >>> (0)) & 1))) ? 1 : 0)) {
+                    (__l["m_screen.update_partial"] ? __l["m_screen.update_partial"]((__l["m_screen.vpos"] ? __l["m_screen.vpos"]() : (members.m_screen) != null ? (typeof (runtime.dereference(members.m_screen)).vpos === 'function' ? (runtime.dereference(members.m_screen)).vpos() : typeof (runtime.dereference(members.m_screen)).vpos === 'number' || typeof (runtime.dereference(members.m_screen)).vpos === 'boolean' ? (runtime.dereference(members.m_screen)).vpos : runtime.container(members.m_screen, "vpos")) : 0)) : (members.m_screen) != null ? ((runtime.dereference(members.m_screen)).update_partial?.((__l["m_screen.vpos"] ? __l["m_screen.vpos"]() : (members.m_screen) != null ? (typeof (runtime.dereference(members.m_screen)).vpos === 'function' ? (runtime.dereference(members.m_screen)).vpos() : typeof (runtime.dereference(members.m_screen)).vpos === 'number' || typeof (runtime.dereference(members.m_screen)).vpos === 'boolean' ? (runtime.dereference(members.m_screen)).vpos : runtime.container(members.m_screen, "vpos")) : 0)) ?? 0) : 0);
+                }
+                members.m_background_priority = (((((data) >>> (0)) & 1)) & 0xff);
+                (__l["flip_screen_x_set"] ? __l["flip_screen_x_set"]((((data) >>> (1)) & 1)) : runtime.macro("flip_screen_x_set", (((data) >>> (1)) & 1)));
+                (__l["flip_screen_y_set"] ? __l["flip_screen_y_set"]((((data) >>> (2)) & 1)) : runtime.macro("flip_screen_y_set", (((data) >>> (2)) & 1)));
+            }
+            function method_qbert_knocker(runtime, knock) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                runtime.writeIndex(runtime.writableMember("m_knockers"), 0, ((knock) ? (1) : (0)));
+                if (((knock) & ((~(members.m_knocker_prev ?? runtime.member("m_knocker_prev")))))) {
+                    (__l["m_knocker_sample.start"] ? __l["m_knocker_sample.start"](0, 0) : (members.m_knocker_sample) != null ? ((runtime.dereference(members.m_knocker_sample)).start?.(0, 0) ?? 0) : 0);
+                }
+                members.m_knocker_prev = ((knock) & 0xff);
+            }
+            function method_videoram_w(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                runtime.writeIndex(runtime.writableMember("m_videoram"), offset, data);
+                (__l["m_bg_tilemap.mark_tile_dirty"] ? __l["m_bg_tilemap.mark_tile_dirty"](offset) : (members.m_bg_tilemap) != null ? ((runtime.dereference(members.m_bg_tilemap)).mark_tile_dirty?.(offset) ?? 0) : (__l["mark_tile_dirty"]?.(offset) ?? 0));
+            }
+            function method_charram_w(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                if (((Number(runtime.readIndex((members.m_charram ?? runtime.member("m_charram")), offset)) !== Number(data)) ? 1 : 0)) {
+                    runtime.writeIndex(runtime.writableMember("m_charram"), offset, data);
+                    ((runtime.dereference((__l["m_gfxdecode.gfx"] ? __l["m_gfxdecode.gfx"](0) : (members.m_gfxdecode) != null ? ((runtime.dereference(members.m_gfxdecode)).gfx?.(0) ?? 0) : 0))).mark_dirty?.(runtime.divide(offset, 32)) ?? 0);
+                }
+            }
+            function method_palette_w(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const h_m_weights = members.m_weights ?? runtime.member("m_weights");
+                runtime.writeIndex(runtime.writableMember("m_paletteram"), offset, data);
+                let val = ((runtime.readIndex((members.m_paletteram ?? runtime.member("m_paletteram")), ((offset) & (-2)))) | 0);
+                let g = (((__l["combine_weights"] ? __l["combine_weights"](h_m_weights, (((val) >>> (4)) & 1), (((val) >>> (5)) & 1), (((val) >>> (6)) & 1), (((val) >>> (7)) & 1)) : runtime.macro("combine_weights", h_m_weights, (((val) >>> (4)) & 1), (((val) >>> (5)) & 1), (((val) >>> (6)) & 1), (((val) >>> (7)) & 1)))) | 0);
+                let b = (((__l["combine_weights"] ? __l["combine_weights"](h_m_weights, (((val) >>> (0)) & 1), (((val) >>> (1)) & 1), (((val) >>> (2)) & 1), (((val) >>> (3)) & 1)) : runtime.macro("combine_weights", h_m_weights, (((val) >>> (0)) & 1), (((val) >>> (1)) & 1), (((val) >>> (2)) & 1), (((val) >>> (3)) & 1)))) | 0);
+                val = ((runtime.readIndex((members.m_paletteram ?? runtime.member("m_paletteram")), ((offset) | (1)))) | 0);
+                let r = (((__l["combine_weights"] ? __l["combine_weights"](h_m_weights, (((val) >>> (0)) & 1), (((val) >>> (1)) & 1), (((val) >>> (2)) & 1), (((val) >>> (3)) & 1)) : runtime.macro("combine_weights", h_m_weights, (((val) >>> (0)) & 1), (((val) >>> (1)) & 1), (((val) >>> (2)) & 1), (((val) >>> (3)) & 1)))) | 0);
+                let a = ((((((((members.m_transparent0 ?? runtime.member("m_transparent0"))) && (((Number(runtime.divide(offset, 2)) === Number(0)) ? 1 : 0))) ? 1 : 0)) ? (0) : (255))) | 0);
+                (__l["m_palette.set_pen_color"] ? __l["m_palette.set_pen_color"](runtime.divide(offset, 2), (__l["rgb_t"] ? __l["rgb_t"](a, r, g, b) : runtime.macro("rgb_t", a, r, g, b))) : (members.m_palette) != null ? ((runtime.dereference(members.m_palette)).set_pen_color?.(runtime.divide(offset, 2), (__l["rgb_t"] ? __l["rgb_t"](a, r, g, b) : runtime.macro("rgb_t", a, r, g, b))) ?? 0) : 0);
+            }
+            function method_analog_reset_w(runtime, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                runtime.writeIndex(runtime.writableMember("m_track"), 0, (__l["m_track_x.read_safe"] ? __l["m_track_x.read_safe"](0) : (members.m_track_x) != null ? ((runtime.dereference(members.m_track_x)).read_safe?.(0) ?? 0) : (__l["read_safe"]?.(0) ?? 0)));
+                runtime.writeIndex(runtime.writableMember("m_track"), 1, (__l["m_track_y.read_safe"] ? __l["m_track_y.read_safe"](0) : (members.m_track_y) != null ? ((runtime.dereference(members.m_track_y)).read_safe?.(0) ?? 0) : (__l["read_safe"]?.(0) ?? 0)));
+            }
+            function method_get_bg_tile_info(runtime, tilemap, tileinfo, tile_index) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const h_m_gfxcharlo = members.m_gfxcharlo ?? runtime.member("m_gfxcharlo");
+                const h_m_gfxcharhi = members.m_gfxcharhi ?? runtime.member("m_gfxcharhi");
+                let code = ((runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), tile_index)) | 0);
+                if (((Number(((code) & (128))) === Number(0)) ? 1 : 0)) {
+                    (__l["tileinfo.set"] ? __l["tileinfo.set"](h_m_gfxcharlo, code, 0, 0) : (tileinfo) != null ? ((runtime.dereference(tileinfo)).set?.(h_m_gfxcharlo, code, 0, 0) ?? 0) : (__l["set"]?.(h_m_gfxcharlo, code, 0, 0) ?? 0));
+                }
+                else {
+                    (__l["tileinfo.set"] ? __l["tileinfo.set"](h_m_gfxcharhi, code, 0, 0) : (tileinfo) != null ? ((runtime.dereference(tileinfo)).set?.(h_m_gfxcharhi, code, 0, 0) ?? 0) : (__l["set"]?.(h_m_gfxcharhi, code, 0, 0) ?? 0));
+                }
+            }
+            return {
+                "video_control_w": method_video_control_w,
+                "qbert_knocker": method_qbert_knocker,
+                "videoram_w": method_videoram_w,
+                "charram_w": method_charram_w,
+                "palette_w": method_palette_w,
+                "analog_reset_w": method_analog_reset_w,
+                "get_bg_tile_info": method_get_bg_tile_info
+            };
+        })();
+        return {
+            "gottlieb_state.video_control_w": methods["video_control_w"],
+            "gottlieb_state.qbert_knocker": methods["qbert_knocker"],
+            "gottlieb_state.videoram_w": methods["videoram_w"],
+            "gottlieb_state.charram_w": methods["charram_w"],
+            "gottlieb_state.palette_w": methods["palette_w"],
+            "gottlieb_state.analog_reset_w": methods["analog_reset_w"],
+            "gottlieb_state.get_bg_tile_info": methods["get_bg_tile_info"],
+        };
+    })(),
+};
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ["combine_weights", "flip_screen_x_set", "flip_screen_y_set", "m_bg_tilemap.mark_tile_dirty", "m_gfxdecode.gfx", "m_knocker_sample.start", "m_palette.set_pen_color", "m_screen.update_partial", "m_screen.vpos", "m_track_x.read_safe", "m_track_y.read_safe", "mark_tile_dirty", "read_safe", "rgb_t", "set", "tileinfo.set"];
+export default {
+    machine: defined,
+    createBoard: (config, regions, inputs, sinks) => createGeneratedBoard(defined, config, regions, inputs, sinks),
+};

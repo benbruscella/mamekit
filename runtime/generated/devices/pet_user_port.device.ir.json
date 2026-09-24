@@ -1,0 +1,2705 @@
+{
+  "schemaVersion": 1,
+  "type": "PET_USER_PORT",
+  "className": "pet_user_port_device",
+  "hierarchy": [
+    "pet_user_port_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/pet/user.cpp",
+    "src/devices/bus/pet/user.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3
+  },
+  "members": [
+    {
+      "name": "m_card",
+      "valueType": "device_pet_user_port_interface*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "p2_handler",
+      "member": "m_2_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p3_handler",
+      "member": "m_3_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p4_handler",
+      "member": "m_4_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p5_handler",
+      "member": "m_5_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p6_handler",
+      "member": "m_6_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p7_handler",
+      "member": "m_7_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p8_handler",
+      "member": "m_8_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p9_handler",
+      "member": "m_9_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "p10_handler",
+      "member": "m_10_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pb_handler",
+      "member": "m_b_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pc_handler",
+      "member": "m_c_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pd_handler",
+      "member": "m_d_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pe_handler",
+      "member": "m_e_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pf_handler",
+      "member": "m_f_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "ph_handler",
+      "member": "m_h_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pj_handler",
+      "member": "m_j_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pk_handler",
+      "member": "m_k_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pl_handler",
+      "member": "m_l_handler",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "pm_handler",
+      "member": "m_m_handler",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_config_complete",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_card_device"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 42,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_3_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_4_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_5_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_6_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_7_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_8_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_9_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_b_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_c_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_d_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_e_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_f_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_h_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_j_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_k_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_l_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_m_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_2",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_2"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_3",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_3"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 70,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_4",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_4"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 71,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_5",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_5"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 72,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_6",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_6"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 73,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_7",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_7"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 74,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_8",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_8"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_9",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_9"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 76,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_10",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_10"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 77,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_b",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_b"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 78,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_c",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_c"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 79,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_d",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_d"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 80,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_e",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_e"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 81,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_f",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_f"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 82,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_h",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_h"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_j",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_j"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_k",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_k"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 85,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_l",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_l"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 86,
+        "column": 1
+      }
+    },
+    {
+      "name": "write_m",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "input_m"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.cpp",
+        "line": 87,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&opts, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 36,
+        "column": 1
+      }
+    },
+    {
+      "name": "p2_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_2_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 45,
+        "column": 1
+      }
+    },
+    {
+      "name": "p3_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_3_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "p4_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_4_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "p5_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_5_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 49,
+        "column": 1
+      }
+    },
+    {
+      "name": "p6_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_6_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 50,
+        "column": 1
+      }
+    },
+    {
+      "name": "p7_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_7_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 51,
+        "column": 1
+      }
+    },
+    {
+      "name": "p8_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_8_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 52,
+        "column": 1
+      }
+    },
+    {
+      "name": "p9_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_9_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 53,
+        "column": 1
+      }
+    },
+    {
+      "name": "p10_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_10_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "pb_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_b_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "pc_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_c_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "pd_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_d_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 57,
+        "column": 1
+      }
+    },
+    {
+      "name": "pe_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_e_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 58,
+        "column": 1
+      }
+    },
+    {
+      "name": "pf_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_f_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 59,
+        "column": 1
+      }
+    },
+    {
+      "name": "ph_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_h_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 60,
+        "column": 1
+      }
+    },
+    {
+      "name": "pj_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_j_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 61,
+        "column": 1
+      }
+    },
+    {
+      "name": "pk_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_k_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "pl_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_l_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "pm_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_m_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pet_user_port_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&opts, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 36,
+        "column": 45
+      }
+    },
+    {
+      "name": "pet_user_port_device::p2_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_2_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 45,
+        "column": 103
+      }
+    },
+    {
+      "name": "pet_user_port_device::p3_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_3_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p4_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_4_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 49,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p5_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_5_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 50,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p6_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_6_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 51,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p7_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_7_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 52,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p8_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_8_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 53,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p9_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_9_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 54,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::p10_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_10_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pb_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_b_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 56,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pc_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_c_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 57,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pd_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_d_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 58,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pe_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_e_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 59,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pf_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_f_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 60,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::ph_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_h_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 61,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pj_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_j_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pk_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_k_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pl_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_l_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "pet_user_port_device::pm_handler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_m_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/pet/user.h",
+        "line": 65,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 61,
+    "compiledMethods": 61,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_config_complete",
+    "device_start",
+    "write_2",
+    "write_3",
+    "write_4",
+    "write_5",
+    "write_6",
+    "write_7",
+    "write_8",
+    "write_9",
+    "write_10",
+    "write_b",
+    "write_c",
+    "write_d",
+    "write_e",
+    "write_f",
+    "write_h",
+    "write_j",
+    "write_k",
+    "write_l",
+    "write_m",
+    "pet_user_port_device",
+    "p2_handler",
+    "p3_handler",
+    "p4_handler",
+    "p5_handler",
+    "p6_handler",
+    "p7_handler",
+    "p8_handler",
+    "p9_handler",
+    "p10_handler",
+    "pb_handler",
+    "pc_handler",
+    "pd_handler",
+    "pe_handler",
+    "pf_handler",
+    "ph_handler",
+    "pj_handler",
+    "pk_handler",
+    "pl_handler",
+    "pm_handler",
+    "pet_user_port_device::pet_user_port_device",
+    "pet_user_port_device::p2_handler",
+    "pet_user_port_device::p3_handler",
+    "pet_user_port_device::p4_handler",
+    "pet_user_port_device::p5_handler",
+    "pet_user_port_device::p6_handler",
+    "pet_user_port_device::p7_handler",
+    "pet_user_port_device::p8_handler",
+    "pet_user_port_device::p9_handler",
+    "pet_user_port_device::p10_handler",
+    "pet_user_port_device::pb_handler",
+    "pet_user_port_device::pc_handler",
+    "pet_user_port_device::pd_handler",
+    "pet_user_port_device::pe_handler",
+    "pet_user_port_device::pf_handler",
+    "pet_user_port_device::ph_handler",
+    "pet_user_port_device::pj_handler",
+    "pet_user_port_device::pk_handler",
+    "pet_user_port_device::pl_handler",
+    "pet_user_port_device::pm_handler"
+  ]
+}

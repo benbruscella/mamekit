@@ -1,0 +1,29 @@
+{
+  "type": "TMS5220C",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "tms"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TMS5220C",
+    "className": "tms5220c_device",
+    "shortName": "tms5220c",
+    "description": "TMS5220C",
+    "sourceFile": "src/devices/sound/tms5220.cpp",
+    "sourceLine": 2173,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TMS5220C,  tms5220c_device,  \"tms5220c\",  \"TMS5220C\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/tms5220.cpp",
+    "src/devices/sound/tms5110r.hxx",
+    "src/devices/sound/tms5220.h"
+  ]
+}
