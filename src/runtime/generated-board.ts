@@ -1,3 +1,4 @@
+import { boardConfigFromIr } from '../ir/host-config.ts';
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
@@ -7,6 +8,7 @@ import {
   createGeneratedAttotime,
   generatedTimerBacklog,
   hasGeneratedDevice,
+  generatedDeviceRole,
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
@@ -164,106 +166,7 @@ export function createGeneratedBoard(
   inputs: InputPorts,
   sinks: BoardSinks,
 ): Board {
-  return new IrBoard(machine, config, regions, inputs, sinks);
-}
-
-/** Minimal host for the source-declared ER5911 serial protocol. */
-class SerialEepromEr5911 {
-  private readonly data: Uint8Array;
-  private state: 'reset' | 'start' | 'command' | 'read' | 'write' = 'reset';
-  private cs = 0;
-  private clk = 0;
-  private di = 0;
-  private bits = 0;
-  private accumulator = 0;
-  private address = 0;
-  private shift = 0;
-  private locked = true;
-
-  constructor(data: Uint8Array) {
-    this.data = data.length ? data : new Uint8Array(128).fill(0xff);
-  }
-
-  /** Save-state roots (machine-state.ts). */
-  stateKeys(): readonly string[] {
-    return ['data', 'state', 'cs', 'clk', 'di', 'bits', 'accumulator', 'address', 'shift', 'locked'];
-  }
-
-  read(method: string): number {
-    if (method === 'ready_read') return 1;
-    if (method === 'do_read') {
-      return this.state === 'read' ? Number((this.shift & 0x80000000) !== 0) : 1;
-    }
-    return 0;
-  }
-
-  write(method: string, value: number): void {
-    const state = Number(Boolean(value));
-    if (method === 'di_write') {
-      this.di = state;
-      return;
-    }
-    if (method === 'cs_write') {
-      if (state === this.cs) return;
-      this.cs = state;
-      this.state = state ? 'start' : 'reset';
-      this.bits = 0;
-      this.accumulator = 0;
-      return;
-    }
-    if (method !== 'clk_write' || state === this.clk) return;
-    const rising = state === 1;
-    this.clk = state;
-    if (!rising || !this.cs) return;
-    if (this.state === 'start') {
-      if (this.di) {
-        this.state = 'command';
-        this.bits = 0;
-        this.accumulator = 0;
-      }
-      return;
-    }
-    if (this.state === 'command') {
-      this.accumulator = (this.accumulator << 1) | this.di;
-      if (++this.bits === 11) this.executeCommand();
-      return;
-    }
-    if (this.state === 'read') {
-      const bit = this.bits++;
-      if (bit % 8 === 0) {
-        this.shift = (this.data[(this.address + Math.floor(bit / 8)) & 0x7f] ?? 0xff) << 24;
-      } else {
-        this.shift = ((this.shift << 1) | 1) >>> 0;
-      }
-      return;
-    }
-    if (this.state === 'write') {
-      this.shift = ((this.shift << 1) | this.di) >>> 0;
-      if (++this.bits === 8) {
-        if (!this.locked) this.data[this.address & 0x7f] = this.shift & 0xff;
-        this.state = 'start';
-      }
-    }
-  }
-
-  private executeCommand(): void {
-    const opcode = this.accumulator >>> 9;
-    this.address = this.accumulator & 0x1ff;
-    this.bits = 0;
-    if (opcode === 2) {
-      this.shift = 0;
-      this.state = 'read';
-    } else if (opcode === 1 || opcode === 3) {
-      this.shift = 0;
-      this.state = 'write';
-    } else {
-      const subcommand = this.address >>> 7;
-      if (subcommand === 0) this.locked = true;
-      else if (subcommand === 2 && !this.locked) this.data.fill(0xff);
-      else if (subcommand === 3) this.locked = false;
-      this.state = 'start';
-    }
-  }
+  return new IrBoard(machine, boardConfigFromIr(machine, config), regions, inputs, sinks);
 }
 
 const INPUT_LINE_NMI = -1;
@@ -405,7 +308,7 @@ class IrBoard implements Board {
   private readonly generatedResources: Record<string, unknown> = {};
   private readonly state: Record<string, unknown> = {};
   private readonly shares: Record<string, Uint8Array> = {};
-  private readonly declarativeEeprom = new Map<string, SerialEepromEr5911>();
+  private readonly declarativeEeprom = new Map<string, Device>();
   private videoPrimitives?: GeneratedMameVideoPrimitives;
   /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
   private readonly pendingTimers = new Map<string, { at: number; param: number }>();
@@ -517,13 +420,14 @@ class IrBoard implements Board {
     // yet, so it owes the devices nothing.
     this.timedHardwareDelivered = this.lineSeconds();
 
-    for (const device of machine.devices ?? []) {
-      if (device.type === 'EEPROM_ER5911_8BIT') {
-        this.declarativeEeprom.set(
-          device.tag,
-          new SerialEepromEr5911(regions[device.tag] ?? new Uint8Array(128)),
-        );
-      }
+    // Passive storage executes generated methods while retaining the separate
+    // peripheral state root used by existing board snapshots.
+    for (const specification of machine.devices ?? []) {
+      if (generatedDeviceRole(specification.type) !== 'passive-storage') continue;
+      this.declarativeEeprom.set(specification.tag, createDevice(specification.type, {
+        tag: specification.tag, regions, clock: specification.clock,
+        calls: { 'machine().time': () => generatedAttotime(this.machineSeconds()) },
+      }));
     }
 
     // MAME devices may alias board memory shares (buffered spriteram binds its
@@ -546,7 +450,7 @@ class IrBoard implements Board {
     }
     const deviceConstants: Record<string, number> = {};
     for (const specification of machine.devices ?? []) {
-      if (hasGeneratedDevice(specification.type)) {
+      if (hasGeneratedDevice(specification.type) && generatedDeviceRole(specification.type) !== 'passive-storage') {
         const screenHost = {
           time_until_pos: (position: number) => {
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
@@ -1238,7 +1142,7 @@ class IrBoard implements Board {
       inputs,
       (deviceTag, method, value) => {
         const eeprom = this.declarativeEeprom.get(deviceTag);
-        if (eeprom) eeprom.write(method, value);
+        if (eeprom) eeprom.invoke(method, value);
         else this.devices.get(deviceTag)?.invoke(method, value);
       },
     );
@@ -2103,18 +2007,8 @@ class IrBoard implements Board {
     // later. TIMER_CALLBACK_MEMBER bodies are not graph handlers yet, so keep
     // this source-declared timer pair as raster-line events. The match is on
     // the extracted handler body and device method, not on the game name.
-    const spriteDmaCallback = machine.callbacks.find(callback => {
-      if (callback.operation !== 'set_vblank_int' || !callback.targetMethod) return false;
-      const handler = machine.handlers?.find(candidate =>
-        candidate.ownerClass === callback.targetClass &&
-        candidate.method === callback.targetMethod);
-      return Boolean(
-        handler?.body?.includes('m_dma_start_timer->adjust') &&
-        handler.body?.includes('m_dma_end_timer->adjust') &&
-        machine.devices?.some(device =>
-          device.type === 'K053246' && device.tag === 'k053246'),
-      );
-    });
+    const spriteDmaCallback = machine.callbacks.find(callback =>
+      callback.id === machine.videoExecution?.spriteDmaCallback);
     const spriteDmaLineSignals: { line: number; state: number }[] = [];
     if (neoGeoInterrupts) {
       // neogeo_base_state::machine_start owns these timer-backed members.
@@ -4330,7 +4224,7 @@ class IrBoard implements Board {
               : undefined;
             if (!device?.methodNames().includes(custom.member) && !eeprom) continue;
             const line = eeprom
-              ? eeprom.read(custom.member)
+              ? Number(eeprom.invoke(custom.member))
               : Number(device!.invoke(custom.member)) ? 1 : 0;
             const level = custom.activeLow ? Number(!line) : line;
             const shift = trailingZeroBits(custom.mask);

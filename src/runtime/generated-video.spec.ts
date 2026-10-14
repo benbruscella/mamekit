@@ -1,3 +1,4 @@
+import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 import assert from 'node:assert/strict';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
@@ -9,7 +10,6 @@ import {
   decodeVicDualPixel,
   exidySpriteCollisionMask,
   exidySpriteCollisions,
-  generatedDirectScreenShape,
   generatedScrollBand,
   generatedTileGroupIndirectMask,
   generatedTileGroupTransparentMask,
@@ -23,7 +23,6 @@ import {
   segaSystem16PaletteEntry,
   taitoSjLayerScrollX,
   taitoSjSpritePosition,
-  williamsPaletteColor,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
 
@@ -114,8 +113,6 @@ assert.deepEqual(exidySpriteCollisions(
   { position: 4, mask: 0x14 },
   { position: 4, mask: 0x08 },
 ]);
-assert.equal(williamsPaletteColor(0), 0xff000000);
-assert.equal(williamsPaletteColor(0xff), 0xffffffff);
 
 const polePositionProms = new Uint8Array(0x800);
 polePositionProms[0x507] = 3;

@@ -1,3 +1,4 @@
+import { lowerVideoExecution } from '../mame/video-execution.ts';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
@@ -75,7 +76,7 @@ import { classConstantsForGame, resolveClassConstants } from './class-constants.
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
-import type { BoardConfig } from '../runtime/types.ts';
+import type { BoardConfig } from '../ir/host-config.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
@@ -1096,7 +1097,7 @@ export function lowerGeneratedMachine(
       ...(callback.source ? { source: callback.source } : {}),
     })));
   }
-  return {
+  const result: BoardIr = {
     schemaVersion: BOARD_IR_SCHEMA_VERSION,
     game,
     family,
@@ -1111,6 +1112,8 @@ export function lowerGeneratedMachine(
     ...(compiledVideo ? { video: compiledVideo.plan } : {}),
     ...(sound ? { sound } : {}),
   };
+  result.videoExecution = lowerVideoExecution(result);
+  return result;
 }
 
 /** Resolve a composite device's local port tag against the generated machine. */

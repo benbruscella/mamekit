@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
-import { generatedDirectScreenShape } from './generated-video-shape.ts';
+import { generatedDirectScreenShape } from './video-execution.ts';
 
 const machine = {
   execution: { screenUpdate: { handler: 'video_state.screen_update' } },

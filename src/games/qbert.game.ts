@@ -14,6 +14,14 @@ import { sourceTarget } from './source-contract.ts';
 
 export const qbert = sourceTarget({
   game: 'qbert',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'r1sound:GOTTLIEB_SOUND_SPEECH_REV1A',
+      'votrax:VOTRAX_SC01',
+    ],
+    handlerGaps: [],
+  },
   driver: 'src/mame/gottlieb/gottlieb.cpp',
   machine: { className: 'gottlieb_state', name: 'qbert' },
   screen: { width: 256, height: 240 },

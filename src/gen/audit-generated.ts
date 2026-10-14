@@ -4,7 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { BoardIr } from '../ir/board.ts';
 import { decodeBoardIr } from '../ir/decode.ts';
 import { validateBoardIr } from '../ir/validate.ts';
-import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
+import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 import { buildClosureFailures, readBuildManifest } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
 import { CANDIDATE_TARGETS } from './targets.ts';

@@ -24,6 +24,18 @@ import { sourceTarget } from "./source-contract.ts";
 
 export const marble = sourceTarget({
   game: 'marble',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'alpha:TILEMAP',
+      'mob:ATARI_MOTION_OBJECTS',
+      'playfield:TILEMAP',
+    ],
+    handlerGaps: [
+      'alpha.write16',
+      'playfield.write16',
+    ],
+  },
   driver: 'src/mame/atari/atarisy1.cpp',
   machine: { className: 'atarisy1_state', name: 'marble' },
   screen: { width: 336, height: 240 },

@@ -14,6 +14,16 @@ import { sourceTarget } from './source-contract.ts';
 
 export const polepos = sourceTarget({
   game: 'polepos',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'engine:POLEPOS_SOUND',
+    ],
+    handlerGaps: [
+      'engine.polepos_engine_sound_lsb_w',
+      'engine.polepos_engine_sound_msb_w',
+    ],
+  },
   driver: 'src/mame/namco/polepos.cpp',
   machine: { className: 'polepos_state', name: 'polepos' },
   screen: { width: 256, height: 224 },

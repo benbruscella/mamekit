@@ -14,6 +14,7 @@ import type {
   GeneratedDacChip,
   GeneratedNesApuPlan,
 } from './audio-protocol.ts';
+import type { GeneratedVideoExecution } from './video-execution.ts';
 
 export interface BoardSourceRef {
   file: string;
@@ -1249,6 +1250,8 @@ export interface BoardIr {
   stateMembers?: GeneratedStateMember[];
   maps?: GeneratedAddressMap[];
   video?: GeneratedVideoPlan;
+  /** Renderer bindings resolved from source during compilation. */
+  videoExecution?: GeneratedVideoExecution;
   sound?: GeneratedSoundBinding;
   /** Optional host/peripheral topology and mountable media, kept separate from execution. */
   composition?: {

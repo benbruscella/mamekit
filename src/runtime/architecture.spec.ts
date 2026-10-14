@@ -14,6 +14,11 @@ for (const file of sharedRuntime) {
   const source = readFileSync(join(root, file), 'utf8');
   assert.doesNotMatch(
     source,
+    /\b(?:handler|candidate|screen)\??\.body\b|\b(?:handler|candidate|screen)\.sourceBody\b/,
+    `${file}: resolve MAME source-body shapes during compilation, then execute the emitted plan`,
+  );
+  assert.doesNotMatch(
+    source,
     /(?:if|switch|\?|&&|\|\|)[^\n]*(?:machine|this\.machine)\.(?:game|family)\s*(?:===|!==|==|!=)/,
     `${file}: shared runtime behavior must not branch on a game or family`,
   );

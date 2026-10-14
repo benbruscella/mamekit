@@ -205,9 +205,12 @@ export function compileMameVideo(
     screen.body.includes('source[(x / 2) * 256]') &&
     screen.body.includes('m_palette->pen_color(m_paletteram[x])')
   ) {
+    const palette = compilePalette(graph, machineIds, ast, source, constants);
+    if (!palette) return fail('index-derived screen palette did not lower');
     return {
       plan: {
         gfx: [],
+        palette,
         ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
         tilemaps: [],
         initialState: memberDefaults,
@@ -2720,7 +2723,9 @@ function compilePalette(
     const computedColors = compileComputedColorGroups(body, paletteLoop, loops);
     const carrier = graph.nodes.find(node =>
       node.label === 'RomRegion' && typeof node.props.tag === 'string')?.props.tag;
-    const entries = expressionNumber(/\.set_entries\s*\(\s*([^,)]+)/.exec(raw)?.[1], constants);
+    const configuredPalette = findCallArguments(raw, 'PALETTE');
+    const entries = expressionNumber(/\.set_entries\s*\(\s*([^,)]+)/.exec(raw)?.[1]
+      ?? (configuredPalette ? splitMameArgs(configuredPalette)[3] : undefined), constants);
     if (!computedColors.length || !carrier || !entries) {
       if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
         console.error('video palette: computed-only output', {
@@ -2746,7 +2751,7 @@ function compilePalette(
       banks: [{
         penOffset: 0,
         colorOr: 0,
-        colorStride: 0,
+        colorStride: body.includes('set_indirect_color') ? 0 : 1,
         lookupOffset: 0,
         lookupCount: entries,
         direct: true,
@@ -3011,7 +3016,9 @@ function compilePalette(
     if (loop === paletteLoop || !loop.body.includes('set_indirect_color')) return [];
     if (!loop.body.includes('color_prom')) return [];
     const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
-      findCallArguments(loop.body, 'set_indirect_color');
+      findCallArguments(loop.body, 'set_indirect_color') ??
+      findCallArguments(loop.body, 'palette.set_pen_color') ??
+      findCallArguments(loop.body, 'set_pen_color');
     const groupChannels = compileFixedWeightChannels(loop.body, loop.start);
     if (!call || groupChannels.length !== 3) return [];
     return [{
@@ -3131,7 +3138,9 @@ function compileIndexedColorGroups(
   return loops.flatMap(loop => {
     if (!loop.body.includes('set_indirect_color') || loop.body.includes('color_prom')) return [];
     const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
-      findCallArguments(loop.body, 'set_indirect_color');
+      findCallArguments(loop.body, 'set_indirect_color') ??
+      findCallArguments(loop.body, 'palette.set_pen_color') ??
+      findCallArguments(loop.body, 'set_pen_color');
     if (!call) return [];
     const args = splitMameArgs(call);
     const rgb = /rgb_t\s*\(([^)]*)\)/.exec(args[1] ?? '');
@@ -3350,11 +3359,13 @@ function compileComputedColorGroups(
     // A callback with mutually exclusive optional-PROM/direct-resistor paths
     // can make the computed loop the first (paletteLoop) candidate. It is
     // still a complete color group when it does not read the PROM.
-    if (!loop.body.includes('set_indirect_color')) continue;
+    if (!loop.body.includes('set_indirect_color') && !loop.body.includes('set_pen_color')) continue;
     if (loop === paletteLoop && loop.body.includes('color_prom')) continue;
     if (loop.body.includes('color_prom')) continue;
     const call = findCallArguments(loop.body, 'palette.set_indirect_color') ??
-      findCallArguments(loop.body, 'set_indirect_color');
+      findCallArguments(loop.body, 'set_indirect_color') ??
+      findCallArguments(loop.body, 'palette.set_pen_color') ??
+      findCallArguments(loop.body, 'set_pen_color');
     if (!call) continue;
     const base = expressionAt(splitMameArgs(call)[0] ?? '0', loop.start);
     const channelRe =

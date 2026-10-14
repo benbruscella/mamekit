@@ -2,6 +2,18 @@ import { sourceTarget } from './source-contract.ts';
 
 export const gauntlet = sourceTarget({
   game: 'gauntlet',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'alpha:TILEMAP',
+      'mob:ATARI_MOTION_OBJECTS',
+      'playfield:TILEMAP',
+    ],
+    handlerGaps: [
+      'alpha.write16',
+      'playfield.write16',
+    ],
+  },
   driver: 'src/mame/atari/gauntlet.cpp',
   machine: { className: 'gauntlet_state', name: 'gauntlet' },
   screen: { width: 336, height: 240 },

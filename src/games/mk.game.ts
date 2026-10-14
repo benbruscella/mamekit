@@ -11,6 +11,16 @@ import { sourceTarget } from "./source-contract.ts";
 
 export const mk = sourceTarget({
   game: 'mk',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'adpcm:WILLIAMS_ADPCM_SOUND',
+      'dac:AD7524',
+    ],
+    handlerGaps: [
+      'adpcm:dac.data_w',
+    ],
+  },
   driver: 'src/mame/williams/midtunit.cpp',
   machine: { className: 'midtunit_adpcm_state', name: 'tunit_adpcm' },
   screen: { width: 400, height: 254 },

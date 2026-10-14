@@ -55,6 +55,20 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     diagnostics.push(source ? { path, message, source } : { path, message });
   };
 
+  const videoExecution = board.videoExecution;
+  if (videoExecution) {
+    const handlers = new Set((board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`));
+    for (const field of ['roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler'] as const) {
+      const key = videoExecution[field];
+      if (key && !handlers.has(key)) fail(`videoExecution.${field}`, `handler "${key}" is not generated`);
+    }
+    if (videoExecution.spriteDmaCallback && !board.callbacks.some(callback => callback.id === videoExecution.spriteDmaCallback)) {
+      fail('videoExecution.spriteDmaCallback', `callback "${videoExecution.spriteDmaCallback}" is not generated`);
+    }
+    const members = videoExecution.bitmapMembers.map(bitmap => bitmap.member);
+    if (new Set(members).size !== members.length) fail('videoExecution.bitmapMembers', 'duplicate bitmap member');
+  }
+
   const deviceTags = new Set<string>();
   for (const [index, device] of (board.devices ?? []).entries()) {
     if (deviceTags.has(device.tag)) {

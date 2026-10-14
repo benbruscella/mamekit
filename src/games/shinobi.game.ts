@@ -2,6 +2,17 @@ import { sourceTarget } from './source-contract.ts';
 
 export const shinobi = sourceTarget({
   game: 'shinobi',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'i8255:I8255',
+      'sprites:SEGA_SYS16A_SPRITES',
+      'upd7751:UPD7751',
+      'upd7751_8243:I8243',
+    ],
+    handlerGaps: [],
+    allowDirectScreen: true,
+  },
   driver: 'src/mame/sega/segas16a.cpp',
   machine: { className: 'segas16a_state', name: 'system16a' },
   screen: { width: 320, height: 224 },

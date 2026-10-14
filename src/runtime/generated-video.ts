@@ -9,11 +9,7 @@ import {
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
 import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
-import {
-  generatedDirectScreenShape,
-  type GeneratedDirectScreenShape,
-} from './generated-video-shape.ts';
-export { generatedDirectScreenShape } from './generated-video-shape.ts';
+import type { GeneratedDirectScreenShape } from '../ir/video-execution.ts';
 import { hasDeviceType } from './generated-source-shape.ts';
 
 /**
@@ -652,6 +648,7 @@ class GeneratedPriorityBitmap {
 
 /** The palette surface generated gfx, tilemap and screen code binds against. */
 interface GeneratedPaletteDevice {
+  pen_color?(pen: number): number;
   readonly colors: Uint32Array;
   transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number;
   black_pen(): number;
@@ -2651,23 +2648,6 @@ export function decodeVicDualPixel(
   return VICDUAL_COLORS[color]!;
 }
 
-/** Williams' 256-entry 3:3:2 resistor palette. */
-export function williamsPaletteColor(value: number): number {
-  const weighted = (bits: number[], resistances: number[]): number => {
-    const conductance = resistances.map(resistance => 1 / resistance);
-    const total = conductance.reduce((sum, item) => sum + item, 0);
-    return Math.round(bits.reduce(
-      (sum, bit, index) => sum + Number(Boolean(value & (1 << bit))) * conductance[index]!,
-      0,
-    ) * 255 / total);
-  };
-  return packRgb(
-    weighted([0, 1, 2], [1200, 560, 330]),
-    weighted([3, 4, 5], [1200, 560, 330]),
-    weighted([6, 7], [560, 330]),
-  );
-}
-
 /** Taito SJ's layer shifters include a different fixed pixel skew per plane. */
 export function taitoSjLayerScrollX(
   raw: number,
@@ -2958,6 +2938,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     if (!this.palette && machine.execution.paletteDevice) {
       this.palette = new GeneratedInitialisedPalette(machine.execution.paletteDevice.entries);
     }
+    // palette_device's read accessor is a framework service. Generated
+    // screen handlers read the same colors the host uses to resolve pens.
+    for (const palette of new Set([...this.palettes.values(), this.palette])) {
+      if (palette) palette.pen_color ??= pen => palette.colors[pen] ?? 0xff000000;
+    }
     const indexed = isIndexedScreen(machine);
     this.gfx = (machine.video?.gfx ?? []).map(entry => {
       const stateRegion = state[`m_${entry.region.replace(/[^A-Za-z0-9_]/g, '_')}`];
@@ -3098,10 +3083,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         return 0;
       },
     };
-    const roadHandler = machine.handlers?.find(handler =>
-      handler.method === 'draw_road' &&
-      handler.body?.includes('m_vertical_position_modifier') &&
-      handler.body.includes('m_road16_memory'));
+    const roadHandler = machine.videoExecution?.roadHandler
+      ? requiredHandler(machine, machine.videoExecution.roadHandler) : undefined;
     if (roadHandler) {
       // polepos_palette() has a non-palette side effect: three PROM pages are
       // combined into the road generator's 12-bit vertical address table.
@@ -3170,17 +3153,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       referenceCalls.draw_road = drawRoad;
       referenceCalls[`${roadHandler.ownerClass}.draw_road`] = drawRoad;
     }
-    const zoomSpriteHandler = machine.handlers?.find(handler =>
-      handler.method === 'zoom_sprite' &&
-      handler.body?.includes('m_scalelut_region[(y << 6) + sizey]') &&
-      handler.body.includes('gfx->get_data(code % gfx->elements())') &&
-      handler.body.includes('bitmap.pix(yy, xx) = pen + coloroffs'));
-    const spriteHandler = machine.handlers?.find(handler =>
-      handler.method === 'draw_sprites' &&
-      handler.ownerClass === zoomSpriteHandler?.ownerClass &&
-      handler.body?.includes('&m_sprite16_memory[0x380]') &&
-      handler.body.includes('&m_sprite16_memory[0x780]') &&
-      handler.body.includes('zoom_sprite(bitmap, BIT(sizmem[0], 15)'));
+    const zoomSpriteHandler = machine.videoExecution?.zoomSpriteHandler
+      ? requiredHandler(machine, machine.videoExecution.zoomSpriteHandler) : undefined;
+    const spriteHandler = machine.videoExecution?.spriteHandler
+      ? requiredHandler(machine, machine.videoExecution.spriteHandler) : undefined;
     if (zoomSpriteHandler && spriteHandler) {
       const zoomSprite = (...rawArgs: unknown[]) => {
         const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
@@ -3265,10 +3241,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       referenceCalls.draw_sprites = drawSprites;
       referenceCalls[`${spriteHandler.ownerClass}.draw_sprites`] = drawSprites;
     }
-    const cpsBankMapper = machine.handlers?.find(handler =>
-      handler.method === 'gfxrom_bank_mapper' &&
-      handler.body?.includes('m_game_config->bank_mapper') &&
-      handler.body.includes('m_game_config->bank_sizes'));
+    const cpsBankMapper = machine.videoExecution?.bankMapperHandler
+      ? requiredHandler(machine, machine.videoExecution.bankMapperHandler) : undefined;
     if (cpsBankMapper) {
       const map = (...rawArgs: unknown[]) => cpsGfxromBankMap(
         state.m_game_config as CpsGameConfig,
@@ -3286,11 +3260,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         Math.max(0, Number(generatedArgumentValue(rawArgs[0]) ?? 0)),
       );
 
-      const spriteHandler = machine.handlers?.find(handler =>
-        handler.ownerClass === cpsBankMapper.ownerClass &&
-        handler.method === 'cps1_render_sprites' &&
-        handler.body?.includes('m_buffered_obj.get()') &&
-        handler.body.includes('handle blocked sprites'));
+      const spriteHandler = machine.videoExecution?.cpsSpriteHandler
+        ? requiredHandler(machine, machine.videoExecution.cpsSpriteHandler) : undefined;
       if (spriteHandler) {
         const renderSprites = (...rawArgs: unknown[]) => {
           const bitmap = generatedArgumentValue(rawArgs[1]) as BitmapTarget | undefined;
@@ -3577,26 +3548,15 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     calls['m_screen.height'] = () => this.height;
     calls['machine().tilemap().create'] = () =>
       createdTilemaps[Math.min(nextCreatedTilemap++, createdTilemaps.length - 1)] ?? 0;
-    const bitmapMembers = new Map<string, number>();
-    for (const handler of machine.handlers ?? []) {
-      for (const match of (handler.body ?? '').matchAll(
-        /\b(m_\w*bitmap\w*)\s*(?:\[\s*(\d+)\s*\])?/g,
-      )) {
-        bitmapMembers.set(
-          match[1]!,
-          Math.max(bitmapMembers.get(match[1]!) ?? 0, match[2] ? Number(match[2]) + 1 : 0),
-        );
-      }
-    }
     const bitmapWidth = machine.execution.screen.width * (machine.video?.renderScale?.x ?? 1);
     const bitmapHeight = Math.max(256, machine.execution.screen.vtotal) * 2;
-    for (const [member, count] of bitmapMembers) {
+    for (const { member, count } of machine.videoExecution?.bitmapMembers ?? []) {
       if (state[member]) continue;
       state[member] = count
         ? Array.from({ length: count }, () => new GeneratedIndexedBitmap(bitmapWidth, bitmapHeight))
         : new GeneratedIndexedBitmap(bitmapWidth, bitmapHeight);
     }
-    this.directScreenShape = generatedDirectScreenShape(machine);
+    this.directScreenShape = machine.videoExecution?.directScreen;
     // The machine's own palette routine, run once with the palette it is
     // handed -- which is what MAME does at device_start. Every colour the
     // screen resolves comes out of this call.
@@ -4245,9 +4205,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     if (this.directScreenShape === 'vicdual-character-ram') {
       return this.drawVicDual(bitmap, cliprect);
     }
-    if (this.directScreenShape === 'williams-column-bitmap') {
-      return this.drawWilliams(bitmap, cliprect);
-    }
     return false;
   }
 
@@ -4581,23 +4538,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         sprites[offset + 1] ?? 0,
         0,
       );
-    }
-    return true;
-  }
-
-  private drawWilliams(bitmap: BitmapTarget, cliprect: GeneratedRectangle): boolean {
-    const videoRaw = this.state.m_videoram;
-    const paletteRaw = this.state.m_paletteram;
-    if (!ArrayBuffer.isView(videoRaw) || !ArrayBuffer.isView(paletteRaw)) return false;
-    const video = videoRaw as Uint8Array;
-    const palette = paletteRaw as Uint8Array;
-    const firstX = cliprect.min_x & ~1;
-    for (let y = cliprect.min_y; y <= cliprect.max_y; y++) {
-      for (let x = firstX; x <= cliprect.max_x; x += 2) {
-        const pixels = video[y + (x >>> 1) * 256] ?? 0;
-        bitmap['pix='](y, x, williamsPaletteColor(palette[pixels >>> 4] ?? 0));
-        bitmap['pix='](y, x + 1, williamsPaletteColor(palette[pixels & 0x0f] ?? 0));
-      }
     }
     return true;
   }

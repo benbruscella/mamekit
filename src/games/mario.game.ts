@@ -3,6 +3,17 @@ import { sourceTarget } from './source-contract.ts';
 export const mario = {
   ...sourceTarget({
     game: 'mario',
+    // Bounded closure gaps covered by this target's real-ROM acceptance.
+    runtimeCoverage: {
+      generationGaps: [
+        'snd_nl:dac:NETLIST_INT_INPUT',
+        'z80dma:Z80DMA',
+      ],
+      handlerGaps: [
+        'z80dma.read',
+        'z80dma.write',
+      ],
+    },
     driver: 'src/mame/nintendo/mario.cpp',
     machine: { className: 'mario_state', name: 'mario' },
     screen: { width: 256, height: 224 },

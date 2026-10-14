@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { executeGeneratedMachineProgram, type GeneratedHandlerBindings } from '../ir/execute.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import type { BoardIr, GeneratedHandler } from '../ir/board.ts';
-import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
+import { generatedBoardHandlersSource } from './board-codegen.ts';
 
 function board(handlers: GeneratedHandler[], shares: string[] = []): BoardIr {
   return {

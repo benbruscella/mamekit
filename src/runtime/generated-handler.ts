@@ -231,8 +231,6 @@ function makeWriteHandler(
 ): WriteHandler {
   const directVideoRamWrite = makeDirectVideoRamWrite(handler, bindings);
   if (directVideoRamWrite) return directVideoRamWrite;
-  const directObjectRamWrite = makeDirectObjectRamWrite(handler, bindings);
-  if (directObjectRamWrite) return directObjectRamWrite;
   const space = handlerSpace(handler, bindings, cpuTag);
   return (addr, offset, data, memMask) => {
     executeGeneratedMachineHandler(
@@ -248,55 +246,6 @@ function makeWriteHandler(
         ...(memMask !== undefined ? { mem_mask: memMask } : {}),
       },
     );
-  };
-}
-
-/**
- * Direct form of the Galaxian-family object-RAM update shape. This is matched
- * from the complete source body before specializing; boards with a different
- * handler continue through the general interpreter.
- */
-function makeDirectObjectRamWrite(
-  handler: GeneratedHandler,
-  bindings: GeneratedHandlerBindings,
-): WriteHandler | undefined {
-  const body = handler.body ?? '';
-  if (
-    !body.includes('m_screen->update_partial(m_screen->vpos())') ||
-    !body.includes('m_spriteram[offset] = data') ||
-    !body.includes('if (offset < 0x40)') ||
-    !body.includes('m_frogger_adjust') ||
-    !body.includes('m_bg_tilemap->set_scrolly(offset >> 1, data)') ||
-    !body.includes('m_bg_tilemap->set_scrollx(offset >> 1, m_x_scale*data)') ||
-    !body.includes('m_bg_tilemap->mark_tile_dirty(offset)')
-  ) return undefined;
-
-  return (_address, initialOffset, initialData) => {
-    const members = bindings.members ?? {};
-    const screen = members.m_screen as {
-      vpos(): number;
-      update_partial(line: number): void;
-    };
-    const spriteRam = members.m_spriteram as { [index: number]: number };
-    const tilemap = members.m_bg_tilemap as {
-      set_scrolly(column: number, value: number): void;
-      set_scrollx(row: number, value: number): void;
-      mark_tile_dirty(offset: number): void;
-    };
-    let offset = initialOffset;
-    let data = initialData;
-    screen.update_partial(screen.vpos());
-    spriteRam[offset] = data;
-    if (offset >= 0x40) return;
-    if ((offset & 1) === 0) {
-      if (members.m_frogger_adjust) data = ((data >> 4) | (data << 4)) & 0xff;
-      if (!members.m_sfx_adjust) tilemap.set_scrolly(offset >> 1, data);
-      else tilemap.set_scrollx(offset >> 1, Number(members.m_x_scale) * data);
-      return;
-    }
-    for (offset >>= 1; offset < 0x400; offset += 32) {
-      tilemap.mark_tile_dirty(offset);
-    }
   };
 }
 

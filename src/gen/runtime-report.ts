@@ -11,7 +11,7 @@ import { GAME_CATEGORIES, gameOutputDir } from './output-layout.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { isRuntimeCertified } from './runtime-certification.ts';
 import type { BoardIr } from '../ir/board.ts';
-import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
+import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 import { audioLimitations, SYNTHESIZED_SAMPLES_NOTE, type AudioFidelitySurface } from '../runtime/audio-fidelity.ts';
 
 interface RuntimeRange {
