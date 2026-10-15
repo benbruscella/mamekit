@@ -238,14 +238,18 @@ export class GeneratedFrameRunner {
   }
 
   /**
-   * Scanlines before the current one that no processor has run yet.
-   *
-   * A round spanning lines runs on its last line, so at each earlier line
-   * boundary the beam has moved on while every processor still stands where
-   * the previous round left it.
+   * How far behind the beam a processor stands at a line boundary, in
+   * scanlines. A round spanning lines runs on its last line, so at each
+   * earlier boundary the beam has moved on while the processor still stands
+   * where the previous round left it: the lines of the round in progress it
+   * has not run, less whatever its last slice ran past the end of the round
+   * before (a negative carry). An NES OAM DMA steals 513 cycles inside one
+   * instruction, which leaves the CPU four lines past where its round ended.
    */
-  get unrunLines(): number {
-    return this.pendingLines;
+  linesBehind(tag: string): number {
+    const scheduled = this.processors.find(entry => entry.processor.tag === tag);
+    if (!scheduled) return this.pendingLines;
+    return this.pendingLines + scheduled.carry / scheduled.cyclesPerLine;
   }
 
   get currentCarry(): readonly number[] {

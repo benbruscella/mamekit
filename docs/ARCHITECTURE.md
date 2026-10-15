@@ -510,9 +510,10 @@ the device clock a round ahead of the processors, and a timer armed against the
 beam would then read two different beams: the running processor's inside a
 slice, the device clock's at a boundary. On a board where a generated device
 arms a timer against the beam (the NES 2C02, the TMS9928A, Konami's 005849),
-the settle therefore waits for the processors and leaves the round's unrun
-lines owed (#155: the 2C02 lost a frame on every round and never reached
-VBLANK). Elsewhere the beam stays the reference: hosted MCUs and discrete
+the settle therefore puts the device clock where the primary processor
+actually stands: behind the beam by the lines its round has not run, ahead of
+it by whatever its last slice overran, which an NES OAM DMA makes four lines
+(#155: the 2C02 lost a frame on every round and never reached VBLANK). Elsewhere the beam stays the reference: hosted MCUs and discrete
 networks run on the same clock, and Galaga's 54xx boom moved when it followed
 the processors.
 

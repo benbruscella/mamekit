@@ -874,4 +874,50 @@ for (let frame = 0; frame < 3; frame++) beamTimerBoard.frame(beamFrame);
 assert.equal(beamTimer.get('m_ticks') - ticksBefore, 3 * 262,
   'a timer re-armed against the beam every line must fire once a line under multi-line rounds');
 
+// The same device beside a processor whose slice sometimes runs past its
+// target, as the NES 6502 does when an OAM DMA steals 513 cycles inside one
+// instruction. Instruction deltas stop at the target, so the device clock has
+// to be settled to where the processor actually stands: settled only to the
+// round's unrun lines it fell four lines behind a CPU-side beam, and the
+// device lost a frame every few (Super Mario Bros. ran at 75% speed).
+let overrunSlices = 0;
+registerGeneratedCpu({
+  type: 'BEAM_TIMER_DMA_CPU_FIXTURE', summary: { diagnostics: 0 },
+  create(bus) {
+    return {
+      reset() {}, step() { return 1; },
+      run(cycles) {
+        for (let elapsed = 0; elapsed < cycles; elapsed++) bus.timing?.(elapsed, cycles);
+        bus.timing?.(cycles, cycles);
+        // Every seventh slice ends four and a half lines past its target.
+        return ++overrunSlices % 7 === 0 ? cycles + 45 : cycles;
+      },
+      setIrqLine() {}, setInputLine() {}, nmi() {}, get() { return 0; },
+      stateInt() { return 0; }, set() {}, invoke() { return 0; }, hasMethod() { return false; },
+    };
+  },
+});
+const overrunMachine: BoardIr = {
+  ...beamTimerMachine,
+  game: 'beam-timer-overrun-fixture',
+  execution: {
+    ...beamTimerMachine.execution,
+    cpus: [{ ...beamTimerMachine.execution.cpus[0]!, type: 'BEAM_TIMER_DMA_CPU_FIXTURE' }],
+  },
+};
+const overrunBoard = createGeneratedBoard(overrunMachine,
+  { game: overrunMachine.game, family: 'fixture', cpus: [], ranges: [],
+    screen: { width: 1, height: 240, refresh: 60, vtotal: 262, vbstart: 241, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 } },
+  { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+const overrunTimer = (overrunBoard as unknown as { devices: Map<string, Device> }).devices.get('ppu')!;
+for (let frame = 0; frame < 3; frame++) overrunBoard.frame(beamFrame);
+const overrunBefore = overrunTimer.get('m_ticks');
+for (let frame = 0; frame < 30; frame++) overrunBoard.frame(beamFrame);
+// The overruns are real CPU time, so over thirty frames the device runs that
+// much further than thirty frames' worth of lines -- but never a frame short.
+const overrunTicks = overrunTimer.get('m_ticks') - overrunBefore;
+assert.ok(overrunTicks >= 30 * 262 && overrunTicks < 31 * 262,
+  `a slice overrun must not cost a beam-armed timer its frame (${overrunTicks} ticks in 30 frames)`);
+
 console.log('generated-board.spec: shares, CPU lines, flip-screen state and CPU buses passed');

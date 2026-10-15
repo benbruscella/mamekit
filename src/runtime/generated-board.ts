@@ -2258,16 +2258,20 @@ class IrBoard implements Board {
           // clock's, and the two stand that lead apart. The NES 2C02 re-arms
           // for "the next line" from a boundary, finds it already behind the
           // beam, and waits a whole frame each time, so it never reaches
-          // VBLANK (#155). On such a board the device clock waits for the
-          // processors instead -- the lines still owed by the round in
-          // progress are not paid -- so both readings are the same beam.
+          // VBLANK (#155). On such a board the device clock settles to where
+          // the primary processor actually stands -- behind the beam by the
+          // lines its round has not run, ahead of it by whatever its last
+          // slice overran -- so both readings are the same beam. The overrun
+          // matters as much as the unrun lines: instruction deltas stop at
+          // the slice's target, and an OAM DMA's 513 stolen cycles left the
+          // CPU four lines ahead of a 2C02 that then lost a frame every few.
           //
           // Everywhere else the beam stays the reference: settling against
           // only the lines the processors had run moved Galaga's 54xx boot
           // boom, whose discrete network and hosted MCUs run on this clock.
           this.timedHardwareDelivered -= seconds;
-          const owed = this.deviceClockFollowsProcessors
-            ? this.frameRunner.unrunLines * seconds
+          const owed = this.deviceClockFollowsProcessors && timerClockCpu
+            ? this.frameRunner.linesBehind(timerClockCpu.tag) * seconds
             : 0;
           if (this.timedHardwareDelivered < -owed) {
             advanceTimedHardware(-owed - this.timedHardwareDelivered);

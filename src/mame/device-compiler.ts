@@ -13,6 +13,7 @@ import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions } from '../ir/walk.ts';
+import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import {
   collectFunctionMacros,
   collectDynamicMacros,
@@ -358,6 +359,7 @@ export function compileMameDevice(
     ...hierarchy.map(className =>
       numericConstants(classes.get(className)?.body ?? '')),
   );
+  Object.assign(constants, foreignClassConstants(mameSrc, sources, classes, constants));
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
   const sourceTables = Object.assign(
@@ -1607,7 +1609,70 @@ export function coreAddressSpaces(mameSrc: string): Record<string, number> {
   return spaces;
 }
 
-function numericConstants(source: string): Record<string, number> {
+/**
+ * Constants another class declares, which the device names with that class's
+ * qualifier: MMC3's IRQ counter only runs on `scanline <
+ * ppu2c0x_device::BOTTOM_VISIBLE_SCANLINE`, and the cartridge raises the IRQ on
+ * `m6502_device::IRQ_LINE`. The device's source includes the header for them
+ * but does not compile its class, so the header is read for that class's
+ * constants alone. They keep their qualified name, the spelling the handler IR
+ * looks them up by, so they cannot shadow one of the device's own.
+ *
+ * Unresolved, such a name evaluated to an unresolved reference: the comparison
+ * was false on every scanline, no MMC3 game ever saw its scanline IRQ, and
+ * nothing reported it.
+ */
+function foreignClassConstants(
+  mameSrc: string,
+  sources: readonly { file: string; source: string }[],
+  classes: ReadonlyMap<string, unknown>,
+  known: Record<string, number>,
+): Record<string, number> {
+  const wanted = new Map<string, Set<string>>();
+  for (const { source } of sources) {
+    for (const match of stripCppComments(source).matchAll(/\b(\w+)::([A-Z][A-Z0-9_]*)\b/g)) {
+      const [, owner, name] = match as unknown as [string, string, string];
+      // The runtime numbers CPU input lines its own way (NMI is -1, not
+      // MAME's 64), and its table already answers those names.
+      const qualified = `${owner}::${name}`;
+      if (classes.has(owner) || known[qualified] !== undefined ||
+        DEFAULT_CONSTANTS[qualified] !== undefined) continue;
+      if (!wanted.has(owner)) wanted.set(owner, new Set());
+      wanted.get(owner)!.add(name);
+    }
+  }
+  const found: Record<string, number> = {};
+  if (!wanted.size) return found;
+  const headers = new Set<string>();
+  for (const { file, source } of sources) {
+    for (const include of source.matchAll(/^\s*#include\s+"([^"]+\.h)"/gm)) {
+      const header = [
+        join(mameSrc, dirname(file), include[1]!),
+        join(mameSrc, 'src/devices', include[1]!),
+        join(mameSrc, 'src/mame', include[1]!),
+      ].find(candidate => existsSync(candidate));
+      if (header) headers.add(header);
+    }
+  }
+  for (const header of headers) {
+    const unit = parseMameAst([{ file: relative(mameSrc, header), source: readFileSync(header, 'utf8') }]);
+    for (const declaration of unit.units.flatMap(entry => entry.classes)) {
+      const names = wanted.get(declaration.name);
+      if (!names) continue;
+      const values = numericConstants(declaration.body, known);
+      for (const name of names) {
+        if (values[name] !== undefined) found[`${declaration.name}::${name}`] = values[name]!;
+      }
+    }
+  }
+  return found;
+}
+
+function numericConstants(
+  source: string,
+  /** Constants already known, which the source's own values may be spelled in. */
+  seed: Record<string, number> = {},
+): Record<string, number> {
   const expressions = new Map<string, string>();
   // The value runs to the end of the line less any comment. Stopping at the
   // first `/` instead cut every dividing macro in half -- VLM5030's
@@ -1660,7 +1725,7 @@ function numericConstants(source: string): Record<string, number> {
       previous = match[1]!;
     }
   }
-  const constants: Record<string, number> = {};
+  const constants: Record<string, number> = { ...seed };
   for (let pass = 0; pass <= expressions.size; pass++) {
     for (const [name, expression] of expressions) {
       if (constants[name] !== undefined) continue;
