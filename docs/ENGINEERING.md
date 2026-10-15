@@ -94,17 +94,21 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run deploy` | clean-generate and publish the static site |
 
 The broad `test:generation` command is destructive to `dist` and expensive. It
-generates every target in `REQUIRED_TARGETS`, which is the accepted set plus
-any console that has no acceptance contract yet. `nes`, `coleco`, `a2600` and
-`gameboy` are the consoles. NES software arrives entirely on cartridges the
-visitor supplies, so there is no romset a contract module could name; it is
-covered by the browser suite instead (`e2e/specs/console.spec.ts`), which is
-the gate issue #53 lacked when it dropped the target and nothing went red. The
-Atari 2600 is the same case -- the cartridge is the whole machine. `coleco` and
-`gameboy` are listed for that reason today, but unlike the NES each has a
-romset of its own -- the ColecoVision BIOS, and the Game Boy's 256-byte DMG
-boot ROM -- so each can carry a real-ROM contract once that dump is on the
-shelf.
+generates every target in `REQUIRED_TARGETS`: the accepted set, the candidates,
+and the consoles `nes`, `coleco`, `a2600` and `gameboy`, which `targets.ts`
+names whether or not a contract accepts them -- a console dropping out of the
+build is what issue #53 did, with nothing going red.
+
+A console has no romset to accept against; it is accepted against a cartridge.
+Its contract's scenario names one by MAME software-list short name
+(`cartridge: 'smb1'`), the set lives at
+`.data/roms/consoles/<console>/<cartridge>.zip` beside the console's own set
+(the ColecoVision BIOS, the Game Boy's DMG boot ROM; the NES and the 2600 have
+none), and the harness mounts it through `src/runtime/cart-mount.ts`, the code
+the console room boots a visitor's cartridge with. Goldens, the save-state round
+trip and the audio probe then apply exactly as for an arcade set. Before #155
+no console had a contract, and the NES and the Game Boy each drew one flat
+colour for months with every gate green.
 
 A console's own cartridge bus is covered by a colocated spec under
 `src/hardware/<console>/`, which is where a bus that installs itself has to be

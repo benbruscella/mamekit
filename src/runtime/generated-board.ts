@@ -366,6 +366,12 @@ class IrBoard implements Board {
    * still land where the deltas put them and no drift accumulates.
    */
   private timedHardwareDelivered = 0;
+  /**
+   * The device clock waits for the processors at a line boundary instead of
+   * running on with the beam. Set once a generated device arms a timer
+   * against the beam; see the line settle in the frame runner's onLine.
+   */
+  private deviceClockFollowsProcessors = false;
   /** The processor whose slice is executing. */
   private runningCpu?: string;
   private soundRuntime?: SoundRuntimeHooks;
@@ -453,6 +459,7 @@ class IrBoard implements Board {
       if (hasGeneratedDevice(specification.type) && generatedDeviceRole(specification.type) !== 'passive-storage') {
         const screenHost = {
           time_until_pos: (position: number) => {
+            this.deviceClockFollowsProcessors = true;
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
             const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
             // Answered in the clock the device timers themselves run on, not
@@ -2243,13 +2250,27 @@ class IrBoard implements Board {
           // held, a slice overrun's worth when it ran. The remainder carries
           // signed, so an over-delivered line is not paid for twice.
           //
-          // Settling against only the lines the processors had run was tried
-          // for rounds spanning lines; it moved Galaga's 54xx boot boom, whose
-          // discrete network is driven from this clock. The beam stays the
-          // reference, and rounds end at timer expiries instead.
+          // Inside a round spanning lines this pays for lines no processor
+          // has run yet, and the device clock runs a round minus one line
+          // ahead of the processors. Where a device arms a timer against the
+          // beam that lead is fatal: a timer firing inside a slice reads the
+          // running processor's beam, one firing here reads the device
+          // clock's, and the two stand that lead apart. The NES 2C02 re-arms
+          // for "the next line" from a boundary, finds it already behind the
+          // beam, and waits a whole frame each time, so it never reaches
+          // VBLANK (#155). On such a board the device clock waits for the
+          // processors instead -- the lines still owed by the round in
+          // progress are not paid -- so both readings are the same beam.
+          //
+          // Everywhere else the beam stays the reference: settling against
+          // only the lines the processors had run moved Galaga's 54xx boot
+          // boom, whose discrete network and hosted MCUs run on this clock.
           this.timedHardwareDelivered -= seconds;
-          if (this.timedHardwareDelivered < 0) {
-            advanceTimedHardware(-this.timedHardwareDelivered);
+          const owed = this.deviceClockFollowsProcessors
+            ? this.frameRunner.unrunLines * seconds
+            : 0;
+          if (this.timedHardwareDelivered < -owed) {
+            advanceTimedHardware(-owed - this.timedHardwareDelivered);
           }
           for (const tick of this.peripheralTicks) tick(seconds);
           // Driver-armed one-shots expire at the line boundary at or after

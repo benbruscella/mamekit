@@ -77,11 +77,7 @@ export async function fetchAcceptanceRoms(): Promise<void> {
     `${contract.category}/${contract.game}`,
     { category: contract.category, game: contract.game },
   ])).values()];
-  const primary = machines.map(machine => ({ category: machine.category, set: machine.game }));
-  const archives = await downloadMissing(primary);
-
-  const dependencies: RomRequirement[] = [];
-  for (const machine of machines) {
+  const configs = new Map(machines.map(machine => {
     const configPath = join(
       gameOutputDir(join(projectRoot, 'dist'), machine.category, machine.game),
       'config.json',
@@ -89,7 +85,24 @@ export async function fetchAcceptanceRoms(): Promise<void> {
     if (!existsSync(configPath)) {
       throw new Error(`${machine.game}: generate the accepted distribution before fetching ROMs`);
     }
-    const config = JSON.parse(readFileSync(configPath, 'utf8')) as ShellConfig;
+    return [machine.game, JSON.parse(readFileSync(configPath, 'utf8')) as ShellConfig] as const;
+  }));
+  // A console with nothing on board but its cartridge slot (the NES, the
+  // 2600) has no set of its own; its cartridges sit in a folder named after it.
+  const withSet = machines.filter(machine =>
+    configs.get(machine.game)!.roms.some(rom => rom.loads?.length));
+  const primary = withSet.map(machine => ({ category: machine.category, set: machine.game }));
+  const cartridges = [...new Map(contracts.flatMap(contract => contract.cartridge
+    ? [[`${contract.category}/${contract.game}/${contract.cartridge}`, {
+        category: `${contract.category}/${contract.game}`,
+        set: contract.cartridge,
+      }] as const]
+    : [])).values()];
+  const archives = await downloadMissing([...primary, ...cartridges]);
+
+  const dependencies: RomRequirement[] = [];
+  for (const machine of withSet) {
+    const config = configs.get(machine.game)!;
     const bytes = archives.get(`${machine.category}/${machine.game}`)!;
     const files = await readZip(bytes);
     for (const set of unresolvedDependencyRomSets(config.roms, machine.game, files)) {
@@ -99,6 +112,7 @@ export async function fetchAcceptanceRoms(): Promise<void> {
   await downloadMissing(dependencies);
   console.log(
     `acceptance ROM closure ready: ${primary.length} primary set(s), ` +
+    `${cartridges.length} cartridge(s), ` +
     `${new Set(dependencies.map(key)).size} dependency set(s)`,
   );
 }

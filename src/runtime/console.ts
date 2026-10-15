@@ -22,12 +22,18 @@ import {
   parseINes,
   identify,
   inesFromSoftlistSet,
-  mountedINesPrg,
   type ResolvedCart,
   type SoftCatalog,
   type SoftEntry,
 } from './nes-ines.ts';
 import { cartImageFromSoftlistSet, resolveFlatCart } from './cart-identify.ts';
+import {
+  MAPPER_SLOTS,
+  cartSupport,
+  mountCart,
+  resolveCartImage,
+  type CartSupport,
+} from './cart-mount.ts';
 import { readZip, crc32 } from './zip.ts';
 import { artworkSources } from './artwork-source.ts';
 import { consoleDeckSvg } from './console-art.ts';
@@ -37,7 +43,6 @@ import {
   fetchRomJson,
   type CartAvailability,
 } from './rom-source.ts';
-import type { Regions } from './types.ts';
 
 const GOLD = '#f2c200';
 const ACCENT = '#e60012'; // NES front-loader stripe red
@@ -217,10 +222,6 @@ const SLOT_PCB: Record<string, string> = {
   nrom: 'NROM', uxrom: 'UxROM', cnrom: 'CNROM', sxrom: 'MMC1', txrom: 'MMC3',
   pxrom: 'MMC2', fxrom: 'MMC4', gxrom: 'GxROM', axrom: 'AxROM', bnrom: 'BNROM',
 };
-const MAPPER_SLOTS: Record<number, string> = {
-  0: 'nrom', 1: 'sxrom', 2: 'uxrom', 3: 'cnrom', 4: 'txrom',
-};
-
 type CartState = 'placeholder' | 'lit' | 'experimental' | 'unsupported';
 
 /** games.json manifest entry (the fields the room shows in About) */
@@ -529,33 +530,13 @@ async function fetchOwnEntry(cfg: ShellConfig): Promise<MenuEntry | null> {
   } catch { return null; }
 }
 
-/**
- * Parse + identify a stored record against this visit's catalog.
- *
- * Which reader applies is the console's own property, taken from the software
- * list's cartridge interface. Sniffing the bytes instead lets parseINes accept
- * a ColecoVision dump whose first bytes happen to pass, and the NES matcher
- * then grades it against a catalog that is not the NES's.
- */
+/** Parse + identify a stored record against this visit's catalog. */
 function resolveRec(
   rec: CartRecord,
   catalog: SoftCatalog | null,
   support: CartSupport,
 ): ResolvedCart | null {
-  const bytes = new Uint8Array(rec.bytes);
-  if (!support.ines) return resolveFlatCart(bytes, catalog, support);
-  const ines = parseINes(bytes);
-  return ines ? identify(ines, catalog, support) : null;
-}
-
-/** What this console can play, and how its cartridges are read. */
-interface CartSupport {
-  slots: string[];
-  games: string[];
-  mapperSlots?: Record<number, string>;
-  /** The NES is the one console whose dumps carry a header and two areas. */
-  ines: boolean;
-  defaultSlot?: string;
+  return resolveCartImage(new Uint8Array(rec.bytes), catalog, support);
 }
 
 /** unified navigable shelf entry (placeholder slot OR a dropped "other" cart) */
@@ -576,7 +557,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   // The NES is the one console whose dumps carry a header and two areas; every
   // other cartridge is a flat image. The software list says which this is, so
   // nothing below is written per console.
-  const inesCarts = (cfg.cart?.interface ?? 'nes_cart') === 'nes_cart';
+  const support = cartSupport(cfg);
+  const inesCarts = support.ines;
   // What this slot takes is MAME's own `file_extensions()`, generated into the
   // config. Hardcoding it here meant every non-NES console offered the
   // ColecoVision list, so an Atari `.a26` -- the usual name for a 2600 dump --
@@ -587,13 +569,6 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const cartExtensionList = cartExtensions.join(' / ');
   /** The MAME hash file this console's catalogue came from. */
   const softlistFile = `${cfg.cart?.list ?? 'nes'}.xml`;
-  const support: CartSupport = {
-    slots: cfg.cart?.slots ?? [],
-    games: cfg.cart?.games ?? [],
-    mapperSlots: MAPPER_SLOTS,
-    ines: inesCarts,
-    ...(cfg.cart?.defaultSlot ? { defaultSlot: cfg.cart.defaultSlot } : {}),
-  };
   /**
    * The board a catalogue entry runs on, and whether this build can run it.
    *
@@ -655,24 +630,9 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   const boot = (rec: CartRecord, resolved: ResolvedCart): void => {
     inRoom = false;
     document.body.textContent = '';
-    // An NES cartridge mounts as the two areas its header describes; every
-    // other console's mounts as one image into the region its PCB loads from.
-    const regions: Regions = {};
-    let cart: NonNullable<ShellConfig['board']['cart']>;
-    if (resolved.ines) {
-      regions.prg = mountedINesPrg(resolved.ines);
-      if (resolved.ines.chr) regions.chr = resolved.ines.chr; // omitted => CHR-RAM cart
-      cart = {
-        mapper: resolved.mapper,
-        mirroring: resolved.ines.mirroring,
-        battery: resolved.ines.battery,
-      };
-    } else {
-      const region = cfg.cart?.romRegion;
-      if (!region || !resolved.image) return;
-      regions[region] = resolved.image.bytes;
-      cart = { ...(resolved.slot ? { slot: resolved.slot } : {}) };
-    }
+    const mounted = mountCart(cfg, resolved);
+    if (!mounted) return;
+    const { regions, cart } = mounted;
     const cfg2: ShellConfig = {
       ...cfg,
       title: resolved.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''),

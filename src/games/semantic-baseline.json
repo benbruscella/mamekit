@@ -281,7 +281,7 @@
       "palette": "prom:proms"
     },
     "gameboy": {
-      "sha256": "1f8e605b649201056396020c18d3d06d6bbb87dec062d411e61d3e8efe4c15bf",
+      "sha256": "5664cff5e0045acada4bd424791ef1fb279cb7097a340ba3e62b2b33417d9b54",
       "callbacks": 3,
       "frameEvents": 0,
       "devices": 8,

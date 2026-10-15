@@ -99,7 +99,8 @@ export interface GeneratedDeviceCallback {
 
 export interface GeneratedDeviceTimer {
   member: string;
-  callback: string;
+  /** Absent for `timer_alloc(timer_expired_delegate())`: nothing calls back. */
+  callback?: string;
 }
 
 export interface GeneratedDeviceMethod {
@@ -618,9 +619,20 @@ export function compileMameDevice(
       member.initial = constructorValues[member.name];
     }
   }
-  const timers = sources.flatMap(({ source }) => [...source.matchAll(
-    /\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*\w+::(\w+)\s*\)/g,
-  )].map(match => ({ member: match[1]!, callback: match[2]! })));
+  // Every timer a member holds, with or without a callback. The runtime
+  // builds them all up front and binds each to its member, so the source's
+  // own `m_x = timer_alloc(...)` is dropped from the method bodies (see
+  // compileMethod). Handing them out in source order instead cross-wired
+  // k051960: TMNT wires neither its FIRQ nor its NMI line, so the first
+  // allocation to run was the callback-less sprite-DMA busy flag, which got
+  // the FIRQ timer -- every sprite DMA then started a scanline chain MAME
+  // never allocates, and the busy flag never cleared.
+  const timers = [...new Map(sources.flatMap(({ source }) => [...source.matchAll(
+    /\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*(?:FUNC\(\s*\w+::(\w+)\s*\))?/g,
+  )].map(match => [match[1]!, {
+    member: match[1]!,
+    ...(match[2] ? { callback: match[2] } : {}),
+  }] as const))).values()];
   const diagnostics = methods.reduce(
     (count, method) => count + method.program.diagnostics.length,
     0,
@@ -1157,6 +1169,11 @@ function compileMethod(
     memberAliases,
   ).replace(
     /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
+    '',
+  ).replace(
+    // The runtime builds every member timer and binds it to its member
+    // before any method runs (see the timers list in compileMameDevice).
+    /\bm_\w+\s*=\s*timer_alloc\s*\([^;]*\)\s*;\s*/g,
     '',
   );
   for (const callback of interruptCallbacks) {

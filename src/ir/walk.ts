@@ -6,7 +6,11 @@
 // for all of them, and one description of it is easier to keep correct than
 // three: a case missed here is a case missed once, not once per caller.
 
-import type { GeneratedExpression, GeneratedHandlerOperation } from './board.ts';
+import type {
+  GeneratedExpression,
+  GeneratedHandlerOperation,
+  GeneratedHandlerProgram,
+} from './board.ts';
 
 /** The operation lists an operation contains, in source order. */
 export function nestedOperations(
@@ -79,4 +83,34 @@ export function walkExpressions(
   walkOperations(operations, operation => {
     for (const expression of operationExpressions(operation)) walk(expression);
   });
+}
+
+/**
+ * Identifiers a program reads that are neither its own locals, the parameters
+ * named, nor in `known`.
+ *
+ * The executor answers a name nothing binds with zero, which looks exactly
+ * like hardware that reads zero: the Game Boy's palette callback indexed a
+ * file-scope colour table no binding supplied and painted four black pens
+ * with no diagnostic at all. A compiler lowering a program for a fixed
+ * environment asks this before it ships the program.
+ */
+export function unboundIdentifiers(
+  program: GeneratedHandlerProgram,
+  parameters: Iterable<string>,
+  known: ReadonlySet<string>,
+): string[] {
+  const declared = new Set(parameters);
+  walkOperations(program.operations, operation => {
+    if (operation.op === 'declare') declared.add(operation.name);
+  });
+  const unbound = new Set<string>();
+  walkExpressions(program.operations, expression => {
+    if (expression.kind !== 'identifier') return;
+    const name = expression.name;
+    if (declared.has(name) || known.has(name)) return;
+    if (/^bitswap_\d/.test(name) || /^(?:BIT|ALLOC|ARRAY|TABLE)$/.test(name)) return;
+    unbound.add(name);
+  });
+  return [...unbound];
 }

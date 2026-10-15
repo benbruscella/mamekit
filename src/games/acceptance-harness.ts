@@ -16,6 +16,8 @@ import {
 import type { Board, BoardSnapshot, MachineState, Regions } from '../runtime/types.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
+import { cartImageFromZip, cartSupport, mountCart, resolveCartImage } from '../runtime/cart-mount.ts';
+import type { SoftCatalog } from '../runtime/nes-ines.ts';
 import type {
   GameAcceptanceGolden,
   GameCheckpointGolden,
@@ -108,11 +110,15 @@ export async function runGameAcceptance(
       ?? join(romsDir(root), contract.category, `${contract.game}.zip`),
   );
   assert.ok(existsSync(gameDir), `${contract.game}: generated output is missing: ${gameDir}`);
-  assert.ok(existsSync(romPath), `${contract.game}: acceptance ROM is missing: ${romPath}`);
 
   const config = JSON.parse(
     readFileSync(join(gameDir, 'config.json'), 'utf8'),
   ) as ShellConfig;
+  // A console's own set holds only what the machine carries without a
+  // cartridge -- the Game Boy's boot ROM, the ColecoVision's BIOS -- and the
+  // NES and the 2600 carry nothing at all.
+  const systemSet = config.roms.some(rom => rom.loads?.length);
+  assert.ok(!systemSet || existsSync(romPath), `${contract.game}: acceptance ROM is missing: ${romPath}`);
   assert.equal(config.game, contract.game);
   assert.equal(config.sound.kind, contract.soundKind);
   assert.deepEqual(
@@ -121,7 +127,9 @@ export async function runGameAcceptance(
     `${contract.game}: explicitly review and declare the renderer's audio limitations before recording or accepting PCM`,
   );
 
-  const files = await readZip(new Uint8Array(readFileSync(romPath)));
+  const files = systemSet
+    ? await readZip(new Uint8Array(readFileSync(romPath)))
+    : new Map<string, Uint8Array>();
   // MAME commonised device ROMs into their own sets, so a board's parts come
   // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
   // names are the MAME device short names carried in the generated manifest.
@@ -136,6 +144,14 @@ export async function runGameAcceptance(
     }
   }
 
+  const cartridge = contract.cartridge
+    ? await mountContractCartridge(contract, config, root, gameDir)
+    : undefined;
+  const boardConfig: ShellConfig['board'] = {
+    ...config.board,
+    game: config.game,
+    ...(cartridge ? { cart: cartridge.cart } : {}),
+  };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const buildRegions = (): Regions => {
     const assembled = assembleRegions(config.roms, files, () => {}, critical);
@@ -144,6 +160,11 @@ export async function runGameAcceptance(
       if (region && patch.offset < region.length) region[patch.offset] = patch.value;
     }
     applyRomTransforms(assembled, config.romTransforms ?? []);
+    // A board may write into a mounted region (battery RAM), so every board
+    // gets its own copy of the cartridge.
+    for (const [region, bytes] of Object.entries(cartridge?.regions ?? {})) {
+      assembled[region] = bytes.slice();
+    }
     return assembled;
   };
   const romCheck = checkRomSet(config.roms, files, critical);
@@ -195,7 +216,7 @@ export async function runGameAcceptance(
   const requiredAudioCounts = new Map<number, number>();
   const requiredAudioValues = new Map<number, Set<number>>();
   const board = generatedRuntime.createBoard(
-    { ...config.board, game: config.game },
+    boardConfig,
     regions,
     input,
     {
@@ -429,7 +450,7 @@ export async function runGameAcceptance(
       // frames (attract mode, no coins), then takes the saved state.
       const deepInput = new KeyboardInput(config.bindings, config.dipDefaults, config.ports);
       const deepBoard = generatedRuntime.createBoard(
-        { ...config.board, game: config.game },
+        boardConfig,
         buildRegions(),
         deepInput,
         { soundWrite: (offset, data, frac, method) => { replayWrites?.push({ offset, data, frac, method }); } },
@@ -767,6 +788,39 @@ export async function runGameAcceptance(
       `${contract.minimumFps} fps acceptance floor`,
   );
   return result;
+}
+
+/**
+ * The scenario's cartridge, mounted the way the console room mounts one: read
+ * by the console's own cartridge reader, identified against its generated
+ * software list, then placed into the regions its PCB loads.
+ */
+async function mountContractCartridge(
+  contract: GameTestContract,
+  config: ShellConfig,
+  root: string,
+  gameDir: string,
+): Promise<NonNullable<ReturnType<typeof mountCart>>> {
+  const path = join(romsDir(root), contract.category, contract.game, `${contract.cartridge}.zip`);
+  assert.ok(existsSync(path), `${contract.game}: acceptance cartridge is missing: ${path}`);
+  const catalog = JSON.parse(readFileSync(
+    join(gameDir, config.cart?.catalogUrl ?? 'softlist.json'),
+    'utf8',
+  )) as SoftCatalog;
+  const support = cartSupport(config);
+  const image = cartImageFromZip(await readZip(new Uint8Array(readFileSync(path))), catalog, support);
+  assert.ok(image, `${contract.game}: ${contract.cartridge}.zip holds no cartridge this console reads`);
+  const resolved = resolveCartImage(image, catalog, support);
+  assert.ok(resolved, `${contract.game}: ${contract.cartridge}.zip is not a cartridge this console reads`);
+  // Every chip MAME lists must match, as for an arcade set: a different dump
+  // of the same title is a different machine to record goldens against.
+  assert.equal(resolved.meta?.name, contract.cartridge,
+    `${contract.game}: ${contract.cartridge}.zip identifies as ${resolved.meta?.name ?? 'nothing in the software list'}`);
+  assert.ok(!resolved.approx, `${contract.game}: ${contract.cartridge}.zip only partly matches its software-list entry`);
+  assert.ok(resolved.playable, `${contract.game}: ${contract.cartridge}: ${resolved.reason ?? 'not playable'}`);
+  const mounted = mountCart(config, resolved);
+  assert.ok(mounted, `${contract.game}: ${contract.cartridge} has nowhere to mount`);
+  return mounted;
 }
 
 export function verifyInputBindings(

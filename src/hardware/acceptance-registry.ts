@@ -15,6 +15,9 @@ import { createDacProbe } from './dac/acceptance.ts';
 import { createSamplesProbe } from './samples/acceptance.ts';
 import { createYm2151Probe } from './ym2151/acceptance.ts';
 import { createBerzerkSoundProbe } from './berzerk-sound/acceptance.ts';
+import { createNesProbe } from './nes/acceptance.ts';
+import { createGameboyProbe } from './gameboy/acceptance.ts';
+import { createTiaProbe } from './a2600/acceptance.ts';
 
 /**
  * Keyed by the sound kind the generator writes into config.json. A target
@@ -33,6 +36,9 @@ export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
   ym2151: createYm2151Probe,
   berzerk: createBerzerkSoundProbe,
   exidy: createBerzerkSoundProbe,
+  nes: createNesProbe,
+  gameboy: createGameboyProbe,
+  tia: createTiaProbe,
 };
 
 export type { AudioFrameRenderer, AudioProbeContext, ProbeSoundWrite } from './audio-probe.ts';

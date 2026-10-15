@@ -57,6 +57,13 @@ export function validateGameContract(
         `${prefix}: ${medium.kind} has an empty software-list name`);
     }
   }
+  if (contract.cartridge !== undefined) {
+    invariant(/^[a-z0-9_]+$/.test(contract.cartridge),
+      `${prefix}: invalid cartridge short name`);
+    invariant(contract.media?.some(medium => medium.kind === 'cartridge' &&
+      (lifecycle === 'candidate' || medium.status === 'accepted')),
+    `${prefix}: a cartridge scenario needs an accepted cartridge medium`);
+  }
   invariant(/^MAMEKIT_[A-Z0-9_]+_ROM$/.test(contract.romEnvironment),
     `${prefix}: invalid ROM environment variable`);
   natural(contract.screen.width, `${prefix}: screen width`);

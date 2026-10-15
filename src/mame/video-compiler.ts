@@ -7,6 +7,8 @@ import { compileAtariMotionObjects } from './atarimo-compiler.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
+import { unboundIdentifiers } from '../ir/walk.ts';
 
 export interface CompiledMameVideo {
   plan: GeneratedVideoPlan;
@@ -503,7 +505,7 @@ export function compileMameVideo(
   // describes, but its callback is ordinary code the handler IR already covers.
   const paletteProgram = palette || ramPalette || palettes.length
     ? undefined
-    : compileProgramPalette(graph, machineIds, ast, constants);
+    : compileProgramPalette(graph, machineIds, ast, constants, mameSrc);
   if (!palette && !ramPalette && !paletteProgram &&
     palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
@@ -2585,6 +2587,7 @@ function compileProgramPalette(
   machineIds: Set<string>,
   ast: MameAstIndex,
   constants: Record<string, number>,
+  mameSrc: string,
 ): GeneratedProgramPalettePlan | undefined {
   const deviceIds = new Set(graph.edges
     .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
@@ -2602,7 +2605,10 @@ function compileProgramPalette(
   if (!callback) return undefined;
   const fn = ast.findFunctionInHierarchy(callback[1]!, callback[2]!);
   if (!fn) return undefined;
-  const program = compileMameHandler(fn.body);
+  // A file-scope table is visible only inside its own translation unit.
+  const unitPath = join(mameSrc, fn.span.file);
+  const unit = existsSync(unitPath) ? readFileSync(unitPath, 'utf8') : '';
+  const program = compileMameHandler(foldFileScopeTables(fn.body, unit));
   if (program.diagnostics.length) {
     if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
       console.error('program palette: callback did not compile', program.diagnostics);
@@ -2620,6 +2626,21 @@ function compileProgramPalette(
   const scoped = Object.fromEntries(
     Object.entries(constants).filter(([name]) => identifiers.has(name)),
   );
+  // The program runs once, at machine start, against exactly the palette
+  // device, the scoped constants and the ROM regions. A name none of those
+  // binds reads as zero, which paints black pens and reports nothing, so a
+  // callback that reads one does not lower.
+  const unbound = unboundIdentifiers(
+    program,
+    [deviceParameter],
+    new Set([...Object.keys(scoped), ...Object.keys(DEFAULT_CONSTANTS)]),
+  );
+  if (unbound.length) {
+    if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+      console.error(`program palette: ${fn.className}::${fn.name} reads unbound ${unbound.join(', ')}`);
+    }
+    return undefined;
+  }
   return {
     entries,
     indirectEntries,
@@ -2628,6 +2649,42 @@ function compileProgramPalette(
     ...(Object.keys(scoped).length ? { constants: scoped } : {}),
     source: sourceRef(fn),
   };
+}
+
+/**
+ * Fold the file-scope `static const`/`constexpr` arrays a method indexes into
+ * the body as `TABLE(index, ...)`, the way device and CPU sources fold theirs.
+ *
+ * The Game Boy's palette is one: `gb_palette` reads `palette_gb[i]`, an
+ * `rgb_t` table at file scope that nothing else carries into the program. An
+ * aggregate element (`{ 0xff,0xfb,0x87 }`) is its type's constructor, so an
+ * `rgb_t` entry packs exactly as `rgb_t(r, g, b)` does everywhere else.
+ */
+export function foldFileScopeTables(body: string, unit: string): string {
+  const declaration = /\bstatic\s+(?:(?:const|constexpr|inline)\s+)+((?:\w+::)*\w+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{/g;
+  const subscript = '((?:[^\\[\\]]|\\[[^\\]]*\\])*)';
+  const source = stripComments(unit);
+  for (const match of source.matchAll(declaration)) {
+    const [, type, name] = match as unknown as [string, string, string];
+    if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+    // A table the method declares itself is its own local.
+    if (new RegExp(`\\b${name}\\s*\\[[^\\]]*\\]\\s*=`).test(body)) continue;
+    const open = match.index! + match[0].length - 1;
+    const close = matchingPair(source, open, '{', '}');
+    if (close < 0) continue;
+    const values = splitMameArgs(source.slice(open + 1, close))
+      .map(value => value.trim())
+      .filter(Boolean)
+      .map(value => value.startsWith('{') && value.endsWith('}')
+        ? `${type}(${value.slice(1, -1).trim()})`
+        : value);
+    if (!values.length) continue;
+    body = body.replace(
+      new RegExp(`\\b${name}\\s*\\[${subscript}\\]`, 'g'),
+      (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
+    );
+  }
+  return body;
 }
 
 function compilePalette(
