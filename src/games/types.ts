@@ -76,6 +76,13 @@ export interface MediaCapability {
   peripheral?: string;
 }
 
+/** Reviewed execution coverage, bounded to gaps exercised by the target's QA. */
+export interface RuntimeCoverage {
+  generationGaps: readonly string[];
+  handlerGaps: readonly string[];
+  allowDirectScreen?: boolean;
+}
+
 /** Source identity and generated-machine facts, independent of QA scenarios. */
 export interface MachineTargetDefinition {
   game: string;
@@ -85,6 +92,7 @@ export interface MachineTargetDefinition {
   screen: { width: number; height: number };
   soundKind: GameSoundKind;
   media?: MediaCapability[];
+  runtimeCoverage?: RuntimeCoverage;
 }
 
 /** One deterministic way to exercise a target and its selected media. */

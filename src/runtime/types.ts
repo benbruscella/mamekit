@@ -38,95 +38,9 @@ export interface InputPorts {
 // board contracts shared by the shell and generated machine composition
 // ---------------------------------------------------------------------------
 
-import type { GeneratedBankDevice } from '../ir/board.ts';
-import type { RangeSpec } from './bus.ts';
+import type { BoardConfig } from '../ir/host-config.ts';
+export type { BoardConfig, CpuSpec } from '../ir/host-config.ts';
 
-export interface CpuSpec {
-  tag: string;
-  /** Generated CPU definition key derived from the MAME device type. */
-  type?: string;
-  clock: number;
-  region: string;
-  /** this CPU's own program map (multi-CPU boards; galaga-family boards may use the shared top-level `ranges`) */
-  ranges?: RangeSpec[];
-  /** program-space global address mask (map.global_mask) */
-  mask?: number;
-  /** separately mapped opcode-fetch bytes (encrypted CPU boards). */
-  opcode?: { ranges: RangeSpec[]; region: string; globalMask?: number };
-  /** this CPU's io space (AS_IO) when the driver maps one */
-  io?: { ranges: RangeSpec[]; globalMask?: number };
-}
-
-export interface BoardConfig {
-  /** generated machine module key, injected by the shell from ShellConfig.game */
-  game?: string;
-  /** Driver family provenance from the graph. */
-  family: string;
-  cpus: CpuSpec[];
-  /** `address_map_bank_device` spaces; see GeneratedBankDevice. */
-  bankDevices?: GeneratedBankDevice[];
-  /** cpu[0]'s program map alias retained in the generated config format. */
-  ranges: RangeSpec[];
-  /** cpu[0]'s io space (pacman IM2 vector port) */
-  io?: { ranges: RangeSpec[]; globalMask?: number };
-  /** Source-defined power-on contents for battery-backed/shared RAM. */
-  initialShares?: { share: string; bytes?: number[]; fill?: number }[];
-  /** IPT_CUSTOM port bits synthesized by a named driver member (the board
-   * implements members by name; invaders_in1_control_r reads CONTP1) */
-  customs?: {
-    port: string;
-    mask: number;
-    member: string;
-    handler?: string;
-    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data' | 'device-line';
-    /**
-     * MAME `PORT_READ_LINE_DEVICE_MEMBER(tag, FUNC(class::method))`: the bit
-     * is an output line of another device rather than a switch. The device
-     * answers it live, so a board that reads its own latch status through an
-     * input port sees the real thing.
-     */
-    deviceTag?: string;
-    activeLow?: boolean;
-  }[];
-  /** Source PORT_CHANGED_MEMBER callbacks, including optimized state latches. */
-  inputLatches?: {
-    port: string;
-    mask: number;
-    activeLow: boolean;
-    stateMember?: string;
-    index?: number;
-    handler: string;
-  }[];
-  screen: {
-    width: number;
-    height: number;
-    xOffset?: number;
-    yOffset?: number;
-    refresh: number;
-    vtotal: number;
-    vbstart: number;
-    vbend?: number;
-    rotate: number;
-  };
-  clocks: { namco06: number; wsg: number };
-  /**
-   * Console cartridge metadata, injected at runtime by the console room after
-   * identifying a user-dropped cart (never present in generated config.json —
-   * the cart bytes arrive as regions.prg / regions.chr alongside it).
-   */
-  /**
-   * The mounted cartridge, as the console room identified it. Each bus reads
-   * the facts its own PCBs are selected by: the NES card slot keys off
-   * `mapper`, the ColecoVision's off `slot`.
-   */
-  cart?: {
-    mapper?: number;
-    mirroring?: 'horizontal' | 'vertical' | 'four' | 'single0' | 'single1';
-    battery?: boolean;
-    /** MAME cartridge-slot option name, e.g. "standard" or "megacart". */
-    slot?: string;
-  };
-}
 
 export interface BoardSinks {
   /**

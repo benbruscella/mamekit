@@ -130,6 +130,7 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
   decodeMaps(reader, root.maps);
   decodeStateMembers(reader, root.stateMembers);
   decodeVideo(reader, root.video);
+  decodeVideoExecution(reader, root.videoExecution);
   decodeSound(reader, root.sound);
   decodeComposition(reader, root.composition);
 
@@ -138,6 +139,33 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
   }
   return value as BoardIr;
 }
+
+function decodeVideoExecution(reader: Reader, value: unknown): void {
+  if (value === undefined) return;
+  const plan = reader.object(value, 'videoExecution');
+  for (const key of ['spriteDmaCallback', 'roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler']) {
+    reader.optionalString(plan[key], `videoExecution.${key}`);
+  }
+  if (plan.directScreen !== undefined && !DIRECT_SCREEN_SHAPES.has(String(plan.directScreen))) {
+    reader.fail('videoExecution.directScreen', `unknown executor ${String(plan.directScreen)}`);
+  }
+  for (const [index, raw] of reader.array(plan.bitmapMembers, 'videoExecution.bitmapMembers').entries()) {
+    const path = `videoExecution.bitmapMembers[${index}]`;
+    const bitmap = reader.object(raw, path);
+    reader.string(bitmap.member, `${path}.member`);
+    const count = reader.number(bitmap.count, `${path}.count`);
+    if (!Number.isSafeInteger(count) || count < 0) reader.fail(`${path}.count`, 'expected a non-negative integer');
+  }
+}
+
+const DIRECT_SCREEN_SHAPES = new Set([
+  'berzerk-color-bitmap', 'bublbobl-object-columns', 'cosmic-bitmap-sprites',
+  'dkong-scanline-sprites', 'exidy-character-ram', 'gauntlet-tilemaps',
+  'galaxian-no-bullets', 'm62-category-sprites', 'system16a-layers',
+  'system16b-layers', 'system1-prom-mixer', 'technos-tilemap-sprites',
+  'tnx1-banked-raster', 'timeplt', 'taitosj-layered-char-ram',
+  'vicdual-character-ram',
+]);
 
 function decodeStateMembers(reader: Reader, value: unknown): void {
   if (value === undefined) return;

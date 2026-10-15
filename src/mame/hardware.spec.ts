@@ -32,7 +32,6 @@ assert.deepEqual(
 assert.equal(definitions[0]?.sourceLine, 3);
 
 for (const type of [
-  'EEPROM_ER5911_8BIT',
   'FILTER_BIQUAD',
   'NETLIST_LOGIC_INPUT',
   'NETLIST_SOUND',
@@ -137,3 +136,9 @@ assert.equal(
 );
 
 console.log('hardware.spec: 15 passed');
+
+const serial = deviceDefinitionsFromSource('src/devices/machine/eepromser.cpp',
+  'DEFINE_SERIAL_EEPROM_DEVICE(er5911, er5911, ER5911, 8, 128, 9)');
+assert.equal(serial[0]?.type, 'EEPROM_ER5911_8BIT');
+assert.equal(serial[0]?.className, 'eeprom_serial_er5911_8bit_device');
+assert.equal(isDeclarativeHostHardwareType('EEPROM_ER5911_8BIT'), false);

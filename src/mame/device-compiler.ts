@@ -268,7 +268,7 @@ export type GeneratedDeviceResource =
   | { kind: 'region-length'; name: string }
   | { kind: 'region-pages'; name: string; bytes: number }
   | { kind: 'region-page-mask'; name: string; bytes: number }
-  | { kind: 'memory'; name: string; bytes: number; onlyWhenRegionMissing?: string }
+  | { kind: 'memory'; name: string; bytes: number; onlyWhenRegionMissing?: string; region?: string; fill?: number }
   | { kind: 'missing-region-number'; name: string; missing: number; present: number }
   | { kind: 'config-map'; path: string; values: Record<string, number>; fallback?: number }
   | { kind: 'bank-array'; name: string; count: number };

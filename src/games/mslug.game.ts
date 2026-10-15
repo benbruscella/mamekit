@@ -2,6 +2,18 @@ import { sourceTarget } from './source-contract.ts';
 
 export const mslug = sourceTarget({
   game: 'mslug',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'cslot1:NEOGEO_CART_SLOT',
+      'ctrl1:NEOGEO_CONTROL_PORT',
+      'ctrl2:NEOGEO_CONTROL_PORT',
+      'edge:NEOGEO_CTRL_EDGE_CONNECTOR',
+      'memcard:NG_MEMCARD',
+      'upd4990a:UPD4990A',
+    ],
+    handlerGaps: [],
+  },
   driver: 'src/mame/snk/neogeo.cpp',
   machine: { className: 'mvs_led_state', name: 'neobase' },
   screen: { width: 320, height: 224 },

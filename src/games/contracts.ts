@@ -42,7 +42,7 @@ export function normalizeGameContractExport(
       `${registration.modulePath} must export a game contract named "${registration.game}"`,
     );
   }
-  const { game, category, driver, machine, screen, soundKind, media, ...scenario } = legacy;
+  const { game, category, driver, machine, screen, soundKind, media, runtimeCoverage, ...scenario } = legacy;
   const inferredMedia = media ?? (category === 'arcade'
     ? [{
         kind: 'romset' as const,
@@ -57,6 +57,7 @@ export function normalizeGameContractExport(
       machine,
       screen,
       soundKind,
+      ...(runtimeCoverage ? { runtimeCoverage } : {}),
       ...(inferredMedia ? { media: inferredMedia } : {}),
     },
     scenarios: [scenario],

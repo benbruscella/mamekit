@@ -120,11 +120,11 @@ const certifiedReport = buildRuntimeReport({
   ...graph,
   nodes: [
     ...graph.nodes,
-    { id: 'device:galaga/mcu', label: 'Device', props: { tag: 'mcu', type: 'MB8843' } },
+    { id: 'device:galaga/mcu', label: 'Device', props: { tag: 'alpha', type: 'TILEMAP' } },
   ],
 }, {
-  game: 'galaga',
-  family: 'galaga',
+  game: 'gauntlet',
+  family: 'gauntlet',
   board: {
     cpus: [{ tag: 'maincpu', type: 'z80', ranges: [] }],
     ranges: [],

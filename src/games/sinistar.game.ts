@@ -19,6 +19,13 @@ import { sourceTarget } from "./source-contract.ts";
 
 export const sinistar = sourceTarget({
   game: 'sinistar',
+  // Bounded closure gaps covered by this target's real-ROM acceptance.
+  runtimeCoverage: {
+    generationGaps: [
+      'cvsd:HC55516',
+    ],
+    handlerGaps: [],
+  },
   driver: 'src/mame/williams/williams.cpp',
   machine: { className: 'williams_state', name: 'sinistar_upright' },
   screen: { width: 292, height: 240 },

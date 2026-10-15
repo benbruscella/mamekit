@@ -10,6 +10,8 @@
 // must never be imported by the browser runtime.
 
 import type { HardwareCapability } from './contract.ts';
+import { SERIAL_EEPROM_ID, SERIAL_EEPROM_MAME_TYPES, SERIAL_EEPROM_PORTS } from './serial-eeprom/definition.ts';
+import { extractSerialEeprom } from './serial-eeprom/extract.ts';
 import { CPU_ID, CPU_MAME_TYPES, CPU_PORTS } from './cpu/definition.ts';
 import { DEVICE_ID, DEVICE_MAME_TYPES, DEVICE_PORTS } from './device/definition.ts';
 import { extractDevices } from './device/extract.ts';
@@ -149,6 +151,7 @@ import {
 import { extractM68705 } from './m68705/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
+  { id: SERIAL_EEPROM_ID, mameTypes: SERIAL_EEPROM_MAME_TYPES, ports: SERIAL_EEPROM_PORTS, extract: extractSerialEeprom },
   // CPUs — one capability over every generated core.
   {
     id: CPU_ID,

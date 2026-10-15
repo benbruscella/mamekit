@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileMameVideo } from '../mame/video-compiler.ts';
-import { generatedDirectScreenShape } from '../runtime/generated-video.ts';
+import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 import { panic } from './panic.game.ts';
 import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
 

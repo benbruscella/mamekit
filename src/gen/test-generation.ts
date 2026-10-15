@@ -20,10 +20,9 @@ assert.ok(
 
 rmSync(outRoot, { recursive: true, force: true });
 
-for (const target of REQUIRED_TARGETS) {
-  run([target, '--mame-src', mameSource, '--out', outRoot, '--skip-app']);
-}
-run(['--build-runtime', '--build-app', '--mame-src', mameSource, '--out', outRoot]);
+// Exercise the same bounded worker pipeline users run, including one shared
+// hardware closure and app build, rather than maintaining a second build loop.
+run(['--all', '--mame-src', mameSource, '--out', outRoot]);
 
 const audit = auditGenerated(outRoot);
 assert.deepEqual(audit.failures, [], audit.failures.join('\n'));

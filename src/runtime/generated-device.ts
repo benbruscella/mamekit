@@ -86,7 +86,7 @@ type DeviceResource =
   | { kind: 'region-length'; name: string }
   | { kind: 'region-pages'; name: string; bytes: number }
   | { kind: 'region-page-mask'; name: string; bytes: number }
-  | { kind: 'memory'; name: string; bytes: number; onlyWhenRegionMissing?: string }
+  | { kind: 'memory'; name: string; bytes: number; onlyWhenRegionMissing?: string; region?: string; fill?: number }
   | { kind: 'missing-region-number'; name: string; missing: number; present: number }
   | { kind: 'config-map'; path: string; values: Record<string, number>; fallback?: number }
   | { kind: 'bank-array'; name: string; count: number };
@@ -329,6 +329,11 @@ export function clearGeneratedDevices(): void {
 
 export function hasGeneratedDevice(type: string): boolean {
   return type.toUpperCase() === 'M68705P5' || DEFINITIONS.has(type.toUpperCase());
+}
+
+/** Composition role declared by the generated device definition. */
+export function generatedDeviceRole(type: string): string | undefined {
+  return DEFINITIONS.get(type.toUpperCase())?.role;
 }
 
 export interface GeneratedDeviceOptions {
@@ -1557,12 +1562,14 @@ function resolveDeviceResource(
     return resource.values[String(value)] ?? resource.fallback ?? 0;
   }
   if (resource.kind === 'memory') {
+    const region = resource.region === 'self' ? options.tag ?? '' : resource.region;
+    if (region && regions[region]?.length) return regions[region];
     const bytes = resource.onlyWhenRegionMissing && regions[resource.onlyWhenRegionMissing]?.length
       ? 0
       : resource.bytes;
     const key = `memory:${resource.name}:${bytes}`;
     return (options.resourceCache ??= {})[key] ??=
-      new Uint8Array(Math.max(0, bytes));
+      new Uint8Array(Math.max(0, bytes)).fill(resource.fill ?? 0);
   }
   const banks = options.banks ??= {};
   const result = Array.from({ length: resource.count }, (_unused, index) => {

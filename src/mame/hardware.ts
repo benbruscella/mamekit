@@ -77,10 +77,8 @@ export interface HardwareClosure {
 
 const DECLARATIVE_HOST_TYPES = new Set([
   'DISCRETE',
-  // Persistent serial EEPROM storage and passive filters are services of the
-  // browser host. They do not execute a MAME CPU/device program of their own.
+  // Parallel storage and passive filters are currently host services.
   'EEPROM_2804',
-  'EEPROM_ER5911_8BIT',
   'FILTER_BIQUAD',
   'FILTER_RC',
   'GFXDECODE',
@@ -108,15 +106,27 @@ export function deviceDefinitionsFromSource(
   file: string,
   source: string,
 ): MameHardwareDefinition[] {
-  if (!source.includes('DEFINE_DEVICE_TYPE') && !source.includes('DAC_GENERATOR')) return [];
+  if (!source.includes('DEFINE_DEVICE_TYPE') && !source.includes('DAC_GENERATOR') && !source.includes('DEFINE_SERIAL_EEPROM_DEVICE')) return [];
   return parseMameSource(file, source).macros
     .filter(macro =>
       macro.name.startsWith('DEFINE_DEVICE_TYPE') ||
-      macro.name === 'DAC_GENERATOR')
+      macro.name === 'DAC_GENERATOR' || macro.name === 'DEFINE_SERIAL_EEPROM_DEVICE')
     .flatMap(definitionFromMacro);
 }
 
 function definitionFromMacro(macro: MameMacro): MameHardwareDefinition[] {
+  if (macro.name === 'DEFINE_SERIAL_EEPROM_DEVICE') {
+    const [, name, upper, bits, cells, addressBits] = macro.args;
+    if (![bits, cells, addressBits].every(value => /^\d+$/.test(value?.trim() ?? ''))) return [];
+    return [{
+      type: `EEPROM_${upper?.trim()}_${bits?.trim()}BIT`,
+      className: `eeprom_serial_${name?.trim()}_${bits?.trim()}bit_device`,
+      shortName: `${name?.trim()}_${bits?.trim()}`,
+      description: `Serial EEPROM ${upper?.trim()} (${cells?.trim()}x${bits?.trim()})`,
+      sourceFile: macro.span.file, sourceLine: macro.span.line,
+      sourceColumn: macro.span.column, macro: macro.text,
+    }];
+  }
   if (macro.name === 'DAC_GENERATOR') {
     const type = cleanToken(macro.args[0]);
     const className = cleanToken(macro.args[1]);

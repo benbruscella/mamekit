@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 // behaviour carries an adjacent spec. Mirrors runtime-spec-inventory.spec.ts.
 
 const irDir = dirname(fileURLToPath(import.meta.url));
-const declarationOnly = new Set(['board.ts', 'audio-protocol.ts', 'version.ts']);
+const declarationOnly = new Set(['board.ts', 'audio-protocol.ts', 'version.ts', 'video-execution.ts']);
 const sources = readdirSync(irDir)
   .filter(name => name.endsWith('.ts') && !name.endsWith('.spec.ts'))
   .filter(name => !declarationOnly.has(name));

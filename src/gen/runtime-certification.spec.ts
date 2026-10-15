@@ -5,9 +5,6 @@ import {
 } from './runtime-certification.ts';
 
 assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
-  'carnival',
-  'digdug',
-  'galaga',
   'gauntlet',
   'marble',
   'mario',
@@ -15,21 +12,15 @@ assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'mslug',
   'nbajam',
   'polepos',
-  'pooyan',
   'qbert',
-  'rocnrope',
   'shinobi',
   'sinistar',
-  'spyhunt',
-  'timeplt',
-  'tutankhm',
-  'venture',
   'wardner',
 ]);
 
-assert.equal(isRuntimeCertified('galaga', ['mcu:MB8843'], [], true), true);
+assert.equal(isRuntimeCertified('gauntlet', ['alpha:TILEMAP'], ['alpha.write16'], true), true);
 assert.equal(
-  isRuntimeCertified('galaga', ['mcu:MB8843', 'new:UNKNOWN_DEVICE'], [], true),
+  isRuntimeCertified('gauntlet', ['alpha:TILEMAP', 'mcu:NEW_DEVICE'], [], true),
   false,
   'a certification must not hide a new hardware gap',
 );
@@ -39,6 +30,8 @@ assert.equal(
   false,
   'VLM5030 is generated now, so the speech gap it once excused must not be accepted',
 );
+// Galaga and Venture no longer keep a certification, so their old gaps fail closed.
+assert.equal(isRuntimeCertified('galaga', ['mcu:MB8843'], [], true), false);
 assert.equal(isRuntimeCertified('venture', [], [
   'soundbd:pia.read',
   'soundbd:pia.write',
@@ -46,6 +39,6 @@ assert.equal(isRuntimeCertified('venture', [], [
   'soundbd:riot.io_write',
   'soundbd:riot.ram_read',
   'soundbd:riot.ram_write',
-], true), true);
+], true), false);
 
-console.log('runtime-certification.spec: 6 passed, 0 failed');
+console.log('runtime-certification.spec: 7 passed, 0 failed');

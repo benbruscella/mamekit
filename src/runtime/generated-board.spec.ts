@@ -389,6 +389,22 @@ assert.equal(programRead, 0x11);
 assert.equal(opcodeRead, 0x22, 'the generated board must preserve the AS_OPCODES bus');
 assert.ok(opcodeBoard, 'handlers in archival maps overridden by the CPU plan must not block startup');
 
+// A save that does not fit leaves the running machine as it was. The mismatch
+// here, a region this machine lacks, is only found after the rest of the save
+// has been written in, which once left the board half replaced by a save it
+// had refused.
+const earlierSave = opcodeBoard.save();
+opcodeBoard.frame(new Uint32Array(1));
+const runningSave = opcodeBoard.save();
+assert.notEqual(runningSave.frame, earlierSave.frame);
+assert.throws(
+  () => opcodeBoard.load({ ...earlierSave, regions: { ...earlierSave.regions, missing: new Uint8Array(1) } }),
+  /region missing: saved, but this machine has none/,
+);
+assert.deepEqual(opcodeBoard.save(), runningSave, 'a refused save must not change the running machine');
+opcodeBoard.load(earlierSave);
+assert.equal(opcodeBoard.save().frame, earlierSave.frame, 'a save that fits still loads');
+
 registerGeneratedDevice({
   type: 'SCREEN_HOST_FIXTURE',
   constants: {},

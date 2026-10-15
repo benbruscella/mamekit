@@ -1,24 +1,7 @@
 import type { BoardIr } from '../ir/board.ts';
-import { hasDeviceType } from './generated-source-shape.ts';
+import { hasDeviceType } from '../ir/source-shape.ts';
 
-export type GeneratedDirectScreenShape =
-  | 'berzerk-color-bitmap'
-  | 'bublbobl-object-columns'
-  | 'cosmic-bitmap-sprites'
-  | 'dkong-scanline-sprites'
-  | 'exidy-character-ram'
-  | 'gauntlet-tilemaps'
-  | 'galaxian-no-bullets'
-  | 'm62-category-sprites'
-  | 'system16a-layers'
-  | 'system16b-layers'
-  | 'system1-prom-mixer'
-  | 'technos-tilemap-sprites'
-  | 'tnx1-banked-raster'
-  | 'timeplt'
-  | 'taitosj-layered-char-ram'
-  | 'vicdual-character-ram'
-  | 'williams-column-bitmap';
+import type { GeneratedDirectScreenShape, GeneratedVideoExecution } from '../ir/video-execution.ts';
 
 /**
  * Select direct executors by the generated MAME routine structure. Keeping the
@@ -100,13 +83,7 @@ export function generatedDirectScreenShape(
   ) {
     return 'cosmic-bitmap-sprites';
   }
-  if (
-    body.includes('uint8_t const *const source = &m_videoram[y]') &&
-    body.includes('source[(x / 2) * 256]') &&
-    body.includes('m_palette->pen_color(m_paletteram[x])')
-  ) {
-    return 'williams-column-bitmap';
-  }
+
   if (
     body.includes('m_videoram[offs]') &&
     body.includes('m_characterram[offs]') &&
@@ -236,4 +213,54 @@ export function generatedDirectScreenShape(
     if (sprites?.program?.diagnostics.length === 0) return 'timeplt';
   }
   return undefined;
+}
+
+/** Resolve renderer bindings once; the browser only consumes these typed facts. */
+export function lowerVideoExecution(machine: BoardIr): GeneratedVideoExecution {
+  const handlers = machine.handlers ?? [];
+  const key = (handler: typeof handlers[number] | undefined) => handler
+    ? `${handler.ownerClass}.${handler.method}` : undefined;
+  const road = handlers.find(handler => handler.method === 'draw_road' &&
+    handler.body?.includes('m_vertical_position_modifier') &&
+    handler.body.includes('m_road16_memory'));
+  const zoom = handlers.find(handler => handler.method === 'zoom_sprite' &&
+    handler.body?.includes('m_scalelut_region[(y << 6) + sizey]') &&
+    handler.body.includes('gfx->get_data(code % gfx->elements())') &&
+    handler.body.includes('bitmap.pix(yy, xx) = pen + coloroffs'));
+  const sprites = handlers.find(handler => handler.method === 'draw_sprites' &&
+    handler.ownerClass === zoom?.ownerClass &&
+    handler.body?.includes('&m_sprite16_memory[0x380]') &&
+    handler.body.includes('&m_sprite16_memory[0x780]') &&
+    handler.body.includes('zoom_sprite(bitmap, BIT(sizmem[0], 15)'));
+  const mapper = handlers.find(handler => handler.method === 'gfxrom_bank_mapper' &&
+    handler.body?.includes('m_game_config->bank_mapper') &&
+    handler.body.includes('m_game_config->bank_sizes'));
+  const cpsSprites = handlers.find(handler => handler.ownerClass === mapper?.ownerClass &&
+    handler.method === 'cps1_render_sprites' &&
+    handler.body?.includes('m_buffered_obj.get()') &&
+    handler.body.includes('handle blocked sprites'));
+  const bitmaps = new Map<string, number>();
+  for (const handler of handlers) {
+    for (const match of (handler.body ?? '').matchAll(/\b(m_\w*bitmap\w*)\s*(?:\[\s*(\d+)\s*\])?/g)) {
+      bitmaps.set(match[1]!, Math.max(bitmaps.get(match[1]!) ?? 0,
+        match[2] ? Number(match[2]) + 1 : 0));
+    }
+  }
+  const spriteDma = machine.callbacks?.find(callback => {
+    if (callback.operation !== 'set_vblank_int' || !callback.targetMethod) return false;
+    const handler = handlers.find(handler => handler.ownerClass === callback.targetClass &&
+      handler.method === callback.targetMethod);
+    return Boolean(handler?.body?.includes('m_dma_start_timer->adjust') &&
+      handler.body.includes('m_dma_end_timer->adjust') &&
+      machine.devices?.some(device => device.type === 'K053246' && device.tag === 'k053246'));
+  });
+  return {
+    ...(generatedDirectScreenShape(machine) ? { directScreen: generatedDirectScreenShape(machine) } : {}),
+    ...(road ? { roadHandler: key(road) } : {}),
+    ...(zoom && sprites ? { zoomSpriteHandler: key(zoom), spriteHandler: key(sprites) } : {}),
+    ...(mapper ? { bankMapperHandler: key(mapper) } : {}),
+    ...(mapper && cpsSprites ? { cpsSpriteHandler: key(cpsSprites) } : {}),
+    ...(spriteDma ? { spriteDmaCallback: spriteDma.id } : {}),
+    bitmapMembers: [...bitmaps].map(([member, count]) => ({ member, count })),
+  };
 }
