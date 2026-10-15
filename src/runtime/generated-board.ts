@@ -2772,6 +2772,25 @@ class IrBoard implements Board {
     if (state.format !== 1) throw new Error(`${this.machine.game}: unknown save format ${String(state.format)}`);
     if (state.game !== this.machine.game) throw new Error(`save is for "${state.game}", this machine is "${this.machine.game}"`);
     if (this.inFrame) throw new Error(`${this.machine.game}: cannot load mid-frame`);
+    // A save is written into the machine as it is walked, and what does not
+    // fit is only known at the end. Keep the running machine so a save that
+    // does not fit leaves it exactly as it was rather than half replaced.
+    const running = this.save();
+    const problems = this.restoreMachine(state);
+    if (problems.length) {
+      const unrestored = this.restoreMachine(running);
+      noteCallLinksChanged();
+      throw new Error(
+        `${this.machine.game}: save state does not match this machine:\n  ${problems.join('\n  ')}` +
+        (unrestored.length ? `\nand the running machine could not be put back:\n  ${unrestored.join('\n  ')}` : ''),
+      );
+    }
+    // Everything a handler runtime resolved from the state it had is stale.
+    noteCallLinksChanged();
+  }
+
+  /** Write a save into the machine; every part of it that did not fit is returned. */
+  private restoreMachine(state: MachineState): string[] {
     const problems: string[] = [];
     for (const [tag, bytes] of Object.entries(this.regions)) {
       const saved = state.regions[tag] ?? this.pristineRegions[tag];
@@ -2793,11 +2812,7 @@ class IrBoard implements Board {
     }
     const diagnostics = restoreState(this, state.roots, this.walkOptions());
     for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
-    if (problems.length) {
-      throw new Error(`${this.machine.game}: save state does not match this machine:\n  ${problems.join('\n  ')}`);
-    }
-    // Everything a handler runtime resolved from the state it had is stale.
-    noteCallLinksChanged();
+    return problems;
   }
 
   /**

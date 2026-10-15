@@ -3084,7 +3084,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       },
     };
     const roadHandler = machine.videoExecution?.roadHandler
-      ? requiredHandler(machine, machine.videoExecution.roadHandler) : undefined;
+      ? replacedHandler(machine, machine.videoExecution.roadHandler) : undefined;
     if (roadHandler) {
       // polepos_palette() has a non-palette side effect: three PROM pages are
       // combined into the road generator's 12-bit vertical address table.
@@ -3154,9 +3154,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       referenceCalls[`${roadHandler.ownerClass}.draw_road`] = drawRoad;
     }
     const zoomSpriteHandler = machine.videoExecution?.zoomSpriteHandler
-      ? requiredHandler(machine, machine.videoExecution.zoomSpriteHandler) : undefined;
+      ? replacedHandler(machine, machine.videoExecution.zoomSpriteHandler) : undefined;
     const spriteHandler = machine.videoExecution?.spriteHandler
-      ? requiredHandler(machine, machine.videoExecution.spriteHandler) : undefined;
+      ? replacedHandler(machine, machine.videoExecution.spriteHandler) : undefined;
     if (zoomSpriteHandler && spriteHandler) {
       const zoomSprite = (...rawArgs: unknown[]) => {
         const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
@@ -3242,7 +3242,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       referenceCalls[`${spriteHandler.ownerClass}.draw_sprites`] = drawSprites;
     }
     const cpsBankMapper = machine.videoExecution?.bankMapperHandler
-      ? requiredHandler(machine, machine.videoExecution.bankMapperHandler) : undefined;
+      ? replacedHandler(machine, machine.videoExecution.bankMapperHandler) : undefined;
     if (cpsBankMapper) {
       const map = (...rawArgs: unknown[]) => cpsGfxromBankMap(
         state.m_game_config as CpsGameConfig,
@@ -3261,7 +3261,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       );
 
       const spriteHandler = machine.videoExecution?.cpsSpriteHandler
-        ? requiredHandler(machine, machine.videoExecution.cpsSpriteHandler) : undefined;
+        ? replacedHandler(machine, machine.videoExecution.cpsSpriteHandler) : undefined;
       if (spriteHandler) {
         const renderSprites = (...rawArgs: unknown[]) => {
           const bitmap = generatedArgumentValue(rawArgs[1]) as BitmapTarget | undefined;
@@ -5378,6 +5378,17 @@ function requiredHandler(machine: BoardIr, key: string): GeneratedHandler {
     candidate.program &&
     candidate.program.diagnostics.length === 0);
   if (!handler) throw new Error(`${machine.game}: generated video handler "${key}" is not executable`);
+  return handler;
+}
+
+/**
+ * A source handler a runtime stand-in answers in its place. Only its owner
+ * class is needed, to name the reference call; its body need not lower, and
+ * CPS1's DRAWSPRITE-based cps1_render_sprites does not.
+ */
+function replacedHandler(machine: BoardIr, key: string): GeneratedHandler {
+  const handler = machine.handlers?.find(candidate => `${candidate.ownerClass}.${candidate.method}` === key);
+  if (!handler) throw new Error(`${machine.game}: generated video handler "${key}" is missing from the IR`);
   return handler;
 }
 
