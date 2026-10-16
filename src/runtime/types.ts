@@ -106,6 +106,8 @@ export interface DiskMedia {
   spinning(): boolean;
   /** The head's position, in whole tracks from 1 as a DOS counts them. */
   track(): number;
+  /** Tracks the drive can reach, counted the same way. */
+  trackCount(): number;
 }
 
 export interface Board {

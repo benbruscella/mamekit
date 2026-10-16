@@ -958,14 +958,14 @@ export async function runShell(
   for (const media of board.media?.() ?? []) {
     const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine));
+    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity));
   }
   // Disk drives the same way: the chosen disk set's images go to the first
   // drive whose formats read them.
   for (const disk of board.disks?.() ?? []) {
     const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine));
+    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity));
   }
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -1860,6 +1860,16 @@ function buildDom(cfg: ShellConfig) {
   holder.appendChild(toast);
   let toastTimer = 0;
 
+  // What a transport is doing while it does it, in the corner of the screen
+  // the player is watching: a disk spinning, a tape moving. A load can take
+  // minutes, and a readout under the panel was easy to miss entirely.
+  const activityBadge = document.createElement('div');
+  activityBadge.dataset.mediaActivity = '';
+  activityBadge.setAttribute('aria-hidden', 'true');
+  activityBadge.style.cssText = 'position:absolute;left:12px;bottom:12px;display:none;flex-direction:column;gap:4px;pointer-events:none;z-index:4';
+  holder.appendChild(activityBadge);
+  const activities = new Map<string, HTMLElement>();
+
   // What the machine is doing right now, and what the keys do. Both belong
   // to the panel: they are readouts of the thing above them.
   // The readout, in the panel's nameplate: a lamp that is lit while the
@@ -2026,6 +2036,34 @@ function buildDom(cfg: ShellConfig) {
       padBadge.style.display = names.length ? 'inline-flex' : 'none';
       padBadge.textContent = names.length ? `🎮 ${names.join(' · ')}` : '';
       fit();
+    },
+    /**
+     * A transport's activity over the screen while it lasts (`undefined`
+     * clears it): `lit` is its lamp, so a drive's light can blink.
+     */
+    activity: (id: string, text: string | undefined, lit = true) => {
+      let line = activities.get(id);
+      if (text === undefined) {
+        line?.remove();
+        activities.delete(id);
+      } else {
+        if (!line) {
+          line = document.createElement('div');
+          line.dataset.activity = id;
+          line.style.cssText = 'display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 11px 5px 9px;border-radius:999px;background:rgba(8,11,29,.82);border:1px solid #2a3162;color:#e8ebff;font:700 12px ui-monospace,monospace;letter-spacing:.4px;box-shadow:0 4px 16px rgba(0,0,0,.45)';
+          const dot = document.createElement('span');
+          dot.style.cssText = 'width:9px;height:9px;border-radius:50%;flex:0 0 auto';
+          const words = document.createElement('span');
+          line.append(dot, words);
+          activities.set(id, line);
+          activityBadge.appendChild(line);
+        }
+        const [dot, words] = line.children as unknown as [HTMLElement, HTMLElement];
+        dot.style.background = lit ? '#ff4a3a' : '#5a2a2a';
+        dot.style.boxShadow = lit ? '0 0 8px #ff4a3a' : 'none';
+        words.textContent = text;
+      }
+      activityBadge.style.display = activities.size ? 'flex' : 'none';
     },
     /** flash a message over the screen for a few seconds */
     toast: (text: string) => {
@@ -2778,6 +2816,7 @@ function tapeClock(seconds: number): string {
  */
 function diskBay(
   media: DiskMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+  activity?: (id: string, text: string | undefined, lit?: boolean) => void,
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -2813,16 +2852,41 @@ function diskBay(
   stateText.textContent = 'NO DISK';
   const trackText = document.createElement('span');
   trackText.style.color = '#8f99d2';
-  readout.append(lamp, stateText, trackText);
+  // Where the head is across the disk, as the tape's bar shows where the
+  // tape is: a load visibly walks between the directory track and the file.
+  const head = document.createElement('span');
+  head.setAttribute('data-disk-head', '');
+  head.style.cssText = 'position:relative;width:84px;height:5px;border-radius:3px;background:#080b1d;border:1px solid #2a3162;overflow:hidden';
+  const headMark = document.createElement('span');
+  headMark.style.cssText = `position:absolute;top:0;bottom:0;width:6px;left:0;background:${DECK_GOLD};transition:left .2s ease`;
+  head.appendChild(headMark);
+  const elapsedText = document.createElement('span');
+  elapsedText.style.color = '#8f99d2';
+  readout.append(lamp, stateText, trackText, head, elapsedText);
+  let spunUpAt: number | undefined;
+  let blink = false;
 
   const paint = (): void => {
     const loaded = media.loaded();
     const spinning = media.spinning();
     stateText.textContent = !loaded ? (spinning ? 'NO DISK · SPINNING' : 'NO DISK') : spinning ? 'READING' : 'IDLE';
     stateText.style.color = spinning ? DECK_GOLD : '#cbd1ff';
-    lamp.style.background = spinning ? '#ff5a4a' : '#3a3f6a';
-    lamp.style.boxShadow = spinning ? '0 0 8px #ff5a4a' : 'none';
-    trackText.textContent = loaded ? `TRACK ${String(media.track()).padStart(2, '0')}` : '';
+    // The drive's light blinks while the spindle turns, so a long load
+    // reads as alive rather than stuck.
+    blink = spinning ? !blink : false;
+    const lit = spinning && blink;
+    lamp.style.background = lit ? '#ff5a4a' : spinning ? '#6a2a2a' : '#3a3f6a';
+    lamp.style.boxShadow = lit ? '0 0 8px #ff5a4a' : 'none';
+    const track = media.track();
+    trackText.textContent = loaded ? `TRACK ${String(track).padStart(2, '0')}` : '';
+    head.style.display = loaded ? 'inline-block' : 'none';
+    const tracks = Math.max(1, media.trackCount());
+    headMark.style.left = `calc(${Math.min(1, Math.max(0, (track - 1) / tracks)) * 100}% - ${(track - 1) / tracks * 6}px)`;
+    if (spinning && spunUpAt === undefined) spunUpAt = performance.now();
+    if (!spinning) spunUpAt = undefined;
+    const elapsed = spunUpAt === undefined ? undefined : tapeClock((performance.now() - spunUpAt) / 1000);
+    elapsedText.textContent = elapsed ?? '';
+    activity?.('disk', spinning ? `${loaded ? 'DISK' : 'NO DISK'} · TRACK ${String(track).padStart(2, '0')} · ${elapsed}` : undefined, lit);
     eject.disabled = !loaded;
     paintTitleButton(eject, false);
   };
@@ -2908,6 +2972,7 @@ export interface PanelBay {
  */
 function cassetteBay(
   media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+  activity?: (id: string, text: string | undefined, lit?: boolean) => void,
 ): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
@@ -2981,6 +3046,7 @@ function cassetteBay(
     lamp.style.background = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#3a3f6a';
     lamp.style.boxShadow = playing && motor ? `0 0 8px ${DECK_GOLD}` : 'none';
     counter.textContent = `${tapeClock(position)} / ${tapeClock(length)}`;
+    activity?.('tape', playing && motor ? `TAPE · ${tapeClock(position)} / ${tapeClock(length)}` : undefined);
     fill.style.width = length > 0 ? `${Math.min(100, (position / length) * 100).toFixed(1)}%` : '0';
   };
   const press = (key: HTMLButtonElement, action: () => void, said: () => string): void => {

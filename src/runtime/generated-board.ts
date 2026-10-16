@@ -2807,6 +2807,7 @@ class IrBoard implements Board {
         },
         spinning: () => drive.get('m_mon') === 0,
         track: () => Math.floor(drive.get('m_cyl') / 2) + 1,
+        trackCount: () => Math.ceil(drive.get('m_tracks') / 2),
       }];
     });
   }
