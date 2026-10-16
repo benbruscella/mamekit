@@ -16,8 +16,16 @@ import {
   type GeneratedCallArgument,
   type GeneratedHandlerBindings,
   GENERATED_FIELD_WIDTHS,
+  generatedFieldWidth,
+  GENERATED_STRUCT,
+  generatedVector,
+  copyGeneratedStruct,
+  attotimeSecondsMethod,
+  cppDefaultArgument,
+  generatedSubtract,
+  resizeGeneratedContainer,
 } from './generated-handler.ts';
-import { buildCallLinks, noteCallLinksChanged } from '../ir/execute.ts';
+import { buildCallLinks, DEFAULT_CONSTANTS, noteCallLinksChanged } from '../ir/execute.ts';
 import { stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
@@ -31,7 +39,8 @@ interface DeviceMember {
   initial?: number;
   values?: unknown[];
   memory?: {
-    kind: 'shared' | 'owned';
+    kind: 'shared' | 'owned' | 'growable';
+    element?: string;
     elementBytes: number;
     share?: 'self' | string;
   };
@@ -47,11 +56,14 @@ interface DeviceMember {
   fields?: StructField[];
   /** Aggregate initializer of a file-scope `static const struct`. */
   initialValue?: Record<string, unknown>;
+  /** Per-element initial fields of a static array of structs. */
+  initialValues?: Record<string, unknown>[];
 }
 
 /** One field of a struct-shaped member; `fields` makes it nest. */
 interface StructField {
   name: string;
+  valueType?: string;
   length?: number;
   bits?: 8 | 16 | 32;
   signed?: boolean;
@@ -75,6 +87,8 @@ interface DeviceMethod {
   name: string;
   parameters: string;
   program: GeneratedHandlerProgram;
+  /** The declared return type's width, narrower than an int (see device-compiler). */
+  returnWidth?: 8 | 16 | -8 | -16;
 }
 
 type DeviceResource =
@@ -119,6 +133,8 @@ export interface GeneratedDeviceExecutionContext {
   readonly palette: number[];
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;
+  /** C++ struct assignment into an existing struct member (see copyGeneratedStruct). */
+  copyStruct(target: unknown, source: unknown): unknown;
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
@@ -137,6 +153,10 @@ export interface GeneratedDeviceExecutionContext {
   pointerStore(pointer: unknown, value: unknown): unknown;
   /** C++ `a + b` when neither side is known to be a number. */
   add(left: unknown, right: unknown): unknown;
+  subtract(left: unknown, right: unknown): unknown;
+  resize(container: unknown, length: number): unknown;
+  /** An attotime accessor on a duration held as seconds. */
+  attotime(seconds: number, method: string, ...args: number[]): number;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
@@ -166,6 +186,8 @@ export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecu
 export interface GeneratedDeviceDefinition {
   type: string;
   hierarchy?: string[];
+  /** The struct shapes the device declares, by type name. */
+  structs?: Record<string, StructField[]>;
   /** MAME `device_rom_interface`: `read_byte` reads the device's own region. */
   romInterface?: { addressBits: number };
   allocations?: Record<string, GeneratedDeviceDefinition>;
@@ -201,6 +223,8 @@ export interface GeneratedDeviceDefinition {
   role?: string;
   imageFormats?: { extension: string; definition: GeneratedDeviceDefinition;
     sizeMethod: string; fillMethod: string; mountMethod: string; sampleRate: number }[];
+  floppyFormats?: { name: string; extensions: string[]; definition: GeneratedDeviceDefinition }[];
+  floppyImage?: GeneratedDeviceDefinition;
   links?: GeneratedDeviceLink[];
   /** Machine-config setter -> device_delegate member it assigns. */
   delegates?: Record<string, string>;
@@ -234,6 +258,8 @@ export interface Device {
   findDevice?(role: string): Device | undefined;
   imageExtensions?(): string[];
   mountImage?(extension: string, bytes: Uint8Array): void;
+  /** Eject a mounted image (a floppy drive's call_unload). */
+  unmountImage?(): void;
   /** Install a machine-config map over a declared byte-wide device space. */
   bindAddressSpace?(index: number, read: (address: number) => number,
     write: (address: number, data: number) => void): void;
@@ -290,6 +316,10 @@ export interface Device {
   invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown;
   /** Run the mounted card's own installer against a recording address space. */
   installSlotCard(space: unknown): void;
+  /** device_start (and the reset after it) for a device created with `deferStart`. */
+  startDeferred?(): void;
+  /** The device's own `this`, as its methods see it (a bus hands it to a card). */
+  instance?(): unknown;
 }
 
 export interface GeneratedDeviceBusRange {
@@ -365,6 +395,12 @@ export interface GeneratedDeviceOptions {
   resourceCache?: Record<string, unknown>;
   /** MAME `scheduler().synchronize()`: run once the processor that asked has yielded. */
   schedule?: (run: () => void) => void;
+  /**
+   * Hold device_start until the host calls `startDeferred()`: a slot whose
+   * card the board composes attaches that card in its own device_start, and
+   * the card does not exist until the board has built it.
+   */
+  deferStart?: boolean;
 }
 
 export interface GeneratedMemoryBank {
@@ -412,6 +448,14 @@ class IrAttotime {
     return this.seconds;
   }
 
+  is_never(): number {
+    return attotimeSecondsMethod(this.seconds, 'is_never')!;
+  }
+
+  is_zero(): number {
+    return attotimeSecondsMethod(this.seconds, 'is_zero')!;
+  }
+
   valueOf(): number {
     return this.seconds;
   }
@@ -438,7 +482,27 @@ export function generatedTimerBacklog(): number {
   return timerBacklogSeconds;
 }
 
+/**
+ * The firing timer's own expiry, exactly as it was armed, while its callback
+ * runs; undefined otherwise. MAME's scheduler sets the time to a timer's
+ * expiry before calling it, and attotime is exact. Recomputed from the
+ * processor's cycles less the overshoot, the same instant came out a few
+ * attoseconds early: the 64H156 found its syncpoint (`cur_live.tm`) still
+ * ahead of `machine().time()`, rolled back, and lost every BYTE READY.
+ */
+let timerExpirySeconds: number | undefined;
+
+export function generatedTimerExpiry(): number | undefined {
+  return timerExpirySeconds;
+}
+
 const noTimerCallback = (): void => {};
+
+/** The gap from a double to the next one up. */
+function unitInLastPlace(value: number): number {
+  const magnitude = Math.abs(value);
+  return magnitude < Number.MIN_VALUE * 2 ** 52 ? Number.MIN_VALUE : 2 ** (Math.floor(Math.log2(magnitude)) - 52);
+}
 
 class IrTimer {
   private remainingSeconds = Infinity;
@@ -446,14 +510,34 @@ class IrTimer {
   private period = Infinity;
   private parameter = 0;
   private adjustmentGeneration = 0;
+  /** The absolute expiry, from the clock at arming; NaN when there is none. */
+  private expiry = NaN;
+
+  /** The owning device's `machine().time()`, when it has one. */
+  private readonly now?: () => number;
+
+  constructor(now?: () => number) {
+    this.now = now;
+  }
 
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['remainingSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration'];
+    return ['remainingSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry'];
   }
 
   adjust(delay: number, parameter = 0, period = Infinity): void {
-    this.remainingSeconds = Number.isFinite(delay) && delay >= 0 ? delay : Infinity;
+    // MAME clamps a start delay in the past to now: the timer fires at once.
+    // A sub-nanosecond negative is what a duration measured against the
+    // instruction-time device clock comes to when the deadline is "now".
+    this.remainingSeconds = Number.isFinite(delay) ? Math.max(0, delay) : Infinity;
+    const armed = Number.isFinite(delay) ? Number(this.now?.()) : NaN;
+    let expiry = armed + this.remainingSeconds;
+    // A delay too small to move a double of the clock's size still moves
+    // MAME's attotime: a callback that re-arms for "a hair later" must find
+    // time advanced, or it re-arms for the same hair forever (the floppy's
+    // index_resync, a few attoseconds short of a revolution).
+    if (this.remainingSeconds > 0 && expiry <= armed) expiry = armed + unitInLastPlace(armed);
+    this.expiry = Number.isFinite(armed) ? expiry : NaN;
     this.intervalSeconds = this.remainingSeconds;
     this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
     this.parameter = parameter;
@@ -497,11 +581,14 @@ class IrTimer {
       // carried the clock past it: a scanline tick re-arming for the next line
       // must measure that line from where it actually fired.
       const outerBacklog = timerBacklogSeconds;
+      const outerExpiry = timerExpirySeconds;
       timerBacklogSeconds = outerBacklog + overshoot;
+      timerExpirySeconds = Number.isFinite(this.expiry) ? this.expiry : undefined;
       try {
         callback(this.parameter);
       } finally {
         timerBacklogSeconds = outerBacklog;
+        timerExpirySeconds = outerExpiry;
       }
 
       // MAME callbacks commonly re-arm their own one-shot timer. Honour that
@@ -515,10 +602,12 @@ class IrTimer {
 
       if (!Number.isFinite(firedPeriod)) {
         this.remainingSeconds = Infinity;
+        this.expiry = NaN;
         break;
       }
       this.remainingSeconds += firedPeriod;
       this.intervalSeconds = firedPeriod;
+      this.expiry += firedPeriod;
     }
   }
 }
@@ -538,6 +627,12 @@ class IrDevice implements Device {
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
   private readonly timers = new Map<string, { timer: IrTimer; callback?: string }>();
+  /** The timers in declaration order, walked after every instruction; `fire` is wiring. */
+  private readonly timerEntries: { name: string; timer: IrTimer; callback?: string; fire?: (parameter: number) => void }[] = [];
+  /** Names the definition declares as device_delegates: their arguments pass by reference. */
+  private readonly delegateNames: ReadonlySet<string>;
+  /** generic_latch_8's write is deferred through the scheduler (see executeMethod). */
+  private readonly latch8: boolean;
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private readonly clock: number;
@@ -558,6 +653,8 @@ class IrDevice implements Device {
     options: GeneratedDeviceOptions = {},
   ) {
     this.definition = definition;
+    this.delegateNames = new Set(Object.values(definition.delegates ?? {}));
+    this.latch8 = definition.type.toUpperCase() === 'GENERIC_LATCH_8';
     // `device_t::m_clock` is a u32, so MAME's own `clock()` never has a
     // fraction: a device configured at m_xtal/114 is asked for 31399, not
     // 31399.78. Handing the fraction back made the TIA's sample counter land
@@ -608,11 +705,12 @@ class IrDevice implements Device {
           // so the fields a method writes exist to be written.
           : member.fields
             ? (member.arrayLength
-                ? Array.from({ length: member.arrayLength }, () => structMember(member.fields!))
+                ? Array.from({ length: member.arrayLength }, (_, index) =>
+                    Object.assign(structMember(member.fields!, definition.structs), member.initialValues?.[index] ?? {}))
                 // A file-scope `static const struct` keeps its initializer.
-                : Object.assign(structMember(member.fields), structuredClone(member.initialValue ?? {})))
+                : Object.assign(structMember(member.fields, definition.structs), structuredClone(member.initialValue ?? {})))
         : member.memory
-        ? memoryMember(member, options)
+        ? memoryMember(member, options, definition.structs)
         : member.values ? [...member.values]
         // A multi-dimensional array needs its inner rows to exist before the
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
@@ -646,6 +744,7 @@ class IrDevice implements Device {
     self.machine = () => ({
       sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000),
       rand: () => Number(this.bindings.calls?.['machine().rand']?.() ?? 0),
+      phase: () => Number(this.bindings.calls?.['machine().phase']?.() ?? DEFAULT_CONSTANTS['machine_phase::RUNNING']),
     });
     self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
     this.members.this = self;
@@ -691,8 +790,9 @@ class IrDevice implements Device {
       this.members[callback.member] = callback.slots === 1 ? emitters[0] : emitters;
     }
     for (const specification of definition.timers ?? []) {
-      const timer = new IrTimer();
+      const timer = new IrTimer(() => Number(this.bindings.calls?.['machine().time']?.() ?? NaN));
       this.timers.set(specification.member, { timer, callback: specification.callback });
+      this.timerEntries.push({ name: specification.member, timer, callback: specification.callback });
       this.members[specification.member] = timer;
     }
 
@@ -744,6 +844,7 @@ class IrDevice implements Device {
         logerror: () => 0,
         clock: () => clock,
         'machine().sample_rate': () => 48000,
+        'machine().phase': () => DEFAULT_CONSTANTS['machine_phase::RUNNING']!,
         // MAME `running_machine::rand`, from its fixed power-on seed. The seed
         // is device state so a save state carries it (VLM5030 draws its
         // unvoiced excitation from it every sample).
@@ -789,6 +890,15 @@ class IrDevice implements Device {
           frequency > 0 ? 1 / frequency : Infinity,
         'attotime::from_ticks': (ticks, frequency) =>
           frequency > 0 ? ticks / frequency : Infinity,
+        // The rest of attotime's constructors, in the seconds every duration
+        // is held in here (as execute.ts's macro answers them). Bound so a
+        // floppy drive's per-flux-cell `attotime::from_usec(4)` is a call,
+        // not a walk down the macro chain.
+        'attotime::from_seconds': seconds => seconds,
+        'attotime::from_double': seconds => seconds,
+        'attotime::from_msec': msec => msec * 1e-3,
+        'attotime::from_usec': usec => usec * 1e-6,
+        'attotime::from_nsec': nsec => nsec * 1e-9,
         // MAME's device_palette_interface has both overloads:
         // `set_pen_color(pen, rgb_t)` and `set_pen_color(pen, r, g, b)`. Only
         // the argument count separates them, and reading the four-argument form
@@ -893,10 +1003,14 @@ class IrDevice implements Device {
           offset: index,
         },
       dereference: dereferenceGeneratedValue,
+      copyStruct: copyGeneratedStruct,
       packedView: generatedPackedView,
       container: generatedContainerAccessor,
       pointerStore: generatedPointerStore,
       add: generatedAdd,
+      subtract: generatedSubtract,
+      resize: resizeGeneratedContainer,
+      attotime: (seconds: number, method: string, ...args: number[]) => attotimeSecondsMethod(seconds, method, args) ?? 0,
       // A device declares every member up front, so the container is already
       // there; the name-addressed form exists for the board, whose driver
       // members are materialised on first write.
@@ -908,7 +1022,7 @@ class IrDevice implements Device {
         if (method) return this.executeMethod(method, this.methodParams.get(method)!, args);
         const binding = this.bindings.calls?.[name];
         if (binding) {
-          const delegate = Object.values(this.definition.delegates ?? {}).includes(name);
+          const delegate = this.delegateNames.has(name);
           return (binding as (...values: unknown[]) => unknown)(
             ...(delegate ? args : args.map(Number)),
           );
@@ -1006,16 +1120,38 @@ class IrDevice implements Device {
     // the emitted methods read before any of them can run.
     this.refreshCallLinks();
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
-    if (definition.start) this.call(definition.start);
-    for (const initialize of definition.resources?.initialize ?? []) {
-      if (!this.methodNames().includes(initialize.method)) continue;
-      this.invoke(
-        initialize.method,
-        ...(initialize.args ?? []).map(resource =>
-          resolveDeviceResource(resource, resourceOptions)),
-      );
-    }
-    this.reset();
+    const start = (): void => {
+      if (definition.start) this.call(definition.start);
+      // device_t::start() ends with notify_clock_changed(): a device derives
+      // its clock-scaled constants there, not in device_start. The 64H156
+      // sets its bit-cell period that way, and without it the period stayed
+      // zero.
+      if (this.methods.has('device_clock_changed')) this.call('device_clock_changed');
+      for (const initialize of definition.resources?.initialize ?? []) {
+        if (!this.methodNames().includes(initialize.method)) continue;
+        this.invoke(
+          initialize.method,
+          ...(initialize.args ?? []).map(resource =>
+            resolveDeviceResource(resource, resourceOptions)),
+        );
+      }
+      this.reset();
+    };
+    if (options.deferStart) this.pendingStart = start;
+    else start();
+  }
+
+  /** device_start held back by `deferStart`, run once when the host is ready. */
+  private pendingStart?: () => void;
+
+  startDeferred(): void {
+    const start = this.pendingStart;
+    this.pendingStart = undefined;
+    start?.();
+  }
+
+  instance(): unknown {
+    return this.members.this;
   }
 
   reset(): void {
@@ -1035,8 +1171,35 @@ class IrDevice implements Device {
   }
 
   tick(seconds: number): void {
-    for (const { timer, callback } of this.timers.values()) {
-      timer.tick(seconds, callback ? parameter => this.call(callback, parameter) : noTimerCallback);
+    // Runs after every instruction of the processor that keeps device time --
+    // a C64 ticks its two CIAs and its datassette 6,000 times a frame -- so
+    // an idle timer costs nothing and an armed one does not allocate.
+    const entries = this.timerEntries;
+    for (let index = 0; index < entries.length; index++) {
+      const entry = entries[index]!;
+      const timer = entry.timer;
+      if (!timer.enabled()) continue;
+      const name = entry.name;
+      let fire = entry.fire;
+      if (!fire) {
+        fire = noTimerCallback;
+        const callback = entry.callback;
+        if (callback) {
+          // Resolved once, like a hot bus connection: the 64H156's update
+          // tick fires at every bit cell its drive reads.
+          const prepared = this.prepareCall(callback);
+          fire = parameter => { prepared(parameter); };
+        }
+        entry.fire = fire;
+      }
+      try {
+        timer.tick(seconds, fire);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('firings')) {
+          throw new Error(`${this.definition.type} timer ${name}: ${error.message}`, { cause: error });
+        }
+        throw error;
+      }
     }
     // A device built out of other devices has to advance them too: the board
     // only knows the devices its own machine config names. Pitfall II's DPC
@@ -1080,7 +1243,7 @@ class IrDevice implements Device {
       // tile/sprite callbacks update code, color and priority in place).  A
       // numeric coercion here discards the generated pointer wrapper and makes
       // the callback appear to run while none of its results reach the chip.
-      const delegate = Object.values(this.definition.delegates ?? {}).includes(name);
+      const delegate = this.delegateNames.has(name);
       return (bound as (...values: unknown[]) => unknown)(
         ...(delegate ? args : args.map(Number)),
       );
@@ -1295,10 +1458,50 @@ class IrDevice implements Device {
   }
 
   imageExtensions(): string[] {
+    if (this.definition.floppyFormats) return [...new Set(this.definition.floppyFormats.flatMap(format => format.extensions))];
     return this.definition.imageFormats?.map(format => format.extension) ?? [];
   }
 
+  /**
+   * A disk, the way floppy_image_device::call_load takes one: every format the
+   * connector registered identifies the bytes, a matching extension adds
+   * FIFID_EXT, the best scorer loads a floppy_image of the drive's geometry,
+   * and the drive's own load path (`mount_image`) takes it from there. The
+   * bytes are the host's random_read; the formats and the track store are
+   * MAME's, compiled.
+   */
+  private mountFloppy(extension: string, bytes: Uint8Array): void {
+    const io = { bytes, length: () => bytes.length };
+    const formFactor = Number(this.members.m_form_factor) >>> 0;
+    const variants = this.members.m_variants ?? [];
+    let best: { score: number; decoder: IrDevice } | undefined;
+    for (const format of this.definition.floppyFormats ?? []) {
+      const decoder = new IrDevice(format.definition, 0);
+      let score = Number(decoder.invoke('identify', io, formFactor, variants)) || 0;
+      if (score && format.extensions.includes(extension.toLowerCase())) score |= decoder.constant('FIFID_EXT') ?? 0;
+      if (!best || score > best.score) best = { score, decoder };
+    }
+    if (!best?.score || !this.definition.floppyImage) throw new Error('Unable to identify image file format');
+    const image = new IrDevice(this.definition.floppyImage, 0, {
+      constructorArgs: [Number(this.members.m_tracks), Number(this.members.m_sides), formFactor],
+    });
+    if (!Number(best.decoder.invoke('load', io, formFactor, variants, image.instance()))) {
+      throw new Error('Incompatible image file format or corrupted data');
+    }
+    if (this.members.m_image) this.invoke('unmount_image');
+    this.invoke('mount_image', image.instance());
+  }
+
+  /** Take the disk out (floppy_image_device::call_unload). */
+  unmountImage(): void {
+    if (this.methods.has('unmount_image')) this.invoke('unmount_image');
+  }
+
   mountImage(extension: string, bytes: Uint8Array): void {
+    if (this.definition.floppyFormats) {
+      this.mountFloppy(extension, bytes);
+      return;
+    }
     const format = this.definition.imageFormats?.find(candidate => candidate.extension === extension.toLowerCase());
     if (!format) throw new Error(`${this.definition.type}: unsupported image extension ${extension}`);
     const decoder = new IrDevice(format.definition, 0);
@@ -1359,7 +1562,7 @@ class IrDevice implements Device {
   ): unknown {
     try {
       if (
-        this.definition.type.toUpperCase() === 'GENERIC_LATCH_8' &&
+        this.latch8 &&
         method.name === 'write'
       ) {
         // generic_latch_8_device defers the store with
@@ -1397,10 +1600,12 @@ class IrDevice implements Device {
       for (let index = 0; index < parameterNames.length; index++) {
         locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
       }
-      return executeGeneratedProgram(method.program, this.bindings, locals).value;
+      const value = executeGeneratedProgram(method.program, this.bindings, locals).value;
+      // C++ converts the result to the declared return type, as emitted code does.
+      return method.returnWidth && typeof value === 'number' ? generatedFieldWidth(value, method.returnWidth) : value;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`${this.definition.type}.${method.name}: ${message}`);
+      throw new Error(`${this.definition.type}.${method.name}: ${message}`, { cause: error });
     }
   }
 
@@ -1741,9 +1946,11 @@ function copyGeneratedBitmap(
 function memoryMember(
   member: DeviceMember,
   options: GeneratedDeviceOptions,
-): ArrayLike<number> {
+  structs?: Readonly<Record<string, readonly StructField[]>>,
+): ArrayLike<unknown> {
   const memory = member.memory!;
   if (memory.kind === 'owned') return generatedMemoryArray(memory.elementBytes);
+  if (memory.kind === 'growable') return generatedVector(vectorElement(memory.element, structs));
   const tag = (memory.share === 'self' ? options.tag : memory.share)
     ?.replace(/^\^+/, '')
     .replace(/^:/, '');
@@ -1817,13 +2024,7 @@ function parameterName(parameter: string): string {
 
 /** A C++ default argument, when it is a plain numeric literal. */
 function parameterDefault(parameter: string): number | undefined {
-  const value = /=\s*([\s\S]+)$/.exec(parameter)?.[1]?.trim();
-  if (value === undefined) return undefined;
-  const numeric = /^(?:0[xX][\da-fA-F]+|\d+)[uUlL]*$/.exec(value);
-  if (numeric) return Number(value.replace(/[uUlL]+$/, ''));
-  // `~Type(0)` and kin are MAME's all-ones memory masks.
-  if (/^~\s*\w+\s*\(\s*0\s*\)$/.test(value)) return 0xffffffff;
-  return undefined;
+  return cppDefaultArgument(parameter);
 }
 
 /** MAME simple_list's intrusive container ABI; device behavior stays in IR. */
@@ -1897,6 +2098,21 @@ function rgbPixel(red: number, green: number, blue: number): number {
   return ((0xff << 24) | ((blue & 0xff) << 16) | ((green & 0xff) << 8) | (red & 0xff)) >>> 0;
 }
 
+/**
+ * What a growable vector of `element` grows by: another vector, a struct of
+ * the device's own declared shape, or a zero.
+ */
+function vectorElement(
+  element: string | undefined,
+  structs: Readonly<Record<string, readonly StructField[]>> | undefined,
+): (() => unknown) | undefined {
+  if (!element) return undefined;
+  const inner = /^std::vector<\s*(.+?)\s*>$/.exec(element);
+  if (inner) return () => generatedVector(vectorElement(inner[1], structs));
+  const fields = structs?.[element.split('::').at(-1)!.trim()];
+  return fields ? () => structMember(fields, structs) : undefined;
+}
+
 /** A plain-old-data struct member, with each declared field present. */
 /**
  * A C struct instance whose scalar fields keep their declared width.
@@ -1909,10 +2125,17 @@ function rgbPixel(red: number, green: number, blue: number): number {
  */
 function structMember(
   fields: readonly StructField[],
+  structs?: Readonly<Record<string, readonly StructField[]>>,
 ): Record<string, unknown> {
   const value: Record<string, unknown> = {};
   const widths: Record<string, number> = {};
   for (const field of fields) {
+    // A vector field (floppy_image's per-track `cell_data`) is a vector.
+    const vector = /^std::vector<\s*(.+?)\s*>$/.exec(field.valueType ?? '');
+    if (vector) {
+      value[field.name] = generatedVector(vectorElement(vector[1], structs));
+      continue;
+    }
     // A field that is itself a struct, and commonly an array of them: the
     // Game Boy PPU keeps ten sprite slots inside its per-line state. Built as
     // a number, the first assignment into one had nothing to assign to.
@@ -1936,6 +2159,9 @@ function structMember(
       widths[field.name] = field.signed ? -field.bits : field.bits;
     }
   }
+  // Marked, so that assigning one struct to another copies (C++ value
+  // semantics) instead of making the two names one object.
+  Object.defineProperty(value, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
   if (Object.keys(widths).length) {
     Object.defineProperty(value, GENERATED_FIELD_WIDTHS, {
       value: widths,

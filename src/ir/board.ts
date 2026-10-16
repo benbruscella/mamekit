@@ -207,6 +207,14 @@ export interface GeneratedDevice {
    * a device derives the constant tables its own methods then read.
    */
   startHandler?: string;
+  /** `<class>.device_reset` for a composed device whose methods are board handlers. */
+  resetHandler?: string;
+  /**
+   * The interface overrides a composed slot card answers its bus through
+   * (`c1541_device_base.cbm_iec_atn`): the board hands the bus a card object
+   * whose methods run these handlers in the card's own scope.
+   */
+  interfaceHandlers?: string[];
   member?: string;
   clock?: number;
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
@@ -285,6 +293,11 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // by differencing two readings -- the cassette transport advancing its
   // tape -- reaches it by this name, emitted and interpreted alike.
   'machine().time',
+  // MAME's running_machine::rand, the LCG every device shares. The 64H156
+  // draws its random flux reversals from it on every bit cell while the drive
+  // motor runs, so a gate array left interpreted for want of it ran at a
+  // crawl.
+  'machine().rand',
   'screen().vpos',
   'screen().hpos',
   'screen().width',
@@ -299,6 +312,8 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // It sits at the top of the TMS9928A's `read` and `register_write`, and left
   // the whole port path -- every VRAM byte a game writes -- interpreted.
   'machine().side_effects_disabled',
+  // running_machine::phase(): RESET while the board resets, RUNNING after.
+  'machine().phase',
   // The scheduler's clock. Hardware that measures an interval differences two
   // readings of it, and a chip that does so on every register access -- the
   // Game Boy PPU brings its whole state machine up to date that way -- left
@@ -376,7 +391,7 @@ export type GeneratedExpression =
     };
 
 export type GeneratedHandlerOperation =
-  | { op: 'declare'; name: string; valueType?: string; value?: GeneratedExpression }
+  | { op: 'declare'; name: string; valueType?: string; value?: GeneratedExpression; static?: true }
   | { op: 'assign'; target: GeneratedExpression; operator: string; value: GeneratedExpression }
   | { op: 'call'; expression: Extract<GeneratedExpression, { kind: 'call' }> }
   | { op: 'return'; value?: GeneratedExpression }
@@ -1325,6 +1340,10 @@ export interface GeneratedHandlerRuntime {
   pointerStore(pointer: unknown, value: unknown): unknown;
   /** C++ `a + b` when neither side is known to be a number. */
   add(left: unknown, right: unknown): unknown;
+  subtract(left: unknown, right: unknown): unknown;
+  resize(container: unknown, length: number): unknown;
+  /** An attotime accessor on a duration held as seconds. */
+  attotime(seconds: number, method: string, ...args: number[]): number;
   invoke(name: string, ...args: unknown[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;

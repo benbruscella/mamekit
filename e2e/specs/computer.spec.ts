@@ -121,15 +121,18 @@ test.describe('software room', () => {
       { timeout: 120_000 },
     );
     await expect(page.getByRole('status').filter({ hasText: /mounted/ }).first()).toBeVisible();
-    // The decks are part of the machine: the screen yields room to them, so
-    // neither one is pushed below the fold and the page needs no scrolling.
+    // One panel under the screen (issue #157): the tape transport is a strip
+    // of the machine's own control panel and Reset / Fast-forward are a group
+    // in its toolbar, not panels of their own. The screen yields room to the
+    // panel, so nothing is pushed below the fold and the page needs no
+    // scrolling.
+    await expect(page.locator('[data-deck] [data-media-bay="tape"]')).toBeVisible();
+    await expect(page.locator('[data-deck] [data-toolbar] [data-computer-controls]')).toBeVisible();
     const layout = await page.evaluate(() => {
-      const bottoms = [...document.querySelectorAll('[aria-label^="Cassette"], [data-computer-deck]')]
-        .map(deck => Math.round(deck.getBoundingClientRect().bottom));
-      return { bottoms, viewport: innerHeight, scrollHeight: document.documentElement.scrollHeight };
+      const panel = document.querySelector('[data-deck]')!.getBoundingClientRect();
+      return { bottom: Math.round(panel.bottom), viewport: innerHeight, scrollHeight: document.documentElement.scrollHeight };
     });
-    expect(layout.bottoms.length, 'both decks are on the page').toBe(2);
-    for (const bottom of layout.bottoms) expect(bottom).toBeLessThanOrEqual(layout.viewport);
+    expect(layout.bottom).toBeLessThanOrEqual(layout.viewport);
     expect(layout.scrollHeight).toBeLessThanOrEqual(layout.viewport + 1);
     // The firmware search tries the clone's own set name before the family's,
     // and a computer has no bezel: both are 404s the browser logs as errors.

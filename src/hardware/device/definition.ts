@@ -43,6 +43,8 @@ export const DEVICE_MAME_TYPES = [
   'MB8843',
   'MB8844',
   'MB8842',
+  'C64H156',
+  'MOS6522',
   'MOS6532',
   'OUTPUT_LATCH',
   'PIC8259',

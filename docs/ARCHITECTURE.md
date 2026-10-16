@@ -356,6 +356,17 @@ into a small fast-mode table and rebuilds it whenever a binding changes. This
 keeps the interpreter as the semantic reference while removing per-operation
 tree walking from pixel-scale loops such as the MAME 05XX starfield.
 
+A floppy drive is a device like any other (`src/hardware/floppy/`,
+`src/mame/floppy-compiler.ts`): `floppy_image_device` and its mechanism class
+from `imagedev/floppy.cpp`, the `floppy_image` track store from
+`lib/formats/flopimg.cpp`, and every format the connector registers through
+`set_formats` (`fr.add(...)`) compiled from `lib/formats`. Mounting follows
+`floppy_image_device::call_load`: each format identifies the bytes, a matching
+extension adds `FIFID_EXT`, the best scorer loads a `floppy_image` of the
+drive's geometry, and the drive's own load path (`mount_image`, lowered from
+`call_load`'s success branch) takes it from there. Only the bytes are the
+host's.
+
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
 interpreter and compare writes and complete device state. Unsupported
@@ -516,6 +527,33 @@ it by whatever its last slice overran, which an NES OAM DMA makes four lines
 (#155: the 2C02 lost a frame on every round and never reached VBLANK). Elsewhere the beam stays the reference: hosted MCUs and discrete
 networks run on the same clock, and Galaga's 54xx boom moved when it followed
 the processors.
+
+Inside a device timer's callback, `machine().time()` is that timer's expiry,
+recorded when it was armed, as MAME's scheduler sets it before the call.
+Recomputing it from the processor's cycles less the overshoot lands a few
+attoseconds off, and source that compares the two exactly -- the 64H156's
+`cur_live.tm > machine().time()` at every syncpoint -- takes the other branch.
+A delay too small to move a double of the clock's size still advances the
+expiry by one unit, as attotime would, so a callback re-arming "a hair later"
+finds time moved. A device holds an attotime as its seconds: every accessor
+MAME spells on one is answered for a number, and two readings compare by
+value.
+
+Under `set_perfect_quantum` with more than one processor the frame runner runs
+in permanent lockstep: whichever processor is furthest behind executes one
+instruction. Each such slice has a one-cycle target, so the overrun the core's
+closing `timing()` cannot report is delivered to the device clock once the
+slice is booked; without it the clock moved a cycle per instruction.
+
+A slot card that carries a processor of its own -- the C64's 1541 in `iec8` --
+is composed into the board under the slot's tag (`iec8:c1541`, its devices
+below it), and its handlers run against a card scope whose member aliases name
+the card's own devices. Those devices tick on the card processor's executed
+cycles, not the board's timer clock: the 1541's gate array must never run
+ahead of the drive CPU that reads it, which is what MAME's global time order
+guarantees. `machine().phase()` answers INIT while the board is built, RESET
+while it resets and RUNNING otherwise; the 1541's VIA port handler ignores what
+it is driven to during reset, exactly as in MAME.
 
 ### BROWSER SERVICES
 

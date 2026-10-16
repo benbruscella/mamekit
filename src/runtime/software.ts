@@ -22,6 +22,7 @@ import { openCartStore, type CartRecord } from './cartstore.ts';
 import { readZip, crc32 } from './zip.ts';
 import { cartAvailability, fetchRomBytes, type CartAvailability } from './rom-source.ts';
 import { wrapCartTitle } from './console.ts';
+import { artworkSources } from './artwork-source.ts';
 
 const GOLD = '#f2c200';
 const MAX_SET = 16 * 1024 * 1024; // a disk image set; no tape or cart is near it
@@ -57,6 +58,8 @@ interface MenuEntry {
   /** a compiled but unfinished machine the development build exposes */
   preview?: boolean;
   driverFile?: string;
+  /** the artwork tree holds a photograph of the machine (media/computers) */
+  hasPhoto?: boolean;
 }
 
 const hex8 = (n: number) => n.toString(16).padStart(8, '0');
@@ -284,6 +287,14 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   const shelves = cfg.software?.shelves ?? [];
   const dumpsKey = cfg.software?.dumpsKey ?? cfg.dataPath.replace(/^games\//, '');
   const firmware = cfg.roms.some(spec => spec.loads.length > 0);
+  // The sets the machine asks for, as the drop screen names them: a C64 with
+  // its 1541 wants c64.zip and the drive's c1541.zip.
+  const firmwareSets = [...new Set(cfg.roms.filter(spec => spec.loads.length > 0)
+    .flatMap(spec => spec.loads.map(load => load.romSet ?? spec.romSet ?? cfg.game)))]
+    .map(set => `${set}.zip`);
+  const firmwareNames = firmwareSets.length > 1
+    ? `${firmwareSets.slice(0, -1).join(', ')} and ${firmwareSets.at(-1)}`
+    : firmwareSets[0] ?? `${cfg.game}.zip`;
 
   const [store, entry] = await Promise.all([openCartStore(), fetchOwnEntry(cfg)]);
   // A candidate machine is exposed by the development build as a preview:
@@ -330,7 +341,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   root.setAttribute('data-software-room', '');
   document.body.appendChild(root);
 
-  const header = el('div', `padding:26px 36px 18px;display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end;
+  const header = el('div', `padding:26px 36px 18px;display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;
     justify-content:space-between;background:linear-gradient(180deg,#0f1330,#05060f)`);
   const heading = el('div', '');
   const h1 = el('div', `font-size:30px;font-weight:900;color:${GOLD};line-height:1.1`);
@@ -343,11 +354,34 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   sub.textContent = [entry?.manufacturer, entry?.year, cfg.title.replace(/^.*\((\w+)\)\s*\(.*$/, '$1')]
     .filter(Boolean).join(' · ');
   heading.append(h1, sub);
+  // The machine itself, as the console room shows its console: a photograph
+  // on genuine transparency, so it sits in the banner rather than pasted on.
+  // Asked for only when the build shipped one, and dropped if it will not
+  // decode, so a build without the artwork tree shows the heading alone.
+  const masthead = el('div', 'display:flex;align-items:center;gap:22px;min-width:0');
+  if (entry?.hasPhoto) {
+    const hero = el('div', `width:200px;height:104px;flex:0 0 auto;display:none;align-items:center;justify-content:center`);
+    hero.setAttribute('data-computer-hero', '');
+    const [web, archival] = artworkSources(`media/computers/${cfg.game}.png`);
+    const photo = document.createElement('img');
+    photo.decoding = 'async';
+    photo.alt = '';
+    photo.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))';
+    photo.addEventListener('error', () => {
+      if (!photo.src.endsWith(archival)) photo.src = archival;
+      else hero.remove();
+    });
+    photo.addEventListener('load', () => { hero.style.display = 'flex'; });
+    photo.src = web;
+    hero.append(photo);
+    masthead.append(hero);
+  }
+  masthead.append(heading);
   const actions = el('div', 'display:flex;gap:10px;flex-wrap:wrap;align-items:center');
   const powerBtn = button('⏻ Power on', true, coreSupported);
   powerBtn.setAttribute('data-power-on', '');
   powerBtn.title = firmware
-    ? `Boot the machine with nothing loaded — it asks for its own ${cfg.game}.zip firmware first`
+    ? `Boot the machine with nothing loaded — it asks for its own ${firmwareNames} firmware first`
     : 'Boot the machine with nothing loaded';
   powerBtn.addEventListener('click', () => boot(null));
   const insertBtn = button('◍ Insert your own…', false, true);
@@ -362,12 +396,12 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   back.textContent = '← All computers';
   back.style.cssText = dossier.style.cssText;
   actions.append(powerBtn, insertBtn, dossier, back);
-  header.append(heading, actions);
+  header.append(masthead, actions);
   root.appendChild(header);
 
   const notes = el('div', 'padding:0 36px;color:#7f8ac9;font-size:12.5px;line-height:1.6;max-width:1280px;margin:0 auto;box-sizing:border-box');
   notes.textContent = firmware
-    ? `Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser; playing it boots the machine, which first asks for its own ${cfg.game}.zip firmware (dropped, or found by the web search).`
+    ? `Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser; playing it boots the machine, which first asks for its own ${firmwareNames} firmware (dropped, or found by the web search).`
     : 'Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser.';
   root.appendChild(notes);
 

@@ -267,7 +267,11 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   // (`class ATTR_COLD upd775x_device : ...`).  Treat those export/attribute
   // markers as declaration syntax, not as the class identifier, or the base
   // disappears from every derived device's executable hierarchy.
-  const classRe = /\b(?:class|struct)\s+(?:ATTR_\w+\s+)*(\w+)\s*(?::\s*([^;{]+))?\{/g;
+  // A nested type may be defined out of its class, qualified
+  // (`struct floppy_image_device::fs_enum : public ... {`). Read as a bare
+  // name, that definition was a second `floppy_image_device` and replaced the
+  // real one, members and all.
+  const classRe = /\b(?:class|struct)\s+(?:ATTR_\w+\s+)*((?:\w+::)*\w+)\s*(?::(?!:)\s*([^;{]+))?\{/g;
   let cm: RegExpExecArray | null;
   while ((cm = classRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', cm.index + cm[0].length - 1);

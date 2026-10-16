@@ -93,8 +93,24 @@ export interface CassetteMedia {
   motorOn(): boolean;
 }
 
+/** A disk drive the host can put a disk in: the drive is generated, the disk is the visitor's. */
+export interface DiskMedia {
+  tag: string;
+  extensions: string[];
+  /** Insert a disk image (replacing any disk already in the drive). */
+  mount(extension: string, bytes: Uint8Array): void;
+  eject(): void;
+  /** A disk is in the drive. */
+  loaded(): boolean;
+  /** The spindle motor is running: the drive is reading or writing. */
+  spinning(): boolean;
+  /** The head's position, in whole tracks from 1 as a DOS counts them. */
+  track(): number;
+}
+
 export interface Board {
   media?(): CassetteMedia[];
+  disks?(): DiskMedia[];
   readonly fbWidth: number;
   readonly fbHeight: number;
   frame(fb: Uint32Array): void;

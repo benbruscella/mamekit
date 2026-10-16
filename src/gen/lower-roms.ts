@@ -175,7 +175,13 @@ export function lowerRoms(opts: GenerateOptions, g: Graph, romset: KGNode, devic
       const host = hostEdge && g.node(hostEdge.from);
       if (!ownerConfig || !host) continue;
       const sourceFile = String(ownerConfig.props.sourceFile ?? '');
-      const className = String(ownerConfig.props.cls ?? '');
+      // The host's own class first: a sub-machine is often declared once on a
+      // base class while each variant names its own ROM (every 1541 composes
+      // c1541_device_base's config; c1541_device's device_rom_region picks
+      // the DOS).
+      const className = [host.props.cls, ownerConfig.props.cls]
+        .map(candidate => String(candidate ?? ''))
+        .find(candidate => candidate && sourceFile && mameDeviceRomSet(opts.mameSrc, sourceFile, candidate)) ?? '';
       const romSetName = sourceFile && className
         ? mameDeviceRomSet(opts.mameSrc, sourceFile, className)
         : undefined;

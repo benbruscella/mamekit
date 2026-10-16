@@ -9,7 +9,7 @@ import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, HiscoreTable, MachineState } from './types.ts';
+import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
@@ -958,7 +958,14 @@ export async function runShell(
   for (const media of board.media?.() ?? []) {
     const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addControls(cassetteControls(media, () => input.releaseAll(), mine));
+    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine));
+  }
+  // Disk drives the same way: the chosen disk set's images go to the first
+  // drive whose formats read them.
+  for (const disk of board.disks?.() ?? []) {
+    const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
+    if (mine.length) pending = pending.filter(image => !mine.includes(image));
+    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine));
   }
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -1161,22 +1168,30 @@ export async function runShell(
     audio.setVolume(on ? 0 : masterVolume);
   };
   if (cfg.kind === 'computer') {
-    const deck = deckPanel(cfg.preview ? 'COMPUTER · BETA' : 'COMPUTER');
-    deck.setAttribute('data-computer-deck', '');
-    const reset = deckButton('⏻ Reset', { solid: false });
-    reset.title = 'Reset the computer (like the RESTORE/reset line)';
+    // A computer keeps every key on its keyboard, so Reset and Fast-forward
+    // are buttons rather than F3 and F. They are a group in the panel's own
+    // toolbar: they used to be a second panel of their own under the tape
+    // deck's, which made the page three panels deep (issue #157).
+    const group = document.createElement('span');
+    group.dataset.computerControls = '';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Computer');
+    group.style.cssText = 'display:inline-flex;align-items:center;gap:7px';
+    const reset = titleButton('Reset', 'Reset the computer', 'Reset the computer, as its reset line does', 'normal', 'power');
     reset.onclick = () => { input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
-    const fast = deckButton('▶▶ Fast-forward', { solid: false });
-    fast.title = 'Run unthrottled, muted, until pressed again';
+    const fast = titleButton('Fast-forward', 'Fast-forward',
+      'Run as fast as the machine will go, muted, until pressed again', 'normal', 'fastForward');
+    fast.dataset.fastForward = '';
     fast.setAttribute('aria-pressed', 'false');
-    const paintFast = () => {
+    fast.onclick = () => {
+      input.releaseAll();
+      setFastForward(!fastForward);
       fast.setAttribute('aria-pressed', String(fastForward));
-      setDeckButtonState(fast, fastForward);
-      fast.textContent = fastForward ? '▶▶ Fast-forward · ON' : '▶▶ Fast-forward';
+      paintTitleButton(fast, fastForward);
+      fast.blur();
     };
-    fast.onclick = () => { input.releaseAll(); setFastForward(!fastForward); paintFast(); fast.blur(); };
-    deck.append(reset, fast);
-    ui.addControls(deck);
+    group.append(reset, fast);
+    ui.addTitleControls(group);
   }
   // --- save states (issue #129) ---------------------------------------------
   // The whole machine, captured between frames and kept in the visitor's own
@@ -1229,10 +1244,14 @@ export async function runShell(
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
+  // How long the display gives each tick, smoothed: fast-forward fills it.
+  let displayMs = 1000 / 60;
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
     }
+    // A stalled tick says nothing about the display's rate, so it is left out.
+    if (now - last > 2 && now - last < 50) displayMs += (now - last - displayMs) * 0.1;
     pads.poll();
     acc += now - last;
     last = now;
@@ -1249,15 +1268,19 @@ export async function runShell(
       // Nothing runs, but the panel keeps reporting: the readout below says
       // so rather than leaving a still picture to be read as a crash.
     } else if (fastForward && !qaDrive) {
-      // As many frames as fit the budget, presented once. The budget is
-      // shorter than a display frame so the page stays responsive enough to
-      // press F again, and the cap stops a fast machine running away.
-      const until = performance.now() + 10;
+      // As many frames as fit the display's tick, presented once. It used to
+      // be a fixed 10 ms, which on a 60 Hz display left a third of every tick
+      // idle -- and a machine whose frame takes longer than that (a C64 is
+      // ~15 ms) ran one frame a tick, slower fast-forwarded than not
+      // (issue #157). The tick is measured, and a few milliseconds are left
+      // over for the page itself so F, Esc and the panel still answer. The
+      // cap stops a fast machine running away.
+      const until = now + Math.max(6, Math.min(displayMs, 40) - 3);
       let batch = 0;
       do {
         if (!runFrame()) break; // in a room, only as far as the other player
         batch++;
-      } while (performance.now() < until && batch < 60);
+      } while (performance.now() < until && batch < 120);
       ui.blit(image);
       acc = 0; // the timestep's backlog means nothing at this speed
     } else if (!qaDrive) {
@@ -1275,7 +1298,7 @@ export async function runShell(
       // used to be rewritten into this line once a second as well, so the
       // page spent two of its lines saying the same thing twice.
       const rate = paused ? ['⏸ paused'] : [`${frames} fps`];
-      if (fastForward && !paused) rate.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
+      if (fastForward && !paused) rate[0] = `▶▶ ${rate[0]}${cfg.kind === 'computer' ? '' : ' (F)'}`;
       const room = netplay.status();
       if (room) rate.push(room);
       const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
@@ -1591,7 +1614,11 @@ function buildDom(cfg: ShellConfig) {
   // each, and the machine's name in the middle. The two instrument columns
   // are the same width, so the name is centred on the panel whatever either
   // of them happens to be reading.
-  plate.style.gridTemplateColumns = 'auto minmax(0,1fr) auto minmax(0,1fr) auto';
+  // The name may be long -- a computer's carries the title it is running --
+  // so it wraps rather than spilling over its neighbours, and each
+  // instrument keeps room enough to be read.
+  plate.style.gridTemplateColumns =
+    'auto minmax(min(118px,16vw),1fr) minmax(0,auto) minmax(min(118px,16vw),1fr) auto';
 
   // The machine's controls, grouped by what they do, with the destructive
   // pair held back at the end in a tone that does not look like Save. They
@@ -1740,6 +1767,42 @@ function buildDom(cfg: ShellConfig) {
   const bezelCanvas = document.createElement('canvas');
   bezelCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none';
 
+  /**
+   * Keep the toolbar to one line by dropping words before buttons.
+   *
+   * A computer's panel carries the most -- two players, Reset and
+   * Fast-forward, the save trio, Forget ROM and Keys -- and under a 4:3
+   * screen that is wider than the glass. The rarely wanted (quiet) and the
+   * destructive (danger) give up their words first, then the rest; each keeps
+   * its glyph, its accessible name and its tooltip.
+   */
+  const compactRow = (row: HTMLElement): void => {
+    const buttons = [...row.querySelectorAll<HTMLButtonElement>('button')]
+      .filter(button => button.querySelector('[data-word]') && button.querySelector('svg'));
+    const word = (button: HTMLButtonElement) => button.querySelector<HTMLElement>('[data-word]')!;
+    // Wrapped when its buttons, or the cells holding them, no longer share a line.
+    const wrapped = (): boolean => [
+      [...row.querySelectorAll<HTMLElement>('button')],
+      [...row.children] as HTMLElement[],
+    ].some(items => {
+      const tops = items.filter(item => item.offsetParent && item.offsetHeight)
+        .map(item => item.getBoundingClientRect().top + item.offsetHeight / 2);
+      return tops.length > 1 && Math.max(...tops) - Math.min(...tops) > 8;
+    });
+    for (const button of buttons) word(button).style.display = '';
+    for (const tones of [['quiet', 'danger'], ['normal']]) {
+      if (!wrapped()) return;
+      for (const button of buttons) {
+        if (tones.includes(button.dataset.tone ?? 'normal')) word(button).style.display = 'none';
+      }
+    }
+  };
+  const compactToolbar = (): void => {
+    if (well.style.display !== 'none') compactRow(toolbar);
+    // A transport strip's keys too: a tape deck's are the same four shapes
+    // on every deck ever made, so they read as glyphs alone.
+    for (const bay of deck.querySelectorAll<HTMLElement>('[data-media-bay]')) compactRow(bay);
+  };
   const fit = () => {
     // The screen takes what the page leaves it: everything else in the column
     // -- title, status, key hint, and a computer's control decks -- is
@@ -1774,6 +1837,7 @@ function buildDom(cfg: ShellConfig) {
     // screens get a floor, or the buttons would be stacked six deep.
     const glass = parseFloat(bezel ? holder.style.width : canvas.style.width) || 0;
     deck.style.width = `${Math.min(innerWidth - 32, Math.max(360, glass))}px`;
+    compactToolbar();
   };
   fit();
   addEventListener('resize', fit);
@@ -1789,6 +1853,9 @@ function buildDom(cfg: ShellConfig) {
   // Toast over the screen for a moment: "controller connected" and the like.
   const toast = document.createElement('div');
   toast.dataset.toast = '';
+  // What the panel's transports say goes here, so it is read out as well.
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
   toast.style.cssText = 'position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#f2c200;color:#1b1b1b;font-weight:800;font-size:13px;padding:10px 16px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;z-index:5;opacity:0;transition:opacity .25s;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis';
   holder.appendChild(toast);
   let toastTimer = 0;
@@ -1879,6 +1946,41 @@ function buildDom(cfg: ShellConfig) {
     /** the machine's screen, for pointer capture */
     canvas,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
+    /**
+     * A strip of the control panel for one of the machine's own transports
+     * (a computer's tape deck), ruled off under the button well, so the
+     * machine and everything that operates it read as one panel. They used
+     * to be panels of their own under it (issue #157).
+     */
+    addBay: (bay: PanelBay) => {
+      const row = strip('8px 16px');
+      row.dataset.mediaBay = bay.id;
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', bay.ariaLabel);
+      row.style.display = 'flex';
+      row.style.flexWrap = 'wrap';
+      row.style.justifyContent = 'space-between';
+      row.style.background = 'linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.08))';
+      const cell = (justify: string): HTMLElement => {
+        const part = document.createElement('div');
+        part.style.cssText = `display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap;justify-content:${justify}`;
+        return part;
+      };
+      const left = cell('flex-start');
+      const middle = cell('center');
+      const right = cell('flex-end');
+      if (!bay.middle.length) middle.style.display = 'none';
+      const tag = document.createElement('span');
+      tag.textContent = bay.label;
+      tag.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;flex:0 0 auto';
+      left.append(tag, ...bay.left);
+      middle.append(...bay.middle);
+      right.append(...bay.right);
+      row.append(left, middle, right);
+      for (const type of ['keydown', 'keyup']) row.addEventListener(type, event => event.stopPropagation());
+      if (bay.onFocus) row.addEventListener('focusin', bay.onFocus);
+      fit();
+    },
     removeControls: (controls: HTMLElement) => { controls.remove(); fit(); },
     /** a control group in the toolbar under the title: one line for all of them */
     addTitleControls: (controls: HTMLElement) => {
@@ -2668,13 +2770,145 @@ function tapeClock(seconds: number): string {
   return `${String(Math.floor(whole / 60)).padStart(2, '0')}:${String(whole % 60).padStart(2, '0')}`;
 }
 
-/** Local image selection and transport controls; the generated device owns playback. */
-function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial: MountedImage[] = []): HTMLElement {
-  const deck = deckPanel('DATASSETTE');
-  deck.setAttribute('aria-label', `Cassette ${media.tag}`);
-  for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
-  deck.addEventListener('focusin', releaseKeys);
+/**
+ * A disk drive, as a strip of the control panel: the disk on the left, with
+ * a side selector when the set has more than one image, and the drive's
+ * state -- spindle running, head position -- read back from the generated
+ * floppy device four times a second. Open and Eject on the right.
+ */
+function diskBay(
+  media: DiskMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+): PanelBay {
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = ['.zip', ...media.extensions.map(extension => `.${extension}`)].join(',');
+  picker.setAttribute('aria-label', 'Open disk image or ZIP');
+  picker.tabIndex = -1;
+  picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  const kinds = media.extensions.map(extension => `.${extension}`).join(' / ');
+  const open = titleButton('Open…', 'Open disk', `Open a ${kinds} image or a software-list ZIP`, 'quiet', 'disk');
+  open.onclick = () => picker.click();
+  const eject = titleButton('Eject', 'Eject disk', 'Take the disk out of the drive', 'normal', 'eject');
+  eject.setAttribute('data-disk-eject', '');
+  eject.disabled = true;
+  paintTitleButton(eject, false);
 
+  const mounted = document.createElement('span');
+  mounted.setAttribute('data-disk-name', '');
+  mounted.style.cssText = `padding:3px 9px;border-radius:6px;background:#080b1d;border:1px solid #2a3162;
+    color:#9fb0ff;font:600 11px ui-monospace,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.textContent = 'no disk';
+  const side = document.createElement('select');
+  side.setAttribute('aria-label', 'Disk image');
+  side.style.cssText = 'padding:3px 6px;border-radius:6px;border:1px solid #2a3162;background:#0f1329;color:#d8dcff;font:600 11px ui-sans-serif,system-ui,sans-serif;cursor:pointer;max-width:160px';
+  side.hidden = true;
+
+  const readout = document.createElement('span');
+  readout.setAttribute('data-disk-readout', '');
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#cbd1ff;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
+  const stateText = document.createElement('span');
+  stateText.textContent = 'NO DISK';
+  const trackText = document.createElement('span');
+  trackText.style.color = '#8f99d2';
+  readout.append(lamp, stateText, trackText);
+
+  const paint = (): void => {
+    const loaded = media.loaded();
+    const spinning = media.spinning();
+    stateText.textContent = !loaded ? (spinning ? 'NO DISK · SPINNING' : 'NO DISK') : spinning ? 'READING' : 'IDLE';
+    stateText.style.color = spinning ? DECK_GOLD : '#cbd1ff';
+    lamp.style.background = spinning ? '#ff5a4a' : '#3a3f6a';
+    lamp.style.boxShadow = spinning ? '0 0 8px #ff5a4a' : 'none';
+    trackText.textContent = loaded ? `TRACK ${String(media.track()).padStart(2, '0')}` : '';
+    eject.disabled = !loaded;
+    paintTitleButton(eject, false);
+  };
+
+  let images = new Map<string, Uint8Array>();
+  const mount = (announce: boolean) => {
+    const name = side.value;
+    const bytes = images.get(name);
+    if (!bytes) return;
+    try {
+      media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      mounted.textContent = name;
+      mounted.title = name;
+      mounted.style.color = '#f4f5ff';
+      if (announce) say(`${name} in the drive: type LOAD"*",8,1 and press Enter`);
+    } catch (error) {
+      mounted.textContent = 'no disk';
+      say(String(error));
+    }
+    paint();
+  };
+  eject.onclick = () => {
+    try { media.eject(); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    catch (error) { say(String(error)); }
+    paint(); eject.blur();
+  };
+  side.onchange = () => mount(true);
+  picker.onchange = async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    picker.disabled = true;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
+      images = new Map([...files].filter(([name]) => media.extensions.includes(name.split('.').pop()!.toLowerCase())));
+      if (!images.size) throw new Error(`No supported disk image found (${media.extensions.join(', ')}).`);
+      side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
+      side.hidden = images.size < 2;
+      mount(true);
+    } catch (error) { say(String(error)); }
+    finally { picker.disabled = false; picker.value = ''; picker.blur(); }
+  };
+  if (initial.length) {
+    images = new Map(initial.map(image => [image.name, image.bytes]));
+    side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
+    side.hidden = images.size < 2;
+    mount(false);
+    setTimeout(() => { if (media.loaded()) say(`${side.value} in the drive: type LOAD"*",8,1 and press Enter`); }, 600);
+  }
+  paint();
+  setInterval(paint, 250);
+  return {
+    id: 'disk',
+    label: 'DISK DRIVE',
+    ariaLabel: `Disk drive ${media.tag}`,
+    left: [picker, mounted, side, readout],
+    middle: [],
+    right: [open, eject],
+    onFocus: releaseKeys,
+  };
+}
+
+/** One strip of the control panel: a transport's name, its keys and its readout. */
+export interface PanelBay {
+  /** stable handle for browser QA: `[data-media-bay="<id>"]` */
+  id: string;
+  /** engraved at the strip's left end */
+  label: string;
+  ariaLabel: string;
+  left: HTMLElement[];
+  middle: HTMLElement[];
+  right: HTMLElement[];
+  /** focus moved into the strip: the machine should let go of held keys */
+  onFocus?: () => void;
+}
+
+/**
+ * The tape transport, as a strip of the control panel: the image on the
+ * left, the deck's keys in the middle, its counter on the right. The
+ * generated device owns playback; this only selects images and presses keys.
+ * What it has to say goes to the screen's toast rather than a third line
+ * of prose under the keys.
+ */
+function cassetteBay(
+  media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
   const picker = document.createElement('input');
@@ -2683,48 +2917,44 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
   picker.setAttribute('aria-label', 'Open tape image or ZIP');
   picker.tabIndex = -1;
   picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
-  const open = deckButton('◍ Open tape…');
-  open.title = `Open a ${media.extensions.map(extension => `.${extension}`).join(' / ')} image or a software-list ZIP`;
+  const kinds = media.extensions.map(extension => `.${extension}`).join(' / ');
+  const open = titleButton('Open…', 'Open tape', `Open a ${kinds} image or a software-list ZIP`, 'quiet', 'tape');
   open.onclick = () => picker.click();
 
   const mounted = document.createElement('span');
   mounted.setAttribute('data-tape-name', '');
-  mounted.style.cssText = `padding:5px 10px;border-radius:6px;background:#080b1d;border:1px solid #303a78;
-    color:#9fb0ff;font:600 12px ui-monospace,monospace;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.style.cssText = `padding:3px 9px;border-radius:6px;background:#080b1d;border:1px solid #2a3162;
+    color:#9fb0ff;font:600 11px ui-monospace,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
   mounted.textContent = 'no tape';
   const side = document.createElement('select');
   side.setAttribute('aria-label', 'Tape image');
-  side.style.cssText = 'padding:5px 8px;border-radius:6px;border:1px solid #303a78;background:#111633;color:#d8dcff;font:inherit;cursor:pointer';
+  side.style.cssText = 'padding:3px 6px;border-radius:6px;border:1px solid #2a3162;background:#0f1329;color:#d8dcff;font:600 11px ui-sans-serif,system-ui,sans-serif;cursor:pointer;max-width:160px';
   side.hidden = true;
 
-  const play = deckButton('▶ Play');
-  const stop = deckButton('■ Stop');
-  const rewind = deckButton('⏮ Rewind');
+  const play = titleButton('Play', 'Play tape', 'Press PLAY on the deck', 'normal', 'play');
+  const stop = titleButton('Stop', 'Stop tape', 'Press STOP on the deck', 'normal', 'stop');
+  const rewind = titleButton('Rewind', 'Rewind tape', 'Rewind to the start of the tape', 'normal', 'rewind');
   play.setAttribute('data-tape-play', '');
   stop.setAttribute('data-tape-stop', '');
-  const buttons = [play, stop, rewind];
-  for (const button of buttons) button.disabled = true;
-
-  const status = document.createElement('span');
-  status.setAttribute('role', 'status');
-  status.style.cssText = 'flex-basis:100%;text-align:center;color:#8f99d2;font-size:12px;min-height:1.3em';
-  status.textContent = 'Open a tape, enter the computer’s load command, then press Play.';
+  const keys = [play, stop, rewind];
+  for (const key of keys) { key.disabled = true; paintTitleButton(key, false); }
 
   // Readout: transport state and counter, read back from the device 4x a
   // second. "Playing" alone is not tape moving -- the computer's motor line
   // decides that -- so both are shown, and the bar is the position.
   const readout = document.createElement('span');
   readout.setAttribute('data-tape-readout', '');
-  readout.style.cssText = 'display:inline-flex;align-items:center;gap:8px;color:#cbd1ff;font:600 12px ui-monospace,monospace';
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#cbd1ff;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
   const lamp = document.createElement('span');
-  lamp.style.cssText = 'width:9px;height:9px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
   const stateText = document.createElement('span');
-  stateText.textContent = 'STOPPED';
+  stateText.textContent = 'NO TAPE';
   const counter = document.createElement('span');
   counter.style.color = '#8f99d2';
   counter.textContent = '00:00 / 00:00';
   const bar = document.createElement('span');
-  bar.style.cssText = 'position:relative;width:120px;height:6px;border-radius:3px;background:#080b1d;border:1px solid #303a78;overflow:hidden';
+  bar.style.cssText = 'position:relative;width:84px;height:5px;border-radius:3px;background:#080b1d;border:1px solid #2a3162;overflow:hidden';
   const fill = document.createElement('span');
   fill.style.cssText = `position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#9fb0ff,${DECK_GOLD})`;
   bar.appendChild(fill);
@@ -2736,16 +2966,16 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
     const motor = hasTape && media.motorOn();
     const position = hasTape ? media.position() : 0;
     const length = hasTape ? media.length() : 0;
-    setDeckButtonState(play, playing);
-    setDeckButtonState(stop, hasTape && !playing);
-    setDeckButtonState(rewind, false);
+    paintTitleButton(play, playing);
+    paintTitleButton(stop, false);
+    paintTitleButton(rewind, false);
     // The computer, not the deck, pulls the tape: with Play pressed and the
     // motor line off the tape sits still, before a LOAD has been typed and
     // again once the load has finished -- say which, or the deck looks stuck.
     stateText.textContent = !hasTape ? 'NO TAPE'
       : playing && motor ? 'PLAYING'
-        : playing && position < 0.5 ? 'PLAY · WAITING FOR LOAD'
-          : playing ? 'PLAY · PAUSED BY COMPUTER'
+        : playing && position < 0.5 ? 'WAITING FOR LOAD'
+          : playing ? 'PAUSED BY COMPUTER'
             : 'STOPPED';
     stateText.style.color = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#cbd1ff';
     lamp.style.background = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#3a3f6a';
@@ -2753,29 +2983,21 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
     counter.textContent = `${tapeClock(position)} / ${tapeClock(length)}`;
     fill.style.width = length > 0 ? `${Math.min(100, (position / length) * 100).toFixed(1)}%` : '0';
   };
-  play.onclick = () => {
-    try {
-      media.play();
-      status.textContent = media.motorOn()
-        ? 'Play pressed — the computer is running the tape.'
-        : 'Play pressed — the tape moves once the computer starts the motor: type LOAD and press Enter.';
-    }
-    catch (error) { status.textContent = String(error); }
-    paint(); play.blur();
+  const press = (key: HTMLButtonElement, action: () => void, said: () => string): void => {
+    key.onclick = () => {
+      try { action(); say(said()); }
+      catch (error) { say(String(error)); }
+      paint(); key.blur();
+    };
   };
-  stop.onclick = () => {
-    try { media.stop(); status.textContent = 'Tape stopped.'; }
-    catch (error) { status.textContent = String(error); }
-    paint(); stop.blur();
-  };
-  rewind.onclick = () => {
-    try { media.rewind(); status.textContent = 'Tape rewound.'; }
-    catch (error) { status.textContent = String(error); }
-    paint(); rewind.blur();
-  };
+  press(play, () => media.play(), () => media.motorOn()
+    ? 'Tape playing'
+    : 'Play pressed: the tape moves once the computer starts its motor (type LOAD, then Enter)');
+  press(stop, () => media.stop(), () => 'Tape stopped');
+  press(rewind, () => media.rewind(), () => 'Tape rewound');
 
   let images = new Map<string, Uint8Array>();
-  const mount = () => {
+  const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
     if (!bytes) return;
@@ -2783,20 +3005,20 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
       media.stop();
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
       hasTape = true;
-      for (const button of buttons) button.disabled = false;
+      for (const key of keys) key.disabled = false;
       mounted.textContent = name;
       mounted.title = name;
       mounted.style.color = '#f4f5ff';
-      status.textContent = `${name} mounted. Enter the computer’s load command, then press Play.`;
+      if (announce) say(`${name} mounted: type LOAD, press Enter, then Play`);
     } catch (error) {
       hasTape = false;
-      for (const button of buttons) button.disabled = true;
+      for (const key of keys) key.disabled = true;
       mounted.textContent = 'no tape';
-      status.textContent = String(error);
+      say(String(error));
     }
     paint();
   };
-  side.onchange = mount;
+  side.onchange = () => mount(true);
   picker.onchange = async () => {
     const file = picker.files?.[0];
     if (!file) return;
@@ -2808,18 +3030,27 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
       if (!images.size) throw new Error(`No supported tape image found (${media.extensions.join(', ')}).`);
       side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
       side.hidden = images.size < 2;
-      mount();
-    } catch (error) { status.textContent = String(error); }
+      mount(true);
+    } catch (error) { say(String(error)); }
     finally { picker.disabled = false; picker.value = ''; picker.blur(); }
   };
-  deck.append(picker, open, mounted, side, play, stop, rewind, readout, status);
   if (initial.length) {
     images = new Map(initial.map(image => [image.name, image.bytes]));
     side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
     side.hidden = images.size < 2;
-    mount();
+    // Said once the machine is up, over the screen it is said about.
+    mount(false);
+    setTimeout(() => { if (hasTape) say(`${side.value} mounted: type LOAD, press Enter, then Play`); }, 600);
   }
   paint();
   setInterval(paint, 250);
-  return deck;
+  return {
+    id: 'tape',
+    label: 'DATASSETTE',
+    ariaLabel: `Cassette ${media.tag}`,
+    left: [picker, mounted, side, readout],
+    middle: [],
+    right: [open, play, stop, rewind],
+    onFocus: releaseKeys,
+  };
 }

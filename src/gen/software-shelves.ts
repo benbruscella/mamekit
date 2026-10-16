@@ -32,7 +32,9 @@ export interface SoftlistDeclaration {
 const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   cassette: ['PET_DATASSETTE_PORT', 'CASSETTE'],
   cartridge: [],
-  floppy: [],
+  // MAME's floppy_connector holds the drive mechanism a disk goes into: the
+  // C64's composed 1541 carries one under its gate array.
+  floppy: ['FLOPPY_CONNECTOR'],
   quickload: [],
 };
 

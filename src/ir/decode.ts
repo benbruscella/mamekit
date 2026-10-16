@@ -577,6 +577,12 @@ function decodeDevices(reader: Reader, value: unknown): void {
     reader.string(device.tag, `${path}.tag`, source);
     reader.string(device.type, `${path}.type`, source);
     reader.optionalString(device.hostTag, `${path}.hostTag`, source);
+    reader.optionalString(device.resetHandler, `${path}.resetHandler`, source);
+    if (device.interfaceHandlers !== undefined) {
+      for (const [position, name] of reader.array(device.interfaceHandlers, `${path}.interfaceHandlers`, source).entries()) {
+        reader.string(name, `${path}.interfaceHandlers[${position}]`, source);
+      }
+    }
     reader.optionalString(device.member, `${path}.member`, source);
     reader.optionalNumber(device.clock, `${path}.clock`, source);
     if (device.memoryAllocations !== undefined) {

@@ -73,6 +73,7 @@ import type {
 } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
 import { classConstantsForGame, resolveClassConstants } from './class-constants.ts';
+import { hostedDeviceTag } from './lower-topology.ts';
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
@@ -126,7 +127,7 @@ export function lowerGeneratedMachine(
       const node = byId.get(edge.to);
       if (!node) return;
       const rawTag = String(node.props.tag);
-      const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
+      const tag = hostedDeviceTag(hostTag, rawTag);
       const deviceKey = `${node.id}\0${tag}`;
       if (!visitedDevices.has(deviceKey)) {
         visitedDevices.add(deviceKey);
@@ -322,6 +323,12 @@ export function lowerGeneratedMachine(
       ...(hostTag ? { hostTag } : {}),
       ...(node.props.startHandler
         ? { startHandler: String(node.props.startHandler) }
+        : {}),
+      ...(node.props.resetHandler
+        ? { resetHandler: String(node.props.resetHandler) }
+        : {}),
+      ...(Array.isArray(node.props.interfaceHandlers) && node.props.interfaceHandlers.length
+        ? { interfaceHandlers: node.props.interfaceHandlers.map(String) }
         : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),

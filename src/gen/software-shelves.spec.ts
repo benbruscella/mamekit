@@ -93,7 +93,7 @@ try {
       { name: 'c64_quik', status: 'original', filter: 'NTSC' },
       { name: 'vic10', status: 'compatible' },
     ],
-    deviceTypes: ['MOS6581', 'PET_DATASSETTE_PORT', 'CBM_IEC'],
+    deviceTypes: ['MOS6581', 'PET_DATASSETTE_PORT', 'CBM_IEC', 'FLOPPY_CONNECTOR'],
     log: line => lines.push(line),
   });
   assert.ok(shelves);
@@ -113,7 +113,7 @@ try {
   assert.equal(tapes!.catalogUrl, 'software/c64_cass.json');
   assert.equal(tapes!.availableUrl, 'software/c64_cass.available.json');
   assert.equal(disks!.kind, 'floppy');
-  assert.equal(disks!.mountable, false, 'no generated disk drive: display only');
+  assert.equal(disks!.mountable, true, "the composed 1541's floppy connector is the disk transport");
   assert.equal(disks!.availableUrl, undefined, 'no audit filed a disk');
   const catalog = JSON.parse(readFileSync(join(outDir, 'software', 'c64_cass.json'), 'utf8'));
   assert.equal(catalog.entries[0].prg.roms[0].file, 'Nebulus.tap');

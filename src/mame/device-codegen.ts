@@ -1,6 +1,7 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { applyGeneratedMacro, isFloatingExpression } from '../ir/execute.ts';
+import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS } from '../ir/board.ts';
+import { cppDefaultArgument } from '../ir/execute.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
@@ -55,6 +56,8 @@ interface EmitContext {
   locals: Map<string, string | undefined>;
   wrappedReferences: Set<string>;
   returnedReference?: string;
+  /** See GeneratedDeviceMethod.returnWidth. */
+  returnWidth?: 8 | 16 | -8 | -16;
   pointerSafeIndex: boolean;
   typescript: boolean;
   /** The emitted method's own constants, resolved before the scope's. */
@@ -258,6 +261,15 @@ function generatedDeviceAssignments(
     assignments.push(...generatedDeviceAssignments(format.definition,
       `${target}.imageFormats![${index}]!.definition`));
   }
+  // A floppy drive's formats build a whole disk's flux at mount; interpreted,
+  // a D64 took seven seconds.
+  for (const [index, format] of (definition.floppyFormats ?? []).entries()) {
+    assignments.push(...generatedDeviceAssignments(format.definition,
+      `${target}.floppyFormats![${index}]!.definition`));
+  }
+  if (definition.floppyImage) {
+    assignments.push(...generatedDeviceAssignments(definition.floppyImage, `${target}.floppyImage!`));
+  }
   return assignments;
 }
 
@@ -390,6 +402,7 @@ export function supportsMethod(
         supported = locals.has(expression.name) ||
           members.has(expression.name) ||
           constants.has(expression.name) ||
+          (expression.name.includes('::') && DEFAULT_CONSTANTS[expression.name] !== undefined) ||
           constants.has(expression.name.split('::').at(-1)!) ||
           compiled.has(expression.name) ||
           callees.has(expression.name) ||
@@ -497,6 +510,7 @@ function emitMethod(
         .map(parameter => parameter.name),
     ),
     returnedReference,
+    returnWidth: method.returnWidth,
     // Board handlers build pointers into share memory as locals
     // (`uint8_t *spriteram = m_galaga_ram1 + 0x380`), and indexing one of
     // those with a plain subscript reads a property off the pointer object
@@ -518,7 +532,13 @@ function emitMethod(
     .map(parameter => [parameter.name, `__pointee_${safeName(parameter.name)}`]));
   collectLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
-  const args = parameters.map(parameter => `${localName(parameter.name)}${annotation}`).join(', ');
+  // A C++ default argument stands in when an emitted caller leaves it out,
+  // as the interpreter's own defaults do (see cppDefaultArgument).
+  const declared = method.parameters.trim() === 'void' ? [] : method.parameters.split(',');
+  const args = parameters.map((parameter, index) => {
+    const fallback = cppDefaultArgument(declared[index] ?? '');
+    return `${localName(parameter.name)}${annotation}${fallback === undefined ? '' : ` = ${fallback}`}`;
+  }).join(', ');
   const returned = returnedReference ? `\n    return ${localName(returnedReference)};` : '';
   // Emitted first, read once: the body below refers to these by their local.
   const body = emitOperations(method.program.operations, context, 4);
@@ -588,7 +608,13 @@ function emitOperation(
     return `${pad}${emitExpression(operation.expression, context)};`;
   }
   if (operation.op === 'return') {
-    return `${pad}return${operation.value ? ` ${emitExpression(operation.value, context)}` : ''};`;
+    if (!operation.value) return `${pad}return;`;
+    const value = emitExpression(operation.value, context);
+    const width = context.returnWidth;
+    return `${pad}return ${width === 8 ? `((${value}) & 0xff)`
+      : width === 16 ? `((${value}) & 0xffff)`
+        : width === -8 ? `((${value}) << 24 >> 24)`
+          : width === -16 ? `((${value}) << 16 >> 16)` : value};`;
   }
   if (operation.op === 'break') return `${pad}break;`;
   if (operation.op === 'continue') return `${pad}continue;`;
@@ -688,7 +714,11 @@ function memberValue(name: string, context?: EmitContext): string {
     context.hoisted?.add(name);
     return hoistedName(name);
   }
-  return `(members.${name} ?? runtime.member(${JSON.stringify(name)}))`;
+  // A name that is not a JS identifier (an unresolved `cls::CONST`) is a
+  // quoted key: emitted bare it was a syntax error that failed the whole
+  // build rather than one lookup.
+  const key = /^[A-Za-z_$][\w$]*$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
+  return `(members${key} ?? runtime.member(${JSON.stringify(name)}))`;
 }
 
 /** The per-call local a stable member read is hoisted into. */
@@ -708,9 +738,19 @@ function hoistedName(name: string): string {
  */
 function stableMemberNames(definition: CodegenScope): Set<string> {
   const rebound = new Set<string>();
+  // `cur_live = checkpoint_live` on a struct member copies fields into the
+  // object the member already holds (runtime.copyStruct), so the binding
+  // stays put. The 64H156 does it at every rollback, and counting it as a
+  // rebind left every field of its per-cycle loop behind a member lookup.
+  // Exactly the members emitAssignment copies into (fields, not an array or a
+  // pointer); an attotime member is a plain store and does rebind.
+  const structs = new Set(definition.members
+    .filter(member => member.fields && !member.arrayLength && !member.valueType.includes('*'))
+    .map(member => member.name));
   for (const method of definition.methods) {
     visitOperations(method.program.operations, operation => {
       if (operation.op !== 'assign') return;
+      if (operation.operator === '=' && operation.target.kind === 'identifier' && structs.has(operation.target.name)) return;
       // Assigning the name itself replaces the binding. So can an indexed
       // write, because `runtime.writableMember` materialises a fresh array for
       // a member that holds nothing yet. Writing a FIELD of the object a
@@ -733,6 +773,12 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
           operand = operand.object as typeof operand;
         }
         if (operand?.kind === 'identifier' && operand.name) rebound.add(operand.name);
+      }
+      // `m_x.resize(n)` replaces a typed-array member with a new array.
+      const callee = record.callee as { kind?: string; property?: string; object?: { kind?: string; name?: string } } | undefined;
+      if (record.kind === 'call' && callee?.kind === 'member' && callee.property === 'resize' &&
+        callee.object?.kind === 'identifier' && callee.object.name) {
+        rebound.add(callee.object.name);
       }
       for (const value of Object.values(record)) addressed(value);
     };
@@ -844,8 +890,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       return `(((${localName('mem_mask')}) & 0xff00) ? 1 : 0)`;
     }
     const leaf = expression.name.split('::').at(-1)!;
+    // Qualified before leaf, as the interpreter resolves it: an emu enum such
+    // as `machine_phase::RUNNING` is not the device's own `RUNNING`.
     const constant = context.methodConstants?.[expression.name] ??
       context.definition.constants[expression.name] ??
+      (leaf !== expression.name ? DEFAULT_CONSTANTS[expression.name] : undefined) ??
       context.methodConstants?.[leaf] ??
       context.definition.constants[leaf];
     if (constant !== undefined) return String(constant);
@@ -907,8 +956,15 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         !isKnownNumericType(rightType)) {
       return `runtime.add(${left}, ${right})`;
     }
-    if (expression.operator === '-' && leftType?.includes('*')) {
+    if (expression.operator === '-' && leftType?.includes('*') && !rightType?.includes('*')) {
       return `runtime.addressOf(${left}, -(${right}))`;
+    }
+    // Two iterators into one container differ by a count, and either side
+    // may be a pointer the types cannot show (`it - buf.begin()`).
+    if (expression.operator === '-' && !isKnownNumericType(leftType) && !isKnownNumericType(rightType) &&
+        (expression.left.kind === 'call' || expression.right.kind === 'call' ||
+          leftType?.includes('*') || rightType?.includes('*') || leftType === 'auto' || rightType === 'auto')) {
+      return `runtime.subtract(${left}, ${right})`;
     }
     if (expression.operator === '&&' || expression.operator === '||') {
       return `(((${left}) ${expression.operator} (${right})) ? 1 : 0)`;
@@ -920,9 +976,15 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       // page of gfxram, leaving ghouls with a black palette. Equality between
       // operands that can hold a pointer uses the comparison the interpreter
       // uses; ordinary integer comparisons keep the direct numeric form.
+      // An iterator is a position in a container: `buf.begin() == it` in the
+      // floppy drive's cache fill. Read as numbers it stringified the whole
+      // track twice per flux reversal, and answered NaN === NaN.
+      const iterator = (value: GeneratedExpression): boolean =>
+        value.kind === 'call' && value.callee.kind === 'member' &&
+        ['begin', 'end', 'cbegin', 'cend', 'data'].includes(value.callee.property);
       if (
         (expression.operator === '==' || expression.operator === '!=') &&
-        (leftType?.includes('*') || rightType?.includes('*'))
+        (leftType?.includes('*') || rightType?.includes('*') || iterator(expression.left) || iterator(expression.right))
       ) {
         const isNull = (value: GeneratedExpression): boolean =>
           (value.kind === 'number' && value.value === 0) ||
@@ -977,7 +1039,12 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     const pointee = expression.object.kind === 'identifier' && context.dereferencedParameters?.get(expression.object.name);
     if (pointee) return `${pointee}.${expression.property}`;
     const object = emitExpression(expression.object, context);
-    return expressionValueType(expression.object, context)?.includes('*') && structFieldsOf(expression.object, context)
+    // A pointer local of no known struct -- `auto *csect = sect + n` -- may
+    // hold a pointer into an array of structs, so `csect->size` reads through
+    // it. The D64 loader's sector loop never ended while it read the wrapper.
+    const pointerLocal = expression.object.kind === 'identifier' && context.locals.has(expression.object.name);
+    return expressionValueType(expression.object, context)?.includes('*') &&
+      (structFieldsOf(expression.object, context) || pointerLocal)
       ? `runtime.dereference(${object}).${expression.property}`
       : `${object}.${expression.property}`;
   }
@@ -1193,7 +1260,11 @@ function emitCall(
       const target = args[0] ?? '0';
       const value = args[1] ?? '0';
       const bytes = args[2] ?? '0';
+      // A plain array is an array of structs (`gen_crc_info crcs[64]`), whose
+      // memset clears each struct's fields -- the interpreter's rule. Filled
+      // with zeros it lost the structs themselves.
       return `(() => { const target = ${target}; const bytes = Number(${bytes}); ` +
+        `if (Array.isArray(target) || Array.isArray(target?.source)) return runtime.macro("memset", target, ${value}, bytes); ` +
         `if (target?.generatedPointer) { const width = target.source.BYTES_PER_ELEMENT ?? 1; ` +
         `target.source.fill(${value}, target.offset, target.offset + Math.ceil(bytes / width)); ` +
         `return target; } target.fill(${value}, 0, bytes); return target; })()`;
@@ -1285,10 +1356,32 @@ function emitCall(
     if (expression.callee.property === 'empty' && !args.length) {
       return `((${object}).length === 0 ? 1 : 0)`;
     }
+    // std::vector::resize. A plain array (a vector of vectors or of structs)
+    // grows in place by elements of its own kind; a typed array is replaced,
+    // so a member or local holding one takes the new array back.
+    if (expression.callee.property === 'resize' && args.length === 1) {
+      const holder = expression.callee.object;
+      if (holder.kind === 'identifier' && context.locals.has(holder.name) && !context.wrappedReferences.has(holder.name)) {
+        return `(${localName(holder.name)} = runtime.resize(${object}, ${args[0]}))`;
+      }
+      if (holder.kind === 'identifier' && context.definition.members.some(member => member.name === holder.name)) {
+        return `(members.${holder.name} = runtime.resize(${object}, ${args[0]}))`;
+      }
+      return `runtime.resize(${object}, ${args[0]})`;
+    }
     if (
       ['bytes', 'size', 'length'].includes(expression.callee.property) &&
       !args.length
     ) {
+      // A container's extent -- unless the receiver is declared as a class
+      // that is not one: a format's `util::random_read &io` answers
+      // `length()` itself, and read as a property it handed back the method.
+      const receiverType = expressionValueType(expression.callee.object, context)
+        ?.replace(/\bconst\b/g, '').replace(/&/g, '').trim();
+      if (receiverType && /^[\w:]+$/.test(receiverType) &&
+          !/vector|array|span|string|ptr|region|memory|bitmap|auto/i.test(receiverType)) {
+        return `(${object}).${expression.callee.property}()`;
+      }
       return `(${object}).length`;
     }
     const directName = linkedMemberCallName(expression);
@@ -1396,6 +1489,17 @@ function emitValueMemberCall(
   if (channelShift !== undefined && !args.length) {
     return `(typeof ${object} === 'number' ? ((${object}) >>> ${channelShift}) & 0xff : ` +
       `(${access}?.() ?? 0))`;
+  }
+  // An attotime is seconds at run time, so its accessors are arithmetic on a
+  // number. `(from_when - m_cache_weak_start).as_ticks(250000)` answered by
+  // the fallback below was always 0, and the floppy drive then walked its weak
+  // flux zone 4us at a time from the zone's start on every bit cell.
+  if (ATTOTIME_METHODS.has(property)) {
+    const numeric = property === 'is_never' ? `((${object}) === Infinity ? 1 : 0)`
+      : property === 'is_zero' ? `((${object}) === 0 ? 1 : 0)`
+        : property === 'as_double' ? `(${object})`
+          : `runtime.attotime(${object}, ${JSON.stringify(property)}${args.map(arg => `, ${arg}`).join('')})`;
+    return `(typeof ${object} === 'number' ? ${numeric} : (${access}?.(${args.join(', ')}) ?? 0))`;
   }
   if (args.length || !memberChainName(expression.callee.object)) {
     // The value may not implement the accessor MAME spells here: the runtime
@@ -1521,6 +1625,14 @@ function emitAssignment(
       : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     return `runtime.writeIndex(${object}, ${index}, ${next})`;
   }
+  // C++ struct assignment copies: `cur_live = checkpoint_live` on the 64H156
+  // must leave two structs, not one object under two names.
+  if (operator === '=' && expression.kind === 'identifier' && !context.locals.has(expression.name)) {
+    const member = context.definition.members.find(candidate => candidate.name === expression.name);
+    if (member?.fields && !member.arrayLength && !member.valueType.includes('*')) {
+      return `runtime.copyStruct(members.${member.name}, ${right})`;
+    }
+  }
   const target = targetInfo(expression, context);
   if (
     expression.kind === 'identifier' &&
@@ -1530,7 +1642,10 @@ function emitAssignment(
   ) {
     return `${target.code}.offset ${operator} ${right}`;
   }
-  const next = pointerAssignment(target.code, operator, right, target.valueType);
+  // A struct field or member declared with a width is an integer, whatever
+  // spelling (if any) the target carries.
+  const next = pointerAssignment(target.code, operator, right,
+    target.valueType ?? (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : undefined));
   if (expression.kind === 'unary' && expression.operator === '*') {
     return `${target.code} = ${next}`;
   }
@@ -1554,7 +1669,12 @@ function pointerAssignment(
   // otherwise, and only the value knows which. The interpreter decides it by
   // shape at run time; emitting a bare `&` made `Number(rect) & Number(rect)`
   // zero and erased pacman's sprite clip.
-  if (operator === '&=') return `runtime.andAssign(${current}, ${right})`;
+  if (operator === '&=') {
+    // Only a rectangle needs the shape test; a declared integer is an AND.
+    return valueType && integerBitsForType(valueType) && !/\b(?:float|double)\b/.test(valueType)
+      ? `((${current}) & (${right}))`
+      : `runtime.andAssign(${current}, ${right})`;
+  }
   // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical.
   return operator === '='
     ? right
@@ -2042,6 +2162,8 @@ function namesType(expression: GeneratedExpression): boolean {
  * packing `rgb_t(...)` builds: alpha, blue, green, red down to bit zero.
  */
 const RGB_CHANNEL_SHIFTS: Record<string, number | undefined> = { r: 0, g: 8, b: 16, a: 24 };
+/** attotime's accessors, as attotimeSecondsMethod answers them for a number. */
+const ATTOTIME_METHODS = new Set(['as_ticks', 'as_double', 'as_attoseconds', 'is_never', 'is_zero', 'attoseconds', 'seconds']);
 
 /**
  * Members whose C++ type is a struct or union rather than a number.
