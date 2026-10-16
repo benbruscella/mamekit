@@ -1,0 +1,569 @@
+{
+  "generatedFrom": "src/mame/capcom/cps1.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3916,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3926,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3927,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3928,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3941,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3916,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3927,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3928,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3941,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3912,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3918,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3909,
+      "column": 1
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3927,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3928,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3916,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3927,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3928,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 3001,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3912,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3918,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3931,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3932,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3935,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3937,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3938,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3940,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3946,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2136,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2183,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 407,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 257,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 316,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2115,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2612,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2099,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 302,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 310,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2368,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 636,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 636,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 637,
+      "column": 2
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 637,
+      "column": 2
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 292,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 297,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 641,
+      "column": 2
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2533,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2515,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2246,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2452,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2385,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2434,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2476,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2440,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2494,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2446,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 348,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 3001,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2684,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2869,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2970,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2933,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2720,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2948,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 3054,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 3063,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 421,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 419,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 579,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 580,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 582,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 583,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 584,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 586,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 589,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/7/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 590,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/8/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 591,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/9/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 592,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/10/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 593,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 577,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 633,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 634,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 635,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/3/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 636,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/4/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 637,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/5/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 638,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/6/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 639,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/7/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 640,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/8/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 641,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 631,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/mame/capcom/cps1.cpp",
+      "line": 3932,
+      "column": 2
+    },
+    {
+      "path": "/video/tilemaps/0/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2533,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/1/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2533,
+      "column": 1
+    },
+    {
+      "path": "/video/tilemaps/2/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2533,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/capcom/cps1_v.cpp",
+      "line": 2533,
+      "column": 1
+    }
+  ]
+}

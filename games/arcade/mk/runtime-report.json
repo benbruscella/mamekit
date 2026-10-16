@@ -1,0 +1,326 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "mk",
+  "family": "midtunit",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "runtime-certified",
+  "generationGaps": [
+    "adpcm:WILLIAMS_ADPCM_SOUND",
+    "dac:AD7524"
+  ],
+  "silentGaps": [
+    "adpcm:WILLIAMS_ADPCM_SOUND",
+    "dac:AD7524"
+  ],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 125,
+    "total": 189,
+    "percent": 66.1
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:TMS34010",
+        "status": "executable",
+        "source": "src/devices/cpu/tms34010/tms34010.cpp:55"
+      },
+      {
+        "name": "adpcm:cpu:MC6809E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:137"
+      }
+    ],
+    "devices": [
+      {
+        "name": "video:MIDTUNIT_VIDEO",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "nvram:NVRAM",
+        "status": "declarative-host",
+        "source": "src/devices/machine/nvram.cpp:19"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "adpcm:WILLIAMS_ADPCM_SOUND",
+        "status": "blocked",
+        "source": "src/mame/shared/williamssound.cpp:63",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "cpu:MC6809E",
+        "status": "executable",
+        "source": "src/devices/cpu/m6809/m6809.cpp:137"
+      },
+      {
+        "name": "ym2151:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "dac:AD7524",
+        "status": "blocked",
+        "source": "src/devices/sound/dac.h:201",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "oki:OKIM6295",
+        "status": "executable",
+        "source": "src/devices/sound/okim6295.cpp:54"
+      },
+      {
+        "name": "debugscreen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "debugpalette:PALETTE",
+        "status": "declarative-host"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "adpcm:dac.data_w",
+        "status": "blocked",
+        "source": "src/devices/sound/dac.h:201",
+        "reason": "MAME source resolved but executable lowering is incomplete"
+      },
+      {
+        "name": "adpcm:oki.read",
+        "status": "executable",
+        "source": "src/devices/sound/okim6295.cpp:54"
+      },
+      {
+        "name": "adpcm:oki.write",
+        "status": "executable",
+        "source": "src/devices/sound/okim6295.cpp:54"
+      },
+      {
+        "name": "adpcm:ym2151.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "adpcm:ym2151.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "bank.rombank",
+        "status": "generated"
+      },
+      {
+        "name": "bank.romupper",
+        "status": "generated"
+      },
+      {
+        "name": "maincpu.io_register_r",
+        "status": "executable",
+        "source": "src/devices/cpu/tms34010/tms34010.cpp:55"
+      },
+      {
+        "name": "maincpu.io_register_w",
+        "status": "executable",
+        "source": "src/devices/cpu/tms34010/tms34010.cpp:55"
+      },
+      {
+        "name": "midtunit_adpcm_state.mk_prot_r",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:117"
+      },
+      {
+        "name": "midtunit_adpcm_state.mk_prot_w",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:137"
+      },
+      {
+        "name": "midtunit_adpcm_state.sound_r",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:540"
+      },
+      {
+        "name": "midtunit_adpcm_state.sound_state_r",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:527"
+      },
+      {
+        "name": "midtunit_adpcm_state.sound_w",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:548"
+      },
+      {
+        "name": "midtunit_base_state.cmos_enable_w",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:72"
+      },
+      {
+        "name": "midtunit_base_state.cmos_r",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:93"
+      },
+      {
+        "name": "midtunit_base_state.cmos_w",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit_m.cpp:78"
+      },
+      {
+        "name": "palette.write16",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.DSW",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN2",
+        "status": "generated"
+      },
+      {
+        "name": "video.dma_r",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "video.dma_w",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "video.midtunit_control_w",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "video.midtunit_gfxrom_r",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "video.midtunit_vram_r",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "video.midtunit_vram_w",
+        "status": "executable",
+        "source": "src/mame/williams/midtunit_v.cpp:30"
+      },
+      {
+        "name": "watchdog.reset16_w",
+        "status": "generated"
+      },
+      {
+        "name": "williams_adpcm_sound_device.bank_select_w",
+        "status": "generated",
+        "source": "src/mame/shared/williamssound.cpp:688"
+      },
+      {
+        "name": "williams_adpcm_sound_device.command_r",
+        "status": "generated",
+        "source": "src/mame/shared/williamssound.cpp:710"
+      },
+      {
+        "name": "williams_adpcm_sound_device.oki6295_bank_select_w",
+        "status": "generated",
+        "source": "src/mame/shared/williamssound.cpp:699"
+      },
+      {
+        "name": "williams_adpcm_sound_device.talkback_w",
+        "status": "generated",
+        "source": "src/mame/shared/williamssound.cpp:725"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "video.dma_irq_cb -> maincpu",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit.cpp:609"
+      },
+      {
+        "name": "maincpu.set_scanline_ind16_callback -> video.scanline_update",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit.cpp:616"
+      },
+      {
+        "name": "maincpu.set_shiftreg_in_callback -> video.to_shiftreg",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit.cpp:617"
+      },
+      {
+        "name": "maincpu.set_shiftreg_out_callback -> video.from_shiftreg",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit.cpp:618"
+      },
+      {
+        "name": "screen.set_screen_update -> maincpu.tms340x0_ind16",
+        "status": "generated",
+        "source": "src/mame/williams/midtunit.cpp:631"
+      },
+      {
+        "name": "ym2151.irq_handler -> cpu",
+        "status": "generated",
+        "source": "src/mame/shared/williamssound.cpp:772"
+      },
+      {
+        "name": "debugscreen.set_screen_update -> midtunit_video_device.debug_screen_update",
+        "status": "generated",
+        "source": "src/mame/williams/midtview.ipp:46"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/mk/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 32,
+    "compiledMethods": 29,
+    "blockedMethods": 3,
+    "usedCompiledHandlers": 12,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 0,
+    "screenUpdate": "tms34010_device.tms340x0_ind16",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 18,
+    "generated": 27,
+    "declarative-host": 8,
+    "blocked": 3,
+    "missing": 0
+  }
+}

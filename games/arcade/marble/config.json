@@ -1,0 +1,1055 @@
+{
+  "game": "marble",
+  "title": "Marble Madness (set 1) (Atari Games, 1984)",
+  "family": "atarisy1",
+  "dataPath": "games/arcade/marble",
+  "board": {
+    "family": "atarisy1",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "m68010",
+        "clock": 7159090.5,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 524287,
+            "kind": "rom"
+          },
+          {
+            "start": 3014656,
+            "end": 3014657,
+            "kind": "handler",
+            "read": "atarisy1_state.int3state_r"
+          },
+          {
+            "start": 4194304,
+            "end": 4202495,
+            "kind": "ram"
+          },
+          {
+            "start": 8388608,
+            "end": 8388609,
+            "kind": "handler",
+            "share": "xscroll",
+            "write": "atarisy1_state.xscroll_w"
+          },
+          {
+            "start": 8519680,
+            "end": 8519681,
+            "kind": "handler",
+            "share": "yscroll",
+            "write": "atarisy1_state.yscroll_w"
+          },
+          {
+            "start": 8650752,
+            "end": 8650753,
+            "kind": "handler",
+            "write": "atarisy1_state.priority_w"
+          },
+          {
+            "start": 8781825,
+            "end": 8781825,
+            "kind": "handler",
+            "write": "atarisy1_state.bankselect_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 8912897,
+            "end": 8912897,
+            "kind": "handler",
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 9043969,
+            "end": 9043969,
+            "kind": "handler",
+            "write": "atarisy1_state.video_int_ack_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 9175041,
+            "end": 9175041,
+            "kind": "handler",
+            "write": "eeprom.unlock_write8"
+          },
+          {
+            "start": 9437184,
+            "end": 10485759,
+            "kind": "ram"
+          },
+          {
+            "start": 10485760,
+            "end": 10493951,
+            "kind": "ram",
+            "share": "playfield",
+            "write": "playfield.write16"
+          },
+          {
+            "start": 10493952,
+            "end": 10498047,
+            "kind": "ram",
+            "share": "mob",
+            "write": "atarisy1_state.spriteram_w"
+          },
+          {
+            "start": 10498048,
+            "end": 10502143,
+            "kind": "ram",
+            "share": "alpha",
+            "write": "alpha.write16"
+          },
+          {
+            "start": 11534336,
+            "end": 11536383,
+            "kind": "ram",
+            "share": "palette",
+            "write": "palette.write16"
+          },
+          {
+            "start": 15728640,
+            "end": 15729663,
+            "kind": "handler",
+            "umask": 255,
+            "read": "eeprom.read",
+            "write": "eeprom.write"
+          },
+          {
+            "start": 15859712,
+            "end": 15859719,
+            "kind": "handler",
+            "read": "atarisy1_state.trakball_r"
+          },
+          {
+            "start": 15990784,
+            "end": 15990815,
+            "kind": "handler",
+            "umask": 255,
+            "read": "atarisy1_state.adc_r",
+            "write": "atarisy1_state.adc_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16121856,
+            "end": 16121859,
+            "kind": "handler",
+            "read": "port.F60000"
+          },
+          {
+            "start": 16252929,
+            "end": 16252929,
+            "kind": "handler",
+            "write": "soundlatch.write"
+          },
+          {
+            "start": 16515073,
+            "end": 16515073,
+            "kind": "handler",
+            "read": "mainlatch.read"
+          },
+          {
+            "start": 16646145,
+            "end": 16646145,
+            "kind": "handler",
+            "write": "soundlatch.write"
+          },
+          {
+            "start": 524288,
+            "end": 532479,
+            "kind": "handler",
+            "mirror": 24576,
+            "read": "bank.slapstic_bank",
+            "bank": "slapstic_bank"
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "m6502",
+        "clock": 1789772.625,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 4095,
+            "kind": "ram",
+            "mirror": 8192
+          },
+          {
+            "start": 6144,
+            "end": 6145,
+            "kind": "handler",
+            "mirror": 10126,
+            "read": "ymsnd.read",
+            "write": "ymsnd.write"
+          },
+          {
+            "start": 6160,
+            "end": 6160,
+            "kind": "handler",
+            "mirror": 10127,
+            "read": "soundlatch.read"
+          },
+          {
+            "start": 6160,
+            "end": 6160,
+            "kind": "handler",
+            "mirror": 10127,
+            "write": "mainlatch.write"
+          },
+          {
+            "start": 6176,
+            "end": 6176,
+            "kind": "handler",
+            "mirror": 10127,
+            "read": "atarisy1_state.switch_6502_r"
+          },
+          {
+            "start": 6176,
+            "end": 6183,
+            "kind": "handler",
+            "mirror": 10120,
+            "write": "outlatch.write_d0"
+          },
+          {
+            "start": 6256,
+            "end": 6271,
+            "kind": "handler",
+            "mirror": 10112,
+            "read": "pokey.read",
+            "write": "pokey.write"
+          },
+          {
+            "start": 16384,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 524287,
+        "kind": "rom"
+      },
+      {
+        "start": 3014656,
+        "end": 3014657,
+        "kind": "handler",
+        "read": "atarisy1_state.int3state_r"
+      },
+      {
+        "start": 4194304,
+        "end": 4202495,
+        "kind": "ram"
+      },
+      {
+        "start": 8388608,
+        "end": 8388609,
+        "kind": "handler",
+        "share": "xscroll",
+        "write": "atarisy1_state.xscroll_w"
+      },
+      {
+        "start": 8519680,
+        "end": 8519681,
+        "kind": "handler",
+        "share": "yscroll",
+        "write": "atarisy1_state.yscroll_w"
+      },
+      {
+        "start": 8650752,
+        "end": 8650753,
+        "kind": "handler",
+        "write": "atarisy1_state.priority_w"
+      },
+      {
+        "start": 8781825,
+        "end": 8781825,
+        "kind": "handler",
+        "write": "atarisy1_state.bankselect_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 8912897,
+        "end": 8912897,
+        "kind": "handler",
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 9043969,
+        "end": 9043969,
+        "kind": "handler",
+        "write": "atarisy1_state.video_int_ack_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 9175041,
+        "end": 9175041,
+        "kind": "handler",
+        "write": "eeprom.unlock_write8"
+      },
+      {
+        "start": 9437184,
+        "end": 10485759,
+        "kind": "ram"
+      },
+      {
+        "start": 10485760,
+        "end": 10493951,
+        "kind": "ram",
+        "share": "playfield",
+        "write": "playfield.write16"
+      },
+      {
+        "start": 10493952,
+        "end": 10498047,
+        "kind": "ram",
+        "share": "mob",
+        "write": "atarisy1_state.spriteram_w"
+      },
+      {
+        "start": 10498048,
+        "end": 10502143,
+        "kind": "ram",
+        "share": "alpha",
+        "write": "alpha.write16"
+      },
+      {
+        "start": 11534336,
+        "end": 11536383,
+        "kind": "ram",
+        "share": "palette",
+        "write": "palette.write16"
+      },
+      {
+        "start": 15728640,
+        "end": 15729663,
+        "kind": "handler",
+        "umask": 255,
+        "read": "eeprom.read",
+        "write": "eeprom.write"
+      },
+      {
+        "start": 15859712,
+        "end": 15859719,
+        "kind": "handler",
+        "read": "atarisy1_state.trakball_r"
+      },
+      {
+        "start": 15990784,
+        "end": 15990815,
+        "kind": "handler",
+        "umask": 255,
+        "read": "atarisy1_state.adc_r",
+        "write": "atarisy1_state.adc_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 16121856,
+        "end": 16121859,
+        "kind": "handler",
+        "read": "port.F60000"
+      },
+      {
+        "start": 16252929,
+        "end": 16252929,
+        "kind": "handler",
+        "write": "soundlatch.write"
+      },
+      {
+        "start": 16515073,
+        "end": 16515073,
+        "kind": "handler",
+        "read": "mainlatch.read"
+      },
+      {
+        "start": 16646145,
+        "end": 16646145,
+        "kind": "handler",
+        "write": "soundlatch.write"
+      },
+      {
+        "start": 524288,
+        "end": 532479,
+        "kind": "handler",
+        "mirror": 24576,
+        "read": "bank.slapstic_bank",
+        "bank": "slapstic_bank"
+      }
+    ],
+    "customs": [
+      {
+        "port": "F60000",
+        "mask": 16,
+        "member": "vblank",
+        "source": "screen-vblank",
+        "activeLow": true
+      },
+      {
+        "port": "F60000",
+        "mask": 128,
+        "member": "pending_r",
+        "source": "device-line",
+        "deviceTag": "soundlatch",
+        "activeLow": false
+      },
+      {
+        "port": "1820",
+        "mask": 8,
+        "member": "pending_r",
+        "source": "device-line",
+        "deviceTag": "soundlatch",
+        "activeLow": false
+      },
+      {
+        "port": "1820",
+        "mask": 16,
+        "member": "pending_r",
+        "source": "device-line",
+        "deviceTag": "mainlatch",
+        "activeLow": false
+      }
+    ],
+    "screen": {
+      "width": 336,
+      "height": 240,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 59.92274758939333,
+      "htotal": 456,
+      "vtotal": 262,
+      "vbstart": 240,
+      "vbend": 0,
+      "updateMode": "partial",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545.25,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.48,
+        "target": "speaker",
+        "targetInput": 0
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.48,
+        "target": "speaker",
+        "targetInput": 1
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "POKEY",
+        "deviceTag": "pokey",
+        "clock": 1789772.625,
+        "gain": 0.24,
+        "target": "speaker",
+        "targetInput": 0,
+        "writeMethods": [
+          "write"
+        ]
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 557056,
+      "loads": [
+        {
+          "file": "136032.205.l13",
+          "offset": 0,
+          "size": 16384,
+          "romSet": "atarisy1",
+          "crc": "88d0be26",
+          "alt": [
+            {
+              "file": "136032.114.j11",
+              "crc": "195c54ad"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136032.206.l12",
+          "offset": 1,
+          "size": 16384,
+          "romSet": "atarisy1",
+          "crc": "3c79ef05",
+          "alt": [
+            {
+              "file": "136032.115.j10",
+              "crc": "7275b4dc"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.623",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "284ed2e9",
+          "alt": [
+            {
+              "file": "136028.142",
+              "crc": "4f9fc020"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.624",
+          "offset": 65537,
+          "size": 16384,
+          "crc": "d541b021",
+          "alt": [
+            {
+              "file": "136028.143",
+              "crc": "9fb257cc"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.625",
+          "offset": 98304,
+          "size": 16384,
+          "crc": "563755c7",
+          "alt": [
+            {
+              "file": "136028.144",
+              "crc": "50267619"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.626",
+          "offset": 98305,
+          "size": 16384,
+          "crc": "860feeb3",
+          "alt": [
+            {
+              "file": "136028.145",
+              "crc": "7b6a5004"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.627",
+          "offset": 131072,
+          "size": 16384,
+          "crc": "d1dbd439",
+          "alt": [
+            {
+              "file": "136028.146",
+              "crc": "4183a67a"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.628",
+          "offset": 131073,
+          "size": 16384,
+          "crc": "957d6801",
+          "alt": [
+            {
+              "file": "136028.147",
+              "crc": "14e2d97b"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.229",
+          "offset": 163840,
+          "size": 16384,
+          "crc": "c81d5c14",
+          "skip": 1
+        },
+        {
+          "file": "136033.630",
+          "offset": 163841,
+          "size": 16384,
+          "crc": "687a09f7",
+          "skip": 1
+        },
+        {
+          "file": "136033.107",
+          "offset": 524288,
+          "size": 16384,
+          "crc": "f3b8745b",
+          "alt": [
+            {
+              "file": "136028.148",
+              "crc": "230e8ba9"
+            },
+            {
+              "file": "136036.358",
+              "crc": "d9351106"
+            },
+            {
+              "file": "136040-140.17c",
+              "crc": "d1464c88"
+            },
+            {
+              "file": "136048-2147.7k",
+              "crc": "5c1adf67"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "136033.108",
+          "offset": 524289,
+          "size": 16384,
+          "crc": "e51eecaa",
+          "alt": [
+            {
+              "file": "136028.149",
+              "crc": "0ff0c13a"
+            },
+            {
+              "file": "136036.359",
+              "crc": "e731caea"
+            },
+            {
+              "file": "136040-141.17a",
+              "crc": "f8f2acdf"
+            },
+            {
+              "file": "136048-2148.8k",
+              "crc": "d9ac8966"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "136033.421",
+          "offset": 32768,
+          "size": 16384,
+          "crc": "78153dc3",
+          "alt": [
+            {
+              "file": "136028.101",
+              "crc": "ff712aa2"
+            },
+            {
+              "file": "136036.154",
+              "crc": "cbfc6adb"
+            },
+            {
+              "file": "136040-143.15e",
+              "crc": "62b9878e"
+            },
+            {
+              "file": "136048-1169.1516e",
+              "crc": "ee318052"
+            },
+            {
+              "file": "rp-snd-8k-c73.bin",
+              "crc": "932b3ca0"
+            }
+          ]
+        },
+        {
+          "file": "136033.422",
+          "offset": 49152,
+          "size": 16384,
+          "crc": "2e66300e",
+          "alt": [
+            {
+              "file": "136028.102",
+              "crc": "89ea21a1"
+            },
+            {
+              "file": "136036.155",
+              "crc": "4c8233ac"
+            },
+            {
+              "file": "136040-144.17e",
+              "crc": "6ef1b804"
+            },
+            {
+              "file": "136048-1170.17e",
+              "crc": "75dfec33"
+            },
+            {
+              "file": "rp-snd-ck-c78.bin",
+              "crc": "7c5819db"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "alpha",
+      "size": 8192,
+      "romSet": "atarisy1",
+      "loads": [
+        {
+          "file": "136032.104.f5",
+          "offset": 0,
+          "size": 8192,
+          "crc": "7a29dc07"
+        }
+      ]
+    },
+    {
+      "region": "tiles",
+      "size": 1048576,
+      "fill": 255,
+      "invert": true,
+      "loads": [
+        {
+          "file": "136033.137",
+          "offset": 0,
+          "size": 16384,
+          "crc": "7a45f5c1"
+        },
+        {
+          "file": "136033.138",
+          "offset": 16384,
+          "size": 16384,
+          "crc": "7e954a88"
+        },
+        {
+          "file": "136033.139",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "1eb1bb5f"
+        },
+        {
+          "file": "136033.140",
+          "offset": 81920,
+          "size": 16384,
+          "crc": "8a82467b"
+        },
+        {
+          "file": "136033.141",
+          "offset": 131072,
+          "size": 16384,
+          "crc": "52448965"
+        },
+        {
+          "file": "136033.142",
+          "offset": 147456,
+          "size": 16384,
+          "crc": "b4a70e4f"
+        },
+        {
+          "file": "136033.143",
+          "offset": 196608,
+          "size": 16384,
+          "crc": "7156e449"
+        },
+        {
+          "file": "136033.144",
+          "offset": 212992,
+          "size": 16384,
+          "crc": "4c3e4c79"
+        },
+        {
+          "file": "136033.145",
+          "offset": 262144,
+          "size": 16384,
+          "crc": "9062be7f"
+        },
+        {
+          "file": "136033.146",
+          "offset": 278528,
+          "size": 16384,
+          "crc": "14566dca"
+        },
+        {
+          "file": "136033.149",
+          "offset": 540672,
+          "size": 16384,
+          "crc": "b6658f06"
+        },
+        {
+          "file": "136033.151",
+          "offset": 606208,
+          "size": 16384,
+          "crc": "84ee1c80"
+        },
+        {
+          "file": "136033.153",
+          "offset": 671744,
+          "size": 16384,
+          "crc": "daa02926"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "136033.118",
+          "offset": 0,
+          "size": 512,
+          "crc": "2101b0ed",
+          "alt": [
+            {
+              "file": "136028.136",
+              "crc": "861cfa36"
+            },
+            {
+              "file": "136036.152",
+              "crc": "4f96e57c"
+            },
+            {
+              "file": "136040-126.7a",
+              "crc": "1713c0cd"
+            },
+            {
+              "file": "136048-1174.12d",
+              "crc": "db4a4d53"
+            },
+            {
+              "file": "brlf24k_bs.a7",
+              "crc": "62b8ff72"
+            }
+          ]
+        },
+        {
+          "file": "136033.119",
+          "offset": 512,
+          "size": 512,
+          "crc": "19f6e767",
+          "alt": [
+            {
+              "file": "136028.137",
+              "crc": "8507e5ea"
+            },
+            {
+              "file": "136036.151",
+              "crc": "7daf351f"
+            },
+            {
+              "file": "136040-125.5a",
+              "crc": "a9ca8795"
+            },
+            {
+              "file": "136048-1173.2d",
+              "crc": "c80574af"
+            },
+            {
+              "file": "brlf24k_ps.a5",
+              "crc": "eaee166e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "motherbrd_proms",
+      "size": 513,
+      "romSet": "atarisy1",
+      "loads": [
+        {
+          "file": "136032.101.e3",
+          "offset": 0,
+          "size": 256,
+          "crc": "7e84972a",
+          "alt": [
+            {
+              "file": "136032.102.e5",
+              "crc": "ebf1e0ae"
+            }
+          ]
+        },
+        {
+          "file": "136032.102.e5",
+          "offset": 0,
+          "size": 256,
+          "crc": "ebf1e0ae",
+          "alt": [
+            {
+              "file": "136032.101.e3",
+              "crc": "7e84972a"
+            }
+          ]
+        },
+        {
+          "file": "136032.103.f7",
+          "offset": 0,
+          "size": 235,
+          "crc": "92d6a0b4"
+        }
+      ]
+    }
+  ],
+  "hiscore": {
+    "rows": [
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 4202130,
+        "length": 50,
+        "first": 0,
+        "last": 58
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_TRACKBALL_X_LEFT",
+      "type": "IPT_TRACKBALL_X_LEFT",
+      "activeLow": false,
+      "relativeDelta": 30,
+      "sensitivity": 30
+    },
+    {
+      "port": "IN0",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_TRACKBALL_X_RIGHT",
+      "type": "IPT_TRACKBALL_X_RIGHT",
+      "activeLow": false,
+      "relativeDelta": -30,
+      "sensitivity": 30
+    },
+    {
+      "port": "IN1",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_TRACKBALL_Y_UP",
+      "type": "IPT_TRACKBALL_Y_UP",
+      "activeLow": false,
+      "relativeDelta": -30,
+      "sensitivity": 30
+    },
+    {
+      "port": "IN1",
+      "mask": 255,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_TRACKBALL_Y_DOWN",
+      "type": "IPT_TRACKBALL_Y_DOWN",
+      "activeLow": false,
+      "relativeDelta": 30,
+      "sensitivity": 30
+    },
+    {
+      "port": "F60000",
+      "mask": 1,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "F60000",
+      "mask": 2,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "1820",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "1820",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "F60000",
+      "mask": 64,
+      "value": 64,
+      "name": "Service Mode"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 0
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "IN2",
+      "init": 0
+    },
+    {
+      "tag": "IN3",
+      "init": 0
+    },
+    {
+      "tag": "F60000",
+      "init": 65407
+    },
+    {
+      "tag": "1820",
+      "init": 135
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

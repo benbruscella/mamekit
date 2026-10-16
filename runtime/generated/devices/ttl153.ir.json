@@ -1,0 +1,2024 @@
+{
+  "type": "TTL153",
+  "uses": [
+    {
+      "game": "asteroid",
+      "tags": [
+        "dsw_sel"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TTL153",
+    "className": "ttl153_device",
+    "shortName": "ttl153",
+    "description": "SN54/74153",
+    "sourceFile": "src/devices/machine/74153.cpp",
+    "sourceLine": 19,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TTL153, ttl153_device, \"ttl153\", \"SN54/74153\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ia"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ib"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_z"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::begin"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::end"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::begin"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ia"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::end"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ia"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::begin"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ib"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::end"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ib"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::begin"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_z"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::end"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_z"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_a",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 70,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "za",
+            "valueType": "bool",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "za"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ia"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "za"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ia"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "za"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ia"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "za"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ia"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "right": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "za"
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_z"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_za_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "za"
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_z"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "za"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_b",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "zb",
+            "valueType": "bool",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "zb"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ib"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "zb"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ib"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "zb"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ib"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "zb"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ib"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "right": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_s"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "zb"
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_z"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_zb_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "zb"
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_z"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "zb"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "s0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 111,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_s"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "s1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_s"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "s_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 125,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_s"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_s"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i0a_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 133,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i1a_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 139,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i2a_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i3a_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 151,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ia_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 157,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ia"
+              },
+              "index": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_a"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i0b_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 166,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i1b_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 172,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i2b_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 178,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i3b_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 184,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ib_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 190,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_ib"
+              },
+              "index": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_b"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "za_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 199,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_z"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "zb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.cpp",
+      "sourceLine": 204,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_z"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "za_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_za_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "zb_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_zb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl153_device::za_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_za_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl153_device::zb_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74153.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_zb_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/74153.cpp",
+    "src/devices/machine/74153.h"
+  ]
+}

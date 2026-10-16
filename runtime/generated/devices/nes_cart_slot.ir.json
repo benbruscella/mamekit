@@ -1,0 +1,2504 @@
+{
+  "type": "NES_CART_SLOT",
+  "uses": [
+    {
+      "game": "nes",
+      "tags": [
+        "nes_slot"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NES_CART_SLOT",
+    "className": "nes_cart_slot_device",
+    "shortName": "nes_cart_slot",
+    "description": "NES Cartridge Slot",
+    "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+    "sourceLine": 98,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NES_CART_SLOT, nes_cart_slot_device, \"nes_cart_slot\", \"NES Cartridge Slot\")"
+  },
+  "methods": [
+    {
+      "name": "is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_software_list_loader",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rom_software_list_loader::instance"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "romimage"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "rom"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 675,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pcb_start",
+      "parameters": "uint8_t *ciram_ptr",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 681,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "pcb_start"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ciram_ptr"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "exists"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pcb_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 687,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "pcb_reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_l",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 821,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "read_l"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16640
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "val"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_m",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 834,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "read_m"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 24576
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "val"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_h",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 847,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "read_h"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32768
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "val"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_ex",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 860,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "uint8_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "read_ex"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16416
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "val"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_l",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 878,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "write_l"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16640
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_m",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 888,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "write_m"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 24576
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_h",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 898,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "write_h"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32768
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_ex",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/nes/nes_slot.cpp",
+      "sourceLine": 908,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "write_ex"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "set_open_bus"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "offset"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16416
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_get_pcb_id",
+      "parameters": " const char *slot ",
+      "sourceFile": "src/devices/bus/nes/nes_pcb.hxx",
+      "sourceLine": 441,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "pcb",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "nes_pcb_lookup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "slot"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "pcb"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "fatalerror"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unimplemented PCB type %s\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "slot"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "pcb"
+              },
+              "property": "pcb_id"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_get_slot",
+      "parameters": " int pcb_id ",
+      "sourceFile": "src/devices/bus/nes/nes_pcb.hxx",
+      "sourceLine": 452,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "pcb",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "nes_id_lookup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "pcb_id"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "pcb"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "fatalerror"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unimplemented PCB ID %d\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "pcb_id"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "pcb"
+              },
+              "property": "slot_opt"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 386,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 400,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_interface",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 402,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "nes_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "file_extensions",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 403,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "nes,unf,unif"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "unhashed_header_length",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 404,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 16
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "disk_flip_side",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 418,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "disk_flip_side"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_pcb_id",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 421,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pcb_id"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_crc_hack",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 429,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_crc_hack"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::nes_cart_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 387,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 400,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::image_interface",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 403,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "nes_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::file_extensions",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 404,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "nes,unf,unif"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::unhashed_header_length",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 405,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 16
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::disk_flip_side",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 418,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "disk_flip_side"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::get_pcb_id",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 422,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_pcb_id"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_slot_device::get_crc_hack",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/nes/nes_slot.h",
+      "sourceLine": 429,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_crc_hack"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_pcb_lookup",
+      "parameters": " const char *slot ",
+      "sourceFile": "src/devices/bus/nes/nes_pcb.hxx",
+      "sourceLine": 421,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "pcb_list"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "strcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__range0"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "__range0_index"
+                          }
+                        },
+                        "property": "slot_opt"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "slot"
+                      }
+                    ]
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "__range0"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "__range0_index"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_id_lookup",
+      "parameters": " int id ",
+      "sourceFile": "src/devices/bus/nes/nes_pcb.hxx",
+      "sourceLine": 431,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "pcb_list"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    },
+                    "property": "pcb_id"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "id"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "__range0"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "__range0_index"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nes_cart_get_line",
+      "parameters": " const char *feature ",
+      "sourceFile": "src/devices/bus/nes/nes_pcb.hxx",
+      "sourceLine": 505,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "nes_line",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "nes_cart_lines_table"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "feature"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 128
+                }
+              }
+            ]
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "nes_line"
+              },
+              "property": "tag"
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "strcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "nes_line"
+                        },
+                        "property": "tag"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "feature"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "nes_line"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "nes_line"
+              },
+              "property": "line"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "n163_get_submapper_num",
+      "parameters": " const char *feature ",
+      "sourceFile": "src/devices/bus/nes/nes_pcb.hxx",
+      "sourceLine": 540,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "n163_line",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "n163_vol_table"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "feature"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 128
+                }
+              }
+            ]
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "n163_line"
+              },
+              "property": "tag"
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "strcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "n163_line"
+                        },
+                        "property": "tag"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "feature"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "n163_line"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "n163_line"
+              },
+              "property": "line"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "unif_mapr_setup",
+      "parameters": " const char *board, int *pcb_id, int *battery, int *prgram, int *vram_chunks ",
+      "sourceFile": "src/devices/bus/nes/nes_unif.hxx",
+      "sourceLine": 180,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "unif_board",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "nes_unif_lookup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "board"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "unif_board"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "fatalerror"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unknown UNIF board %s.\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "board"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "pcb_id"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "unif_board"
+              },
+              "property": "board_idx"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "battery"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "unif_board"
+              },
+              "property": "nvwram"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "prgram"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "unif_board"
+              },
+              "property": "wram"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "unif_board"
+                },
+                "property": "chrram"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CHRRAM_8"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "vram_chunks"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "unif_board"
+                    },
+                    "property": "chrram"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "CHRRAM_16"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "unary",
+                      "operator": "*",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "vram_chunks"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "unif_board"
+                        },
+                        "property": "chrram"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "CHRRAM_32"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "vram_chunks"
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ines_mapr_setup",
+      "parameters": " int mapper, int *pcb_id ",
+      "sourceFile": "src/devices/bus/nes/nes_ines.hxx",
+      "sourceLine": 573,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mmc",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "nes_mapper_lookup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "mapper"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "mmc"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "fatalerror"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unimplemented Mapper %d\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mapper"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "pcb_id"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "mmc"
+              },
+              "property": "pcb_id"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/nes/nes_slot.cpp",
+    "src/devices/bus/nes/nes_pcb.hxx",
+    "src/devices/bus/nes/nes_unif.hxx",
+    "src/devices/bus/nes/nes_ines.hxx",
+    "src/devices/bus/nes/nes_slot.h",
+    "src/devices/imagedev/cartrom.h",
+    "src/devices/imagedev/cartrom.cpp"
+  ]
+}

@@ -1,0 +1,1422 @@
+{
+  "type": "IREM_M62_AUDIO",
+  "uses": [
+    {
+      "game": "kungfum",
+      "tags": [
+        "irem_audio"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "IREM_M62_AUDIO",
+    "className": "m62_audio_device",
+    "shortName": "m62_audio",
+    "description": "Irem M62 Audio",
+    "sourceFile": "src/mame/irem/irem.cpp",
+    "sourceLine": 17,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(IREM_M62_AUDIO,        m62_audio_device,        \"m62_audio\",        \"Irem M62 Audio\")"
+  },
+  "methods": [
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/irem/irem.cpp",
+      "sourceLine": 400,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cpu"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m62_audio_device::m62_sound_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "in_p1_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m62_audio_device::m6803_port1_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "out_p1_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m62_audio_device::m6803_port1_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "in_p2_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m62_audio_device::m6803_port2_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cpu"
+                    },
+                    "property": "out_p2_cb"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m62_audio_device::m6803_port2_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "SPEAKER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "mono"
+                    }
+                  ]
+                },
+                "property": "front_center"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "set_flags"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AY8910_RESISTOR_OUTPUT"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "set_resistors_load"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2000,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2000,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2000,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay_45M"
+                    },
+                    "property": "port_a_read_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "irem_audio_device::soundlatch_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay_45M"
+                    },
+                    "property": "port_b_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "irem_audio_device::ay8910_45M_portb_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45M"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "set_flags"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AY8910_RESISTOR_OUTPUT"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "set_resistors_load"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2000,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2000,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2000,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ay_45L"
+                    },
+                    "property": "port_a_write_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "irem_audio_device::ay8910_45L_porta_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_ay_45L"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "MSM5205"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_adpcm1"
+                },
+                {
+                  "kind": "number",
+                  "value": 384000
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_adpcm1"
+                    },
+                    "property": "vck_callback"
+                  },
+                  "args": []
+                },
+                "property": "set_inputline"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "INPUT_LINE_NMI"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_adpcm1"
+                    },
+                    "property": "vck_callback"
+                  },
+                  "args": []
+                },
+                "property": "append"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_adpcm2"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "msm5205_device::vclk_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_adpcm1"
+                },
+                "property": "set_prescaler_selector"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "msm5205_device::S96_4B"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_adpcm1"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 6
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "MSM5205"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_adpcm2"
+                },
+                {
+                  "kind": "number",
+                  "value": 384000
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_adpcm2"
+                },
+                "property": "set_prescaler_selector"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "msm5205_device::SEX_4B"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_adpcm2"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 7
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NETLIST_SOUND"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "config"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "snd_nl"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 48000
+                        }
+                      ]
+                    },
+                    "property": "set_source"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "netlist_kidniki"
+                    }
+                  ]
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "string",
+                  "value": "mono"
+                },
+                {
+                  "kind": "number",
+                  "value": 1,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_LOGIC_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:ibd"
+                },
+                {
+                  "kind": "string",
+                  "value": "I_BD0.IN"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_LOGIC_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:isd"
+                },
+                {
+                  "kind": "string",
+                  "value": "I_SD0.IN"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_LOGIC_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:ich"
+                },
+                {
+                  "kind": "string",
+                  "value": "I_CH0.IN"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_LOGIC_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:ioh"
+                },
+                {
+                  "kind": "string",
+                  "value": "I_OH0.IN"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_LOGIC_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:sinh"
+                },
+                {
+                  "kind": "string",
+                  "value": "SINH.IN"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_STREAM_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:cin0"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "string",
+                  "value": "R_AY45M_A.R"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_STREAM_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:cin1"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "string",
+                  "value": "R_AY45M_B.R"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_STREAM_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:cin2"
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "string",
+                  "value": "R_AY45M_C.R"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_STREAM_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:cin3"
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "string",
+                  "value": "R_AY45L_A.R"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_STREAM_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:cin4"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "string",
+                  "value": "R_AY45L_B.R"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "NETLIST_STREAM_INPUT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "snd_nl:cin5"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "string",
+                  "value": "R_AY45L_C.R"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NETLIST_STREAM_INPUT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "snd_nl:cin6"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "string",
+                      "value": "I_MSM2K0.IN"
+                    }
+                  ]
+                },
+                "property": "set_mult_offset"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 10,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2.5,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NETLIST_STREAM_INPUT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "snd_nl:cin7"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 7
+                    },
+                    {
+                      "kind": "string",
+                      "value": "I_MSM3K0.IN"
+                    }
+                  ]
+                },
+                "property": "set_mult_offset"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 10,
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 2.5,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NETLIST_STREAM_OUTPUT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "snd_nl:cout0"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "string",
+                      "value": "R26.1"
+                    }
+                  ]
+                },
+                "property": "set_mult_offset"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "number",
+                      "value": 30000,
+                      "floating": true
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 10,
+                      "floating": true
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32768,
+                    "floating": true
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0,
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": [
+          "invalid constructor declaration of \"cpu\"",
+          "could not parse statement at byte 488",
+          "could not parse statement at byte 950"
+        ]
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/irem/irem.cpp",
+    "src/mame/irem/irem.h"
+  ],
+  "composedOf": [
+    "AY8910",
+    "M6803",
+    "MSM5205",
+    "NETLIST_LOGIC_INPUT",
+    "NETLIST_SOUND",
+    "NETLIST_STREAM_INPUT",
+    "NETLIST_STREAM_OUTPUT",
+    "SPEAKER"
+  ]
+}

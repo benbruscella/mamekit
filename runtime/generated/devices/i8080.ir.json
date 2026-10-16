@@ -1,0 +1,29 @@
+{
+  "type": "I8080",
+  "uses": [
+    {
+      "game": "invaders",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8080",
+    "className": "i8080_cpu_device",
+    "shortName": "i8080",
+    "description": "Intel 8080",
+    "sourceFile": "src/devices/cpu/i8085/i8085.cpp",
+    "sourceLine": 208,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8080,  i8080_cpu_device,  \"i8080\",  \"Intel 8080\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/i8085/8085dasm.h",
+    "src/devices/cpu/i8085/i8085.cpp",
+    "src/devices/cpu/i8085/i8085.h"
+  ]
+}

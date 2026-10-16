@@ -1,0 +1,1 @@
+{"list":"c64_quik","description":"Commodore 64 quickload","interface":"cbm_quik","entries":[{"name":"brklmts","description":"Broken Limits","year":"1987","publisher":"Wizax","slot":"","prg":{"size":10712,"roms":[{"size":10712,"crc":"d34a2027","offset":0,"file":"broken_limits.t64"}]}}],"crcIndex":{"d34a2027":[0]}}

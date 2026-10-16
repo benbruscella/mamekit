@@ -1,0 +1,159 @@
+{
+  "game": "mslug",
+  "title": "Metal Slug - Super Vehicle-001 (Nazca, 1996)",
+  "fullname": "Metal Slug - Super Vehicle-001",
+  "year": "1996",
+  "manufacturer": "Nazca",
+  "family": "neogeo",
+  "driverFile": "src/mame/snk/neogeo.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Bryan McPhail,Ernesto Corvi,Andrew Prime,Zsolt Vasvari",
+  "credits": {
+    "people": [
+      {
+        "name": "Andrew Prime",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Bryan McPhail",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Aaron Giles",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 6,
+        "firstRelease": "0.231",
+        "lastRelease": "0.233"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.201",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "Angelo Salese",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.234",
+        "lastRelease": "0.237"
+      },
+      {
+        "name": "Abadede",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.258",
+        "lastRelease": "0.258"
+      },
+      {
+        "name": "ajrhacker",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.172",
+        "lastRelease": "0.172"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.229",
+        "lastRelease": "0.229"
+      },
+      {
+        "name": "CanoeHope",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.243",
+        "lastRelease": "0.243"
+      },
+      {
+        "name": "Carl",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.220",
+        "lastRelease": "0.220"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.253",
+        "lastRelease": "0.253"
+      },
+      {
+        "name": "Dr.Venom",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.166",
+        "lastRelease": "0.166"
+      },
+      {
+        "name": "J.J.Boy",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      },
+      {
+        "name": "JimCarlTay",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.206",
+        "lastRelease": "0.206"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-14",
+    "commits": 402,
+    "authors": 41,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

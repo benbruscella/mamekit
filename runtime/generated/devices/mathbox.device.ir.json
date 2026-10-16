@@ -1,0 +1,4565 @@
+{
+  "schemaVersion": 1,
+  "type": "MATHBOX",
+  "className": "mathbox_device",
+  "hierarchy": [
+    "mathbox_device"
+  ],
+  "sourceFiles": [
+    "src/mame/atari/mathbox.cpp",
+    "src/mame/atari/mathbox.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "MB_TEST": 0
+  },
+  "members": [
+    {
+      "name": "m_reg",
+      "valueType": "int16_t",
+      "bits": 16,
+      "signed": true,
+      "arrayLength": 16
+    },
+    {
+      "name": "m_result",
+      "valueType": "int16_t",
+      "bits": 16,
+      "signed": true
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_result"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_reg"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/mathbox.cpp",
+        "line": 51,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_result"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_reg"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "int16_t"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/mathbox.cpp",
+        "line": 62,
+        "column": 1
+      }
+    },
+    {
+      "name": "go_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mb_temp",
+            "valueType": "int32_t"
+          },
+          {
+            "op": "declare",
+            "name": "mb_q",
+            "valueType": "int16_t"
+          },
+          {
+            "op": "declare",
+            "name": "msb",
+            "valueType": "int"
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "__switch_step_048_step_0bf",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "offset"
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "number",
+              "value": 1
+            },
+            "body": [
+              {
+                "op": "switch",
+                "expression": {
+                  "kind": "identifier",
+                  "name": "__switch_step_048_step_0bf"
+                },
+                "cases": [
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 5
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 6
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 4
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 9
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 4
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 10
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 5
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 5
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 12
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 6
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "identifier",
+                            "name": "data"
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 21
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 7
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 7
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 22
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 7
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 7
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 26
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 8
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 27
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 8
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 13
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 10
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 10
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 14
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 10
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 10
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 11
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 11
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65280
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "data"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 11
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 11
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 255
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 23
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 25
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 24
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 11
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 5
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 5
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 255
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 15
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "cast",
+                          "valueType": "int16_t",
+                          "operand": {
+                            "kind": "number",
+                            "value": 65535
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 5
+                          }
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": -1073741824
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_temp"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 14
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 65535
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_temp"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "unary",
+                              "operator": "-",
+                              "operand": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 5
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_q"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 65535
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 14
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 14
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32767
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32767
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_q"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 12
+                            }
+                          },
+                          "right": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 14
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_q"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 7
+                              }
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 15
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 18
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_temp"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 65535
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_temp"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "cast",
+                            "valueType": "int32_t",
+                            "operand": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 5
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_q"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_temp"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 65535
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 9
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32767
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 32767
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 9
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 8
+                              }
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        },
+                        "operator": "<<=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 15
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        },
+                        "operator": "&=",
+                        "value": {
+                          "kind": "number",
+                          "value": 65280
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 19
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 9
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_q"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "__switch_step_048_step_0bf"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": -1073741825
+                        }
+                      },
+                      {
+                        "op": "continue"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 20
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 10
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "mb_q"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 11
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": -1073741825
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 14
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 7
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "mb_q"
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 13
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "mb_q"
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mb_q"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "-",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "mb_q"
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "-",
+                                "operand": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 12
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "mb_q"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "<",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "mb_q"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 13
+                                  }
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 7
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 7
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "-",
+                              "operand": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 7
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 15
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 6
+                          }
+                        }
+                      },
+                      {
+                        "op": "do-while",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 15
+                              }
+                            },
+                            "operator": "-=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            },
+                            "operator": "-=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "msb"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "mb_q"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 32768
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            },
+                            "operator": "<<=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">=",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 13
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "mb_q"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 13
+                                  }
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 12
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            },
+                            "operator": "<<=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "msb"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 14
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_result"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "mb_q"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_result"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "-",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "mb_q"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 17
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 5
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 5
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 255
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 15
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "__switch_step_048_step_0bf"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": -1073741824
+                        }
+                      },
+                      {
+                        "op": "continue"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 28
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 5
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 5
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 255
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "do-while",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 6
+                              }
+                            },
+                            "operator": "-=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 14
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": ">>",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 4
+                                  }
+                                },
+                                "right": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 7
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 15
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": ">>",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 5
+                                  }
+                                },
+                                "right": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 8
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "<",
+                                  "left": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_reg"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 11
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_reg"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 14
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "<",
+                                  "left": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_reg"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_reg"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 14
+                                    }
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": ">=",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_reg"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 14
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_reg"
+                                    },
+                                    "index": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 7
+                                  }
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 14
+                                  }
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 8
+                                  }
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 4
+                                  }
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 14
+                                  }
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 5
+                                  }
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_reg"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 29
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 255
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "data"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "-",
+                              "operand": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "-",
+                              "operand": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_reg"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 30
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          },
+                          "right": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": ">>=",
+                        "value": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 13
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_reg"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 12
+                          }
+                        },
+                        "operator": ">>=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_result"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_reg"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 13
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 12
+                              }
+                            },
+                            "right": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_reg"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 13
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 31
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "break"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/mathbox.cpp",
+        "line": 69,
+        "column": 1
+      }
+    },
+    {
+      "name": "status_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/mathbox.cpp",
+        "line": 292,
+        "column": 1
+      }
+    },
+    {
+      "name": "lo_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_result"
+              },
+              "right": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/mathbox.cpp",
+        "line": 297,
+        "column": 1
+      }
+    },
+    {
+      "name": "hi_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_result"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/atari/mathbox.cpp",
+        "line": 302,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 6,
+    "compiledMethods": 6,
+    "diagnostics": 0
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "game": "marble",
+  "title": "Marble Madness (set 1) (Atari Games, 1984)",
+  "fullname": "Marble Madness (set 1)",
+  "year": "1984",
+  "manufacturer": "Atari Games",
+  "family": "atarisy1",
+  "driverFile": "src/mame/atari/atarisy1.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "SynaMax",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.285",
+        "lastRelease": "0.285"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.285",
+        "lastRelease": "0.285"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.222",
+        "lastRelease": "0.248"
+      },
+      {
+        "name": "algestam",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.236",
+        "lastRelease": "0.236"
+      },
+      {
+        "name": "anonymous",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.285",
+        "lastRelease": "0.285"
+      },
+      {
+        "name": "AntoPISA",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.180",
+        "lastRelease": "0.180"
+      },
+      {
+        "name": "Dutchman2000",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.285",
+        "lastRelease": "0.285"
+      },
+      {
+        "name": "Sonikos",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.149",
+        "lastRelease": "0.149"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 233,
+    "authors": 32,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

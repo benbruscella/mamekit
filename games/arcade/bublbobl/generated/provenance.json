@@ -1,0 +1,652 @@
+{
+  "generatedFrom": "src/mame/taito/bublbobl.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 952,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 967,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 976,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 977,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 979,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 983,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 987,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 994,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1004,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 997,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/10/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 998,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/11/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 999,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/12/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1000,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/13/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1001,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/14/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1002,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 952,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 976,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 977,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 979,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 983,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 987,
+      "column": 2
+    },
+    {
+      "path": "/connections/6/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 994,
+      "column": 2
+    },
+    {
+      "path": "/connections/7/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1004,
+      "column": 2
+    },
+    {
+      "path": "/connections/8/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 997,
+      "column": 2
+    },
+    {
+      "path": "/connections/9/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 998,
+      "column": 2
+    },
+    {
+      "path": "/connections/10/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 999,
+      "column": 2
+    },
+    {
+      "path": "/connections/11/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1000,
+      "column": 2
+    },
+    {
+      "path": "/connections/12/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1001,
+      "column": 2
+    },
+    {
+      "path": "/connections/13/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1002,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 947,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 950,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 954,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 996,
+      "column": 2
+    },
+    {
+      "path": "/execution/banks/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 2105,
+      "column": 1
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1004,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 952,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1004,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/taito/bublbobl_v.cpp",
+      "line": 15,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 947,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 950,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 954,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 959,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 970,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 971,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 974,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 976,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 977,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 979,
+      "column": 2
+    },
+    {
+      "path": "/devices/11/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 980,
+      "column": 2
+    },
+    {
+      "path": "/devices/12/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 982,
+      "column": 2
+    },
+    {
+      "path": "/devices/13/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 986,
+      "column": 2
+    },
+    {
+      "path": "/devices/14/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 996,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 299,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 419,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 419,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 141,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 135,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 18,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 384,
+      "column": 2
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 116,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 43,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 423,
+      "column": 2
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 423,
+      "column": 2
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 422,
+      "column": 2
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 421,
+      "column": 2
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 820,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 1030,
+      "column": 2
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/taito/bublbobl_v.cpp",
+      "line": 15,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 987,
+      "column": 2
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 983,
+      "column": 2
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 932,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 149,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 162,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 183,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 224,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 218,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/taito/bublbobl_m.cpp",
+      "line": 230,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 294,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 295,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 296,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 297,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 298,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 299,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 292,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 305,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 306,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 307,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 308,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 309,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 310,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 311,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 302,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 316,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/ranges/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 317,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 314,
+      "column": 1
+    },
+    {
+      "path": "/maps/3/ranges/0/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 348,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/1/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 349,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/2/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 350,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/4/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 352,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/5/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 353,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/6/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 354,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/ranges/7/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 355,
+      "column": 2
+    },
+    {
+      "path": "/maps/3/source",
+      "file": "src/mame/taito/bublbobl.cpp",
+      "line": 346,
+      "column": 1
+    },
+    {
+      "path": "/video/ramPalette/source",
+      "file": "src/emu/emupal.cpp",
+      "line": 211
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/taito/bublbobl_v.cpp",
+      "line": 15,
+      "column": 1
+    }
+  ]
+}

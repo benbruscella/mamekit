@@ -1,0 +1,335 @@
+{
+  "generatedFrom": "src/mame/atari/missile.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 968,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 981,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 988,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 968,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 988,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 966,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 979,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 700,
+      "column": 1
+    },
+    {
+      "path": "/execution/paletteDevice/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 977,
+      "column": 2
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 966,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 970,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 974,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 977,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 979,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 985,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 987,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 795,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 591,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 599,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 657,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 617,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 786,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 627,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 415,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 413,
+      "column": 42
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 739,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 754,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 772,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 841,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 523,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 829,
+      "column": 2
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 829,
+      "column": 2
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 542,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 479,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 557,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 485,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 499,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 575,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 513,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 700,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 528,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 472,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 809,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 807,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 816,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 817,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 818,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 819,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 820,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 821,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 822,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/7/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 823,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 812,
+      "column": 1
+    },
+    {
+      "path": "/maps/2/ranges/0/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 829,
+      "column": 2
+    },
+    {
+      "path": "/maps/2/source",
+      "file": "src/mame/atari/missile.cpp",
+      "line": 826,
+      "column": 1
+    }
+  ]
+}

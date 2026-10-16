@@ -1,0 +1,3489 @@
+{
+  "type": "TIA",
+  "uses": [
+    {
+      "game": "a2600",
+      "tags": [
+        "tia"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TIA",
+    "className": "tia_device",
+    "shortName": "tia_sound",
+    "description": "Atari TIA (Sound)",
+    "sourceFile": "src/devices/sound/tiaintf.cpp",
+    "sourceLine": 8,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TIA, tia_device, \"tia_sound\", \"Atari TIA (Sound)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/tiasound.cpp",
+      "sourceLine": 96,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "tia_gain"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 16
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "poly_init"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "Bit4"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "poly_init"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "Bit5"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "number",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "poly_init"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "Bit9"
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "Samp_n_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "cast",
+                  "valueType": "uint16_t",
+                  "operand": {
+                    "kind": "cast",
+                    "valueType": "uint32_t",
+                    "operand": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "clock"
+                      },
+                      "args": []
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "clock"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "Samp_n_cnt"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "Samp_n_max"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "Samp_n_max"
+              },
+              "right": {
+                "kind": "number",
+                "value": 256
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "Samp_n_max"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "uint16_t",
+                      "operand": {
+                        "kind": "cast",
+                        "valueType": "uint32_t",
+                        "operand": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "Samp_n_cnt"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "Samp_n_max"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "oversampling"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tia_sound_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/sound/tiasound.cpp",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "chan",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "AUDC0"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDC"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "AUDC1"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDC"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "AUDF0"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDF"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 31
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "AUDF1"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDF"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 31
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "AUDV0"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDV"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 15
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "AUDV_SHIFT"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "AUDV1"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDV"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 15
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "AUDV_SHIFT"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "return"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "new_val",
+            "valueType": "uint16_t"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "AUDC"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "SET_TO_1"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "AUDC"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "POLY5_POLY5"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "new_val"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "Outvol"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "AUDV"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "new_val"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "AUDF"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "chan"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "AUDC"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "chan"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "DIV3_MASK"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "DIV3_MASK"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "AUDC"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "POLY5_DIV3"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "new_val"
+                    },
+                    "operator": "*=",
+                    "value": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "new_val"
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "Div_n_max"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "chan"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "Div_n_max"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "chan"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "new_val"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "Div_n_cnt"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "new_val"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "Div_n_cnt"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "chan"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "new_val"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "int samples",
+      "sourceFile": "src/devices/sound/tiasound.cpp",
+      "sourceLine": 317,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "audc0",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "audc1",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "div_n_cnt0",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "div_n_cnt1",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "p5_0",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "p5_1",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "audv0",
+            "valueType": "int16_t"
+          },
+          {
+            "op": "declare",
+            "name": "audv1",
+            "valueType": "int16_t"
+          },
+          {
+            "op": "declare",
+            "name": "outvol_0",
+            "valueType": "int16_t"
+          },
+          {
+            "op": "declare",
+            "name": "outvol_1",
+            "valueType": "int16_t"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "audc0"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "AUDC"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "audc1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "AUDC"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "audv0"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "AUDV"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "audv1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "AUDV"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "p5_0"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "P5"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "p5_1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "P5"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "outvol_0"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Outvol"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "outvol_1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Outvol"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "div_n_cnt0"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Div_n_cnt"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "div_n_cnt1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Div_n_cnt"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "samples"
+              }
+            },
+            "iterate": [],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "div_n_cnt0"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "div_n_cnt0"
+                    },
+                    "operator": "-=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "div_n_cnt0"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "prev_bit5",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "Bit5"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "p5_0"
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "div_n_cnt0"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "Div_n_max"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "p5_0"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "p5_0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "POLY5_SIZE"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "p5_0"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "||",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "||",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "||",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "audc0"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 2
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "audc0"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                  }
+                                },
+                                "right": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "Div31"
+                                  },
+                                  "index": {
+                                    "kind": "identifier",
+                                    "name": "p5_0"
+                                  }
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "audc0"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "Bit5"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "p5_0"
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "audc0"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 15
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "POLY5_DIV3"
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "Bit5"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "p5_0"
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "prev_bit5"
+                              }
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "audc0"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "audc0"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "POLY5_DIV3"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "Bit5"
+                                        },
+                                        "index": {
+                                          "kind": "identifier",
+                                          "name": "p5_0"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "prev_bit5"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "Div_3_cnt"
+                                          },
+                                          "index": {
+                                            "kind": "number",
+                                            "value": 0
+                                          }
+                                        },
+                                        "operator": "-=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "unary",
+                                          "operator": "!",
+                                          "operand": {
+                                            "kind": "index",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "Div_3_cnt"
+                                            },
+                                            "index": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "index",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "Div_3_cnt"
+                                              },
+                                              "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                              }
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "number",
+                                              "value": 3
+                                            }
+                                          },
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "identifier",
+                                              "name": "outvol_0"
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_0"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "number",
+                                                  "value": 0
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_0"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "audv0"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "identifier",
+                                      "name": "outvol_0"
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_0"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_0"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "audv0"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "audc0"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "==",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "audc0"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "POLY9"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "P9"
+                                          },
+                                          "index": {
+                                            "kind": "number",
+                                            "value": 0
+                                          }
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": "==",
+                                          "left": {
+                                            "kind": "index",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "P9"
+                                            },
+                                            "index": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "identifier",
+                                            "name": "POLY9_SIZE"
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "index",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "P9"
+                                              },
+                                              "index": {
+                                                "kind": "number",
+                                                "value": 0
+                                              }
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "Bit9"
+                                          },
+                                          "index": {
+                                            "kind": "index",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "P9"
+                                            },
+                                            "index": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "outvol_0"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "identifier",
+                                              "name": "audv0"
+                                            }
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "outvol_0"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": "&",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "audc0"
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "binary",
+                                              "operator": "||",
+                                              "left": {
+                                                "kind": "identifier",
+                                                "name": "outvol_0"
+                                              },
+                                              "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                  "kind": "identifier",
+                                                  "name": "audc0"
+                                                },
+                                                "right": {
+                                                  "kind": "number",
+                                                  "value": 1
+                                                }
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_0"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "number",
+                                                  "value": 0
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_0"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "audv0"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "index",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "Bit5"
+                                              },
+                                              "index": {
+                                                "kind": "identifier",
+                                                "name": "p5_0"
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_0"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "audv0"
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_0"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "number",
+                                                  "value": 0
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "P4"
+                                      },
+                                      "index": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    },
+                                    "operator": "+=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "==",
+                                      "left": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "P4"
+                                        },
+                                        "index": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "POLY4_SIZE"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "P4"
+                                          },
+                                          "index": {
+                                            "kind": "number",
+                                            "value": 0
+                                          }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "Bit4"
+                                      },
+                                      "index": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "P4"
+                                        },
+                                        "index": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_0"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "audv0"
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_0"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "div_n_cnt1"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "div_n_cnt1"
+                    },
+                    "operator": "-=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "div_n_cnt1"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "prev_bit5",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "Bit5"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "p5_1"
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "div_n_cnt1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "Div_n_max"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "p5_1"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "p5_1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "POLY5_SIZE"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "p5_1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "||",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "||",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "||",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "audc1"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 2
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "audc1"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                  }
+                                },
+                                "right": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "Div31"
+                                  },
+                                  "index": {
+                                    "kind": "identifier",
+                                    "name": "p5_1"
+                                  }
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "==",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "audc1"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "Bit5"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "p5_1"
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "audc1"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 15
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "POLY5_DIV3"
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "Bit5"
+                                },
+                                "index": {
+                                  "kind": "identifier",
+                                  "name": "p5_1"
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "prev_bit5"
+                              }
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "audc1"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "audc1"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "POLY5_DIV3"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "Bit5"
+                                        },
+                                        "index": {
+                                          "kind": "identifier",
+                                          "name": "p5_1"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "prev_bit5"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "Div_3_cnt"
+                                          },
+                                          "index": {
+                                            "kind": "number",
+                                            "value": 1
+                                          }
+                                        },
+                                        "operator": "-=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "unary",
+                                          "operator": "!",
+                                          "operand": {
+                                            "kind": "index",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "Div_3_cnt"
+                                            },
+                                            "index": {
+                                              "kind": "number",
+                                              "value": 1
+                                            }
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "index",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "Div_3_cnt"
+                                              },
+                                              "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                              }
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "number",
+                                              "value": 3
+                                            }
+                                          },
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "identifier",
+                                              "name": "outvol_1"
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_1"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "number",
+                                                  "value": 0
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_1"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "audv1"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "identifier",
+                                      "name": "outvol_1"
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_1"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_1"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "audv1"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "audc1"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 8
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "==",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "audc1"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "POLY9"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "P9"
+                                          },
+                                          "index": {
+                                            "kind": "number",
+                                            "value": 1
+                                          }
+                                        },
+                                        "operator": "+=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": "==",
+                                          "left": {
+                                            "kind": "index",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "P9"
+                                            },
+                                            "index": {
+                                              "kind": "number",
+                                              "value": 1
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "identifier",
+                                            "name": "POLY9_SIZE"
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "index",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "P9"
+                                              },
+                                              "index": {
+                                                "kind": "number",
+                                                "value": 1
+                                              }
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "Bit9"
+                                          },
+                                          "index": {
+                                            "kind": "index",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "P9"
+                                            },
+                                            "index": {
+                                              "kind": "number",
+                                              "value": 1
+                                            }
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "outvol_1"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "identifier",
+                                              "name": "audv1"
+                                            }
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "outvol_1"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "number",
+                                              "value": 0
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": "&",
+                                          "left": {
+                                            "kind": "identifier",
+                                            "name": "audc1"
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 2
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "binary",
+                                              "operator": "||",
+                                              "left": {
+                                                "kind": "identifier",
+                                                "name": "outvol_1"
+                                              },
+                                              "right": {
+                                                "kind": "binary",
+                                                "operator": "&",
+                                                "left": {
+                                                  "kind": "identifier",
+                                                  "name": "audc1"
+                                                },
+                                                "right": {
+                                                  "kind": "number",
+                                                  "value": 1
+                                                }
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_1"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "number",
+                                                  "value": 0
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_1"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "audv1"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        "else": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "index",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "Bit5"
+                                              },
+                                              "index": {
+                                                "kind": "identifier",
+                                                "name": "p5_1"
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_1"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "identifier",
+                                                  "name": "audv1"
+                                                }
+                                              }
+                                            ],
+                                            "else": [
+                                              {
+                                                "op": "assign",
+                                                "target": {
+                                                  "kind": "identifier",
+                                                  "name": "outvol_1"
+                                                },
+                                                "operator": "=",
+                                                "value": {
+                                                  "kind": "number",
+                                                  "value": 0
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "P4"
+                                      },
+                                      "index": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    },
+                                    "operator": "+=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "==",
+                                      "left": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "P4"
+                                        },
+                                        "index": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "POLY4_SIZE"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "index",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "P4"
+                                          },
+                                          "index": {
+                                            "kind": "number",
+                                            "value": 1
+                                          }
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "Bit4"
+                                      },
+                                      "index": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "P4"
+                                        },
+                                        "index": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_1"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "identifier",
+                                          "name": "audv1"
+                                        }
+                                      }
+                                    ],
+                                    "else": [
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "identifier",
+                                          "name": "outvol_1"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "oversampling"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "Samp_n_cnt"
+                    },
+                    "operator": "-=",
+                    "value": {
+                      "kind": "number",
+                      "value": 256
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "Samp_n_cnt"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "Samp_n_cnt"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "Samp_n_max"
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "stream_put_int"
+                          },
+                          "args": [
+                            {
+                              "kind": "assignment",
+                              "target": {
+                                "kind": "identifier",
+                                "name": "sampindex"
+                              },
+                              "operator": "+=",
+                              "value": {
+                                "kind": "number",
+                                "value": 1
+                              },
+                              "postfix": true
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "outvol_0"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "outvol_1"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "do-while",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">=",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "Samp_n_cnt"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 256
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "samples"
+                        }
+                      }
+                    },
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "Samp_n_cnt"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 256
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "stream_put_int"
+                          },
+                          "args": [
+                            {
+                              "kind": "assignment",
+                              "target": {
+                                "kind": "identifier",
+                                "name": "sampindex"
+                              },
+                              "operator": "+=",
+                              "value": {
+                                "kind": "number",
+                                "value": 1
+                              },
+                              "postfix": true
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "outvol_0"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "outvol_1"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "Samp_n_cnt"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 256
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "Samp_n_cnt"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "Samp_n_max"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "P5"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "p5_0"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "P5"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "p5_1"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Outvol"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "outvol_0"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Outvol"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "outvol_1"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Div_n_cnt"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "div_n_cnt0"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "Div_n_cnt"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "div_n_cnt1"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "poly_init",
+      "parameters": "uint8_t* poly, int size, int f0, int f1",
+      "sourceFile": "src/devices/sound/tiasound.cpp",
+      "sourceLine": 249,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "size"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "x",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "mask"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "bit0",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "size"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "f0"
+                      }
+                    },
+                    "whenTrue": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "size"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "f0"
+                        }
+                      }
+                    },
+                    "whenFalse": {
+                      "kind": "identifier",
+                      "name": "x"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "bit1",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "size"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "f1"
+                      }
+                    },
+                    "whenTrue": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "size"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "f1"
+                        }
+                      }
+                    },
+                    "whenFalse": {
+                      "kind": "identifier",
+                      "name": "x"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "poly"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "^",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "bit0"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bit1"
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "size"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/tiasound.cpp",
+    "src/devices/sound/tiaintf.cpp"
+  ]
+}

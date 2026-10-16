@@ -1,0 +1,694 @@
+{
+  "game": "sinistar",
+  "title": "Sinistar (revision 3, upright) (Williams, 1982)",
+  "family": "williams",
+  "dataPath": "games/arcade/sinistar",
+  "board": {
+    "family": "williams",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "mc6809e",
+        "clock": 1000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 49151,
+            "kind": "ram",
+            "share": "videoram"
+          },
+          {
+            "start": 0,
+            "end": 36863,
+            "kind": "nop"
+          },
+          {
+            "start": 0,
+            "end": 36863,
+            "kind": "rom",
+            "romOffset": 0,
+            "viewTag": "m_rom_view",
+            "viewEntry": 0
+          },
+          {
+            "start": 49152,
+            "end": 49167,
+            "kind": "ram",
+            "mirror": 1008,
+            "share": "paletteram",
+            "writeOnly": true
+          },
+          {
+            "start": 51204,
+            "end": 51207,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "pia_0.read",
+            "write": "pia_0.write"
+          },
+          {
+            "start": 51212,
+            "end": 51215,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "pia_1.read",
+            "write": "pia_1.write"
+          },
+          {
+            "start": 51456,
+            "end": 51711,
+            "kind": "handler",
+            "write": "williams_state.vram_select_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 51968,
+            "end": 52223,
+            "kind": "handler",
+            "read": "williams_state.video_counter_r"
+          },
+          {
+            "start": 52223,
+            "end": 52223,
+            "kind": "handler",
+            "write": "williams_state.watchdog_reset_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 52224,
+            "end": 53247,
+            "kind": "ram",
+            "share": "nvram",
+            "write": "williams_state.cmos_4bit_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 65535,
+            "kind": "rom"
+          },
+          {
+            "start": 51712,
+            "end": 51719,
+            "kind": "handler",
+            "mirror": 248,
+            "write": "blitter.register_write"
+          },
+          {
+            "start": 51456,
+            "end": 51711,
+            "kind": "handler",
+            "write": "williams_state.sinistar_vram_select_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 53248,
+            "end": 57343,
+            "kind": "ram"
+          },
+          {
+            "start": 57344,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      },
+      {
+        "tag": "soundcpu",
+        "type": "m6808",
+        "clock": 3579545,
+        "region": "soundcpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 127,
+            "kind": "ram"
+          },
+          {
+            "start": 128,
+            "end": 255,
+            "kind": "ram"
+          },
+          {
+            "start": 1024,
+            "end": 1027,
+            "kind": "handler",
+            "mirror": 32768,
+            "read": "pia_2.read",
+            "write": "pia_2.write"
+          },
+          {
+            "start": 45056,
+            "end": 65535,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 49151,
+        "kind": "ram",
+        "share": "videoram"
+      },
+      {
+        "start": 0,
+        "end": 36863,
+        "kind": "nop"
+      },
+      {
+        "start": 0,
+        "end": 36863,
+        "kind": "rom",
+        "romOffset": 0,
+        "viewTag": "m_rom_view",
+        "viewEntry": 0
+      },
+      {
+        "start": 49152,
+        "end": 49167,
+        "kind": "ram",
+        "mirror": 1008,
+        "share": "paletteram",
+        "writeOnly": true
+      },
+      {
+        "start": 51204,
+        "end": 51207,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "pia_0.read",
+        "write": "pia_0.write"
+      },
+      {
+        "start": 51212,
+        "end": 51215,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "pia_1.read",
+        "write": "pia_1.write"
+      },
+      {
+        "start": 51456,
+        "end": 51711,
+        "kind": "handler",
+        "write": "williams_state.vram_select_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 51968,
+        "end": 52223,
+        "kind": "handler",
+        "read": "williams_state.video_counter_r"
+      },
+      {
+        "start": 52223,
+        "end": 52223,
+        "kind": "handler",
+        "write": "williams_state.watchdog_reset_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 52224,
+        "end": 53247,
+        "kind": "ram",
+        "share": "nvram",
+        "write": "williams_state.cmos_4bit_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 53248,
+        "end": 65535,
+        "kind": "rom"
+      },
+      {
+        "start": 51712,
+        "end": 51719,
+        "kind": "handler",
+        "mirror": 248,
+        "write": "blitter.register_write"
+      },
+      {
+        "start": 51456,
+        "end": 51711,
+        "kind": "handler",
+        "write": "williams_state.sinistar_vram_select_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 53248,
+        "end": 57343,
+        "kind": "ram"
+      },
+      {
+        "start": 57344,
+        "end": 65535,
+        "kind": "rom"
+      }
+    ],
+    "screen": {
+      "width": 292,
+      "height": 240,
+      "xOffset": 6,
+      "yOffset": 7,
+      "refresh": 60.09615384615385,
+      "htotal": 512,
+      "vtotal": 260,
+      "vbstart": 247,
+      "vbend": 7,
+      "updateMode": "scanline",
+      "rotate": 270
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "dac",
+    "clock": 3579545,
+    "chips": 1,
+    "deviceTypes": [
+      "MC1408"
+    ],
+    "dacs": [
+      {
+        "deviceTag": "dac",
+        "bits": 8,
+        "mapper": "unsigned",
+        "gain": 1
+      }
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.25,
+        "target": "speaker"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.25,
+        "target": "speaker"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "HC55516",
+        "deviceTag": "cvsd",
+        "clock": 0,
+        "gain": 0.8,
+        "target": "speaker",
+        "writeMethods": [
+          "digit_w",
+          "clock_w"
+        ]
+      }
+    ],
+    "masterGain": 0.5,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "sinistar_rom_1-b_16-3004-53.1d",
+          "offset": 0,
+          "size": 4096,
+          "crc": "f6f3a22c",
+          "alt": [
+            {
+              "file": "sinistar_rom_1-b_16-3004-12.1d",
+              "crc": "3810d7b8"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_2-b_16-3004-54.1c",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "cab3185c"
+        },
+        {
+          "file": "sinistar_rom_3-b_16-3004-55.1a",
+          "offset": 8192,
+          "size": 4096,
+          "crc": "1ce1b3cc",
+          "alt": [
+            {
+              "file": "sinistar_rom_3-b_16-3004-14.1a",
+              "crc": "7c984ca9"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_4-b_16-3004-56.2d",
+          "offset": 12288,
+          "size": 4096,
+          "crc": "6da632ba",
+          "alt": [
+            {
+              "file": "sinistar_rom_4-b_16-3004-15.2d",
+              "crc": "cc6c4f24"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_5-b_16-3004-57.2c",
+          "offset": 16384,
+          "size": 4096,
+          "crc": "b662e8fc",
+          "alt": [
+            {
+              "file": "sinistar_rom_5-b_16-3004-16.2c",
+              "crc": "12285bfe"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_6-b_16-3004-58.2a",
+          "offset": 20480,
+          "size": 4096,
+          "crc": "2306183d",
+          "alt": [
+            {
+              "file": "sinistar_rom_6-b_16-3004-17.2a",
+              "crc": "7a675f35"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_7-b_16-3004-59.3d",
+          "offset": 24576,
+          "size": 4096,
+          "crc": "e5dd918e",
+          "alt": [
+            {
+              "file": "sinistar_rom_7-b_16-3004-18.3d",
+              "crc": "b0463243"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_8-b_16-3004-60.3c",
+          "offset": 28672,
+          "size": 4096,
+          "crc": "4785a787",
+          "alt": [
+            {
+              "file": "sinistar_rom_8-b_16-3004-45.3c",
+              "crc": "d7ecee45"
+            },
+            {
+              "file": "sinistar_rom_8-b_16-3004-19.3c",
+              "crc": "909040d4"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_9-b_16-3004-61.3a",
+          "offset": 32768,
+          "size": 4096,
+          "crc": "50cb63ad",
+          "alt": [
+            {
+              "file": "sinistar_rom_9-b_16-3004-20.3a",
+              "crc": "cc949810"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_10-b_16-3004-62.4c",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "3d670417",
+          "alt": [
+            {
+              "file": "sinistar_rom_10-b_16-3004-21.4c",
+              "crc": "ea87a53f"
+            }
+          ]
+        },
+        {
+          "file": "sinistar_rom_11-b_16-3004-63.4a",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "3162bc50",
+          "alt": [
+            {
+              "file": "sinistar_rom_11-b_16-3004-48.4a",
+              "crc": "792c8b00"
+            },
+            {
+              "file": "sinistar_rom_11-b_16-3004-22.4a",
+              "crc": "88d36e80"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "soundcpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "3004_speech_ic7_r1_16-3004-52.ic7",
+          "offset": 45056,
+          "size": 4096,
+          "crc": "e1019568"
+        },
+        {
+          "file": "3004_speech_ic5_r1_16-3004-50.ic5",
+          "offset": 49152,
+          "size": 4096,
+          "crc": "cf3b5ffd"
+        },
+        {
+          "file": "3004_speech_ic6_r1_16-3004-51.ic6",
+          "offset": 53248,
+          "size": 4096,
+          "crc": "ff8d2645"
+        },
+        {
+          "file": "3004_speech_ic4_r1_16-3004-49.ic4",
+          "offset": 57344,
+          "size": 4096,
+          "crc": "4b56a626"
+        },
+        {
+          "file": "video_sound_rom_9_std.808.ic12",
+          "offset": 61440,
+          "size": 4096,
+          "crc": "b82f4ddb"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 1024,
+      "loads": [
+        {
+          "file": "decoder_rom_4.3g",
+          "offset": 0,
+          "size": 512,
+          "crc": "e6631c23"
+        },
+        {
+          "file": "decoder_rom_6.3c",
+          "offset": 512,
+          "size": 512,
+          "crc": "83faf25e"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": false
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 1,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "Auto Up / Manual Down",
+      "type": "IPT_SERVICE1",
+      "activeLow": false,
+      "toggle": true
+    },
+    {
+      "port": "IN2",
+      "mask": 2,
+      "keys": [
+        "F2"
+      ],
+      "label": "Advance",
+      "type": "IPT_SERVICE",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 8,
+      "keys": [
+        "F3"
+      ],
+      "label": "High Score Reset",
+      "type": "IPT_MEMORY_RESET",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": false
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": false
+    },
+    {
+      "port": "49WAYX",
+      "mask": 255,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_AD_STICK_X_LEFT",
+      "type": "IPT_AD_STICK_X_LEFT",
+      "activeLow": false,
+      "activeValue": 0,
+      "keyDelta": 10
+    },
+    {
+      "port": "49WAYX",
+      "mask": 255,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_AD_STICK_X_RIGHT",
+      "type": "IPT_AD_STICK_X_RIGHT",
+      "activeLow": false,
+      "activeValue": 111,
+      "keyDelta": 10
+    },
+    {
+      "port": "49WAYY",
+      "mask": 255,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_AD_STICK_Y_UP",
+      "type": "IPT_AD_STICK_Y_UP",
+      "activeLow": false,
+      "activeValue": 111,
+      "keyDelta": 10
+    },
+    {
+      "port": "49WAYY",
+      "mask": 255,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_AD_STICK_Y_DOWN",
+      "type": "IPT_AD_STICK_Y_DOWN",
+      "activeLow": false,
+      "activeValue": 0,
+      "keyDelta": 10
+    }
+  ],
+  "dipDefaults": [],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 0
+    },
+    {
+      "tag": "IN1",
+      "init": 0
+    },
+    {
+      "tag": "IN2",
+      "init": 0
+    },
+    {
+      "tag": "49WAYX",
+      "init": 56
+    },
+    {
+      "tag": "49WAYY",
+      "init": 56
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

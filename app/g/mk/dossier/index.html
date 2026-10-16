@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mortal Kombat (rev 5.0 T-Unit 03/19/93) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Mortal Kombat (rev 5.0 T-Unit 03/19/93)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/mk/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/mk/mk-dossier.md" download="mk-dossier.md">Download mk-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Midway · 1992</div>
+    <h1>Mortal Kombat (rev 5.0 T-Unit 03/19/93)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/mk.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>mk</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/williams/midtunit.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>midtunit</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ym2151</strong></div>
+      <div class="fact"><span>Screen</span><strong>400×254 @ 54.71 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>TMS34010</td><td>50.000 MHz</td><td>21</td></tr><tr><td>adpcm:cpu</td><td>MC6809E</td><td>2.000 MHz</td><td>11</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>adpcm:cpu</td><td>sl1_mortal_kombat_u3_sound_rom.u3</td><td>0x10000</td><td>0x40000</td><td>c615844c</td></tr><tr><td>adpcm:oki</td><td>sl1_mortal_kombat_u12_sound_rom.u12</td><td>0x0</td><td>0x40000</td><td>258bd7f9</td></tr><tr><td>adpcm:oki</td><td>sl1_mortal_kombat_u13_sound_rom.u13</td><td>0x80000</td><td>0x40000</td><td>7b7ec3b6</td></tr><tr><td>maincpu</td><td>l5_mortal_kombat_t-unit_uj12_game_rom.uj12</td><td>0x0</td><td>0x80000</td><td>f4990bf2</td></tr><tr><td>maincpu</td><td>l5_mortal_kombat_t-unit_ug12_game_rom.ug12</td><td>0x1</td><td>0x80000</td><td>b06aeac1</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_ug14_game_rom.ug14</td><td>0x0</td><td>0x80000</td><td>9e00834e</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_uj14_game_rom.uj14</td><td>0x1</td><td>0x80000</td><td>f4b0aaa7</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_ug19_game_rom.ug19</td><td>0x2</td><td>0x80000</td><td>2d8c7ba1</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_uj19_game_rom.uj19</td><td>0x3</td><td>0x80000</td><td>33b9b7a4</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_ug16_game_rom.ug16</td><td>0x200000</td><td>0x80000</td><td>52c9d1e5</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_uj16_game_rom.uj16</td><td>0x200001</td><td>0x80000</td><td>c94c58cf</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_ug20_game_rom.ug20</td><td>0x200002</td><td>0x80000</td><td>2f7e55d3</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_uj20_game_rom.uj20</td><td>0x200003</td><td>0x80000</td><td>eae96df0</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_ug17_game_rom.ug17</td><td>0x400000</td><td>0x80000</td><td>e34fe253</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_uj17_game_rom.uj17</td><td>0x400001</td><td>0x80000</td><td>a56e12f5</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_ug22_game_rom.ug22</td><td>0x400002</td><td>0x80000</td><td>b537bb4e</td></tr><tr><td>video</td><td>l1_mortal_kombat_t-unit_uj22_game_rom.uj22</td><td>0x400003</td><td>0x80000</td><td>5e12523b</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Up</td><td>joystick up</td><td>IN0</td><td>0x1</td></tr><tr><td>Down</td><td>joystick down</td><td>IN0</td><td>0x2</td></tr><tr><td>Left</td><td>joystick left</td><td>IN0</td><td>0x4</td></tr><tr><td>Right</td><td>joystick right</td><td>IN0</td><td>0x8</td></tr><tr><td>Space / X</td><td>p1 high punch</td><td>IN0</td><td>0x10</td></tr><tr><td>Z</td><td>p1 block</td><td>IN0</td><td>0x20</td></tr><tr><td>C</td><td>p1 high kick</td><td>IN0</td><td>0x40</td></tr><tr><td>5</td><td>coin1</td><td>IN1</td><td>0x1</td></tr><tr><td>6</td><td>coin2</td><td>IN1</td><td>0x2</td></tr><tr><td>1</td><td>start1</td><td>IN1</td><td>0x4</td></tr><tr><td>2</td><td>start2</td><td>IN1</td><td>0x20</td></tr><tr><td>9</td><td>service1</td><td>IN1</td><td>0x40</td></tr><tr><td>A</td><td>p1 low punch</td><td>IN1</td><td>0x1000</td></tr><tr><td>S</td><td>p1 low kick</td><td>IN1</td><td>0x2000</td></tr><tr><td>D</td><td>p1 block 2</td><td>IN1</td><td>0x8000</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/williams/midtunit.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Alex Pasadyn, Zsolt Vasvari, Ernesto Corvi, Aaron Giles</strong></div>
+    <div class="fact"><span>Credited by MAMEDEV</span><strong>Aaron Giles (driver header); Alex Pasadyn (driver header); Ernesto Corvi (driver header); Zsolt Vasvari (driver header); hap (3 release notes); cuavas (2 release notes); cam900 (1 release note); Phil Bennett (1 release note)</strong></div>
+    <div class="fact"><span>Credit source</span><strong>MAME driver header (copyright-holders) and MAMEDEV release notes</strong></div>
+    <div class="fact"><span>Commit activity</span><strong>131 commits by 30 commit authors, 2007–2026 (git log --follow over the driver file at MAME f34f02505e32; not a statement of authorship)</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 34 years ago:
+
+Mortal Kombat (c) 1992 Midway.
+
+Mortal Kombat, first in the Mortal Kombat series, is a 1-on-1 fighting game featuring a cast of seven different characters. Mortal Kombat took ideas from Capcom's seminal Street Fighter II, such as the game's special moves and projectiles. It also introduced a cast of photo-realistic digitized fighters for players to fight either as or against. 
+
+Mortal Kombat characters list:
+JOHNNY CAGE
+KANO
+RAIDEN
+LIU KANG
+SCORPION
+SUB-ZERO
+SONYA BLADE
+
+Battles are fought over the best of three rounds. At the end of a battle, a voice instructs the winner to 'Finish Him/Her!' and players have only a couple of seconds to try and execute their character's 'fatality', which sees the winner killing the loser in a spectacular and grisly fashion.</p><details><summary>TECHNICAL</summary><p class="story">Mortal Kombat arcade runs on the Midway Y Unit hardware.
+
+Main CPU: TMS34010
+Sound CPU: Motorola M6809
+Sound Chips: Yamaha YM2151, DAC, OKI6295
+
+Players: 2
+Control: 8-way joystick
+Buttons: 5
+=&gt; [1] High Punch, [2] Block, [3] High Kick
+=&gt; [4] Low Punch, [5] Low Kick</p></details><details><summary>TRIVIA</summary><p class="story">Mortal Kombat was released on October 8th, 1992 in the USA. It was renowned as the first fighting game to use digitized characters and blood (as opposed to the hand-animated, more cartoon-like graphics of competing games). Mortal Kombat was developed as a reaction to the popular Capcom game &quot;Street Fighter II - The World Warrior&quot;, with simpler controls and digitized graphics. Some say the game's graphic violence was gratuitous, and was only included in order to generate a public outcry and controversy that would increase publicity for the game. 
+
+Although highly controversial, the mix of realism and violence propelled Mortal Kombat to the height of popularity. An example of the game's innovations was the Fatality, a special finishing move executed against a dying opponent to create an even more gruesome death. For example, one character would grasp a defeated, wobbling opponent by the head, then rip the head and spine out of the opponent's body, which then crumpled to the ground in a pool of blood. Another aspect of gameplay that became a recurring element in games that followed was the so-called 'juggle', where a series of moves could be executed against an opponent who was kept in mid-air by the force of the attacks, and who hence had no defense against further attacks as long as the 'juggle' could be maintained. 
+
+The original concept of Mortal Kombat was modeled after the Jean-Claude Van Damme movie 'Bloodsport', which is a cult classic martial arts film. The character of Johnny Cage is directly modeled after Frank Dux, Van Damme's character in the movie. Johnny Cage's film-star motif is an obvious link to this. Cage also wears the same costume (plus shoes) that Van Damme's character wore in the final battle of the movie. Cage's splits punch was originally seen in Bloodsport during the fight against the Sumo wrestler. Since Midway was unable to get Van Damme for this game, they kept the same kumite/martial arts movie concept and added the Kombat story. 
+
+Mortal Kombat arcade was the first video game to have an official release date countdown in U.S./U.K. and Australia. This momentous day was known as 'Mortal Monday'. 
+
+The code for this game includes the ASCII string 'NOOBSAIBOT' (originally in &quot;Mortal Kombat II&quot; rev. 3.1), suggesting that the character may have made his first appearance here, instead of Reptile (which took up less memory). 
+
+The heads used in the background of the Courtyard and Pit stages are actually those of the programmers themselves! The statue of Buddha in the background of the Courtyard stage was actually a lawn ornament from a neighbor's yard. 
+
+While fighting on the Pit stage, if you look closely at the glowing moon in the background, you will sometimes see a silhouette fly past it. These shadows will either be Peter Pan and the Darling children, a witch on a broomstick, a kite, a blimp, a rocket, a flying saucer, or Santa Claus in his reindeer-pulled sleigh. The shadows appear about every 6 games. 
+
+Liu Kang is Midway's homage to Bruce Lee. 
+
+Raiden really is the Japanese God of Thunder. His appearance in myth is quite different though : he has red skin and a demonic face, his feet have two claws on them, and he carries either a wheel or drums on his back. He also is thought to eat human navels so people are advised to lie on their stomachs during storms. 
+
+Kano make an appearance on the 2012 animation movie 'Wreck-It Ralph' from Walt Disney Animation Studios.
+
+In the Palace Gates stage, above the red door on the right side, you can see Pac-Man, a ghost and a power pellet carved on the stone. 
+
+A hacked version also exists - every stage had a black/night sky and every time you got frozen by Sub-Zero, your fighter would rise up and stay there 'till you either got hit or the freezing effect went away. The same thing would happen if you were using Sub-Zero and froze your opponent. The machine would boot up just like a regular MK machine boots up, except another black screen with red letters and asterisks labeling it as &quot;Mortal Kombat Black Ninja Edition&quot; was displayed before the title screen. 
+
+A Mortal Kombat unit appears in the 1995 movie 'The Doom Generation'. 
+
+Midway released a limited-edition soundtrack album for this game (Mortal Kombat II: Music from the Arcade Game Soundtrack - 123770-C1) on December 1, 1993. 
+
+Michael Jackson used to own this game. It was sold at the official Michael Jackson Auction on April 24, 2009.
+
+The Premium Pack and Kollector's editions of &quot;Mortal Kombat - Deception&quot; for the Sony PlayStation 2 and Microsoft XBOX, respectively, both released on October 4, 2004 in North America, contain a bonus disc containing an arcade-perfect version of the original game.</p></details><details><summary>UPDATES</summary><p class="story">PROTO 4.0 (July 14, 1992): 
+* Prototype version.
+* You cannot play as the same character.
+* Menu won't allow cursors to pass each other in 2-player selection.
+* Sub-Zero has new corner infinite (ex. uppercut, freeze and repeat)
+* Sub-Zero has faster recovery after slide and can go straight into sweep for most instances
+* Sub-Zero can freeze opponent in air for 'Finish Him/Her' as he's falling from uppercut, and do fatality in air and body will fall to ground frozen
+* Liu Kang can do Flying Kick when you do a HK first in air than F, F HK
+* Raiden can now do Torpedo after doing a jumping kick for more combo possibilities 
+
+PROTO 8.0 (July 21, 1992): 
+* Prototype version.
+
+PROTO 9.0 (July 28, 1992): 
+* Prototype version.
+
+REV. 1.0 (August 9, 1992): 
+* First official release of Mortal Kombat.
+* In a 2-player game, both players could not choose the same character.
+* Liu Kang had Uppercut - Flying Kick Combo.
+
+REV. 2.0 (August 9, 1992): 
+* Both players could choose the same character.
+* New Shang Tsung death animation added.
+* Merchandise promo added.
+* More blood added.
+
+REV. 3.0 (August 31, 1992): 
+* Computer intelligence increased.
+* Reptile added.
+* Comic book offer is a switch setting.
+
+REV. 4.0 (September 28, 1992): 
+* Reptile clues added (shadows on moon, see Tips and Tricks section).
+* Sonya and Kano could fight Reptile.
+* Block allowed during fatality.
+* Goro's theme played during all Endurance rounds.
+
+REV. 4.0 [T-Unit] (February 11, 1993): 
+* Runs on the newer Midway T Unit hardware, the same hardware as Mortal Kombat II
+
+REV. 5.0 [T-Unit] (March 19, 1993): 
+* Bug fix release.</p></details><details><summary>SCORING</summary><p class="story">* Basic Move
+High Punch: 500 points 
+Low Punch: 500 points 
+High Kick: 2,000 points 
+Low Kick: 2,000 points 
+Backhand: 2,000 points 
+Throw: 5,000 points 
+Knee: 5,000 points 
+Jump Punch: 1,000 points 
+Jump Kick: 2,000 points 
+Uppercut: 2,000 points 
+Crouch Kick: 500 points 
+Sweep: 1,000 points 
+Roundhouse: 2,000 points 
+
+* Special Moves:
+JOHNNY CAGE:
+Green Ball: 2,000 points 
+Shadow Kick: 5,000 points 
+Split Punch: 5,000 points 
+
+KANO
+Headbutt: 2,000 points 
+Knife Throw: 2,000 points 
+Kano Ball: 5,000 points 
+
+RAIDEN
+Lightening: 2,000 points 
+Teleport: 0 points 
+Torpedo: 5,000 points 
+
+LIU KANG
+Fireball: 2,000 points 
+Flying Kick: 2,000 points 
+
+SCORPION
+Spear: 2,000 points 
+Teleport Punch: 2,000 points 
+
+SUB-ZERO
+Freeze: 0 points 
+Slide: 1,000 points 
+
+SONYA BLADE
+Sonic Ring: 2,000 points 
+Teleport Punch: 2,000 points 
+Leg Scissors: 2,000 points 
+
+* Bonus Points
+Breaking Wood: 100,000 points 
+Breaking Stone: 200,000 points 
+Breaking Steel: 500,000 points 
+Breaking Ruby: 1,000,000 points 
+Breaking Diamond: 2,000,000 points 
+Time: Time left multiplied by 1,000 
+Fatality: 100,000 points 
+Flawless Victory: 200,000 points 
+Double Flawless: 500,000 points 
+Defeat Reptile: 10,000,000 points</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* Secret EJB MENU:
+Press P1_BLOCK (5 times), P2_BLOCK (10 times), P1_BLOCK (2 times), P2_BLOCK (1 times), P1_BLOCK (2 times), P2_BLOCK (3 times), then P1_BLOCK (4 times).
+
+* Basic Move (% of damage):
+High Punch (5.5%) : Basic HP
+Low Punch (5.5%) : Basic LP
+High Kick (14.8%) : Basic HK
+Low Kick (14.8%) : Basic LK
+Backhand (11.7%) : HP when close
+Throw (24.2%) : LP when close
+Knee (14.8%) : HK or LK when close
+Jump Punch (11.7%) : HP or LP while in air
+Jump Kick (14.8%) : HK or LK while in air
+Uppercut (24.2%) : Hold down HP or LP
+Crouch Kick (11.7%) : Hold down HK or LK
+Sweep (11.7%) : Hold back LK
+Roundhouse (19.5%) : Hold back HK
+
+* Special Moves (% of damage):
+JOHNNY CAGE :
+Green Ball (14.8%) : B, F, LP
+Shadow Kick (18%) : B, F, LK
+Split Punch (21.1%) : BLK+LP
+
+KANO :
+Headbutt (11.7%) : HP when close
+Knife Throw (14.8%) : Hold BLK (B, F) or B, F+BLK
+Kano Ball (18%) : F-D-B-U (Full circle away from opponent starting forward)
+
+RAIDEN :
+Lightning (14.8%) : D, F, LP
+Teleport (0%) : D, U
+Torpedo (18%) : B, B, F
+
+LIU KANG :
+Fireball (14.8%) : F, F, HP
+Flying Kick (18%) : F, F, HK
+
+SCORPION :
+Spear (4.6%) : B, B, LP
+Teleport Punch (18%) : D, B, HP
+
+SUB-ZERO :
+Freeze (0%) : D, F, LP
+Slide (7%) : LP+BLK+LK
+
+SONYA BLADE :
+Sonic Ring (14.8%) : B, B, LP
+Teleport Punch (16.4%) : F, B, HP
+Leg Scissors (24.2%) : LP+BLK+LK
+
+* Mortal Kombat Fatalities:
+To perform a Fatality, you must win the match, then do the proper joystick/button sequence when 'Finish Him!' appears...
+JOHNNY CAGE Fatality: (close) Forward(x3), HP - Cage decapitates his opponent with an uppercut.
+KANO Fatality: (close) Back, Down, Forward, LP - Kano rips out his opponent's heart.
+SUB-ZERO Fatality: (close) Forward, Down, Forward, HP - Sub-Zero grabs his opponent by the neck and pulls their head off, taking their spine along with the head.
+SONYA BLADE Fatality: (anywhere) Forward(x2), Back(x2), Block - Sonya blows an energy ball in the air. The ball hits her opponent and engulfs them in flames, turning the opponent into a skeleton.
+RAIDEN Fatality: (close) Forward, Back(x3), HP - Raiden shoots lightning into his opponent's head, causing it to explode.
+LIU KANG Fatality: (close) hold Block, 270 degrees (Forward, Down, Back, Up) - Liu Kang does a spinning kick and an uppercut.
+SCORPION Fatality: (jump distance) hold Block, Up(x2), release Block - Scorpion removes his mask to reveal a skull. He then breathes fire on his opponent, turning him into a skeleton.
+
+* Bonus Points:
+Test your might appears after every 3rd win in a 1P game. In a 2P game, it appears after every 5th Battle.
+Breaking Wood: Break the WOOD tapping the punch and kick buttons till the meter fills up then block.
+Breaking Stone: Break the STONE after breakin the WOOD.
+Breaking Steel: Break the STEEL after breakin the STONE.
+Breaking Ruby: Break the RUBY after breakin the STEEL.
+Breaking Diamond: Break the DIAMOND after breakin the RUBY.
+Fatality: Perform the characters finishing move.
+Flawless Victory: Beat your opponent without getting hit.
+Double Flawless: Beat your opponent without getting hit 2 rounds in a row.
+
+* Defeat Reptile (Rev 3.0+ only): The shadows indicate that Reptile is available as an opponent. To fight him, win with a double flawless and fatality, without using block in the entire match.</p></details><details><summary>STAFF</summary><p class="story">Design and software: Ed Boon
+Design and graphics: John Tobias
+Music and sounds: Dan Forden
+Background graphics: John Vogel
+Executive producers: Neil Nicastro, Ken Fedesna
+Senior hardware technician: Sheridan Oursler
+Cabinet designer: Ray Czajka
+
+* CAST:
+Johnny Cage, Scorpion, Sub-Zero and Reptile: Daniel Pesina
+Kano: Richard Divizio
+Raiden: Carlos Pesina
+Liu Kang and Shang Tsung: Ho Sung Pak
+Sonya: Elizabeth Malecki
+Goro character design by: John Tobias
+Stop Motion Miniature by: Curt Chiarelli</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES:
+Sega Master System
+[EU] (1993) &quot;Mortal Kombat [Model MK-29021-50]&quot;
+[BR] (1993) &quot;Mortal Kombat [Model 028240]&quot;
+
+Sega Mega Drive / Genesis
+[EU] (1993) &quot;Mortal Kombat [Model T-81186-50]&quot;
+[US] (sept.13, 1993) &quot;Mortal Kombat [Model T-81186]&quot;
+[BR] (1994) &quot;Mortal Kombat [Model 047030]&quot;
+[JP] (may.27, 1994) &quot;Mortal Kombat - Shinken Kourin Densetsu [Model T-81014]&quot;
+
+Nintendo SFC / SNES
+[US] (sept.13, 1993) &quot;Mortal Kombat [Model SNS-KX-USA]&quot;
+[EU] (oct.28, 1993) &quot;Mortal Kombat [Model SNSP-KX-NOE]&quot;
+[JP] (dec.24, 1993) &quot;Mortal Kombat - Shinken Kourin Densetsu [Model SHVC-KX]&quot;
+
+Sega Mega-CD
+[EU] (1994) &quot;Mortal Kombat [Model T-81025-50]&quot;
+[US] (may.26, 1994) &quot;Mortal Kombat [Model T-81025]&quot;
+[JP] (june.3, 1994) &quot;Mortal Kombat Kanzen-han [Model T-81014]&quot;
+
+Sony PS3 [PSN]
+[US] (aug.31, 2011) &quot;Mortal Kombat Arcade Kollection&quot;
+[AU] (aug.31, 2011) &quot;Mortal Kombat Arcade Kollection&quot;
+[EU] (aug.31, 2011) &quot;Mortal Kombat Arcade Kollection&quot;
+
+* HANDHELDS: 
+Sega Game Gear
+[EU] (1993) &quot;Mortal Kombat [Model T-81198-50]&quot;
+[US] (sept.13, 1993) &quot;Mortal Kombat [Model T-81198]&quot;
+[JP] (dec.17, 1993) &quot;Mortal Kombat - Shinken Kourin Densetsu [Model T-81017]&quot;
+
+Nintendo Game Boy
+[US] (sept.13, 1993) &quot;Mortal Kombat [Model DMG-C9-USA]&quot; 
+[JP] (dec.24, 1993) &quot;Mortal Kombat - Shinken Kourin Densetsu [Model DMG-C9A]&quot;
+[EU] (1994) &quot;Mortal Kombat [Model DMG-C9-NOE-1]&quot;
+[EU] (1997) &quot;Mortal Kombat &amp; Mortal Kombat II [Model DMG-AK2P-EUR]&quot;
+[US] (nov.1997) &quot;Mortal Kombat &amp; Mortal Kombat II [Model DMG-AK2E-USA]&quot;
+[JP] (sept.10, 1998) &quot;Mortal Kombat I &amp; II [Model DMG-AK2J-JPN]&quot;
+
+Sony PSP
+[US] (dec.13, 2005) &quot;Midway Arcade Treasures Extended Play [Model ULUS-10059]&quot;
+[EU] (feb.24, 2006) &quot;Midway Arcade Treasures Extended Play [Model ULES-00180]&quot;
+
+* COMPUTERS: 
+[EU] Commodore Amiga (1994)
+
+PC
+[US] [MS-DOS, 3.5&quot;] (may.25, 1994) 
+[US] [MS-DOS, CD-ROM] (sept.10, 1998) &quot;Mortal Kombat I &amp; Mortal Kombat II&quot;
+[US] [MS Windows, CD-ROM] (feb.17, 2006) &quot;Midway Arcade Treasures Deluxe Edition&quot;
+[EU] [MS Windows, CD-ROM] (mar.17, 2006) &quot;Midway Arcade Treasures Deluxe Edition&quot;
+[US] [MS Windows, Steam] (feb.2, 2012) &quot;Mortal Kombat Arcade Kollection&quot;
+
+* OTHERS: 
+[US] Mortal Kombat TV Game (2004) by Jakk's Pacific 
+[US] Mobile Phones (sept.2004)</p></details><details><summary>SERIES</summary><p class="story">1. Mortal Kombat (1992, Arcade) 
+2. Mortal Kombat II (1993, Arcade) 
+3. Mortal Kombat 3 (1995, Arcade) 
+4. Ultimate Mortal Kombat 3 (1995, Arcade) 
+5. Ultimate Mortal Kombat 3 [WaveNet Edition] (1995, Arcade) 
+6. Mortal Kombat Trilogy [Model SLUS-00330] (1996, PS) 
+7. SUB-ZERO - Mortal Kombat Mythologies [Model SLUS-00476] (1997, PS) 
+8. Mortal Kombat 4 (1997, Arcade) 
+9. Mortal Kombat - Special Forces [Model SLUS-00824] (2000, PS) 
+10. Mortal Kombat Advance [Model AGB-AM5E-USA] (2001, GBA) 
+11. Mortal Kombat - Deadly Alliance [Model SLUS-20423] (2002, PS2) 
+12. Mortal Kombat - Tournament Edition [Model AGB-AW4E-USA] (2003, GBA) 
+13. Mortal Kombat - Deception / Mystification (2004, PS2) 
+14. Mortal Kombat - Shaolin Monks (2005, XBOX, PS2) 
+15. Mortal Kombat - Armageddon (2006, XBOX, PS2) 
+16. Mortal Kombat vs. DC Universe (2008, PS3, 360) 
+17. Mortal Kombat (2011, PS3, 360)
+18. Mortal Kombat X (2015, PS4, One)
+19. Mortal Kombat 11 (2019, PS4, One, Switch)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/1674/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

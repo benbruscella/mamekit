@@ -1,0 +1,125 @@
+{
+  "game": "dkong",
+  "title": "Donkey Kong (US set 1) (Nintendo of America, 1981)",
+  "fullname": "Donkey Kong (US set 1)",
+  "year": "1981",
+  "manufacturer": "Nintendo of America",
+  "family": "dkong",
+  "driverFile": "src/mame/nintendo/dkong.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Couriersud",
+  "credits": {
+    "people": [
+      {
+        "name": "Couriersud",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 2,
+        "firstRelease": "0.251",
+        "lastRelease": "0.280"
+      },
+      {
+        "name": "kmg",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.240",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "Aaron Giles",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.128",
+        "lastRelease": "0.128"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.229",
+        "lastRelease": "0.284"
+      },
+      {
+        "name": "aequites7",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.237",
+        "lastRelease": "0.237"
+      },
+      {
+        "name": "anonymous",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.229",
+        "lastRelease": "0.229"
+      },
+      {
+        "name": "Dutchman2000",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.284",
+        "lastRelease": "0.284"
+      },
+      {
+        "name": "Gaming Alexandria",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.229",
+        "lastRelease": "0.229"
+      },
+      {
+        "name": "SynaMax",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.284",
+        "lastRelease": "0.284"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.161",
+        "lastRelease": "0.161"
+      },
+      {
+        "name": "xelnia",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-27",
+    "commits": 311,
+    "authors": 42,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

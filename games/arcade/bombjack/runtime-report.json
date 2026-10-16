@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "bombjack",
+  "family": "bombjack",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 73,
+    "total": 142,
+    "percent": 51.4
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "psg1:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg2:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg3:AY8910",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "bombjack_state.background_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:260"
+      },
+      {
+        "name": "bombjack_state.colorram_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:245"
+      },
+      {
+        "name": "bombjack_state.flip_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:270"
+      },
+      {
+        "name": "bombjack_state.nmi_on_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:278"
+      },
+      {
+        "name": "bombjack_state.soundlatch_r",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:206"
+      },
+      {
+        "name": "bombjack_state.spritectrl_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:254"
+      },
+      {
+        "name": "bombjack_state.videoram_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:236"
+      },
+      {
+        "name": "bombjack_state.watchdog_w",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:292"
+      },
+      {
+        "name": "palette.write8",
+        "status": "declarative-host"
+      },
+      {
+        "name": "port.P1",
+        "status": "generated"
+      },
+      {
+        "name": "port.P2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SW1",
+        "status": "generated"
+      },
+      {
+        "name": "port.SW2",
+        "status": "generated"
+      },
+      {
+        "name": "port.SYSTEM",
+        "status": "generated"
+      },
+      {
+        "name": "psg1.address_data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg1.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg2.address_data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg2.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg3.address_data_w",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "psg3.data_r",
+        "status": "executable",
+        "source": "src/devices/sound/ay8910.cpp:1551"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "watchdog.reset_r",
+        "status": "generated"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "screen.set_screen_update -> bombjack_state.screen_update",
+        "status": "generated"
+      },
+      {
+        "name": "screen.screen_vblank -> bombjack_state.vblank_nmi",
+        "status": "generated"
+      },
+      {
+        "name": "screen.screen_vblank -> audiocpu",
+        "status": "generated"
+      },
+      {
+        "name": "psg1.port_a_write_callback -> set_nop",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:765"
+      },
+      {
+        "name": "psg1.port_b_write_callback -> set_nop",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:766"
+      },
+      {
+        "name": "psg2.port_a_write_callback -> set_nop",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:767"
+      },
+      {
+        "name": "psg2.port_b_write_callback -> set_nop",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:768"
+      },
+      {
+        "name": "psg3.port_a_write_callback -> set_nop",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:769"
+      },
+      {
+        "name": "psg3.port_b_write_callback -> set_nop",
+        "status": "generated",
+        "source": "src/mame/tecmo/bombjack.cpp:770"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/bombjack/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 18,
+    "compiledMethods": 18,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 8,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 2,
+    "screenUpdate": "bombjack_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 13,
+    "generated": 24,
+    "declarative-host": 6,
+    "blocked": 0,
+    "missing": 0
+  }
+}

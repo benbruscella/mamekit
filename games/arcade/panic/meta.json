@@ -1,0 +1,99 @@
+{
+  "game": "panic",
+  "title": "Space Panic (version E) (Universal, 1980)",
+  "fullname": "Space Panic (version E)",
+  "year": "1980",
+  "manufacturer": "Universal",
+  "family": "cosmic",
+  "driverFile": "src/mame/universal/cosmic.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Lee Taylor",
+  "credits": {
+    "people": [
+      {
+        "name": "Lee Taylor",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.237",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "David Bosque",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.261",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "Gerg Kennedy",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "jkburks",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.234",
+        "lastRelease": "0.234"
+      },
+      {
+        "name": "Peter Ferrie",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.240",
+        "lastRelease": "0.240"
+      },
+      {
+        "name": "Retromaniacs",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.237",
+        "lastRelease": "0.237"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-04",
+    "commits": 196,
+    "authors": 33,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

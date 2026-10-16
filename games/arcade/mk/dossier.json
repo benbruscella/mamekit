@@ -1,0 +1,921 @@
+{
+  "game": "mk",
+  "title": "Mortal Kombat (rev 5.0 T-Unit 03/19/93) (Midway, 1992)",
+  "fullname": "Mortal Kombat (rev 5.0 T-Unit 03/19/93)",
+  "year": "1992",
+  "company": "Midway",
+  "family": "midtunit",
+  "driverFile": "src/mame/williams/midtunit.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Alex Pasadyn, Zsolt Vasvari, Ernesto Corvi, Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "tms34010",
+      "clock": 50000000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 524287,
+          "kind": "handler",
+          "read": "video.midtunit_vram_r",
+          "write": "video.midtunit_vram_w"
+        },
+        {
+          "start": 2097152,
+          "end": 2621439,
+          "kind": "ram"
+        },
+        {
+          "start": 2621440,
+          "end": 2637823,
+          "kind": "handler",
+          "share": "nvram",
+          "read": "midtunit_base_state.cmos_r",
+          "write": "midtunit_base_state.cmos_w"
+        },
+        {
+          "start": 2686976,
+          "end": 2752511,
+          "kind": "handler",
+          "write": "midtunit_base_state.cmos_enable_w"
+        },
+        {
+          "start": 2883584,
+          "end": 2883585,
+          "kind": "handler",
+          "read": "port.IN0"
+        },
+        {
+          "start": 2883586,
+          "end": 2883587,
+          "kind": "handler",
+          "read": "port.IN1"
+        },
+        {
+          "start": 2883588,
+          "end": 2883589,
+          "kind": "handler",
+          "read": "port.IN2"
+        },
+        {
+          "start": 2883590,
+          "end": 2883591,
+          "kind": "handler",
+          "read": "port.DSW"
+        },
+        {
+          "start": 3145728,
+          "end": 3211263,
+          "kind": "ram",
+          "share": "palette",
+          "write": "palette.write16"
+        },
+        {
+          "start": 3473408,
+          "end": 3473439,
+          "kind": "handler",
+          "read": "video.dma_r",
+          "write": "video.dma_w"
+        },
+        {
+          "start": 3538944,
+          "end": 3538947,
+          "kind": "handler",
+          "write": "video.midtunit_control_w"
+        },
+        {
+          "start": 3867148,
+          "end": 3867151,
+          "kind": "handler",
+          "write": "watchdog.reset16_w"
+        },
+        {
+          "start": 4063232,
+          "end": 4063235,
+          "kind": "handler",
+          "write": "video.midtunit_control_w"
+        },
+        {
+          "start": 4194304,
+          "end": 16777215,
+          "kind": "handler",
+          "share": "video",
+          "read": "video.midtunit_gfxrom_r"
+        },
+        {
+          "start": 66060288,
+          "end": 67108863,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 535822336,
+          "end": 536870911,
+          "kind": "rom",
+          "romOffset": 0
+        },
+        {
+          "start": 3801088,
+          "end": 3801091,
+          "kind": "handler",
+          "read": "midtunit_adpcm_state.sound_state_r"
+        },
+        {
+          "start": 3801604,
+          "end": 3801607,
+          "kind": "handler",
+          "read": "midtunit_adpcm_state.sound_r",
+          "write": "midtunit_adpcm_state.sound_w"
+        },
+        {
+          "start": 402653184,
+          "end": 402653247,
+          "kind": "handler",
+          "read": "maincpu.io_register_r",
+          "write": "maincpu.io_register_w"
+        },
+        {
+          "start": 3538944,
+          "end": 3596287,
+          "kind": "handler",
+          "read": "midtunit_adpcm_state.mk_prot_r"
+        },
+        {
+          "start": 3538944,
+          "end": 3596287,
+          "kind": "handler",
+          "write": "midtunit_adpcm_state.mk_prot_w"
+        }
+      ],
+      "unmapHigh": true
+    },
+    {
+      "tag": "adpcm:cpu",
+      "type": "mc6809e",
+      "clock": 2000000,
+      "region": "adpcm:cpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 8191,
+          "kind": "ram"
+        },
+        {
+          "start": 8192,
+          "end": 8192,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "williams_adpcm_sound_device.bank_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 9216,
+          "end": 9217,
+          "kind": "handler",
+          "mirror": 1022,
+          "read": "adpcm:ym2151.read",
+          "write": "adpcm:ym2151.write"
+        },
+        {
+          "start": 10240,
+          "end": 10240,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "adpcm:dac.data_w"
+        },
+        {
+          "start": 11264,
+          "end": 11264,
+          "kind": "handler",
+          "mirror": 1023,
+          "read": "adpcm:oki.read",
+          "write": "adpcm:oki.write"
+        },
+        {
+          "start": 12288,
+          "end": 12288,
+          "kind": "handler",
+          "mirror": 1023,
+          "read": "williams_adpcm_sound_device.command_r"
+        },
+        {
+          "start": 13312,
+          "end": 13312,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "williams_adpcm_sound_device.oki6295_bank_select_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 15360,
+          "end": 15360,
+          "kind": "handler",
+          "mirror": 1023,
+          "write": "williams_adpcm_sound_device.talkback_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 49151,
+          "kind": "handler",
+          "read": "bank.rombank",
+          "bank": "rombank"
+        },
+        {
+          "start": 49152,
+          "end": 65535,
+          "kind": "handler",
+          "read": "bank.romupper",
+          "bank": "romupper"
+        },
+        {
+          "start": 64412,
+          "end": 64454,
+          "kind": "ram"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "ym2151",
+    "clock": 3579545,
+    "chips": 1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 0.1,
+        "target": "^"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 0.1,
+        "target": "^"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 0.1,
+        "target": "^"
+      }
+    ],
+    "auxiliaryDevices": [
+      {
+        "type": "AD7524",
+        "deviceTag": "adpcm:dac",
+        "dac": {
+          "bits": 8,
+          "mapper": "unsigned",
+          "gain": 1
+        },
+        "clock": 0,
+        "gain": 0.1,
+        "target": "speaker",
+        "writeMethods": [
+          "data_w",
+          "write"
+        ]
+      },
+      {
+        "type": "OKIM6295",
+        "deviceTag": "adpcm:oki",
+        "sampleMap": [
+          {
+            "start": 0,
+            "end": 131071,
+            "bank": {
+              "tag": "okibank",
+              "entryOffsets": [
+                262144,
+                262144,
+                131072,
+                0,
+                917504,
+                786432,
+                655360,
+                524288
+              ],
+              "initialEntry": 0
+            }
+          },
+          {
+            "start": 131072,
+            "end": 262143,
+            "regionOffset": 393216
+          }
+        ],
+        "clock": 1000000,
+        "sampleRegion": "adpcm:oki",
+        "initialMode": "PIN7_HIGH",
+        "gain": 0.15,
+        "target": "speaker",
+        "writeMethods": [
+          "write",
+          "set_pin7"
+        ]
+      }
+    ],
+    "sampleRegion": "adpcm:oki",
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 400,
+    "height": 254,
+    "xOffset": 100,
+    "yOffset": 20,
+    "refresh": 54.706839722636325,
+    "htotal": 506,
+    "vtotal": 289,
+    "vbstart": 274,
+    "vbend": 20,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "adpcm:cpu",
+      "size": 327680,
+      "loads": [
+        {
+          "file": "sl1_mortal_kombat_u3_sound_rom.u3",
+          "offset": 65536,
+          "size": 262144,
+          "crc": "c615844c"
+        }
+      ]
+    },
+    {
+      "region": "adpcm:oki",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "sl1_mortal_kombat_u12_sound_rom.u12",
+          "offset": 0,
+          "size": 262144,
+          "crc": "258bd7f9",
+          "reloadOffsets": [
+            262144
+          ]
+        },
+        {
+          "file": "sl1_mortal_kombat_u13_sound_rom.u13",
+          "offset": 524288,
+          "size": 262144,
+          "crc": "7b7ec3b6",
+          "reloadOffsets": [
+            786432
+          ]
+        }
+      ]
+    },
+    {
+      "region": "maincpu",
+      "size": 1048576,
+      "loads": [
+        {
+          "file": "l5_mortal_kombat_t-unit_uj12_game_rom.uj12",
+          "offset": 0,
+          "size": 524288,
+          "crc": "f4990bf2",
+          "alt": [
+            {
+              "file": "l4_mortal_kombat_t-unit_uj12_game_rom.uj12",
+              "crc": "a1b6635a"
+            },
+            {
+              "file": "kombo-rom-uj-12.bin",
+              "crc": "7a441f2d"
+            }
+          ],
+          "skip": 1
+        },
+        {
+          "file": "l5_mortal_kombat_t-unit_ug12_game_rom.ug12",
+          "offset": 1,
+          "size": 524288,
+          "crc": "b06aeac1",
+          "alt": [
+            {
+              "file": "l4_mortal_kombat_t-unit_ug12_game_rom.ug12",
+              "crc": "aa94f7ea"
+            },
+            {
+              "file": "kombo-rom-ug-12.bin",
+              "crc": "45bed5a1"
+            }
+          ],
+          "skip": 1
+        }
+      ]
+    },
+    {
+      "region": "video",
+      "size": 12582912,
+      "loads": [
+        {
+          "file": "l1_mortal_kombat_t-unit_ug14_game_rom.ug14",
+          "offset": 0,
+          "size": 524288,
+          "crc": "9e00834e",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj14_game_rom.uj14",
+          "offset": 1,
+          "size": 524288,
+          "crc": "f4b0aaa7",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug19_game_rom.ug19",
+          "offset": 2,
+          "size": 524288,
+          "crc": "2d8c7ba1",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj19_game_rom.uj19",
+          "offset": 3,
+          "size": 524288,
+          "crc": "33b9b7a4",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug16_game_rom.ug16",
+          "offset": 2097152,
+          "size": 524288,
+          "crc": "52c9d1e5",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj16_game_rom.uj16",
+          "offset": 2097153,
+          "size": 524288,
+          "crc": "c94c58cf",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug20_game_rom.ug20",
+          "offset": 2097154,
+          "size": 524288,
+          "crc": "2f7e55d3",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj20_game_rom.uj20",
+          "offset": 2097155,
+          "size": 524288,
+          "crc": "eae96df0",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug17_game_rom.ug17",
+          "offset": 4194304,
+          "size": 524288,
+          "crc": "e34fe253",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj17_game_rom.uj17",
+          "offset": 4194305,
+          "size": 524288,
+          "crc": "a56e12f5",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_ug22_game_rom.ug22",
+          "offset": 4194306,
+          "size": 524288,
+          "crc": "b537bb4e",
+          "skip": 3
+        },
+        {
+          "file": "l1_mortal_kombat_t-unit_uj22_game_rom.uj22",
+          "offset": 4194307,
+          "size": 524288,
+          "crc": "5e12523b",
+          "skip": 3
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "P1 High Punch",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "P1 Block",
+      "type": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "P1 High Kick",
+      "type": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 256,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 512,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 1024,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2048,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4096,
+      "keys": [],
+      "label": "P2 High Punch",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8192,
+      "keys": [],
+      "label": "P2 Block",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16384,
+      "keys": [],
+      "label": "P2 High Kick",
+      "type": "IPT_BUTTON3",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "type": "IPT_SERVICE1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 512,
+      "keys": [],
+      "label": "P2 Low Punch",
+      "type": "IPT_BUTTON4",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1024,
+      "keys": [],
+      "label": "P2 Low Kick",
+      "type": "IPT_BUTTON5",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2048,
+      "keys": [],
+      "label": "P2 Block 2",
+      "type": "IPT_BUTTON6",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4096,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "P1 Low Punch",
+      "type": "IPT_BUTTON4",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 8192,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "P1 Low Kick",
+      "type": "IPT_BUTTON5",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32768,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "P1 Block 2",
+      "type": "IPT_BUTTON6",
+      "activeLow": true
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "IN1",
+      "mask": 16,
+      "value": 16,
+      "name": "Service Mode"
+    },
+    {
+      "port": "DSW",
+      "mask": 1,
+      "value": 1,
+      "name": "Test Switch"
+    },
+    {
+      "port": "DSW",
+      "mask": 2,
+      "value": 0,
+      "name": "Counters"
+    },
+    {
+      "port": "DSW",
+      "mask": 124,
+      "value": 124,
+      "name": "Coinage"
+    },
+    {
+      "port": "DSW",
+      "mask": 128,
+      "value": 0,
+      "name": "Coinage Source"
+    },
+    {
+      "port": "DSW",
+      "mask": 256,
+      "value": 0,
+      "name": "Skip Post Test"
+    },
+    {
+      "port": "DSW",
+      "mask": 512,
+      "value": 512,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 1024,
+      "value": 1024,
+      "name": "Unused"
+    },
+    {
+      "port": "DSW",
+      "mask": 2048,
+      "value": 2048,
+      "name": "Comic Book Offer"
+    },
+    {
+      "port": "DSW",
+      "mask": 4096,
+      "value": 4096,
+      "name": "Attract Sound"
+    },
+    {
+      "port": "DSW",
+      "mask": 8192,
+      "value": 8192,
+      "name": "Low Blows"
+    },
+    {
+      "port": "DSW",
+      "mask": 16384,
+      "value": 16384,
+      "name": "Blood"
+    },
+    {
+      "port": "DSW",
+      "mask": 32768,
+      "value": 32768,
+      "name": "Violence"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Alex Pasadyn",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.192",
+        "lastRelease": "0.193"
+      },
+      {
+        "name": "cuavas",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.175",
+        "lastRelease": "0.175"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 131,
+    "authors": 30,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 34 years ago:\n\nMortal Kombat (c) 1992 Midway.\n\nMortal Kombat, first in the Mortal Kombat series, is a 1-on-1 fighting game featuring a cast of seven different characters. Mortal Kombat took ideas from Capcom's seminal Street Fighter II, such as the game's special moves and projectiles. It also introduced a cast of photo-realistic digitized fighters for players to fight either as or against. \n\nMortal Kombat characters list:\nJOHNNY CAGE\nKANO\nRAIDEN\nLIU KANG\nSCORPION\nSUB-ZERO\nSONYA BLADE\n\nBattles are fought over the best of three rounds. At the end of a battle, a voice instructs the winner to 'Finish Him/Her!' and players have only a couple of seconds to try and execute their character's 'fatality', which sees the winner killing the loser in a spectacular and grisly fashion.\n\n- TECHNICAL -\n\nMortal Kombat arcade runs on the Midway Y Unit hardware.\n\nMain CPU: TMS34010\nSound CPU: Motorola M6809\nSound Chips: Yamaha YM2151, DAC, OKI6295\n\nPlayers: 2\nControl: 8-way joystick\nButtons: 5\n=> [1] High Punch, [2] Block, [3] High Kick\n=> [4] Low Punch, [5] Low Kick\n\n- TRIVIA -\n\nMortal Kombat was released on October 8th, 1992 in the USA. It was renowned as the first fighting game to use digitized characters and blood (as opposed to the hand-animated, more cartoon-like graphics of competing games). Mortal Kombat was developed as a reaction to the popular Capcom game \"Street Fighter II - The World Warrior\", with simpler controls and digitized graphics. Some say the game's graphic violence was gratuitous, and was only included in order to generate a public outcry and controversy that would increase publicity for the game. \n\nAlthough highly controversial, the mix of realism and violence propelled Mortal Kombat to the height of popularity. An example of the game's innovations was the Fatality, a special finishing move executed against a dying opponent to create an even more gruesome death. For example, one character would grasp a defeated, wobbling opponent by the head, then rip the head and spine out of the opponent's body, which then crumpled to the ground in a pool of blood. Another aspect of gameplay that became a recurring element in games that followed was the so-called 'juggle', where a series of moves could be executed against an opponent who was kept in mid-air by the force of the attacks, and who hence had no defense against further attacks as long as the 'juggle' could be maintained. \n\nThe original concept of Mortal Kombat was modeled after the Jean-Claude Van Damme movie 'Bloodsport', which is a cult classic martial arts film. The character of Johnny Cage is directly modeled after Frank Dux, Van Damme's character in the movie. Johnny Cage's film-star motif is an obvious link to this. Cage also wears the same costume (plus shoes) that Van Damme's character wore in the final battle of the movie. Cage's splits punch was originally seen in Bloodsport during the fight against the Sumo wrestler. Since Midway was unable to get Van Damme for this game, they kept the same kumite/martial arts movie concept and added the Kombat story. \n\nMortal Kombat arcade was the first video game to have an official release date countdown in U.S./U.K. and Australia. This momentous day was known as 'Mortal Monday'. \n\nThe code for this game includes the ASCII string 'NOOBSAIBOT' (originally in \"Mortal Kombat II\" rev. 3.1), suggesting that the character may have made his first appearance here, instead of Reptile (which took up less memory). \n\nThe heads used in the background of the Courtyard and Pit stages are actually those of the programmers themselves! The statue of Buddha in the background of the Courtyard stage was actually a lawn ornament from a neighbor's yard. \n\nWhile fighting on the Pit stage, if you look closely at the glowing moon in the background, you will sometimes see a silhouette fly past it. These shadows will either be Peter Pan and the Darling children, a witch on a broomstick, a kite, a blimp, a rocket, a flying saucer, or Santa Claus in his reindeer-pulled sleigh. The shadows appear about every 6 games. \n\nLiu Kang is Midway's homage to Bruce Lee. \n\nRaiden really is the Japanese God of Thunder. His appearance in myth is quite different though : he has red skin and a demonic face, his feet have two claws on them, and he carries either a wheel or drums on his back. He also is thought to eat human navels so people are advised to lie on their stomachs during storms. \n\nKano make an appearance on the 2012 animation movie 'Wreck-It Ralph' from Walt Disney Animation Studios.\n\nIn the Palace Gates stage, above the red door on the right side, you can see Pac-Man, a ghost and a power pellet carved on the stone. \n\nA hacked version also exists - every stage had a black/night sky and every time you got frozen by Sub-Zero, your fighter would rise up and stay there 'till you either got hit or the freezing effect went away. The same thing would happen if you were using Sub-Zero and froze your opponent. The machine would boot up just like a regular MK machine boots up, except another black screen with red letters and asterisks labeling it as \"Mortal Kombat Black Ninja Edition\" was displayed before the title screen. \n\nA Mortal Kombat unit appears in the 1995 movie 'The Doom Generation'. \n\nMidway released a limited-edition soundtrack album for this game (Mortal Kombat II: Music from the Arcade Game Soundtrack - 123770-C1) on December 1, 1993. \n\nMichael Jackson used to own this game. It was sold at the official Michael Jackson Auction on April 24, 2009.\n\nThe Premium Pack and Kollector's editions of \"Mortal Kombat - Deception\" for the Sony PlayStation 2 and Microsoft XBOX, respectively, both released on October 4, 2004 in North America, contain a bonus disc containing an arcade-perfect version of the original game.\n\n- UPDATES -\n\nPROTO 4.0 (July 14, 1992): \n* Prototype version.\n* You cannot play as the same character.\n* Menu won't allow cursors to pass each other in 2-player selection.\n* Sub-Zero has new corner infinite (ex. uppercut, freeze and repeat)\n* Sub-Zero has faster recovery after slide and can go straight into sweep for most instances\n* Sub-Zero can freeze opponent in air for 'Finish Him/Her' as he's falling from uppercut, and do fatality in air and body will fall to ground frozen\n* Liu Kang can do Flying Kick when you do a HK first in air than F, F HK\n* Raiden can now do Torpedo after doing a jumping kick for more combo possibilities \n\nPROTO 8.0 (July 21, 1992): \n* Prototype version.\n\nPROTO 9.0 (July 28, 1992): \n* Prototype version.\n\nREV. 1.0 (August 9, 1992): \n* First official release of Mortal Kombat.\n* In a 2-player game, both players could not choose the same character.\n* Liu Kang had Uppercut - Flying Kick Combo.\n\nREV. 2.0 (August 9, 1992): \n* Both players could choose the same character.\n* New Shang Tsung death animation added.\n* Merchandise promo added.\n* More blood added.\n\nREV. 3.0 (August 31, 1992): \n* Computer intelligence increased.\n* Reptile added.\n* Comic book offer is a switch setting.\n\nREV. 4.0 (September 28, 1992): \n* Reptile clues added (shadows on moon, see Tips and Tricks section).\n* Sonya and Kano could fight Reptile.\n* Block allowed during fatality.\n* Goro's theme played during all Endurance rounds.\n\nREV. 4.0 [T-Unit] (February 11, 1993): \n* Runs on the newer Midway T Unit hardware, the same hardware as Mortal Kombat II\n\nREV. 5.0 [T-Unit] (March 19, 1993): \n* Bug fix release.\n\n- SCORING -\n\n* Basic Move\nHigh Punch: 500 points \nLow Punch: 500 points \nHigh Kick: 2,000 points \nLow Kick: 2,000 points \nBackhand: 2,000 points \nThrow: 5,000 points \nKnee: 5,000 points \nJump Punch: 1,000 points \nJump Kick: 2,000 points \nUppercut: 2,000 points \nCrouch Kick: 500 points \nSweep: 1,000 points \nRoundhouse: 2,000 points \n\n* Special Moves:\nJOHNNY CAGE:\nGreen Ball: 2,000 points \nShadow Kick: 5,000 points \nSplit Punch: 5,000 points \n\nKANO\nHeadbutt: 2,000 points \nKnife Throw: 2,000 points \nKano Ball: 5,000 points \n\nRAIDEN\nLightening: 2,000 points \nTeleport: 0 points \nTorpedo: 5,000 points \n\nLIU KANG\nFireball: 2,000 points \nFlying Kick: 2,000 points \n\nSCORPION\nSpear: 2,000 points \nTeleport Punch: 2,000 points \n\nSUB-ZERO\nFreeze: 0 points \nSlide: 1,000 points \n\nSONYA BLADE\nSonic Ring: 2,000 points \nTeleport Punch: 2,000 points \nLeg Scissors: 2,000 points \n\n* Bonus Points\nBreaking Wood: 100,000 points \nBreaking Stone: 200,000 points \nBreaking Steel: 500,000 points \nBreaking Ruby: 1,000,000 points \nBreaking Diamond: 2,000,000 points \nTime: Time left multiplied by 1,000 \nFatality: 100,000 points \nFlawless Victory: 200,000 points \nDouble Flawless: 500,000 points \nDefeat Reptile: 10,000,000 points\n\n- TIPS AND TRICKS -\n\n* Secret EJB MENU:\nPress P1_BLOCK (5 times), P2_BLOCK (10 times), P1_BLOCK (2 times), P2_BLOCK (1 times), P1_BLOCK (2 times), P2_BLOCK (3 times), then P1_BLOCK (4 times).\n\n* Basic Move (% of damage):\nHigh Punch (5.5%) : Basic HP\nLow Punch (5.5%) : Basic LP\nHigh Kick (14.8%) : Basic HK\nLow Kick (14.8%) : Basic LK\nBackhand (11.7%) : HP when close\nThrow (24.2%) : LP when close\nKnee (14.8%) : HK or LK when close\nJump Punch (11.7%) : HP or LP while in air\nJump Kick (14.8%) : HK or LK while in air\nUppercut (24.2%) : Hold down HP or LP\nCrouch Kick (11.7%) : Hold down HK or LK\nSweep (11.7%) : Hold back LK\nRoundhouse (19.5%) : Hold back HK\n\n* Special Moves (% of damage):\nJOHNNY CAGE :\nGreen Ball (14.8%) : B, F, LP\nShadow Kick (18%) : B, F, LK\nSplit Punch (21.1%) : BLK+LP\n\nKANO :\nHeadbutt (11.7%) : HP when close\nKnife Throw (14.8%) : Hold BLK (B, F) or B, F+BLK\nKano Ball (18%) : F-D-B-U (Full circle away from opponent starting forward)\n\nRAIDEN :\nLightning (14.8%) : D, F, LP\nTeleport (0%) : D, U\nTorpedo (18%) : B, B, F\n\nLIU KANG :\nFireball (14.8%) : F, F, HP\nFlying Kick (18%) : F, F, HK\n\nSCORPION :\nSpear (4.6%) : B, B, LP\nTeleport Punch (18%) : D, B, HP\n\nSUB-ZERO :\nFreeze (0%) : D, F, LP\nSlide (7%) : LP+BLK+LK\n\nSONYA BLADE :\nSonic Ring (14.8%) : B, B, LP\nTeleport Punch (16.4%) : F, B, HP\nLeg Scissors (24.2%) : LP+BLK+LK\n\n* Mortal Kombat Fatalities:\nTo perform a Fatality, you must win the match, then do the proper joystick/button sequence when 'Finish Him!' appears...\nJOHNNY CAGE Fatality: (close) Forward(x3), HP - Cage decapitates his opponent with an uppercut.\nKANO Fatality: (close) Back, Down, Forward, LP - Kano rips out his opponent's heart.\nSUB-ZERO Fatality: (close) Forward, Down, Forward, HP - Sub-Zero grabs his opponent by the neck and pulls their head off, taking their spine along with the head.\nSONYA BLADE Fatality: (anywhere) Forward(x2), Back(x2), Block - Sonya blows an energy ball in the air. The ball hits her opponent and engulfs them in flames, turning the opponent into a skeleton.\nRAIDEN Fatality: (close) Forward, Back(x3), HP - Raiden shoots lightning into his opponent's head, causing it to explode.\nLIU KANG Fatality: (close) hold Block, 270 degrees (Forward, Down, Back, Up) - Liu Kang does a spinning kick and an uppercut.\nSCORPION Fatality: (jump distance) hold Block, Up(x2), release Block - Scorpion removes his mask to reveal a skull. He then breathes fire on his opponent, turning him into a skeleton.\n\n* Bonus Points:\nTest your might appears after every 3rd win in a 1P game. In a 2P game, it appears after every 5th Battle.\nBreaking Wood: Break the WOOD tapping the punch and kick buttons till the meter fills up then block.\nBreaking Stone: Break the STONE after breakin the WOOD.\nBreaking Steel: Break the STEEL after breakin the STONE.\nBreaking Ruby: Break the RUBY after breakin the STEEL.\nBreaking Diamond: Break the DIAMOND after breakin the RUBY.\nFatality: Perform the characters finishing move.\nFlawless Victory: Beat your opponent without getting hit.\nDouble Flawless: Beat your opponent without getting hit 2 rounds in a row.\n\n* Defeat Reptile (Rev 3.0+ only): The shadows indicate that Reptile is available as an opponent. To fight him, win with a double flawless and fatality, without using block in the entire match.\n\n- STAFF -\n\nDesign and software: Ed Boon\nDesign and graphics: John Tobias\nMusic and sounds: Dan Forden\nBackground graphics: John Vogel\nExecutive producers: Neil Nicastro, Ken Fedesna\nSenior hardware technician: Sheridan Oursler\nCabinet designer: Ray Czajka\n\n* CAST:\nJohnny Cage, Scorpion, Sub-Zero and Reptile: Daniel Pesina\nKano: Richard Divizio\nRaiden: Carlos Pesina\nLiu Kang and Shang Tsung: Ho Sung Pak\nSonya: Elizabeth Malecki\nGoro character design by: John Tobias\nStop Motion Miniature by: Curt Chiarelli\n\n- PORTS -\n\n* CONSOLES:\nSega Master System\n[EU] (1993) \"Mortal Kombat [Model MK-29021-50]\"\n[BR] (1993) \"Mortal Kombat [Model 028240]\"\n\nSega Mega Drive / Genesis\n[EU] (1993) \"Mortal Kombat [Model T-81186-50]\"\n[US] (sept.13, 1993) \"Mortal Kombat [Model T-81186]\"\n[BR] (1994) \"Mortal Kombat [Model 047030]\"\n[JP] (may.27, 1994) \"Mortal Kombat - Shinken Kourin Densetsu [Model T-81014]\"\n\nNintendo SFC / SNES\n[US] (sept.13, 1993) \"Mortal Kombat [Model SNS-KX-USA]\"\n[EU] (oct.28, 1993) \"Mortal Kombat [Model SNSP-KX-NOE]\"\n[JP] (dec.24, 1993) \"Mortal Kombat - Shinken Kourin Densetsu [Model SHVC-KX]\"\n\nSega Mega-CD\n[EU] (1994) \"Mortal Kombat [Model T-81025-50]\"\n[US] (may.26, 1994) \"Mortal Kombat [Model T-81025]\"\n[JP] (june.3, 1994) \"Mortal Kombat Kanzen-han [Model T-81014]\"\n\nSony PS3 [PSN]\n[US] (aug.31, 2011) \"Mortal Kombat Arcade Kollection\"\n[AU] (aug.31, 2011) \"Mortal Kombat Arcade Kollection\"\n[EU] (aug.31, 2011) \"Mortal Kombat Arcade Kollection\"\n\n* HANDHELDS: \nSega Game Gear\n[EU] (1993) \"Mortal Kombat [Model T-81198-50]\"\n[US] (sept.13, 1993) \"Mortal Kombat [Model T-81198]\"\n[JP] (dec.17, 1993) \"Mortal Kombat - Shinken Kourin Densetsu [Model T-81017]\"\n\nNintendo Game Boy\n[US] (sept.13, 1993) \"Mortal Kombat [Model DMG-C9-USA]\" \n[JP] (dec.24, 1993) \"Mortal Kombat - Shinken Kourin Densetsu [Model DMG-C9A]\"\n[EU] (1994) \"Mortal Kombat [Model DMG-C9-NOE-1]\"\n[EU] (1997) \"Mortal Kombat & Mortal Kombat II [Model DMG-AK2P-EUR]\"\n[US] (nov.1997) \"Mortal Kombat & Mortal Kombat II [Model DMG-AK2E-USA]\"\n[JP] (sept.10, 1998) \"Mortal Kombat I & II [Model DMG-AK2J-JPN]\"\n\nSony PSP\n[US] (dec.13, 2005) \"Midway Arcade Treasures Extended Play [Model ULUS-10059]\"\n[EU] (feb.24, 2006) \"Midway Arcade Treasures Extended Play [Model ULES-00180]\"\n\n* COMPUTERS: \n[EU] Commodore Amiga (1994)\n\nPC\n[US] [MS-DOS, 3.5\"] (may.25, 1994) \n[US] [MS-DOS, CD-ROM] (sept.10, 1998) \"Mortal Kombat I & Mortal Kombat II\"\n[US] [MS Windows, CD-ROM] (feb.17, 2006) \"Midway Arcade Treasures Deluxe Edition\"\n[EU] [MS Windows, CD-ROM] (mar.17, 2006) \"Midway Arcade Treasures Deluxe Edition\"\n[US] [MS Windows, Steam] (feb.2, 2012) \"Mortal Kombat Arcade Kollection\"\n\n* OTHERS: \n[US] Mortal Kombat TV Game (2004) by Jakk's Pacific \n[US] Mobile Phones (sept.2004)\n\n- SERIES -\n\n1. Mortal Kombat (1992, Arcade) \n2. Mortal Kombat II (1993, Arcade) \n3. Mortal Kombat 3 (1995, Arcade) \n4. Ultimate Mortal Kombat 3 (1995, Arcade) \n5. Ultimate Mortal Kombat 3 [WaveNet Edition] (1995, Arcade) \n6. Mortal Kombat Trilogy [Model SLUS-00330] (1996, PS) \n7. SUB-ZERO - Mortal Kombat Mythologies [Model SLUS-00476] (1997, PS) \n8. Mortal Kombat 4 (1997, Arcade) \n9. Mortal Kombat - Special Forces [Model SLUS-00824] (2000, PS) \n10. Mortal Kombat Advance [Model AGB-AM5E-USA] (2001, GBA) \n11. Mortal Kombat - Deadly Alliance [Model SLUS-20423] (2002, PS2) \n12. Mortal Kombat - Tournament Edition [Model AGB-AW4E-USA] (2003, GBA) \n13. Mortal Kombat - Deception / Mystification (2004, PS2) \n14. Mortal Kombat - Shaolin Monks (2005, XBOX, PS2) \n15. Mortal Kombat - Armageddon (2006, XBOX, PS2) \n16. Mortal Kombat vs. DC Universe (2008, PS3, 360) \n17. Mortal Kombat (2011, PS3, 360)\n18. Mortal Kombat X (2015, PS4, One)\n19. Mortal Kombat 11 (2019, PS4, One, Switch)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1674/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}
