@@ -60,7 +60,8 @@ export interface GameAcceptanceGolden {
 
 export type GameSoundKind =
   | 'sid' | 'wsg' | 'ay8910' | 'dac' | 'discrete' | 'sn76489' | 'pokey'
-  | 'ym2203' | 'ym2151' | 'samples' | 'berzerk' | 'exidy' | 'none';
+  | 'ym2203' | 'ym2151' | 'samples' | 'berzerk' | 'exidy' | 'nes' | 'gameboy'
+  | 'tia' | 'none';
 
 export type MediaKind =
   | 'romset' | 'bios' | 'device-rom' | 'cartridge' | 'quickload'
@@ -101,6 +102,13 @@ export interface GameAcceptanceScenario {
   acceptedAudioLimitations?: string[];
   id?: string;
   kind?: 'cold-boot' | 'gameplay' | 'keyboard' | 'media' | 'peripheral';
+  /**
+   * The cartridge this scenario plays, by its MAME software-list short name.
+   * A console has no romset of its own to accept against; its set lives at
+   * `roms/<category>/<game>/<cartridge>.zip` and mounts the way the console
+   * room mounts it.
+   */
+  cartridge?: string;
   romEnvironment: string;
   frames: number;
   /** Minimum full-contract throughput, including video hashing and audio probing. */
@@ -127,6 +135,8 @@ export interface GameTestContract extends MachineTargetDefinition {
   acceptedAudioLimitations?: string[];
   /** Stable key when one machine has more than one deterministic scenario. */
   scenarioId?: string;
+  /** See GameAcceptanceScenario.cartridge. */
+  cartridge?: string;
   romEnvironment: string;
   frames: number;
   /** Minimum full-contract throughput, including video hashing and audio probing. */

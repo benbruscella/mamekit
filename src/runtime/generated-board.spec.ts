@@ -811,4 +811,113 @@ system16bBoard.frame(new Uint32Array(1));
 assert.equal(system16bRomWord, 0x1234, '315-5195 ROM windows must cover both data lanes');
 assert.equal(system16bRamWord, 0xabcd, '315-5195 RAM windows must preserve 68000 words');
 
+// #155: a device that re-arms its own timer for "the next line" against the
+// beam, as the NES 2C02 does, on a board whose rounds span several lines (no
+// declared cadence: 3 lines at 60 Hz x 262). The device clock once ran a round
+// ahead of the processors, a re-arm from a line boundary found its next line
+// already behind the beam, and the device lost a whole frame each round: about
+// three ticks a frame, and the PPU never reached VBLANK.
+registerGeneratedCpu({
+  type: 'BEAM_TIMER_CPU_FIXTURE', summary: { diagnostics: 0 },
+  create(bus) {
+    return {
+      reset() {}, step() { return 1; },
+      run(cycles) {
+        for (let elapsed = 0; elapsed < cycles; elapsed++) bus.timing?.(elapsed, cycles);
+        bus.timing?.(cycles, cycles);
+        return cycles;
+      },
+      setIrqLine() {}, setInputLine() {}, nmi() {}, get() { return 0; },
+      stateInt() { return 0; }, set() {}, invoke() { return 0; }, hasMethod() { return false; },
+    };
+  },
+});
+registerGeneratedDevice({
+  type: 'BEAM_TIMER_FIXTURE', constants: {}, callbacks: [],
+  members: [
+    { name: 'm_scanline', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_ticks', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_scanline_timer', valueType: 'emu_timer *', initial: 0 },
+  ],
+  timers: [{ member: 'm_scanline_timer', callback: 'scanline_tick' }],
+  methods: [
+    { name: 'device_start', parameters: '', program: compileMameHandler(
+      'm_scanline_timer->adjust(screen().time_until_pos(1));') },
+    { name: 'scanline_tick', parameters: '', program: compileMameHandler(
+      'm_ticks++; m_scanline++; if (m_scanline >= 262) m_scanline = 0; ' +
+      'm_scanline_timer->adjust(screen().time_until_pos(m_scanline + 1));') },
+  ],
+  start: 'device_start',
+  summary: { diagnostics: 0 },
+});
+const beamTimerMachine: BoardIr = {
+  ...screenHostMachine,
+  game: 'beam-timer-fixture',
+  devices: [{ id: 'device:beam-timer', tag: 'ppu', type: 'BEAM_TIMER_FIXTURE', member: 'm_ppu' }],
+  execution: {
+    ...screenHostMachine.execution,
+    // Ten cycles a line.
+    cpus: [{ ...screenHostMachine.execution.cpus[0]!, type: 'BEAM_TIMER_CPU_FIXTURE', clock: 60 * 262 * 10 }],
+    screen: { ...screenHostMachine.execution.screen, height: 240, vtotal: 262, vbstart: 241 },
+  },
+};
+const beamTimerBoard = createGeneratedBoard(beamTimerMachine,
+  { game: beamTimerMachine.game, family: 'fixture', cpus: [], ranges: [],
+    screen: { width: 1, height: 240, refresh: 60, vtotal: 262, vbstart: 241, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 } },
+  { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+const beamTimer = (beamTimerBoard as unknown as { devices: Map<string, Device> }).devices.get('ppu')!;
+const beamFrame = new Uint32Array(beamTimerBoard.fbWidth * beamTimerBoard.fbHeight);
+for (let frame = 0; frame < 3; frame++) beamTimerBoard.frame(beamFrame);
+const ticksBefore = beamTimer.get('m_ticks');
+for (let frame = 0; frame < 3; frame++) beamTimerBoard.frame(beamFrame);
+assert.equal(beamTimer.get('m_ticks') - ticksBefore, 3 * 262,
+  'a timer re-armed against the beam every line must fire once a line under multi-line rounds');
+
+// The same device beside a processor whose slice sometimes runs past its
+// target, as the NES 6502 does when an OAM DMA steals 513 cycles inside one
+// instruction. Instruction deltas stop at the target, so the device clock has
+// to be settled to where the processor actually stands: settled only to the
+// round's unrun lines it fell four lines behind a CPU-side beam, and the
+// device lost a frame every few (Super Mario Bros. ran at 75% speed).
+let overrunSlices = 0;
+registerGeneratedCpu({
+  type: 'BEAM_TIMER_DMA_CPU_FIXTURE', summary: { diagnostics: 0 },
+  create(bus) {
+    return {
+      reset() {}, step() { return 1; },
+      run(cycles) {
+        for (let elapsed = 0; elapsed < cycles; elapsed++) bus.timing?.(elapsed, cycles);
+        bus.timing?.(cycles, cycles);
+        // Every seventh slice ends four and a half lines past its target.
+        return ++overrunSlices % 7 === 0 ? cycles + 45 : cycles;
+      },
+      setIrqLine() {}, setInputLine() {}, nmi() {}, get() { return 0; },
+      stateInt() { return 0; }, set() {}, invoke() { return 0; }, hasMethod() { return false; },
+    };
+  },
+});
+const overrunMachine: BoardIr = {
+  ...beamTimerMachine,
+  game: 'beam-timer-overrun-fixture',
+  execution: {
+    ...beamTimerMachine.execution,
+    cpus: [{ ...beamTimerMachine.execution.cpus[0]!, type: 'BEAM_TIMER_DMA_CPU_FIXTURE' }],
+  },
+};
+const overrunBoard = createGeneratedBoard(overrunMachine,
+  { game: overrunMachine.game, family: 'fixture', cpus: [], ranges: [],
+    screen: { width: 1, height: 240, refresh: 60, vtotal: 262, vbstart: 241, rotate: 0 },
+    clocks: { namco06: 0, wsg: 0 } },
+  { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+const overrunTimer = (overrunBoard as unknown as { devices: Map<string, Device> }).devices.get('ppu')!;
+for (let frame = 0; frame < 3; frame++) overrunBoard.frame(beamFrame);
+const overrunBefore = overrunTimer.get('m_ticks');
+for (let frame = 0; frame < 30; frame++) overrunBoard.frame(beamFrame);
+// The overruns are real CPU time, so over thirty frames the device runs that
+// much further than thirty frames' worth of lines -- but never a frame short.
+const overrunTicks = overrunTimer.get('m_ticks') - overrunBefore;
+assert.ok(overrunTicks >= 30 * 262 && overrunTicks < 31 * 262,
+  `a slice overrun must not cost a beam-armed timer its frame (${overrunTicks} ticks in 30 frames)`);
+
 console.log('generated-board.spec: shares, CPU lines, flip-screen state and CPU buses passed');

@@ -404,6 +404,13 @@ builds a whole second program bank out of address-scrambled, bit-permuted copies
 of the Pac-Man ROMs, so the shape is the code. Both are last resorts, reached
 only when nothing declarative was recovered from the same source.
 
+Such a program runs against a fixed environment, so it must read nothing that
+environment does not supply: an unbound name evaluates to zero, which looks
+exactly like hardware that reads zero. A file-scope table the callback indexes
+(the Game Boy's `palette_gb[]`) is folded into it as `TABLE(...)`, and a
+callback that still reads an unbound name does not lower (`unboundIdentifiers`
+in `src/ir/walk.ts`, shared with the driver-init lowering).
+
 ### AUDIO
 
 Audio families are capability packages over `src/mame/audio-compiler.ts`, which
@@ -496,6 +503,19 @@ against raster positions (`screen().time_until_pos`), and a callback that
 re-arms itself for "the next line" one line late gets MAME's answer, a whole
 frame's delay, permanently. `time_until_pos` is answered in the timer clock's
 own fractional line position for the same reason.
+
+A round spanning lines runs on its last line, so at the boundaries before it
+the beam has moved on while no processor has run. Paying those lines would run
+the device clock a round ahead of the processors, and a timer armed against the
+beam would then read two different beams: the running processor's inside a
+slice, the device clock's at a boundary. On a board where a generated device
+arms a timer against the beam (the NES 2C02, the TMS9928A, Konami's 005849),
+the settle therefore puts the device clock where the primary processor
+actually stands: behind the beam by the lines its round has not run, ahead of
+it by whatever its last slice overran, which an NES OAM DMA makes four lines
+(#155: the 2C02 lost a frame on every round and never reached VBLANK). Elsewhere the beam stays the reference: hosted MCUs and discrete
+networks run on the same clock, and Galaga's 54xx boom moved when it followed
+the processors.
 
 ### BROWSER SERVICES
 

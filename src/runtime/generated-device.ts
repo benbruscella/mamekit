@@ -67,7 +67,8 @@ interface DeviceCallback {
 
 interface DeviceTimer {
   member: string;
-  callback: string;
+  /** Absent for a timer nothing calls back; the device only asks `enabled()`. */
+  callback?: string;
 }
 
 interface DeviceMethod {
@@ -437,6 +438,8 @@ export function generatedTimerBacklog(): number {
   return timerBacklogSeconds;
 }
 
+const noTimerCallback = (): void => {};
+
 class IrTimer {
   private remainingSeconds = Infinity;
   private intervalSeconds = Infinity;
@@ -534,7 +537,7 @@ class IrDevice implements Device {
   private readonly listeners = new Map<string, DeviceCallbackListener[][][]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly executionContext: GeneratedDeviceExecutionContext;
-  private readonly timers = new Map<string, { timer: IrTimer; callback: string }>();
+  private readonly timers = new Map<string, { timer: IrTimer; callback?: string }>();
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private readonly clock: number;
@@ -1033,7 +1036,7 @@ class IrDevice implements Device {
 
   tick(seconds: number): void {
     for (const { timer, callback } of this.timers.values()) {
-      timer.tick(seconds, parameter => this.call(callback, parameter));
+      timer.tick(seconds, callback ? parameter => this.call(callback, parameter) : noTimerCallback);
     }
     // A device built out of other devices has to advance them too: the board
     // only knows the devices its own machine config names. Pitfall II's DPC

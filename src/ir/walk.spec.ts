@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { GeneratedExpression, GeneratedHandlerOperation } from './board.ts';
-import { childExpressions, walkExpressions, walkOperations } from './walk.ts';
+import { childExpressions, unboundIdentifiers, walkExpressions, walkOperations } from './walk.ts';
 
 const number = (value: number): GeneratedExpression => ({ kind: 'number', value });
 const identifier = (name: string): GeneratedExpression => ({ kind: 'identifier', name });
@@ -65,5 +65,28 @@ assert.deepEqual(
   childExpressions({ kind: 'member', object: identifier('m_screen'), property: 'vpos' }),
   [identifier('m_screen')],
 );
+
+// A program lowered for a fixed environment is checked for names nothing
+// binds: its own locals and parameters, and the environment's names, are
+// bound; a callee is a call the executor resolves, not a value it reads. The
+// Game Boy's palette read a file-scope table this way and got four black pens.
+const palette = {
+  operations: [
+    { op: 'declare', name: 'i', valueType: 'int', value: number(0) },
+    {
+      op: 'call',
+      expression: {
+        kind: 'call',
+        callee: { kind: 'member', object: identifier('palette'), property: 'set_pen_color' },
+        args: [identifier('i'), {
+          kind: 'index', object: identifier('palette_gb'), index: identifier('i'),
+        }, identifier('PEN_COUNT')],
+      },
+    },
+  ] as GeneratedHandlerOperation[],
+  diagnostics: [],
+};
+assert.deepEqual(unboundIdentifiers(palette, ['palette'], new Set(['PEN_COUNT'])), ['palette_gb']);
+assert.deepEqual(unboundIdentifiers(palette, ['palette'], new Set(['PEN_COUNT', 'palette_gb'])), []);
 
 console.log('walk.spec: IR operation and expression traversal passed');

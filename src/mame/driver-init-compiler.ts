@@ -16,7 +16,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
-import { walkExpressions, walkOperations } from '../ir/walk.ts';
+import { unboundIdentifiers, walkExpressions } from '../ir/walk.ts';
 import { MameAstIndex, parseMameAst } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 
@@ -146,22 +146,9 @@ function unresolvedNames(
   parameters: string,
   known: ReadonlySet<string>,
 ): string[] {
-  const declared = new Set(
-    parameters
-      .split(',')
-      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
-      .filter((name): name is string => Boolean(name)),
-  );
-  walkOperations(program.operations, operation => {
-    if (operation.op === 'declare') declared.add(operation.name);
-  });
-  const unresolved = new Set<string>();
-  walkExpressions(program.operations, expression => {
-    if (expression.kind !== 'identifier') return;
-    const name = expression.name;
-    if (declared.has(name) || known.has(name)) return;
-    if (/^bitswap_\d/.test(name) || /^(?:BIT|ALLOC|ARRAY|TABLE)$/.test(name)) return;
-    unresolved.add(name);
-  });
-  return [...unresolved];
+  const declared = parameters
+    .split(',')
+    .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+    .filter((name): name is string => Boolean(name));
+  return unboundIdentifiers(program, declared, known);
 }

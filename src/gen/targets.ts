@@ -6,7 +6,11 @@ export const CANDIDATE_TARGETS: readonly string[] = discoverGameNames(
   ['candidate'],
 );
 
-/** Generated system targets whose software arrives separately. */
+/**
+ * Generated system targets whose software arrives separately. A console is
+ * built whether or not a contract accepts it against a cartridge, so it is
+ * named here as well as discovered.
+ */
 export const SYSTEM_TARGETS: readonly string[] = [
   'nes',
   'coleco',
@@ -21,11 +25,11 @@ export const SYSTEM_TARGETS: readonly string[] = [
  * working set is stated once — by the contract modules themselves. A target
  * with a contract is by definition one that must generate and pass.
  */
-export const REQUIRED_TARGETS: readonly string[] = [
+export const REQUIRED_TARGETS: readonly string[] = [...new Set([
   ...ACCEPTED_TARGETS,
   ...CANDIDATE_TARGETS,
   ...SYSTEM_TARGETS,
-];
+])];
 
 /**
  * The set a clean `gen:all` distribution builds.

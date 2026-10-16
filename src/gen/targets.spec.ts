@@ -80,12 +80,20 @@ check('gen:all builds every required target', () => {
   assert.deepEqual([...GENERATION_TARGETS], [...REQUIRED_TARGETS]);
 });
 
-// Issue #85 turned the console back on. It has no contract module to discover,
-// so targets.ts is the only place the decision can be read — and a console
-// dropping out of the build silently is exactly what issue #53 did.
-check('the console target is generated', () => {
-  assert.ok(GENERATION_TARGETS.includes('nes'));
-  assert.ok(!ACCEPTED_TARGETS.includes('nes'), 'a console has no romset to accept against');
+// Issue #85 turned the console back on, and a console dropping out of the
+// build silently is exactly what issue #53 did. Every console is built from
+// targets.ts whether or not a contract accepts it.
+check('the console targets are generated', () => {
+  for (const system of SYSTEM_TARGETS) assert.ok(GENERATION_TARGETS.includes(system));
+});
+
+// A console has no romset to accept against; it is accepted against a
+// cartridge (#155: the NES and the Game Boy both went blank with no contract
+// to notice).
+check('an accepted console names the cartridge it plays', () => {
+  for (const contract of contracts.filter(candidate => SYSTEM_TARGETS.includes(candidate.game))) {
+    assert.ok(contract.cartridge, `${contract.game}: an accepted console scenario must mount a cartridge`);
+  }
 });
 
 // gen:all must not restate the target set; it asks the CLI for it.

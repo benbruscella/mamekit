@@ -14,13 +14,13 @@ export interface GeneratedFrameProcessor {
  * The longest any processor may run ahead of the others where the board
  * declares no timer cadence of its own.
  *
- * What bounds a timeslice in MAME is the soonest timer, and that bounds a
- * round here too (`nextTimerSeconds`, plus a scanline TIMER's own period).
- * Not every timer this runtime hosts is visible to that query, so a board
- * with no declared cadence keeps the empirical bound the schedule used before
- * timers were modelled at all: Galaga's 54xx boot boom is knife-edge
- * sensitive to it, and a five-line round silences a boom that is already far
- * quieter than MAME's.
+ * What bounds a timeslice in MAME is the soonest timer. Here a scanline
+ * TIMER's own period bounds a round; device timers do not, because ending
+ * rounds at every one of them desynchronised the MCUs Xevious and TMNT host on
+ * device time. A board with no declared cadence keeps the empirical bound the
+ * schedule used before timers were modelled at all: Galaga's 54xx boot boom
+ * is knife-edge sensitive to it, and a five-line round silences a boom that
+ * is already far quieter than MAME's.
  */
 const MAX_QUANTUM_SECONDS = 250e-6;
 
@@ -104,6 +104,8 @@ export class GeneratedFrameRunner {
    */
   private fineLines = 0;
   private frames = 0;
+  /** Lines the beam has passed that the round in progress has not run yet. */
+  private pendingLines = 0;
 
   constructor(options: GeneratedFrameRunnerOptions) {
     this.machine = options.machine;
@@ -175,7 +177,7 @@ export class GeneratedFrameRunner {
     // timeslice on it: Gauntlet's 32 lines keep its sound board's reply burst
     // whole, MCR's single line keeps Rampage's handshake alive. With none
     // declared the empirical bound stands in for the timers this runtime does
-    // not model. Either way `nextTimerSeconds` may still shorten the round.
+    // not model.
     this.maximumQuantumLines = Number.isFinite(scanlineIncrementLines)
       ? scanlineIncrementLines
       : Math.max(1, Math.floor(MAX_QUANTUM_SECONDS * denominator));
@@ -235,6 +237,21 @@ export class GeneratedFrameRunner {
     return this.frames;
   }
 
+  /**
+   * How far behind the beam a processor stands at a line boundary, in
+   * scanlines. A round spanning lines runs on its last line, so at each
+   * earlier boundary the beam has moved on while the processor still stands
+   * where the previous round left it: the lines of the round in progress it
+   * has not run, less whatever its last slice ran past the end of the round
+   * before (a negative carry). An NES OAM DMA steals 513 cycles inside one
+   * instruction, which leaves the CPU four lines past where its round ended.
+   */
+  linesBehind(tag: string): number {
+    const scheduled = this.processors.find(entry => entry.processor.tag === tag);
+    if (!scheduled) return this.pendingLines;
+    return this.pendingLines + scheduled.carry / scheduled.cyclesPerLine;
+  }
+
   get currentCarry(): readonly number[] {
     return this.processors.map(processor => processor.carry);
   }
@@ -254,15 +271,15 @@ export class GeneratedFrameRunner {
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
     let rendered = false;
-    let pendingLines = 0;
+    this.pendingLines = 0;
     for (let line = 0; line < screen.vtotal; line++) {
       this.onLine?.(line, 'before-processors', framebuffer);
       // A scheduled event ends the quantum, so what the processors owe from
       // the lines since the last one is paid before the event — and before the
       // frame this line may present — rather than after it.
-      if (pendingLines > 0 && this.boundaryLines.has(line)) {
-        this.runProcessors(pendingLines, line - 1);
-        pendingLines = 0;
+      if (this.pendingLines > 0 && this.boundaryLines.has(line)) {
+        this.runProcessors(this.pendingLines, line - 1);
+        this.pendingLines = 0;
       }
       if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
       // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
@@ -280,12 +297,12 @@ export class GeneratedFrameRunner {
         rendered = true;
       }
 
-      pendingLines++;
+      this.pendingLines++;
       const inQuantumWindow = this.fineLines > 0;
       if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line) ||
-        pendingLines >= this.maximumQuantumLines) {
-        this.runProcessors(pendingLines, line);
-        pendingLines = 0;
+        this.pendingLines >= this.maximumQuantumLines) {
+        this.runProcessors(this.pendingLines, line);
+        this.pendingLines = 0;
       }
 
       this.onLine?.(line, 'after-processors', framebuffer);

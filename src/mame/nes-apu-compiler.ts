@@ -222,7 +222,7 @@ type Message =
   | { type: 'reset' };
 
 const CHUNK = 1024;
-class Resampler {
+export class Resampler {
   private readonly step: number;
   private fraction = 0;
   private last = 0;

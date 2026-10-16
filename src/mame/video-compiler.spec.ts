@@ -8,7 +8,7 @@
 
 import assert from 'node:assert/strict';
 import { MameAstIndex, parseMameAst } from './ast.ts';
-import { paletteShareEndianness, sourceAssignedRegionPointers } from './video-compiler.ts';
+import { foldFileScopeTables, paletteShareEndianness, sourceAssignedRegionPointers } from './video-compiler.ts';
 import type { GeneratedPromPalettePlan } from '../ir/board.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
 
@@ -91,5 +91,33 @@ function pointers(body: string, constants: Record<string, number> = {}): {
   assert.deepEqual(bindings, {});
   assert.deepEqual(offsets, {});
 }
+
+// A file-scope colour table a palette callback indexes is folded into the
+// callback, each aggregate entry as its type's constructor (gb.cpp's
+// palette_gb, #155). A commented-out table is not a table, and a table the
+// method declares itself is its own local.
+const gbUnit = `
+/* static constexpr rgb_t palette_gb[] = { { 1,2,3 } }; */
+static constexpr rgb_t palette_gb[] =
+{
+	// Simple black and white palette
+	/*  0xff,0xff,0xff, */
+	{ 0xff,0xfb,0x87 },     // Background
+	{ 0xb1,0xae,0x4e },     // Light
+};
+static const uint8_t levels[4] = { 0, 85, 170, 255 };
+`;
+assert.equal(
+  foldFileScopeTables('palette.set_pen_color(i, palette_gb[i + 1]);', gbUnit),
+  'palette.set_pen_color(i, TABLE(i + 1, rgb_t(0xff,0xfb,0x87), rgb_t(0xb1,0xae,0x4e)));',
+);
+assert.equal(
+  foldFileScopeTables('int v = levels[bits & 3];', gbUnit),
+  'int v = TABLE(bits & 3, 0, 85, 170, 255);',
+);
+assert.equal(
+  foldFileScopeTables('int levels[4]; levels[0] = 1; return levels[0];', gbUnit),
+  'int levels[4]; levels[0] = 1; return levels[0];',
+);
 
 console.log('video-compiler.spec: palette region pointers lower from every MAME spelling');

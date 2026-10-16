@@ -37,6 +37,8 @@ jobs:
             src
             hash/nes.xml
             hash/gameboy.xml
+            hash/coleco.xml
+            hash/a2600.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
@@ -81,6 +83,8 @@ jobs:
             src
             hash/nes.xml
             hash/gameboy.xml
+            hash/coleco.xml
+            hash/a2600.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
