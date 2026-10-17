@@ -1411,6 +1411,11 @@ function emitCall(
           !/vector|array|span|string|ptr|region|memory|bitmap|auto/i.test(receiverType)) {
         return `(${object}).${expression.callee.property}()`;
       }
+      // `bytes()` is a size in bytes, not elements: a 16-bit sprite RAM held as
+      // 16-bit words has half as many. The container answers it the way the
+      // interpreter does; read as `.length`, R-Type's buffered sprite copy
+      // took half its table and lost sprites.
+      if (expression.callee.property === 'bytes') return `runtime.container(${object}, "bytes")`;
       return `(${object}).length`;
     }
     const directName = linkedMemberCallName(expression);
@@ -1516,8 +1521,18 @@ function emitValueMemberCall(
       receiver.callee.name === 'space' && Boolean(context.definition.spaces?.length));
   const access = directObject ? `(${object}).${property}` : `(runtime.dereference(${object})).${property}`;
   // Resolved device finders expose source methods as functions. They cannot
-  // be a pointer into an array or a numeric framework property.
-  if (finder) return `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
+  // be a pointer into an array or a numeric framework property. A finder the
+  // board serves itself -- a hosted MCU, whose `m_cpu->set_input_line` is a
+  // board binding, not a method of the object -- answers through the links
+  // table first, as the interpreter resolves the call: emitted directly, the
+  // Namco 51xx's chip_select never reached its MB8843 and Dig Dug went silent.
+  if (finder) {
+    const chain = memberCallName(expression);
+    const direct = `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
+    if (!chain) return direct;
+    const link = callLink(context, chain);
+    return `(${link} ? ${link}(${args.join(', ')}) : ${direct})`;
+  }
   // A MAME `rgb_t` is a packed number, and its channel accessors read it back:
   // the TIA builds its 16k blended palette from `pen_color(i).r()` and friends.
   // A numeric receiver has no method to call, and the fallback below answered 0

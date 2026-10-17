@@ -732,3 +732,41 @@ console.log('device-codegen.spec: IR selection, dependency closure, case scoping
   assert.equal(built.fractional({ members: {} }, -1), 44);
   assert.match(tables.source, /const __mame_table_0/);
 }
+
+// MAME's line handlers are entry points like bus handlers: a write-line takes
+// `int state`, a read-line takes nothing and is named `*_r`. Compiling them
+// exposed two gaps the interpreter never had. A finder call reaches the board's
+// binding first -- the Namco 51xx's `m_cpu` is a hosted MB8843, so
+// `m_cpu->set_input_line` is a binding, not a method on the object, and Dig Dug
+// went silent. And `bytes()` is a size in bytes: R-Type's 16-bit sprite RAM
+// answered its element count and the buffered copy lost half its sprites.
+const lineEmitted = generatedDeviceMethodsSource({
+  ...definition,
+  members: [
+    { name: 'm_cpu', valueType: 'required_device<mb88_cpu_device>' },
+    { name: 'm_ram', valueType: 'required_shared_ptr<uint16_t>' },
+  ],
+  methods: [{
+    name: 'chip_select',
+    parameters: 'int state',
+    source: { file: 'src/devices/test.cpp', line: 6 },
+    program: compileMameHandler('m_cpu->set_input_line(0, state);'),
+  }, {
+    name: 'ram_bytes_r',
+    parameters: '',
+    source: { file: 'src/devices/test.cpp', line: 7 },
+    program: compileMameHandler('return m_ram.bytes();'),
+  }],
+} as GeneratedDeviceDefinition);
+assert.deepEqual(lineEmitted.methods.sort(), ['chip_select', 'ram_bytes_r'], 'both line shapes are entry points');
+const lineMethods = Function(`return ${lineEmitted.source}`)() as Record<string, (runtime: unknown, ...args: number[]) => unknown>;
+const lineCalls: number[][] = [];
+lineMethods.chip_select!({
+  members: { m_cpu: {} },
+  links: { 'm_cpu.set_input_line': (line: number, state: number) => { lineCalls.push([line, state]); return 0; } },
+}, 1);
+assert.deepEqual(lineCalls, [[0, 1]], 'a finder call answers through the board binding');
+assert.equal(lineMethods.ram_bytes_r!({
+  members: { m_ram: new Uint16Array(8) },
+  container: (value: ArrayBufferView, method: string) => method === 'bytes' ? value.byteLength : 0,
+}), 16, 'bytes() counts bytes, not 16-bit elements');
