@@ -900,12 +900,16 @@ class IrBoard implements Board {
     const cardDeviceSet = new Set([...cardClockDevices.values()].flat());
     const timedDevices = [...this.devices.values()].filter(device =>
       device.needsTick?.() !== false && !cardDeviceSet.has(device));
+    // Resolved once per processor: this runs after every instruction the
+    // card's processor executes.
+    const cardClocks = new Map([...cardClockDevices.keys()].map(tag =>
+      [tag, machine.execution.cpus.find(candidate => candidate.tag === tag)!]));
     const tickCardDevices = (cpuTag: string, cycles: number): void => {
+      if (!(cycles > 0)) return;
       const devices = cardClockDevices.get(cpuTag);
-      const cpu = devices && cycles > 0 ? machine.execution.cpus.find(candidate => candidate.tag === cpuTag) : undefined;
-      if (!devices || !cpu) return;
-      const seconds = cycles / this.cycleClockOf(cpu);
-      for (const device of devices) device.tick(seconds);
+      if (!devices) return;
+      const seconds = cycles / this.cycleClockOf(cardClocks.get(cpuTag)!);
+      for (let index = 0; index < devices.length; index++) devices[index]!.tick(seconds);
     };
     const tickGeneratedDevices = (seconds: number): void => {
       if (!(seconds > 0)) return;

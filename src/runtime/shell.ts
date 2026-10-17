@@ -775,10 +775,10 @@ export async function runShell(
 ): Promise<void> {
   const ui = buildDom(cfg);
 
-  // Cabinet bezels are arcade presentation. Console carts boot into the clean
-  // television viewport from their room and must not probe for an arcade
-  // artwork zip that cannot exist.
-  if (cfg.kind !== 'console') {
+  // Cabinet bezels are arcade presentation. Console carts and computers boot
+  // into the clean television viewport from their room and must not probe for
+  // an arcade artwork zip that cannot exist (a 404 on every C64 boot).
+  if (cfg.kind !== 'console' && cfg.kind !== 'computer') {
     void loadArtwork(cfg.game).then(art => {
       if (art?.window) ui.setBezel(art.bmp, art.window, art.tints, art.backdrop);
     });
@@ -952,20 +952,29 @@ export async function runShell(
     memory.reset();
   });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
+  // The rate the readout last measured, for the transports' console log: a
+  // disk load's pace is the machine's pace, so the log says both.
+  let measuredFps = 0;
+  const speed = (): string => {
+    const refresh = cfg.board.screen.refresh;
+    return measuredFps > 0
+      ? `${measuredFps} fps, ${Math.round((measuredFps / refresh) * 100)}% of real time`
+      : 'paused';
+  };
   // The software room's chosen tape rides in on `mounted`; the first transport
   // that accepts its extension takes it, the rest start empty.
   let pending = mounted;
   for (const media of board.media?.() ?? []) {
     const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity));
+    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed));
   }
   // Disk drives the same way: the chosen disk set's images go to the first
   // drive whose formats read them.
   for (const disk of board.disks?.() ?? []) {
     const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity));
+    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed));
   }
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -1306,6 +1315,7 @@ export async function runShell(
       if (snap.credits !== undefined) detail.push(`credits=${snap.credits}`);
       if (input.debug) detail.push(input.dump());
       ui.readout(rate.join(' · '), detail.join(' · '));
+      measuredFps = paused ? 0 : frames;
       frames = 0;
       fpsWindowStart = now;
     }
@@ -2817,6 +2827,7 @@ function tapeClock(seconds: number): string {
 function diskBay(
   media: DiskMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
+  speed: () => string = () => '',
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -2865,6 +2876,13 @@ function diskBay(
   readout.append(lamp, stateText, trackText, head, elapsedText);
   let spunUpAt: number | undefined;
   let blink = false;
+  // The console narrates the drive for whoever is watching it: motor, head
+  // steps and a pulse while it reads, so a slow load reads as progress.
+  const log = (text: string): void => console.info(`[disk ${media.tag}] ${text}`);
+  let loggedSpinning = false;
+  let loggedTrack = 0;
+  let loggedPulse = 0;
+  let loggedPulseStart = performance.now();
 
   const paint = (): void => {
     const loaded = media.loaded();
@@ -2887,6 +2905,20 @@ function diskBay(
     const elapsed = spunUpAt === undefined ? undefined : tapeClock((performance.now() - spunUpAt) / 1000);
     elapsedText.textContent = elapsed ?? '';
     activity?.('disk', spinning ? `${loaded ? 'DISK' : 'NO DISK'} · TRACK ${String(track).padStart(2, '0')} · ${elapsed}` : undefined, lit);
+    if (spinning !== loggedSpinning) {
+      log(spinning
+        ? `motor on, head on track ${track}${loaded ? '' : ' (no disk in the drive)'} · machine at ${speed()}`
+        : `motor off on track ${track} after ${tapeClock((performance.now() - loggedPulseStart) / 1000)} · machine at ${speed()}`);
+      if (spinning) loggedPulseStart = performance.now();
+      loggedSpinning = spinning;
+      loggedPulse = performance.now();
+    }
+    if (spinning && track !== loggedTrack) log(`head on track ${track} · machine at ${speed()}`);
+    loggedTrack = track;
+    if (spinning && performance.now() - loggedPulse >= 5000) {
+      log(`still reading: track ${track}, ${elapsed} since the motor started · machine at ${speed()}`);
+      loggedPulse = performance.now();
+    }
     eject.disabled = !loaded;
     paintTitleButton(eject, false);
   };
@@ -2897,19 +2929,22 @@ function diskBay(
     const bytes = images.get(name);
     if (!bytes) return;
     try {
+      const started = performance.now();
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      log(`inserted ${name} (${bytes.length} bytes, read in ${Math.round(performance.now() - started)} ms)`);
       mounted.textContent = name;
       mounted.title = name;
       mounted.style.color = '#f4f5ff';
       if (announce) say(`${name} in the drive: type LOAD"*",8,1 and press Enter`);
     } catch (error) {
       mounted.textContent = 'no disk';
+      console.warn(`[disk ${media.tag}] could not insert ${name}:`, error);
       say(String(error));
     }
     paint();
   };
   eject.onclick = () => {
-    try { media.eject(); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    try { media.eject(); log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
     catch (error) { say(String(error)); }
     paint(); eject.blur();
   };
@@ -2973,6 +3008,7 @@ export interface PanelBay {
 function cassetteBay(
   media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
+  speed: () => string = () => '',
 ): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
@@ -3026,6 +3062,9 @@ function cassetteBay(
   readout.append(lamp, stateText, counter, bar);
 
   let hasTape = false;
+  // Starting empty is not news; only changes are logged.
+  let loggedState = 'no tape';
+  let loggedPulse = 0;
   const paint = (): void => {
     const playing = hasTape && media.playing();
     const motor = hasTape && media.motorOn();
@@ -3047,6 +3086,16 @@ function cassetteBay(
     lamp.style.boxShadow = playing && motor ? `0 0 8px ${DECK_GOLD}` : 'none';
     counter.textContent = `${tapeClock(position)} / ${tapeClock(length)}`;
     activity?.('tape', playing && motor ? `TAPE · ${tapeClock(position)} / ${tapeClock(length)}` : undefined);
+    // The console narrates the deck as the disk drive's does.
+    const state = !hasTape ? 'no tape' : playing && motor ? 'moving' : playing ? 'play pressed, motor off' : 'stopped';
+    if (state !== loggedState) {
+      console.info(`[tape ${media.tag}] ${state} at ${tapeClock(position)} / ${tapeClock(length)} · machine at ${speed()}`);
+      loggedState = state;
+      loggedPulse = performance.now();
+    } else if (state === 'moving' && performance.now() - loggedPulse >= 10000) {
+      console.info(`[tape ${media.tag}] moving: ${tapeClock(position)} / ${tapeClock(length)} · machine at ${speed()}`);
+      loggedPulse = performance.now();
+    }
     fill.style.width = length > 0 ? `${Math.min(100, (position / length) * 100).toFixed(1)}%` : '0';
   };
   const press = (key: HTMLButtonElement, action: () => void, said: () => string): void => {
@@ -3069,7 +3118,9 @@ function cassetteBay(
     if (!bytes) return;
     try {
       media.stop();
+      const started = performance.now();
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      console.info(`[tape ${media.tag}] mounted ${name} (${bytes.length} bytes, decoded in ${Math.round(performance.now() - started)} ms)`);
       hasTape = true;
       for (const key of keys) key.disabled = false;
       mounted.textContent = name;

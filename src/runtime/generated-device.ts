@@ -25,7 +25,7 @@ import {
   generatedSubtract,
   resizeGeneratedContainer,
 } from './generated-handler.ts';
-import { buildCallLinks, DEFAULT_CONSTANTS, noteCallLinksChanged } from '../ir/execute.ts';
+import { buildCallLinks, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
 import { stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
@@ -894,6 +894,10 @@ class IrDevice implements Device {
         // is held in here (as execute.ts's macro answers them). Bound so a
         // floppy drive's per-flux-cell `attotime::from_usec(4)` is a call,
         // not a walk down the macro chain.
+        // Bound like a call so emitted code reaches it through its links
+        // rather than down the macro chain (see generatedBoundSearch).
+        'std::lower_bound': (first, last, value, compare) => generatedBoundSearch(true, first, last, value, compare),
+        'std::upper_bound': (first, last, value, compare) => generatedBoundSearch(false, first, last, value, compare),
         'attotime::from_seconds': seconds => seconds,
         'attotime::from_double': seconds => seconds,
         'attotime::from_msec': msec => msec * 1e-3,
@@ -2127,6 +2131,11 @@ function structMember(
   fields: readonly StructField[],
   structs?: Readonly<Record<string, readonly StructField[]>>,
 ): Record<string, unknown> {
+  // Collected, then made an object in one operation. Added one computed key
+  // at a time, V8 gives up on a struct past a dozen fields and keeps it as a
+  // hash table: the 64H156's 22-field live state then cost a hash probe on
+  // every field it touches, sixteen million cycles a second, and the gate
+  // array alone took two thirds of a C64 frame.
   const value: Record<string, unknown> = {};
   const widths: Record<string, number> = {};
   for (const field of fields) {
@@ -2159,17 +2168,18 @@ function structMember(
       widths[field.name] = field.signed ? -field.bits : field.bits;
     }
   }
+  const struct = Object.fromEntries(Object.entries(value));
   // Marked, so that assigning one struct to another copies (C++ value
   // semantics) instead of making the two names one object.
-  Object.defineProperty(value, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
+  Object.defineProperty(struct, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
   if (Object.keys(widths).length) {
-    Object.defineProperty(value, GENERATED_FIELD_WIDTHS, {
+    Object.defineProperty(struct, GENERATED_FIELD_WIDTHS, {
       value: widths,
       enumerable: false,
       configurable: true,
     });
   }
-  return value;
+  return struct;
 }
 
 /** A C array member's storage, one level of nesting per declarator bound. */

@@ -64,10 +64,39 @@ export function resizeGeneratedContainer(container: unknown, length: number): un
   return resized;
 }
 
+/**
+ * std::lower_bound / std::upper_bound over [first, last), with the comparator
+ * the source passes (a lambda) or `<`, answering an iterator into the same
+ * buffer. Its own function so a device can bind it directly: the floppy
+ * drive searches its track on every flux reversal it caches.
+ */
+export function generatedBoundSearch(
+  lower: boolean, first: unknown, last: unknown, value: unknown, compare?: unknown,
+): unknown {
+  const source = isGeneratedPointer(first) ? first.source : first;
+  const start = isGeneratedPointer(first) ? first.offset : 0;
+  const end = isGeneratedPointer(last) ? last.offset : (source as ArrayLike<unknown>).length;
+  const less = typeof compare === 'function'
+    ? (a: unknown, b: unknown) => truthy((compare as (a: unknown, b: unknown) => unknown)(a, b))
+    : (a: unknown, b: unknown) => toNumber(a) < toNumber(b);
+  const items = source as ArrayLike<unknown>;
+  let low = start;
+  let high = end;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    const before = lower ? less(items[middle], value) : !less(value, items[middle]);
+    if (before) low = middle + 1;
+    else high = middle;
+  }
+  return { generatedPointer: true, source, offset: low };
+}
+
 /** A struct value from interleaved field names and values. */
 function generatedStruct(pairs: readonly unknown[]): Record<string, unknown> {
-  const value: Record<string, unknown> = {};
-  for (let index = 0; index + 1 < pairs.length; index += 2) value[String(pairs[index])] = pairs[index + 1];
+  const entries: [string, unknown][] = [];
+  for (let index = 0; index + 1 < pairs.length; index += 2) entries.push([String(pairs[index]), pairs[index + 1]]);
+  // Built in one operation: see structMember in generated-device.ts.
+  const value = Object.fromEntries(entries);
   Object.defineProperty(value, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
   return value;
 }
@@ -2149,24 +2178,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // comparator the source passes (a lambda) or `<`. They answer an iterator
   // into the same buffer.
   if (name === 'std::lower_bound' || name === 'std::upper_bound') {
-    const first = args[0];
-    const source = isGeneratedPointer(first) ? first.source : first;
-    const start = isGeneratedPointer(first) ? first.offset : 0;
-    const end = isGeneratedPointer(args[1]) ? args[1].offset : (source as ArrayLike<unknown>).length;
-    const value = args[2];
-    const less = typeof args[3] === 'function'
-      ? (a: unknown, b: unknown) => truthy((args[3] as (a: unknown, b: unknown) => unknown)(a, b))
-      : (a: unknown, b: unknown) => toNumber(a) < toNumber(b);
-    const items = source as ArrayLike<unknown>;
-    let low = start;
-    let high = end;
-    while (low < high) {
-      const middle = (low + high) >>> 1;
-      const before = name === 'std::lower_bound' ? less(items[middle], value) : !less(value, items[middle]);
-      if (before) low = middle + 1;
-      else high = middle;
-    }
-    return { generatedPointer: true, source, offset: low };
+    return generatedBoundSearch(name === 'std::lower_bound', args[0], args[1], args[2], args[3]);
   }
   if (name === 'rgb_t::black') return 0xff000000;
   if (name === 'rgb_t::white') return 0xffffffff;
