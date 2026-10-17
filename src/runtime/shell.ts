@@ -359,6 +359,11 @@ export interface ShellConfig {
   /** where Esc returns to (the boot menu) */
   menuUrl?: string;
   /**
+   * MAME's own note on starting the title the software room booted, from its
+   * software list (`<info name="usage">`), said when that title's media mount.
+   */
+  usage?: string;
+  /**
    * The machine is exposed as a beta: compiled and playable, but without
    * gameplay acceptance yet. Set by the room from the manifest's preview flag
    * so the page says so wherever the machine is named.
@@ -1000,7 +1005,7 @@ export async function runShell(
   for (const media of board.media?.() ?? []) {
     const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed));
+    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
   }
   detached('cassette');
   // Disk drives the same way: the chosen disk set's images go to the first
@@ -1008,7 +1013,7 @@ export async function runShell(
   for (const disk of board.disks?.() ?? []) {
     const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed));
+    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
   }
   detached('floppy');
 
@@ -2897,6 +2902,7 @@ function diskBay(
   media: DiskMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
   speed: () => string = () => '',
+  usage?: string,
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -3038,7 +3044,12 @@ function diskBay(
     side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
     side.hidden = images.size < 2;
     mount(false);
-    setTimeout(() => { if (media.loaded()) say(`${side.value} in the drive: type LOAD"*",8,1 and press Enter`); }, 600);
+    // The set's own note says how to start it: LOAD"*",8,1 loads the first
+    // file on the disk, which on Jingle Disk is a utility, not the program.
+    if (usage) console.info(`[disk ${media.tag}] MAME's usage note: ${usage}`);
+    setTimeout(() => {
+      if (media.loaded()) say(usage ? `${side.value} in the drive. MAME's note: ${usage}` : `${side.value} in the drive: type LOAD"*",8,1 and press Enter`);
+    }, 600);
   }
   paint();
   setInterval(paint, 250);
@@ -3125,6 +3136,7 @@ function cassetteBay(
   media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
   speed: () => string = () => '',
+  usage?: string,
 ): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
@@ -3273,7 +3285,10 @@ function cassetteBay(
     side.hidden = images.size < 2;
     // Said once the machine is up, over the screen it is said about.
     mount(false);
-    setTimeout(() => { if (hasTape) say(`${side.value} mounted: type LOAD, press Enter, then Play`); }, 600);
+    if (usage) console.info(`[tape ${media.tag}] MAME's usage note: ${usage}`);
+    setTimeout(() => {
+      if (hasTape) say(usage ? `${side.value} mounted. MAME's note: ${usage}` : `${side.value} mounted: type LOAD, press Enter, then Play`);
+    }, 600);
   }
   paint();
   setInterval(paint, 250);

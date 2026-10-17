@@ -39,6 +39,8 @@ export interface SoftEntry {
   prg: { size: number; roms: SoftRom[] };
   supported?: 'no' | 'partial';
   parts?: number;
+  /** MAME's note on starting the set: `Commodore: Load "JINGLE",8,1` */
+  usage?: string;
 }
 export interface SoftCatalog {
   list: string;
@@ -840,6 +842,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       title,
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
       ...(emptySlots.length ? { board: { ...cfg.board, emptySlots } } : {}),
+      ...(rec && ownedEntry(rec)?.usage ? { usage: ownedEntry(rec)!.usage } : {}),
       ...(preview ? { preview: true } : {}),
     };
     // The restart reloads the entry this pushed, so it must not push another.
@@ -882,6 +885,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     fact('Set', soft.name + (soft.cloneof ? ` (clone of ${soft.cloneof})` : ''));
     if (soft.parts) fact('Parts', String(soft.parts));
     if (soft.supported) fact('MAME status', soft.supported === 'no' ? 'not working' : 'partially working');
+    if (soft.usage) fact('How to start', soft.usage);
     for (const rom of soft.prg.roms) fact(rom.file ?? 'image', `${(rom.size / 1024).toFixed(0)} KB · crc ${rom.crc}`);
     fact('Zip', avail ? (avail.file.split('/').pop() ?? avail.file) : `${soft.name}.zip`);
     card.appendChild(facts);
