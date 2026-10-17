@@ -22,7 +22,7 @@ import { watchFaults } from '../support/game.ts';
 const MACHINE = process.env.MAMEKIT_E2E_COMPUTER ?? 'c64p';
 const machineDir = join(repoRoot, 'dist/games/computers', MACHINE);
 
-interface Shelf { list: string; kind: string; catalogUrl: string; availableUrl?: string; mountable: boolean; entries: number }
+interface Shelf { list: string; kind: string; catalogUrl: string; availableUrl?: string; mountable: boolean; entries: number; slots?: string[] }
 interface MachineConfig { software?: { dumpsKey: string; shelves: Shelf[] } }
 
 const generated = existsSync(join(machineDir, 'config.json'));
@@ -127,6 +127,11 @@ test.describe('software room', () => {
     // panel, so nothing is pushed below the fold and the page needs no
     // scrolling.
     await expect(page.locator('[data-deck] [data-media-bay="tape"]')).toBeVisible();
+    // A tape title boots with every other medium's slot empty, as MAME's
+    // `-iec8 ""` does; the disk drive's strip says so and offers to connect.
+    for (const slot of shelves.filter(shelf => shelf.kind !== mountable!.kind).flatMap(shelf => shelf.slots ?? [])) {
+      await expect(page.locator(`[data-deck] [data-detached="${slot}"]`)).toBeVisible();
+    }
     await expect(page.locator('[data-deck] [data-toolbar] [data-computer-controls]')).toBeVisible();
     const layout = await page.evaluate(() => {
       const panel = document.querySelector('[data-deck]')!.getBoundingClientRect();

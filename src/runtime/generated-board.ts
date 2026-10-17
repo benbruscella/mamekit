@@ -37,6 +37,7 @@ import {
 import {
   HOST_SERVICE_CALLS,
   DISCRETE_INPUT_CALLS,
+  type BoardEffect,
   type BoardIr,
   type GeneratedExecutionCpu,
   type GeneratedHandler,
@@ -167,7 +168,56 @@ export function createGeneratedBoard(
   inputs: InputPorts,
   sinks: BoardSinks,
 ): Board {
-  return new IrBoard(machine, boardConfigFromIr(machine, config), regions, inputs, sinks);
+  const configured = withEmptySlots(machine, config.emptySlots);
+  return new IrBoard(configured, boardConfigFromIr(configured, config), regions, inputs, sinks);
+}
+
+/**
+ * The machine with these slots left empty, as MAME's `-iec8 ""` builds it.
+ * The slot device stays and selects no card; everything the card composed --
+ * its devices, its processor, the devcb wiring between them and the
+ * connections that wiring drives -- is not part of the machine. MAME tags
+ * every device inside a card under its slot's tag, so a prefix is the whole
+ * test. A tag that names no slot device is ignored.
+ */
+export function withEmptySlots(machine: BoardIr, slots: readonly string[] | undefined): BoardIr {
+  const emptied = new Set((slots ?? []).filter(slot =>
+    machine.devices?.some(device => device.tag === slot && device.slotDefault !== undefined)));
+  if (!emptied.size) return machine;
+  const inCard = (tag: string | undefined): boolean =>
+    tag !== undefined && [...emptied].some(slot => tag.startsWith(`${slot}:`));
+  const removed = new Set(machine.callbacks
+    .filter(callback => inCard(callback.ownerTag) || inCard(callback.targetTag))
+    .map(callback => callback.id));
+  const effectInCard = (effect: BoardEffect): boolean =>
+    ('tag' in effect && inCard(effect.tag)) || ('deviceTag' in effect && inCard(effect.deviceTag));
+  const execution = machine.execution;
+  return {
+    ...machine,
+    devices: machine.devices?.filter(device => !inCard(device.tag))
+      .map(device => emptied.has(device.tag) ? { ...device, slotDefault: '' } : device),
+    callbacks: machine.callbacks.filter(callback => !removed.has(callback.id)),
+    connections: machine.connections.filter(connection =>
+      !removed.has(connection.callbackId) && !effectInCard(connection.effect)),
+    execution: {
+      ...execution,
+      cpus: execution.cpus.filter(cpu => !inCard(cpu.tag)),
+      ...(execution.participants
+        ? { participants: execution.participants.filter(participant => !inCard(participant.tag)) }
+        : {}),
+      ...(execution.genericTimers
+        ? { genericTimers: execution.genericTimers.filter(timer => !inCard(timer.tag)) }
+        : {}),
+      ...(execution.bankDevices
+        ? { bankDevices: execution.bankDevices.filter(bank => !inCard(bank.tag)) }
+        : {}),
+      ...(execution.accessTaps
+        ? { accessTaps: execution.accessTaps.filter(tap => !inCard(tap.cpu) && !inCard(tap.device)) }
+        : {}),
+      frameEvents: execution.frameEvents.filter(event =>
+        !inCard(event.ownerTag) && !removed.has(event.callbackId)),
+    },
+  };
 }
 
 const INPUT_LINE_NMI = -1;
@@ -608,7 +658,9 @@ class IrBoard implements Board {
             ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) =>
               [name, new Uint8Array(allocation.bytes).fill(allocation.fill)])),
           },
-          ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
+          // An empty string is an empty slot (withEmptySlots), not "use the
+          // default card".
+          ...(specification.slotDefault !== undefined ? { slot: specification.slotDefault } : {}),
           // A slot whose default card the board composes attaches that card in
           // its own device_start; it starts once the card exists (see
           // attachComposedCards).

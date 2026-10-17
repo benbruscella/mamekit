@@ -16,6 +16,7 @@ import {
   generatedPromGateOpen,
   generatedSignalHandlerArguments,
   generatedStateSetters,
+  withEmptySlots,
 } from './generated-board.ts';
 import type { BoundEffect } from './generated-effects.ts';
 import { registerGeneratedCpu } from './generated-cpu.ts';
@@ -919,5 +920,45 @@ for (let frame = 0; frame < 30; frame++) overrunBoard.frame(beamFrame);
 const overrunTicks = overrunTimer.get('m_ticks') - overrunBefore;
 assert.ok(overrunTicks >= 30 * 262 && overrunTicks < 31 * 262,
   `a slice overrun must not cost a beam-armed timer its frame (${overrunTicks} ticks in 30 frames)`);
+
+// MAME's `-iec8 ""`: the slot stays and selects nothing, and its card goes
+// with everything it composed. A slot that is not a slot device is ignored.
+const cardCpu = { tag: 'iec8:c1541:ucd5', type: 'm6502', clock: 1e6, region: 'ucd5', ranges: [] };
+const cardCallback = { id: 'cb:via', ownerTag: 'iec8:c1541:uab1', signal: 'irq_handler', operation: 'set', targetClass: 'c1541_device_base', targetMethod: 'via0_irq_w' };
+const hostCallback = { id: 'cb:tape', ownerTag: 'tape', signal: 'read_handler', operation: 'set', targetClass: 'c64_state', targetMethod: 'cass_rd_w' };
+const slotted = {
+  ...opcodeMachine,
+  devices: [
+    { id: 'd:tape', tag: 'tape', type: 'PET_DATASSETTE_PORT', slotDefault: 'c1530' },
+    { id: 'd:iec8', tag: 'iec8', type: 'CBM_IEC_SLOT', slotDefault: 'c1541' },
+    { id: 'd:card', tag: 'iec8:c1541', type: 'C1541' },
+    { id: 'd:via', tag: 'iec8:c1541:uab1', type: 'MOS6522' },
+    { id: 'd:iec80', tag: 'iec80', type: 'NOT_UNDER_IEC8' },
+  ],
+  callbacks: [cardCallback, hostCallback],
+  connections: [
+    { callbackId: 'cb:via', effect: { kind: 'handler', handler: 'c1541_device_base.via0_irq_w', deviceTag: 'iec8:c1541:uab1' }, transforms: [] },
+    { callbackId: 'cb:tape', effect: { kind: 'handler', handler: 'c64_state.cass_rd_w' }, transforms: [] },
+  ],
+  execution: {
+    ...opcodeMachine.execution,
+    cpus: [...opcodeMachine.execution.cpus, cardCpu],
+    participants: [{ tag: 'iec8:c1541:ucd5', kind: 'cpu', clock: 1e6 }],
+  },
+} as unknown as BoardIr;
+assert.equal(withEmptySlots(slotted, undefined), slotted);
+assert.equal(withEmptySlots(slotted, ['nothing']), slotted, 'a tag that is no slot changes nothing');
+const noDrive = withEmptySlots(slotted, ['iec8']);
+assert.deepEqual(noDrive.devices!.map(device => [device.tag, device.slotDefault]),
+  [['tape', 'c1530'], ['iec8', ''], ['iec80', undefined]], 'the slot stays empty; its card goes, a lookalike tag stays');
+assert.deepEqual(noDrive.callbacks.map(callback => callback.id), ['cb:tape']);
+assert.deepEqual(noDrive.connections.map(connection => connection.callbackId), ['cb:tape']);
+assert.deepEqual(noDrive.execution.cpus.map(cpu => cpu.tag), opcodeMachine.execution.cpus.map(cpu => cpu.tag),
+  'the card processor leaves the schedule');
+assert.deepEqual(noDrive.execution.participants, []);
+assert.equal(slotted.devices!.length, 5, 'the shared IR is not edited in place');
+const noTape = withEmptySlots(slotted, ['tape']);
+assert.equal(noTape.devices!.find(device => device.tag === 'tape')!.slotDefault, '');
+assert.equal(noTape.execution.cpus.length, slotted.execution.cpus.length);
 
 console.log('generated-board.spec: shares, CPU lines, flip-screen state and CPU buses passed');

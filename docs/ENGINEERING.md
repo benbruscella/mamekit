@@ -149,8 +149,12 @@ audit has filed carries a **⌕ Search** that fetches the set into the browser,
 and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP or a
 software-list ZIP. **Play** boots the machine with the set's images mounted
 on the tape transport or in the disk drive, after the machine asks for its
-own `c64.zip` and the drive's `c1541.zip` firmware (dropped, or found by the
-web search under `computers/c64/bios/`). Multi-image sets expose an image
+own `c64.zip` and, for a disk title, the drive's `c1541.zip` firmware
+(dropped, or found by the web search under `computers/c64/bios/`). A title
+boots with only its own transport attached: a tape title leaves `iec8` empty
+and a disk title leaves `tape` empty, as MAME's `-iec8 ""` and `-tape ""` do.
+The missing transport's strip reads NOT CONNECTED, and **Connect** restarts
+the title with it. **Power on** attaches both. Multi-image sets expose an image
 selector. For a tape, type `LOAD` and press Enter, then click **Play** on the
 transport. If the loader returns to `READY.`, type `RUN` and press Enter; the
 game's turbo loader may continue reading the tape before its title screen
@@ -165,8 +169,9 @@ The 1541 is MAME's own `c1541`, composed into `iec8` from source: its 6502
 and DOS ROM, both 6522 VIAs, the 64H156 gate array, the ALPS drive mechanism
 and the `d64`/`g64` formats. MAME's 1541 reads a disk a flux reversal at a time
 on a 16 MHz gate-array clock, and the drive is not yet real-time in the
-browser while the spindle runs; the C64 itself is unaffected while the motor
-is off. To diagnose the drive in Node, boot an isolated build, mount an image
+browser while the spindle runs. Even with the motor off, an attached 1541 puts
+the machine in permanent lockstep with a second processor, which is why tape
+titles boot without it. To diagnose the drive in Node, boot an isolated build, mount an image
 through `board.disks()[0].mount(extension, bytes)`, type `LOAD"$",8`, and read
 the DOS job queue at 1541 RAM `$00`-`$05` (1 is success, 3 no sync, 9 a header
 checksum) alongside the drive's `m_cyl` and the gate array's `cur_live`.

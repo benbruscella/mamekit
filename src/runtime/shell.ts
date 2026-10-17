@@ -191,7 +191,8 @@ export interface DropZone {
   busy: (name: string) => void;
   error: (msg: string) => void;
   /** per-chip validation result: colors the manifest + summary line */
-  verdict: (check: RomCheck) => void;
+  /** `kept`: the check is of what the browser already keeps, before any drop */
+  verdict: (check: RomCheck, kept?: boolean) => void;
   /** the "Try web search" affordance: button ↔ progress bar */
   search: {
     button: HTMLButtonElement;
@@ -399,6 +400,12 @@ export interface SoftwareShelf {
    * transport is not yet generated is still browsable, but display only.
    */
   mountable: boolean;
+  /**
+   * The MAME slots whose cards carry this medium's transport ("tape",
+   * "iec8"), when it is not fixed to the board. A title on another medium
+   * boots with these slots empty, as MAME's `-iec8 ""` leaves them.
+   */
+  slots?: string[];
 }
 
 export interface SoftwareShelves {
@@ -768,11 +775,26 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
  * `preloaded` bypasses the drop-zone/manifest path: the console room hands
  * over already-verified cart regions (regions.prg/chr) after identification.
  */
+/** What the room that booted the shell can do for it. */
+export interface ShellHost {
+  /** Boot this title again with the card in `slot` attached (see BoardConfig.emptySlots). */
+  attach?: (slot: string) => void;
+}
+
 export async function runShell(
   cfg: ShellConfig,
   preloaded?: Regions,
   mounted: MountedImage[] = [],
+  host: ShellHost = {},
 ): Promise<void> {
+  // A slot the room left empty takes its card's firmware with it: a C64 tape
+  // title boots without the 1541, so it must not ask for c1541.zip.
+  const emptySlots = cfg.board.emptySlots ?? [];
+  if (emptySlots.length) {
+    cfg = { ...cfg, roms: cfg.roms.filter(spec => !emptySlots.some(slot => spec.region.startsWith(`${slot}:`))) };
+    console.info(`[media] booting with ${emptySlots.map(slot => `-${slot} ""`).join(' ')}: ` +
+      'a transport the title does not use is left out, as MAME leaves an empty slot');
+  }
   const ui = buildDom(cfg);
 
   // Cabinet bezels are arcade presentation. Console carts and computers boot
@@ -831,9 +853,9 @@ export async function runShell(
     const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
     const dependencies = dependencyRomSets(cfg.roms, cfg.game);
     const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical);
-    if (kept) {
+    if (kept?.complete) {
       ui.status(`Booting ${cfg.title} from the ${cfg.game}.zip kept in this browser…`);
-      regions = assembleRegions(cfg.roms, kept, ui.status, critical);
+      regions = assembleRegions(cfg.roms, kept.files, ui.status, critical);
       keptRom = true;
     } else {
       // A page opened from an invite still needs its own dump, and the drop
@@ -842,8 +864,11 @@ export async function runShell(
       const companionText = dependencies.length
         ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
         : '';
-      ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
-      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey);
+      const short = kept ? missingRomSets(cfg.roms, kept.files, critical, cfg.game) : [];
+      ui.status(short.length
+        ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
+        : `ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
+      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey, kept ?? undefined);
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
       keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast);
     }
@@ -961,6 +986,14 @@ export async function runShell(
       ? `${measuredFps} fps, ${Math.round((measuredFps / refresh) * 100)}% of real time`
       : 'paused';
   };
+  // A transport left out still has its strip, in the place it always has,
+  // saying so and offering the restart that connects it.
+  const detached = (kind: keyof typeof TRANSPORT_LABELS): void => {
+    for (const slot of emptySlots) {
+      if (cfg.software?.shelves.find(shelf => shelf.slots?.includes(slot))?.kind !== kind) continue;
+      ui.addBay(detachedBay(kind, slot, ui.toast, host.attach));
+    }
+  };
   // The software room's chosen tape rides in on `mounted`; the first transport
   // that accepts its extension takes it, the rest start empty.
   let pending = mounted;
@@ -969,6 +1002,7 @@ export async function runShell(
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
     ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed));
   }
+  detached('cassette');
   // Disk drives the same way: the chosen disk set's images go to the first
   // drive whose formats read them.
   for (const disk of board.disks?.() ?? []) {
@@ -976,6 +1010,7 @@ export async function runShell(
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
     ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed));
   }
+  detached('floppy');
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
@@ -2247,7 +2282,7 @@ function buildDom(cfg: ShellConfig) {
           zone.style.animation = 'm2j-shake .4s';
           setTimeout(() => { zone.style.animation = ''; }, 450);
         },
-        verdict: (check: RomCheck) => {
+        verdict: (check: RomCheck, kept = false) => {
           idle();
           // paint the manifest chip-by-chip: ✓ verified / ≈ crc differs / ✗ absent
           for (const p of check.perFile) {
@@ -2270,9 +2305,17 @@ function buildDom(cfg: ShellConfig) {
             small.textContent = missingSets.length
               ? `Also select or drop ${missingSets.join(', ')}. Files already supplied are kept for this page.`
               : `${check.missingCritical.length} required CPU chip${check.missingCritical.length > 1 ? 's are' : ' is'} missing — try the "${game}" set.`;
-            zone.style.borderColor = '#e0504d';
-            zone.style.animation = 'm2j-shake .4s';
-            setTimeout(() => { zone.style.animation = ''; }, 450);
+            if (kept) {
+              // Nothing went wrong: the browser kept a set for a machine
+              // configured with less firmware (a C64 booted without its 1541).
+              icon.textContent = '🗂️';
+              big.textContent = missingSets.length ? `Drop ${missingSets.join(', ')}` : big.textContent;
+              small.textContent = 'This browser already keeps the rest of the set.';
+            } else {
+              zone.style.borderColor = '#e0504d';
+              zone.style.animation = 'm2j-shake .4s';
+              setTimeout(() => { zone.style.animation = ''; }, 450);
+            }
           } else if (check.missingOther.length || check.crcMismatch.length) {
             manifest.open = true;
             icon.textContent = '⚠️';
@@ -2384,6 +2427,7 @@ function waitForZip(
   game: string,
   category: string,
   firmwareKey?: string,
+  kept?: KeptRomSet,
 ): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[] }> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -2391,9 +2435,12 @@ function waitForZip(
     pick.accept = '.zip';
     pick.multiple = true;
     let accepted = false;
-    const files = new Map<string, Uint8Array>();
+    // What the browser already keeps is where the drop starts, so the screen
+    // ticks it off and asks only for the rest.
+    const files = new Map<string, Uint8Array>(kept?.files ?? []);
     /** every zip that took part, as it arrived, for the ROM library */
-    const zips: StoredZip[] = [];
+    const zips: StoredZip[] = [...(kept?.zips ?? [])];
+    if (kept) zone.verdict(checkRomSet(specs, files, critical), true);
     const ingest = async (name: string, raw: Uint8Array): Promise<boolean> => {
       if (accepted) return true;
       zone.busy(name);
@@ -2401,6 +2448,9 @@ function waitForZip(
       try { incoming = await readZip(raw); }
       catch { zone.error(`${name} isn’t a readable zip — try the original romset.`); return false; }
       mergeRomFiles(files, incoming);
+      // A kept zip of the same name is the one this drop replaces.
+      const stale = zips.findIndex(zip => zip.name === name);
+      if (stale >= 0) zips.splice(stale, 1);
       zips.push({ name, bytes: raw.slice().buffer });
       // grade the set against the manifest BEFORE booting: ticks in the
       // list. Previously supplied split-set zips remain accumulated.
@@ -2502,18 +2552,27 @@ export function mergeRomFiles(files: Map<string, Uint8Array>, incoming: Map<stri
   }
 }
 
+/** What this browser keeps for a machine, graded against today's manifest. */
+export interface KeptRomSet {
+  files: Map<string, Uint8Array>;
+  zips: StoredZip[];
+  /** every boot-critical chip is there */
+  complete: boolean;
+}
+
 /**
  * The chips of the set this browser keeps for a machine, graded against the
- * manifest exactly as a fresh drop is. A set that no longer satisfies the
- * manifest (a regenerated ROM list, a zip that will not read) is forgotten
- * so the drop screen returns rather than a broken boot.
+ * manifest exactly as a fresh drop is. A zip that will not read is forgotten.
+ * A set that is merely short is kept as the start of the next drop: the C64
+ * boots a tape title without the 1541, so what it kept then has no c1541.zip,
+ * and a disk title asks for that one alone.
  */
 export async function storedRomFiles(
   store: RomStore,
   game: string,
   specs: RomRegionSpec[],
   critical: Set<string>,
-): Promise<Map<string, Uint8Array> | null> {
+): Promise<KeptRomSet | null> {
   let record;
   try { record = await store.get(game); } catch { return null; }
   if (!record) return null;
@@ -2524,11 +2583,21 @@ export async function storedRomFiles(
     await store.remove(game).catch(() => undefined);
     return null;
   }
-  if (checkRomSet(specs, files, critical).missingCritical.length) {
-    await store.remove(game).catch(() => undefined);
-    return null;
+  return { files, zips: record.zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
+}
+
+/** The sets that still hold a boot-critical chip `files` lacks, as the drop screen names them. */
+export function missingRomSets(
+  specs: RomRegionSpec[], files: Map<string, Uint8Array>, critical: Set<string>, game: string,
+): string[] {
+  const sets = new Set<string>();
+  for (const entry of checkRomSet(specs, files, critical).perFile) {
+    if (!entry.critical || entry.status !== 'missing') continue;
+    const spec = specs.find(candidate => candidate.region === entry.region);
+    const load = spec?.loads.find(candidate => candidate.file === entry.file);
+    sets.add(load?.romSet ?? spec?.romSet ?? game);
   }
-  return files;
+  return [...sets];
 }
 
 /** Keep an accepted set for next time; says so, or says why it could not. */
@@ -2975,12 +3044,59 @@ function diskBay(
   setInterval(paint, 250);
   return {
     id: 'disk',
-    label: 'DISK DRIVE',
+    label: TRANSPORT_LABELS.floppy,
     ariaLabel: `Disk drive ${media.tag}`,
     left: [picker, mounted, side, readout],
     middle: [],
     right: [open, eject],
     onFocus: releaseKeys,
+  };
+}
+
+/** Each transport's strip, engraved with the name of the deck it stands for. */
+const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE' } as const;
+
+/**
+ * The strip of a transport whose slot the machine booted empty. It has no
+ * keys, because there is nothing behind them: connecting the card is a new
+ * machine, so the one button restarts the title with it attached.
+ */
+function detachedBay(
+  kind: keyof typeof TRANSPORT_LABELS, slot: string, say: (text: string) => void,
+  attach?: (slot: string) => void,
+): PanelBay {
+  const label = TRANSPORT_LABELS[kind];
+  const noun = kind === 'floppy' ? 'disk drive' : 'datassette';
+  const readout = document.createElement('span');
+  readout.setAttribute('data-detached', slot);
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#8f99d2;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#2a2f55';
+  const text = document.createElement('span');
+  text.textContent = 'NOT CONNECTED';
+  readout.append(lamp, text);
+  readout.title = `This title does not use the ${noun}, so the machine booted without it, as MAME's -${slot} "" does`;
+  const right: HTMLElement[] = [];
+  if (attach) {
+    const connect = titleButton('Connect', `Connect the ${noun}`,
+      `Restart the computer with the ${noun} connected`, 'quiet', kind === 'floppy' ? 'disk' : 'tape');
+    connect.setAttribute('data-attach', slot);
+    connect.onclick = () => {
+      connect.disabled = true;
+      say(`Restarting with the ${noun} connected…`);
+      console.info(`[media] restarting with "${slot}" attached`);
+      attach(slot);
+    };
+    right.push(connect);
+  }
+  return {
+    id: kind === 'floppy' ? 'disk' : 'tape',
+    label,
+    ariaLabel: `${label[0]}${label.slice(1).toLowerCase()} (not connected)`,
+    left: [readout],
+    middle: [],
+    right,
   };
 }
 
@@ -3163,7 +3279,7 @@ function cassetteBay(
   setInterval(paint, 250);
   return {
     id: 'tape',
-    label: 'DATASSETTE',
+    label: TRANSPORT_LABELS.cassette,
     ariaLabel: `Cassette ${media.tag}`,
     left: [picker, mounted, side, readout],
     middle: [],

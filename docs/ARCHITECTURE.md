@@ -555,6 +555,15 @@ guarantees. `machine().phase()` answers INIT while the board is built, RESET
 while it resets and RUNNING otherwise; the 1541's VIA port handler ignores what
 it is driven to during reset, exactly as in MAME.
 
+A slot can also be booted empty, as MAME's `-iec8 ""` boots it: the host
+option `BoardConfig.emptySlots` names the slots, and `withEmptySlots` takes out
+everything under each one's tag -- the card's devices, its processor, the devcb
+wiring between them and the connections it drives -- while the slot device
+stays and selects no card (`slot: ''`). The card's firmware regions sit under
+the same tag, so the shell stops asking for them. With the 1541 gone the C64 is
+one processor again and leaves permanent lockstep, which is what a tape title
+gains from booting without it.
+
 ### BROWSER SERVICES
 
 - `bus.ts`: builds memory and I/O buses from generated ranges;
@@ -760,7 +769,13 @@ unchanged for the next generated machine".
    fetched or dropped set is kept in the visitor's browser as the zip it
    arrived in, identified by image CRC against every shelf, and playing it
    hands the shell the set's images to mount on the board's own transport at
-   power-on; the machine's firmware is asked for the way any romset is.
+   power-on; the machine's firmware is asked for the way any romset is. Each
+   shelf also names the slots its transport sits in (`slots`, the outermost
+   slot device above each transport the generator finds), so a title boots
+   with every other medium's slot empty and **Power on** with none. The empty
+   transport keeps its strip on the panel with a **Connect** button; that
+   restarts the title with the slot filled, and the firmware the browser
+   already keeps counts towards the new drop instead of being discarded.
 7. The shell creates the generated board, starts frame scheduling, presents the
    framebuffer, and activates generated audio worklets after a user gesture.
 

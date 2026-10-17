@@ -716,8 +716,11 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     // file names no shelf, and a fetched one is checked the same way.
     await Promise.all(shelves.map(loadShelf));
     const identified = identifySet(members, catalogs.values());
-    const shelf = shelfFor(identified?.list) ?? hint ?? shelves.find(candidate =>
-      mountableImages(members, candidate.extensions).length > 0);
+    // The shelf on screen is only a hint: a disk image dropped while the
+    // tapes are showing belongs on a disk shelf, not refused by the tape one.
+    const takes = (candidate: SoftwareShelf | undefined): boolean =>
+      Boolean(candidate && mountableImages(members, candidate.extensions).length);
+    const shelf = shelfFor(identified?.list) ?? (takes(hint) ? hint : shelves.find(takes) ?? hint);
     if (!shelf) { toast(`${name}: no image inside that any shelf here accepts`); return false; }
     if (!mountableImages(members, shelf.extensions).length) {
       toast(`${name}: no ${shelf.extensions.map(e => `.${e}`).join(' / ')} image inside`);
@@ -803,7 +806,16 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   }
 
   // --- boot -----------------------------------------------------------------------------
-  async function boot(rec: CartRecord | null): Promise<void> {
+  // A medium's transport is attached only for the titles that use it: a tape
+  // title boots with the disk drive's slot empty, as MAME's `-iec8 ""` does,
+  // rather than running the 1541's processor in lockstep with the machine's
+  // own for nothing. Power on attaches every one.
+  const mediaSlots = [...new Set(shelves.flatMap(shelf => shelf.mountable ? shelf.slots ?? [] : []))];
+  // A title restarted from inside the machine to connect a transport comes
+  // back through a reload; this carries what to boot across it.
+  const restartKey = `mamekit:restart:${cfg.game}`;
+
+  async function boot(rec: CartRecord | null, attached: string[] = [], restarted = false): Promise<void> {
     let images: MountedImage[] = [];
     let title = cfg.title;
     if (rec) {
@@ -821,14 +833,26 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     inRoom = false;
     document.body.textContent = '';
     document.body.style.cssText = '';
+    const used = new Set([...(rec ? shelfFor(rec.list)?.slots ?? [] : mediaSlots), ...attached]);
+    const emptySlots = mediaSlots.filter(slot => !used.has(slot));
     const cfg2: ShellConfig = {
       ...cfg,
       title,
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
+      ...(emptySlots.length ? { board: { ...cfg.board, emptySlots } } : {}),
       ...(preview ? { preview: true } : {}),
     };
-    history.pushState({ set: rec?.id ?? null }, '', location.href);
-    await runShell(cfg2, undefined, images);
+    // The restart reloads the entry this pushed, so it must not push another.
+    if (restarted) history.replaceState({ set: rec?.id ?? null }, '', location.href);
+    else history.pushState({ set: rec?.id ?? null }, '', location.href);
+    await runShell(cfg2, undefined, images, {
+      attach: slot => {
+        try {
+          sessionStorage.setItem(restartKey, JSON.stringify({ set: rec?.id ?? null, attached: [...attached, slot] }));
+        } catch { /* no session storage: the reload lands in the room */ }
+        location.reload();
+      },
+    });
   }
 
   // --- details modal -------------------------------------------------------------------
@@ -942,6 +966,18 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     ownRow.appendChild(tile.item);
   }
   ownHead.style.display = owned.length ? '' : 'none';
+
+  // Back from a restart that connected a transport: boot the same title again.
+  let restart: { set: string | null; attached: string[] } | undefined;
+  try {
+    const raw = sessionStorage.getItem(restartKey);
+    sessionStorage.removeItem(restartKey);
+    if (raw) restart = JSON.parse(raw) as typeof restart;
+  } catch { /* storage unavailable or unreadable: stay in the room */ }
+  if (restart) {
+    const rec = restart.set === null ? null : recs.find(candidate => candidate.id === restart.set);
+    if (rec !== undefined) void boot(rec, Array.isArray(restart.attached) ? restart.attached.map(String) : [], true);
+  }
 }
 
 async function fetchOwnEntry(cfg: ShellConfig): Promise<MenuEntry | null> {
