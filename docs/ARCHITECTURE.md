@@ -356,6 +356,18 @@ into a small fast-mode table and rebuilds it whenever a binding changes. This
 keeps the interpreter as the semantic reference while removing per-operation
 tree walking from pixel-scale loops such as the MAME 05XX starfield.
 
+Besides loop shape, a method is emitted when it is a hardware entry point by
+MAME's own spelling: a bus handler takes `offs_t offset` first, a write-line
+takes `int state`, a read-line takes nothing and is named `*_r`. These have no
+loop for the shape rules to see and run on every access or edge -- the 1541's
+gate array raises BYTE READY on its VIA's `write_ca1` six thousand times a
+frame. A helper class the device allocates (`new daisy_entry(...)`) has every
+method emitted with it. Two constructs have a direct form when their types are
+known: `a = b` between members of the same struct type copies field by field
+through a per-type copier instead of the runtime's keyed copy, and an iterator
+accessor on a `std::vector` (`buf.begin()`) asks the container instead of
+probing a dereferenced first element.
+
 A floppy drive is a device like any other (`src/hardware/floppy/`,
 `src/mame/floppy-compiler.ts`): `floppy_image_device` and its mechanism class
 from `imagedev/floppy.cpp`, the `floppy_image` track store from

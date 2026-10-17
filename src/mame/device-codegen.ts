@@ -71,6 +71,8 @@ interface EmitContext {
   /** Stable members this method actually mentions, in emission order. */
   hoisted?: Set<string>;
   constantTables?: Map<string, string>;
+  /** Field-by-field copiers for struct assignment, by function name (structCopier). */
+  structCopiers?: Map<string, string>;
   /**
    * Board/host call names this method reaches through `runtime.links`, the
    * per-runtime table of resolved call targets. The board's own `calls`
@@ -135,6 +137,7 @@ export function generatedDeviceMethodsSource(
       // shape rules below to notice, so the ColecoVision's Z80 drove every VDP
       // port write through the interpreter -- 41% of a frame at 33 fps.
       isBusEntryPoint(method) ||
+      isLineEntryPoint(method) ||
       // device_execute_interface entry points run every device clock, even
       // when their loop only calls helpers and has no switch of its own.
       method.name === 'execute_run' ||
@@ -178,8 +181,9 @@ export function generatedDeviceMethodsSource(
   // also passed validation. Other calls retain the interpreter fallback.
   const constantTables = new Map<string, string>();
   const links = new Set<string>();
+  const structCopiers = new Map<string, string>();
   const functions = supported.map(method =>
-    emitMethod(definition, method, supportedNames, typescript, constantTables, links)).join('\n\n');
+    emitMethod(definition, method, supportedNames, typescript, constantTables, links, structCopiers)).join('\n\n');
   // A method that assigns through a C++ reference is emitted against the
   // get/set (or single returned reference) ABI, which only an emitted caller
   // knows how to satisfy — and those call it as a plain function, not through
@@ -194,6 +198,7 @@ export function generatedDeviceMethodsSource(
       `${JSON.stringify(method.name)}: method_${safeName(method.name)}`).join(',\n    ');
   const source = `(() => {
 ${[...constantTables].map(([values, name]) => `  const ${name} = [${values}];`).join('\n')}
+${[...structCopiers.values()].join('\n')}
 ${functions}
   return {
     ${entries}
@@ -269,6 +274,16 @@ function generatedDeviceAssignments(
   }
   if (definition.floppyImage) {
     assignments.push(...generatedDeviceAssignments(definition.floppyImage, `${target}.floppyImage!`));
+  }
+  // An object the device allocates (`new daisy_entry(device)`) is a small
+  // helper whose methods the device's own loops call: the IEC bus steps its
+  // daisy list with `entry->next()` on every line read, three thousand times
+  // a frame while a 1541 loads. Every method of it is an entry point.
+  for (const [name, allocated] of Object.entries(definition.allocations ?? {})) {
+    assignments.push(...generatedDeviceAssignments(
+      { ...allocated, hotMethods: allocated.methods.map(method => method.name) },
+      `${target}.allocations![${JSON.stringify(name)}]!`,
+    ));
   }
   return assignments;
 }
@@ -367,6 +382,18 @@ function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
   // four chip selects besides the address -- and runs on every instruction
   // fetch, because the game code lives in cartridge ROM.
   return /^offs_t\s+offset$/.test(first);
+}
+
+/**
+ * A line handler, MAME's other hardware entry point: devcb drives a write-line
+ * with `int state` on every edge and polls a read-line, which takes nothing and
+ * is named `*_r`. Like a bus handler it has no loop for the shape rules to
+ * notice, and the 1541's gate array raises BYTE READY on its VIA's `write_ca1`
+ * six thousand times a frame while a disk loads.
+ */
+function isLineEntryPoint(method: GeneratedDeviceMethod): boolean {
+  const parameters = method.parameters.trim();
+  return /^int\s+state$/.test(parameters) || (parameters === '' && /_r$/.test(method.name));
 }
 
 export function supportsMethod(
@@ -494,6 +521,7 @@ function emitMethod(
   typescript: boolean,
   constantTables: Map<string, string>,
   links: Set<string>,
+  structCopiers?: Map<string, string>,
 ): string {
   const parameters = parseParameters(method.parameters);
   const returnedReference = singleReturnedReference(method);
@@ -523,6 +551,7 @@ function emitMethod(
     typescript,
     methodConstants: method.constants,
     constantTables,
+    structCopiers,
     links: new Set<string>(),
   };
   context.dereferencedParameters = new Map(parameters.filter(parameter =>
@@ -1457,6 +1486,15 @@ function emitValueMemberCall(
     // then probe the byte for a method before falling back to the container.
     return object;
   }
+  // A std::vector is its own container at run time, so its iterators come from
+  // the container. Probed as a pointer first, `buf.begin()` dereferenced the
+  // vector to its first element three times before falling back here, and
+  // the floppy drive's cache_fill spells begin() and end() five times on
+  // every flux transition a 1541 reads.
+  if (!args.length && (property === 'begin' || property === 'end' || property === 'data' || property === 'empty') &&
+      /^(?:const\s+)?std::vector\b/.test(expressionValueType(expression.callee.object, context) ?? '')) {
+    return `runtime.container(${object}, ${JSON.stringify(property)})`;
+  }
   // normalizeMameExecutionSource lowers std::vector::push_back to Array.push.
   // A vector is the container value itself, not a C++ pointer to its first
   // element. Running it through runtime.dereference turns an empty vector into
@@ -1561,6 +1599,43 @@ function linkedMemberCallName(
   return `${object.callee.name}().${expression.callee.property}`;
 }
 
+/**
+ * A copier for `a = b` where both are members of the same struct type, as
+ * one named store per field: `checkpoint_live = cur_live` on the 64H156 runs
+ * twelve thousand times a frame while a 1541 reads, and the generic copy's
+ * keyed stores were a tenth of the drive's cost. Scalar fields store; an
+ * array field copies element by element, as runtime.copyStruct does. A field
+ * that is itself a struct, or a source that is anything else, keeps the
+ * generic copy.
+ */
+function structCopier(
+  member: { valueType: string; fields?: { name: string; length?: number; fields?: unknown }[] },
+  value: GeneratedExpression,
+  context: EmitContext,
+): string | undefined {
+  if (!context.structCopiers || value.kind !== 'identifier' || context.locals.has(value.name)) return undefined;
+  const source = context.definition.members.find(candidate => candidate.name === value.name);
+  const fields = member.fields ?? [];
+  if (!source?.fields || source.valueType !== member.valueType || source.arrayLength || source.valueType.includes('*')) return undefined;
+  if (JSON.stringify(source.fields) !== JSON.stringify(member.fields)) return undefined;
+  if (!fields.length || fields.some(field => field.fields || !/^\w+$/.test(field.name))) return undefined;
+  const name = `struct_copy_${safeName(member.valueType)}`;
+  if (!context.structCopiers.has(name)) {
+    const stores = fields.map(field => field.length
+      ? `    { const into = t.${field.name}, from = s.${field.name};
+      if (Array.isArray(into) && Array.isArray(from)) { for (let i = 0; i < into.length && i < from.length; i++) into[i] = from[i]; }
+      else if (from !== undefined) t.${field.name} = from; }`
+      : `    if (s.${field.name} !== undefined) t.${field.name} = s.${field.name};`).join('\n');
+    const any = context.typescript ? ': any' : '';
+    context.structCopiers.set(name, `  function ${name}(t${any}, s${any}) {
+    if (t === s || !t || !s || typeof s !== 'object') return s;
+${stores}
+    return t;
+  }`);
+  }
+  return name;
+}
+
 function emitAssignment(
   expression: GeneratedExpression,
   operator: string,
@@ -1630,6 +1705,8 @@ function emitAssignment(
   if (operator === '=' && expression.kind === 'identifier' && !context.locals.has(expression.name)) {
     const member = context.definition.members.find(candidate => candidate.name === expression.name);
     if (member?.fields && !member.arrayLength && !member.valueType.includes('*')) {
+      const copier = structCopier(member, value, context);
+      if (copier) return `${copier}(members.${member.name}, ${right})`;
       return `runtime.copyStruct(members.${member.name}, ${right})`;
     }
   }

@@ -118,13 +118,18 @@ export function isGeneratedStruct(value: unknown): value is Record<string, unkno
 export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
   if (!isGeneratedStruct(target) || !source || typeof source !== 'object' || target === source) return source;
   const from = source as Record<string, unknown>;
-  // for-in walks the fields without allocating a key array: the 64H156 copies
-  // its live state at every bit cell.
-  for (const key in target) {
-    if (!(key in from)) continue;
+  // A struct's fields never change once it is built, so their names are read
+  // once: the 64H156 copies its live state twice at every syncpoint, twelve
+  // thousand times a frame while a 1541 reads.
+  let keys = STRUCT_FIELDS.get(target);
+  if (!keys) STRUCT_FIELDS.set(target, keys = Object.keys(target));
+  for (let field = 0; field < keys.length; field++) {
+    const key = keys[field]!;
     const next = from[key];
+    if (next === undefined && !(key in from)) continue;
     const current = target[key];
-    if (isGeneratedStruct(current)) copyGeneratedStruct(current, next);
+    if (current === null || typeof current !== 'object') target[key] = next;
+    else if (isGeneratedStruct(current)) copyGeneratedStruct(current, next);
     else if (Array.isArray(current) && Array.isArray(next)) {
       for (let index = 0; index < current.length && index < next.length; index++) {
         if (isGeneratedStruct(current[index])) copyGeneratedStruct(current[index], next[index]);
@@ -134,6 +139,9 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
   }
   return target;
 }
+
+/** Each struct's field names, read once (see copyGeneratedStruct). */
+const STRUCT_FIELDS = new WeakMap<object, string[]>();
 
 /**
  * The value of a C++ default argument (`bool force = false`,

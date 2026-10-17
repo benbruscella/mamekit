@@ -4948,6 +4948,9 @@ class IrBoard implements Board {
     registry: HandlerRegistry,
   ): SoundRuntimeHooks | undefined {
     if (!machine.sound) return undefined;
+    // Each device's method names, read once: the stream pump asks before every
+    // render, and methodNames() builds a fresh array of all of them.
+    const deviceMethods = new Map<Device, ReadonlySet<string>>();
     const hooks = installSoundRuntime({
       board: machine,
       regions,
@@ -4963,7 +4966,10 @@ class IrBoard implements Board {
       bindDeviceCall: (tag, name, callback) => this.devices.get(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
         const device = this.devices.get(tag);
-        if (!device?.methodNames().includes(method)) return undefined;
+        if (!device) return undefined;
+        let methods = deviceMethods.get(device);
+        if (!methods) deviceMethods.set(device, methods = new Set(device.methodNames()));
+        if (!methods.has(method)) return undefined;
         // `invoke` rather than `call`: a stream-rendering chip is handed
         // MAME's `sound_stream` surface, which is an object, not a number.
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
@@ -5331,8 +5337,13 @@ class IrBoard implements Board {
     // Read callbacks are frequently polled by peripheral MCUs and are safe to
     // memoize as query closures. Keep command/lifecycle handlers on the
     // established interpreter path: those callbacks may deliberately depend
-    // on sequencing that is not represented by their return value.
-    const compiled = /_r(?:_\d+)?$/.test(handler.method)
+    // on sequencing that is not represented by their return value. A handler
+    // the board module emitted is faster than either, so the closure only
+    // stands in for a read callback the emitter left out: the C64 polls its
+    // serial bus through cia2_pa_r two thousand times a frame while a 1541
+    // loads, and the closure built a fresh context object for each.
+    const compiled = /_r(?:_\d+)?$/.test(handler.method) &&
+      !this.machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]
       ? compileGeneratedMachineHandler(this.machine, handler, bindings)
       : undefined;
     // Resolved once, not per call. A signal wired to a processor's own
