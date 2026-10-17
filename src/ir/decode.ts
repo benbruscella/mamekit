@@ -598,6 +598,19 @@ function decodeDevices(reader: Reader, value: unknown): void {
         if (!Number.isInteger(fill) || fill < 0 || fill > 255) {
           reader.fail(`${allocationPath}.fill`, 'expected a byte from 0 to 255', source);
         }
+        if (allocation.runs !== undefined) {
+          let covered = 0;
+          for (const [position, run] of reader.array(allocation.runs, `${allocationPath}.runs`, source).entries()) {
+            const pair = reader.array(run, `${allocationPath}.runs[${position}]`, source);
+            const value = reader.number(pair[0], `${allocationPath}.runs[${position}][0]`, source);
+            const count = reader.number(pair[1], `${allocationPath}.runs[${position}][1]`, source);
+            if (pair.length !== 2 || !Number.isInteger(value) || value < 0 || value > 255 || !Number.isSafeInteger(count) || count <= 0) {
+              reader.fail(`${allocationPath}.runs[${position}]`, 'expected [byte, positive count]', source);
+            }
+            covered += count;
+          }
+          if (covered !== bytes) reader.fail(`${allocationPath}.runs`, `expected runs covering ${bytes} bytes, got ${covered}`, source);
+        }
       }
     }
     if (device.addressMaps !== undefined) {

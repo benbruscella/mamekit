@@ -921,6 +921,97 @@ const overrunTicks = overrunTimer.get('m_ticks') - overrunBefore;
 assert.ok(overrunTicks >= 30 * 262 && overrunTicks < 31 * 262,
   `a slice overrun must not cost a beam-armed timer its frame (${overrunTicks} ticks in 30 frames)`);
 
+// MAME's 6502 stops between an instruction's cycles, so a timer due partway
+// through one fires before that instruction's later accesses: machine().time()
+// never runs backwards. The C64 datassette stopped itself whenever its 44.1 kHz
+// read timer fell due inside the instruction that started the motor. Here a
+// 1/997 s timer lands inside 10-cycle instructions whose seventh cycle writes
+// the same device; both read the time. A core that finishes its instruction
+// first -- MAME's Z80 as much as ours -- sees the timer late.
+for (const suspends of [true, false]) {
+  registerGeneratedCpu({
+    type: `ORDER_CPU_FIXTURE_${suspends}`, summary: { diagnostics: 0 },
+    ...(suspends ? { suspendsMidInstruction: true } : {}),
+    create(bus) {
+      let cycles = 0;
+      return {
+        reset() {}, step() { return 10; },
+        run(target) {
+          let total = 0;
+          while (total < target) {
+            cycles = 0;
+            bus.timing?.(total, target);
+            cycles = 7;
+            bus.write(0x10, 0);
+            total += 10;
+          }
+          cycles = 0;
+          bus.timing?.(Math.min(total, target), Math.min(total, target));
+          return total;
+        },
+        elapsedCycles: () => cycles,
+        setIrqLine() {}, setInputLine() {}, nmi() {}, get() { return 0; },
+        stateInt() { return 0; }, set() {}, invoke() { return 0; }, hasMethod() { return false; },
+      };
+    },
+  });
+}
+registerGeneratedDevice({
+  type: 'ORDER_FIXTURE', constants: {}, callbacks: [],
+  members: [
+    { name: 'm_last', valueType: 'double', initial: 0 },
+    { name: 'm_backwards', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_fired', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_timer', valueType: 'emu_timer *', initial: 0 },
+  ],
+  timers: [{ member: 'm_timer', callback: 'tick' }],
+  methods: [
+    { name: 'device_start', parameters: '', program: compileMameHandler(
+      'm_timer->adjust(attotime::from_hz(997), 0, attotime::from_hz(997));') },
+    { name: 'observe', parameters: '', program: compileMameHandler(
+      'double now = machine().time().as_double(); if (now < m_last) m_backwards++; m_last = now;') },
+    { name: 'tick', parameters: '', program: compileMameHandler('m_fired++; observe();') },
+    { name: 'write', parameters: 'offs_t offset, u8 data', program: compileMameHandler('observe();') },
+  ],
+  start: 'device_start',
+  summary: { diagnostics: 0 },
+});
+for (const suspends of [true, false]) {
+  const orderMachine: BoardIr = {
+    ...beamTimerMachine,
+    game: `order-fixture-${suspends}`,
+    devices: [{ id: 'device:order', tag: 'probe', type: 'ORDER_FIXTURE', member: 'm_probe' }],
+    execution: {
+      ...beamTimerMachine.execution,
+      // Scheduled line by line, as the C64's set_perfect_quantum has it. In
+      // rounds spanning lines the device clock runs ahead of the processor
+      // by design, which is a different order from the one tested here.
+      perfectQuantum: true,
+      cpus: [{
+        ...beamTimerMachine.execution.cpus[0]!,
+        type: `ORDER_CPU_FIXTURE_${suspends}`,
+        // Forty whole cycles a line, as the PAL C64 has 63: a fractional line
+        // leaves the beam a part-cycle past the processor at each settle.
+        clock: 60 * 262 * 40,
+        ranges: [{ start: 0x10, end: 0x10, kind: 'handler', write: 'probe.write' }],
+      }],
+    },
+  };
+  const orderBoard = createGeneratedBoard(orderMachine,
+    { game: orderMachine.game, family: 'fixture', cpus: [], ranges: [],
+      screen: { width: 1, height: 240, refresh: 60, vtotal: 262, vbstart: 241, rotate: 0 },
+      clocks: { namco06: 0, wsg: 0 } },
+    { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+  for (let frame = 0; frame < 10; frame++) orderBoard.frame(beamFrame);
+  const probe = (orderBoard as unknown as { devices: Map<string, Device> }).devices.get('probe')!;
+  assert.ok(probe.get('m_fired') > 150, `the order fixture's timer must run (${probe.get('m_fired')} firings)`);
+  if (suspends) {
+    assert.equal(probe.get('m_backwards'), 0, 'a timer due inside an instruction fires before its later accesses');
+  } else {
+    assert.ok(probe.get('m_backwards') > 0, 'a whole-instruction core services its timers after the instruction');
+  }
+}
+
 // MAME's `-iec8 ""`: the slot stays and selects nothing, and its card goes
 // with everything it composed. A slot that is not a slot device is ignored.
 const cardCpu = { tag: 'iec8:c1541:ucd5', type: 'm6502', clock: 1e6, region: 'ucd5', ranges: [] };

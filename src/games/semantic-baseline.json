@@ -101,7 +101,7 @@
       "palette": "none"
     },
     "c64": {
-      "sha256": "0fa2a78690d187b5e37f016b3c8ad4cfb163a05ca4083de0c81337278e34083c",
+      "sha256": "6b3b018cca02efc8ea02cc3872ebacddc7f6c9ea323ec0c8ef24cc124db4560e",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -110,7 +110,7 @@
       "palette": "none"
     },
     "c64p": {
-      "sha256": "1f0b19282fe78008917d14a5112f0492b844a117f9d88a44e15ece12f28f2ce8",
+      "sha256": "4f9cff726b2bb02d3e6ca5f0d4642f91360e87bea8ba7c0d1603897149f71959",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,

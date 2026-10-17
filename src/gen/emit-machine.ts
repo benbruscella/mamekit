@@ -20,7 +20,7 @@ import type {
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
 import { sourceRegionBindings } from '../mame/video-compiler.ts';
-import { lowerRamAllocation } from '../mame/ram-compiler.ts';
+import { lowerRamAllocation, ramPowerOn } from '../mame/ram-compiler.ts';
 
 /** MAME device input clocks converted to the instruction-cycle scheduler rate. */
 export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
@@ -349,6 +349,27 @@ export function lowerGeneratedMachine(
         : {}),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
+  // A RAM device the driver's own machine_start fills: its power-on bytes
+  // are what that function leaves there (ram-compiler `ramPowerOn`).
+  const rootRam = devices.filter(device =>
+    device.type === 'RAM' && !device.hostTag && device.member && device.memoryAllocations);
+  if (rootRam.length && graph.meta.mameSrc && graph.meta.driverFile) {
+    const sourceFiles = [
+      String(graph.meta.driverFile),
+      ...graph.nodes.filter(node => node.label === 'SourceFile').map(node => String(node.props.path ?? '')),
+    ].filter(Boolean);
+    const ast = new MameAstIndex(parseMameAst([...new Set(sourceFiles)].flatMap(file => {
+      const path = join(String(graph.meta.mameSrc), file);
+      return existsSync(path) ? [{ file, source: readFileSync(path, 'utf8') }] : [];
+    })));
+    const start = ast.findFunctionInHierarchy(rootMachineClass, 'machine_start');
+    for (const device of start ? rootRam : []) {
+      for (const allocation of Object.values(device.memoryAllocations!)) {
+        const runs = ramPowerOn(start!.body, device.member!, allocation.bytes, allocation.fill);
+        if (runs) allocation.runs = runs;
+      }
+    }
+  }
   const finderAliases = new Map<string, Set<string>>();
   for (const edge of graph.edges) {
     if (edge.rel !== 'CALLS_HANDLER' || !edge.props?.finder) continue;

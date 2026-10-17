@@ -150,6 +150,8 @@ export interface GeneratedCpuExecutable {
   delegateSetters?: Record<string, string>;
   /** Driver-callable one-line state accessors: method name -> member. */
   accessors?: Record<string, string>;
+  /** MAME's core stops between an instruction's cycles (see cpu-compiler). */
+  suspendsMidInstruction?: boolean;
   create(bus: CpuBus): Cpu;
 }
 
@@ -197,7 +199,7 @@ export function clearGeneratedCpus(): void {
 }
 
 /** Source facts a generated core exports beside its executable. */
-export function generatedCpuFacts(type: string): Pick<GeneratedCpuExecutable, 'scanlineTimer' | 'delegateSetters' | 'accessors'> {
+export function generatedCpuFacts(type: string): Pick<GeneratedCpuExecutable, 'scanlineTimer' | 'delegateSetters' | 'accessors' | 'suspendsMidInstruction'> {
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) return {};
   return 'create' in definition
@@ -205,6 +207,7 @@ export function generatedCpuFacts(type: string): Pick<GeneratedCpuExecutable, 's
         scanlineTimer: definition.scanlineTimer,
         delegateSetters: definition.delegateSetters,
         accessors: definition.accessors,
+        suspendsMidInstruction: definition.suspendsMidInstruction,
       }
     : { accessors: definition.accessors };
 }

@@ -165,6 +165,15 @@ all buttons so the computer retains its letter and function keys. Tape speed
 remains under the emulated computer's motor control.
 `e2e/specs/computer.spec.ts` is the browser gate for the room.
 
+To check what a tape title does against MAME itself, drive both the same way:
+MAME 0.289 with `-iec8 "" -cass <image>.tap -video none -nothrottle`, an
+`-autoboot_script` that posts `LOAD{ENTER}` at frame 150 and calls
+`manager.machine.cassettes[...]:play()` at frame 300, and a Lua write tap on
+`:u7`'s program space at `$D400`-`$D7FF`; on this side, wrap the board's
+`m_sid.write` call binding after `noteCallLinksChanged()`. Cauldron I & II's
+first 300 seconds produce the same 182,525 SID writes in the same order, and
+the music matches MAME's WAV band for band.
+
 The 1541 is MAME's own `c1541`, composed into `iec8` from source: its 6502
 and DOS ROM, both 6522 VIAs, the 64H156 gate array, the ALPS drive mechanism
 and the `d64`/`g64` formats. MAME's 1541 reads a disk a flux reversal at a time

@@ -172,6 +172,17 @@ export function createGeneratedBoard(
   return new IrBoard(configured, boardConfigFromIr(configured, config), regions, inputs, sinks);
 }
 
+/** A device's source-allocated storage as it stands at power-on. */
+function allocatedMemory(allocation: { bytes: number; fill: number; runs?: [number, number][] }): Uint8Array {
+  const memory = new Uint8Array(allocation.bytes).fill(allocation.fill);
+  let offset = 0;
+  for (const [value, count] of allocation.runs ?? []) {
+    memory.fill(value, offset, offset + count);
+    offset += count;
+  }
+  return memory;
+}
+
 /**
  * The machine with these slots left empty, as MAME's `-iec8 ""` builds it.
  * The slot device stays and selects no card; everything the card composed --
@@ -435,6 +446,32 @@ class IrBoard implements Board {
    * against the beam; see the line settle in the frame runner's onLine.
    */
   private deviceClockFollowsProcessors = false;
+  /**
+   * Brings the device clock up to where the timer-clock processor stands
+   * inside its current instruction (see the core's `suspendsMidInstruction`).
+   */
+  private catchUpDeviceTime?: () => void;
+  /**
+   * Device time a catch-up delivered past the running slice's target. A
+   * lockstep slice's booked overrun pays only the rest; any other slice's
+   * overrun comes off the next slice. Always zero between slices.
+   */
+  private deviceTimeAheadOfSlice = 0;
+  private deliveringDeviceTime = false;
+  /**
+   * Cycles the timer-clock processor's last slice ran past its target that
+   * its devices have not been given. Outside lockstep the line settle pays
+   * them when the next line closes (it measures device time against the
+   * beam); a catch-up before then pays them early, and the settle then owes
+   * that much less.
+   */
+  private timerCpuCarriedCycles = 0;
+  /**
+   * The running processor is inside its core's run(): an instruction may be
+   * part-way through. Once run() returns the slice is booked, and a device
+   * asking the time then has nothing to catch up.
+   */
+  private coreExecuting = false;
   /** The processor whose slice is executing. */
   private runningCpu?: string;
   private soundRuntime?: SoundRuntimeHooks;
@@ -656,7 +693,7 @@ class IrBoard implements Board {
           members: {
             ...configuredMembers,
             ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) =>
-              [name, new Uint8Array(allocation.bytes).fill(allocation.fill)])),
+              [name, allocatedMemory(allocation)])),
           },
           // An empty string is an empty slot (withEmptySlots), not "use the
           // default card".
@@ -971,8 +1008,13 @@ class IrBoard implements Board {
     const advanceTimedHardware = (seconds: number): void => {
       if (!(seconds > 0)) return;
       this.timedHardwareDelivered += seconds;
+      // A device asking the time while its clock is being delivered is
+      // answered from the delivery, never caught up again (catchUpDeviceTime).
+      const outer = this.deliveringDeviceTime;
+      this.deliveringDeviceTime = true;
       tickGeneratedDevices(seconds);
       tickHostedProcessors(seconds);
+      this.deliveringDeviceTime = outer;
     };
     // MAME's DISCRETE_SOUND network addresses nodes through the NODE(n) macro,
     // and a driver handler may poke one directly. Gyruss's i8039 does exactly
@@ -1604,6 +1646,7 @@ class IrBoard implements Board {
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
+      let sliceTarget = 0;
       // Cycles of the running slice already reported to a sound device, and
       // the resolved hook itself (the runtime is installed after this closure).
       const instructionTicks = this.hostModel(
@@ -1716,6 +1759,7 @@ class IrBoard implements Board {
           }
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
           this.runningSliceCycles = clamped;
+          sliceTarget = target;
           if (specification.tag === timerClockCpu?.tag) {
             const current = clamped;
             // run() calls timing(0,target) at the start of each slice and
@@ -1776,6 +1820,39 @@ class IrBoard implements Board {
             configuration.args.every(argument => typeof argument === 'number')) {
           cpu.invoke(configuration.method, ...configuration.args as number[]);
         }
+      }
+      // MAME's 6502 stops between the cycles of an instruction, so a timer
+      // that falls due partway through one fires before the instruction's
+      // later accesses. Device time arrives here between instructions; when a
+      // device asks the time from inside one, the clock is first brought up
+      // to where the processor stands, so a timer due earlier fires first and
+      // time never runs backwards. The C64's datassette stopped itself
+      // whenever its read timer fell due inside the instruction that started
+      // the motor: MAME's cassette refuses to move to a negative position.
+      if (specification.tag === timerClockCpu?.tag && cpuFacts.suspendsMidInstruction && cpu.elapsedCycles) {
+        this.catchUpDeviceTime = () => {
+          if (this.deliveringDeviceTime || !this.coreExecuting || this.runningCpu !== specification.tag) return;
+          // The processor began this slice where its last one overran to.
+          if (this.timerCpuCarriedCycles > 0) {
+            const carried = this.timerCpuCarriedCycles;
+            this.timerCpuCarriedCycles = 0;
+            advanceTimedHardware(carried / timerClockHz());
+          }
+          // Past the slice's target too: the processor really is there, and
+          // whatever it overran comes off its next slice (the frame runner's
+          // carry), which is where that much device time would otherwise
+          // have been delivered.
+          const reach = this.runningSliceCycles + cpu.elapsedCycles!();
+          const delivered = timing.previousCycles + this.deviceTimeAheadOfSlice;
+          if (!(reach > delivered)) return;
+          advanceTimedHardware((reach - delivered) / timerClockHz());
+          if (reach <= sliceTarget) {
+            timing.previousCycles = reach;
+          } else {
+            timing.previousCycles = sliceTarget;
+            this.deviceTimeAheadOfSlice = reach - sliceTarget;
+          }
+        };
       }
       this.cpus.set(specification.tag, cpu);
       this.cpuCycles.set(specification.tag, 0);
@@ -2263,6 +2340,7 @@ class IrBoard implements Board {
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
+          const outerExecuting = this.coreExecuting;
           this.runningCpu = specification.tag;
           try {
             const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
@@ -2272,9 +2350,11 @@ class IrBoard implements Board {
               advanceTimedHardware(stalled / timerClockHz());
             }
             if (stalled > 0) tickCardDevices(specification.tag, stalled);
+            this.coreExecuting = true;
             const executed = stalled + (cycles > stalled
               ? this.cpus.get(specification.tag)!.run(cycles - stalled)
               : 0);
+            this.coreExecuting = outerExecuting;
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
             this.runningSliceCycles = 0;
@@ -2292,7 +2372,17 @@ class IrBoard implements Board {
             // in three. Deliver the rest now, with the slice booked, so a
             // timer's callback still reads its own expiry as the time.
             if (specification.tag === timerClockCpu?.tag && executed > cycles && this.frameRunner.lockstepping) {
-              advanceTimedHardware((executed - cycles) / timerClockHz());
+              advanceTimedHardware((executed - cycles - this.deviceTimeAheadOfSlice) / timerClockHz());
+            }
+            if (specification.tag === timerClockCpu?.tag) {
+              // Outside lockstep the overrun stays owed to the line settle;
+              // a catch-up in the next slice may pay it sooner. Delivering it
+              // here instead, every slice, ran device time ahead of the beam
+              // and silenced the NES APU and Missile Command's POKEY.
+              this.timerCpuCarriedCycles = this.catchUpDeviceTime && !this.frameRunner.lockstepping
+                ? Math.max(0, executed - cycles - this.deviceTimeAheadOfSlice)
+                : 0;
+              this.deviceTimeAheadOfSlice = 0;
             }
             // A card's devices have no line settle behind them: they get
             // every cycle their processor ran, the overrun included.
@@ -2300,6 +2390,7 @@ class IrBoard implements Board {
             return executed;
           } finally {
             this.runningCpu = outerCpu;
+            this.coreExecuting = outerExecuting;
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
@@ -3026,6 +3117,10 @@ class IrBoard implements Board {
     }
     const diagnostics = restoreState(this, state.roots, this.walkOptions());
     for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
+    // What a catch-up may pay early is not part of a save: a restored machine
+    // owes it nothing, and the line settle pays any overrun as it always has.
+    this.timerCpuCarriedCycles = 0;
+    this.deviceTimeAheadOfSlice = 0;
     return problems;
   }
 
@@ -3274,6 +3369,7 @@ class IrBoard implements Board {
     // MAME's scheduler has it (see generatedTimerExpiry).
     const expiry = generatedTimerExpiry();
     if (expiry !== undefined) return expiry;
+    this.catchUpDeviceTime?.();
     // The scheduler stands where the processor it is running stands, so the
     // clock comes from that core -- not from the first one declared, which on
     // a multiprocessor board is often parked while another runs.

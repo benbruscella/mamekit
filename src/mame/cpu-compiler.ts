@@ -119,6 +119,12 @@ export interface GeneratedCpuDefinition {
   accessors?: Record<string, string>;
   /** Opcode-table timing already includes every memory access for the instruction. */
   fixedInstructionCycles?: boolean;
+  /**
+   * MAME's core can stop between the cycles of one instruction
+   * (`m_inst_substate`), so a timer falls due before the instruction's later
+   * accesses (hardware/cpu/extract.ts `withSuspensionFact`).
+   */
+  suspendsMidInstruction?: boolean;
   sourceFiles: string[];
   constants: Record<string, number>;
   aliases: Record<string, GeneratedCpuAlias>;

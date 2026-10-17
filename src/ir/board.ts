@@ -232,8 +232,12 @@ export interface GeneratedDevice {
   memberValues?: Record<string, number>;
   /** Constructor-configured shared-pointer member -> board share bindings. */
   memoryShares?: Record<string, string>;
-  /** Host-owned storage lowered from source device allocation/configuration. */
-  memoryAllocations?: Record<string, { bytes: number; fill: number }>;
+  /**
+   * Host-owned storage lowered from source device allocation/configuration.
+   * `runs` is what the driver's machine_start leaves in it at power-on, as
+   * `[byte, count]` pairs covering every byte (see ram-compiler `ramPowerOn`).
+   */
+  memoryAllocations?: Record<string, { bytes: number; fill: number; runs?: [number, number][] }>;
   /** Source-declared slot option table/default from the machine config. */
   slotOptions?: string;
   slotDefault?: string;

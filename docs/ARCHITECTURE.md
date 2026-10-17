@@ -545,6 +545,27 @@ instruction. Each such slice has a one-cycle target, so the overrun the core's
 closing `timing()` cannot report is delivered to the device clock once the
 slice is booked; without it the clock moved a cycle per instruction.
 
+Device time is delivered between instructions, so on its own a device timer
+that falls due partway through an instruction fires after it. MAME's 6502
+family stops between an instruction's cycles (the core keeps `m_inst_substate`),
+which puts such a timer before the instruction's later accesses; the CPU
+compiler records that as `suspendsMidInstruction`, read from the core's own
+header. For a timer-clock processor with that fact, a device asking
+`machine().time()` from inside an instruction first has the device clock caught
+up to the cycle the processor stands at, including whatever its previous slice
+overran, which the line settle would otherwise only pay when the line closes.
+Without it the C64's datassette sometimes stopped itself on Play: its read timer
+fired late with an earlier time than the motor write it followed, and MAME's
+cassette refuses a negative position. A core without the fact (MAME's Z80
+finishes its instruction first too) keeps the old order.
+
+A driver's `machine_start` is not run on the board, but what it writes into a
+root RAM device is: the generator interprets the function with only that
+device's `pointer()` and `size()` live (`ramPowerOn`) and records the result as
+`memoryAllocations.<member>.runs`. MAME's C64 lays its RAM out in alternating
+64-byte runs of `$00` and `$FF`, and Cauldron copies its first SID frame from
+memory it never wrote.
+
 A slot card that carries a processor of its own -- the C64's 1541 in `iec8` --
 is composed into the board under the slot's tag (`iec8:c1541`, its devices
 below it), and its handlers run against a card scope whose member aliases name
