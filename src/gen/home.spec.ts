@@ -99,7 +99,14 @@ assert.match(html, /class="room" href="app\/\?tab=consoles"/);
 assert.match(html, /class="room" href="app\/\?tab=computers"/);
 assert.match(html, /artwork\/media\/cabinets\/pacman\.webp/, 'the arcade room shows cabinets');
 assert.match(html, /artwork\/media\/consoles\/nes\.webp/, 'the console room shows the hardware');
-assert.match(html, /aria-label="Home computer"/, 'computers are drawn');
+assert.match(html, /aria-label="Home computer"/, 'a computer without a photograph is drawn');
+const photographed = homePageHtml({ machines: [
+  { ...machine('c64', '1982', 'computer', false), title: 'Commodore 64', photo: true },
+  { ...machine('c64p', '1982', 'computer', false), title: 'Commodore 64', photo: true },
+], keyFor });
+assert.match(photographed, /artwork\/media\/computers\/c64\.webp/, 'a computer with a photograph shows it');
+assert.doesNotMatch(photographed, /computers\/c64p\.webp/, 'NTSC and PAL of one machine are one photograph');
+assert.doesNotMatch(photographed, /aria-label="Home computer"/, 'and it is not drawn as well');
 const arcadeOnly = homePageHtml({ machines: [machine('pacman', '1980')], keyFor });
 assert.match(arcadeOnly, /One room/);
 assert.doesNotMatch(arcadeOnly, /tab=consoles/, 'a room with nothing in it is not offered');
@@ -136,6 +143,7 @@ try {
     ['arcade', 'pacman', { fullname: 'Pac-Man (Midway)', year: '1980', manufacturer: 'Midway' }],
     ['arcade', 'broken', null],
     ['consoles', 'nes', { fullname: 'Nintendo Entertainment System / Famicom (NTSC)', year: 1985, kind: 'console' }],
+    ['computers', 'c64', { fullname: 'Commodore 64 (NTSC)', year: '1982', kind: 'computer' }],
   ] as const) {
     const dir = join(outRoot, 'games', category, game);
     mkdirSync(dir, { recursive: true });
@@ -151,20 +159,24 @@ try {
   writeFileSync(join(outRoot, 'artwork', 'covers', 'pacman.webp'), '');
   mkdirSync(join(outRoot, 'artwork', 'media', 'consoles'), { recursive: true });
   writeFileSync(join(outRoot, 'artwork', 'media', 'consoles', 'nes.webp'), '');
+  mkdirSync(join(outRoot, 'artwork', 'media', 'computers'), { recursive: true });
+  writeFileSync(join(outRoot, 'artwork', 'media', 'computers', 'c64.webp'), '');
   const machines = readHomeMachines(outRoot);
   assert.deepEqual(machines.map(m => [m.game, m.title, m.year, m.kind, m.cover, m.cabinet, m.photo]), [
     ['pacman', 'Pac-Man', '1980', 'arcade', true, false, false],
+    ['c64', 'Commodore 64', '1982', 'computer', false, false, true],
     ['nes', 'Nintendo Entertainment System', '1985', 'console', false, false, true],
   ], 'a directory without meta.json is skipped, not fatal');
   assert.deepEqual(machines.map(m => [m.game, m.scores, m.battery]), [
     ['pacman', true, true],
+    ['c64', false, false],
     ['nes', false, false],
   ], 'memory facts come from config.json and the runtime report; missing files read as false');
   const written = emitHomePage(outRoot, { keyFor, mameRevision: 'abc' });
-  assert.deepEqual(written, { machines: 2, covers: 1 });
+  assert.deepEqual(written, { machines: 3, covers: 1 });
   const page = readFileSync(join(outRoot, 'index.html'), 'utf8');
   assert.match(page, /^<!doctype html>/);
-  assert.match(page, /1 arcade machine · 1 console · 1980–1985/);
+  assert.match(page, /1 arcade machine · 1 console · 1 computer · 1980–1985/);
   assert.equal(readHomeMachines(outRoot, new Set(['nes'])).length, 1, 'a --targets subset narrows the page');
 } finally {
   rmSync(outRoot, { recursive: true, force: true });

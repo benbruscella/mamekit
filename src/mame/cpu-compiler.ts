@@ -119,6 +119,12 @@ export interface GeneratedCpuDefinition {
   accessors?: Record<string, string>;
   /** Opcode-table timing already includes every memory access for the instruction. */
   fixedInstructionCycles?: boolean;
+  /**
+   * MAME's core can stop between the cycles of one instruction
+   * (`m_inst_substate`), so a timer falls due before the instruction's later
+   * accesses (hardware/cpu/extract.ts `withSuspensionFact`).
+   */
+  suspendsMidInstruction?: boolean;
   sourceFiles: string[];
   constants: Record<string, number>;
   aliases: Record<string, GeneratedCpuAlias>;
@@ -602,29 +608,13 @@ function compileMameM6502Variant(
       .replace(/\bm_PC\s*=\s*set_h\(m_PC,\s*ARG\(0xfffd\)\)\s*;/,
         'm_PC = set_h(m_PC, READ(0xfffd));'),
   );
-  const input = compileMameHandler(variant === 'RP2A03' ? `
-    if (inputnum == IRQ_LINE) {
-      m_irq_state = state == ASSERT_LINE;
-    } else if (inputnum == APU_IRQ_LINE) {
-      m_apu_irq_state = state == ASSERT_LINE;
-    } else if (inputnum == NMI_LINE) {
-      if (!m_nmi_state && state == ASSERT_LINE)
-        m_nmi_pending = true;
-      m_nmi_state = state == ASSERT_LINE;
-    } else if (inputnum == V_LINE) {
-      if (!m_v_state && state == ASSERT_LINE)
-        m_P |= F_V;
-      m_v_state = state == ASSERT_LINE;
-    }
-  ` : `
-    if (inputnum == IRQ_LINE) {
-      m_irq_state = state == ASSERT_LINE;
-    } else if (inputnum == NMI_LINE) {
-      if (!m_nmi_state && state == ASSERT_LINE)
-        m_nmi_pending = true;
-      m_nmi_state = state == ASSERT_LINE;
-    }
-  `);
+  // MAME's own execute_set_input, every line it knows: the SO pin (V_LINE)
+  // is how a 1541's gate array says a byte is ready, and an input program
+  // that only knew IRQ and NMI dropped it, so the drive's DOS could never
+  // read a byte. The RP2A03 shares the routine; its APU line is a case of it.
+  const setInput = sourceMethods.find(method => method.name === 'execute_set_input');
+  if (!setInput) throw new Error(`MAME ${variant} execute_set_input is missing`);
+  const input = compileMameHandler(normalizeMameExecutionSource(setInput.body));
   const service = compileMameHandler('');
   // MAME's prefetch, from its own source: raise SYNC, fetch the opcode, drop
   // SYNC, and only then look for an interrupt -- which replaces the opcode it

@@ -66,6 +66,8 @@ export class GeneratedFrameRunner {
   private readonly credited: Float64Array;
   /** The processor whose slice is executing, if any. */
   private running?: GeneratedFrameRunner['processors'][number];
+  /** True while a perfect-quantum window runs processors one instruction at a time. */
+  lockstepping = false;
   /** Work was synchronized during the running slice. */
   private synchronizeRequested = false;
   /** The round in progress: its first line and its length. */
@@ -103,6 +105,14 @@ export class GeneratedFrameRunner {
    * the processors run in lockstep.
    */
   private fineLines = 0;
+  /**
+   * MAME `set_perfect_quantum`: the scheduler's quantum is the named
+   * processor's minimum, so every processor interleaves instruction by
+   * instruction for the life of the machine, not for a window. A C64 asks
+   * for it on its 6510, and with a 1541 attached the two talk over a serial
+   * bus whose bit windows are 20 microseconds -- a third of a scanline.
+   */
+  private readonly permanentLockstep: boolean;
   private frames = 0;
   /** Lines the beam has passed that the round in progress has not run yet. */
   private pendingLines = 0;
@@ -129,6 +139,8 @@ export class GeneratedFrameRunner {
       }
       return { processor, cyclesPerLine: clock / denominator, carry: 0 };
     });
+    this.permanentLockstep = options.machine.execution.perfectQuantum === true &&
+      this.processors.length > 1;
     this.credited = new Float64Array(this.processors.length);
     for (const event of options.machine.execution.frameEvents) {
       if (event.frequency) {
@@ -335,6 +347,10 @@ export class GeneratedFrameRunner {
     this.onSynchronize?.();
     let done = 0;
     while (done < 1) {
+      if (this.permanentLockstep) {
+        done = this.lockstep(lines, done, 1);
+        continue;
+      }
       if (this.fineLines > 0) {
         done = this.lockstep(lines, done);
         continue;
@@ -390,10 +406,10 @@ export class GeneratedFrameRunner {
    * round's), the processor furthest behind in emulated time executes one
    * instruction, then any work that instruction synchronized runs.
    */
-  private lockstep(lines: number, done: number): number {
+  private lockstep(lines: number, done: number, until?: number): number {
     const processors = this.processors;
     const credited = this.credited;
-    const end = Math.min(1, done + this.fineLines / lines);
+    const end = until ?? Math.min(1, done + this.fineLines / lines);
     // Subtracting spent fractions leaves floating-point residue: a window of
     // 4e-16 lines advanced the round by nothing, forever. Anything shorter
     // than a billionth of a line is over.
@@ -425,13 +441,20 @@ export class GeneratedFrameRunner {
       if (!behind) break;
       this.running = behind;
       this.runStartLines = end * lines - behind.carry / behind.cyclesPerLine;
-      behind.carry -= behind.processor.run(1);
+      this.lockstepping = true;
+      try {
+        behind.carry -= behind.processor.run(1);
+      } finally {
+        this.lockstepping = false;
+      }
       this.running = undefined;
       this.synchronizeRequested = false;
       this.onSynchronize?.();
     }
-    this.fineLines = this.fineLines - (end - done) * lines;
-    if (!(this.fineLines > 1e-9)) this.fineLines = 0;
+    if (until === undefined) {
+      this.fineLines = this.fineLines - (end - done) * lines;
+      if (!(this.fineLines > 1e-9)) this.fineLines = 0;
+    }
     return end;
   }
 

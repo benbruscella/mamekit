@@ -119,7 +119,8 @@ against a recording address space, and reads back the windows it decoded.
 ### C64 development
 
 `c64` (NTSC) and `c64p` (PAL) are computer targets with generated cassette
-transport and SID audio. Use PAL for the current selected tape collection.
+transport, a generated 1541 disk drive and SID audio. Use PAL for the current
+selected tape collection.
 
 `npm run gen:all` and `npm run dev` expose all generated targets in the
 catalogue, including the Computers tab. Candidates are labelled experimental;
@@ -147,15 +148,42 @@ one whose medium mounts today, so it opens first; a title the local dump
 audit has filed carries a **⌕ Search** that fetches the set into the browser,
 and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP or a
 software-list ZIP. **Play** boots the machine with the set's images mounted
-on the tape transport, after the machine asks for its own `c64.zip` firmware
-(dropped, or found by the web search under `computers/c64/bios/`). Multi-image
-sets expose an image selector. Type `LOAD` and press Enter, then click
-**Play** on the transport. If the loader returns to `READY.`, type `RUN` and
-press Enter; the game's turbo loader may continue reading the tape before its
-title screen appears. **Stop**, **Rewind**, **Reset computer**, and
-**Fast-forward** are buttons so the computer retains its letter and function
-keys. Tape speed remains under the emulated computer's motor control.
+on the tape transport or in the disk drive, after the machine asks for its
+own `c64.zip` and, for a disk title, the drive's `c1541.zip` firmware
+(dropped, or found by the web search under `computers/c64/bios/`). A title
+boots with only its own transport attached: a tape title leaves `iec8` empty
+and a disk title leaves `tape` empty, as MAME's `-iec8 ""` and `-tape ""` do.
+The missing transport's strip reads NOT CONNECTED, and **Connect** restarts
+the title with it. **Power on** attaches both. Multi-image sets expose an image
+selector. For a tape, type `LOAD` and press Enter, then click **Play** on the
+transport. If the loader returns to `READY.`, type `RUN` and press Enter; the
+game's turbo loader may continue reading the tape before its title screen
+appears. For a disk, type `LOAD"*",8,1` (or `LOAD"$",8` and `LIST` for the
+directory). The control panel holds one strip per transport -- DATASSETTE and
+DISK DRIVE -- and the toolbar holds **Reset computer** and **Fast-forward**,
+all buttons so the computer retains its letter and function keys. Tape speed
+remains under the emulated computer's motor control.
 `e2e/specs/computer.spec.ts` is the browser gate for the room.
+
+To check what a tape title does against MAME itself, drive both the same way:
+MAME 0.289 with `-iec8 "" -cass <image>.tap -video none -nothrottle`, an
+`-autoboot_script` that posts `LOAD{ENTER}` at frame 150 and calls
+`manager.machine.cassettes[...]:play()` at frame 300, and a Lua write tap on
+`:u7`'s program space at `$D400`-`$D7FF`; on this side, wrap the board's
+`m_sid.write` call binding after `noteCallLinksChanged()`. Cauldron I & II's
+first 300 seconds produce the same 182,525 SID writes in the same order, and
+the music matches MAME's WAV band for band.
+
+The 1541 is MAME's own `c1541`, composed into `iec8` from source: its 6502
+and DOS ROM, both 6522 VIAs, the 64H156 gate array, the ALPS drive mechanism
+and the `d64`/`g64` formats. MAME's 1541 reads a disk a flux reversal at a time
+on a 16 MHz gate-array clock, and the drive is not yet real-time in the
+browser while the spindle runs. Even with the motor off, an attached 1541 puts
+the machine in permanent lockstep with a second processor, which is why tape
+titles boot without it. To diagnose the drive in Node, boot an isolated build, mount an image
+through `board.disks()[0].mount(extension, bytes)`, type `LOAD"$",8`, and read
+the DOS job queue at 1541 RAM `$00`-`$05` (1 is success, 3 no sync, 9 a header
+checksum) alongside the drive's `m_cyl` and the gate array's `cur_live`.
 
 Matched software belongs in `.data/roms/computers/c64/<software-list>/` and
 firmware in `.data/roms/computers/c64/bios/`; processing reports and retained
@@ -163,8 +191,8 @@ source material belong under `.data/roms/_processed/c64/`. The generator reads
 the audit's `_manifest.json` in each of those folders to build the shelf's
 availability index, keyed by the driver family so the PAL and NTSC machines
 share one collection. Neither BIOS nor game data belongs in generated output.
-Cartridge/quickload image loading and the 1541 floppy-drive composition are
-still unfinished, so those shelves are display only.
+Cartridge and quickload image loading are still unfinished, so those shelves
+are display only.
 
 SID oscillator, envelope, noise, mixing and filter behavior is compiled from
 MAME's `sid.cpp`, `sidvoice.cpp`, and `sidenvel.cpp`. The host renders that

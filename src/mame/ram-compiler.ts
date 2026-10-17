@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evalExpr } from '../kg/parse.ts';
 import type { GeneratedDevice } from '../ir/board.ts';
+import { executeGeneratedProgram } from '../ir/execute.ts';
+import { compileMameHandler } from './handler-ir.ts';
+import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 
 /** Lower MAME's configured RAM allocation to host-owned byte storage. */
 export function lowerRamAllocation(
@@ -26,4 +29,40 @@ export function lowerRamAllocation(
     memberValues: { [allocation[2]!]: bytes },
     memoryAllocations: { [allocation[1]!]: { bytes, fill } },
   };
+}
+
+/**
+ * What a driver's machine_start leaves in one of its RAM devices before the
+ * first instruction, as `[byte, count]` runs; undefined when it leaves the
+ * device's own fill. MAME's C64 lays its 64K out in alternating 64-byte runs
+ * of $00 and $FF, and a game that reads memory it never wrote hears it:
+ * Cauldron copies its first SID frame out of untouched RAM.
+ *
+ * The function is interpreted, not pattern-matched. The device's pointer and
+ * size are live and every other call answers nothing, so all that survives is
+ * what the start writes into that memory -- and a start that never writes
+ * through `<member>->pointer()` is not run at all.
+ */
+export function ramPowerOn(
+  startBody: string, member: string, bytes: number, fill: number,
+): [number, number][] | undefined {
+  if (!new RegExp(`\\b${member}\\s*->\\s*pointer\\s*\\(`).test(startBody)) return undefined;
+  const program = compileMameHandler(normalizeMameExecutionSource(startBody));
+  const memory = new Uint8Array(bytes).fill(fill);
+  const live: Record<string, unknown> = {
+    [`${member}.pointer`]: () => memory,
+    [`${member}.size`]: () => bytes,
+  };
+  executeGeneratedProgram(program, {
+    members: { [member]: { pointer: () => memory, size: () => bytes } },
+    calls: new Proxy(live, { get: (target, name) => target[name as string] ?? (() => 0) }) as never,
+  });
+  if (memory.every(value => value === fill)) return undefined;
+  const runs: [number, number][] = [];
+  for (const value of memory) {
+    const last = runs.at(-1);
+    if (last && last[0] === value) last[1]++;
+    else runs.push([value, 1]);
+  }
+  return runs;
 }

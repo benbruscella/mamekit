@@ -43,6 +43,8 @@ interface GameEntry {
   hasArt: boolean;
   /** a promotional flyer exists in the covers tree; absent on an older manifest */
   hasCover?: boolean;
+  /** a console or computer photograph exists (media/consoles, media/computers) */
+  hasPhoto?: boolean;
   /** the compiled app contains this game's board module (games.json) */
   supported?: boolean;
   /** A compiled but unfinished machine intentionally exposed by the local development build. */
@@ -760,7 +762,15 @@ export async function runMenu(): Promise<void> {
     // flyers are regional advertising -- an Italian mail-order page for the
     // ColecoVision, a Japanese Famicom spread for the NES -- and either one
     // beat the hardware to the tile while this ran first.
-    if (entry.kind === 'console') { swapConsoleCover(entry.game, canvas); return; }
+    if (entry.kind === 'console') { swapMachinePhoto(entry.game, canvas, 'consoles'); return; }
+    // A computer likewise, except that it has no drawn body to stand in: its
+    // tile keeps the lettered placeholder until a photograph decodes, and a
+    // build without the artwork tree never asks for one.
+    if (entry.kind === 'computer') {
+      paintPlaceholder(entry, canvas, ctx);
+      if (entry.hasPhoto) swapMachinePhoto(entry.game, canvas, 'computers');
+      return;
+    }
     const flyer = entry.hasCover === false
       ? null
       : await loadArtworkImage(`covers/${entry.game}.png`);
@@ -948,29 +958,30 @@ export async function runMenu(): Promise<void> {
   }
 
   /**
-   * The console's cover: its own photograph when the artwork tree has one,
-   * and a stylized deck when it does not.
+   * A console's or computer's cover: its own photograph when the artwork tree
+   * has one.
    *
-   * The drawn deck is one generic front-loader, so every console wore the same
-   * body — a ColecoVision looked like an NES. A machine photograph is the same
-   * kind of asset an arcade cabinet shot is, lives in the same tree under the
-   * same short name, and simply reads as the actual hardware.
+   * A console without one falls back to a stylized deck. The drawn deck is
+   * one generic front-loader, so every console wore the same body -- a
+   * ColecoVision looked like an NES. A machine photograph is the same kind of
+   * asset an arcade cabinet shot is, lives in a tree of its own under the
+   * same short name, and simply reads as the actual hardware. A computer has
+   * no drawn stand-in, so its tile keeps whatever was painted on the canvas.
    */
-  function swapConsoleCover(game: string, canvas: HTMLCanvasElement): void {
+  function swapMachinePhoto(game: string, canvas: HTMLCanvasElement, tree: 'consoles' | 'computers'): void {
+    const caption = tree === 'consoles' ? '▸ ENTER TO INSERT CARTS' : '▸ ENTER TO BROWSE THE SHELF';
     const host = el('div', canvas.style.cssText);
     host.style.background = 'linear-gradient(#171a2b,#0a0b14)';
     host.style.display = 'flex';
     host.style.alignItems = 'center';
     host.style.justifyContent = 'center';
-    const drawDeck = (): void => {
-      host.innerHTML = consoleDeckSvg(300, 400, {
-        caption: '▸ ENTER TO INSERT CARTS', idPrefix: 'menu', top: 400 * 0.34,
-      });
-    };
-    drawDeck();
+    if (tree === 'consoles') {
+      host.innerHTML = consoleDeckSvg(300, 400, { caption, idPrefix: 'menu', top: 400 * 0.34 });
+      canvas.replaceWith(host);
+    }
     // Same two-source ladder the modal's artwork uses: the shipped .webp
     // sibling first, the archival scan once if that is missing.
-    const [web, archival] = artworkSources(`media/consoles/${game}.png`);
+    const [web, archival] = artworkSources(`media/${tree}/${game}.png`);
     const photo = document.createElement('img');
     // NOT lazy: this image is held out of the document until it has decoded,
     // and lazy loading is driven by intersection with the viewport -- a
@@ -985,18 +996,18 @@ export async function runMenu(): Promise<void> {
       if (!photo.src.endsWith(archival)) photo.src = archival;
     });
     photo.src = web;
-    // Only replace the drawn deck once the photograph has actually decoded, so
-    // a console with no scan never flashes an empty tile.
+    // Only replace what was drawn once the photograph has actually decoded,
+    // so a machine with no scan never flashes an empty tile.
     photo.addEventListener('load', () => {
       host.innerHTML = '';
       host.style.flexDirection = 'column';
       host.style.gap = '18px';
-      const caption = el('div',
+      const label = el('div',
         `font:700 13px ui-monospace,monospace;letter-spacing:2px;color:#7f8ac9`);
-      caption.textContent = '▸ ENTER TO INSERT CARTS';
-      host.append(photo, caption);
+      label.textContent = caption;
+      host.append(photo, label);
+      if (canvas.isConnected) canvas.replaceWith(host);
     });
-    canvas.replaceWith(host);
   }
 
 

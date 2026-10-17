@@ -41,6 +41,11 @@ export interface BoardConfig {
     /** MAME cartridge-slot option name, e.g. "standard" or "megacart". */
     slot?: string;
   };
+  /**
+   * Slots booted with no card, as MAME's `-iec8 ""` boots them: the software
+   * room leaves a medium's transport out when the title does not use it.
+   */
+  emptySlots?: string[];
 }
 
 /** Use resolved executable facts for composition, preserving host mounting options. */

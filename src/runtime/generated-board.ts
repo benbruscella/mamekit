@@ -7,13 +7,14 @@ import {
   createDevice,
   createGeneratedAttotime,
   generatedTimerBacklog,
+  generatedTimerExpiry,
   hasGeneratedDevice,
   generatedDeviceRole,
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { noteCallLinksChanged } from '../ir/execute.ts';
+import { DEFAULT_CONSTANTS, noteCallLinksChanged } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
@@ -36,6 +37,7 @@ import {
 import {
   HOST_SERVICE_CALLS,
   DISCRETE_INPUT_CALLS,
+  type BoardEffect,
   type BoardIr,
   type GeneratedExecutionCpu,
   type GeneratedHandler,
@@ -166,7 +168,67 @@ export function createGeneratedBoard(
   inputs: InputPorts,
   sinks: BoardSinks,
 ): Board {
-  return new IrBoard(machine, boardConfigFromIr(machine, config), regions, inputs, sinks);
+  const configured = withEmptySlots(machine, config.emptySlots);
+  return new IrBoard(configured, boardConfigFromIr(configured, config), regions, inputs, sinks);
+}
+
+/** A device's source-allocated storage as it stands at power-on. */
+function allocatedMemory(allocation: { bytes: number; fill: number; runs?: [number, number][] }): Uint8Array {
+  const memory = new Uint8Array(allocation.bytes).fill(allocation.fill);
+  let offset = 0;
+  for (const [value, count] of allocation.runs ?? []) {
+    memory.fill(value, offset, offset + count);
+    offset += count;
+  }
+  return memory;
+}
+
+/**
+ * The machine with these slots left empty, as MAME's `-iec8 ""` builds it.
+ * The slot device stays and selects no card; everything the card composed --
+ * its devices, its processor, the devcb wiring between them and the
+ * connections that wiring drives -- is not part of the machine. MAME tags
+ * every device inside a card under its slot's tag, so a prefix is the whole
+ * test. A tag that names no slot device is ignored.
+ */
+export function withEmptySlots(machine: BoardIr, slots: readonly string[] | undefined): BoardIr {
+  const emptied = new Set((slots ?? []).filter(slot =>
+    machine.devices?.some(device => device.tag === slot && device.slotDefault !== undefined)));
+  if (!emptied.size) return machine;
+  const inCard = (tag: string | undefined): boolean =>
+    tag !== undefined && [...emptied].some(slot => tag.startsWith(`${slot}:`));
+  const removed = new Set(machine.callbacks
+    .filter(callback => inCard(callback.ownerTag) || inCard(callback.targetTag))
+    .map(callback => callback.id));
+  const effectInCard = (effect: BoardEffect): boolean =>
+    ('tag' in effect && inCard(effect.tag)) || ('deviceTag' in effect && inCard(effect.deviceTag));
+  const execution = machine.execution;
+  return {
+    ...machine,
+    devices: machine.devices?.filter(device => !inCard(device.tag))
+      .map(device => emptied.has(device.tag) ? { ...device, slotDefault: '' } : device),
+    callbacks: machine.callbacks.filter(callback => !removed.has(callback.id)),
+    connections: machine.connections.filter(connection =>
+      !removed.has(connection.callbackId) && !effectInCard(connection.effect)),
+    execution: {
+      ...execution,
+      cpus: execution.cpus.filter(cpu => !inCard(cpu.tag)),
+      ...(execution.participants
+        ? { participants: execution.participants.filter(participant => !inCard(participant.tag)) }
+        : {}),
+      ...(execution.genericTimers
+        ? { genericTimers: execution.genericTimers.filter(timer => !inCard(timer.tag)) }
+        : {}),
+      ...(execution.bankDevices
+        ? { bankDevices: execution.bankDevices.filter(bank => !inCard(bank.tag)) }
+        : {}),
+      ...(execution.accessTaps
+        ? { accessTaps: execution.accessTaps.filter(tap => !inCard(tap.cpu) && !inCard(tap.device)) }
+        : {}),
+      frameEvents: execution.frameEvents.filter(event =>
+        !inCard(event.ownerTag) && !removed.has(event.callbackId)),
+    },
+  };
 }
 
 const INPUT_LINE_NMI = -1;
@@ -261,6 +323,18 @@ class IrBoard implements Board {
    */
   private readonly cpuReportedSuspended = new Map<string, boolean>();
   private readonly devices = new Map<string, Device>();
+  /** What a finder holds for each generated device and processor, by tag. */
+  private readonly deviceReferents = new Map<string, unknown>();
+  /**
+   * running_machine::phase(), as devices read it: INIT while the board is
+   * built, RESET while it resets, RUNNING otherwise. A device ignores what its
+   * neighbours do before then -- the 1541's VIA drives port B to $FF as it
+   * resets, and a gate array that took that for a stepper phase started the
+   * head a half-track away from where the DOS believes it is.
+   */
+  private machinePhase = DEFAULT_CONSTANTS['machine_phase::INIT']!;
+  /** Composed slot cards' own scopes (see cardScope), by card tag. */
+  private readonly cardScopes = new Map<string, { instance: Record<string, unknown>; bindings: GeneratedHandlerBindings }>();
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
   /** MAME address-space taps a mounted cartridge installed over the CPU space. */
   private cartridgeTaps: ((address: number) => void)[] = [];
@@ -372,6 +446,32 @@ class IrBoard implements Board {
    * against the beam; see the line settle in the frame runner's onLine.
    */
   private deviceClockFollowsProcessors = false;
+  /**
+   * Brings the device clock up to where the timer-clock processor stands
+   * inside its current instruction (see the core's `suspendsMidInstruction`).
+   */
+  private catchUpDeviceTime?: () => void;
+  /**
+   * Device time a catch-up delivered past the running slice's target. A
+   * lockstep slice's booked overrun pays only the rest; any other slice's
+   * overrun comes off the next slice. Always zero between slices.
+   */
+  private deviceTimeAheadOfSlice = 0;
+  private deliveringDeviceTime = false;
+  /**
+   * Cycles the timer-clock processor's last slice ran past its target that
+   * its devices have not been given. Outside lockstep the line settle pays
+   * them when the next line closes (it measures device time against the
+   * beam); a catch-up before then pays them early, and the settle then owes
+   * that much less.
+   */
+  private timerCpuCarriedCycles = 0;
+  /**
+   * The running processor is inside its core's run(): an instruction may be
+   * part-way through. Once run() returns the slice is booked, and a device
+   * asking the time then has nothing to catch up.
+   */
+  private coreExecuting = false;
   /** The processor whose slice is executing. */
   private runningCpu?: string;
   private soundRuntime?: SoundRuntimeHooks;
@@ -425,6 +525,21 @@ class IrBoard implements Board {
     // The first line boundary is the beam arriving at line 0 with nothing run
     // yet, so it owes the devices nothing.
     this.timedHardwareDelivered = this.lineSeconds();
+    // Finder names the machine's own state class gives its devices; a hosted
+    // device never takes one over (see cardScope).
+    const rootMembers = new Set((machine.devices ?? [])
+      .filter(device => !device.hostTag && device.member).map(device => device.member!));
+    // Slot cards the board composes because they carry a processor of their
+    // own -- the C64's 1541 -- by tag.
+    const composedCardTags = new Set((machine.devices ?? [])
+      .filter(device => device.interfaceHandlers?.length).map(device => device.tag));
+    // Inside a composed card a device's finder names resolve in the card's
+    // scope (cardScope), so the board-wide alias stays the machine's own. A
+    // device hosted by an ordinary composite keeps answering to it: Wardner's
+    // TOAPLAN_DSP drives its TMS320C10 through `m_dsp`, the name the driver
+    // gives the composite itself, and the two never share a method.
+    const inComposedCard = (tag: string): boolean =>
+      [...composedCardTags].some(card => tag.startsWith(`${card}:`));
 
     // Passive storage executes generated methods while retaining the separate
     // peripheral state root used by existing board snapshots.
@@ -527,6 +642,7 @@ class IrBoard implements Board {
           },
           machine: {
             side_effects_disabled: () => 0,
+            phase: () => this.machinePhase,
             time: () => generatedAttotime(this.machineSeconds()),
           },
         };
@@ -577,9 +693,17 @@ class IrBoard implements Board {
           members: {
             ...configuredMembers,
             ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) =>
-              [name, new Uint8Array(allocation.bytes).fill(allocation.fill)])),
+              [name, allocatedMemory(allocation)])),
           },
-          ...(specification.slotDefault ? { slot: specification.slotDefault } : {}),
+          // An empty string is an empty slot (withEmptySlots), not "use the
+          // default card".
+          ...(specification.slotDefault !== undefined ? { slot: specification.slotDefault } : {}),
+          // A slot whose default card the board composes attaches that card in
+          // its own device_start; it starts once the card exists (see
+          // attachComposedCards).
+          ...(specification.slotDefault && composedCardTags.has(`${specification.tag}:${specification.slotDefault}`)
+            ? { deferStart: true }
+            : {}),
           selectors: cartSelectors(config.cart),
           finder: (rawTag, member, kind) => {
             // MAME `required_address_space`: the device's own setter names the
@@ -748,6 +872,7 @@ class IrBoard implements Board {
               // — so leaving it off this object threw before that assignment and
               // the RIOT could never raise its IRQ (venture, issue #63).
               side_effects_disabled: () => 0,
+              phase: () => this.machinePhase,
               time: () => generatedAttotime(this.machineSeconds()),
               root_device: () => ({
                 membank: (name: string) => this.generatedBanks[name],
@@ -845,7 +970,36 @@ class IrBoard implements Board {
     const timerClockCpu = machine.execution.cpus[0];
     // Read each time: a processor's clock can change as it runs.
     const timerClockHz = (): number => timerClockCpu ? this.cycleClockOf(timerClockCpu) : 1;
-    const timedDevices = [...this.devices.values()].filter(device => device.needsTick?.() !== false);
+    // A composed slot card is a machine of its own on the bus: the 1541's VIAs
+    // and gate array answer the drive's 6502, never the C64's. Their clock is
+    // that processor's, advanced between its instructions by exactly what it
+    // executed -- as MAME, which never fires a timer before every processor
+    // has reached it, guarantees. On the C64's clock the gate array ran
+    // ahead of a drive CPU that had not yet read the last byte, which then
+    // came back shifted by a bit or two.
+    const cardClockDevices = new Map<string, Device[]>();
+    for (const card of machine.devices ?? []) {
+      if (!card.interfaceHandlers?.length) continue;
+      const cpu = machine.execution.cpus.find(candidate => candidate.tag.startsWith(`${card.tag}:`));
+      if (!cpu || cpu.tag === timerClockCpu?.tag) continue;
+      const owned = [...this.devices].filter(([tag, device]) =>
+        tag.startsWith(`${card.tag}:`) && device.needsTick?.() !== false).map(([, device]) => device);
+      if (owned.length) cardClockDevices.set(cpu.tag, owned);
+    }
+    const cardDeviceSet = new Set([...cardClockDevices.values()].flat());
+    const timedDevices = [...this.devices.values()].filter(device =>
+      device.needsTick?.() !== false && !cardDeviceSet.has(device));
+    // Resolved once per processor: this runs after every instruction the
+    // card's processor executes.
+    const cardClocks = new Map([...cardClockDevices.keys()].map(tag =>
+      [tag, machine.execution.cpus.find(candidate => candidate.tag === tag)!]));
+    const tickCardDevices = (cpuTag: string, cycles: number): void => {
+      if (!(cycles > 0)) return;
+      const devices = cardClockDevices.get(cpuTag);
+      if (!devices) return;
+      const seconds = cycles / this.cycleClockOf(cardClocks.get(cpuTag)!);
+      for (let index = 0; index < devices.length; index++) devices[index]!.tick(seconds);
+    };
     const tickGeneratedDevices = (seconds: number): void => {
       if (!(seconds > 0)) return;
       for (const device of timedDevices) device.tick(seconds);
@@ -854,8 +1008,13 @@ class IrBoard implements Board {
     const advanceTimedHardware = (seconds: number): void => {
       if (!(seconds > 0)) return;
       this.timedHardwareDelivered += seconds;
+      // A device asking the time while its clock is being delivered is
+      // answered from the delivery, never caught up again (catchUpDeviceTime).
+      const outer = this.deliveringDeviceTime;
+      this.deliveringDeviceTime = true;
       tickGeneratedDevices(seconds);
       tickHostedProcessors(seconds);
+      this.deliveringDeviceTime = outer;
     };
     // MAME's DISCRETE_SOUND network addresses nodes through the NODE(n) macro,
     // and a driver handler may poke one directly. Gyruss's i8039 does exactly
@@ -899,6 +1058,7 @@ class IrBoard implements Board {
     // probes.  MAME's guard must therefore allow read-side acknowledgement
     // effects such as clearing a sound CPU IRQ.
     calls['machine().side_effects_disabled'] = () => 0;
+    calls['machine().phase'] = () => this.machinePhase;
     calls['m68000_base_device::autovector'] = level => 24 + level;
     const generatedInputs: InputPorts = {
       read: port => {
@@ -1160,16 +1320,22 @@ class IrBoard implements Board {
     for (const [tag, device] of this.devices) {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
       const referent: Record<string, unknown> = {};
+      // A device hosted inside another answers to its finder's name only in
+      // its host's scope when the machine's own state class uses that name:
+      // the 1541's `m_maincpu` is not the C64's (see cardScope).
+      const flatMember = specification?.member &&
+        !(specification.hostTag && rootMembers.has(specification.member) && inComposedCard(specification.tag))
+        ? specification.member : undefined;
       for (const method of device.methodNames()) {
         const invoke = device.prepareCall?.(method) ?? ((...args: unknown[]) =>
           device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]));
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
-        if (specification?.member) calls[`${specification.member}.${method}`] = invoke;
+        if (flatMember) calls[`${flatMember}.${method}`] = invoke;
         device.connectCall?.(method, call => {
           calls[`${tag}.${method}`] = call;
           calls[`m_${tag}.${method}`] = call;
-          if (specification?.member) calls[`${specification.member}.${method}`] = call;
+          if (flatMember) calls[`${flatMember}.${method}`] = call;
           // A handler runtime may already hold the previous target in its
           // links table; make every prepared runtime re-resolve.
           noteCallLinksChanged();
@@ -1179,7 +1345,7 @@ class IrBoard implements Board {
         // The key is fixed for the life of the board; building it per call put
         // a string concatenation and a dictionary probe on every VIC-II cycle
         // (`m_cpu->total_cycles()`). The lookup itself stays late-bound.
-        const referentKey = `${specification?.member ?? tag}.${method}`;
+        const referentKey = `${flatMember ?? (specification?.member ? `m_${tag}` : tag)}.${method}`;
         referent[method] = (...args: unknown[]) =>
           calls[referentKey]!(...args as number[]);
         // Tilemap callbacks are recorded by their declaring C++ class rather
@@ -1197,9 +1363,10 @@ class IrBoard implements Board {
       referent.found = () => 1;
       referent.tag = () => tag;
       referent.reset = () => device.reset();
-      if (specification?.member && (this.state[specification.member] === device || this.state[specification.member] == null)) {
-        this.state[specification.member] = referent;
-        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(specification.member);
+      this.deviceReferents.set(tag, referent);
+      if (flatMember && (this.state[flatMember] === device || this.state[flatMember] == null)) {
+        this.state[flatMember] = referent;
+        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(flatMember);
         const values = indexed && this.state[indexed[1]!];
         if (Array.isArray(values) && values[Number(indexed![2])] === device) values[Number(indexed![2])] = referent;
       }
@@ -1213,13 +1380,17 @@ class IrBoard implements Board {
       // An image transport never sees its clock rewind (see
       // observedTransportSeconds); every other device reads the scheduler.
       const transport = device.findDevice?.('cassette') !== undefined;
+      // A device holds an attotime as its seconds: every accessor MAME
+      // spells on one is answered for a number (runtime.attotime), and two
+      // readings compare by value, as attotime's == does. An object per
+      // reading cost the 64H156 an allocation at every bit cell.
       device.bindCall('machine().time', () => {
         let seconds = this.machineSeconds();
         if (transport) {
           seconds = Math.max(this.observedTransportSeconds.get(tag) ?? 0, seconds);
           this.observedTransportSeconds.set(tag, seconds);
         }
-        return generatedAttotime(seconds);
+        return seconds;
       });
     }
     const sourceHandlers = generatedHandlerRegistry(
@@ -1475,6 +1646,7 @@ class IrBoard implements Board {
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
+      let sliceTarget = 0;
       // Cycles of the running slice already reported to a sound device, and
       // the resolved hook itself (the runtime is installed after this closure).
       const instructionTicks = this.hostModel(
@@ -1587,6 +1759,7 @@ class IrBoard implements Board {
           }
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
           this.runningSliceCycles = clamped;
+          sliceTarget = target;
           if (specification.tag === timerClockCpu?.tag) {
             const current = clamped;
             // run() calls timing(0,target) at the start of each slice and
@@ -1597,6 +1770,10 @@ class IrBoard implements Board {
             if (current < timing.previousCycles) timing.previousCycles = 0;
             advanceTimedHardware((current - timing.previousCycles) / timerClockHz());
             timing.previousCycles = current === target ? 0 : current;
+          } else if (cardClockDevices.has(specification.tag)) {
+            if (clamped < timing.previousCycles) timing.previousCycles = 0;
+            tickCardDevices(specification.tag, clamped - timing.previousCycles);
+            timing.previousCycles = clamped === target ? 0 : clamped;
           }
         },
         signal: (signal, state) => {
@@ -1643,6 +1820,39 @@ class IrBoard implements Board {
             configuration.args.every(argument => typeof argument === 'number')) {
           cpu.invoke(configuration.method, ...configuration.args as number[]);
         }
+      }
+      // MAME's 6502 stops between the cycles of an instruction, so a timer
+      // that falls due partway through one fires before the instruction's
+      // later accesses. Device time arrives here between instructions; when a
+      // device asks the time from inside one, the clock is first brought up
+      // to where the processor stands, so a timer due earlier fires first and
+      // time never runs backwards. The C64's datassette stopped itself
+      // whenever its read timer fell due inside the instruction that started
+      // the motor: MAME's cassette refuses to move to a negative position.
+      if (specification.tag === timerClockCpu?.tag && cpuFacts.suspendsMidInstruction && cpu.elapsedCycles) {
+        this.catchUpDeviceTime = () => {
+          if (this.deliveringDeviceTime || !this.coreExecuting || this.runningCpu !== specification.tag) return;
+          // The processor began this slice where its last one overran to.
+          if (this.timerCpuCarriedCycles > 0) {
+            const carried = this.timerCpuCarriedCycles;
+            this.timerCpuCarriedCycles = 0;
+            advanceTimedHardware(carried / timerClockHz());
+          }
+          // Past the slice's target too: the processor really is there, and
+          // whatever it overran comes off its next slice (the frame runner's
+          // carry), which is where that much device time would otherwise
+          // have been delivered.
+          const reach = this.runningSliceCycles + cpu.elapsedCycles!();
+          const delivered = timing.previousCycles + this.deviceTimeAheadOfSlice;
+          if (!(reach > delivered)) return;
+          advanceTimedHardware((reach - delivered) / timerClockHz());
+          if (reach <= sliceTarget) {
+            timing.previousCycles = reach;
+          } else {
+            timing.previousCycles = sliceTarget;
+            this.deviceTimeAheadOfSlice = reach - sliceTarget;
+          }
+        };
       }
       this.cpus.set(specification.tag, cpu);
       this.cpuCycles.set(specification.tag, 0);
@@ -1729,8 +1939,22 @@ class IrBoard implements Board {
       };
       // Handlers reference CPUs by their state-member name (m_subcpu2) as
       // well as by tag; every CPU call gets both aliases uniformly.
-      const member = machine.devices?.find(device =>
-        device.tag === specification.tag)?.member;
+      const cpuSpecification = machine.devices?.find(device => device.tag === specification.tag);
+      const cpuMethodNames = [
+        'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
+        'suspended', 'state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
+        ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
+      ];
+      this.deviceReferents.set(specification.tag, Object.fromEntries(cpuMethodNames.map(name => [
+        name,
+        (...args: number[]) => calls[`m_${specification.tag}.${name}`]!(...args),
+      ])));
+      // A hosted processor named like the machine's own does not displace it:
+      // the 1541's `m_maincpu` reaches the drive's 6502 in the drive's scope
+      // only, or the C64 driver's halt and reset would land on the drive.
+      const member = cpuSpecification?.member &&
+        !(cpuSpecification.hostTag && rootMembers.has(cpuSpecification.member) && inComposedCard(cpuSpecification.tag))
+        ? cpuSpecification.member : undefined;
       if (member) {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
@@ -2116,6 +2340,7 @@ class IrBoard implements Board {
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
+          const outerExecuting = this.coreExecuting;
           this.runningCpu = specification.tag;
           try {
             const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
@@ -2124,9 +2349,12 @@ class IrBoard implements Board {
             if (specification.tag === timerClockCpu?.tag && stalled > 0) {
               advanceTimedHardware(stalled / timerClockHz());
             }
+            if (stalled > 0) tickCardDevices(specification.tag, stalled);
+            this.coreExecuting = true;
             const executed = stalled + (cycles > stalled
               ? this.cpus.get(specification.tag)!.run(cycles - stalled)
               : 0);
+            this.coreExecuting = outerExecuting;
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
             this.runningSliceCycles = 0;
@@ -2135,9 +2363,34 @@ class IrBoard implements Board {
               specification.tag,
               (this.cpuCycles.get(specification.tag) ?? 0) + executed,
             );
+            // A perfect-quantum slice is one instruction against a one-cycle
+            // target, and the core's closing timing() reports no more than the
+            // target: the device clock moved one cycle per instruction and
+            // caught up only at the line boundary, so every device timer fired
+            // microseconds late. The 1541's gate array re-reads the disk from
+            // machine().time() at each syncpoint, and lost two flux reversals
+            // in three. Deliver the rest now, with the slice booked, so a
+            // timer's callback still reads its own expiry as the time.
+            if (specification.tag === timerClockCpu?.tag && executed > cycles && this.frameRunner.lockstepping) {
+              advanceTimedHardware((executed - cycles - this.deviceTimeAheadOfSlice) / timerClockHz());
+            }
+            if (specification.tag === timerClockCpu?.tag) {
+              // Outside lockstep the overrun stays owed to the line settle;
+              // a catch-up in the next slice may pay it sooner. Delivering it
+              // here instead, every slice, ran device time ahead of the beam
+              // and silenced the NES APU and Missile Command's POKEY.
+              this.timerCpuCarriedCycles = this.catchUpDeviceTime && !this.frameRunner.lockstepping
+                ? Math.max(0, executed - cycles - this.deviceTimeAheadOfSlice)
+                : 0;
+              this.deviceTimeAheadOfSlice = 0;
+            }
+            // A card's devices have no line settle behind them: they get
+            // every cycle their processor ran, the overrun included.
+            if (executed > cycles) tickCardDevices(specification.tag, executed - cycles);
             return executed;
           } finally {
             this.runningCpu = outerCpu;
+            this.coreExecuting = outerExecuting;
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
@@ -2296,8 +2549,10 @@ class IrBoard implements Board {
       video,
     });
     this.installAccessTaps(machine);
+    this.attachComposedCards();
     this.runDeviceStarts();
     this.runMachineLifecycle('startHandlers');
+    this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.runMachineReset();
     if (neoGeoInterrupts && Number(this.state.m_irq3_pending ?? 0)) {
       // machine_start deliberately begins with one IRQ3 (but plain reset does
@@ -2308,6 +2563,7 @@ class IrBoard implements Board {
     // prepared during it re-resolves its links on the next dispatch.
     noteCallLinksChanged();
     for (const [tag, bytes] of Object.entries(regions)) this.pristineRegions[tag] = bytes.slice();
+    this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
 
   /** The one closure that answers a CPU's interrupt acknowledge with the board's vector. */
@@ -2515,6 +2771,7 @@ class IrBoard implements Board {
   }
 
   reset(): void {
+    this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.observedTransportSeconds.clear();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     this.cpuSliceCycles.clear();
@@ -2538,6 +2795,7 @@ class IrBoard implements Board {
     this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
     this.runMachineReset();
+    this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
 
   /**
@@ -2616,6 +2874,7 @@ class IrBoard implements Board {
    * look like an endless frame-zero loop to clients.
    */
   private watchdogReset(): void {
+    this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -2627,6 +2886,7 @@ class IrBoard implements Board {
     this.boardSpecificReset?.();
     this.watchdogFrames = 0;
     this.runMachineReset();
+    this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
 
   /** Execute MAME's selected MACHINE_RESET_MEMBER chain, base first. */
@@ -2675,6 +2935,26 @@ class IrBoard implements Board {
         length: () => Number(cassette.invoke('get_length')) || 0,
         playing: () => Boolean(Number(cassette.invoke('is_playing'))),
         motorOn: () => Boolean(Number(cassette.invoke('motor_on'))),
+      }];
+    });
+  }
+
+  disks() {
+    return [...this.devices.entries()].flatMap(([tag, device]) => {
+      const drive = device.findDevice?.('floppy');
+      if (!drive) return [];
+      return [{ tag, extensions: drive.imageExtensions?.() ?? [],
+        mount: (extension: string, bytes: Uint8Array) => drive.mountImage!(extension, bytes),
+        eject: () => drive.unmountImage?.(),
+        // floppy_image_device's own state: an image is held, the motor line
+        // is active low, and the head counts half-tracks from zero.
+        loaded: () => {
+          const image = (drive.instance?.() as Record<string, unknown> | undefined)?.m_image;
+          return Boolean(image && typeof image === 'object');
+        },
+        spinning: () => drive.get('m_mon') === 0,
+        track: () => Math.floor(drive.get('m_cyl') / 2) + 1,
+        trackCount: () => Math.ceil(drive.get('m_tracks') / 2),
       }];
     });
   }
@@ -2837,6 +3117,10 @@ class IrBoard implements Board {
     }
     const diagnostics = restoreState(this, state.roots, this.walkOptions());
     for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
+    // What a catch-up may pay early is not part of a save: a restored machine
+    // owes it nothing, and the line settle pays any overrun as it always has.
+    this.timerCpuCarriedCycles = 0;
+    this.deviceTimeAheadOfSlice = 0;
     return problems;
   }
 
@@ -3081,6 +3365,11 @@ class IrBoard implements Board {
    * backlog comes back off.
    */
   private machineSeconds(): number {
+    // Inside a device timer's callback the time is that timer's expiry, as
+    // MAME's scheduler has it (see generatedTimerExpiry).
+    const expiry = generatedTimerExpiry();
+    if (expiry !== undefined) return expiry;
+    this.catchUpDeviceTime?.();
     // The scheduler stands where the processor it is running stands, so the
     // clock comes from that core -- not from the first one declared, which on
     // a multiprocessor board is often parked while another runs.
@@ -4659,6 +4948,9 @@ class IrBoard implements Board {
     registry: HandlerRegistry,
   ): SoundRuntimeHooks | undefined {
     if (!machine.sound) return undefined;
+    // Each device's method names, read once: the stream pump asks before every
+    // render, and methodNames() builds a fresh array of all of them.
+    const deviceMethods = new Map<Device, ReadonlySet<string>>();
     const hooks = installSoundRuntime({
       board: machine,
       regions,
@@ -4674,7 +4966,10 @@ class IrBoard implements Board {
       bindDeviceCall: (tag, name, callback) => this.devices.get(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
         const device = this.devices.get(tag);
-        if (!device?.methodNames().includes(method)) return undefined;
+        if (!device) return undefined;
+        let methods = deviceMethods.get(device);
+        if (!methods) deviceMethods.set(device, methods = new Set(device.methodNames()));
+        if (!methods.has(method)) return undefined;
         // `invoke` rather than `call`: a stream-rendering chip is handed
         // MAME's `sound_stream` surface, which is an object, not a number.
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
@@ -4850,7 +5145,7 @@ class IrBoard implements Board {
       handler.ownerClass,
       tag => this.devices.has(tag),
       () => this.effects,
-      this.bindings,
+      this.cardScope(handler.ownerClass)?.bindings ?? this.bindings,
     );
     const cpuTag = hostedCpuTagForClass(this.machine, handler.ownerClass);
     if (cpuTag) bindings = generatedCpuMemberBindings(bindings, cpuTag);
@@ -4872,6 +5167,113 @@ class IrBoard implements Board {
       };
     }
     return bindings;
+  }
+
+  /**
+   * The scope a composed slot card's handlers run in.
+   *
+   * A card that carries its own processor (the C64's 1541) is a machine of
+   * its own, compiled into board handlers. In MAME its members and finders
+   * are its own: the 1541 calls its 6502 `m_maincpu` exactly as the C64 calls
+   * its 6510. So its handlers see a member store of their own -- built on the
+   * board's, so a name the card never declares still resolves -- in which
+   * each of the card's finders holds the card's device, and a call table on
+   * which `m_maincpu.set_input_line` is the drive's processor. The store is
+   * also the card itself: `this`, the object its bus attaches (`tag()`,
+   * `interface()`, and the interface overrides the bus calls).
+   */
+  private cardScope(ownerClass: string): { instance: Record<string, unknown>; bindings: GeneratedHandlerBindings } | undefined {
+    const card = (this.machine.devices ?? []).find(device =>
+      device.interfaceHandlers?.length && device.classHierarchy?.includes(ownerClass));
+    if (!card) return undefined;
+    const cached = this.cardScopes.get(card.tag);
+    if (cached) return cached;
+    const instance = Object.create(this.state) as Record<string, unknown>;
+    const calls = Object.create(this.bindings.calls ?? null) as NonNullable<GeneratedHandlerBindings['calls']>;
+    const bindings: GeneratedHandlerBindings = { ...this.bindings, members: instance, calls, setters: {} };
+    const scope = { instance, bindings };
+    this.cardScopes.set(card.tag, scope);
+    this.populateCardScope(card, scope);
+    instance.this = instance;
+    instance.tag = () => card.tag;
+    instance.interface = () => instance;
+    for (const key of card.interfaceHandlers ?? []) {
+      const handler = this.machine.handlers?.find(candidate =>
+        `${candidate.ownerClass}.${candidate.method}` === key);
+      if (!handler?.program || handler.program.diagnostics.length) continue;
+      const names = handlerParameterNames(handler.parameters);
+      instance[handler.method] = (...args: unknown[]) => executeGeneratedMachineHandler(
+        this.machine,
+        handler,
+        this.deviceHandlerBindings(handler),
+        Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
+      ) ?? 0;
+    }
+    noteCallLinksChanged();
+    return scope;
+  }
+
+  /**
+   * Give a card's scope its finders: each of the card's devices, and the
+   * calls MAME source makes on them by the card's own member names. A scope
+   * can be asked for before the processors exist (handlers are registered
+   * first), so this runs again once the board is fully built; the scope
+   * object keeps its identity, and prepared handler runtimes re-resolve.
+   */
+  private populateCardScope(
+    card: NonNullable<BoardIr['devices']>[number],
+    scope: { instance: Record<string, unknown>; bindings: GeneratedHandlerBindings },
+  ): void {
+    const calls = scope.bindings.calls!;
+    for (const child of this.machine.devices ?? []) {
+      if (!child.member || (!child.tag.startsWith(`${card.tag}:`) && child.hostTag !== card.tag)) continue;
+      const referent = this.deviceReferents.get(child.tag);
+      if (referent !== undefined) scope.instance[child.member] = referent;
+      const prefix = `m_${child.tag}.`;
+      for (const key in this.bindings.calls) {
+        if (key.startsWith(prefix)) calls[`${child.member}.${key.slice(prefix.length)}`] = this.bindings.calls[key]!;
+      }
+    }
+    noteCallLinksChanged();
+  }
+
+  /**
+   * Start each slot whose default card the board composed, now that the card
+   * exists. The slot's own device_start attaches it -- MAME's
+   * cbm_iec_slot_device walks `owner()` up to the bus and hands it
+   * `get_card_device()` -- so all the host supplies is those two answers: the
+   * machine's devices by tag, and the card's scope object.
+   */
+  private attachComposedCards(): void {
+    for (const card of this.machine.devices ?? []) {
+      if (!card.interfaceHandlers?.length) continue;
+      const slotTag = card.tag.slice(0, card.tag.lastIndexOf(':'));
+      const slot = this.devices.get(slotTag);
+      const scope = this.cardScope(card.classHierarchy?.[0] ?? '');
+      if (!slot || !scope) continue;
+      this.populateCardScope(card, scope);
+      const root = {
+        owner: () => 0,
+        subdevice: (tag: unknown) => {
+          const device = this.devices.get(String(tag).replace(/^:/, ''));
+          return device?.instance?.() ?? this.deviceReferents.get(String(tag)) ?? 0;
+        },
+        tag: () => '',
+      };
+      slot.bindCall('owner', () => root);
+      slot.bindCall('get_card_device', () => scope.instance);
+      slot.startDeferred?.();
+      if (card.resetHandler) {
+        const handler = this.machine.handlers?.find(candidate =>
+          `${candidate.ownerClass}.${candidate.method}` === card.resetHandler);
+        if (handler?.program && !handler.program.diagnostics.length) {
+          const reset = (): void => {
+            executeGeneratedMachineHandler(this.machine, handler, this.deviceHandlerBindings(handler), {});
+          };
+          this.peripheralResets.push(reset);
+        }
+      }
+    }
   }
 
   /**
@@ -4916,9 +5318,10 @@ class IrBoard implements Board {
       candidate.program &&
       !candidate.program.diagnostics.length);
     if (!handler?.program) return undefined;
+    const base = this.cardScope(handler.ownerClass)?.bindings ?? this.bindings;
     let bindings = scopedCpuTag
-      ? generatedCpuMemberBindings(this.bindings, scopedCpuTag)
-      : this.bindings;
+      ? generatedCpuMemberBindings(base, scopedCpuTag)
+      : base;
     // Composite devices are source-compiled handlers rather than generated
     // Device instances. Their devcb members still have to emit the callbacks
     // declared on the composite tag. For example Venture's inner PIA calls
@@ -4934,8 +5337,13 @@ class IrBoard implements Board {
     // Read callbacks are frequently polled by peripheral MCUs and are safe to
     // memoize as query closures. Keep command/lifecycle handlers on the
     // established interpreter path: those callbacks may deliberately depend
-    // on sequencing that is not represented by their return value.
-    const compiled = /_r(?:_\d+)?$/.test(handler.method)
+    // on sequencing that is not represented by their return value. A handler
+    // the board module emitted is faster than either, so the closure only
+    // stands in for a read callback the emitter left out: the C64 polls its
+    // serial bus through cia2_pa_r two thousand times a frame while a 1541
+    // loads, and the closure built a fresh context object for each.
+    const compiled = /_r(?:_\d+)?$/.test(handler.method) &&
+      !this.machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]
       ? compileGeneratedMachineHandler(this.machine, handler, bindings)
       : undefined;
     // Resolved once, not per call. A signal wired to a processor's own

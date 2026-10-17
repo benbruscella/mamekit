@@ -15,6 +15,9 @@ interface Token {
  * answers with that type's width, while `sizeof buffer` names a value and
  * answers with the whole object's size. Only this set separates the two.
  */
+/** Words that qualify a declaration's type without naming it. */
+const QUALIFIER_WORDS = new Set(['const', 'constexpr', 'static', 'volatile', 'inline']);
+
 export const TYPE_WORDS = new Set([
   'auto', 'bool', 'char', 'const', 'constexpr', 'double', 'float', 'int', 'offs_t', 'pen_t', 'static',
   'rectangle', 'rgb_t', 'tilemap_memory_index',
@@ -306,6 +309,27 @@ class HandlerParser {
     if (this.atText('using')) {
       while (!this.at('eof') && !this.consume(';')) this.take();
       return undefined;
+    }
+    // `throw std::invalid_argument(...)`: MAME's format loaders reject a
+    // malformed image this way. Lowered to the `__throw` intrinsic, which
+    // raises in the host, so the load that asked fails rather than carrying
+    // on past the point the source gave up.
+    if (this.atText('throw')) {
+      this.take();
+      if (this.consume(';')) return { op: 'call', expression: { kind: 'call', callee: { kind: 'identifier', name: '__throw' }, args: [] } };
+      const value = this.parseExpression();
+      if (!value || !this.consume(';')) {
+        this.unsupportedStatement('invalid throw statement');
+        return undefined;
+      }
+      // device_missing_dependencies is not a failure: it asks MAME's device
+      // manager to start this device again once the ones it needs have
+      // started (k052109's palette, segaic16's video). The host starts
+      // devices in dependency order already, so the request is a no-op.
+      if (value.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'device_missing_dependencies') {
+        return undefined;
+      }
+      return { op: 'call', expression: { kind: 'call', callee: { kind: 'identifier', name: '__throw' }, args: [value] } };
     }
     if (this.atText('do')) return this.parseDoWhile();
     if (this.isDeclaration()) return this.parseDeclaration();
@@ -882,12 +906,60 @@ class HandlerParser {
     while (this.peek().kind === 'identifier' && TYPE_WORDS.has(this.peek().text)) {
       typeWords.push(this.take().text);
     }
+    // A type the source declares itself, after its qualifiers: `const format
+    // &f = formats[type];` names d64_format's own nested struct, and
+    // `static floppy_image_format_t::desc_e desc[]` a qualified one.
+    if (typeWords.length && typeWords.every(word => QUALIFIER_WORDS.has(word)) &&
+        this.peek().kind === 'identifier' && !TYPE_WORDS.has(this.peek().text)) {
+      const after = this.skipTemplateArguments(this.skipQualifiedName(this.index));
+      let cursor = after;
+      while (['*', '&', 'const'].includes(this.tokens[cursor]?.text ?? '')) cursor++;
+      if (this.tokens[cursor]?.kind === 'identifier') {
+        let name = this.take().text;
+        while (this.atText('::') && this.tokens[this.index + 1]?.kind === 'identifier') {
+          this.take();
+          name += `::${this.take().text}`;
+        }
+        typeWords.push(name);
+      }
+    }
     // The type's template arguments, if it has any. They name no value the IR
     // carries, so they are consumed rather than recorded.
     this.index = this.skipTemplateArguments(this.index);
     const valueType = typeWords.find(word =>
       word !== 'const' && word !== 'constexpr' && word !== 'static');
     const declarations: GeneratedHandlerOperation[] = [];
+    // C++17 structured binding: `auto const [err, img, actual] = read_at(...)`.
+    // The initializer is a tuple, held as an array; each name is one element.
+    // Only a binding's `&` is taken here (`auto &[a, b] = ...`); an ordinary
+    // reference declarator keeps it, which is what marks `bitmap_ind16 &bitmap`
+    // as an alias rather than a copy.
+    if (this.atText('&') && this.tokens[this.index + 1]?.text === '[' && valueType === 'auto') this.take();
+    if (this.atText('[') && valueType === 'auto') {
+      this.take();
+      const names: string[] = [];
+      while (this.peek().kind === 'identifier') {
+        names.push(this.take().text);
+        if (!this.consume(',')) break;
+      }
+      if (!this.consume(']') || !this.consume('=')) {
+        this.unsupportedStatement('invalid structured binding');
+        return declarations;
+      }
+      const value = this.parseExpression();
+      if (!value || !this.consume(';')) {
+        this.unsupportedStatement('invalid structured binding');
+        return declarations;
+      }
+      const holder = `__binding_${this.index}`;
+      declarations.push({ op: 'declare', name: holder, value });
+      names.forEach((name, index) => declarations.push({
+        op: 'declare',
+        name,
+        value: { kind: 'index', object: { kind: 'identifier', name: holder }, index: { kind: 'number', value: index } },
+      }));
+      return declarations;
+    }
     while (!this.at('eof')) {
       let declarator = '';
       while (this.atText('*') || this.atText('&')) declarator += this.take().text;
@@ -972,6 +1044,9 @@ class HandlerParser {
         name: name.text,
         ...(declarationType ? { valueType: declarationType } : {}),
         ...(value ? { value } : {}),
+        // A function-local static keeps its value between calls; the device
+        // compiler gives it storage that outlives the call.
+        ...(typeWords.includes('static') ? { static: true } : {}),
       });
       if (this.consume(';')) return declarations;
       if (!this.consume(',')) {
@@ -1249,7 +1324,15 @@ class HandlerParser {
     const values: GeneratedExpression[] = [];
     if (this.consume(terminator)) return values;
     while (!this.at('eof')) {
-      const value = this.parseExpression();
+      // An element that is itself a brace list initialises one struct of an
+      // array of them (`{ SECTOR_LOOP_START, 0, -1 }` in the 1541's sector
+      // description). The device compiler names its fields from the struct.
+      const value = terminator === '}' && this.consume('{')
+        ? (() => {
+            const fields = this.parseDelimitedExpressions('}');
+            return fields ? { kind: 'call' as const, callee: { kind: 'identifier' as const, name: 'AGGREGATE' }, args: fields } : undefined;
+          })()
+        : this.parseExpression();
       if (!value) return undefined;
       values.push(value);
       if (this.consume(terminator)) return values;

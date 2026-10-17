@@ -111,7 +111,11 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         status: String(node.props.status),
         ...(node.props.filter ? { filter: String(node.props.filter) } : {}),
       })),
-      deviceTypes: devices.map(device => String(device.props.type)),
+      devices: devices.map(device => ({
+        type: String(device.props.type),
+        tag: String(device.props.tag),
+        ...(device.props.slotDefault ? { slotDefault: String(device.props.slotDefault) } : {}),
+      })),
       ...(dumpsDir ? { dumpsDir } : {}),
       dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,
       log: line => console.log(line),

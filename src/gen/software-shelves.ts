@@ -32,9 +32,40 @@ export interface SoftlistDeclaration {
 const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   cassette: ['PET_DATASSETTE_PORT', 'CASSETTE'],
   cartridge: [],
-  floppy: [],
+  // MAME's floppy_connector holds the drive mechanism a disk goes into: the
+  // C64's composed 1541 carries one under its gate array.
+  floppy: ['FLOPPY_CONNECTOR'],
   quickload: [],
 };
+
+/** A device the board composes, as far as mounting a medium cares. */
+export interface ShelfDevice {
+  type: string;
+  /** absolute MAME tag: "tape", "iec8:c1541:uc4:0" */
+  tag: string;
+  /** the option a slot device selects by default ("c1530", "c1541") */
+  slotDefault?: string;
+}
+
+/**
+ * The slots whose cards carry a medium's transports: for each transport, the
+ * outermost slot device it is, or sits under. The C64's datassette port is
+ * the `tape` slot itself; its disk drive's floppy connector sits inside the
+ * 1541 on the `iec8` slot. A transport on no slot is fixed to the board, and
+ * then the medium has no slot to leave empty.
+ */
+export function mediaSlotsOf(kind: MediumKind, devices: readonly ShelfDevice[]): string[] {
+  const slots = devices.filter(device => device.slotDefault).map(device => device.tag);
+  const carrying = new Set<string>();
+  for (const transport of devices.filter(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type))) {
+    const outer = slots
+      .filter(slot => transport.tag === slot || transport.tag.startsWith(`${slot}:`))
+      .sort((a, b) => a.length - b.length)[0];
+    if (!outer) return [];
+    carrying.add(outer);
+  }
+  return [...carrying];
+}
 
 /**
  * The medium a list holds, from the interface its parts declare -- "cbm_cass",
@@ -117,8 +148,8 @@ export interface SoftwareShelvesOptions {
   mameSrc: string;
   outDir: string;
   lists: SoftlistDeclaration[];
-  /** MAME device types the board composes, for the mount capability table */
-  deviceTypes: readonly string[];
+  /** the devices the board composes, for the mount capability table */
+  devices: readonly ShelfDevice[];
   /** local dump directory audited by tools/process-rom-audit.ts, when present */
   dumpsDir?: string;
   /** the bucket / .data key those dumps live under: "computers/c64" */
@@ -154,7 +185,8 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       writeFileSync(join(softwareDir, `${list.name}.available.json`),
         JSON.stringify({ set: options.dumpsKey, carts: available }));
     }
-    const mountable = MEDIA_MOUNT_DEVICES[kind].some(type => options.deviceTypes.includes(type));
+    const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type));
+    const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
     shelves.push({
       list: list.name,
       description: catalog.description,
@@ -167,6 +199,7 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       extensions: kind === 'cartridge' ? [] : catalogExtensions(catalog),
       entries: catalog.entries.length,
       mountable,
+      ...(slots.length ? { slots } : {}),
     });
     log(`software "${list.name}": ${catalog.entries.length} ${kind} sets catalogued` +
       (available.length ? `, ${available.length} dumps available` : '') +

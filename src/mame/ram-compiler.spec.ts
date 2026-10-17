@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { lowerRamAllocation } from './ram-compiler.ts';
+import { lowerRamAllocation, ramPowerOn } from './ram-compiler.ts';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { MameAstIndex, parseMameAst } from './ast.ts';
 import { extractC64 } from '../hardware/c64/extract.ts';
 import { indexMameHardware } from './hardware.ts';
 import { createDevice, registerGeneratedDevice } from '../runtime/generated-device.ts';
@@ -27,4 +30,17 @@ assert.equal(ram.call('read', 123), 255);
 ram.call('write', 123, 42);
 assert.equal(bytes[123], 42, 'source accessors alias the allocated board storage');
 assert.equal(ram.call('read', 65536 + 123), 42, 'source address wrapping uses the configured size');
+// MAME's C64 lays its RAM out in machine_start, and that function -- not a
+// copy of its loop -- is what decides the power-on bytes.
+const driverFile = 'src/mame/commodore/c64.cpp';
+const c64 = new MameAstIndex(parseMameAst([{ file: driverFile, source: readFileSync(join(source, driverFile), 'utf8') }]))
+  .findFunctionInHierarchy('c64_state', 'machine_start')!;
+const runs = ramPowerOn(c64.body, 'm_ram', 65536, 0xff)!;
+assert.deepEqual(runs.slice(0, 3), [[0xff, 1], [0x00, 64], [0xff, 64]]);
+assert.equal(runs.reduce((sum, [, count]) => sum + count, 0), 65536, 'the runs cover the whole device');
+const expanded = runs.flatMap(([value, count]) => Array<number>(count).fill(value));
+assert.equal(expanded[0xcc9d], 0x00, "Cauldron's first SID frame reads $00 from here, as in MAME");
+assert.equal(ramPowerOn('save_item(NAME(m_ram));', 'm_ram', 16, 0xff), undefined, 'a start that never writes the memory is not run');
+assert.equal(ramPowerOn('for (int i = 0; i < 4; i++) m_ram->pointer()[i] = 0xff;', 'm_ram', 4, 0xff), undefined,
+  'writing the fill it already has changes nothing');
 console.log('ram-compiler.spec: source allocation size and fill passed');

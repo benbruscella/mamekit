@@ -37,7 +37,8 @@ const TONES: Record<Tone, { body: string; border: string; color: string }> = {
  * never carries meaning on its own — every button keeps its word beside it
  * and its accessible name regardless.
  */
-export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys' | 'back';
+export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys' | 'back'
+  | 'tape' | 'disk' | 'play' | 'stop' | 'rewind' | 'fastForward' | 'power';
 
 const GLYPHS: Record<Glyph, string> = {
   // two arrows passing: one machine, two players
@@ -56,6 +57,17 @@ const GLYPHS: Record<Glyph, string> = {
   keys: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
   // back the way you came
   back: '<path d="M15 5l-7 7 7 7"/>',
+  // a cassette: two hubs in a shell, for opening a tape
+  tape: '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><circle cx="16" cy="11" r="2"/><path d="M6 19l2-4h8l2 4"/>',
+  // a 5.25" disk: the sleeve, its hub and the read slot
+  disk: '<rect x="3" y="3" width="18" height="18" rx="1.5"/><circle cx="12" cy="11" r="2.5"/><path d="M11 16h2v5h-2z"/>',
+  // the transport's own keys
+  play: '<path d="M7 5l12 7-12 7z"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="1"/>',
+  rewind: '<path d="M11 6l-7 6 7 6zM20 6l-7 6 7 6z"/>',
+  fastForward: '<path d="M4 6l7 6-7 6zM13 6l7 6-7 6z"/>',
+  // the power switch: reset the machine
+  power: '<path d="M12 3v8"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/>',
 };
 
 /** One glyph, sized for a pill button and coloured by whatever holds it. */

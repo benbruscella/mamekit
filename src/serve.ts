@@ -109,6 +109,17 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
             stat(join(artDir, 'covers', `${entry}.${extension}`)).then(() => true, () => false),
           ) : []),
         ]).then(found => found.some(Boolean));
+        // A console or computer is shown by a photograph of the machine
+        // rather than a flyer (media/consoles, media/computers). Asked the
+        // same two places as the flyer, so a build without the artwork tree
+        // -- CI -- draws its own tile instead of requesting a missing image.
+        const photoTree = category === 'consoles' || category === 'computers' ? `media/${category}` : undefined;
+        meta.hasPhoto = photoTree ? await Promise.all([
+          stat(join(outRoot, 'artwork', photoTree, `${entry}.webp`)).then(() => true, () => false),
+          ...(artDir ? ['png', 'webp'].map(extension =>
+            stat(join(artDir, photoTree, `${entry}.${extension}`)).then(() => true, () => false),
+          ) : []),
+        ]).then(found => found.some(Boolean)) : false;
         const report = await readFile(join(dir, 'runtime-report.json'), 'utf8')
           .then(text => JSON.parse(text) as {
             playable?: boolean;

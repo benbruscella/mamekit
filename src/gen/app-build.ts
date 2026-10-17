@@ -13,7 +13,7 @@ import { inputKeys, sixButtonKeys } from './input-bindings.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
-const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'media/consoles', 'carts/nes'];
+const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'media/consoles', 'media/computers', 'carts/nes'];
 
 async function shipWebArtwork(outRoot: string): Promise<void> {
   const source = join(projectRoot, '.data/artwork');

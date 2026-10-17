@@ -2,10 +2,11 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
-  MameAstIndex, parseCallChain, parseMameAst, spanProps, splitMameArgs,
+  MameAstIndex, parseCallChain, parseMameAst, parseMameSource, spanProps, splitMameArgs,
   type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { collectBitAliasMacros, collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
@@ -22,7 +23,7 @@ import {
 } from '../mame/device-compiler.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
-  parseMachineConfigs, parseMemberTags, parseInputPorts, parseGfxLayouts,
+  parseMachineConfigs, parseMemberTags, parseClassMemberTags, parseInputPorts, parseGfxLayouts,
   parseStateClassConstants,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
@@ -67,7 +68,7 @@ function machineStartMemberBody(source: string, className: string, name: string)
  * Build the knowledge graph for one MAME driver file (plus its .h header and
  * any sibling _m/_v/_a compilation units, which share the state class).
  */
-export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph {
+export function buildGraph(mameSrc: string, driverFile: string, cardUnits: readonly string[] = []): KnowledgeGraph {
   const g = new GraphBuilder();
   const driverBase = basename(driverFile); // e.g. galaga.cpp
   const dir = dirname(driverFile);
@@ -107,15 +108,24 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
     }
   }
 
+  // A slot's default card that brings its own processor (a disk drive) is
+  // composed into the machine, so its source joins the family; see
+  // processorSlotCards.
+  for (const unit of cardUnits) if (!family.includes(unit)) family.push(unit);
+
   // driver header credits (parsed from RAW text — comments are stripped below)
   const driverRaw = readFileSync(join(dir, driverBase), 'utf8');
   const license = /^\/\/\s*license\s*:\s*(.+)$/m.exec(driverRaw)?.[1].trim();
   const copyrightHolders = /^\/\/\s*copyright-holders\s*:\s*(.+)$/m.exec(driverRaw)?.[1].trim();
 
   let combined = '';
+  // Where the composed slot cards' source starts: the driver's own finders
+  // are the flat member-tag map, and a card's only answer for its own class.
+  let driverSourceEnd: number | undefined;
   const sourceUnits: { file: string; source: string }[] = [];
   const slashIncludes: string[] = [];
   for (const file of family) {
+    if (driverSourceEnd === undefined && cardUnits.includes(file)) driverSourceEnd = combined.length;
     const raw = readFileSync(file, 'utf8');
     const rel = file.slice(mameSrc.length + 1);
     sourceUnits.push({ file: rel, source: raw });
@@ -182,7 +192,11 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
   textMacros.strings = Object.assign({}, ...externalSources.map(source => parseTextMacros(source).strings), textMacros.strings);
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
   emitSourceTimerCallbacks(g, ast, consts, definedIn);
-  const memberTags = { ...textMacros.strings, ...parseMemberTags(combined, textMacros.strings) };
+  const memberTags = {
+    ...textMacros.strings,
+    ...parseMemberTags(combined.slice(0, driverSourceEnd), textMacros.strings),
+    ...parseClassMemberTags(combined, textMacros.strings),
+  };
   // MAME's address-space indices (AS_PROGRAM, AS_IO, ...), for setters that
   // name a space by constant.
   const addressSpaces = coreAddressSpaces(mameSrc);
@@ -398,7 +412,55 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       /^machine_config\s*&\s*\w+\s*,/.test(fn.parameters))),
   );
   const machineConfigs = parseMachineConfigs(combined, memberTags, consts, configHelpers);
+  // A slot whose default card runs a program of its own is part of the
+  // machine MAME builds: the C64's iec8 holds a 1541, whose 6502 runs the
+  // drive's DOS against two VIAs and a GCR gate array. The card's source is
+  // not in the driver's family, so the first pass that finds one rebuilds the
+  // graph with it parsed; the card then appears as a device of the slot's
+  // config, tagged as MAME tags it (`iec8:c1541`), and its own
+  // device_add_mconfig composes under that tag.
+  const processorCards = processorSlotCards(mameSrc, slashIncludes, machineConfigs);
+  const composedCards = new Set<string>();
+  const cardFiles = [...new Set([...processorCards.values()].flatMap(card => card.files))]
+    .map(file => join(mameSrc, file))
+    .filter(file => !family.includes(file));
+  if (cardFiles.length) return buildGraph(mameSrc, driverFile, [...cardUnits, ...cardFiles]);
+  for (const cfg of machineConfigs) {
+    for (const dev of [...cfg.devices]) {
+      const card = dev.slotOptions && dev.slotDefault
+        ? processorCards.get(`${dev.slotOptions}/${dev.slotDefault}`)
+        : undefined;
+      if (card) {
+        cfg.devices.push({ type: card.type, tag: `${dev.tag}:${dev.slotDefault}`, clock: null, addrMaps: {}, config: [] });
+        composedCards.add(`device:${cfg.cls}.${cfg.name}/${dev.tag}:${dev.slotDefault}`);
+        continue;
+      }
+      // A connector configured in place rather than through an options
+      // table: the 1541 builds its floppy connector with
+      // `connector.option_add("525ssqd", ALPS_3255190X)` and
+      // `set_default_option("525ssqd")`, and the drive mechanism MAME
+      // instantiates there is the device the gate array reads.
+      const defaultOption = dev.config
+        .map(statement => /\bset_default_option\s*\(\s*"([^"]+)"\s*\)/.exec(statement)?.[1])
+        .find(Boolean);
+      const optionType = defaultOption && dev.config
+        .map(statement => new RegExp(`\\boption_add\\s*\\(\\s*"${defaultOption}"\\s*,\\s*(\\w+)\\s*\\)`).exec(statement)?.[1])
+        .find(Boolean);
+      if (defaultOption && optionType) {
+        cfg.devices.push({ type: optionType, tag: `${dev.tag}:${defaultOption}`, clock: null, addrMaps: {}, config: [] });
+      }
+    }
+  }
   const cfgByName = new Map(machineConfigs.map(c => [c.name, c]));
+  // A device class's own sub-machine, inherited when the class does not
+  // override it: every 1541 variant composes c1541_device_base's.
+  const deviceMachineConfig = (cls: string) => {
+    for (const owner of sourceClassHierarchy(ast, cls)) {
+      const found = machineConfigs.find(c => c.cls === owner && c.name === 'device_add_mconfig');
+      if (found) return found;
+    }
+    return undefined;
+  };
   const resolveConfig = (cfg: (typeof machineConfigs)[number], callee: string) => {
     const qualified = /^(\w+)::(\w+)$/.exec(callee);
     if (qualified) {
@@ -484,7 +546,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const devCls = deviceTypes[dev.type];
       if (!devCls || dev.clock === null) continue;
       ownerClocks[devCls] = dev.clock;
-      const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
+      const sub = deviceMachineConfig(devCls);
       for (const sd of sub?.devices ?? []) {
         const clock = derivedDeviceClock(sd.clockExpr, dev.clock, consts);
         if (clock !== undefined) { sd.clock = clock; delete sd.clockExpr; }
@@ -841,10 +903,10 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       const owners = sourceClassHierarchy(ast, cfg.cls);
       const finders = [...new Set(ast.ast.units.flatMap(unit => unit.classes)
         .filter(declaration => owners.includes(declaration.name))
-        .flatMap(declaration => memberDeclarations(declaration))
-        .filter(member => /^(?:required|optional)_device\s*</.test(member.valueType)
-          && memberTags[member.name] === dev.tag)
-        .map(member => member.name))];
+        .flatMap(declaration => memberDeclarations(declaration)
+          .map(member => ({ member, tag: memberTags[`${declaration.name}::${member.name}`] ?? memberTags[member.name] })))
+        .filter(({ member, tag }) => /^(?:required|optional)_device\s*</.test(member.valueType) && tag === dev.tag)
+        .map(({ member }) => member.name))];
       const deviceStart = deviceTypes[dev.type]
         ? ast.findFunctionInHierarchy(deviceTypes[dev.type]!, 'device_start')
         : undefined;
@@ -963,7 +1025,7 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       // reaches the M6803/AY8910s/MSM5205 inside
       const devCls = deviceTypes[dev.type];
       if (devCls) {
-        const sub = machineConfigs.find(c => c.cls === devCls && c.name === 'device_add_mconfig');
+        const sub = deviceMachineConfig(devCls);
         if (sub) g.edge(devId, `machine:${sub.cls}.${sub.name}`, 'CALLS');
         if (deviceStart) pendingDeviceStarts.push({ devId, fn: deviceStart });
       }
@@ -1016,6 +1078,37 @@ export function buildGraph(mameSrc: string, driverFile: string): KnowledgeGraph 
       consts,
       fn.span,
     ), 'CALLS_HANDLER');
+  }
+
+  // A composed slot card is reached by its bus through the interface it
+  // implements, not through a devcb: the IEC bus calls a drive's
+  // `cbm_iec_atn` and `cbm_iec_reset` on every line change. Those overrides
+  // join the card's handler closure, and the board learns them by name; its
+  // device_reset (the 1541 resets its own CPU and VIAs there) likewise.
+  for (const devId of composedCards) {
+    const device = g.nodes.get(devId);
+    const cls = device && typeof device.props.cls === 'string' ? device.props.cls : undefined;
+    if (!device || !cls) continue;
+    const hierarchy = sourceClassHierarchy(ast, cls);
+    const declarations = ast.ast.units.flatMap(unit => unit.classes)
+      .filter(declaration => hierarchy.includes(declaration.name));
+    const interfaceMethods = [...new Set(declarations.flatMap(declaration =>
+      [...stripComments(declaration.body).matchAll(/\bvirtual\s+[\w:<>*&\s]+?\b(\w+)\s*\([^;{]*\)\s*(?:const\s*)?override\b/g)]
+        .map(match => match[1]!)))]
+      .filter(name => !/^device_|^rom_region$|^memory_space_config$/.test(name));
+    const handlers: string[] = [];
+    for (const name of interfaceMethods) {
+      const fn = ast.findFunctionInHierarchy(cls, name);
+      if (!fn) continue;
+      g.edge(devId, emitSourceHandlerClosure(g, ast, fn.className, name, consts, fn.span), 'CALLS_HANDLER');
+      handlers.push(`${fn.className}.${name}`);
+    }
+    if (handlers.length) device.props.interfaceHandlers = handlers;
+    const reset = ast.findFunctionInHierarchy(cls, 'device_reset');
+    if (reset) {
+      g.edge(devId, emitSourceHandlerClosure(g, ast, reset.className, 'device_reset', consts, reset.span), 'CALLS_HANDLER');
+      device.props.resetHandler = `${reset.className}.device_reset`;
+    }
   }
 
   // --- inputs ---
@@ -2009,10 +2102,16 @@ function handlerProps(
   // spelling the body actually uses, or the emitter falls back to a member
   // lookup and writes `members.atari_motion_objects_device::PRIORITY_MASK`,
   // which is not even valid JavaScript.
+  // A framework enum keeps its own value: `machine_phase::RUNNING` is 3, not
+  // the 64H156's `RUNNING` live state, and taking the leaf made the 1541's
+  // motor and stepper writes return before they did anything.
   const qualified = (body?.match(/\b[A-Za-z_]\w*::[A-Za-z_]\w*\b/g) ?? [])
     .flatMap(name => {
       const tail = name.slice(name.indexOf('::') + 2);
-      return available[tail] !== undefined ? [[name, available[tail]!] as const] : [];
+      const value = available[name] ?? DEFAULT_CONSTANTS[name] ?? available[tail];
+      // A carried constant is JSON: `attotime::never` (Infinity) would come
+      // back as null. The runtime spells those itself.
+      return value !== undefined && Number.isFinite(value) ? [[name, value] as const] : [];
     });
   const sourceConstants = [
     ...Object.entries(available).filter(([name]) => identifiers.has(name)),
@@ -2282,6 +2381,80 @@ function resolveSlotInputs(
       g.edge(`device:${cfg.cls}.${cfg.name}/${dev.tag}`, inputsId, 'USES_INPUTS', { option: dev.slotDefault });
     }
   }
+}
+
+/**
+ * Slot default cards that carry a processor with a program map of their own.
+ *
+ * A slot normally holds a passive card -- a joystick, a cassette deck -- that
+ * a hardware package models as the slot's option. A card whose
+ * device_add_mconfig gives a CPU an AS_PROGRAM map is a computer of its own
+ * (the 1541 disk drive is a 6502, 2 KB of RAM, two VIAs and its DOS ROM), and
+ * the frame runner has to schedule that processor beside the host's, so the
+ * board composes it the way it composes any device that hosts a CPU. Keyed
+ * `${slotOptions}/${slotDefault}`; `files` are the card's source unit and
+ * header, relative to the MAME root.
+ */
+function processorSlotCards(
+  mameSrc: string,
+  slashIncludes: string[],
+  machineConfigs: { devices: { slotOptions?: string; slotDefault?: string }[] }[],
+): Map<string, { type: string; cls: string; files: string[] }> {
+  const cards = new Map<string, { type: string; cls: string; files: string[] }>();
+  const busDirs = [...new Set(
+    slashIncludes.filter(inc => inc.startsWith('bus/')).map(inc => join(mameSrc, 'src/devices', dirname(inc))),
+  )].filter(dir => existsSync(dir));
+  if (!busDirs.length) return cards;
+  const sources = new Map<string, string>();
+  const read = (file: string): string => {
+    let text = sources.get(file);
+    if (text === undefined) { text = stripComments(readFileSync(file, 'utf8')); sources.set(file, text); }
+    return text;
+  };
+  const files = busDirs.flatMap(dir => readdirSync(dir).filter(name => name.endsWith('.cpp')).map(name => join(dir, name)));
+  const seen = new Set<string>();
+  for (const cfg of machineConfigs) {
+    for (const dev of cfg.devices) {
+      if (!dev.slotOptions || !dev.slotDefault) continue;
+      const key = `${dev.slotOptions}/${dev.slotDefault}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      let type: string | undefined;
+      for (const file of files) {
+        const options = new RegExp(
+          `void\\s+${dev.slotOptions}\\s*\\(\\s*device_slot_interface\\s*&[^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`,
+        ).exec(read(file));
+        type = options ? new RegExp(
+          `option_add(?:_internal)?\\(\\s*"${dev.slotDefault}"\\s*,\\s*(\\w+)\\s*\\)`,
+        ).exec(options[1]!)?.[1] : undefined;
+        if (type) break;
+      }
+      if (!type) continue;
+      const definition = files.map(file => ({
+        file,
+        match: new RegExp(`DEFINE_DEVICE_TYPE\\(\\s*${type}\\s*,\\s*(\\w+)\\s*,`).exec(read(file)),
+      })).find(candidate => candidate.match);
+      if (!definition) continue;
+      const header = definition.file.replace(/\.cpp$/, '.h');
+      const units = [definition.file, ...(existsSync(header) ? [header] : [])];
+      const parsed = units.map(file => parseMameSource(file.slice(mameSrc.length + 1), read(file)));
+      const classes = new Map(parsed.flatMap(unit => unit.classes).map(entry => [entry.name, entry]));
+      const hierarchy: string[] = [];
+      for (let cls: string | undefined = definition.match![1]!; cls && !hierarchy.includes(cls);) {
+        hierarchy.push(cls);
+        cls = classes.get(cls)?.bases.map(base => base.split('::').at(-1)!).find(base => classes.has(base));
+      }
+      const mconfig = hierarchy.map(cls => parsed.flatMap(unit => unit.functions)
+        .find(fn => fn.className === cls && fn.name === 'device_add_mconfig')).find(Boolean);
+      if (!mconfig || !/set_addrmap\s*\(\s*AS_PROGRAM\b/.test(mconfig.body)) continue;
+      cards.set(key, {
+        type,
+        cls: definition.match![1]!,
+        files: units.map(file => file.slice(mameSrc.length + 1)),
+      });
+    }
+  }
+  return cards;
 }
 
 /**

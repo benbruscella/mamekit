@@ -22,6 +22,7 @@ import { openCartStore, type CartRecord } from './cartstore.ts';
 import { readZip, crc32 } from './zip.ts';
 import { cartAvailability, fetchRomBytes, type CartAvailability } from './rom-source.ts';
 import { wrapCartTitle } from './console.ts';
+import { artworkSources } from './artwork-source.ts';
 
 const GOLD = '#f2c200';
 const MAX_SET = 16 * 1024 * 1024; // a disk image set; no tape or cart is near it
@@ -38,6 +39,8 @@ export interface SoftEntry {
   prg: { size: number; roms: SoftRom[] };
   supported?: 'no' | 'partial';
   parts?: number;
+  /** MAME's note on starting the set: `Commodore: Load "JINGLE",8,1` */
+  usage?: string;
 }
 export interface SoftCatalog {
   list: string;
@@ -57,6 +60,8 @@ interface MenuEntry {
   /** a compiled but unfinished machine the development build exposes */
   preview?: boolean;
   driverFile?: string;
+  /** the artwork tree holds a photograph of the machine (media/computers) */
+  hasPhoto?: boolean;
 }
 
 const hex8 = (n: number) => n.toString(16).padStart(8, '0');
@@ -284,6 +289,14 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   const shelves = cfg.software?.shelves ?? [];
   const dumpsKey = cfg.software?.dumpsKey ?? cfg.dataPath.replace(/^games\//, '');
   const firmware = cfg.roms.some(spec => spec.loads.length > 0);
+  // The sets the machine asks for, as the drop screen names them: a C64 with
+  // its 1541 wants c64.zip and the drive's c1541.zip.
+  const firmwareSets = [...new Set(cfg.roms.filter(spec => spec.loads.length > 0)
+    .flatMap(spec => spec.loads.map(load => load.romSet ?? spec.romSet ?? cfg.game)))]
+    .map(set => `${set}.zip`);
+  const firmwareNames = firmwareSets.length > 1
+    ? `${firmwareSets.slice(0, -1).join(', ')} and ${firmwareSets.at(-1)}`
+    : firmwareSets[0] ?? `${cfg.game}.zip`;
 
   const [store, entry] = await Promise.all([openCartStore(), fetchOwnEntry(cfg)]);
   // A candidate machine is exposed by the development build as a preview:
@@ -330,7 +343,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   root.setAttribute('data-software-room', '');
   document.body.appendChild(root);
 
-  const header = el('div', `padding:26px 36px 18px;display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end;
+  const header = el('div', `padding:26px 36px 18px;display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;
     justify-content:space-between;background:linear-gradient(180deg,#0f1330,#05060f)`);
   const heading = el('div', '');
   const h1 = el('div', `font-size:30px;font-weight:900;color:${GOLD};line-height:1.1`);
@@ -343,11 +356,34 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   sub.textContent = [entry?.manufacturer, entry?.year, cfg.title.replace(/^.*\((\w+)\)\s*\(.*$/, '$1')]
     .filter(Boolean).join(' · ');
   heading.append(h1, sub);
+  // The machine itself, as the console room shows its console: a photograph
+  // on genuine transparency, so it sits in the banner rather than pasted on.
+  // Asked for only when the build shipped one, and dropped if it will not
+  // decode, so a build without the artwork tree shows the heading alone.
+  const masthead = el('div', 'display:flex;align-items:center;gap:22px;min-width:0');
+  if (entry?.hasPhoto) {
+    const hero = el('div', `width:200px;height:104px;flex:0 0 auto;display:none;align-items:center;justify-content:center`);
+    hero.setAttribute('data-computer-hero', '');
+    const [web, archival] = artworkSources(`media/computers/${cfg.game}.png`);
+    const photo = document.createElement('img');
+    photo.decoding = 'async';
+    photo.alt = '';
+    photo.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))';
+    photo.addEventListener('error', () => {
+      if (!photo.src.endsWith(archival)) photo.src = archival;
+      else hero.remove();
+    });
+    photo.addEventListener('load', () => { hero.style.display = 'flex'; });
+    photo.src = web;
+    hero.append(photo);
+    masthead.append(hero);
+  }
+  masthead.append(heading);
   const actions = el('div', 'display:flex;gap:10px;flex-wrap:wrap;align-items:center');
   const powerBtn = button('⏻ Power on', true, coreSupported);
   powerBtn.setAttribute('data-power-on', '');
   powerBtn.title = firmware
-    ? `Boot the machine with nothing loaded — it asks for its own ${cfg.game}.zip firmware first`
+    ? `Boot the machine with nothing loaded — it asks for its own ${firmwareNames} firmware first`
     : 'Boot the machine with nothing loaded';
   powerBtn.addEventListener('click', () => boot(null));
   const insertBtn = button('◍ Insert your own…', false, true);
@@ -362,12 +398,12 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   back.textContent = '← All computers';
   back.style.cssText = dossier.style.cssText;
   actions.append(powerBtn, insertBtn, dossier, back);
-  header.append(heading, actions);
+  header.append(masthead, actions);
   root.appendChild(header);
 
   const notes = el('div', 'padding:0 36px;color:#7f8ac9;font-size:12.5px;line-height:1.6;max-width:1280px;margin:0 auto;box-sizing:border-box');
   notes.textContent = firmware
-    ? `Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser; playing it boots the machine, which first asks for its own ${cfg.game}.zip firmware (dropped, or found by the web search).`
+    ? `Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser; playing it boots the machine, which first asks for its own ${firmwareNames} firmware (dropped, or found by the web search).`
     : 'Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser.';
   root.appendChild(notes);
 
@@ -682,8 +718,11 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     // file names no shelf, and a fetched one is checked the same way.
     await Promise.all(shelves.map(loadShelf));
     const identified = identifySet(members, catalogs.values());
-    const shelf = shelfFor(identified?.list) ?? hint ?? shelves.find(candidate =>
-      mountableImages(members, candidate.extensions).length > 0);
+    // The shelf on screen is only a hint: a disk image dropped while the
+    // tapes are showing belongs on a disk shelf, not refused by the tape one.
+    const takes = (candidate: SoftwareShelf | undefined): boolean =>
+      Boolean(candidate && mountableImages(members, candidate.extensions).length);
+    const shelf = shelfFor(identified?.list) ?? (takes(hint) ? hint : shelves.find(takes) ?? hint);
     if (!shelf) { toast(`${name}: no image inside that any shelf here accepts`); return false; }
     if (!mountableImages(members, shelf.extensions).length) {
       toast(`${name}: no ${shelf.extensions.map(e => `.${e}`).join(' / ')} image inside`);
@@ -769,7 +808,16 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   }
 
   // --- boot -----------------------------------------------------------------------------
-  async function boot(rec: CartRecord | null): Promise<void> {
+  // A medium's transport is attached only for the titles that use it: a tape
+  // title boots with the disk drive's slot empty, as MAME's `-iec8 ""` does,
+  // rather than running the 1541's processor in lockstep with the machine's
+  // own for nothing. Power on attaches every one.
+  const mediaSlots = [...new Set(shelves.flatMap(shelf => shelf.mountable ? shelf.slots ?? [] : []))];
+  // A title restarted from inside the machine to connect a transport comes
+  // back through a reload; this carries what to boot across it.
+  const restartKey = `mamekit:restart:${cfg.game}`;
+
+  async function boot(rec: CartRecord | null, attached: string[] = [], restarted = false): Promise<void> {
     let images: MountedImage[] = [];
     let title = cfg.title;
     if (rec) {
@@ -787,14 +835,27 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     inRoom = false;
     document.body.textContent = '';
     document.body.style.cssText = '';
+    const used = new Set([...(rec ? shelfFor(rec.list)?.slots ?? [] : mediaSlots), ...attached]);
+    const emptySlots = mediaSlots.filter(slot => !used.has(slot));
     const cfg2: ShellConfig = {
       ...cfg,
       title,
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
+      ...(emptySlots.length ? { board: { ...cfg.board, emptySlots } } : {}),
+      ...(rec && ownedEntry(rec)?.usage ? { usage: ownedEntry(rec)!.usage } : {}),
       ...(preview ? { preview: true } : {}),
     };
-    history.pushState({ set: rec?.id ?? null }, '', location.href);
-    await runShell(cfg2, undefined, images);
+    // The restart reloads the entry this pushed, so it must not push another.
+    if (restarted) history.replaceState({ set: rec?.id ?? null }, '', location.href);
+    else history.pushState({ set: rec?.id ?? null }, '', location.href);
+    await runShell(cfg2, undefined, images, {
+      attach: slot => {
+        try {
+          sessionStorage.setItem(restartKey, JSON.stringify({ set: rec?.id ?? null, attached: [...attached, slot] }));
+        } catch { /* no session storage: the reload lands in the room */ }
+        location.reload();
+      },
+    });
   }
 
   // --- details modal -------------------------------------------------------------------
@@ -824,6 +885,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     fact('Set', soft.name + (soft.cloneof ? ` (clone of ${soft.cloneof})` : ''));
     if (soft.parts) fact('Parts', String(soft.parts));
     if (soft.supported) fact('MAME status', soft.supported === 'no' ? 'not working' : 'partially working');
+    if (soft.usage) fact('How to start', soft.usage);
     for (const rom of soft.prg.roms) fact(rom.file ?? 'image', `${(rom.size / 1024).toFixed(0)} KB · crc ${rom.crc}`);
     fact('Zip', avail ? (avail.file.split('/').pop() ?? avail.file) : `${soft.name}.zip`);
     card.appendChild(facts);
@@ -908,6 +970,18 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     ownRow.appendChild(tile.item);
   }
   ownHead.style.display = owned.length ? '' : 'none';
+
+  // Back from a restart that connected a transport: boot the same title again.
+  let restart: { set: string | null; attached: string[] } | undefined;
+  try {
+    const raw = sessionStorage.getItem(restartKey);
+    sessionStorage.removeItem(restartKey);
+    if (raw) restart = JSON.parse(raw) as typeof restart;
+  } catch { /* storage unavailable or unreadable: stay in the room */ }
+  if (restart) {
+    const rec = restart.set === null ? null : recs.find(candidate => candidate.id === restart.set);
+    if (rec !== undefined) void boot(rec, Array.isArray(restart.attached) ? restart.attached.map(String) : [], true);
+  }
 }
 
 async function fetchOwnEntry(cfg: ShellConfig): Promise<MenuEntry | null> {

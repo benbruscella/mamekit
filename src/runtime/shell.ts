@@ -9,7 +9,7 @@ import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, HiscoreTable, MachineState } from './types.ts';
+import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
@@ -191,7 +191,8 @@ export interface DropZone {
   busy: (name: string) => void;
   error: (msg: string) => void;
   /** per-chip validation result: colors the manifest + summary line */
-  verdict: (check: RomCheck) => void;
+  /** `kept`: the check is of what the browser already keeps, before any drop */
+  verdict: (check: RomCheck, kept?: boolean) => void;
   /** the "Try web search" affordance: button ↔ progress bar */
   search: {
     button: HTMLButtonElement;
@@ -358,6 +359,11 @@ export interface ShellConfig {
   /** where Esc returns to (the boot menu) */
   menuUrl?: string;
   /**
+   * MAME's own note on starting the title the software room booted, from its
+   * software list (`<info name="usage">`), said when that title's media mount.
+   */
+  usage?: string;
+  /**
    * The machine is exposed as a beta: compiled and playable, but without
    * gameplay acceptance yet. Set by the room from the manifest's preview flag
    * so the page says so wherever the machine is named.
@@ -399,6 +405,12 @@ export interface SoftwareShelf {
    * transport is not yet generated is still browsable, but display only.
    */
   mountable: boolean;
+  /**
+   * The MAME slots whose cards carry this medium's transport ("tape",
+   * "iec8"), when it is not fixed to the board. A title on another medium
+   * boots with these slots empty, as MAME's `-iec8 ""` leaves them.
+   */
+  slots?: string[];
 }
 
 export interface SoftwareShelves {
@@ -768,17 +780,32 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
  * `preloaded` bypasses the drop-zone/manifest path: the console room hands
  * over already-verified cart regions (regions.prg/chr) after identification.
  */
+/** What the room that booted the shell can do for it. */
+export interface ShellHost {
+  /** Boot this title again with the card in `slot` attached (see BoardConfig.emptySlots). */
+  attach?: (slot: string) => void;
+}
+
 export async function runShell(
   cfg: ShellConfig,
   preloaded?: Regions,
   mounted: MountedImage[] = [],
+  host: ShellHost = {},
 ): Promise<void> {
+  // A slot the room left empty takes its card's firmware with it: a C64 tape
+  // title boots without the 1541, so it must not ask for c1541.zip.
+  const emptySlots = cfg.board.emptySlots ?? [];
+  if (emptySlots.length) {
+    cfg = { ...cfg, roms: cfg.roms.filter(spec => !emptySlots.some(slot => spec.region.startsWith(`${slot}:`))) };
+    console.info(`[media] booting with ${emptySlots.map(slot => `-${slot} ""`).join(' ')}: ` +
+      'a transport the title does not use is left out, as MAME leaves an empty slot');
+  }
   const ui = buildDom(cfg);
 
-  // Cabinet bezels are arcade presentation. Console carts boot into the clean
-  // television viewport from their room and must not probe for an arcade
-  // artwork zip that cannot exist.
-  if (cfg.kind !== 'console') {
+  // Cabinet bezels are arcade presentation. Console carts and computers boot
+  // into the clean television viewport from their room and must not probe for
+  // an arcade artwork zip that cannot exist (a 404 on every C64 boot).
+  if (cfg.kind !== 'console' && cfg.kind !== 'computer') {
     void loadArtwork(cfg.game).then(art => {
       if (art?.window) ui.setBezel(art.bmp, art.window, art.tints, art.backdrop);
     });
@@ -831,9 +858,9 @@ export async function runShell(
     const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
     const dependencies = dependencyRomSets(cfg.roms, cfg.game);
     const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical);
-    if (kept) {
+    if (kept?.complete) {
       ui.status(`Booting ${cfg.title} from the ${cfg.game}.zip kept in this browser…`);
-      regions = assembleRegions(cfg.roms, kept, ui.status, critical);
+      regions = assembleRegions(cfg.roms, kept.files, ui.status, critical);
       keptRom = true;
     } else {
       // A page opened from an invite still needs its own dump, and the drop
@@ -842,8 +869,11 @@ export async function runShell(
       const companionText = dependencies.length
         ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
         : '';
-      ui.status(`ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
-      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey);
+      const short = kept ? missingRomSets(cfg.roms, kept.files, critical, cfg.game) : [];
+      ui.status(short.length
+        ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
+        : `ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
+      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey, kept ?? undefined);
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
       keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast);
     }
@@ -952,14 +982,40 @@ export async function runShell(
     memory.reset();
   });
   ui.setNative(board.fbWidth, board.fbHeight); // the board owns true geometry
+  // The rate the readout last measured, for the transports' console log: a
+  // disk load's pace is the machine's pace, so the log says both.
+  let measuredFps = 0;
+  const speed = (): string => {
+    const refresh = cfg.board.screen.refresh;
+    return measuredFps > 0
+      ? `${measuredFps} fps, ${Math.round((measuredFps / refresh) * 100)}% of real time`
+      : 'paused';
+  };
+  // A transport left out still has its strip, in the place it always has,
+  // saying so and offering the restart that connects it.
+  const detached = (kind: keyof typeof TRANSPORT_LABELS): void => {
+    for (const slot of emptySlots) {
+      if (cfg.software?.shelves.find(shelf => shelf.slots?.includes(slot))?.kind !== kind) continue;
+      ui.addBay(detachedBay(kind, slot, ui.toast, host.attach));
+    }
+  };
   // The software room's chosen tape rides in on `mounted`; the first transport
   // that accepts its extension takes it, the rest start empty.
   let pending = mounted;
   for (const media of board.media?.() ?? []) {
     const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addControls(cassetteControls(media, () => input.releaseAll(), mine));
+    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
   }
+  detached('cassette');
+  // Disk drives the same way: the chosen disk set's images go to the first
+  // drive whose formats read them.
+  for (const disk of board.disks?.() ?? []) {
+    const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
+    if (mine.length) pending = pending.filter(image => !mine.includes(image));
+    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
+  }
+  detached('floppy');
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
@@ -1161,22 +1217,30 @@ export async function runShell(
     audio.setVolume(on ? 0 : masterVolume);
   };
   if (cfg.kind === 'computer') {
-    const deck = deckPanel(cfg.preview ? 'COMPUTER · BETA' : 'COMPUTER');
-    deck.setAttribute('data-computer-deck', '');
-    const reset = deckButton('⏻ Reset', { solid: false });
-    reset.title = 'Reset the computer (like the RESTORE/reset line)';
+    // A computer keeps every key on its keyboard, so Reset and Fast-forward
+    // are buttons rather than F3 and F. They are a group in the panel's own
+    // toolbar: they used to be a second panel of their own under the tape
+    // deck's, which made the page three panels deep (issue #157).
+    const group = document.createElement('span');
+    group.dataset.computerControls = '';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Computer');
+    group.style.cssText = 'display:inline-flex;align-items:center;gap:7px';
+    const reset = titleButton('Reset', 'Reset the computer', 'Reset the computer, as its reset line does', 'normal', 'power');
     reset.onclick = () => { input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
-    const fast = deckButton('▶▶ Fast-forward', { solid: false });
-    fast.title = 'Run unthrottled, muted, until pressed again';
+    const fast = titleButton('Fast-forward', 'Fast-forward',
+      'Run as fast as the machine will go, muted, until pressed again', 'normal', 'fastForward');
+    fast.dataset.fastForward = '';
     fast.setAttribute('aria-pressed', 'false');
-    const paintFast = () => {
+    fast.onclick = () => {
+      input.releaseAll();
+      setFastForward(!fastForward);
       fast.setAttribute('aria-pressed', String(fastForward));
-      setDeckButtonState(fast, fastForward);
-      fast.textContent = fastForward ? '▶▶ Fast-forward · ON' : '▶▶ Fast-forward';
+      paintTitleButton(fast, fastForward);
+      fast.blur();
     };
-    fast.onclick = () => { input.releaseAll(); setFastForward(!fastForward); paintFast(); fast.blur(); };
-    deck.append(reset, fast);
-    ui.addControls(deck);
+    group.append(reset, fast);
+    ui.addTitleControls(group);
   }
   // --- save states (issue #129) ---------------------------------------------
   // The whole machine, captured between frames and kept in the visitor's own
@@ -1229,10 +1293,14 @@ export async function runShell(
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
+  // How long the display gives each tick, smoothed: fast-forward fills it.
+  let displayMs = 1000 / 60;
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
     }
+    // A stalled tick says nothing about the display's rate, so it is left out.
+    if (now - last > 2 && now - last < 50) displayMs += (now - last - displayMs) * 0.1;
     pads.poll();
     acc += now - last;
     last = now;
@@ -1249,15 +1317,19 @@ export async function runShell(
       // Nothing runs, but the panel keeps reporting: the readout below says
       // so rather than leaving a still picture to be read as a crash.
     } else if (fastForward && !qaDrive) {
-      // As many frames as fit the budget, presented once. The budget is
-      // shorter than a display frame so the page stays responsive enough to
-      // press F again, and the cap stops a fast machine running away.
-      const until = performance.now() + 10;
+      // As many frames as fit the display's tick, presented once. It used to
+      // be a fixed 10 ms, which on a 60 Hz display left a third of every tick
+      // idle -- and a machine whose frame takes longer than that (a C64 is
+      // ~15 ms) ran one frame a tick, slower fast-forwarded than not
+      // (issue #157). The tick is measured, and a few milliseconds are left
+      // over for the page itself so F, Esc and the panel still answer. The
+      // cap stops a fast machine running away.
+      const until = now + Math.max(6, Math.min(displayMs, 40) - 3);
       let batch = 0;
       do {
         if (!runFrame()) break; // in a room, only as far as the other player
         batch++;
-      } while (performance.now() < until && batch < 60);
+      } while (performance.now() < until && batch < 120);
       ui.blit(image);
       acc = 0; // the timestep's backlog means nothing at this speed
     } else if (!qaDrive) {
@@ -1275,7 +1347,7 @@ export async function runShell(
       // used to be rewritten into this line once a second as well, so the
       // page spent two of its lines saying the same thing twice.
       const rate = paused ? ['⏸ paused'] : [`${frames} fps`];
-      if (fastForward && !paused) rate.unshift(cfg.kind === 'computer' ? '▶▶ FAST-FORWARD' : '▶▶ FAST-FORWARD (F)');
+      if (fastForward && !paused) rate[0] = `▶▶ ${rate[0]}${cfg.kind === 'computer' ? '' : ' (F)'}`;
       const room = netplay.status();
       if (room) rate.push(room);
       const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
@@ -1283,6 +1355,7 @@ export async function runShell(
       if (snap.credits !== undefined) detail.push(`credits=${snap.credits}`);
       if (input.debug) detail.push(input.dump());
       ui.readout(rate.join(' · '), detail.join(' · '));
+      measuredFps = paused ? 0 : frames;
       frames = 0;
       fpsWindowStart = now;
     }
@@ -1591,7 +1664,11 @@ function buildDom(cfg: ShellConfig) {
   // each, and the machine's name in the middle. The two instrument columns
   // are the same width, so the name is centred on the panel whatever either
   // of them happens to be reading.
-  plate.style.gridTemplateColumns = 'auto minmax(0,1fr) auto minmax(0,1fr) auto';
+  // The name may be long -- a computer's carries the title it is running --
+  // so it wraps rather than spilling over its neighbours, and each
+  // instrument keeps room enough to be read.
+  plate.style.gridTemplateColumns =
+    'auto minmax(min(118px,16vw),1fr) minmax(0,auto) minmax(min(118px,16vw),1fr) auto';
 
   // The machine's controls, grouped by what they do, with the destructive
   // pair held back at the end in a tone that does not look like Save. They
@@ -1740,6 +1817,42 @@ function buildDom(cfg: ShellConfig) {
   const bezelCanvas = document.createElement('canvas');
   bezelCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none';
 
+  /**
+   * Keep the toolbar to one line by dropping words before buttons.
+   *
+   * A computer's panel carries the most -- two players, Reset and
+   * Fast-forward, the save trio, Forget ROM and Keys -- and under a 4:3
+   * screen that is wider than the glass. The rarely wanted (quiet) and the
+   * destructive (danger) give up their words first, then the rest; each keeps
+   * its glyph, its accessible name and its tooltip.
+   */
+  const compactRow = (row: HTMLElement): void => {
+    const buttons = [...row.querySelectorAll<HTMLButtonElement>('button')]
+      .filter(button => button.querySelector('[data-word]') && button.querySelector('svg'));
+    const word = (button: HTMLButtonElement) => button.querySelector<HTMLElement>('[data-word]')!;
+    // Wrapped when its buttons, or the cells holding them, no longer share a line.
+    const wrapped = (): boolean => [
+      [...row.querySelectorAll<HTMLElement>('button')],
+      [...row.children] as HTMLElement[],
+    ].some(items => {
+      const tops = items.filter(item => item.offsetParent && item.offsetHeight)
+        .map(item => item.getBoundingClientRect().top + item.offsetHeight / 2);
+      return tops.length > 1 && Math.max(...tops) - Math.min(...tops) > 8;
+    });
+    for (const button of buttons) word(button).style.display = '';
+    for (const tones of [['quiet', 'danger'], ['normal']]) {
+      if (!wrapped()) return;
+      for (const button of buttons) {
+        if (tones.includes(button.dataset.tone ?? 'normal')) word(button).style.display = 'none';
+      }
+    }
+  };
+  const compactToolbar = (): void => {
+    if (well.style.display !== 'none') compactRow(toolbar);
+    // A transport strip's keys too: a tape deck's are the same four shapes
+    // on every deck ever made, so they read as glyphs alone.
+    for (const bay of deck.querySelectorAll<HTMLElement>('[data-media-bay]')) compactRow(bay);
+  };
   const fit = () => {
     // The screen takes what the page leaves it: everything else in the column
     // -- title, status, key hint, and a computer's control decks -- is
@@ -1774,6 +1887,7 @@ function buildDom(cfg: ShellConfig) {
     // screens get a floor, or the buttons would be stacked six deep.
     const glass = parseFloat(bezel ? holder.style.width : canvas.style.width) || 0;
     deck.style.width = `${Math.min(innerWidth - 32, Math.max(360, glass))}px`;
+    compactToolbar();
   };
   fit();
   addEventListener('resize', fit);
@@ -1789,9 +1903,22 @@ function buildDom(cfg: ShellConfig) {
   // Toast over the screen for a moment: "controller connected" and the like.
   const toast = document.createElement('div');
   toast.dataset.toast = '';
+  // What the panel's transports say goes here, so it is read out as well.
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
   toast.style.cssText = 'position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#f2c200;color:#1b1b1b;font-weight:800;font-size:13px;padding:10px 16px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;z-index:5;opacity:0;transition:opacity .25s;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis';
   holder.appendChild(toast);
   let toastTimer = 0;
+
+  // What a transport is doing while it does it, in the corner of the screen
+  // the player is watching: a disk spinning, a tape moving. A load can take
+  // minutes, and a readout under the panel was easy to miss entirely.
+  const activityBadge = document.createElement('div');
+  activityBadge.dataset.mediaActivity = '';
+  activityBadge.setAttribute('aria-hidden', 'true');
+  activityBadge.style.cssText = 'position:absolute;left:12px;bottom:12px;display:none;flex-direction:column;gap:4px;pointer-events:none;z-index:4';
+  holder.appendChild(activityBadge);
+  const activities = new Map<string, HTMLElement>();
 
   // What the machine is doing right now, and what the keys do. Both belong
   // to the panel: they are readouts of the thing above them.
@@ -1879,6 +2006,41 @@ function buildDom(cfg: ShellConfig) {
     /** the machine's screen, for pointer capture */
     canvas,
     addControls: (controls: HTMLElement) => { root.appendChild(controls); fit(); },
+    /**
+     * A strip of the control panel for one of the machine's own transports
+     * (a computer's tape deck), ruled off under the button well, so the
+     * machine and everything that operates it read as one panel. They used
+     * to be panels of their own under it (issue #157).
+     */
+    addBay: (bay: PanelBay) => {
+      const row = strip('8px 16px');
+      row.dataset.mediaBay = bay.id;
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', bay.ariaLabel);
+      row.style.display = 'flex';
+      row.style.flexWrap = 'wrap';
+      row.style.justifyContent = 'space-between';
+      row.style.background = 'linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.08))';
+      const cell = (justify: string): HTMLElement => {
+        const part = document.createElement('div');
+        part.style.cssText = `display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap;justify-content:${justify}`;
+        return part;
+      };
+      const left = cell('flex-start');
+      const middle = cell('center');
+      const right = cell('flex-end');
+      if (!bay.middle.length) middle.style.display = 'none';
+      const tag = document.createElement('span');
+      tag.textContent = bay.label;
+      tag.style.cssText = 'color:#7f8ac9;font:700 10px ui-monospace,monospace;letter-spacing:2px;flex:0 0 auto';
+      left.append(tag, ...bay.left);
+      middle.append(...bay.middle);
+      right.append(...bay.right);
+      row.append(left, middle, right);
+      for (const type of ['keydown', 'keyup']) row.addEventListener(type, event => event.stopPropagation());
+      if (bay.onFocus) row.addEventListener('focusin', bay.onFocus);
+      fit();
+    },
     removeControls: (controls: HTMLElement) => { controls.remove(); fit(); },
     /** a control group in the toolbar under the title: one line for all of them */
     addTitleControls: (controls: HTMLElement) => {
@@ -1924,6 +2086,34 @@ function buildDom(cfg: ShellConfig) {
       padBadge.style.display = names.length ? 'inline-flex' : 'none';
       padBadge.textContent = names.length ? `🎮 ${names.join(' · ')}` : '';
       fit();
+    },
+    /**
+     * A transport's activity over the screen while it lasts (`undefined`
+     * clears it): `lit` is its lamp, so a drive's light can blink.
+     */
+    activity: (id: string, text: string | undefined, lit = true) => {
+      let line = activities.get(id);
+      if (text === undefined) {
+        line?.remove();
+        activities.delete(id);
+      } else {
+        if (!line) {
+          line = document.createElement('div');
+          line.dataset.activity = id;
+          line.style.cssText = 'display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 11px 5px 9px;border-radius:999px;background:rgba(8,11,29,.82);border:1px solid #2a3162;color:#e8ebff;font:700 12px ui-monospace,monospace;letter-spacing:.4px;box-shadow:0 4px 16px rgba(0,0,0,.45)';
+          const dot = document.createElement('span');
+          dot.style.cssText = 'width:9px;height:9px;border-radius:50%;flex:0 0 auto';
+          const words = document.createElement('span');
+          line.append(dot, words);
+          activities.set(id, line);
+          activityBadge.appendChild(line);
+        }
+        const [dot, words] = line.children as unknown as [HTMLElement, HTMLElement];
+        dot.style.background = lit ? '#ff4a3a' : '#5a2a2a';
+        dot.style.boxShadow = lit ? '0 0 8px #ff4a3a' : 'none';
+        words.textContent = text;
+      }
+      activityBadge.style.display = activities.size ? 'flex' : 'none';
     },
     /** flash a message over the screen for a few seconds */
     toast: (text: string) => {
@@ -2097,7 +2287,7 @@ function buildDom(cfg: ShellConfig) {
           zone.style.animation = 'm2j-shake .4s';
           setTimeout(() => { zone.style.animation = ''; }, 450);
         },
-        verdict: (check: RomCheck) => {
+        verdict: (check: RomCheck, kept = false) => {
           idle();
           // paint the manifest chip-by-chip: ✓ verified / ≈ crc differs / ✗ absent
           for (const p of check.perFile) {
@@ -2120,9 +2310,17 @@ function buildDom(cfg: ShellConfig) {
             small.textContent = missingSets.length
               ? `Also select or drop ${missingSets.join(', ')}. Files already supplied are kept for this page.`
               : `${check.missingCritical.length} required CPU chip${check.missingCritical.length > 1 ? 's are' : ' is'} missing — try the "${game}" set.`;
-            zone.style.borderColor = '#e0504d';
-            zone.style.animation = 'm2j-shake .4s';
-            setTimeout(() => { zone.style.animation = ''; }, 450);
+            if (kept) {
+              // Nothing went wrong: the browser kept a set for a machine
+              // configured with less firmware (a C64 booted without its 1541).
+              icon.textContent = '🗂️';
+              big.textContent = missingSets.length ? `Drop ${missingSets.join(', ')}` : big.textContent;
+              small.textContent = 'This browser already keeps the rest of the set.';
+            } else {
+              zone.style.borderColor = '#e0504d';
+              zone.style.animation = 'm2j-shake .4s';
+              setTimeout(() => { zone.style.animation = ''; }, 450);
+            }
           } else if (check.missingOther.length || check.crcMismatch.length) {
             manifest.open = true;
             icon.textContent = '⚠️';
@@ -2234,6 +2432,7 @@ function waitForZip(
   game: string,
   category: string,
   firmwareKey?: string,
+  kept?: KeptRomSet,
 ): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[] }> {
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -2241,9 +2440,12 @@ function waitForZip(
     pick.accept = '.zip';
     pick.multiple = true;
     let accepted = false;
-    const files = new Map<string, Uint8Array>();
+    // What the browser already keeps is where the drop starts, so the screen
+    // ticks it off and asks only for the rest.
+    const files = new Map<string, Uint8Array>(kept?.files ?? []);
     /** every zip that took part, as it arrived, for the ROM library */
-    const zips: StoredZip[] = [];
+    const zips: StoredZip[] = [...(kept?.zips ?? [])];
+    if (kept) zone.verdict(checkRomSet(specs, files, critical), true);
     const ingest = async (name: string, raw: Uint8Array): Promise<boolean> => {
       if (accepted) return true;
       zone.busy(name);
@@ -2251,6 +2453,9 @@ function waitForZip(
       try { incoming = await readZip(raw); }
       catch { zone.error(`${name} isn’t a readable zip — try the original romset.`); return false; }
       mergeRomFiles(files, incoming);
+      // A kept zip of the same name is the one this drop replaces.
+      const stale = zips.findIndex(zip => zip.name === name);
+      if (stale >= 0) zips.splice(stale, 1);
       zips.push({ name, bytes: raw.slice().buffer });
       // grade the set against the manifest BEFORE booting: ticks in the
       // list. Previously supplied split-set zips remain accumulated.
@@ -2352,18 +2557,27 @@ export function mergeRomFiles(files: Map<string, Uint8Array>, incoming: Map<stri
   }
 }
 
+/** What this browser keeps for a machine, graded against today's manifest. */
+export interface KeptRomSet {
+  files: Map<string, Uint8Array>;
+  zips: StoredZip[];
+  /** every boot-critical chip is there */
+  complete: boolean;
+}
+
 /**
  * The chips of the set this browser keeps for a machine, graded against the
- * manifest exactly as a fresh drop is. A set that no longer satisfies the
- * manifest (a regenerated ROM list, a zip that will not read) is forgotten
- * so the drop screen returns rather than a broken boot.
+ * manifest exactly as a fresh drop is. A zip that will not read is forgotten.
+ * A set that is merely short is kept as the start of the next drop: the C64
+ * boots a tape title without the 1541, so what it kept then has no c1541.zip,
+ * and a disk title asks for that one alone.
  */
 export async function storedRomFiles(
   store: RomStore,
   game: string,
   specs: RomRegionSpec[],
   critical: Set<string>,
-): Promise<Map<string, Uint8Array> | null> {
+): Promise<KeptRomSet | null> {
   let record;
   try { record = await store.get(game); } catch { return null; }
   if (!record) return null;
@@ -2374,11 +2588,21 @@ export async function storedRomFiles(
     await store.remove(game).catch(() => undefined);
     return null;
   }
-  if (checkRomSet(specs, files, critical).missingCritical.length) {
-    await store.remove(game).catch(() => undefined);
-    return null;
+  return { files, zips: record.zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
+}
+
+/** The sets that still hold a boot-critical chip `files` lacks, as the drop screen names them. */
+export function missingRomSets(
+  specs: RomRegionSpec[], files: Map<string, Uint8Array>, critical: Set<string>, game: string,
+): string[] {
+  const sets = new Set<string>();
+  for (const entry of checkRomSet(specs, files, critical).perFile) {
+    if (!entry.critical || entry.status !== 'missing') continue;
+    const spec = specs.find(candidate => candidate.region === entry.region);
+    const load = spec?.loads.find(candidate => candidate.file === entry.file);
+    sets.add(load?.romSet ?? spec?.romSet ?? game);
   }
-  return files;
+  return [...sets];
 }
 
 /** Keep an accepted set for next time; says so, or says why it could not. */
@@ -2668,13 +2892,252 @@ function tapeClock(seconds: number): string {
   return `${String(Math.floor(whole / 60)).padStart(2, '0')}:${String(whole % 60).padStart(2, '0')}`;
 }
 
-/** Local image selection and transport controls; the generated device owns playback. */
-function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial: MountedImage[] = []): HTMLElement {
-  const deck = deckPanel('DATASSETTE');
-  deck.setAttribute('aria-label', `Cassette ${media.tag}`);
-  for (const type of ['keydown', 'keyup']) deck.addEventListener(type, event => event.stopPropagation());
-  deck.addEventListener('focusin', releaseKeys);
+/**
+ * A disk drive, as a strip of the control panel: the disk on the left, with
+ * a side selector when the set has more than one image, and the drive's
+ * state -- spindle running, head position -- read back from the generated
+ * floppy device four times a second. Open and Eject on the right.
+ */
+function diskBay(
+  media: DiskMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+  activity?: (id: string, text: string | undefined, lit?: boolean) => void,
+  speed: () => string = () => '',
+  usage?: string,
+): PanelBay {
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = ['.zip', ...media.extensions.map(extension => `.${extension}`)].join(',');
+  picker.setAttribute('aria-label', 'Open disk image or ZIP');
+  picker.tabIndex = -1;
+  picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  const kinds = media.extensions.map(extension => `.${extension}`).join(' / ');
+  const open = titleButton('Open…', 'Open disk', `Open a ${kinds} image or a software-list ZIP`, 'quiet', 'disk');
+  open.onclick = () => picker.click();
+  const eject = titleButton('Eject', 'Eject disk', 'Take the disk out of the drive', 'normal', 'eject');
+  eject.setAttribute('data-disk-eject', '');
+  eject.disabled = true;
+  paintTitleButton(eject, false);
 
+  const mounted = document.createElement('span');
+  mounted.setAttribute('data-disk-name', '');
+  mounted.style.cssText = `padding:3px 9px;border-radius:6px;background:#080b1d;border:1px solid #2a3162;
+    color:#9fb0ff;font:600 11px ui-monospace,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.textContent = 'no disk';
+  const side = document.createElement('select');
+  side.setAttribute('aria-label', 'Disk image');
+  side.style.cssText = 'padding:3px 6px;border-radius:6px;border:1px solid #2a3162;background:#0f1329;color:#d8dcff;font:600 11px ui-sans-serif,system-ui,sans-serif;cursor:pointer;max-width:160px';
+  side.hidden = true;
+
+  const readout = document.createElement('span');
+  readout.setAttribute('data-disk-readout', '');
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#cbd1ff;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
+  const stateText = document.createElement('span');
+  stateText.textContent = 'NO DISK';
+  const trackText = document.createElement('span');
+  trackText.style.color = '#8f99d2';
+  // Where the head is across the disk, as the tape's bar shows where the
+  // tape is: a load visibly walks between the directory track and the file.
+  const head = document.createElement('span');
+  head.setAttribute('data-disk-head', '');
+  head.style.cssText = 'position:relative;width:84px;height:5px;border-radius:3px;background:#080b1d;border:1px solid #2a3162;overflow:hidden';
+  const headMark = document.createElement('span');
+  headMark.style.cssText = `position:absolute;top:0;bottom:0;width:6px;left:0;background:${DECK_GOLD};transition:left .2s ease`;
+  head.appendChild(headMark);
+  const elapsedText = document.createElement('span');
+  elapsedText.style.color = '#8f99d2';
+  readout.append(lamp, stateText, trackText, head, elapsedText);
+  let spunUpAt: number | undefined;
+  let blink = false;
+  // The console narrates the drive for whoever is watching it: motor, head
+  // steps and a pulse while it reads, so a slow load reads as progress.
+  const log = (text: string): void => console.info(`[disk ${media.tag}] ${text}`);
+  let loggedSpinning = false;
+  let loggedTrack = 0;
+  let loggedPulse = 0;
+  let loggedPulseStart = performance.now();
+
+  const paint = (): void => {
+    const loaded = media.loaded();
+    const spinning = media.spinning();
+    stateText.textContent = !loaded ? (spinning ? 'NO DISK · SPINNING' : 'NO DISK') : spinning ? 'READING' : 'IDLE';
+    stateText.style.color = spinning ? DECK_GOLD : '#cbd1ff';
+    // The drive's light blinks while the spindle turns, so a long load
+    // reads as alive rather than stuck.
+    blink = spinning ? !blink : false;
+    const lit = spinning && blink;
+    lamp.style.background = lit ? '#ff5a4a' : spinning ? '#6a2a2a' : '#3a3f6a';
+    lamp.style.boxShadow = lit ? '0 0 8px #ff5a4a' : 'none';
+    const track = media.track();
+    trackText.textContent = loaded ? `TRACK ${String(track).padStart(2, '0')}` : '';
+    head.style.display = loaded ? 'inline-block' : 'none';
+    const tracks = Math.max(1, media.trackCount());
+    headMark.style.left = `calc(${Math.min(1, Math.max(0, (track - 1) / tracks)) * 100}% - ${(track - 1) / tracks * 6}px)`;
+    if (spinning && spunUpAt === undefined) spunUpAt = performance.now();
+    if (!spinning) spunUpAt = undefined;
+    const elapsed = spunUpAt === undefined ? undefined : tapeClock((performance.now() - spunUpAt) / 1000);
+    elapsedText.textContent = elapsed ?? '';
+    activity?.('disk', spinning ? `${loaded ? 'DISK' : 'NO DISK'} · TRACK ${String(track).padStart(2, '0')} · ${elapsed}` : undefined, lit);
+    if (spinning !== loggedSpinning) {
+      log(spinning
+        ? `motor on, head on track ${track}${loaded ? '' : ' (no disk in the drive)'} · machine at ${speed()}`
+        : `motor off on track ${track} after ${tapeClock((performance.now() - loggedPulseStart) / 1000)} · machine at ${speed()}`);
+      if (spinning) loggedPulseStart = performance.now();
+      loggedSpinning = spinning;
+      loggedPulse = performance.now();
+    }
+    if (spinning && track !== loggedTrack) log(`head on track ${track} · machine at ${speed()}`);
+    loggedTrack = track;
+    if (spinning && performance.now() - loggedPulse >= 5000) {
+      log(`still reading: track ${track}, ${elapsed} since the motor started · machine at ${speed()}`);
+      loggedPulse = performance.now();
+    }
+    eject.disabled = !loaded;
+    paintTitleButton(eject, false);
+  };
+
+  let images = new Map<string, Uint8Array>();
+  const mount = (announce: boolean) => {
+    const name = side.value;
+    const bytes = images.get(name);
+    if (!bytes) return;
+    try {
+      const started = performance.now();
+      media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      log(`inserted ${name} (${bytes.length} bytes, read in ${Math.round(performance.now() - started)} ms)`);
+      mounted.textContent = name;
+      mounted.title = name;
+      mounted.style.color = '#f4f5ff';
+      if (announce) say(`${name} in the drive: type LOAD"*",8,1 and press Enter`);
+    } catch (error) {
+      mounted.textContent = 'no disk';
+      console.warn(`[disk ${media.tag}] could not insert ${name}:`, error);
+      say(String(error));
+    }
+    paint();
+  };
+  eject.onclick = () => {
+    try { media.eject(); log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    catch (error) { say(String(error)); }
+    paint(); eject.blur();
+  };
+  side.onchange = () => mount(true);
+  picker.onchange = async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    picker.disabled = true;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
+      images = new Map([...files].filter(([name]) => media.extensions.includes(name.split('.').pop()!.toLowerCase())));
+      if (!images.size) throw new Error(`No supported disk image found (${media.extensions.join(', ')}).`);
+      side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
+      side.hidden = images.size < 2;
+      mount(true);
+    } catch (error) { say(String(error)); }
+    finally { picker.disabled = false; picker.value = ''; picker.blur(); }
+  };
+  if (initial.length) {
+    images = new Map(initial.map(image => [image.name, image.bytes]));
+    side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
+    side.hidden = images.size < 2;
+    mount(false);
+    // The set's own note says how to start it: LOAD"*",8,1 loads the first
+    // file on the disk, which on Jingle Disk is a utility, not the program.
+    if (usage) console.info(`[disk ${media.tag}] MAME's usage note: ${usage}`);
+    setTimeout(() => {
+      if (media.loaded()) say(usage ? `${side.value} in the drive. MAME's note: ${usage}` : `${side.value} in the drive: type LOAD"*",8,1 and press Enter`);
+    }, 600);
+  }
+  paint();
+  setInterval(paint, 250);
+  return {
+    id: 'disk',
+    label: TRANSPORT_LABELS.floppy,
+    ariaLabel: `Disk drive ${media.tag}`,
+    left: [picker, mounted, side, readout],
+    middle: [],
+    right: [open, eject],
+    onFocus: releaseKeys,
+  };
+}
+
+/** Each transport's strip, engraved with the name of the deck it stands for. */
+const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE' } as const;
+
+/**
+ * The strip of a transport whose slot the machine booted empty. It has no
+ * keys, because there is nothing behind them: connecting the card is a new
+ * machine, so the one button restarts the title with it attached.
+ */
+function detachedBay(
+  kind: keyof typeof TRANSPORT_LABELS, slot: string, say: (text: string) => void,
+  attach?: (slot: string) => void,
+): PanelBay {
+  const label = TRANSPORT_LABELS[kind];
+  const noun = kind === 'floppy' ? 'disk drive' : 'datassette';
+  const readout = document.createElement('span');
+  readout.setAttribute('data-detached', slot);
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#8f99d2;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#2a2f55';
+  const text = document.createElement('span');
+  text.textContent = 'NOT CONNECTED';
+  readout.append(lamp, text);
+  readout.title = `This title does not use the ${noun}, so the machine booted without it, as MAME's -${slot} "" does`;
+  const right: HTMLElement[] = [];
+  if (attach) {
+    const connect = titleButton('Connect', `Connect the ${noun}`,
+      `Restart the computer with the ${noun} connected`, 'quiet', kind === 'floppy' ? 'disk' : 'tape');
+    connect.setAttribute('data-attach', slot);
+    connect.onclick = () => {
+      connect.disabled = true;
+      say(`Restarting with the ${noun} connected…`);
+      console.info(`[media] restarting with "${slot}" attached`);
+      attach(slot);
+    };
+    right.push(connect);
+  }
+  return {
+    id: kind === 'floppy' ? 'disk' : 'tape',
+    label,
+    ariaLabel: `${label[0]}${label.slice(1).toLowerCase()} (not connected)`,
+    left: [readout],
+    middle: [],
+    right,
+  };
+}
+
+/** One strip of the control panel: a transport's name, its keys and its readout. */
+export interface PanelBay {
+  /** stable handle for browser QA: `[data-media-bay="<id>"]` */
+  id: string;
+  /** engraved at the strip's left end */
+  label: string;
+  ariaLabel: string;
+  left: HTMLElement[];
+  middle: HTMLElement[];
+  right: HTMLElement[];
+  /** focus moved into the strip: the machine should let go of held keys */
+  onFocus?: () => void;
+}
+
+/**
+ * The tape transport, as a strip of the control panel: the image on the
+ * left, the deck's keys in the middle, its counter on the right. The
+ * generated device owns playback; this only selects images and presses keys.
+ * What it has to say goes to the screen's toast rather than a third line
+ * of prose under the keys.
+ */
+function cassetteBay(
+  media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+  activity?: (id: string, text: string | undefined, lit?: boolean) => void,
+  speed: () => string = () => '',
+  usage?: string,
+): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
   const picker = document.createElement('input');
@@ -2683,120 +3146,124 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
   picker.setAttribute('aria-label', 'Open tape image or ZIP');
   picker.tabIndex = -1;
   picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
-  const open = deckButton('◍ Open tape…');
-  open.title = `Open a ${media.extensions.map(extension => `.${extension}`).join(' / ')} image or a software-list ZIP`;
+  const kinds = media.extensions.map(extension => `.${extension}`).join(' / ');
+  const open = titleButton('Open…', 'Open tape', `Open a ${kinds} image or a software-list ZIP`, 'quiet', 'tape');
   open.onclick = () => picker.click();
 
   const mounted = document.createElement('span');
   mounted.setAttribute('data-tape-name', '');
-  mounted.style.cssText = `padding:5px 10px;border-radius:6px;background:#080b1d;border:1px solid #303a78;
-    color:#9fb0ff;font:600 12px ui-monospace,monospace;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.style.cssText = `padding:3px 9px;border-radius:6px;background:#080b1d;border:1px solid #2a3162;
+    color:#9fb0ff;font:600 11px ui-monospace,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
   mounted.textContent = 'no tape';
   const side = document.createElement('select');
   side.setAttribute('aria-label', 'Tape image');
-  side.style.cssText = 'padding:5px 8px;border-radius:6px;border:1px solid #303a78;background:#111633;color:#d8dcff;font:inherit;cursor:pointer';
+  side.style.cssText = 'padding:3px 6px;border-radius:6px;border:1px solid #2a3162;background:#0f1329;color:#d8dcff;font:600 11px ui-sans-serif,system-ui,sans-serif;cursor:pointer;max-width:160px';
   side.hidden = true;
 
-  const play = deckButton('▶ Play');
-  const stop = deckButton('■ Stop');
-  const rewind = deckButton('⏮ Rewind');
+  const play = titleButton('Play', 'Play tape', 'Press PLAY on the deck', 'normal', 'play');
+  const stop = titleButton('Stop', 'Stop tape', 'Press STOP on the deck', 'normal', 'stop');
+  const rewind = titleButton('Rewind', 'Rewind tape', 'Rewind to the start of the tape', 'normal', 'rewind');
   play.setAttribute('data-tape-play', '');
   stop.setAttribute('data-tape-stop', '');
-  const buttons = [play, stop, rewind];
-  for (const button of buttons) button.disabled = true;
-
-  const status = document.createElement('span');
-  status.setAttribute('role', 'status');
-  status.style.cssText = 'flex-basis:100%;text-align:center;color:#8f99d2;font-size:12px;min-height:1.3em';
-  status.textContent = 'Open a tape, enter the computer’s load command, then press Play.';
+  const keys = [play, stop, rewind];
+  for (const key of keys) { key.disabled = true; paintTitleButton(key, false); }
 
   // Readout: transport state and counter, read back from the device 4x a
   // second. "Playing" alone is not tape moving -- the computer's motor line
   // decides that -- so both are shown, and the bar is the position.
   const readout = document.createElement('span');
   readout.setAttribute('data-tape-readout', '');
-  readout.style.cssText = 'display:inline-flex;align-items:center;gap:8px;color:#cbd1ff;font:600 12px ui-monospace,monospace';
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#cbd1ff;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
   const lamp = document.createElement('span');
-  lamp.style.cssText = 'width:9px;height:9px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#3a3f6a;box-shadow:none;transition:background .15s ease';
   const stateText = document.createElement('span');
-  stateText.textContent = 'STOPPED';
+  stateText.textContent = 'NO TAPE';
   const counter = document.createElement('span');
   counter.style.color = '#8f99d2';
   counter.textContent = '00:00 / 00:00';
   const bar = document.createElement('span');
-  bar.style.cssText = 'position:relative;width:120px;height:6px;border-radius:3px;background:#080b1d;border:1px solid #303a78;overflow:hidden';
+  bar.style.cssText = 'position:relative;width:84px;height:5px;border-radius:3px;background:#080b1d;border:1px solid #2a3162;overflow:hidden';
   const fill = document.createElement('span');
   fill.style.cssText = `position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#9fb0ff,${DECK_GOLD})`;
   bar.appendChild(fill);
   readout.append(lamp, stateText, counter, bar);
 
   let hasTape = false;
+  // Starting empty is not news; only changes are logged.
+  let loggedState = 'no tape';
+  let loggedPulse = 0;
   const paint = (): void => {
     const playing = hasTape && media.playing();
     const motor = hasTape && media.motorOn();
     const position = hasTape ? media.position() : 0;
     const length = hasTape ? media.length() : 0;
-    setDeckButtonState(play, playing);
-    setDeckButtonState(stop, hasTape && !playing);
-    setDeckButtonState(rewind, false);
+    paintTitleButton(play, playing);
+    paintTitleButton(stop, false);
+    paintTitleButton(rewind, false);
     // The computer, not the deck, pulls the tape: with Play pressed and the
     // motor line off the tape sits still, before a LOAD has been typed and
     // again once the load has finished -- say which, or the deck looks stuck.
     stateText.textContent = !hasTape ? 'NO TAPE'
       : playing && motor ? 'PLAYING'
-        : playing && position < 0.5 ? 'PLAY · WAITING FOR LOAD'
-          : playing ? 'PLAY · PAUSED BY COMPUTER'
+        : playing && position < 0.5 ? 'WAITING FOR LOAD'
+          : playing ? 'PAUSED BY COMPUTER'
             : 'STOPPED';
     stateText.style.color = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#cbd1ff';
     lamp.style.background = playing && motor ? DECK_GOLD : playing ? '#e8b64c' : '#3a3f6a';
     lamp.style.boxShadow = playing && motor ? `0 0 8px ${DECK_GOLD}` : 'none';
     counter.textContent = `${tapeClock(position)} / ${tapeClock(length)}`;
+    activity?.('tape', playing && motor ? `TAPE · ${tapeClock(position)} / ${tapeClock(length)}` : undefined);
+    // The console narrates the deck as the disk drive's does.
+    const state = !hasTape ? 'no tape' : playing && motor ? 'moving' : playing ? 'play pressed, motor off' : 'stopped';
+    if (state !== loggedState) {
+      console.info(`[tape ${media.tag}] ${state} at ${tapeClock(position)} / ${tapeClock(length)} · machine at ${speed()}`);
+      loggedState = state;
+      loggedPulse = performance.now();
+    } else if (state === 'moving' && performance.now() - loggedPulse >= 10000) {
+      console.info(`[tape ${media.tag}] moving: ${tapeClock(position)} / ${tapeClock(length)} · machine at ${speed()}`);
+      loggedPulse = performance.now();
+    }
     fill.style.width = length > 0 ? `${Math.min(100, (position / length) * 100).toFixed(1)}%` : '0';
   };
-  play.onclick = () => {
-    try {
-      media.play();
-      status.textContent = media.motorOn()
-        ? 'Play pressed — the computer is running the tape.'
-        : 'Play pressed — the tape moves once the computer starts the motor: type LOAD and press Enter.';
-    }
-    catch (error) { status.textContent = String(error); }
-    paint(); play.blur();
+  const press = (key: HTMLButtonElement, action: () => void, said: () => string): void => {
+    key.onclick = () => {
+      try { action(); say(said()); }
+      catch (error) { say(String(error)); }
+      paint(); key.blur();
+    };
   };
-  stop.onclick = () => {
-    try { media.stop(); status.textContent = 'Tape stopped.'; }
-    catch (error) { status.textContent = String(error); }
-    paint(); stop.blur();
-  };
-  rewind.onclick = () => {
-    try { media.rewind(); status.textContent = 'Tape rewound.'; }
-    catch (error) { status.textContent = String(error); }
-    paint(); rewind.blur();
-  };
+  press(play, () => media.play(), () => media.motorOn()
+    ? 'Tape playing'
+    : 'Play pressed: the tape moves once the computer starts its motor (type LOAD, then Enter)');
+  press(stop, () => media.stop(), () => 'Tape stopped');
+  press(rewind, () => media.rewind(), () => 'Tape rewound');
 
   let images = new Map<string, Uint8Array>();
-  const mount = () => {
+  const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
     if (!bytes) return;
     try {
       media.stop();
+      const started = performance.now();
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      console.info(`[tape ${media.tag}] mounted ${name} (${bytes.length} bytes, decoded in ${Math.round(performance.now() - started)} ms)`);
       hasTape = true;
-      for (const button of buttons) button.disabled = false;
+      for (const key of keys) key.disabled = false;
       mounted.textContent = name;
       mounted.title = name;
       mounted.style.color = '#f4f5ff';
-      status.textContent = `${name} mounted. Enter the computer’s load command, then press Play.`;
+      if (announce) say(`${name} mounted: type LOAD, press Enter, then Play`);
     } catch (error) {
       hasTape = false;
-      for (const button of buttons) button.disabled = true;
+      for (const key of keys) key.disabled = true;
       mounted.textContent = 'no tape';
-      status.textContent = String(error);
+      say(String(error));
     }
     paint();
   };
-  side.onchange = mount;
+  side.onchange = () => mount(true);
   picker.onchange = async () => {
     const file = picker.files?.[0];
     if (!file) return;
@@ -2808,18 +3275,30 @@ function cassetteControls(media: CassetteMedia, releaseKeys: () => void, initial
       if (!images.size) throw new Error(`No supported tape image found (${media.extensions.join(', ')}).`);
       side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
       side.hidden = images.size < 2;
-      mount();
-    } catch (error) { status.textContent = String(error); }
+      mount(true);
+    } catch (error) { say(String(error)); }
     finally { picker.disabled = false; picker.value = ''; picker.blur(); }
   };
-  deck.append(picker, open, mounted, side, play, stop, rewind, readout, status);
   if (initial.length) {
     images = new Map(initial.map(image => [image.name, image.bytes]));
     side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
     side.hidden = images.size < 2;
-    mount();
+    // Said once the machine is up, over the screen it is said about.
+    mount(false);
+    if (usage) console.info(`[tape ${media.tag}] MAME's usage note: ${usage}`);
+    setTimeout(() => {
+      if (hasTape) say(usage ? `${side.value} mounted. MAME's note: ${usage}` : `${side.value} mounted: type LOAD, press Enter, then Play`);
+    }, 600);
   }
   paint();
   setInterval(paint, 250);
-  return deck;
+  return {
+    id: 'tape',
+    label: TRANSPORT_LABELS.cassette,
+    ariaLabel: `Cassette ${media.tag}`,
+    left: [picker, mounted, side, readout],
+    middle: [],
+    right: [open, play, stop, rewind],
+    onFocus: releaseKeys,
+  };
 }
