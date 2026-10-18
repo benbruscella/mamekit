@@ -30,6 +30,13 @@ export function compileCbmTapeFormat(mameSource: string): GeneratedDeviceDefinit
 }
 
 /** Source-owned Datassette card and cassette transport, with a PCM image host. */
+/**
+ * The image files a datassette reads here: MAME's own CBM `.tap` format, the
+ * only cassette format this compiler wires (`imageFormats` below). A list's
+ * `.wav` sets are MAME-playable but not playable here yet.
+ */
+export const DATASSETTE_IMAGE_EXTENSIONS: readonly string[] = ['tap'];
+
 export function compileDatassetteOptions(mameSource: string): Record<string, GeneratedDeviceDefinition> {
   const hardware = indexMameHardware(mameSource);
   const cassette = compileMameDevice(mameSource, hardware.get('CASSETTE')!, 'CASSETTE');
@@ -49,7 +56,7 @@ export function compileDatassetteOptions(mameSource: string): Record<string, Gen
     source: { file, line: load.span.line } });
   cassette.role = 'cassette';
   const format = compileCbmTapeFormat(mameSource);
-  cassette.imageFormats = [{ extension: 'tap', definition: format,
+  cassette.imageFormats = [{ extension: DATASSETTE_IMAGE_EXTENSIONS[0]!, definition: format,
     sizeMethod: 'cbm_tap_to_wav_size', fillMethod: 'cbm_tap_fill_wave',
     mountMethod: 'mount_image', sampleRate: format.constants.CBM_WAV_FREQUENCY! }];
   cassette.resources = { initialize: [{ method: 'mount_image', args: [{ kind: 'sample-image',

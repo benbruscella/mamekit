@@ -3,6 +3,7 @@ import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   clearGeneratedDevices,
   createDevice,
+  generatedInstanceFactories,
   hasGeneratedDevice,
   registerGeneratedDevice,
   type GeneratedDeviceDefinition,
@@ -394,6 +395,26 @@ assert.equal(executionClock.runCycles!(2), 2);
 assert.equal(executionClock.get('m_last_cycle'), 4, 'successive slices share one cycle clock');
 executionClock.reset();
 assert.equal(executionClock.call('cycles'), 0);
+
+// A device another one holds as an object -- a floppy drive's mounted image --
+// keeps only its data in a save. Loading after the disk was ejected rebuilds an
+// executable image from that data instead of a plain object without get_buffer.
+const heldImage: GeneratedDeviceDefinition = {
+  type: 'HELD_IMAGE_FIXTURE',
+  constants: {},
+  members: [{ name: 'm_value', valueType: 'int', bits: 32, signed: true, initial: 0 }],
+  callbacks: [],
+  timers: [],
+  methods: [method('get_value', '', 'return m_value;')],
+  summary: { diagnostics: 0 },
+};
+registerGeneratedDevice({ ...definition, type: 'HELD_IMAGE_HOLDER_FIXTURE', floppyImage: heldImage });
+createDevice('HELD_IMAGE_HOLDER_FIXTURE', {});
+const rebuildImage = generatedInstanceFactories().get('device-instance:HELD_IMAGE_FIXTURE');
+assert.ok(rebuildImage, 'a drive registers the image it holds when it is built, before any mount');
+const rebuilt = rebuildImage!({ m_value: 42 }) as { get_value(): number; $factory: string };
+assert.equal(rebuilt.get_value(), 42, 'the rebuilt image runs its methods against the saved data');
+assert.equal(rebuilt.$factory, 'device-instance:HELD_IMAGE_FIXTURE', 'and saves the same way again');
 
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

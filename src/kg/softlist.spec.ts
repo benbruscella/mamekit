@@ -187,6 +187,7 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
     <description>Nemesis the Warlock</description>
     <year>1987</year>
     <publisher>Martech</publisher>
+    <info name="usage" value="Commodore: Load &quot;JINGLE&quot;,8,1"/>
     <part name="cass1" interface="cbm_cass">
       <dataarea name="cass" size="10">
         <rom name="nemesis.tap" size="10" crc="0badc0de" sha1="z"/>
@@ -224,6 +225,8 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   eq('a one-sided tape does not', parsed.entries[1]!.parts, undefined);
   eq('MAME support verdict kept', parsed.entries[1]!.supported, 'no');
   eq('a supported set carries no verdict', tape.supported, undefined);
+  eq("MAME's usage note kept, unescaped", parsed.entries[1]!.usage, 'Commodore: Load "JINGLE",8,1');
+  eq('a set without one has none', tape.usage, undefined);
   const ntsc = buildCatalog(parsed, 'NTSC');
   eq('NTSC filter keeps untagged tapes, drops PAL-only and NTSC-incompatible ones',
     ntsc.entries.map(e => e.name), ['180', 'nemwar']);

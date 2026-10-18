@@ -496,7 +496,8 @@ export const cpu: GeneratedCpuExecutable = {
   summary: ${JSON.stringify(definition.summary)},${definition.scanlineTimer
     ? `\n  scanlineTimer: ${JSON.stringify(definition.scanlineTimer)},` : ''}${definition.delegateSetters
     ? `\n  delegateSetters: ${JSON.stringify(definition.delegateSetters)},` : ''}${definition.accessors
-    ? `\n  accessors: ${JSON.stringify(definition.accessors)},` : ''}
+    ? `\n  accessors: ${JSON.stringify(definition.accessors)},` : ''}${definition.suspendsMidInstruction
+    ? '\n  suspendsMidInstruction: true,' : ''}
   create: (bus: CpuBus): Cpu => new Generated${safeName(definition.type)}(bus),
 };
 

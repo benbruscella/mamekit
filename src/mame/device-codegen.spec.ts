@@ -732,3 +732,82 @@ console.log('device-codegen.spec: IR selection, dependency closure, case scoping
   assert.equal(built.fractional({ members: {} }, -1), 44);
   assert.match(tables.source, /const __mame_table_0/);
 }
+
+// MAME's line handlers are entry points like bus handlers: a write-line takes
+// `int state`, a read-line takes nothing and is named `*_r`. Compiling them
+// exposed two gaps the interpreter never had. A finder call reaches the board's
+// binding first -- the Namco 51xx's `m_cpu` is a hosted MB8843, so
+// `m_cpu->set_input_line` is a binding, not a method on the object, and Dig Dug
+// went silent. And `bytes()` is a size in bytes: R-Type's 16-bit sprite RAM
+// answered its element count and the buffered copy lost half its sprites.
+const lineEmitted = generatedDeviceMethodsSource({
+  ...definition,
+  members: [
+    { name: 'm_cpu', valueType: 'required_device<mb88_cpu_device>' },
+    { name: 'm_ram', valueType: 'required_shared_ptr<uint16_t>' },
+  ],
+  methods: [{
+    name: 'chip_select',
+    parameters: 'int state',
+    source: { file: 'src/devices/test.cpp', line: 6 },
+    program: compileMameHandler('m_cpu->set_input_line(0, state);'),
+  }, {
+    name: 'ram_bytes_r',
+    parameters: '',
+    source: { file: 'src/devices/test.cpp', line: 7 },
+    program: compileMameHandler('return m_ram.bytes();'),
+  }],
+} as GeneratedDeviceDefinition);
+assert.deepEqual(lineEmitted.methods.sort(), ['chip_select', 'ram_bytes_r'], 'both line shapes are entry points');
+const lineMethods = Function(`return ${lineEmitted.source}`)() as Record<string, (runtime: unknown, ...args: number[]) => unknown>;
+const lineCalls: number[][] = [];
+lineMethods.chip_select!({
+  members: { m_cpu: {} },
+  links: { 'm_cpu.set_input_line': (line: number, state: number) => { lineCalls.push([line, state]); return 0; } },
+}, 1);
+assert.deepEqual(lineCalls, [[0, 1]], 'a finder call answers through the board binding');
+assert.equal(lineMethods.ram_bytes_r!({
+  members: { m_ram: new Uint16Array(8) },
+  container: (value: ArrayBufferView, method: string) => method === 'bytes' ? value.byteLength : 0,
+}), 16, 'bytes() counts bytes, not 16-bit elements');
+
+// A branch under a constant condition is not part of the program: MAME's debug
+// blocks (`if (LOG_DMA || DEBUG_MIDTUNIT_BLITTER)`, folded to `0 || 0`) may
+// call what the emitter cannot spell. And a call to a method that stays
+// interpreted only keeps its caller interpreted when the callee writes through
+// a reference -- the fallback hands it values -- so the T-Unit's dma_w, which
+// may call a debug PNG dump, compiles.
+const branchEmitted = generatedDeviceMethodsSource({
+  ...definition,
+  members: [{ name: 'm_count', valueType: 'int', bits: 32, signed: true, initial: 0 }, { name: 'm_log', valueType: 'int', bits: 32, signed: true, initial: 0 }],
+  methods: [{
+    name: 'debug_guarded',
+    parameters: 'offs_t offset, u8 data',
+    source: { file: 'src/devices/test.cpp', line: 8 },
+    program: compileMameHandler('if (0 || 0) { machine().input().code_pressed(KEYCODE_L); } m_count += data;'),
+  }, {
+    name: 'calls_value_helper',
+    parameters: 'offs_t offset, u8 data',
+    source: { file: 'src/devices/test.cpp', line: 9 },
+    program: compileMameHandler('if (m_log) dump_png(data); m_count = data;'),
+  }, {
+    name: 'dump_png',
+    parameters: 'int value',
+    source: { file: 'src/devices/test.cpp', line: 10 },
+    program: compileMameHandler('machine().input().code_pressed(value);'),
+  }, {
+    name: 'calls_reference_helper',
+    parameters: 'offs_t offset, u8 data',
+    source: { file: 'src/devices/test.cpp', line: 11 },
+    program: compileMameHandler('int out = 0; fill(out); m_count = out;'),
+  }, {
+    name: 'fill',
+    parameters: 'int &out',
+    source: { file: 'src/devices/test.cpp', line: 12 },
+    program: compileMameHandler('out = machine().input().code_pressed(1);'),
+  }],
+} as GeneratedDeviceDefinition);
+assert.ok(branchEmitted.methods.includes('debug_guarded'), 'a dead debug branch does not keep its method interpreted');
+assert.ok(branchEmitted.methods.includes('calls_value_helper'), 'an interpreted callee taking values is reached through the fallback');
+assert.match(branchEmitted.source, /runtime\.invoke\("dump_png"/);
+assert.ok(!branchEmitted.methods.includes('calls_reference_helper'), 'a callee writing through a reference keeps its caller interpreted');

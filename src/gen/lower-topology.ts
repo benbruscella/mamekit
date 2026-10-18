@@ -11,6 +11,17 @@ import { gameCategory, gameDataPath } from './output-layout.ts';
 import type { GenerateOptions } from './generate.ts';
 
 import { Graph } from '../kg/query.ts';
+
+/**
+ * A device's tag as MAME composes it. Inside a composite device's machine
+ * config every tag is relative to that device unless it starts at the root:
+ * the 1541 names its drive mechanism `uc4:0:525ssqd`, the connector's option
+ * under the gate array, and MAME's tag for it is `iec8:c1541:uc4:0:525ssqd`.
+ */
+export function hostedDeviceTag(hostTag: string | undefined, rawTag: string): string {
+  if (!hostTag || rawTag.startsWith(':') || rawTag.startsWith(`${hostTag}:`)) return rawTag;
+  return `${hostTag}:${rawTag}`;
+}
 import { handlerOwnsSharedRam, sourceHandlerDataWidth, cpuProgramAddressShift, cpuInternalMapRanges } from './machine-source.ts';
 
 export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: GenerateOptions, family: string) {
@@ -66,7 +77,7 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
         // that device's tag namespace in MAME, even when the graph reuses a
         // single Device node and therefore cannot reveal the collision by
         // counting declarations (for example Venture's two "pia" devices).
-        const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
+        const tag = hostedDeviceTag(hostTag, rawTag);
         const resolved = resolveClassConstants(node, classConstants);
         devices.push(tag === rawTag ? resolved : {
           ...resolved,
@@ -105,7 +116,7 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       seen.add(visitKey);
       for (const d of g.out(id, 'HAS_DEVICE')) {
         const rawTag = String(d.node.props.tag);
-        const tag = hostTag && !rawTag.includes(':') ? `${hostTag}:${rawTag}` : rawTag;
+        const tag = hostedDeviceTag(hostTag, rawTag);
         // board-style devices carry a sub-machine (device_add_mconfig)
         queue.push(...g.out(d.node.id, 'CALLS').map(c => ({
           id: c.node.id,

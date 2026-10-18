@@ -52,10 +52,10 @@ export const hyperspt = sourceTarget({
     },
     audio: {
       writes: 505818,
-      nonzeroWrites: 47226,
-      writeHash: '0cdf135b',
-      pcmHash: '51e5a761',
-      rms: 0.374861,
+      nonzeroWrites: 47067,
+      writeHash: '51aedd6f',
+      pcmHash: 'e86b600f',
+      rms: 0.374841,
     },
   },
 });

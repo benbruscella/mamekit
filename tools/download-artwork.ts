@@ -39,12 +39,23 @@ const mediaKinds = [
  * it as the machine itself, so it lives in its own tree.
  */
 function mediaDir(game: string, kind: (typeof mediaKinds)[number]): string {
-  return kind.remote === 'cabinets' && isConsole(game) ? 'media/consoles' : kind.local;
+  if (kind.remote !== 'cabinets') return kind.local;
+  return isComputer(game) ? 'media/computers' : isConsole(game) ? 'media/consoles' : kind.local;
 }
 
 /** Generation puts a console under dist/games/consoles/<game>. */
 function isConsole(game: string): boolean {
   return existsSync(join(root, 'dist/games/consoles', game));
+}
+
+/** A computer likewise has no cabinet, flyer or bezel: only its photograph. */
+function isComputer(game: string): boolean {
+  return existsSync(join(root, 'dist/games/computers', game));
+}
+
+/** A machine shown as its own hardware rather than as a cabinet. */
+function isHardware(game: string): boolean {
+  return isConsole(game) || isComputer(game);
 }
 
 /**
@@ -56,7 +67,7 @@ function isConsole(game: string): boolean {
  * flyer nor the marquee is fetched for one.
  */
 function kindsFor(game: string): readonly (typeof mediaKinds)[number][] {
-  return isConsole(game)
+  return isHardware(game)
     ? mediaKinds.filter(kind => kind.remote === 'cabinets')
     : mediaKinds;
 }
@@ -65,7 +76,7 @@ function kindsFor(game: string): readonly (typeof mediaKinds)[number][] {
 function packageFiles(game: string): string[] {
   return [
     // A console has no bezel pack; its machine photograph stands in for one.
-    ...(isConsole(game) ? [] : [join(artwork, `${game}.zip`)]),
+    ...(isHardware(game) ? [] : [join(artwork, `${game}.zip`)]),
     ...kindsFor(game).map(kind => join(artwork, mediaDir(game, kind), `${game}.png`)),
   ];
 }
@@ -196,7 +207,7 @@ if (!metadataResponse.ok) throw new Error(`artwork metadata: HTTP ${metadataResp
 const metadata = await metadataResponse.json() as { files: { name: string }[] };
 const archiveNames = new Set(metadata.files.map(file => file.name));
 
-const bezelGames = games.filter(game => !isConsole(game));
+const bezelGames = games.filter(game => !isHardware(game));
 const bezelFailures = await pool(bezelGames, async game => {
   const targetName = `${game}.zip`;
   const sourceName = `${game}.zip`;

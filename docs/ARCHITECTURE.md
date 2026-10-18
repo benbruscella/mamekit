@@ -356,6 +356,29 @@ into a small fast-mode table and rebuilds it whenever a binding changes. This
 keeps the interpreter as the semantic reference while removing per-operation
 tree walking from pixel-scale loops such as the MAME 05XX starfield.
 
+Besides loop shape, a method is emitted when it is a hardware entry point by
+MAME's own spelling: a bus handler takes `offs_t offset` first, a write-line
+takes `int state`, a read-line takes nothing and is named `*_r`. These have no
+loop for the shape rules to see and run on every access or edge -- the 1541's
+gate array raises BYTE READY on its VIA's `write_ca1` six thousand times a
+frame. A helper class the device allocates (`new daisy_entry(...)`) has every
+method emitted with it. Two constructs have a direct form when their types are
+known: `a = b` between members of the same struct type copies field by field
+through a per-type copier instead of the runtime's keyed copy, and an iterator
+accessor on a `std::vector` (`buf.begin()`) asks the container instead of
+probing a dereferenced first element.
+
+A floppy drive is a device like any other (`src/hardware/floppy/`,
+`src/mame/floppy-compiler.ts`): `floppy_image_device` and its mechanism class
+from `imagedev/floppy.cpp`, the `floppy_image` track store from
+`lib/formats/flopimg.cpp`, and every format the connector registers through
+`set_formats` (`fr.add(...)`) compiled from `lib/formats`. Mounting follows
+`floppy_image_device::call_load`: each format identifies the bytes, a matching
+extension adds `FIFID_EXT`, the best scorer loads a `floppy_image` of the
+drive's geometry, and the drive's own load path (`mount_image`, lowered from
+`call_load`'s success branch) takes it from there. Only the bytes are the
+host's.
+
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
 interpreter and compare writes and complete device state. Unsupported
@@ -516,6 +539,63 @@ it by whatever its last slice overran, which an NES OAM DMA makes four lines
 (#155: the 2C02 lost a frame on every round and never reached VBLANK). Elsewhere the beam stays the reference: hosted MCUs and discrete
 networks run on the same clock, and Galaga's 54xx boom moved when it followed
 the processors.
+
+Inside a device timer's callback, `machine().time()` is that timer's expiry,
+recorded when it was armed, as MAME's scheduler sets it before the call.
+Recomputing it from the processor's cycles less the overshoot lands a few
+attoseconds off, and source that compares the two exactly -- the 64H156's
+`cur_live.tm > machine().time()` at every syncpoint -- takes the other branch.
+A delay too small to move a double of the clock's size still advances the
+expiry by one unit, as attotime would, so a callback re-arming "a hair later"
+finds time moved. A device holds an attotime as its seconds: every accessor
+MAME spells on one is answered for a number, and two readings compare by
+value.
+
+Under `set_perfect_quantum` with more than one processor the frame runner runs
+in permanent lockstep: whichever processor is furthest behind executes one
+instruction. Each such slice has a one-cycle target, so the overrun the core's
+closing `timing()` cannot report is delivered to the device clock once the
+slice is booked; without it the clock moved a cycle per instruction.
+
+Device time is delivered between instructions, so on its own a device timer
+that falls due partway through an instruction fires after it. MAME's 6502
+family stops between an instruction's cycles (the core keeps `m_inst_substate`),
+which puts such a timer before the instruction's later accesses; the CPU
+compiler records that as `suspendsMidInstruction`, read from the core's own
+header. For a timer-clock processor with that fact, a device asking
+`machine().time()` from inside an instruction first has the device clock caught
+up to the cycle the processor stands at, including whatever its previous slice
+overran, which the line settle would otherwise only pay when the line closes.
+Without it the C64's datassette sometimes stopped itself on Play: its read timer
+fired late with an earlier time than the motor write it followed, and MAME's
+cassette refuses a negative position. A core without the fact (MAME's Z80
+finishes its instruction first too) keeps the old order.
+
+A driver's `machine_start` is not run on the board, but what it writes into a
+root RAM device is: the generator interprets the function with only that
+device's `pointer()` and `size()` live (`ramPowerOn`) and records the result as
+`memoryAllocations.<member>.runs`. MAME's C64 lays its RAM out in alternating
+64-byte runs of `$00` and `$FF`, and Cauldron copies its first SID frame from
+memory it never wrote.
+
+A slot card that carries a processor of its own -- the C64's 1541 in `iec8` --
+is composed into the board under the slot's tag (`iec8:c1541`, its devices
+below it), and its handlers run against a card scope whose member aliases name
+the card's own devices. Those devices tick on the card processor's executed
+cycles, not the board's timer clock: the 1541's gate array must never run
+ahead of the drive CPU that reads it, which is what MAME's global time order
+guarantees. `machine().phase()` answers INIT while the board is built, RESET
+while it resets and RUNNING otherwise; the 1541's VIA port handler ignores what
+it is driven to during reset, exactly as in MAME.
+
+A slot can also be booted empty, as MAME's `-iec8 ""` boots it: the host
+option `BoardConfig.emptySlots` names the slots, and `withEmptySlots` takes out
+everything under each one's tag -- the card's devices, its processor, the devcb
+wiring between them and the connections it drives -- while the slot device
+stays and selects no card (`slot: ''`). The card's firmware regions sit under
+the same tag, so the shell stops asking for them. With the 1541 gone the C64 is
+one processor again and leaves permanent lockstep, which is what a tape title
+gains from booting without it.
 
 ### BROWSER SERVICES
 
@@ -722,7 +802,13 @@ unchanged for the next generated machine".
    fetched or dropped set is kept in the visitor's browser as the zip it
    arrived in, identified by image CRC against every shelf, and playing it
    hands the shell the set's images to mount on the board's own transport at
-   power-on; the machine's firmware is asked for the way any romset is.
+   power-on; the machine's firmware is asked for the way any romset is. Each
+   shelf also names the slots its transport sits in (`slots`, the outermost
+   slot device above each transport the generator finds), so a title boots
+   with every other medium's slot empty and **Power on** with none. The empty
+   transport keeps its strip on the panel with a **Connect** button; that
+   restarts the title with the slot filled, and the firmware the browser
+   already keeps counts towards the new drop instead of being discarded.
 7. The shell creates the generated board, starts frame scheduling, presents the
    framebuffer, and activates generated audio worklets after a user gesture.
 

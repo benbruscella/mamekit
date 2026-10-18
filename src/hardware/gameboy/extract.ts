@@ -321,9 +321,12 @@ function genericCartHelpers(mameSource: string): GeneratedDeviceMethod[] {
     sourceColumn: 1,
     macro: '',
   }, className.toUpperCase());
+  // The arity aliases come along (`install_non_power_of_two__6`): the
+  // five-argument form's call to its sibling is resolved to one at compile
+  // time (device-compiler resolveArityOverloads).
   const helpers = compiled.methods.filter(method =>
     !method.program.diagnostics.length &&
-    /^(?:install|map)_non_power_of_two$/.test(method.name));
+    /^(?:install|map)_non_power_of_two(?:__\d+)?$/.test(method.name));
   if (!helpers.length) {
     throw new Error(`MAME no longer declares ${className}'s address-decode helpers`);
   }

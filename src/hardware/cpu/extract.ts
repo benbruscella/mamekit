@@ -79,7 +79,25 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
 export function compileCpuType(type: string, mameSource: string): unknown {
   const compile = COMPILERS[type];
   if (!compile) throw new Error(`no generated CPU compiler for ${type}`);
-  return compile(mameSource);
+  return withSuspensionFact(compile(mameSource), mameSource);
+}
+
+/**
+ * Whether MAME's core can stop between the cycles of one instruction. Such a
+ * core keeps where it stopped in `m_inst_substate` (the 6502 family checks
+ * its icount before every cycle), so a timeslice ends exactly at a timer's
+ * expiry and the timer fires before the rest of the instruction. A core
+ * without it finishes the instruction first, in MAME as here.
+ */
+function withSuspensionFact(definition: unknown, mameSource: string): unknown {
+  const files = (definition as { sourceFiles?: unknown }).sourceFiles;
+  if (!Array.isArray(files)) return definition;
+  const suspends = files.some(file => {
+    const path = join(mameSource, String(file));
+    return /\.h$/.test(String(file)) && existsSync(path) &&
+      /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(path, 'utf8'));
+  });
+  return suspends ? { ...definition as object, suspendsMidInstruction: true } : definition;
 }
 
 export function extractCpus(input: CapabilityInput): CapabilityExtraction | undefined {
@@ -113,4 +131,5 @@ export function extractCpus(input: CapabilityInput): CapabilityExtraction | unde
   };
 }
 import { spawn } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

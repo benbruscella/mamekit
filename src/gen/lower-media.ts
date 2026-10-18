@@ -7,6 +7,8 @@ import type { KGNode } from '../kg/types.ts';
 import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
 
 import { writeSoftwareShelves } from './software-shelves.ts';
+import { connectorFloppyFormats, floppyFormatExtensions } from '../mame/floppy-compiler.ts';
+import { DATASSETTE_IMAGE_EXTENSIONS } from '../mame/cassette-compiler.ts';
 import type { SoftwareShelves } from '../runtime/shell.ts';
 import { romsDir } from '../paths.ts';
 
@@ -103,15 +105,32 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
     const dumpsDir = [opts.game, family]
       .map(name => join(romsDir(projectRoot), category, name))
       .find(dir => existsSync(dir));
+    // What the disk transport reads, from MAME's own registrations: the
+    // connector's set_formats names the formats, each format its extensions.
+    const floppy = devices.some(device => device.props.type === 'FLOPPY_CONNECTOR')
+      ? [...new Set(connectorFloppyFormats(opts.mameSrc,
+        devices.flatMap(device => device.props.sourceFile ? [String(device.props.sourceFile)] : []))
+        .flatMap(name => floppyFormatExtensions(opts.mameSrc, name)))]
+      : undefined;
     software = writeSoftwareShelves({
       mameSrc: opts.mameSrc,
       outDir: opts.outDir,
+      transportExtensions: {
+        ...(floppy?.length ? { floppy } : {}),
+        // A datassette port's deck reads what the cassette compiler wires.
+        ...(devices.some(device => device.props.type === 'PET_DATASSETTE_PORT')
+          ? { cassette: DATASSETTE_IMAGE_EXTENSIONS } : {}),
+      },
       lists: softlistNodes.map(node => ({
         name: String(node.props.name),
         status: String(node.props.status),
         ...(node.props.filter ? { filter: String(node.props.filter) } : {}),
       })),
-      deviceTypes: devices.map(device => String(device.props.type)),
+      devices: devices.map(device => ({
+        type: String(device.props.type),
+        tag: String(device.props.tag),
+        ...(device.props.slotDefault ? { slotDefault: String(device.props.slotDefault) } : {}),
+      })),
       ...(dumpsDir ? { dumpsDir } : {}),
       dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,
       log: line => console.log(line),

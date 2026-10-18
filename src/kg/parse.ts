@@ -163,6 +163,14 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   s = s.replace(/([0-9]+(?:\.[0-9]+)?)_kHz_XTAL/g, (_, n) => String(Math.round(Number(n) * 1e3)));
   s = s.replace(/([0-9]+(?:\.[0-9]+)?)_Hz_XTAL/g, (_, n) => String(Math.round(Number(n))));
   s = s.replace(/XTAL\s*\(\s*([0-9]+)\s*\)/g, '$1');
+  // Qualified names first: substituting a leaf (`SSSD`) inside its own
+  // qualified spelling (`floppy_image::SSSD`) left `floppy_image::1146311507`,
+  // which evaluates to nothing.
+  if (s.includes('::')) {
+    for (const [name, val] of Object.entries(consts)) {
+      if (name.includes('::')) s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
+    }
+  }
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
@@ -1293,6 +1301,39 @@ export function parseMemberTags(src: string, strings = parseTextMacros(src).stri
 }
 
 /**
+ * The same finder tags, qualified by the class whose constructor binds them
+ * (`c1541_device_base::m_maincpu` -> `ucd5`).
+ *
+ * Two classes composed into one machine may give one member name two tags: a
+ * C64's `m_maincpu` is its 6510 ("u7") and the 1541 it hosts calls its own
+ * 6502 `m_maincpu` too ("ucd5"). A config resolves its finders against its
+ * own class first, so neither steals the other's device.
+ */
+export function parseClassMemberTags(src: string, strings = parseTextMacros(src).strings): Record<string, string> {
+  const out: Record<string, string> = {};
+  const constructors = [...src.matchAll(/\b(\w+)(?:::\1)?\s*\(\s*const\s+machine_config\s*&/g)]
+    .map(match => ({ index: match.index!, cls: match[1]! }));
+  const re = /m_(\w+)\(\*this,\s*("[^"]+"|\w+\s*"[^"]*"|\w+)(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src)) !== null) {
+    // A tag macro pasted to a literal names a device under another one: the
+    // 1541's `m_floppy(*this, C64H156_TAG":0:525ssqd")`.
+    const pasted = /^(\w+)\s*"([^"]*)"$/.exec(m[2]);
+    const format = pasted
+      ? (strings[pasted[1]!] !== undefined ? `${strings[pasted[1]!]}${pasted[2]}` : undefined)
+      : m[2].startsWith('"') ? unquote(m[2]) : strings[m[2]];
+    if (format === undefined || m[3] !== undefined) continue;
+    let owner: string | undefined;
+    for (const constructor of constructors) {
+      if (constructor.index > m.index) break;
+      owner = constructor.cls;
+    }
+    if (owner) out[`${owner}::m_${m[1]}`] = format;
+  }
+  return out;
+}
+
+/**
  * Element count of each finder-array declaration. Device arrays use
  * `<Type, N>`, while memory-bank arrays use `<N>`.
  */
@@ -1373,7 +1414,13 @@ export function parseMachineConfigs(
       // A leading ':' is MAME's absolute-tag syntax, not part of the device
       // name or its ROM region (TRACKFLD_AUDIO exposes ":audiocpu").
       if (r.startsWith('"')) return unquote(r).replace(/^:/, '');
-      return (memberTags[r] ?? tagConstants[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
+      // A tag macro and a literal pasted together (C64H156_TAG":0", the
+      // 1541's floppy connector under its gate array).
+      const pasted = /^(\w+)\s*"([^"]*)"$/.exec(r);
+      if (pasted && tagConstants[pasted[1]!] !== undefined) {
+        return `${tagConstants[pasted[1]!]}${pasted[2]}`.replace(/^:/, '');
+      }
+      return (memberTags[`${cls}::${r}`] ?? memberTags[r] ?? tagConstants[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
     };
 
     const expandHelper = (statement: string, depth = 0): string[] => {

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
   availabilityFromAudit,
   catalogExtensions,
+  mediaSlotsOf,
   mediumKindOf,
   writeSoftwareShelves,
 } from './software-shelves.ts';
@@ -17,6 +18,19 @@ assert.equal(mediumKindOf('cbm_quik', 'c64_quik'), 'quickload');
 assert.equal(mediumKindOf('vic10_cart', 'vic10'), 'cartridge');
 assert.equal(mediumKindOf('', 'cpc_tape'), 'cassette', 'the list name decides when the interface says nothing');
 assert.equal(mediumKindOf('cdrom', 'psx'), undefined);
+
+// A transport fixed to the board leaves its medium no slot to empty.
+assert.deepEqual(mediaSlotsOf('cassette', [{ type: 'CASSETTE', tag: 'cassette' }]), []);
+assert.deepEqual(mediaSlotsOf('cassette', [
+  { type: 'CASSETTE', tag: 'cassette' },
+  { type: 'PET_DATASSETTE_PORT', tag: 'tape', slotDefault: 'c1530' },
+]), [], 'one fixed deck keeps the medium attached however its other decks are configured');
+assert.deepEqual(mediaSlotsOf('floppy', [
+  { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541' },
+  { type: 'CBM_IEC_SLOT', tag: 'iec9', slotDefault: 'c1541' },
+  { type: 'FLOPPY_CONNECTOR', tag: 'iec8:c1541:uc4:0' },
+  { type: 'FLOPPY_CONNECTOR', tag: 'iec9:c1541:uc4:0' },
+]), ['iec8', 'iec9']);
 
 assert.deepEqual(catalogExtensions({ entries: [
   { prg: { roms: [{ file: 'a.tap' }, { file: 'b.TAP' }] } },
@@ -93,7 +107,13 @@ try {
       { name: 'c64_quik', status: 'original', filter: 'NTSC' },
       { name: 'vic10', status: 'compatible' },
     ],
-    deviceTypes: ['MOS6581', 'PET_DATASSETTE_PORT', 'CBM_IEC'],
+    devices: [
+      { type: 'MOS6581', tag: 'u18' },
+      { type: 'PET_DATASSETTE_PORT', tag: 'tape', slotDefault: 'c1530' },
+      { type: 'CBM_IEC', tag: 'iec_bus' },
+      { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541' },
+      { type: 'FLOPPY_CONNECTOR', tag: 'iec8:c1541:uc4:0' },
+    ],
     log: line => lines.push(line),
   });
   assert.ok(shelves);
@@ -108,12 +128,15 @@ try {
     ['b0cc7564', 'ef80b1e7', '32f2a5df'], 'roml and romh join in order');
   assert.equal(tapes!.kind, 'cassette');
   assert.equal(tapes!.mountable, true, 'the datassette port is the tape transport');
+  assert.deepEqual(tapes!.slots, ['tape'], 'the datassette port is itself the slot');
+  assert.deepEqual(disks!.slots, ['iec8'], 'the drive sits under the outermost slot, not its own connector');
+  assert.equal(carts!.slots, undefined, 'nothing mounts a cartridge yet');
   assert.equal(tapes!.entries, 1, 'the NTSC filter drops the PAL-only tape');
   assert.deepEqual(tapes!.extensions, ['tap']);
   assert.equal(tapes!.catalogUrl, 'software/c64_cass.json');
   assert.equal(tapes!.availableUrl, 'software/c64_cass.available.json');
   assert.equal(disks!.kind, 'floppy');
-  assert.equal(disks!.mountable, false, 'no generated disk drive: display only');
+  assert.equal(disks!.mountable, true, "the composed 1541's floppy connector is the disk transport");
   assert.equal(disks!.availableUrl, undefined, 'no audit filed a disk');
   const catalog = JSON.parse(readFileSync(join(outDir, 'software', 'c64_cass.json'), 'utf8'));
   assert.equal(catalog.entries[0].prg.roms[0].file, 'Nebulus.tap');
@@ -122,7 +145,24 @@ try {
   assert.ok(!existsSync(join(outDir, 'software', 'c64_flop_orig.available.json')));
   assert.ok(lines.some(line => line.includes('display only')), 'the log says which shelf cannot mount');
   assert.ok(lines.some(line => line.includes('c64_quik') && line.includes('no shelf')), 'the emptied list is logged');
-  assert.equal(writeSoftwareShelves({ mameSrc, outDir, dumpsKey: 'computers/x', lists: [], deviceTypes: [] }), undefined);
+  assert.equal(writeSoftwareShelves({ mameSrc, outDir, dumpsKey: 'computers/x', lists: [], devices: [] }), undefined);
+  // Only the formats the transport reads are playable: a drive that reads
+  // .d64 alone makes the .g64 list display only; one that reads both keeps it.
+  const devicesWithDrive = [
+    { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541' },
+    { type: 'FLOPPY_CONNECTOR', tag: 'iec8:c1541:uc4:0' },
+  ];
+  const disksFor = (floppy: string[]) => writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64', devices: devicesWithDrive,
+    lists: [{ name: 'c64_flop_orig', status: 'original', filter: 'NTSC' }],
+    transportExtensions: { floppy },
+  })!.shelves[0]!;
+  const unreadable = disksFor(['d64']);
+  assert.equal(unreadable.mountable, false, 'a list in no format the drive reads is display only');
+  assert.deepEqual(unreadable.extensions, []);
+  const readable = disksFor(['d64', 'g64', 'g41', 'g71']);
+  assert.equal(readable.mountable, true);
+  assert.deepEqual(readable.extensions, ['g64']);
 } finally {
   rmSync(root, { recursive: true, force: true });
 }

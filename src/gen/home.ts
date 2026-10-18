@@ -25,7 +25,7 @@ export interface HomeMachine {
   cover: boolean;
   /** a cabinet photo exists at artwork/media/cabinets/<game>.webp */
   cabinet: boolean;
-  /** a console photo exists at artwork/media/consoles/<game>.webp */
+  /** a machine photo exists at artwork/media/consoles/<game>.webp or media/computers/<game>.webp */
   photo: boolean;
   /** its high-score table is kept between visits: config.json carries hiscore.dat rows */
   scores: boolean;
@@ -102,7 +102,8 @@ export function readHomeMachines(outRoot: string, included?: Set<string>): HomeM
       kind,
       cover: existsSync(join(outRoot, 'artwork', 'covers', `${output.game}.webp`)),
       cabinet: existsSync(join(outRoot, 'artwork', 'media', 'cabinets', `${output.game}.webp`)),
-      photo: existsSync(join(outRoot, 'artwork', 'media', 'consoles', `${output.game}.webp`)),
+      photo: (kind === 'console' || kind === 'computer') &&
+        existsSync(join(outRoot, 'artwork', 'media', PHOTO_TREE[kind], `${output.game}.webp`)),
       scores: Boolean(config?.hiscore?.rows?.length),
       battery: (report?.requirements?.devices ?? [])
         .some(device => String(device.name ?? '').split(':').at(-1) === 'NVRAM'),
@@ -311,7 +312,10 @@ function keyboardSvg(roles: Map<string, KeyRole>): string {
   return `<svg class="art" viewBox="-2 -2 ${width + 4} ${height + 4}" role="img" aria-label="Keyboard">${parts.join('')}</svg>`;
 }
 
-/** A home computer's slab keyboard, drawn: the tree ships photos of consoles, not computers. */
+/** Where a console's or computer's photograph lives in the artwork tree. */
+const PHOTO_TREE = { console: 'consoles', computer: 'computers' } as const;
+
+/** A home computer's slab keyboard, drawn for a build whose tree has no photograph of one. */
 function computerSvg(): string {
   const keys: string[] = [];
   const rows = [12, 12, 11, 10];
@@ -355,12 +359,15 @@ function roomCard(kind: HomeKind, machines: HomeMachine[]): string {
     const cabinets = spread(machines.filter(machine => machine.cabinet), 4);
     art = cabinets.length ? `<div class="shelf">${cabinets.map(machine =>
       `<img src="artwork/media/cabinets/${encodeURIComponent(machine.game)}.webp" alt="${escapeHtml(machine.title)} cabinet" loading="lazy" width="300" height="400">`).join('')}</div>` : '';
-  } else if (kind === 'console') {
-    const photos = spread(machines.filter(machine => machine.photo), 4);
-    art = photos.length ? `<div class="shelf photos">${photos.map(machine =>
-      `<img src="artwork/media/consoles/${encodeURIComponent(machine.game)}.webp" alt="${escapeHtml(machine.title)}" loading="lazy" width="400" height="300">`).join('')}</div>` : '';
   } else {
-    art = computerSvg();
+    // One photograph per machine name: NTSC and PAL of one computer are the
+    // same box, and two of it side by side reads as a typo.
+    const named = new Map<string, HomeMachine>();
+    for (const machine of machines) if (machine.photo && !named.has(machine.title)) named.set(machine.title, machine);
+    const photos = spread([...named.values()], 4);
+    art = photos.length ? `<div class="shelf photos">${photos.map(machine =>
+      `<img src="artwork/media/${PHOTO_TREE[kind]}/${encodeURIComponent(machine.game)}.webp" alt="${escapeHtml(machine.title)}" loading="lazy" width="400" height="300">`).join('')}</div>`
+      : kind === 'computer' ? computerSvg() : '';
   }
   // Names, deduplicated: NTSC and PAL of one machine are one name here.
   const names = [...new Set(machines.map(machine => machine.title))];

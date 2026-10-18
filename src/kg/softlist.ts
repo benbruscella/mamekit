@@ -50,6 +50,12 @@ export interface SoftEntry {
   supported?: 'no' | 'partial';
   /** how many <part>s the set has: a two-sided tape, a three-disk game */
   parts?: number;
+  /**
+   * MAME's own note on starting the set (`<info name="usage">`): Jingle Disk's
+   * is `Commodore: Load "JINGLE",8,1`, where the first file on the disk is a
+   * utility and `LOAD"*",8,1` loads nothing that runs.
+   */
+  usage?: string;
 }
 
 export interface SoftCatalog {
@@ -146,6 +152,8 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
     if (swAttrs.supported === 'no' || swAttrs.supported === 'partial') entry.supported = swAttrs.supported;
     const parts = block.match(/<part\b/g)?.length ?? 0;
     if (parts > 1) entry.parts = parts;
+    const usage = /<info\s+name="usage"\s+value="([^"]*)"/.exec(block);
+    if (usage) entry.usage = unescapeXml(usage[1]!);
 
     for (const fm of block.matchAll(/<feature\s+name="(slot|pcb|mirroring)"\s+value="([^"]*)"/g)) {
       if (fm[1] === 'slot') entry.slot = fm[2];

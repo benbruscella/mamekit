@@ -26,6 +26,162 @@ import type {
  */
 export const GENERATED_FIELD_WIDTHS = Symbol.for('mamekit.fieldWidths');
 
+/** Marks a C struct instance the host built from a declared shape. */
+export const GENERATED_STRUCT = Symbol.for('mamekit.struct');
+
+/** How a growable vector makes a new element (another vector, a struct). */
+const GENERATED_ELEMENT = Symbol.for('mamekit.vectorElement');
+
+/**
+ * A std::vector held as a growable array: `push_back` appends, `clear`
+ * empties, `resize` grows by elements of its own kind. `element` makes one;
+ * absent, elements are integers and grow as zero.
+ */
+export function generatedVector(element?: () => unknown): unknown[] {
+  const vector: unknown[] = [];
+  if (element) Object.defineProperty(vector, GENERATED_ELEMENT, { value: element, enumerable: false });
+  return vector;
+}
+
+/** `vector.resize(length)` on a growable vector: in place, new elements of its kind. */
+export function resizeGeneratedVector(vector: unknown[], length: number): unknown[] {
+  const element = (vector as { [GENERATED_ELEMENT]?: () => unknown })[GENERATED_ELEMENT];
+  const target = Math.max(0, Math.floor(length));
+  if (vector.length > target) vector.length = target;
+  while (vector.length < target) vector.push(element ? element() : 0);
+  return vector;
+}
+
+/** `container.resize(length)` for emitted code: the resized container. */
+export function resizeGeneratedContainer(container: unknown, length: number): unknown {
+  if (Array.isArray(container)) return resizeGeneratedVector(container, length);
+  if (!ArrayBuffer.isView(container)) return container;
+  const current = container as unknown as ArrayLike<number> & { constructor: new (size: number) => ArrayLike<number> & { set(values: ArrayLike<number>): void } };
+  const target = Math.max(0, Math.floor(length));
+  if (current.length === target) return container;
+  const resized = new current.constructor(target);
+  resized.set((container as unknown as { subarray(start: number, end: number): ArrayLike<number> }).subarray(0, Math.min(target, current.length)));
+  return resized;
+}
+
+/**
+ * std::lower_bound / std::upper_bound over [first, last), with the comparator
+ * the source passes (a lambda) or `<`, answering an iterator into the same
+ * buffer. Its own function so a device can bind it directly: the floppy
+ * drive searches its track on every flux reversal it caches.
+ */
+export function generatedBoundSearch(
+  lower: boolean, first: unknown, last: unknown, value: unknown, compare?: unknown,
+): unknown {
+  const source = isGeneratedPointer(first) ? first.source : first;
+  const start = isGeneratedPointer(first) ? first.offset : 0;
+  const end = isGeneratedPointer(last) ? last.offset : (source as ArrayLike<unknown>).length;
+  const less = typeof compare === 'function'
+    ? (a: unknown, b: unknown) => truthy((compare as (a: unknown, b: unknown) => unknown)(a, b))
+    : (a: unknown, b: unknown) => toNumber(a) < toNumber(b);
+  const items = source as ArrayLike<unknown>;
+  let low = start;
+  let high = end;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    const before = lower ? less(items[middle], value) : !less(value, items[middle]);
+    if (before) low = middle + 1;
+    else high = middle;
+  }
+  return { generatedPointer: true, source, offset: low };
+}
+
+/** A struct value from interleaved field names and values. */
+function generatedStruct(pairs: readonly unknown[]): Record<string, unknown> {
+  const entries: [string, unknown][] = [];
+  for (let index = 0; index + 1 < pairs.length; index += 2) entries.push([String(pairs[index]), pairs[index + 1]]);
+  // Built in one operation: see structMember in generated-device.ts.
+  const value = Object.fromEntries(entries);
+  Object.defineProperty(value, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
+  return value;
+}
+
+export function isGeneratedStruct(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' &&
+    (value as { [GENERATED_STRUCT]?: true })[GENERATED_STRUCT]);
+}
+
+/**
+ * C++ struct assignment: `cur_live = checkpoint_live` copies, field by field.
+ *
+ * A struct member is one JavaScript object, so a plain store would make the
+ * two names one struct -- and the 64H156's checkpoint would then move with
+ * the live state it exists to roll back to. The target keeps its identity
+ * (anything holding it still holds it); nested structs and arrays copy
+ * element by element. Returns the target.
+ */
+export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
+  if (!isGeneratedStruct(target) || !source || typeof source !== 'object' || target === source) return source;
+  const from = source as Record<string, unknown>;
+  // A struct's fields never change once it is built, so their names are read
+  // once: the 64H156 copies its live state twice at every syncpoint, twelve
+  // thousand times a frame while a 1541 reads.
+  let keys = STRUCT_FIELDS.get(target);
+  if (!keys) STRUCT_FIELDS.set(target, keys = Object.keys(target));
+  for (let field = 0; field < keys.length; field++) {
+    const key = keys[field]!;
+    const next = from[key];
+    if (next === undefined && !(key in from)) continue;
+    const current = target[key];
+    if (current === null || typeof current !== 'object') target[key] = next;
+    else if (isGeneratedStruct(current)) copyGeneratedStruct(current, next);
+    else if (Array.isArray(current) && Array.isArray(next)) {
+      for (let index = 0; index < current.length && index < next.length; index++) {
+        if (isGeneratedStruct(current[index])) copyGeneratedStruct(current[index], next[index]);
+        else current[index] = next[index];
+      }
+    } else target[key] = next;
+  }
+  return target;
+}
+
+/** Each struct's field names, read once (see copyGeneratedStruct). */
+const STRUCT_FIELDS = new WeakMap<object, string[]>();
+
+/**
+ * The value of a C++ default argument (`bool force = false`,
+ * `const attotime &limit = attotime::never`, `offs_t mask = ~u32(0)`), or
+ * undefined for a default this runtime cannot spell as a number.
+ */
+export function cppDefaultArgument(parameter: string): number | undefined {
+  const value = /=\s*([\s\S]+)$/.exec(parameter)?.[1]?.trim();
+  if (value === undefined) return undefined;
+  const numeric = /^-?(?:0[xX][\da-fA-F]+|\d+)[uUlL]*$/.exec(value);
+  if (numeric) return Number(value.replace(/[uUlL]+$/, ''));
+  if (value === 'true') return 1;
+  if (value === 'false' || value === 'nullptr' || value === 'NULL') return 0;
+  if (value === 'attotime::never') return Infinity;
+  if (value === 'attotime::zero') return 0;
+  // `~Type(0)` and kin are MAME's all-ones memory masks.
+  if (/^~\s*\w+\s*\(\s*0\s*\)$/.test(value)) return 0xffffffff;
+  return undefined;
+}
+
+/**
+ * MAME `attotime`'s value methods, for an attotime the runtime holds as
+ * seconds -- `attotime::never` is Infinity. Undefined for any other method.
+ * Answered generically, a method on a number read as 0: `tm.is_never()` said
+ * "no" for the one time that is never, and the 64H156 ran its bit engine from
+ * a clock that had not started.
+ */
+export function attotimeSecondsMethod(seconds: number, method: string, args: readonly number[] = []): number | undefined {
+  switch (method) {
+    case 'is_never': return seconds === Infinity ? 1 : 0;
+    case 'is_zero': return seconds === 0 ? 1 : 0;
+    case 'as_double': return seconds;
+    case 'as_ticks': return Math.floor(seconds * Math.max(1, args[0] ?? 1));
+    case 'as_attoseconds': return seconds * 1e18;
+    case 'seconds': return Math.floor(seconds);
+    case 'attoseconds': return (seconds - Math.floor(seconds)) * 1e18;
+    default: return undefined;
+  }
+}
+
 /**
  * One field's C conversion. The width is the declared bit count, negated when
  * the declaration is signed, so the whole shape is a plain number map.
@@ -208,6 +364,20 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   KONAMI_FIRQ_LINE: 1,
   'm6502_device::IRQ_LINE': 0,
   'm6502_device::NMI_LINE': -1,
+  // The SO pin, as the generated 6502 numbers it (V_LINE = INPUT_LINE_IRQ0 +
+  // 16 in m6502.h): the 1541's gate array raises it for every byte read.
+  'm6502_device::V_LINE': 16,
+  // emu/machine.h's machine_phase, which running_machine::phase() answers. A
+  // device ignores a port write while MAME is still resetting: the 1541's
+  // VIA port B handler drives the spindle motor and stepper only when RUNNING.
+  'machine_phase::PREINIT': 0,
+  'machine_phase::INIT': 1,
+  'machine_phase::RESET': 2,
+  'machine_phase::RUNNING': 3,
+  'machine_phase::EXIT': 4,
+  M6502_IRQ_LINE: 0,
+  M6502_NMI_LINE: -1,
+  M6502_SET_OVERFLOW: 16,
   M68K_IRQ_1: 1,
   M68K_IRQ_2: 2,
   M68K_IRQ_3: 3,
@@ -522,6 +692,9 @@ function preparedHandlerRuntime(
     container: generatedContainerAccessor,
     pointerStore: generatedPointerStore,
     add: generatedAdd,
+    subtract: generatedSubtract,
+    resize: resizeGeneratedContainer,
+    attotime: (seconds: number, method: string, ...args: number[]) => attotimeSecondsMethod(seconds, method, args) ?? 0,
     wide: wideBinary,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
@@ -1185,8 +1358,9 @@ function compileFastExpression(
       };
     }
     const constantName = name.split('::').at(-1)!;
-    const constant = bindings.constants?.[name] ?? bindings.constants?.[constantName] ??
-      DEFAULT_CONSTANTS[name] ?? DEFAULT_CONSTANTS[constantName];
+    // A qualified spelling resolves qualified first (see evaluate).
+    const constant = bindings.constants?.[name] ?? DEFAULT_CONSTANTS[name] ??
+      bindings.constants?.[constantName] ?? DEFAULT_CONSTANTS[constantName];
     if (constant !== undefined) return () => constant;
     if (name === 'ACCESSING_BITS_0_7') {
       return context => toNumber(context.locals.mem_mask) & 0x00ff ? 1 : 0;
@@ -1337,7 +1511,8 @@ function compileFastExpression(
     const generatedArguments = compileGeneratedCallArguments(name, expression.args, args);
     return context => {
       // A lambda held by a local or a parameter; see evaluateCall.
-      const local = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+      const held = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+      const local = isLValue(held) ? held.get() : held;
       if (typeof local === 'function') {
         const values = new Array<unknown>(args.length);
         for (let index = 0; index < args.length; index++) {
@@ -1604,10 +1779,13 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     // compiler records the declaration under its leaf name (`NVI_LINE`).
     // Resolve both forms so source-derived callbacks deliver the numeric pin
     // rather than passing an unresolved reference object to a device.
+    // The qualified spelling wins over any leaf: `machine_phase::RUNNING`
+    // must not become the 64H156's own `RUNNING` live state, which turned
+    // every 1541 motor and stepper write into an early return.
     const constantName = expression.name.split('::').at(-1)!;
     const constant = context.bindings.constants?.[expression.name] ??
-      context.bindings.constants?.[constantName] ??
       DEFAULT_CONSTANTS[expression.name] ??
+      context.bindings.constants?.[constantName] ??
       DEFAULT_CONSTANTS[constantName];
     if (constant !== undefined) return constant;
     if (context.bindings.referenceCalls?.[expression.name]) return context.bindings.referenceCalls[expression.name];
@@ -1670,8 +1848,8 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
         offset: toNumber(leftValue),
       };
     }
-    if (expression.operator === '-' && isGeneratedPointer(leftValue)) {
-      return offsetPointer(leftValue, -toNumber(rightValue));
+    if (expression.operator === '-' && (isGeneratedPointer(leftValue) || isGeneratedPointer(rightValue))) {
+      return generatedSubtract(leftValue, rightValue);
     }
     if (expression.operator === '-' && isIndexableMemory(leftValue)) {
       return {
@@ -1955,6 +2133,61 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
     return args[0];
   }
+  // A struct built in place: field names and values, interleaved, as the
+  // device compiler lowers a brace initialiser (see lowerStructLocals).
+  if (name === 'STRUCT') return generatedStruct(args);
+  // `T items[n]` of a struct T: n structs with T's fields, zeroed.
+  if (name === 'STRUCT_ARRAY') {
+    const names = args.slice(1).map(String);
+    return Array.from({ length: Math.max(0, toNumber(args[0])) }, () =>
+      generatedStruct(names.flatMap(field => [field, 0])));
+  }
+  // A brace list the compiler could not give a struct shape: its values.
+  if (name === 'AGGREGATE') return [...args];
+  // MAME util::read_at over the host's image bytes (`{ bytes }`, see the
+  // floppy image host). Two overloads: into a buffer, answering
+  // (error, actual); or a fresh buffer, answering (error, buffer, actual).
+  // Tuples are arrays; a host read cannot fail, so error is 0.
+  if (name === 'read_at') {
+    const bytes = (args[0] as { bytes?: Uint8Array } | undefined)?.bytes ?? new Uint8Array(0);
+    const offset = Math.max(0, toNumber(args[1]));
+    if (args.length >= 4) {
+      const count = Math.max(0, Math.min(toNumber(args[3]), bytes.length - offset));
+      copyGeneratedMemory(args[2], bytes.subarray(offset, offset + count), count);
+      return [0, count];
+    }
+    const data = bytes.slice(offset, offset + Math.max(0, toNumber(args[2])));
+    return [0, data, data.length];
+  }
+  if (name === 'memcmp') {
+    const byte = (value: unknown, index: number): number => typeof value === 'string'
+      ? value.charCodeAt(index) || 0
+      : toNumber(isGeneratedPointer(value) ? pointerValue(value, index) : (value as ArrayLike<number>)[index]) & 0xff;
+    for (let index = 0; index < toNumber(args[2]); index++) {
+      const difference = byte(args[0], index) - byte(args[1], index);
+      if (difference) return difference;
+    }
+    return 0;
+  }
+  // A C++ `throw`, as handler-ir lowers it: the source gave up here.
+  if (name === '__throw') throw new Error('MAME source threw an exception');
+  // MAME util/multibyte.h: little- and big-endian loads from a byte pointer.
+  if (name === 'get_u16le' || name === 'get_u32le' || name === 'get_u16be' || name === 'get_u32be') {
+    const byte = (index: number): number => toNumber(isGeneratedPointer(args[0])
+      ? pointerValue(args[0], index) : (args[0] as ArrayLike<number>)[index]) & 0xff;
+    const count = name.includes('16') ? 2 : 4;
+    let value = 0;
+    for (let index = 0; index < count; index++) {
+      value += byte(name.endsWith('le') ? index : count - 1 - index) * 2 ** (8 * index);
+    }
+    return value;
+  }
+  // std::lower_bound / std::upper_bound over [first, last), with the
+  // comparator the source passes (a lambda) or `<`. They answer an iterator
+  // into the same buffer.
+  if (name === 'std::lower_bound' || name === 'std::upper_bound') {
+    return generatedBoundSearch(name === 'std::lower_bound', args[0], args[1], args[2], args[3]);
+  }
   if (name === 'rgb_t::black') return 0xff000000;
   if (name === 'rgb_t::white') return 0xffffffff;
   if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
@@ -2142,7 +2375,10 @@ function evaluateCall(
     // calls its own last parameter once per decoded chunk, and every Game Boy
     // cartridge installs its ROM that way; resolved as a global name instead,
     // the call found nothing and the cartridge decoded nothing.
-    const local = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+    // A forwarding reference (`T &&install`) arrives as the caller's l-value;
+    // what it refers to is the lambda.
+    const held = Object.hasOwn(context.locals, name) ? context.locals[name] : undefined;
+    const local = isLValue(held) ? held.get() : held;
     if (typeof local === 'function') {
       return (local as (...args: unknown[]) => unknown)(
         ...expression.args.map(arg => callArgument(evaluate(arg, context))),
@@ -2194,9 +2430,10 @@ function evaluateCall(
     const rawObject = evaluate(expression.callee.object, context);
     const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
     const method = expression.callee.property;
-    if (typeof object === 'number' && method === 'as_ticks') {
-      const clock = Math.max(1, toNumber(evaluate(expression.args[0]!, context)));
-      return Math.floor(object * clock);
+    if (typeof object === 'number') {
+      const answered = attotimeSecondsMethod(object, method,
+        expression.args.map(arg => toNumber(evaluate(arg, context))));
+      if (answered !== undefined) return answered;
     }
     // A MAME `rgb_t` is a packed number, and its channel accessors read it
     // back: the TIA builds its 16k blended palette by averaging every pair of
@@ -2315,6 +2552,10 @@ function assign(
     const current = Object.hasOwn(context.locals, target.name)
       ? localReference?.get() ?? local
       : context.bindings.getters?.[target.name]?.() ?? context.bindings.members?.[target.name];
+    if (operator === '=' && isGeneratedStruct(current)) {
+      copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
+      return;
+    }
     const next = assignmentValue(operator, current, value);
     if (Object.hasOwn(context.locals, target.name)) {
       const wrapped = wrapValue(context.localTypes[target.name], next);
@@ -2865,6 +3106,15 @@ export function generatedValuesEqual(left: unknown, right: unknown): boolean {
     return leftValue.source === rightValue.source &&
       leftValue.offset === rightValue.offset;
   }
+  // A container's begin() is the container itself (generatedContainerAccessor),
+  // and an iterator into it is a pointer: `buf.begin() == it` is the pointer
+  // at offset zero.
+  if (isGeneratedPointer(leftValue) && isIndexableMemory(rightValue)) {
+    return leftValue.source === rightValue && leftValue.offset === 0;
+  }
+  if (isGeneratedPointer(rightValue) && isIndexableMemory(leftValue)) {
+    return rightValue.source === leftValue && rightValue.offset === 0;
+  }
   return leftValue === rightValue;
 }
 
@@ -2981,6 +3231,10 @@ function resizeGeneratedMemory(
   context: ExecutionContext,
 ): void {
   const current = evaluate(target, context);
+  if (Array.isArray(current)) {
+    resizeGeneratedVector(current, length);
+    return;
+  }
   if (!isIndexableMemory(current) || current.length === length) return;
   const resized = ArrayBuffer.isView(current)
     ? new (current.constructor as new (size: number) => ArrayLike<unknown>)(length)
@@ -3081,6 +3335,26 @@ export function generatedAdd(left: unknown, right: unknown): unknown {
   return toNumber(left) + toNumber(right);
 }
 
+/**
+ * C++ `-` for operands that may be pointers: a pointer less a number is a
+ * pointer, and two pointers into one buffer are the distance between them
+ * (`it - buf.begin()`, which the floppy drive takes from std::upper_bound to
+ * find the flux cell under the head).
+ */
+export function generatedSubtract(left: unknown, right: unknown): unknown {
+  if (typeof left === 'number' && typeof right === 'number') return left - right;
+  const position = (value: unknown): { source: unknown; offset: number } | undefined =>
+    isGeneratedPointer(value) ? { source: value.source, offset: value.offset }
+      : isIndexableMemory(value) ? { source: value, offset: 0 } : undefined;
+  const from = position(left);
+  const to = position(right);
+  if (from && to) return from.offset - to.offset;
+  if (isGeneratedPointer(left)) return offsetPointer(left, -toNumber(right));
+  if (isIndexableMemory(left)) return { generatedPointer: true, source: left, offset: -toNumber(right) };
+  if (typeof left === 'bigint' || typeof right === 'bigint') return wideBinary('-', left, right);
+  return toNumber(left) - toNumber(right);
+}
+
 export function generatedPointerStore(pointer: unknown, value: unknown): unknown {
   if (isGeneratedPointer(pointer)) {
     setPointerValue(pointer, 0, value);
@@ -3099,6 +3373,10 @@ export function generatedPointerStore(pointer: unknown, value: unknown): unknown
 
 export function generatedContainerAccessor(value: unknown, method: string): unknown {
   const held = isLValue(value) ? value.get() : value;
+  if (typeof held === 'number') {
+    const answered = attotimeSecondsMethod(held, method);
+    if (answered !== undefined) return answered;
+  }
   const pointer = isGeneratedPointer(held);
   if (!pointer && !isIndexableMemory(held)) {
     // Not a memory container: a device accessor handing back a reference to
@@ -3124,8 +3402,19 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
   }
   if (method === 'size' || method === 'length') return length;
   if (method === 'empty') return length === 0 ? 1 : 0;
-  if (method === 'target' || method === 'base' || method === 'get' || method === 'begin') {
+  if (method === 'target' || method === 'base' || method === 'get') {
     return held;
+  }
+  // A container's iterators are positions in it, so they can be compared and
+  // subtracted (`it - buf.begin()`); `end()` is one past the last element.
+  if (method === 'begin' || method === 'end' || method === 'data') {
+    const offset = method === 'end' ? length : 0;
+    if (pointer) return offsetPointer(held, offset);
+    return method === 'end' ? { generatedPointer: true, source: held, offset } : held;
+  }
+  if (method === 'clear' && Array.isArray(held)) {
+    held.length = 0;
+    return 0;
   }
   return 0;
 }
@@ -3256,6 +3545,14 @@ function buildGeneratedExpressionName(expression: GeneratedExpression): string {
   // so `m_mainlatch[1]->write_bit(...)` reaches the concrete device.
   if (expression.kind === 'index' && expression.index.kind === 'number') {
     return `${generatedExpressionName(expression.object)}[${expression.index.value}]`;
+  }
+  // `machine()` in `machine().rand()`: the chain is named as emitted code and
+  // the board name it (`machine().rand`). Unnamed, the call fell through to
+  // the host's `machine()` object, which has no `rand`, and the VLM5030's
+  // unvoiced frames drew every sign from a zero.
+  if (expression.kind === 'call' && !expression.args.length &&
+      (expression.callee.kind === 'identifier' || expression.callee.kind === 'member')) {
+    return `${generatedExpressionName(expression.callee)}()`;
   }
   return '<expression>';
 }

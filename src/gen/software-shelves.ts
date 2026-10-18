@@ -32,9 +32,40 @@ export interface SoftlistDeclaration {
 const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   cassette: ['PET_DATASSETTE_PORT', 'CASSETTE'],
   cartridge: [],
-  floppy: [],
+  // MAME's floppy_connector holds the drive mechanism a disk goes into: the
+  // C64's composed 1541 carries one under its gate array.
+  floppy: ['FLOPPY_CONNECTOR'],
   quickload: [],
 };
+
+/** A device the board composes, as far as mounting a medium cares. */
+export interface ShelfDevice {
+  type: string;
+  /** absolute MAME tag: "tape", "iec8:c1541:uc4:0" */
+  tag: string;
+  /** the option a slot device selects by default ("c1530", "c1541") */
+  slotDefault?: string;
+}
+
+/**
+ * The slots whose cards carry a medium's transports: for each transport, the
+ * outermost slot device it is, or sits under. The C64's datassette port is
+ * the `tape` slot itself; its disk drive's floppy connector sits inside the
+ * 1541 on the `iec8` slot. A transport on no slot is fixed to the board, and
+ * then the medium has no slot to leave empty.
+ */
+export function mediaSlotsOf(kind: MediumKind, devices: readonly ShelfDevice[]): string[] {
+  const slots = devices.filter(device => device.slotDefault).map(device => device.tag);
+  const carrying = new Set<string>();
+  for (const transport of devices.filter(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type))) {
+    const outer = slots
+      .filter(slot => transport.tag === slot || transport.tag.startsWith(`${slot}:`))
+      .sort((a, b) => a.length - b.length)[0];
+    if (!outer) return [];
+    carrying.add(outer);
+  }
+  return [...carrying];
+}
 
 /**
  * The medium a list holds, from the interface its parts declare -- "cbm_cass",
@@ -117,8 +148,14 @@ export interface SoftwareShelvesOptions {
   mameSrc: string;
   outDir: string;
   lists: SoftlistDeclaration[];
-  /** MAME device types the board composes, for the mount capability table */
-  deviceTypes: readonly string[];
+  /** the devices the board composes, for the mount capability table */
+  devices: readonly ShelfDevice[];
+  /**
+   * The image extensions a medium's transport reads, where MAME's source says:
+   * a floppy connector's `set_formats` names its formats, and each format its
+   * extensions. A list's image in any other format is not playable here.
+   */
+  transportExtensions?: Partial<Record<MediumKind, readonly string[]>>;
   /** local dump directory audited by tools/process-rom-audit.ts, when present */
   dumpsDir?: string;
   /** the bucket / .data key those dumps live under: "computers/c64" */
@@ -154,7 +191,17 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       writeFileSync(join(softwareDir, `${list.name}.available.json`),
         JSON.stringify({ set: options.dumpsKey, carts: available }));
     }
-    const mountable = MEDIA_MOUNT_DEVICES[kind].some(type => options.deviceTypes.includes(type));
+    // A cartridge list names the chips on the board ("u1", "ba1"), not an
+    // image a visitor could drop; only a media list's file names are images.
+    // Of those, only the ones the transport reads are playable: the C64's
+    // misc disk list holds .img and .d81 sets its 1541 cannot read, and Play
+    // used to boot one with no disk in the drive.
+    const listed = kind === 'cartridge' ? [] : catalogExtensions(catalog);
+    const readable = options.transportExtensions?.[kind];
+    const extensions = readable ? listed.filter(extension => readable.includes(extension)) : listed;
+    const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)) &&
+      (!readable || extensions.length > 0);
+    const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
     shelves.push({
       list: list.name,
       description: catalog.description,
@@ -162,15 +209,16 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       kind,
       catalogUrl: `software/${list.name}.json`,
       ...(available.length ? { availableUrl: `software/${list.name}.available.json` } : {}),
-      // A cartridge list names the chips on the board ("u1", "ba1"), not an
-      // image a visitor could drop; only a media list's file names are images.
-      extensions: kind === 'cartridge' ? [] : catalogExtensions(catalog),
+      extensions,
       entries: catalog.entries.length,
       mountable,
+      ...(slots.length ? { slots } : {}),
     });
     log(`software "${list.name}": ${catalog.entries.length} ${kind} sets catalogued` +
       (available.length ? `, ${available.length} dumps available` : '') +
-      (mountable ? '' : ' (display only: no generated transport)'));
+      (mountable ? '' : readable && listed.length
+        ? ` (display only: the transport reads ${readable.map(extension => `.${extension}`).join(' ')}, the list holds ${listed.map(extension => `.${extension}`).join(' ')})`
+        : ' (display only: no generated transport)'));
   }
   return shelves.length ? { dumpsKey: options.dumpsKey, shelves } : undefined;
 }

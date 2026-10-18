@@ -125,6 +125,10 @@ export function expandFunctionMacros(body: string, macros: readonly FunctionMacr
       const macro = byName.get(match[1]!);
       const open = at + match[0].length - 1;
       const call = macro ? callArguments(expanded, open) : undefined;
+      // `CLR_PA_INT()` invokes a macro of no parameters: its one argument,
+      // empty, is no argument at all. Counted as one, the 6522's interrupt
+      // acknowledge never expanded and reading port A never cleared CA1.
+      if (call && macro && !macro.parameters.length && call.args.length === 1 && !call.args[0]) call.args = [];
       if (!macro || !call || call.args.length !== macro.parameters.length) {
         result += expanded.slice(index, at + match[0].length);
         index = at + match[0].length;
