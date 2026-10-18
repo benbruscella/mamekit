@@ -5,8 +5,8 @@
 // softlist.json. A computer's software arrives on several media -- the C64's
 // driver declares cartridge, tape, two disk and a quickload list -- and each
 // list is its own shelf: software/<list>.json beside the machine, with a
-// software/<list>.available.json when tools/process-rom-audit.ts has filed
-// verified dumps for it. The graph carries the LIST facts (name, filter); the
+// software/<list>.available.json when the ROM library (tools/rom-library.ts)
+// has filed verified dumps for it. The graph carries the LIST facts (name, filter); the
 // hash/*.xml is read here, the same way the console catalogue is built.
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -111,7 +111,7 @@ interface AuditEntry {
 }
 
 /**
- * Reduce an audit manifest (tools/process-rom-audit.ts) to the sets it holds
+ * Reduce a shelf manifest (tools/rom-library.ts) to the sets it holds
  * complete for one list. Every part must be present: a two-sided tape with one
  * side missing is not a set the shelf can offer.
  */
@@ -156,7 +156,7 @@ export interface SoftwareShelvesOptions {
    * extensions. A list's image in any other format is not playable here.
    */
   transportExtensions?: Partial<Record<MediumKind, readonly string[]>>;
-  /** local dump directory audited by tools/process-rom-audit.ts, when present */
+  /** local dump directory the ROM library files into, when present */
   dumpsDir?: string;
   /** the bucket / .data key those dumps live under: "computers/c64" */
   dumpsKey: string;

@@ -13,7 +13,7 @@ import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, His
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
-import { fetchRomBytes } from './rom-source.ts';
+import { fetchRomBytes, machineSetDir } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
 import {
@@ -209,18 +209,20 @@ export interface DropZone {
  * Look for the romset on the web. Sources and their order live in
  * rom-source.ts, shared with the console room's cartridge fetch.
  */
-async function fetchRomSet(game: string, category = 'arcade', firmwareKey?: string): Promise<Uint8Array> {
-  // A computer's firmware is filed under the machine's own dump directory
-  // (computers/c64/bios/c64.zip), beside the software it runs; a console's or
-  // arcade board's set sits at the category root.
+async function fetchRomSet(game: string, category = 'arcade', systemKey?: string): Promise<Uint8Array> {
+  // A console's or computer's firmware is filed in the system's own folder
+  // (consoles/coleco/bios/coleco.zip, computers/c64/bios/c64.zip), beside the
+  // software it runs; an arcade board's set sits at the category root.
   // A clone's firmware is its parent's chips under a different set name --
-  // the PAL C64 loads the NTSC machine's ROMs -- and the audit files the one
+  // the PAL C64 loads the NTSC machine's ROMs -- and the library files the one
   // zip under the family, so that name is tried too; the chips are matched by
-  // name and CRC either way.
-  const family = firmwareKey?.split('/').pop();
-  const keys = firmwareKey
-    ? [...new Set([`${firmwareKey}/bios/${game}.zip`, `${firmwareKey}/bios/${family}.zip`, `${category}/${game}.zip`])]
-    : [`${category}/${game}.zip`];
+  // name and CRC either way. The category root is the last resort: console
+  // BIOS sets sat there before issue #162.
+  const dir = systemKey ? machineSetDir(category, systemKey) : category;
+  const family = systemKey?.split('/').pop();
+  const keys = [...new Set([
+    `${dir}/${game}.zip`, ...(family ? [`${dir}/${family}.zip`] : []), `${category}/${game}.zip`,
+  ])];
   for (const key of keys) {
     const bytes = await fetchRomBytes(key);
     if (bytes) return bytes;
@@ -229,12 +231,20 @@ async function fetchRomSet(game: string, category = 'arcade', firmwareKey?: stri
 }
 
 /**
- * Where this machine's own romset lives, mirroring the .data/roms layout:
- * "arcade/pacman.zip", "consoles/coleco.zip". A console's cartridges sit one
- * level deeper, under the machine's own directory.
+ * The category this machine's dumps are filed under, mirroring the .data/roms
+ * layout: "arcade", "consoles", "computers".
  */
 function romCategory(dataPath: string): string {
   return dataPath.replace(/^games\//, '').split('/')[0] ?? 'arcade';
+}
+
+/**
+ * The system folder a console's or computer's dumps live in: the console's own
+ * directory (consoles/coleco), or the computer family's (computers/c64, which
+ * the PAL and NTSC machines share). An arcade board has none.
+ */
+function romSystemKey(cfg: ShellConfig): string | undefined {
+  return cfg.software?.dumpsKey ?? (cfg.cart ? cfg.dataPath.replace(/^games\//, '') : undefined);
 }
 
 /** result of checking an uploaded zip against the knowledge-graph manifest */
@@ -873,7 +883,7 @@ export async function runShell(
       ui.status(short.length
         ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
         : `ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
-      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), cfg.software?.dumpsKey, kept ?? undefined);
+      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined);
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
       keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast);
     }
@@ -2431,7 +2441,7 @@ function waitForZip(
   critical: Set<string>,
   game: string,
   category: string,
-  firmwareKey?: string,
+  systemKey?: string,
   kept?: KeptRomSet,
 ): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[] }> {
   return new Promise(resolve => {
@@ -2501,7 +2511,7 @@ function waitForZip(
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
       const sets = [game, ...dependencyRomSets(specs, game)];
-      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category, firmwareKey) }))).then(
+      Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category, systemKey) }))).then(
         results => finish(() => {
           const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
           if (!found.length) {
