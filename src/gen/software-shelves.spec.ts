@@ -146,6 +146,23 @@ try {
   assert.ok(lines.some(line => line.includes('display only')), 'the log says which shelf cannot mount');
   assert.ok(lines.some(line => line.includes('c64_quik') && line.includes('no shelf')), 'the emptied list is logged');
   assert.equal(writeSoftwareShelves({ mameSrc, outDir, dumpsKey: 'computers/x', lists: [], devices: [] }), undefined);
+  // Only the formats the transport reads are playable: a drive that reads
+  // .d64 alone makes the .g64 list display only; one that reads both keeps it.
+  const devicesWithDrive = [
+    { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541' },
+    { type: 'FLOPPY_CONNECTOR', tag: 'iec8:c1541:uc4:0' },
+  ];
+  const disksFor = (floppy: string[]) => writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64', devices: devicesWithDrive,
+    lists: [{ name: 'c64_flop_orig', status: 'original', filter: 'NTSC' }],
+    transportExtensions: { floppy },
+  })!.shelves[0]!;
+  const unreadable = disksFor(['d64']);
+  assert.equal(unreadable.mountable, false, 'a list in no format the drive reads is display only');
+  assert.deepEqual(unreadable.extensions, []);
+  const readable = disksFor(['d64', 'g64', 'g41', 'g71']);
+  assert.equal(readable.mountable, true);
+  assert.deepEqual(readable.extensions, ['g64']);
 } finally {
   rmSync(root, { recursive: true, force: true });
 }

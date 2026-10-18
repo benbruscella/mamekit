@@ -150,6 +150,12 @@ export interface SoftwareShelvesOptions {
   lists: SoftlistDeclaration[];
   /** the devices the board composes, for the mount capability table */
   devices: readonly ShelfDevice[];
+  /**
+   * The image extensions a medium's transport reads, where MAME's source says:
+   * a floppy connector's `set_formats` names its formats, and each format its
+   * extensions. A list's image in any other format is not playable here.
+   */
+  transportExtensions?: Partial<Record<MediumKind, readonly string[]>>;
   /** local dump directory audited by tools/process-rom-audit.ts, when present */
   dumpsDir?: string;
   /** the bucket / .data key those dumps live under: "computers/c64" */
@@ -185,7 +191,16 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       writeFileSync(join(softwareDir, `${list.name}.available.json`),
         JSON.stringify({ set: options.dumpsKey, carts: available }));
     }
-    const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type));
+    // A cartridge list names the chips on the board ("u1", "ba1"), not an
+    // image a visitor could drop; only a media list's file names are images.
+    // Of those, only the ones the transport reads are playable: the C64's
+    // misc disk list holds .img and .d81 sets its 1541 cannot read, and Play
+    // used to boot one with no disk in the drive.
+    const listed = kind === 'cartridge' ? [] : catalogExtensions(catalog);
+    const readable = options.transportExtensions?.[kind];
+    const extensions = readable ? listed.filter(extension => readable.includes(extension)) : listed;
+    const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)) &&
+      (!readable || extensions.length > 0);
     const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
     shelves.push({
       list: list.name,
@@ -194,16 +209,16 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       kind,
       catalogUrl: `software/${list.name}.json`,
       ...(available.length ? { availableUrl: `software/${list.name}.available.json` } : {}),
-      // A cartridge list names the chips on the board ("u1", "ba1"), not an
-      // image a visitor could drop; only a media list's file names are images.
-      extensions: kind === 'cartridge' ? [] : catalogExtensions(catalog),
+      extensions,
       entries: catalog.entries.length,
       mountable,
       ...(slots.length ? { slots } : {}),
     });
     log(`software "${list.name}": ${catalog.entries.length} ${kind} sets catalogued` +
       (available.length ? `, ${available.length} dumps available` : '') +
-      (mountable ? '' : ' (display only: no generated transport)'));
+      (mountable ? '' : readable && listed.length
+        ? ` (display only: the transport reads ${readable.map(extension => `.${extension}`).join(' ')}, the list holds ${listed.map(extension => `.${extension}`).join(' ')})`
+        : ' (display only: no generated transport)'));
   }
   return shelves.length ? { dumpsKey: options.dumpsKey, shelves } : undefined;
 }

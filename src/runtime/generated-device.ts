@@ -612,6 +612,33 @@ class IrTimer {
   }
 }
 
+/**
+ * Generated devices another device holds as an object -- the floppy drive's
+ * mounted `floppy_image` -- by the save-state factory name they are captured
+ * under. A save keeps such an object's members, not its methods, so a load
+ * into a drive that no longer holds that image (it was ejected since the save)
+ * builds an executable one here. Registered when the holding device is built,
+ * so a load in a fresh session finds the factory before any disk is mounted.
+ */
+const HELD_INSTANCE_DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
+
+function heldInstanceName(definition: GeneratedDeviceDefinition): string {
+  return `device-instance:${definition.type}`;
+}
+
+/** Save-state factories for every held generated-device object (see HELD_INSTANCE_DEFINITIONS). */
+export function generatedInstanceFactories(): Map<string, (data: Record<string, unknown>) => object> {
+  return new Map([...HELD_INSTANCE_DEFINITIONS].map(([name, definition]) => [name, data => {
+    const self = new IrDevice(definition, 0).instance() as Record<string, unknown>;
+    // Through the instance's own setters, so each member narrows as it does
+    // when the device's methods store it.
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof self[key] !== 'function') self[key] = value;
+    }
+    return stateValue(name, self);
+  }]));
+}
+
 class IrDevice implements Device {
   private readonly definition: GeneratedDeviceDefinition;
   private readonly members: Record<string, unknown> = {};
@@ -653,6 +680,9 @@ class IrDevice implements Device {
     options: GeneratedDeviceOptions = {},
   ) {
     this.definition = definition;
+    if (definition.floppyImage) {
+      HELD_INSTANCE_DEFINITIONS.set(heldInstanceName(definition.floppyImage), definition.floppyImage);
+    }
     this.delegateNames = new Set(Object.values(definition.delegates ?? {}));
     this.latch8 = definition.type.toUpperCase() === 'GENERIC_LATCH_8';
     // `device_t::m_clock` is a u32, so MAME's own `clock()` never has a
@@ -1493,7 +1523,7 @@ class IrDevice implements Device {
       throw new Error('Incompatible image file format or corrupted data');
     }
     if (this.members.m_image) this.invoke('unmount_image');
-    this.invoke('mount_image', image.instance());
+    this.invoke('mount_image', stateValue(heldInstanceName(this.definition.floppyImage), image.instance() as object));
   }
 
   /** Take the disk out (floppy_image_device::call_unload). */

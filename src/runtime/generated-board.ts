@@ -6,6 +6,7 @@ import { captureState, namedStateFunction, restoreState, stateValue, type WalkOp
 import {
   createDevice,
   createGeneratedAttotime,
+  generatedInstanceFactories,
   generatedTimerBacklog,
   generatedTimerExpiry,
   hasGeneratedDevice,
@@ -3049,7 +3050,9 @@ class IrBoard implements Board {
       namedBuffers: this.namedBuffers(),
       walkOwnKeys: this.walkOwnKeys(),
       functions: this.stateFunctions,
-      factories: STATE_FACTORIES,
+      // A disk the drive holds is a generated device of its own, rebuilt by
+      // its own factory (generatedInstanceFactories).
+      factories: new Map([...STATE_FACTORIES, ...generatedInstanceFactories()]),
       onOpaque,
     };
   }

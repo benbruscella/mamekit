@@ -266,6 +266,19 @@ export function identifySet(
  * list's own order is kept where the catalog names the files, so side 1 is
  * offered before side 2.
  */
+/**
+ * Whether a catalogued set holds an image the shelf's transport reads. A
+ * shelf lists the image formats its drive reads (software-shelves), and a
+ * list can still carry sets in another one: the C64's misc disks include a
+ * `.img` its 1541 cannot read, which used to boot with the drive empty.
+ */
+export function entryPlayable(entry: Pick<SoftEntry, 'prg'>, shelf: Pick<SoftwareShelf, 'extensions'>): boolean {
+  return entry.prg.roms.some(rom => {
+    const extension = rom.file?.includes('.') ? rom.file.split('.').pop()!.toLowerCase() : '';
+    return Boolean(extension) && shelf.extensions.includes(extension);
+  });
+}
+
 export function mountableImages(
   members: Map<string, Uint8Array>,
   extensions: readonly string[],
@@ -626,7 +639,8 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   function buildTile(row: LibraryRow): HTMLElement {
     const { shelf, entry: soft, avail } = row;
     const zipName = avail ? (avail.file.split('/').pop() ?? avail.file) : `${soft.name}.zip`;
-    const state: MediaState = !shelf.mountable ? 'display' : avail ? 'available' : 'catalog';
+    const playable = shelf.mountable && entryPlayable(soft, shelf);
+    const state: MediaState = !playable ? 'display' : avail ? 'available' : 'catalog';
     const item = el('div', 'display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0');
     item.setAttribute('data-catalog-set', soft.name);
     item.dataset.list = shelf.list;
@@ -646,14 +660,18 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     label.textContent = state === 'available' ? '' : state === 'display' ? 'DISPLAY ONLY' : 'INSERT YOUR OWN';
     if (!label.textContent) label.style.display = 'none';
     item.append(cover, titleLine(stripSet(soft.description)), label);
-    item.title = `${soft.description} — ${zipName}${state === 'display' ? ` · ${mediumNoun(shelf.kind, 1)} images do not mount yet` : ''}`;
+    item.title = `${soft.description} — ${zipName}${state === 'display'
+      ? shelf.mountable
+        ? ` · not a format this ${mediumNoun(shelf.kind, 1)} drive reads (${shelf.extensions.map(extension => `.${extension}`).join(' ')})`
+        : ` · ${mediumNoun(shelf.kind, 1)} images do not mount yet`
+      : ''}`;
 
     const act = (): void => {
-      if (!shelf.mountable) { openInfo(row); return; }
+      if (!playable) { openInfo(row); return; }
       if (!avail) { picker.click(); return; }
       void fetchSet(row, cover, label);
     };
-    const fetchBtn = smallBtn(avail ? '⌕ Search' : '◍ Insert', 'data-fetch', true, coreSupported && shelf.mountable && (avail !== undefined));
+    const fetchBtn = smallBtn(avail ? '⌕ Search' : '◍ Insert', 'data-fetch', true, coreSupported && playable && (avail !== undefined));
     fetchBtn.style.cssText += `;position:absolute;left:50%;transform:translateX(-50%);bottom:11px;opacity:0;
       transition:opacity .15s ease;box-shadow:0 6px 14px rgba(0,0,0,.55)`;
     fetchBtn.addEventListener('click', ev => { ev.stopPropagation(); act(); });
@@ -667,7 +685,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     cover.addEventListener('mouseleave', () => reveal(false));
     cover.addEventListener('focusin', () => reveal(true));
     cover.addEventListener('focusout', () => reveal(false));
-    cover.onclick = avail && shelf.mountable ? act : () => openInfo(row);
+    cover.onclick = avail && playable ? act : () => openInfo(row);
     return item;
   }
 
@@ -786,9 +804,11 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     status.textContent = soft ? `✓ VERIFIED · ${shelf?.list ?? ''}` : 'UNIDENTIFIED — PLAYABLE AS IS';
     if (!soft) status.style.color = '#e8b64c';
     const buttons = el('div', 'display:flex;gap:8px;align-items:center;justify-content:center;min-height:30px');
-    const canPlay = coreSupported && (shelf?.mountable ?? false);
+    const canPlay = coreSupported && Boolean(shelf?.mountable) && (!soft || entryPlayable(soft, shelf!));
     const play = smallBtn('▶ Play', 'data-play', true, canPlay);
-    play.title = canPlay ? 'Boot the machine with this set loaded' : 'This medium does not mount yet';
+    play.title = canPlay ? 'Boot the machine with this set loaded'
+      : shelf?.mountable && soft ? `Not a format this drive reads (${shelf.extensions.map(extension => `.${extension}`).join(' ')})`
+        : 'This medium does not mount yet';
     play.addEventListener('click', ev => { ev.stopPropagation(); void boot(rec); });
     const eject = smallBtn('⏏', 'data-eject', false, true);
     eject.title = 'Remove from this browser';

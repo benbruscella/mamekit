@@ -4,6 +4,7 @@ import {
   identifySet,
   mediaSvg,
   mediumNoun,
+  entryPlayable,
   mountableImages,
   runSoftwareRoom,
   type SoftCatalog,
@@ -73,5 +74,10 @@ assert.deepEqual(images.map(image => image.name), ['180.tap', '180_a1.tap']);
 assert.deepEqual(mountableImages(set, ['g64']), [], 'a disk shelf takes no tape');
 assert.deepEqual(mountableImages(new Map([['dir/side.TAP', side1]]), ['tap']).map(i => i.name), ['side.TAP'],
   'extension match is case-insensitive and the folder is dropped');
+
+// A set is playable only through an image its shelf's transport reads: the
+// misc disk list's .img set boots with the drive empty otherwise.
+assert.equal(entryPlayable({ prg: { size: 1, roms: [{ size: 1, crc: '', offset: 0, file: 'dd001boot.img' }] } }, { extensions: ['d64'] }), false);
+assert.equal(entryPlayable({ prg: { size: 1, roms: [{ size: 1, crc: '', offset: 0, file: 'Side A.D64' }] } }, { extensions: ['d64'] }), true);
 
 console.log('software.spec: media tiles, set identification and mount order passed');

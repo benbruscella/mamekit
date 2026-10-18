@@ -162,15 +162,28 @@ function hostImageIo(source: string): string {
   return source.replace(/if\s*\(\s*io\.length\(\s*(\w+)\s*\)\s*\)\s*return\s+[^;]+;/g, '$1 = io.length();');
 }
 
-/** Compile one registered format (FLOPPY_D64_FORMAT) down to its load path. */
-export function compileFloppyFormat(mameSrc: string, name: string): FloppyFormatDefinition {
+/** Where a registered format (FLOPPY_D64_FORMAT) is defined: its class and file. */
+function floppyFormatSource(mameSrc: string, name: string): { className: string; sourceFile: string } {
   const directory = join(mameSrc, 'src/lib/formats');
-  let found: { className: string; sourceFile: string } | undefined;
   for (const file of readdirSync(directory).filter(entry => entry.endsWith('.cpp'))) {
     const match = new RegExp(`^const\\s+(\\w+)\\s+${name}\\s*;`, 'm').exec(readFileSync(join(directory, file), 'utf8'));
-    if (match) { found = { className: match[1]!, sourceFile: `src/lib/formats/${file}` }; break; }
+    if (match) return { className: match[1]!, sourceFile: `src/lib/formats/${file}` };
   }
-  if (!found) throw new Error(`MAME floppy format ${name} is not defined in src/lib/formats`);
+  throw new Error(`MAME floppy format ${name} is not defined in src/lib/formats`);
+}
+
+/** The file extensions a registered format's `extensions()` answers, lower case. */
+export function floppyFormatExtensions(mameSrc: string, name: string): string[] {
+  const found = floppyFormatSource(mameSrc, name);
+  const source = readFileSync(join(mameSrc, found.sourceFile), 'utf8');
+  const listed = new RegExp(`${found.className}::extensions\\(\\)[^{]*\\{\\s*return\\s+"([^"]*)"`).exec(source)?.[1];
+  if (!listed) throw new Error(`MAME floppy format ${name} declares no extensions`);
+  return listed.split(',').map(extension => extension.trim().toLowerCase()).filter(Boolean);
+}
+
+/** Compile one registered format (FLOPPY_D64_FORMAT) down to its load path. */
+export function compileFloppyFormat(mameSrc: string, name: string): FloppyFormatDefinition {
+  const found = floppyFormatSource(mameSrc, name);
   const format = compileMameDevice(mameSrc, {
     type: name, className: found.className, sourceFile: found.sourceFile, sourceLine: 1, sourceColumn: 1, macro: '',
   }, name, new Set(), { transformSource: (_file, source) => hostImageIo(source) });
@@ -204,10 +217,7 @@ export function compileFloppyFormat(mameSrc: string, name: string): FloppyFormat
     compiledMethods: format.methods.filter(method => !method.program.diagnostics.length).length,
     diagnostics: format.methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0),
   };
-  const source = readFileSync(join(mameSrc, found.sourceFile), 'utf8');
-  const listed = new RegExp(`${found.className}::extensions\\(\\)[^{]*\\{\\s*return\\s+"([^"]*)"`).exec(source)?.[1];
-  if (!listed) throw new Error(`MAME floppy format ${name} declares no extensions`);
-  return { name, extensions: listed.split(',').map(extension => extension.trim().toLowerCase()).filter(Boolean), definition: format };
+  return { name, extensions: floppyFormatExtensions(mameSrc, name), definition: format };
 }
 
 /** MAME's floppy_image: the track store a format fills and a drive reads. */
