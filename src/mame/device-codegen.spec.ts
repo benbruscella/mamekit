@@ -770,3 +770,44 @@ assert.equal(lineMethods.ram_bytes_r!({
   members: { m_ram: new Uint16Array(8) },
   container: (value: ArrayBufferView, method: string) => method === 'bytes' ? value.byteLength : 0,
 }), 16, 'bytes() counts bytes, not 16-bit elements');
+
+// A branch under a constant condition is not part of the program: MAME's debug
+// blocks (`if (LOG_DMA || DEBUG_MIDTUNIT_BLITTER)`, folded to `0 || 0`) may
+// call what the emitter cannot spell. And a call to a method that stays
+// interpreted only keeps its caller interpreted when the callee writes through
+// a reference -- the fallback hands it values -- so the T-Unit's dma_w, which
+// may call a debug PNG dump, compiles.
+const branchEmitted = generatedDeviceMethodsSource({
+  ...definition,
+  members: [{ name: 'm_count', valueType: 'int', bits: 32, signed: true, initial: 0 }, { name: 'm_log', valueType: 'int', bits: 32, signed: true, initial: 0 }],
+  methods: [{
+    name: 'debug_guarded',
+    parameters: 'offs_t offset, u8 data',
+    source: { file: 'src/devices/test.cpp', line: 8 },
+    program: compileMameHandler('if (0 || 0) { machine().input().code_pressed(KEYCODE_L); } m_count += data;'),
+  }, {
+    name: 'calls_value_helper',
+    parameters: 'offs_t offset, u8 data',
+    source: { file: 'src/devices/test.cpp', line: 9 },
+    program: compileMameHandler('if (m_log) dump_png(data); m_count = data;'),
+  }, {
+    name: 'dump_png',
+    parameters: 'int value',
+    source: { file: 'src/devices/test.cpp', line: 10 },
+    program: compileMameHandler('machine().input().code_pressed(value);'),
+  }, {
+    name: 'calls_reference_helper',
+    parameters: 'offs_t offset, u8 data',
+    source: { file: 'src/devices/test.cpp', line: 11 },
+    program: compileMameHandler('int out = 0; fill(out); m_count = out;'),
+  }, {
+    name: 'fill',
+    parameters: 'int &out',
+    source: { file: 'src/devices/test.cpp', line: 12 },
+    program: compileMameHandler('out = machine().input().code_pressed(1);'),
+  }],
+} as GeneratedDeviceDefinition);
+assert.ok(branchEmitted.methods.includes('debug_guarded'), 'a dead debug branch does not keep its method interpreted');
+assert.ok(branchEmitted.methods.includes('calls_value_helper'), 'an interpreted callee taking values is reached through the fallback');
+assert.match(branchEmitted.source, /runtime\.invoke\("dump_png"/);
+assert.ok(!branchEmitted.methods.includes('calls_reference_helper'), 'a callee writing through a reference keeps its caller interpreted');

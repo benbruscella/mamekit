@@ -118,6 +118,13 @@ export function generatedDeviceMethodsSource(
   definition: CodegenScope,
   typescript = false,
 ): { source: string; methods: string[]; links: string[] } {
+  definition = {
+    ...definition,
+    methods: definition.methods.map(method => ({
+      ...method,
+      program: { ...method.program, operations: withoutDeadBranches(method.program.operations) },
+    })),
+  };
   const methodCounts = new Map<string, number>();
   for (const method of definition.methods) {
     methodCounts.set(method.name, (methodCounts.get(method.name) ?? 0) + 1);
@@ -162,13 +169,28 @@ export function generatedDeviceMethodsSource(
       .filter(method => supportsMethod(method, definition, compiled))
       .map(method => method.name),
   );
+  // A call to a method that stays interpreted goes through runtime.invoke,
+  // which hands it values. That is only wrong when the callee writes through
+  // a reference parameter, or hands one back, because the write then lands in
+  // a copy -- so only such a callee keeps its callers interpreted. Any other
+  // left the caller interpreted for nothing: the T-Unit's dma_w, which starts
+  // every blit, stayed interpreted because it may call log_bitmap, a debug
+  // PNG dump behind a flag that is never set.
+  const losesWrites = (name: string): boolean => {
+    const target = definition.methods.find(candidate => candidate.name === name);
+    if (!target) return true;
+    const parameters = tryParseParameters(target.parameters);
+    if (!parameters) return true;
+    return Boolean(singleReturnedReference(target)) || parameters.some(parameter =>
+      isMutableReference(parameter.valueType) && assignsIdentifier(target.program.operations, parameter.name));
+  };
   let changed = true;
   while (changed) {
     changed = false;
     for (const method of selected) {
       if (!supportedNames.has(method.name)) continue;
       const hasUnsupportedDependency = [...calledIdentifiers(method.program.operations)]
-        .some(name => compiled.has(name) && !supportedNames.has(name));
+        .some(name => compiled.has(name) && !supportedNames.has(name) && losesWrites(name));
       if (hasUnsupportedDependency) {
         supportedNames.delete(method.name);
         changed = true;
@@ -205,6 +227,85 @@ ${functions}
   };
 })()`;
   return { source, methods: [...supportedNames], links: [...links].sort() };
+}
+
+/**
+ * The program as it can run: a branch whose condition is a constant is the
+ * only branch. MAME guards its debug blocks with preprocessor flags the IR
+ * already folds to numbers -- the T-Unit's dma_w tests `LOG_DMA ||
+ * DEBUG_MIDTUNIT_BLITTER`, `0 || 0`, before asking `machine().input()` for a
+ * debug key -- and a call this emitter cannot spell inside such a branch kept
+ * the whole method, the one that starts every blit, interpreted. The taken
+ * branch stays a block of its own so its locals keep their C++ scope. The
+ * interpreter keeps the original program; it never enters the dead branch.
+ */
+function withoutDeadBranches(operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
+  let changed = false;
+  const pruned = operations.flatMap(operation => {
+    let next = operation;
+    if (operation.op === 'if') {
+      const decided = constantCondition(operation.condition);
+      if (decided !== undefined) {
+        changed = true;
+        const taken = decided ? operation.then : operation.else;
+        return taken?.length
+          ? [{ op: 'if' as const, condition: { kind: 'number' as const, value: 1 }, then: withoutDeadBranches(taken) }]
+          : [];
+      }
+    }
+    // Every nested body, whatever the operation calls it (then/else, a loop's
+    // body, a switch's cases).
+    const copy: Record<string, unknown> = { ...operation };
+    for (const [key, value] of Object.entries(operation)) {
+      if (Array.isArray(value) && value.length && value.every(item => item && typeof item === 'object' && 'op' in item)) {
+        const inner = withoutDeadBranches(value as GeneratedHandlerOperation[]);
+        if (inner !== value) { copy[key] = inner; changed = true; }
+      } else if (Array.isArray(value) && value.some(item => item && typeof item === 'object' && Array.isArray((item as { body?: unknown }).body))) {
+        copy[key] = value.map(item => {
+          const body = (item as { body?: unknown }).body;
+          if (!Array.isArray(body)) return item;
+          const inner = withoutDeadBranches(body as GeneratedHandlerOperation[]);
+          if (inner === body) return item;
+          changed = true;
+          return { ...(item as object), body: inner };
+        });
+      }
+    }
+    next = copy as GeneratedHandlerOperation;
+    return [next];
+  });
+  return changed ? pruned : operations;
+}
+
+/** A condition made only of literals, folded as C++ does; undefined otherwise. */
+function constantCondition(expression: GeneratedExpression): number | undefined {
+  if (expression.kind === 'number') return expression.value;
+  if (expression.kind === 'unary') {
+    const value = constantCondition(expression.operand);
+    if (value === undefined) return undefined;
+    return expression.operator === '!' ? (value ? 0 : 1)
+      : expression.operator === '-' ? -value
+        : expression.operator === '~' ? ~value : undefined;
+  }
+  if (expression.kind === 'binary') {
+    const left = constantCondition(expression.left);
+    const right = constantCondition(expression.right);
+    if (left === undefined || right === undefined) return undefined;
+    switch (expression.operator) {
+      case '||': return left || right ? 1 : 0;
+      case '&&': return left && right ? 1 : 0;
+      case '==': return left === right ? 1 : 0;
+      case '!=': return left !== right ? 1 : 0;
+      case '<': return left < right ? 1 : 0;
+      case '<=': return left <= right ? 1 : 0;
+      case '>': return left > right ? 1 : 0;
+      case '>=': return left >= right ? 1 : 0;
+      case '|': return left | right;
+      case '&': return left & right;
+      default: return undefined;
+    }
+  }
+  return undefined;
 }
 
 function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
