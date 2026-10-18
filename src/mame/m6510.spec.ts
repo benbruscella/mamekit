@@ -54,6 +54,24 @@ for (const implementation of [definition, emitted.default]) {
   cpu.invoke('memory_write', 0, 0);
   assert.equal(cpu.invoke('memory_read', 1), 0x17);
 
+  // SYNC is MAME's `if (!m_sync_w.isunset()) m_sync_w(...)`: a bus that names
+  // its connected lines without sync_cb sees no SYNC edges; one that names it
+  // sees both, around the opcode read.
+  for (const bound of [['read_callback', 'write_callback'], ['read_callback', 'write_callback', 'sync_cb']]) {
+    const edges: [string, number][] = [];
+    const synced = createCpu('M6510', {
+      read: address => memory[address]!,
+      write: () => {}, in: () => 0, out: () => {},
+      signal: (name, value) => { edges.push([name, value]); return 0; },
+      boundSignals: new Set(bound),
+    });
+    memory.set([0xea], 0x8000);
+    synced.set('m_PC', 0x8000);
+    synced.step();
+    assert.deepEqual(edges.filter(([name]) => name === 'sync_cb'),
+      bound.includes('sync_cb') ? [['sync_cb', 1], ['sync_cb', 0]] : []);
+  }
+
   // Exercise the actual opcode path, including direction-register addressing.
   memory.set([0xa9, 0x2f, 0x85, 0x00, 0xa9, 0x37, 0x85, 0x01, 0xa5, 0x00], 0x8000);
   cpu.set('m_PC', 0x8000);

@@ -45,6 +45,36 @@ export interface ShelfDevice {
   tag: string;
   /** the option a slot device selects by default ("c1530", "c1541") */
   slotDefault?: string;
+  /** the address a bus slot is configured at: 8 for the C64's `iec8` */
+  slotAddress?: number;
+}
+
+type ShelfBoot = NonNullable<SoftwareShelf['boot']>;
+
+/**
+ * How a title starts, by the slot device its transport sits in. Host policy,
+ * as the key map is (input-bindings.ts): MAME starts nothing itself -- its
+ * `-autoboot_command` is the user's to give -- and these are the commands the
+ * Commodore firmware behind these two slots answers to. A tape is LOAD and
+ * RUN typed while the KERNAL waits at PRESS PLAY ON TAPE, which still scans
+ * the keyboard, so RUN waits in its buffer until the program has loaded (what
+ * SHIFT+RUN/STOP does); then PLAY. A disk is the same, addressed to the
+ * drive's unit, which is the slot's own address.
+ */
+const BOOT_POLICY: Record<string, (slot: ShelfDevice) => ShelfBoot | undefined> = {
+  PET_DATASSETTE_PORT: () => ({ delay: 3, command: 'LOAD{ENTER}RUN{ENTER}', play: true }),
+  CBM_IEC_SLOT: slot => slot.slotAddress === undefined ? undefined
+    : { delay: 3, command: `LOAD"*",${slot.slotAddress},1{ENTER}RUN{ENTER}` },
+};
+
+/** The boot a shelf's slots agree on, when the policy knows one. */
+function shelfBoot(slots: readonly string[], devices: readonly ShelfDevice[]): ShelfBoot | undefined {
+  const boots = slots.map(tag => {
+    const slot = devices.find(device => device.tag === tag);
+    return slot ? BOOT_POLICY[slot.type]?.(slot) : undefined;
+  });
+  return boots.length && boots.every(boot => boot && JSON.stringify(boot) === JSON.stringify(boots[0]))
+    ? boots[0] : undefined;
 }
 
 /**
@@ -202,6 +232,7 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
     const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)) &&
       (!readable || extensions.length > 0);
     const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
+    const boot = shelfBoot(slots, options.devices);
     shelves.push({
       list: list.name,
       description: catalog.description,
@@ -213,6 +244,7 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       entries: catalog.entries.length,
       mountable,
       ...(slots.length ? { slots } : {}),
+      ...(boot ? { boot } : {}),
     });
     log(`software "${list.name}": ${catalog.entries.length} ${kind} sets catalogued` +
       (available.length ? `, ${available.length} dumps available` : '') +

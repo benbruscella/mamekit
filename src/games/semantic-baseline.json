@@ -101,7 +101,7 @@
       "palette": "none"
     },
     "c64": {
-      "sha256": "6b3b018cca02efc8ea02cc3872ebacddc7f6c9ea323ec0c8ef24cc124db4560e",
+      "sha256": "0be276ca1638024d6980cfdc6ab75b02c0e38550396b914cefe1ae8d9bff6d87",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -110,7 +110,7 @@
       "palette": "none"
     },
     "c64p": {
-      "sha256": "4f9cff726b2bb02d3e6ca5f0d4642f91360e87bea8ba7c0d1603897149f71959",
+      "sha256": "f34ff71e89e092d63ce793f6b442b6da731e11fdeeee479b52dfee63d0e343f2",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -236,7 +236,7 @@
       "palette": "none"
     },
     "ffight": {
-      "sha256": "9d4622d2ba24c8ba66ea01618f79523dc31a52ceb56e8c33c15c17236e5012d4",
+      "sha256": "498f67aa101df5020479178b7793a301ce653c911901214c45763bc23d1be0b8",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -308,7 +308,7 @@
       "palette": "prom:proms"
     },
     "ghouls": {
-      "sha256": "ebb545476a20a1b298a0e2bb1948424e1fc2d3cb23f00b24ac84237ed19d8011",
+      "sha256": "da942f265c1a6b77e8f9937adadb82eb7732604168188a668aae55d5092de258",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -650,7 +650,7 @@
       "palette": "prom:proms"
     },
     "sf2": {
-      "sha256": "0eb7d0b557cf051311653ea92f435887af6f84ccfca4bfeaf713f9d0350360a6",
+      "sha256": "dfdaeb513db4131675eadb27ade664b1cd2f1dd122a751a8ed14c43a73d93661",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -659,7 +659,7 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "sf2ce": {
-      "sha256": "089b74d4f3e13c0d6959888021d82c75d4b41762c97c0d98d4a43ace543403f1",
+      "sha256": "f5ae9749a4e14fe675f7708a2d8298949b5cd78869449ce7c6601c24a1e28f9c",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -713,7 +713,7 @@
       "palette": "prom:proms"
     },
     "tmnt": {
-      "sha256": "517f7260a4db873d89816d389b337ede1442dc154f43906bf4ccc551eab495e8",
+      "sha256": "3d6d72a9b806acb14a5a786db168b9722935cab0a455006a19b45831e9a668f6",
       "callbacks": 5,
       "frameEvents": 2,
       "devices": 13,

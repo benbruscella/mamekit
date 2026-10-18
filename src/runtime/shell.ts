@@ -7,6 +7,7 @@ import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
+import { NaturalKeyboard } from './natural-keyboard.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState } from './types.ts';
@@ -374,6 +375,14 @@ export interface ShellConfig {
    */
   usage?: string;
   /**
+   * MAME's natural keyboard, for a machine whose keys declare `PORT_CHAR`s:
+   * the characters it types another way (MAME's `charinfo`, kept to what
+   * this machine's keys reach). See natural-keyboard.ts.
+   */
+  naturalKeyboard?: { alternates: Record<string, string> };
+  /** Start the title the software room booted: its shelf's `boot`. */
+  boot?: NonNullable<SoftwareShelf['boot']>;
+  /**
    * The machine is exposed as a beta: compiled and playable, but without
    * gameplay acceptance yet. Set by the room from the manifest's preview flag
    * so the page says so wherever the machine is named.
@@ -421,6 +430,19 @@ export interface SoftwareShelf {
    * boots with these slots empty, as MAME's `-iec8 ""` leaves them.
    */
   slots?: string[];
+  /**
+   * How a title from this shelf starts once its medium is mounted: the
+   * command typed through MAME's natural keyboard after the machine has come
+   * up, and whether PLAY is pressed on the tape once it is typed. Generated
+   * host policy (software-shelves.ts BOOT_POLICY).
+   */
+  boot?: {
+    /** seconds of emulated time before typing */
+    delay: number;
+    /** MAME's coded form: `LOAD{ENTER}RUN{ENTER}` */
+    command: string;
+    play?: boolean;
+  };
 }
 
 export interface SoftwareShelves {
@@ -915,6 +937,12 @@ export async function runShell(
   const pointer = new PointerInput(input, cfg.bindings);
   pointer.debug = input.debug;
   pointer.attach(ui.canvas);
+  // MAME's natural keyboard: text typed through the machine's own keys, as
+  // their PORT_CHARs say -- a paste, or a title's start command. Absent on a
+  // machine whose keys type nothing.
+  const typing = cfg.bindings.some(binding => binding.chars?.length)
+    ? new NaturalKeyboard(input, cfg.bindings, cfg.naturalKeyboard?.alternates)
+    : undefined;
   // The legend is first drawn before either source exists; redraw it now
   // that both do, and again whenever a pad or the pointer capture changes.
   ui.controls(controlsHelp(cfg, pads, pointer));
@@ -1012,10 +1040,14 @@ export async function runShell(
   // The software room's chosen tape rides in on `mounted`; the first transport
   // that accepts its extension takes it, the rest start empty.
   let pending = mounted;
+  // The deck that took the title's tape, for a boot that ends by pressing PLAY.
+  let bootTape: CassetteMedia | undefined;
   for (const media of board.media?.() ?? []) {
     const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
+    if (mine.length) bootTape ??= media;
+    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
+      mine.length && typing ? cfg.boot?.command : undefined));
   }
   detached('cassette');
   // Disk drives the same way: the chosen disk set's images go to the first
@@ -1023,7 +1055,8 @@ export async function runShell(
   for (const disk of board.disks?.() ?? []) {
     const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
     if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
+    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
+      mine.length && typing ? cfg.boot?.command : undefined));
   }
   detached('floppy');
 
@@ -1031,12 +1064,38 @@ export async function runShell(
   const image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
 
+  // One-click play (issue #161): a title the room booted starts itself with
+  // its shelf's command. The machine is given `delay` seconds of emulated time
+  // to come up, the command is typed through the natural keyboard, and once
+  // it is typed the tape that took the title is set playing; warp while
+  // loading carries the load from there. Every step is counted in frames the
+  // machine ran, so a fast-forward or a stall changes none of it.
+  let boot = cfg.boot && typing
+    ? { command: cfg.boot.command, play: Boolean(cfg.boot.play), wait: Math.round(cfg.boot.delay * cfg.board.screen.refresh), typed: false }
+    : undefined;
+  const advanceBoot = (): void => {
+    if (!boot) return;
+    if (boot.wait > 0) { boot.wait--; return; }
+    if (!boot.typed) {
+      typing!.postCoded(boot.command);
+      boot.typed = true;
+      console.info(`[boot] typing ${JSON.stringify(boot.command)}`);
+      return;
+    }
+    if (typing!.busy()) return;
+    if (boot.play && bootTape && !bootTape.playing()) bootTape.play();
+    boot = undefined;
+  };
+
   // One emulated frame, exactly as the run loop advances it. Browser QA drives
   // this directly so a test can run a precise frame count instead of racing the
   // wall clock; nothing about the machine lives here.
   // Declared before the frame helpers that read it: `step()` is exposed on
   // window.mamekit and can run a frame before the run loop is set up.
   let fastForward = false;
+  // Fast-forward the machine chose for itself while a transport loads (see
+  // warp while loading, below); either one runs the machine unthrottled.
+  let warping = false;
 
   // The board says how far through a frame it is, so a dial's frame of
   // travel is handed out gradually, as MAME does, instead of in one lump.
@@ -1111,8 +1170,12 @@ export async function runShell(
     // identical.
     pointer.advance();
     if (!netplay.begin()) return false;
+    // Typed keys are paced in emulated time, so the source only moves on a
+    // frame that runs; what it presses lands in the next one.
+    typing?.tick(1 / cfg.board.screen.refresh);
     input.advance(netplay.take());
     board.frame(fb);
+    advanceBoot();
     memory.tick();
     if (!hiscoreRestoreAnnounced && memory.hiscoreArmed()) {
       hiscoreRestoreAnnounced = true;
@@ -1120,7 +1183,7 @@ export async function runShell(
     }
     // Fast-forward outruns the worklet, and a queued frame is permanent
     // latency rather than a dropped one, so its audio is discarded instead.
-    if (fastForward) audio.discard();
+    if (fastForward || warping) audio.discard();
     else audio.flush(); // one batch message per emulated frame
     netplay.end(() => machineFingerprint(board));
     frames++;
@@ -1224,7 +1287,23 @@ export async function runShell(
   const masterVolume = cfg.sound.masterGain ?? 1;
   const setFastForward = (on: boolean): void => {
     fastForward = on;
-    audio.setVolume(on ? 0 : masterVolume);
+    audio.setVolume(fastForward || warping ? 0 : masterVolume);
+  };
+  // Warp while loading (issue #161): fast-forward on its own while a
+  // transport is moving -- a tape the machine's motor is pulling, a disk
+  // spinning -- and back to real time the moment it stops. It reads only the
+  // board's generic transports, so a machine with any gets it.
+  const tapes = board.media?.() ?? [];
+  const disks = board.disks?.() ?? [];
+  const warpKey = `mamekit:warp-while-loading:${cfg.game}`;
+  let warpWhileLoading = tapes.length + disks.length > 0;
+  try { if (localStorage.getItem(warpKey) === '0') warpWhileLoading = false; } catch { /* no storage: on */ }
+  const updateWarp = (): void => {
+    const loading = tapes.some(tape => tape.playing() && tape.motorOn()) || disks.some(disk => disk.spinning());
+    const next = warpWhileLoading && loading;
+    if (next === warping) return;
+    warping = next;
+    audio.setVolume(fastForward || warping ? 0 : masterVolume);
   };
   if (cfg.kind === 'computer') {
     // A computer keeps every key on its keyboard, so Reset and Fast-forward
@@ -1237,7 +1316,7 @@ export async function runShell(
     group.setAttribute('aria-label', 'Computer');
     group.style.cssText = 'display:inline-flex;align-items:center;gap:7px';
     const reset = titleButton('Reset', 'Reset the computer', 'Reset the computer, as its reset line does', 'normal', 'power');
-    reset.onclick = () => { input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
+    reset.onclick = () => { boot = undefined; typing?.cancel(); input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
     const fast = titleButton('Fast-forward', 'Fast-forward',
       'Run as fast as the machine will go, muted, until pressed again', 'normal', 'fastForward');
     fast.dataset.fastForward = '';
@@ -1250,6 +1329,39 @@ export async function runShell(
       fast.blur();
     };
     group.append(reset, fast);
+    if (tapes.length + disks.length) {
+      const warp = titleButton('Warp loading', 'Warp while loading',
+        'Fast-forward on its own while a tape or disk is loading, and back to real time when it stops', 'normal', 'fastForward');
+      warp.dataset.warpWhileLoading = '';
+      const paint = (): void => {
+        warp.setAttribute('aria-pressed', String(warpWhileLoading));
+        paintTitleButton(warp, warpWhileLoading);
+      };
+      paint();
+      warp.onclick = () => {
+        warpWhileLoading = !warpWhileLoading;
+        try { localStorage.setItem(warpKey, warpWhileLoading ? '1' : '0'); } catch { /* not kept */ }
+        updateWarp();
+        paint();
+        warp.blur();
+      };
+      group.append(warp);
+    }
+    if (typing) {
+      // The clipboard typed through the machine's own keys, as MAME's
+      // natural keyboard pastes: at the keyboard's pace, in emulated time.
+      const paste = titleButton('Paste', 'Paste text into the computer',
+        'Type the clipboard\'s text on the computer\'s keyboard', 'normal', 'paste');
+      paste.dataset.paste = '';
+      paste.onclick = async () => {
+        paste.blur();
+        let text: string | undefined;
+        try { text = await navigator.clipboard?.readText(); } catch { /* refused */ }
+        if (text === undefined) { ui.toast('The browser would not share its clipboard'); return; }
+        typing.post(text);
+      };
+      group.append(paste);
+    }
     ui.addTitleControls(group);
   }
   // --- save states (issue #129) ---------------------------------------------
@@ -1303,15 +1415,36 @@ export async function runShell(
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
-  // How long the display gives each tick, smoothed: fast-forward fills it.
-  let displayMs = 1000 / 60;
+  // Fast-forward runs frames back to back, not only inside the display's tick.
+  // A tick fits a whole number of frames: at ~7 ms a C64 frame, a 60 Hz
+  // display's 16.7 ms took two -- 120 fps -- and left the rest of it idle,
+  // after an earlier fixed 10 ms batch had run that machine slower forwarded
+  // than not (issue #157). Each frame is a task of its own from a message
+  // channel (a timer would be clamped to 4 ms), so input, the display and the
+  // page get the thread between any two, and the tick presents. A hidden page
+  // runs nothing, as the display's own ticks stop there.
+  const pumpChannel = new MessageChannel();
+  let pumpQueued = false;
+  const queuePump = (): void => {
+    if (pumpQueued) return;
+    pumpQueued = true;
+    pumpChannel.port2.postMessage(0);
+  };
+  pumpChannel.port1.onmessage = () => {
+    pumpQueued = false;
+    if (!(fastForward || warping) || paused || qaDrive || document.hidden) return;
+    if (!runFrame()) return; // in a room, only as far as the other player
+    queuePump();
+  };
+
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
     }
-    // A stalled tick says nothing about the display's rate, so it is left out.
-    if (now - last > 2 && now - last < 50) displayMs += (now - last - displayMs) * 0.1;
     pads.poll();
+    // Whether a transport is loading, read once a tick: it decides the pace
+    // of the frames this tick runs.
+    updateWarp();
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
@@ -1326,20 +1459,9 @@ export async function runShell(
     if (paused) {
       // Nothing runs, but the panel keeps reporting: the readout below says
       // so rather than leaving a still picture to be read as a crash.
-    } else if (fastForward && !qaDrive) {
-      // As many frames as fit the display's tick, presented once. It used to
-      // be a fixed 10 ms, which on a 60 Hz display left a third of every tick
-      // idle -- and a machine whose frame takes longer than that (a C64 is
-      // ~15 ms) ran one frame a tick, slower fast-forwarded than not
-      // (issue #157). The tick is measured, and a few milliseconds are left
-      // over for the page itself so F, Esc and the panel still answer. The
-      // cap stops a fast machine running away.
-      const until = now + Math.max(6, Math.min(displayMs, 40) - 3);
-      let batch = 0;
-      do {
-        if (!runFrame()) break; // in a room, only as far as the other player
-        batch++;
-      } while (performance.now() < until && batch < 120);
+    } else if ((fastForward || warping) && !qaDrive) {
+      // The frames run in the pump below; the tick only presents the latest.
+      queuePump();
       ui.blit(image);
       acc = 0; // the timestep's backlog means nothing at this speed
     } else if (!qaDrive) {
@@ -1358,6 +1480,7 @@ export async function runShell(
       // page spent two of its lines saying the same thing twice.
       const rate = paused ? ['⏸ paused'] : [`${frames} fps`];
       if (fastForward && !paused) rate[0] = `▶▶ ${rate[0]}${cfg.kind === 'computer' ? '' : ' (F)'}`;
+      else if (warping && !paused) rate[0] = `▶▶ ${rate[0]} · loading`;
       const room = netplay.status();
       if (room) rate.push(room);
       const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
@@ -2913,6 +3036,8 @@ function diskBay(
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
   speed: () => string = () => '',
   usage?: string,
+  /** the command the title starts itself with (ShellConfig.boot), when it does */
+  starting?: string,
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -3058,7 +3183,10 @@ function diskBay(
     // file on the disk, which on Jingle Disk is a utility, not the program.
     if (usage) console.info(`[disk ${media.tag}] MAME's usage note: ${usage}`);
     setTimeout(() => {
-      if (media.loaded()) say(usage ? `${side.value} in the drive. MAME's note: ${usage}` : `${side.value} in the drive: type LOAD"*",8,1 and press Enter`);
+      if (media.loaded()) {
+        say(starting ? `${side.value} in the drive: starting it with ${typedCommand(starting)}${usage ? `. MAME's note: ${usage}` : ''}`
+          : usage ? `${side.value} in the drive. MAME's note: ${usage}` : `${side.value} in the drive: type LOAD"*",8,1 and press Enter`);
+      }
     }, 600);
   }
   paint();
@@ -3142,11 +3270,18 @@ export interface PanelBay {
  * What it has to say goes to the screen's toast rather than a third line
  * of prose under the keys.
  */
+/** A coded boot command as words: `LOAD{ENTER}RUN{ENTER}` reads "LOAD ⏎ RUN ⏎". */
+function typedCommand(command: string): string {
+  return command.replace(/\{ENTER\}/gi, ' ⏎ ').replace(/\s+/g, ' ').trim();
+}
+
 function cassetteBay(
   media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
   speed: () => string = () => '',
   usage?: string,
+  /** the command the title starts itself with (ShellConfig.boot), when it does */
+  starting?: string,
 ): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
@@ -3297,7 +3432,10 @@ function cassetteBay(
     mount(false);
     if (usage) console.info(`[tape ${media.tag}] MAME's usage note: ${usage}`);
     setTimeout(() => {
-      if (hasTape) say(usage ? `${side.value} mounted. MAME's note: ${usage}` : `${side.value} mounted: type LOAD, press Enter, then Play`);
+      if (hasTape) {
+        say(starting ? `${side.value} mounted: starting it with ${typedCommand(starting)}, then Play${usage ? `. MAME's note: ${usage}` : ''}`
+          : usage ? `${side.value} mounted. MAME's note: ${usage}` : `${side.value} mounted: type LOAD, press Enter, then Play`);
+      }
     }, 600);
   }
   paint();

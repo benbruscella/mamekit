@@ -656,13 +656,25 @@ function preparedHandlerRuntime(
   for (const name in prepared.referenceCalls) {
     calls[name] = prepared.referenceCalls[name]!;
   }
-  return prepared.runtime = runtime = {
-    get members() { return bindings.members ??= {}; },
+  // Every emitted board handler reads `runtime.members`, `runtime.links` and
+  // `runtime.readIndex` on each call, so this object must stay in V8's fast
+  // mode. An object literal carrying an accessor is built as a dictionary
+  // (every one of those reads was a hash probe -- a third of a C64 bus read),
+  // so the fields are plain data, the links slots exist from the start rather
+  // than being added later, and the one accessor is defined afterwards.
+  const fields = {
+    members: bindings.members ??= {},
     calls,
-    get palette() { return []; },
-    readIndex: (value, index) => isGeneratedPointer(value)
-      ? pointerValue(value, index)
-      : indexValue(value, index),
+    links: undefined as GeneratedHandlerRuntime['links'],
+    linksGeneration: undefined as number | undefined,
+    // Memory a handler indexes is almost always a typed array (RAM, a ROM
+    // region, a share); answer it before the pointer and reference probes,
+    // which on a typed array are two prototype-chain misses per access.
+    readIndex: (value: unknown, index: number) => ArrayBuffer.isView(value)
+      ? (value as Uint8Array)[index] ?? 0
+      : isGeneratedPointer(value)
+        ? pointerValue(value, index)
+        : indexValue(value, index),
     writeIndex: (value, index, next) => {
       if (isGeneratedPointer(value)) setPointerValue(value, index, next);
       else if (ArrayBuffer.isView(value)) (value as Uint8Array)[index] = toNumber(next);
@@ -750,7 +762,23 @@ function preparedHandlerRuntime(
         : 0;
     },
     overrides: bindings.referenceCalls ?? {},
-  };
+    memberCall: (object, property, direct, bare) => (...args) => {
+      if (object == null) return bare?.(...args) ?? 0;
+      const target = (direct ? object : dereferenceGeneratedValue(object)) as Record<string, unknown>;
+      const value = target[property] as ((...values: unknown[]) => unknown) | number | boolean | undefined;
+      if (args.length) return (value == null ? undefined : (value as (...values: unknown[]) => unknown).apply(target, args)) ?? 0;
+      if (typeof value === 'function') return value.call(target);
+      if (typeof value === 'number' || typeof value === 'boolean') return value;
+      return generatedContainerAccessor(object, property);
+    },
+  } satisfies Omit<GeneratedHandlerRuntime, 'palette'> & { linksGeneration?: number };
+  // A board handler has no palette of its own: every read is a fresh scratch
+  // array, as it always was.
+  prepared.runtime = runtime = Object.defineProperty(fields, 'palette', {
+    get: () => [],
+    enumerable: true,
+  }) as typeof fields & Pick<GeneratedHandlerRuntime, 'palette'>;
+  return runtime;
 }
 
 /**
@@ -993,6 +1021,83 @@ export function prepareGeneratedMachineCall(
       }
     }
     return call(...args);
+  };
+}
+
+/**
+ * prepareGeneratedMachineCall for a bus read, `(offset)`, which runs on every
+ * access the processor makes: the emitted method is called directly, with no
+ * rest-argument wrapper and no bound-function trampoline in between. A handler
+ * with no emitted body takes the general path.
+ *
+ * Resolved on first use, since board construction installs services after bus
+ * handlers, and the runtime is re-resolved whenever a host binding changes, so
+ * its links table never outlives the bindings it was built from.
+ */
+export function prepareGeneratedMachineRead(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): (offset: number) => unknown {
+  let compiled: GeneratedCompiledHandler | undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  let general: ((...args: unknown[]) => unknown) | undefined;
+  return offset => {
+    if (runtime !== undefined && runtime.linksGeneration === callLinksGeneration) {
+      return compiled!(runtime, offset);
+    }
+    if (general) return general(offset);
+    compiled ??= machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+    if (!compiled) return (general = prepareGeneratedMachineCall(machine, handler, bindings))(offset);
+    runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    return compiled(runtime, offset);
+  };
+}
+
+/**
+ * The write counterpart of prepareGeneratedMachineRead, for an emitted handler
+ * taking exactly `(offset, data)`: the bus calls it on every store, and the
+ * general path built a named argument record per write to read it back by
+ * name. Undefined when the handler has no emitted body.
+ */
+export function prepareGeneratedMachineWrite(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): ((offset: number, data: number) => void) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  return (offset, data) => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    compiled(runtime, offset, data);
+  };
+}
+
+/**
+ * The compiled dispatch with its arguments already in declaration order, for a
+ * host that knows each one's value: the board's signal handlers, which
+ * otherwise built a named record per delivery only for the dispatch to read it
+ * back by name. The 1541's gate array raises BYTE READY six thousand times a
+ * frame. Undefined when the handler has no emitted body; the runtime is kept
+ * current as for prepareGeneratedMachineRead.
+ */
+export function prepareGeneratedMachinePositional(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): ((values: readonly unknown[]) => number | undefined) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  // As buildGeneratedMachineDispatch: an absent argument is 0, and a C++
+  // reference arrives as its referent.
+  const argument = (value: unknown): unknown =>
+    value === undefined ? 0 : isLValue(value) ? value.get() : value;
+  return values => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    const value = values.length === 0 ? compiled(runtime)
+      : values.length === 1 ? compiled(runtime, argument(values[0]))
+        : compiled(runtime, ...values.map(argument));
+    return value === undefined ? undefined : toNumber(value);
   };
 }
 

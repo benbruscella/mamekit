@@ -32,6 +32,12 @@ export interface CpuBus {
   acknowledge?(level: number): number;
   signal?(name: string, state: number): number | void;
   /**
+   * The core's own devcb lines the machine configuration connected, so
+   * `isunset()` answers for the line itself: MAME's 6502 skips its SYNC
+   * output twice an instruction when nothing listens.
+   */
+  boundSignals?: ReadonlySet<string>;
+  /**
    * A machine-configured delegate called with its arguments intact: objects
    * such as a screen, bitmap or display_params, not one line state.
    */
@@ -478,8 +484,13 @@ class IrCpu implements Cpu {
     return {
       ...Object.fromEntries(Object.entries(this.definition.callbacks ?? {}).map(([member, signal]) =>
         [member, (state = 0) => Number(this.bus.signal?.(signal, state) ?? 0)])),
-      ...Object.fromEntries(Object.keys(this.definition.callbacks ?? {}).map(member =>
-        [`${member}.isunset`, () => (this.bus.signal ? 0 : 1)])),
+      // As the emitter answers it (cpu-codegen): the lines the bus says the
+      // machine connected, or, from a bus that does not say, whether it routes
+      // signals at all.
+      ...Object.fromEntries(Object.entries(this.definition.callbacks ?? {}).map(([member, signal]) =>
+        [`${member}.isunset`, () => (this.bus.boundSignals
+          ? (this.bus.boundSignals.has(signal) ? 0 : 1)
+          : (this.bus.signal ? 0 : 1))])),
       READ: address => {
         if (this.definition.dialect !== 'mame-musashi-generated-handler-table') {
           this.set('cycles', this.get('cycles') + 1);

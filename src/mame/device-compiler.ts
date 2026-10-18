@@ -1607,7 +1607,7 @@ export function memberDeclarations(
     for (const declarator of match[2]!.split(',').map(value => value.trim())) {
       const parsed = /^([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
       const name = parsed[1]!;
-      const arrayLength = parsed[2] === undefined ? undefined : Number(parsed[2]);
+      const arrayLength = parsed[2] === undefined ? undefined : arrayBound(parsed[2]);
       if (!members.some(member => member.name === name)) {
         members.push({ valueType, name,
           ...(arrayLength !== undefined && Number.isInteger(arrayLength) ? { arrayLength } : {}) });
@@ -1667,7 +1667,7 @@ export function memberDeclarations(
       // MBC's ROM windows lost the bank behind them.
       const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1];
       const arrayLength = bound
-        ? Number(bound.trim())
+        ? arrayBound(bound)
         : templateCount ? Number(templateCount) : undefined;
       // `uint8_t m_wave_ram[2][0x10];` -- a C array member may have more than
       // one bound, and only the outermost is the declarator the runtime
@@ -1686,6 +1686,16 @@ export function memberDeclarations(
     }
   }
   return members;
+}
+
+/**
+ * A declarator's array bound, which MAME often writes as arithmetic: the
+ * VIC-II's `m_border_color_sample[0x400 / 8]`. Read with `Number()` it was
+ * NaN, so the member had no length and every store into it went through the
+ * emitter's name-addressed slow path on each of the chip's cycles.
+ */
+function arrayBound(bound: string): number {
+  return Number(evalExpr(bound.trim(), {}) ?? Number.NaN);
 }
 
 function maskNestedClasses(source: string): string {

@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
   MameAstIndex, parseCallChain, parseMameAst, parseMameSource, spanProps, splitMameArgs,
-  type MameFunction, type SourceSpan,
+  type MameClass, type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
@@ -964,6 +964,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       if (dev.screenVideoAttributes?.length) props.screenVideoAttributes = dev.screenVideoAttributes;
       if (dev.slotOptions) props.slotOptions = dev.slotOptions;
       if (dev.slotDefault) props.slotDefault = dev.slotDefault;
+      if (dev.slotAddress !== undefined) props.slotAddress = dev.slotAddress;
       g.node('Device', devId, props);
       g.edge(cfgId, devId, 'HAS_DEVICE');
       for (const [index, route] of (dev.audioRoutes ?? []).entries()) {
@@ -1104,6 +1105,21 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       handlers.push(`${fn.className}.${name}`);
     }
     if (handlers.length) device.props.interfaceHandlers = handlers;
+    // The data members the card's classes declare. Some are set by a device
+    // the card plugs into rather than by the card's own handlers -- the IEC
+    // bus's add_device writes `m_bus` and `m_slot` into every drive -- so the
+    // board's compiler cannot discover them from the handlers, and without
+    // them the 1541's serial-port handlers stayed interpreted.
+    const card = [...processorCards.values()].find(candidate => candidate.cls === cls);
+    const members = [...new Set([
+      ...declarations,
+      ...(card ? includedBaseDeclarations(mameSrc, card.files, declarations) : []),
+    ].flatMap(declaration =>
+      memberDeclarations(declaration)
+        .filter(member => !/\bconst\b/.test(member.valueType) &&
+          !/^(?:enum|struct|union|class)$/.test(member.name))
+        .map(member => member.name)))].sort();
+    if (members.length) device.props.cardMembers = members;
     const reset = ast.findFunctionInHierarchy(cls, 'device_reset');
     if (reset) {
       g.edge(devId, emitSourceHandlerClosure(g, ast, reset.className, 'device_reset', consts, reset.span), 'CALLS_HANDLER');
@@ -1777,6 +1793,42 @@ function driverStateMembers(
  * Only classes the parsed sources actually declare are listed; MAME's own
  * device_t roots are not part of any generated handler set.
  */
+/**
+ * Base classes of a card's hierarchy that its own units do not declare: the
+ * bus interface a drive implements is declared with the bus
+ * (`device_cbm_iec_interface` in cbmiec.h), and the parallel cable's with the
+ * cable. Read from the headers the card's units include, beside the unit or
+ * under src/devices, one level deep.
+ */
+function includedBaseDeclarations(
+  mameSrc: string,
+  files: readonly string[],
+  declarations: readonly MameClass[],
+): MameClass[] {
+  const known = new Set(declarations.map(declaration => declaration.name));
+  const wanted = new Set(declarations
+    .flatMap(declaration => declaration.bases.map(base => base.split('::').at(-1)!))
+    .filter(name => !known.has(name)));
+  const found: MameClass[] = [];
+  if (!wanted.size) return found;
+  for (const file of files) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    for (const include of parseIncludes(readFileSync(path, 'utf8'))) {
+      const header = [join(dirname(path), include), join(mameSrc, 'src/devices', include)]
+        .find(candidate => existsSync(candidate));
+      if (!header) continue;
+      const unit = parseMameSource(header.slice(mameSrc.length + 1), stripComments(readFileSync(header, 'utf8')));
+      for (const declaration of unit.classes) {
+        if (wanted.has(declaration.name) && !found.some(entry => entry.name === declaration.name)) {
+          found.push(declaration);
+        }
+      }
+    }
+  }
+  return found;
+}
+
 function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {
   const classes = new Map(
     ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),

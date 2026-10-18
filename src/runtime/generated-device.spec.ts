@@ -341,6 +341,32 @@ const bitmap = createDevice('BITMAP_BOX_TEST').invoke('draw') as { pixels: Uint3
 assert.deepEqual([...bitmap.pixels], [0, 0, 0, 0, 7, 7, 0, 0, 7, 7, 0, 0],
   'plot_box must clip on all edges without spilling into adjacent rows');
 
+// copybitmap onto the screen's own pixels, unscaled, is a row copy -- with the
+// same clipping to the source, the clip rectangle and the visible window as
+// the per-pixel path a scaled screen takes.
+registerGeneratedDevice({
+  type: 'BITMAP_COPY_TEST', constants: {}, callbacks: [],
+  members: [{ name: 'm_bitmap', valueType: 'bitmap_rgb32' }],
+  methods: [method('copy', 'bitmap_rgb32 &bitmap, const rectangle &cliprect', `
+    m_bitmap.allocate(6, 4);
+    for (int y = 0; y < 4; y++)
+      for (int x = 0; x < 6; x++)
+        m_bitmap.pix(y, x) = y * 16 + x;
+    copybitmap(bitmap, m_bitmap, 0, 0, 0, 0, cliprect);
+    return 0;`)],
+  summary: { diagnostics: 0 },
+});
+{
+  const screen = { pixels: new Uint32Array(4 * 3), width: 4, height: 3, xScale: 1, yScale: 1, scaledXOffset: 1, scaledYOffset: 1 };
+  createDevice('BITMAP_COPY_TEST').invoke('copy', { direct: screen }, { min_x: 0, max_x: 4, min_y: 0, max_y: 3 });
+  const expected = new Uint32Array(4 * 3);
+  for (let y = 1; y <= 3; y++) {
+    for (let x = 1; x <= 4; x++) expected[(y - 1) * 4 + (x - 1)] = y * 16 + x;
+  }
+  assert.deepEqual([...screen.pixels], [...expected],
+    'an unscaled copy lands each source row at the visible window\'s offset, clipped');
+}
+
 registerGeneratedDevice({
   type: 'REFINED_MEMBER_TEST', constants: {}, callbacks: [],
   members: [

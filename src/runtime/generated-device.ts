@@ -763,7 +763,13 @@ class IrDevice implements Device {
     }
     Object.assign(this.members, options.members);
     const self: Record<string, unknown> = {};
-    for (const method of definition.methods) self[method.name] = (...args: GeneratedCallArgument[]) => this.invoke(method.name, ...args);
+    // `self` is how a device that holds another calls it -- the IEC bus sits in
+    // every drive's `m_bus` -- so each method is its prepared call, resolved on
+    // first use, rather than overload selection on every call.
+    for (const method of definition.methods) {
+      let call: ((...args: GeneratedCallArgument[]) => unknown) | undefined;
+      self[method.name] = (...args: GeneratedCallArgument[]) => (call ??= this.prepareCall(method.name))(...args);
+    }
     for (const member of definition.members) Object.defineProperty(self, member.name, {
       // A later lowered declaration may refine a member into a struct array.
       // Match the member store's last-declaration-wins initialization.
@@ -1012,6 +1018,9 @@ class IrDevice implements Device {
       links: undefined,
       palette,
       readIndex: (value, index) => {
+        // A typed array first: the pointer probe on one is a prototype-chain
+        // miss, and device memory is almost always typed.
+        if (ArrayBuffer.isView(value)) return (value as Uint8Array)[index] ?? 0;
         if (isGeneratedPointer(value)) {
           return value.source[value.offset + index] ?? 0;
         }
@@ -1873,8 +1882,16 @@ class GeneratedBitmap {
     const left = Math.max(0, x), right = Math.min(this.bitmapWidth, x + width);
     const top = Math.max(0, y), bottom = Math.min(this.bitmapHeight, y + height);
     if (right <= left || bottom <= top) return;
+    const pixels = this.pixels;
     for (let row = top; row < bottom; row++) {
-      this.pixels.fill(color, row * this.bitmapWidth + left, row * this.bitmapWidth + right);
+      const start = row * this.bitmapWidth;
+      // The VIC-II paints its border eight pixels at a time, every cycle; a
+      // `fill` call costs more than storing a run that short.
+      if (right - left <= 16) {
+        for (let index = start + left, end = start + right; index < end; index++) pixels[index] = color;
+      } else {
+        pixels.fill(color, start + left, start + right);
+      }
     }
   }
 
@@ -1948,6 +1965,25 @@ function copyGeneratedBitmap(
   const maxY = Math.min(rectangle?.max_y ?? offsetY + sourceHeight - 1, offsetY + sourceHeight - 1);
 
   const direct = (destination as { direct?: GeneratedDirectBitmap }).direct;
+  if (direct?.pixels && direct.xScale === 1 && direct.yScale === 1 && pixels instanceof Uint32Array &&
+      Number.isInteger(minX) && Number.isInteger(minY) && Number.isInteger(offsetX) &&
+      Number.isInteger(direct.scaledXOffset) && Number.isInteger(direct.scaledYOffset)) {
+    // An unscaled screen is a row copy: the same clip as the general loop
+    // below, without a division and a floor for every pixel of every frame.
+    const left = Math.max(minX, direct.scaledXOffset);
+    const right = Math.min(maxX, direct.scaledXOffset + direct.width - 1);
+    if (right < left) return;
+    for (let y = minY; y <= maxY; y++) {
+      const visibleY = y - direct.scaledYOffset;
+      if (visibleY < 0 || visibleY >= direct.height) continue;
+      const row = (y - offsetY) * sourceWidth - offsetX;
+      direct.pixels.set(
+        pixels.subarray(row + left, row + right + 1),
+        visibleY * direct.width + left - direct.scaledXOffset,
+      );
+    }
+    return;
+  }
   if (direct?.pixels) {
     for (let y = minY; y <= maxY; y++) {
       const row = (y - offsetY) * sourceWidth;

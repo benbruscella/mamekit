@@ -68,6 +68,13 @@ export interface FieldBinding {
    * which its own restriction treats as 8.
    */
   ways?: number;
+  /**
+   * What MAME's natural keyboard types with a keyboard key: its `PORT_CHAR`s,
+   * one list per shift state (`[["2"], ['"']]`). A key that types no
+   * character is spelled the way MAME's coded strings name it (`{F1}`), and a
+   * shift key says which it is (`{SHIFT_1}`). See natural-keyboard.ts.
+   */
+  chars?: string[][];
 }
 
 export interface DipDefault { port: string; mask: number; value: number; name: string }

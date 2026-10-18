@@ -85,7 +85,11 @@ export const STATE_FACTORY = '$factory';
  * data but not a symbol.
  */
 export function stateValue<T extends object>(factory: string, value: T): T {
-  Object.defineProperty(value, STATE_FACTORY, { value: factory, enumerable: true, writable: true, configurable: true });
+  // A plain store makes exactly the enumerable, writable, configurable data
+  // property defineProperty was asked for, through an inline cache rather than
+  // a runtime call: `machine().time()` makes one of these per call, and the
+  // C64's cassette asks for the time at every one of its 44.1 kHz reads.
+  (value as Record<string, unknown>)[STATE_FACTORY] = factory;
   return value;
 }
 

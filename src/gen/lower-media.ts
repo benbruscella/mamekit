@@ -130,6 +130,7 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         type: String(device.props.type),
         tag: String(device.props.tag),
         ...(device.props.slotDefault ? { slotDefault: String(device.props.slotDefault) } : {}),
+        ...(typeof device.props.slotAddress === 'number' ? { slotAddress: device.props.slotAddress } : {}),
       })),
       ...(dumpsDir ? { dumpsDir } : {}),
       dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,

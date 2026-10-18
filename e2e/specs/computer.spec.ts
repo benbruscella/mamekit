@@ -22,7 +22,10 @@ import { watchFaults } from '../support/game.ts';
 const MACHINE = process.env.MAMEKIT_E2E_COMPUTER ?? 'c64p';
 const machineDir = join(repoRoot, 'dist/games/computers', MACHINE);
 
-interface Shelf { list: string; kind: string; catalogUrl: string; availableUrl?: string; mountable: boolean; entries: number; slots?: string[] }
+interface Shelf {
+  list: string; kind: string; catalogUrl: string; availableUrl?: string; mountable: boolean; entries: number; slots?: string[];
+  boot?: { delay: number; command: string; play?: boolean };
+}
 interface MachineConfig { software?: { dumpsKey: string; shelves: Shelf[] } }
 
 const generated = existsSync(join(machineDir, 'config.json'));
@@ -41,6 +44,49 @@ function firstVerified(): { name: string; description: string } | undefined {
     JSON.parse(readFileSync(join(machineDir, mountable.catalogUrl), 'utf8'));
   const names = new Set(available.carts.map(cart => cart.name).filter(Boolean));
   return catalog.entries.find(entry => names.has(entry.name) && !entry.supported);
+}
+
+/** A title of the medium the local dump tree holds, with the firmware it needs. */
+function localTitle(kind: string): { shelf: Shelf; set: string; firmware: string[] } | undefined {
+  const shelf = shelves.find(candidate => candidate.kind === kind && candidate.mountable && candidate.boot);
+  if (!shelf?.availableUrl) return undefined;
+  const available: { carts: { name?: string }[] } =
+    JSON.parse(readFileSync(join(machineDir, shelf.availableUrl), 'utf8'));
+  const family = join(repoRoot, '.data/roms', config.software!.dumpsKey);
+  const set = available.carts.map(cart => cart.name && join(family, shelf.list, `${cart.name}.zip`))
+    .find((path): path is string => Boolean(path && existsSync(path)));
+  const firmware = ['c64', ...(kind === 'floppy' ? ['c1541'] : [])]
+    .map(name => join(family, 'bios', `${name}.zip`));
+  return set && firmware.every(path => existsSync(path)) ? { shelf, set, firmware } : undefined;
+}
+
+/** The text on a C64-style screen at $0400, which is where BASIC talks. */
+async function screenText(page: import('@playwright/test').Page): Promise<string> {
+  return page.evaluate(() => {
+    const board = (window as unknown as { mamekit: { board: { bindings: { calls: Record<string, () => Uint8Array> } } } }).mamekit.board;
+    const ram = board.bindings.calls['m_ram.pointer']!();
+    return Array.from(ram.slice(0x400, 0x400 + 1000), value => {
+      const code = value & 0x7f;
+      return String.fromCharCode(code < 32 ? code + 64 : code);
+    }).join('');
+  });
+}
+
+/** Insert a set through the room's own picker, play it, and give the machine its firmware. */
+async function playLocalSet(page: import('@playwright/test').Page, set: string, firmware: string[]): Promise<void> {
+  await page.goto(`/app/g/${MACHINE}/`);
+  await page.locator('[data-software-room]').waitFor({ state: 'visible' });
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: /insert your own/i }).first().click();
+  await (await chooser).setFiles(set);
+  const shelved = page.locator('[data-owned-set]').first();
+  await expect(shelved).toBeVisible({ timeout: 30_000 });
+  await shelved.locator('[data-play]').click();
+  await page.locator('[data-dropzone]').waitFor({ state: 'visible' });
+  const firmwareChooser = page.waitForEvent('filechooser');
+  await page.locator('[data-overlay]').click();
+  await (await firmwareChooser).setFiles(firmware);
+  await page.waitForFunction(() => Boolean((window as unknown as { mamekit?: unknown }).mamekit), undefined, { timeout: 60_000 });
 }
 
 test.describe('software room', () => {
@@ -92,6 +138,42 @@ test.describe('software room', () => {
       await expect(page.locator('[data-catalog-set] [data-fetch]').first()).toBeDisabled();
     }
     expect(faults.errors).toEqual([]);
+  });
+
+  // One-click play (issue #161): Play on a title starts it. The machine types
+  // its shelf's command through MAME's natural keyboard once it is up, a tape
+  // has PLAY pressed when that is typed, and the load runs warped.
+  test('a tape title starts itself and warps through its load', async ({ page }) => {
+    const local = localTitle('cassette');
+    test.skip(!local, 'no local tape set and firmware under .data/roms');
+    const faults = watchFaults(page);
+    await playLocalSet(page, local!.set, local!.firmware);
+    await page.waitForFunction(() => {
+      const tape = (window as unknown as { mamekit: { board: { media(): { playing(): boolean; motorOn(): boolean }[] } } })
+        .mamekit.board.media()[0]!;
+      return tape.playing() && tape.motorOn();
+    }, undefined, { timeout: 60_000 });
+    const screen = await screenText(page);
+    expect(screen).toContain('LOAD');
+    expect(screen).toMatch(/PRESS PLAY ON TAPE|SEARCHING|FOUND|LOADING/);
+    // The readout says the machine chose to fast-forward, and why.
+    await expect(page.getByText(/· loading/).first()).toBeVisible({ timeout: 10_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  test('a disk title starts itself with LOAD"*",8,1', async ({ page }) => {
+    const local = localTitle('floppy');
+    test.skip(!local, 'no local disk set and drive firmware under .data/roms');
+    const faults = watchFaults(page);
+    await playLocalSet(page, local!.set, local!.firmware);
+    await page.waitForFunction(() =>
+      (window as unknown as { mamekit: { board: { disks(): { spinning(): boolean }[] } } }).mamekit.board.disks()[0]!.spinning(),
+    undefined, { timeout: 60_000 });
+    const screen = await screenText(page);
+    expect(screen).toContain('LOAD"*",8,1');
+    expect(screen).toContain('SEARCHING FOR *');
+    await expect(page.getByText(/· loading/).first()).toBeVisible({ timeout: 10_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
   });
 
   // Off by default: it pulls a real dump over the network, and then needs the

@@ -322,9 +322,17 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     }
   }
   const bound = boardMemberNames(machine);
+  // A composed card's handlers run in the card's own scope, where the bus it
+  // plugs into has set members no handler of its own assigns (the IEC bus
+  // writes `m_bus` into a 1541). They resolve at run time exactly as the
+  // interpreter resolves them, like a finder.
+  const cardMembers = (machine.devices ?? [])
+    .filter(device => device.classHierarchy?.includes(ownerClass))
+    .flatMap(device => device.cardMembers ?? [])
+    .filter(name => !bound.has(name));
   const members = [
     ...bound,
-    ...[...assignedMemberNames(handlers)].map(name => [name, ''] as const),
+    ...[...new Set([...assignedMemberNames(handlers), ...cardMembers])].map(name => [name, ''] as const),
   ];
   return {
     hotMethods: wiredHotMethods(machine, ownerClass),

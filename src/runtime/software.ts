@@ -863,6 +863,9 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
       ...(emptySlots.length ? { board: { ...cfg.board, emptySlots } } : {}),
       ...(rec && ownedEntry(rec)?.usage ? { usage: ownedEntry(rec)!.usage } : {}),
+      // A title starts itself: its shelf's command is typed once the machine
+      // is up (Power on, with no title, leaves the keyboard to the visitor).
+      ...(rec && shelfFor(rec.list)?.boot ? { boot: shelfFor(rec.list)!.boot } : {}),
       ...(preview ? { preview: true } : {}),
     };
     // The restart reloads the entry this pushed, so it must not push another.

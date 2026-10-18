@@ -4,7 +4,12 @@ import {
   applyGeneratedMacro,
   compileGeneratedMachineHandler,
   executeGeneratedHandler,
+  executeGeneratedMachineProgram,
   executeGeneratedProgram,
+  noteCallLinksChanged,
+  prepareGeneratedMachinePositional,
+  prepareGeneratedMachineRead,
+  prepareGeneratedMachineWrite,
 } from './execute.ts';
 import type { BoardIr, GeneratedHandler, GeneratedHandlerProgram } from './board.ts';
 
@@ -545,6 +550,74 @@ check('a wide literal narrows back to a number once the result fits', () => {
   const value = executeGeneratedProgram(program, {}).value;
   assert.equal(typeof value, 'number');
   assert.equal(value, 2);
+});
+
+// The prepared entry points a bus or a signal calls an emitted handler through
+// hand it its arguments directly, and must mean what the general dispatch
+// means: the same runtime, links refreshed when a binding changes.
+check('prepared reads, writes and positional calls agree with the general dispatch', () => {
+  const read: GeneratedHandler = {
+    id: 'handler:read', ownerClass: 'test_state', method: 'read', parameters: 'offs_t offset',
+    program: compileMameHandler('return m_ram[offset] + m_bias->get();'),
+  };
+  const write: GeneratedHandler = {
+    id: 'handler:write', ownerClass: 'test_state', method: 'write', parameters: 'offs_t offset, uint8_t data',
+    program: compileMameHandler('m_ram[offset] = data;'),
+  };
+  const line: GeneratedHandler = {
+    id: 'handler:line', ownerClass: 'test_state', method: 'line_w', parameters: 'int state',
+    program: compileMameHandler('m_latched = state;'),
+  };
+  const machine = {
+    handlers: [read, write, line],
+    compiledHandlerLinks: ['m_bias.get'],
+    compiledHandlers: {
+      'test_state.read': (runtime: { members: { m_ram: Uint8Array }; links?: Record<string, () => number> }, offset: number) =>
+        runtime.members.m_ram[offset]! + runtime.links!['m_bias.get']!(),
+      'test_state.write': (runtime: { members: { m_ram: Uint8Array } }, offset: number, data: number) => {
+        runtime.members.m_ram[offset] = data;
+      },
+      'test_state.line_w': (runtime: { members: Record<string, unknown> }, state: number) => {
+        runtime.members.m_latched = state;
+      },
+    },
+  } as unknown as BoardIr;
+  const members: Record<string, unknown> = { m_ram: new Uint8Array(4), m_latched: 0 };
+  const calls: Record<string, () => number> = { 'm_bias.get': () => 10 };
+  const bindings = { members, calls };
+  const prepared = prepareGeneratedMachineRead(machine, read, bindings);
+  prepareGeneratedMachineWrite(machine, write, bindings)!(2, 5);
+  assert.equal(prepared(2), 15);
+  assert.equal(prepared(2), executeGeneratedMachineProgram(machine, read, bindings, { offset: 2 }).value);
+  calls['m_bias.get'] = () => 20;
+  noteCallLinksChanged();
+  assert.equal(prepared(2), 25, 'a rebound call is seen by an entry point prepared before it');
+  prepareGeneratedMachinePositional(machine, line, bindings)!([1]);
+  assert.equal(members.m_latched, 1);
+  assert.equal(prepareGeneratedMachinePositional({ ...machine, compiledHandlers: {} } as BoardIr, line, bindings), undefined,
+    'a handler with no emitted body has no positional form');
+});
+
+// The runtime emitted board code reads its members and links from has no
+// palette of its own: every read is a fresh scratch array, as it always was.
+check('a board handler runtime palette is a fresh scratch array per read', () => {
+  const pen: GeneratedHandler = {
+    id: 'handler:pen', ownerClass: 'test_state', method: 'pen', parameters: '',
+    program: compileMameHandler('return 0;'),
+  };
+  let seen: unknown[] = [];
+  const machine = {
+    handlers: [pen],
+    compiledHandlers: {
+      'test_state.pen': (runtime: { palette: number[] }) => {
+        runtime.palette[0] = 7;
+        seen = [runtime.palette[0], runtime.palette === runtime.palette];
+        return 0;
+      },
+    },
+  } as unknown as BoardIr;
+  executeGeneratedMachineProgram(machine, pen, { members: {}, calls: {} }, {});
+  assert.deepEqual(seen, [undefined, false]);
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

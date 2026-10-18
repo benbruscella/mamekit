@@ -189,14 +189,24 @@ boots with only its own transport attached: a tape title leaves `iec8` empty
 and a disk title leaves `tape` empty, as MAME's `-iec8 ""` and `-tape ""` do.
 The missing transport's strip reads NOT CONNECTED, and **Connect** restarts
 the title with it. **Power on** attaches both. Multi-image sets expose an image
-selector. For a tape, type `LOAD` and press Enter, then click **Play** on the
-transport. If the loader returns to `READY.`, type `RUN` and press Enter; the
-game's turbo loader may continue reading the tape before its title screen
-appears. For a disk, type `LOAD"*",8,1` (or `LOAD"$",8` and `LIST` for the
-directory). The control panel holds one strip per transport -- DATASSETTE and
-DISK DRIVE -- and the toolbar holds **Reset computer** and **Fast-forward**,
-all buttons so the computer retains its letter and function keys. Tape speed
-remains under the emulated computer's motor control.
+selector. **Play** starts the title itself: once the machine has had three
+seconds to come up, its shelf's command (`boot`, generated from the
+`BOOT_POLICY` in `src/gen/software-shelves.ts`) is typed through MAME's
+natural keyboard -- `LOAD` and `RUN` for a tape, with **Play** pressed on the
+deck once they are typed, and `LOAD"*",8,1` and `RUN` for a disk -- and the
+load runs warped. Power on leaves the keyboard to you: type `LOAD"$",8` and
+`LIST` for a directory. The control panel holds one strip per transport --
+DATASSETTE and DISK DRIVE -- and the toolbar holds **Reset**,
+**Fast-forward**, **Warp loading** (fast-forward on its own while a tape's
+motor runs or the drive spins, remembered per machine) and **Paste** (the
+clipboard typed on the computer's keys), all buttons so the computer retains
+its letter and function keys. Tape speed remains under the emulated
+computer's motor control.
+
+To type into a board from Node, as the app does: build a `NaturalKeyboard`
+(`src/runtime/natural-keyboard.ts`) over the `KeyboardInput` and the config's
+`bindings` and `naturalKeyboard.alternates`, `post()` or `postCoded()` the
+text, and call its `tick(1 / refresh)` before `advance()` on every frame.
 `e2e/specs/computer.spec.ts` is the browser gate for the room.
 
 To check what a tape title does against MAME itself, drive both the same way:
@@ -211,8 +221,9 @@ the music matches MAME's WAV band for band.
 The 1541 is MAME's own `c1541`, composed into `iec8` from source: its 6502
 and DOS ROM, both 6522 VIAs, the 64H156 gate array, the ALPS drive mechanism
 and the `d64`/`g64` formats. MAME's 1541 reads a disk a flux reversal at a time
-on a 16 MHz gate-array clock, and the drive is not yet real-time in the
-browser while the spindle runs. Even with the motor off, an attached 1541 puts
+on a 16 MHz gate-array clock; headless, a whole Nebulus load now averages real
+time (about 19.5 ms a 20 ms PAL frame), with its hardest stretch just over it.
+Even with the motor off, an attached 1541 puts
 the machine in permanent lockstep with a second processor, which is why tape
 titles boot without it. To diagnose the drive in Node, boot an isolated build, mount an image
 through `board.disks()[0].mount(extension, bytes)`, type `LOAD"$",8`, and read
@@ -469,7 +480,8 @@ Choose the layer from evidence, not from the visible symptom.
 | A sound chip's pin is polled by a CPU | its engine belongs on the main thread, not the worklet |
 | A main-thread chip runs at double or half speed | `tickCpu` fires per processor; drive it from one, and not one that can be held in reset |
 | A machine's SCREEN carries no geometry | the video device that claimed it with `set_screen`, whose `device_config_complete` sets the raw params |
-| A compiled board is slow with a flat profile | `%HasFastProperties` on what its hot path reads; a dictionary-mode table wants a resolved links table, not a faster hardware model |
+| A compiled board is slow with a flat profile | `%HasFastProperties` on what its hot path reads; a dictionary-mode table wants a resolved links table, not a faster hardware model. An object literal with a getter is born in dictionary mode, and so is a table built one key at a time |
+| A small emitted method still costs a call per use | its bytecode size (`node --print-bytecode --print-bytecode-filter=<method>`) against V8's 460-byte inlining limit; a cold path spelled inline belongs in a runtime helper |
 | A device method the profile shows interpreted | its codegen decline (`supportsMethod` with `onUnsupported`), or a slot card/child never marked a root |
 | A device reads display memory no CPU map mentions | its own `device_memory_interface` space, not a board share |
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |

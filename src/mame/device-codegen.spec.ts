@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict';
-import { dereferenceGeneratedValue, executeGeneratedProgram } from '../ir/execute.ts';
+import {
+  dereferenceGeneratedValue,
+  executeGeneratedProgram,
+  generatedAdd,
+  generatedPackedView,
+  generatedPointerStore,
+} from '../ir/execute.ts';
 import type { GeneratedDeviceDefinition } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
@@ -527,6 +533,111 @@ assert.equal(
   built.sample!(runtime);
   assert.deepEqual(stored, [1.5]);
   assert.equal(runtime.members.m_value, 0xff, 'the store lands in the member at its declared width');
+}
+
+// `&p` on a local whose address is all the method uses: the CBM tape format's
+// fill_wave hands `&p` to the sample writer, and declined, a tape's whole PCM
+// conversion ran through the interpreter's get/set closures. A local the
+// method reads again afterwards stays declined -- the Simpsons' sprite DMA
+// drifted from its golden when its pointer arithmetic after the call compiled.
+{
+  const writer: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['fill', 'reread', 'output'],
+    methods: [
+      {
+        name: 'output',
+        parameters: 'int16_t **buffer, int length',
+        source: { file: 'src/devices/test.cpp', line: 1 },
+        program: compileMameHandler('for( ; length > 0; length-- ) { **buffer = 7; *buffer = *buffer + 1; }'),
+      },
+      {
+        name: 'fill',
+        parameters: 'int16_t *buffer, int length',
+        source: { file: 'src/devices/test.cpp', line: 2 },
+        program: compileMameHandler('int16_t *p = buffer; output(&p, length);'),
+      },
+      {
+        name: 'reread',
+        parameters: 'int16_t *buffer, int length',
+        source: { file: 'src/devices/test.cpp', line: 3 },
+        program: compileMameHandler('int16_t *p = buffer; output(&p, length); m_total = p[0];'),
+      },
+    ],
+  };
+  const emitted = generatedDeviceMethodsSource(writer);
+  assert.ok(emitted.methods.includes('fill'), 'an address-only local compiles');
+  assert.ok(!emitted.methods.includes('reread'), 'a local read again after its address is taken does not');
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown, ...args: unknown[]) => unknown>;
+  const samples = new Int16Array(5);
+  built.fill!({
+    members: { m_total: 0 },
+    calls: {},
+    dereference: dereferenceGeneratedValue,
+    packedView: generatedPackedView,
+    pointerStore: generatedPointerStore,
+    add: generatedAdd,
+  }, { generatedPointer: true, source: samples, offset: 1 }, 3);
+  assert.deepEqual([...samples], [0, 7, 7, 7, 0], 'the callee stores through the local it was handed');
+}
+
+// A device's fixed C array is never rebound by an indexed write -- it exists
+// before any method runs, and the store goes straight into it -- so its read
+// is hoisted out of the loop. The VIC-II clears a 1,024-byte collision buffer
+// every raster line, and re-reading the member at each store was 4% of a frame.
+{
+  const clearing: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['clear'],
+    members: [...definition.members, { name: 'm_buffer', valueType: 'uint8_t', bits: 8, arrayLength: 16 }],
+    methods: [{
+      name: 'clear',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('for (int i = 0; i < 16; i++) m_buffer[i] = 0;'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(clearing);
+  assert.match(emitted.source, /const h_m_buffer = members\.m_buffer \?\? 0;/);
+  assert.match(emitted.source, /h_m_buffer\[i\] = 0/);
+}
+
+// A device's const scalar member is a number in emitted code, and so is any
+// tree it makes with literals. The VIC-II compares its `m_variant` against
+// every chip it could be; spelled out, those tests doubled its per-cycle
+// method's bytecode.
+{
+  const variant: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['pick'],
+    members: [...definition.members, { name: 'm_variant', valueType: 'const uint32_t', bits: 32, initial: 4 }],
+    methods: [{
+      name: 'pick',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_total = (m_variant == 4 || m_variant == 5) ? LIMIT * 12 : 40;'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(variant);
+  assert.match(emitted.source, /members\.m_total = \(\(48\) & 0xffff\);/, emitted.source);
+}
+
+// A device answers a member it does not hold with 0 (generated-device.ts), so
+// that is the emitted fallback, not a call spelled at every read.
+{
+  const emitted = generatedDeviceMethodsSource({
+    ...definition,
+    hotMethods: ['total'],
+    methods: [{
+      name: 'total',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler('m_total = m_total + 1; return m_total;'),
+    }],
+  });
+  assert.match(emitted.source, /\(members\.m_total \?\? 0\)/);
+  assert.doesNotMatch(emitted.source, /runtime\.member\(/);
 }
 
 // A tree of integer literals is a constant. The VIC-II's variant macros

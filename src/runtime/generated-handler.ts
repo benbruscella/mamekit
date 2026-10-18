@@ -6,7 +6,8 @@ import type { BoardIr, GeneratedHandler } from '../ir/board.ts';
 import {
   executeGeneratedMachineHandler,
   prepareGeneratedMachineHandler,
-  prepareGeneratedMachineCall,
+  prepareGeneratedMachineRead,
+  prepareGeneratedMachineWrite,
   type GeneratedHandlerBindings,
 } from '../ir/execute.ts';
 import { wireDeviceCallbacks, type CallbackDevice } from './generated-machine.ts';
@@ -216,8 +217,8 @@ function makeReadHandler(
 ): ReadHandler {
   if (/^(?:offs_t|u?int(?:8|16|32)_t|[us](?:8|16|32))\s+offset$/.test((handler.parameters ?? '').trim()) &&
       machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]) {
-    const call = prepareGeneratedMachineCall(machine, handler, bindings);
-    return (_address, offset) => Number(call(offset) ?? 0xff);
+    const read = prepareGeneratedMachineRead(machine, handler, bindings);
+    return (_address, offset) => Number(read(offset) ?? 0xff);
   }
   const space = handlerSpace(handler, bindings, cpuTag);
   const execute = prepareGeneratedMachineHandler(machine, handler, bindings);
@@ -240,6 +241,12 @@ function makeWriteHandler(
 ): WriteHandler {
   const directVideoRamWrite = makeDirectVideoRamWrite(handler, bindings);
   if (directVideoRamWrite) return directVideoRamWrite;
+  // An emitted `(offset, data)` handler is handed both directly, as a read is.
+  const write = /^(?:offs_t|u?int(?:8|16|32)_t|[us](?:8|16|32))\s+offset\s*,\s*(?:u?int(?:8|16|32)_t|[us](?:8|16|32))\s+data$/
+    .test((handler.parameters ?? '').trim())
+    ? prepareGeneratedMachineWrite(machine, handler, bindings)
+    : undefined;
+  if (write) return (_addr, offset, data) => write(offset, data);
   const space = handlerSpace(handler, bindings, cpuTag);
   return (addr, offset, data, memMask) => {
     executeGeneratedMachineHandler(

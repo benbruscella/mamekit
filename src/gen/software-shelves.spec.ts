@@ -111,7 +111,7 @@ try {
       { type: 'MOS6581', tag: 'u18' },
       { type: 'PET_DATASSETTE_PORT', tag: 'tape', slotDefault: 'c1530' },
       { type: 'CBM_IEC', tag: 'iec_bus' },
-      { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541' },
+      { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541', slotAddress: 8 },
       { type: 'FLOPPY_CONNECTOR', tag: 'iec8:c1541:uc4:0' },
     ],
     log: line => lines.push(line),
@@ -129,6 +129,12 @@ try {
   assert.equal(tapes!.kind, 'cassette');
   assert.equal(tapes!.mountable, true, 'the datassette port is the tape transport');
   assert.deepEqual(tapes!.slots, ['tape'], 'the datassette port is itself the slot');
+  // A title starts itself (one-click play): LOAD and RUN typed while the
+  // KERNAL waits for PLAY, then PLAY; a disk addressed to its drive's unit,
+  // which is the IEC slot's own address.
+  assert.deepEqual(tapes!.boot, { delay: 3, command: 'LOAD{ENTER}RUN{ENTER}', play: true });
+  assert.deepEqual(disks!.boot, { delay: 3, command: 'LOAD"*",8,1{ENTER}RUN{ENTER}' });
+  assert.equal(carts!.boot, undefined, 'a medium no policy covers starts nothing');
   assert.deepEqual(disks!.slots, ['iec8'], 'the drive sits under the outermost slot, not its own connector');
   assert.equal(carts!.slots, undefined, 'nothing mounts a cartridge yet');
   assert.equal(tapes!.entries, 1, 'the NTSC filter drops the PAL-only tape');

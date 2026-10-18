@@ -330,6 +330,9 @@ export function lowerGeneratedMachine(
       ...(Array.isArray(node.props.interfaceHandlers) && node.props.interfaceHandlers.length
         ? { interfaceHandlers: node.props.interfaceHandlers.map(String) }
         : {}),
+      ...(Array.isArray(node.props.cardMembers) && node.props.cardMembers.length
+        ? { cardMembers: node.props.cardMembers.map(String) }
+        : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
       ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),

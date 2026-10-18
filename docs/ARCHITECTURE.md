@@ -324,7 +324,10 @@ behind it.
 CPU definitions combine MAME class/state information with source-derived
 instruction programs. Z80 lowers MAME's expanded `z80.lst` opcode DSL. I8080
 lowers the 256 cases in MAME's `execute_one` C++ switch, its helper methods,
-state aliases and cycle tables. `src/mame/cpu-compiler.ts` and
+state aliases and cycle tables. A core's own devcb lines answer `isunset()`
+from the lines the machine connected (the bus's `boundSignals`), so a 6502
+skips its SYNC output twice an instruction when nothing listens, exactly as
+MAME's `if (!m_sync_w.isunset())` does. `src/mame/cpu-compiler.ts` and
 `cpu-codegen.ts` produce executable TypeScript plus auditable CPU IR. The
 browser runtime supplies generic register, bus and program-execution machinery.
 
@@ -366,7 +369,22 @@ method emitted with it. Two constructs have a direct form when their types are
 known: `a = b` between members of the same struct type copies field by field
 through a per-type copier instead of the runtime's keyed copy, and an iterator
 accessor on a `std::vector` (`buf.begin()`) asks the container instead of
-probing a dereferenced first element.
+probing a dereferenced first element. A local whose address is all a method
+uses -- the CBM tape format's `fill_wave` hands `&p` to the writer that
+advances it -- is passed as the lvalue-backed pointer the interpreter builds;
+a local the method reads again after the call stays interpreted.
+
+Size counts as much as shape, because V8 inlines a function only while its
+bytecode stays under a few hundred bytes, and a C64 memory access is a chain of
+small handlers (`read`, `read_memory`, `read_pla`, the PLA) run forty thousand
+times a frame. The emitter keeps fast paths inline and cold ones out: a board
+call through a member that no binding answers is one `runtime.memberCall`
+rather than an inline ladder spelling every argument twice; a device's absent
+member answers the constant 0, which is all its runtime would return; a tree of
+constants folds to its value even when a leaf is a device's `const` member (the
+VIC-II compares its `m_variant` against every chip it could be); and a
+device's fixed C array, which an indexed write never rebinds, is read once per
+method instead of at every store.
 
 A floppy drive is a device like any other (`src/hardware/floppy/`,
 `src/mame/floppy-compiler.ts`): `floppy_image_device` and its mechanism class
@@ -516,6 +534,24 @@ It has two responsibilities.
 - `generated-video.ts`: executes video plans;
 - `generated-frame.ts`: schedules generated scanline/frame events.
 
+The paths that run on every access are kept direct. A bus calls an emitted
+`(offset)` read or `(offset, data)` write with its arguments, a signal hands a
+wired handler its arguments in declaration order, and a device mapped into an
+address space is reached through its prepared call, its declaration read once
+at install; none builds a record per access, and each re-resolves its handler
+runtime only when a binding changes. That runtime is a fast-mode object: built
+as a literal with a getter it was a V8 dictionary, and every `runtime.members`
+read in every emitted board handler was a hash probe. A processor finder serves
+the processor services it never re-resolves (`total_cycles`, the VIC-II's
+question at each of its cycles) from a plain object in front of the Proxy that
+answers every other name, and a device referent caches its call target until a
+binding changes.
+
+A clocked peripheral without firmware (the C64's VIC-II and CIAs) runs after
+every instruction for the cycles it is owed. The fractional remainder lives in
+a plain array during play and is written into the save-state record
+(`hostedCarry`) only when a save is taken, then read back from it on a load.
+
 The frame runner interleaves processors once per scanline and charges each
 one's overrun to a carry, so a frame's cycle count stays exact. Device timers
 run on a second clock, advanced by instruction-time deltas so an edge can land
@@ -586,7 +622,12 @@ cycles, not the board's timer clock: the 1541's gate array must never run
 ahead of the drive CPU that reads it, which is what MAME's global time order
 guarantees. `machine().phase()` answers INIT while the board is built, RESET
 while it resets and RUNNING otherwise; the 1541's VIA port handler ignores what
-it is driven to during reset, exactly as in MAME.
+it is driven to during reset, exactly as in MAME. The data members the card's
+classes declare are recorded with it (`cardMembers`), including those of an
+interface base declared with the bus rather than the card: the IEC bus's
+`add_device` writes `m_bus` and `m_slot` into every drive, so no handler of
+the drive's own assigns them, and without the declaration the 1541's serial
+port handlers could not be compiled.
 
 A slot can also be booted empty, as MAME's `-iec8 ""` boots it: the host
 option `BoardConfig.emptySlots` names the slots, and `withEmptySlots` takes out
@@ -649,6 +690,15 @@ gains from booting without it.
   or arcade trackball is a USB mouse) turns the generated relative pairs
   (dials, trackballs) by MAME's own `PORT_SENSITIVITY`, one pixel per
   sensitivity/100 units with the fraction carried across frames;
+- `natural-keyboard.ts`: the fourth -- MAME's natural keyboard, text in and
+  key presses out. Which key and which shift key make a character comes from
+  each key's generated `PORT_CHAR`s, a character no key makes is typed as
+  MAME's own `charinfo` alternate (kept per machine to what its keys reach),
+  and the pace is MAME's, in emulated time: a step every 50 ms (200 ms on a
+  carriage return), the shift key a step before the key. It is how a paste
+  reaches a computer and how a title the software room booted starts itself;
+  ticked only on frames that run, so a room's two machines see the same
+  presses;
 - `audio.ts`: Web Audio startup and generated worklet transport;
 - `machine-state.ts`: save states -- a structural walk that captures every
   container the execution model holds (an emitted core's own fields, a
@@ -809,6 +859,17 @@ unchanged for the next generated machine".
    transport keeps its strip on the panel with a **Connect** button; that
    restarts the title with the slot filled, and the firmware the browser
    already keeps counts towards the new drop instead of being discarded.
+   A title then starts itself: each shelf carries a `boot` -- what to type
+   once the machine has come up, and whether to press PLAY when it is typed --
+   from a host policy keyed by the MAME device the transport's slot is
+   (`BOOT_POLICY` in `src/gen/software-shelves.ts`; the C64's datassette port
+   types `LOAD` and `RUN` while the KERNAL waits for PLAY, its IEC slot
+   `LOAD"*",8,1` at the slot's own address). MAME itself starts nothing; its
+   `-autoboot_command` is the user's to give. While a transport moves -- a
+   tape the machine's motor pulls, a disk spinning -- the shell fast-forwards
+   on its own (warp while loading) and returns to real time when it stops.
+   Fast-forward runs frames back to back as tasks of their own rather than
+   only inside the display's tick, which fits a whole number of frames.
 7. The shell creates the generated board, starts frame scheduling, presents the
    framebuffer, and activates generated audio worklets after a user gesture.
 

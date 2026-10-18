@@ -13,7 +13,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 
 import type { GenerateOptions } from './generate.ts';
 
-import { inputKeys, inputLabel, inputPlayer, joystickWays, keypadKeys, portCodeKeys, computerKeyboardKeys, fieldConditionHolds, portLabel } from './input-bindings.ts';
+import { inputKeys, inputLabel, inputPlayer, joystickWays, keypadKeys, portChars, portCodeKeys, computerKeyboardKeys, fieldConditionHolds, portLabel } from './input-bindings.ts';
 
 import { Graph } from '../kg/query.ts';
 
@@ -441,6 +441,8 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
             : {}),
           ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
           ...(joystickWays(mods) !== undefined ? { ways: joystickWays(mods) } : {}),
+          // What MAME's natural keyboard types with this key, per shift state.
+          ...(type === 'IPT_KEYBOARD' && portChars(mods) ? { chars: portChars(mods) } : {}),
         });
       }
     }

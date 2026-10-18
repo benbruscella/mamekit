@@ -15,7 +15,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { DEFAULT_CONSTANTS, noteCallLinksChanged } from '../ir/execute.ts';
+import { callLinksGeneration, DEFAULT_CONSTANTS, noteCallLinksChanged, prepareGeneratedMachinePositional } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
@@ -403,6 +403,12 @@ class IrBoard implements Board {
    * closure variable would be invisible.
    */
   private readonly hostState: Record<string, object> = {};
+  /**
+   * Host models whose running values live outside their registered record for
+   * speed: each writes its record before a save is captured and reads it back
+   * once a save has been restored.
+   */
+  private readonly stateSyncs: { capture(): void; restored(): void }[] = [];
   /** The vector display list (see vectorDisplay). */
   private readonly vectorPoints: { points: number[] } = { points: [] };
   private vectorDisplayHost?: object;
@@ -750,84 +756,97 @@ class IrBoard implements Board {
             const cpuSpec = machine.execution.cpus.find(candidate => candidate.tag === tag) ??
               machine.execution.cpus[0];
             if (!cpuSpec) return 0;
-            return new Proxy({}, {
-              get: (target, property) => {
-                // JavaScript's own object protocol, and the save-state
-                // walker's (machine-state.ts), are not MAME methods: a handler
-                // comparing `m_vlm != nullptr` asks for valueOf and the walker
-                // asks every object for stateKeys, and forwarding either made
-                // the device invoke a method it never had.
-                if (typeof property === 'symbol' ||
-                    ['valueOf', 'toString', 'toJSON', 'then', 'stateKeys', 'stateRestored'].includes(property)) {
-                  return Reflect.get(target, property);
-                }
-                const method = String(property);
-                // MAME `device_memory_interface::space(AS_PROGRAM)`. A device
-                // that reaches its host processor's bus takes this by
-                // reference and keeps it: the Game Boy PPU copies OAM through
-                // `m_program_space->read_byte(...)`, and with the call
-                // unresolved every DMA wrote zeroes -- no game had any sprites.
-                if (method === 'space') {
-                  return () => ({
-                    read_byte: (address: number) =>
-                      this.cpuBuses.get(cpuSpec.tag)?.read(address) ?? 0xff,
-                    write_byte: (address: number, value: number) => {
-                      this.cpuBuses.get(cpuSpec.tag)?.write(address, value);
-                      return 0;
-                    },
-                  });
-                }
-                if (method === 'cycles_to_attotime') {
-                  return (cycles: number) => cycles / this.cycleClockOf(cpuSpec);
-                }
-                if (method === 'total_cycles') {
-                  return () => this.totalCycles(cpuSpec.tag);
-                }
-                // The inverse of cycles_to_attotime. Hardware that measures a
-                // span of machine time in its own processor's cycles needs it:
-                // the Game Boy PPU advances its line counter by
-                // `attotime_to_cycles(now - m_last_updated)`, and with the call
-                // unbound that difference read as zero every time, so LY never
-                // left 0 and the boot ROM waited for line 0x90 forever.
-                if (method === 'attotime_to_cycles') {
-                  return (seconds: number) => Math.floor(
-                    Number(seconds) * this.cycleClockOf(cpuSpec),
-                  );
-                }
-                if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
-                // Hardware that takes the bus away from the processor removes
-                // the cycles it will not get. Without this the call fell through
-                // to the device fallback below, which finds no device for a CPU
-                // tag and answers 0 -- so the Atari 2600's WSYNC never parked
-                // the 6507, every scanline came up short, and the frame ran 244
-                // lines instead of 262.
-                if (method === 'adjust_icount') {
-                  return (delta: number) => this.adjustGeneratedIcount(cpuSpec.tag, delta);
-                }
-                if (method === 'set_input_line') {
-                  return (line: number, state: number) => {
-                    const cpu = this.cpus.get(cpuSpec.tag);
-                    if (cpu) {
-                      applyGeneratedCpuInputLine(
-                        cpu,
-                        line,
-                        state,
-                        held => this.cpuHeld.set(cpuSpec.tag, held),
-                      );
-                    }
-                  };
-                }
-                // Hardware reaches its processor the same way a driver does
-                // (`m_lr35902->set_halt_bug(...)`); serve it from the core's
-                // own lowered methods before falling back to a device.
-                const cpu = this.cpus.get(cpuSpec.tag);
-                if (cpu?.hasMethod(method)) {
-                  return (...args: number[]) => cpu.invoke(method, ...args);
-                }
-                return (...args: number[]) =>
-                  this.devices.get(tag)?.invoke(method, ...args) ?? 0;
-              },
-            });
+            const resolve = (target: object, property: string | symbol): unknown => {
+              // JavaScript's own object protocol, and the save-state
+              // walker's (machine-state.ts), are not MAME methods: a handler
+              // comparing `m_vlm != nullptr` asks for valueOf and the walker
+              // asks every object for stateKeys, and forwarding either made
+              // the device invoke a method it never had.
+              if (typeof property === 'symbol' ||
+                  ['valueOf', 'toString', 'toJSON', 'then', 'stateKeys', 'stateRestored'].includes(property)) {
+                return Reflect.get(target, property);
+              }
+              const method = String(property);
+              // MAME `device_memory_interface::space(AS_PROGRAM)`. A device
+              // that reaches its host processor's bus takes this by
+              // reference and keeps it: the Game Boy PPU copies OAM through
+              // `m_program_space->read_byte(...)`, and with the call
+              // unresolved every DMA wrote zeroes -- no game had any sprites.
+              if (method === 'space') {
+                return () => ({
+                  read_byte: (address: number) =>
+                    this.cpuBuses.get(cpuSpec.tag)?.read(address) ?? 0xff,
+                  write_byte: (address: number, value: number) => {
+                    this.cpuBuses.get(cpuSpec.tag)?.write(address, value);
+                    return 0;
+                  },
+                });
+              }
+              if (method === 'cycles_to_attotime') {
+                return (cycles: number) => cycles / this.cycleClockOf(cpuSpec);
+              }
+              if (method === 'total_cycles') {
+                return () => this.totalCycles(cpuSpec.tag);
+              }
+              // The inverse of cycles_to_attotime. Hardware that measures a
+              // span of machine time in its own processor's cycles needs it:
+              // the Game Boy PPU advances its line counter by
+              // `attotime_to_cycles(now - m_last_updated)`, and with the call
+              // unbound that difference read as zero every time, so LY never
+              // left 0 and the boot ROM waited for line 0x90 forever.
+              if (method === 'attotime_to_cycles') {
+                return (seconds: number) => Math.floor(
+                  Number(seconds) * this.cycleClockOf(cpuSpec),
+                );
+              }
+              if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
+              // Hardware that takes the bus away from the processor removes
+              // the cycles it will not get. Without this the call fell through
+              // to the device fallback below, which finds no device for a CPU
+              // tag and answers 0 -- so the Atari 2600's WSYNC never parked
+              // the 6507, every scanline came up short, and the frame ran 244
+              // lines instead of 262.
+              if (method === 'adjust_icount') {
+                return (delta: number) => this.adjustGeneratedIcount(cpuSpec.tag, delta);
+              }
+              if (method === 'set_input_line') {
+                return (line: number, state: number) => {
+                  const cpu = this.cpus.get(cpuSpec.tag);
+                  if (cpu) {
+                    applyGeneratedCpuInputLine(
+                      cpu,
+                      line,
+                      state,
+                      held => this.cpuHeld.set(cpuSpec.tag, held),
+                    );
+                  }
+                };
+              }
+              // Hardware reaches its processor the same way a driver does
+              // (`m_lr35902->set_halt_bug(...)`); serve it from the core's
+              // own lowered methods before falling back to a device.
+              const cpu = this.cpus.get(cpuSpec.tag);
+              if (cpu?.hasMethod(method)) {
+                return (...args: number[]) => cpu.invoke(method, ...args);
+              }
+              return (...args: number[]) =>
+                this.devices.get(tag)?.invoke(method, ...args) ?? 0;
+            };
+            // The processor services above do not depend on when they are
+            // asked for, so they are resolved once onto a plain object; the
+            // Proxy behind it answers every other name. A device asks this on
+            // every cycle -- the VIC-II reads `m_cpu->total_cycles()` at each
+            // of its 19,656 a frame -- and through the Proxy alone each read
+            // ran the trap and allocated a fresh closure. They are not
+            // enumerable, so a save state still sees an object with no keys.
+            const finder = Object.create(new Proxy({}, { get: resolve })) as object;
+            for (const service of [
+              'space', 'cycles_to_attotime', 'total_cycles', 'attotime_to_cycles',
+              'reset', 'adjust_icount', 'set_input_line',
+            ]) {
+              Object.defineProperty(finder, service, { value: resolve({}, service), enumerable: false });
+            }
+            return finder;
           },
           calls: {
             screen: () => screenHost,
@@ -1320,7 +1339,10 @@ class IrBoard implements Board {
     }
     for (const [tag, device] of this.devices) {
       const specification = machine.devices?.find(candidate => candidate.tag === tag);
-      const referent: Record<string, unknown> = {};
+      // Built in one step once complete: a property per method added one at a
+      // time puts a large device's referent (the floppy drive's) in V8's
+      // dictionary mode, and the 64H156 reads it at every flux transition.
+      const referentEntries: [string, unknown][] = [];
       // A device hosted inside another answers to its finder's name only in
       // its host's scope when the machine's own state class uses that name:
       // the 1541's `m_maincpu` is not the C64's (see cardScope).
@@ -1346,9 +1368,21 @@ class IrBoard implements Board {
         // The key is fixed for the life of the board; building it per call put
         // a string concatenation and a dictionary probe on every VIC-II cycle
         // (`m_cpu->total_cycles()`). The lookup itself stays late-bound.
+        //
+        // Resolved again whenever a binding changes (noteCallLinksChanged), as
+        // a links table is, rather than probed in the dictionary-mode calls
+        // table on every call: the 1541's gate array reaches its drive's
+        // `get_next_transition` through here once per flux transition.
         const referentKey = `${flatMember ?? (specification?.member ? `m_${tag}` : tag)}.${method}`;
-        referent[method] = (...args: unknown[]) =>
-          calls[referentKey]!(...args as number[]);
+        let target: ((...args: number[]) => unknown) | undefined;
+        let resolvedAt = -1;
+        referentEntries.push([method, (...args: unknown[]) => {
+          if (resolvedAt !== callLinksGeneration) {
+            target = calls[referentKey];
+            resolvedAt = callLinksGeneration;
+          }
+          return target!(...args as number[]);
+        }]);
         // Tilemap callbacks are recorded by their declaring C++ class rather
         // than by the machine-config tag. When exactly one device of that
         // class is composed, preserve that source identity so its callback
@@ -1361,9 +1395,12 @@ class IrBoard implements Board {
           this.bindings.referenceCalls![`${specification.className}.${method}`] = invoke;
         }
       }
-      referent.found = () => 1;
-      referent.tag = () => tag;
-      referent.reset = () => device.reset();
+      const referent: Record<string, unknown> = Object.fromEntries([
+        ...referentEntries,
+        ['found', () => 1],
+        ['tag', () => tag],
+        ['reset', () => device.reset()],
+      ]);
       this.deviceReferents.set(tag, referent);
       if (flatMember && (this.state[flatMember] === device || this.state[flatMember] == null)) {
         this.state[flatMember] = referent;
@@ -1425,8 +1462,9 @@ class IrBoard implements Board {
           throw new Error(`${specification.tag}: configured device address space is not executable`);
         }
         const bus = new Bus(map.ranges, new Uint8Array(), registry, this.shares, 8, regions);
-        device.bindAddressSpace(map.index, address => bus.read(address),
-          (address, data) => bus.write(address, data));
+        // The bus's accessors are bound already; the VIC-II fetches through
+        // this twice a cycle, so no wrapper sits in between.
+        device.bindAddressSpace(map.index, bus.read, bus.write);
       }
     }
     // `address_map_bank_device`: its own space, decoded like a CPU's and
@@ -1668,6 +1706,10 @@ class IrBoard implements Board {
       }
       const screenSpec = machine.execution.screen;
       const cpu = createCpu(type, {
+        // Exactly the callbacks `signal` below would run for this processor.
+        boundSignals: new Set(machine.callbacks
+          .filter(callback => callback.ownerTag === specification.tag)
+          .map(callback => callback.signal)),
         ...(cpuDelegates.size ? {
           hasDelegate: (name: string) => cpuDelegates.has(name),
           delegate: (name: string, ...args: unknown[]) => {
@@ -2018,6 +2060,22 @@ class IrBoard implements Board {
         wireGeneratedDevice(device, machine, tag, signal, this.effects);
       }
     }
+    // How a hosted or autonomous processor runs a number of cycles. One that
+    // runs itself is also kept as `direct`, so the loop that delivers each
+    // instruction's time (three processors on a C64, after every instruction)
+    // makes one method call rather than going through a closure first.
+    const processorRunner = (device: Device): {
+      direct?: Device & { runCycles(cycles: number): number };
+      run(cycles: number): number;
+    } => ({
+      ...(device.runCycles ? { direct: device as Device & { runCycles(cycles: number): number } } : {}),
+      run: (cycles: number) => {
+        if (device.runCycles) return device.runCycles(cycles);
+        device.set('m_icount', cycles);
+        device.call('execute_run');
+        return cycles - device.get('m_icount');
+      },
+    });
     const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
       if (!specification.hostTag) return [];
       const device = this.devices.get(specification.tag);
@@ -2038,13 +2096,7 @@ class IrBoard implements Board {
         return [{
           tag: specification.tag,
           clock: device.cycleClock(),
-          enabled: () => true,
-          run: (cycles: number) => {
-            if (device.runCycles) return device.runCycles(cycles);
-            device.set('m_icount', cycles);
-            device.call('execute_run');
-            return cycles - device.get('m_icount');
-          },
+          ...processorRunner(device),
         }];
       }
       if (
@@ -2063,12 +2115,7 @@ class IrBoard implements Board {
         tag: specification.tag,
         clock: device.cycleClock(),
         enabled,
-        run: (cycles: number) => {
-          if (device.runCycles) return device.runCycles(cycles);
-          device.set('m_icount', cycles);
-          device.call('execute_run');
-          return cycles - device.get('m_icount');
-        },
+        ...processorRunner(device),
       }];
     });
     // Standalone bus masters expose MAME's execute_run/m_icount pair but have
@@ -2083,40 +2130,54 @@ class IrBoard implements Board {
       return [{
         tag: specification.tag,
         clock: device.cycleClock(),
-        enabled: () => true,
-        run: (cycles: number) => {
-          if (device.runCycles) return device.runCycles(cycles);
-          device.set('m_icount', cycles);
-          device.call('execute_run');
-          return cycles - device.get('m_icount');
-        },
+        ...processorRunner(device),
       }];
     });
     // Firmware MCUs and clocked peripherals share elapsed board time with the
     // CPU. A whole-scanline slice leaves counter reads stale and can collapse
     // several input transitions before the peripheral observes any of them.
     // Deliver source clocks at instruction boundaries, as for device timers.
-    const synchronizedProcessors = [...hostedProcessors, ...autonomousProcessors];
+    const synchronizedProcessors: (ReturnType<typeof processorRunner> & {
+      tag: string;
+      clock: number;
+      /** Absent for a processor that always runs. */
+      enabled?: () => boolean;
+    })[] = [...hostedProcessors, ...autonomousProcessors];
     // The fractional cycles each processor is owed between instruction-time
-    // deliveries; registered so a save state carries it (machine-state.ts).
+    // deliveries. Delivered after every instruction -- three times per C64
+    // instruction, for the VIC-II and both CIAs -- so the running values live
+    // in a plain array; the Map registered for the save state (machine-state.ts)
+    // is written from it before a capture and read back after a restore,
+    // which keeps every existing save's shape.
     const hostedCarry = this.hostModel(
       'hostedCarry',
       new Map(synchronizedProcessors.map(processor => [processor.tag, 0])),
     );
+    const carries = new Float64Array(synchronizedProcessors.length);
+    this.stateSyncs.push({
+      capture: () => synchronizedProcessors.forEach((processor, index) =>
+        hostedCarry.set(processor.tag, carries[index]!)),
+      restored: () => synchronizedProcessors.forEach((processor, index) => {
+        carries[index] = hostedCarry.get(processor.tag) ?? 0;
+      }),
+    });
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
-      for (const processor of synchronizedProcessors) {
+      for (let index = 0; index < synchronizedProcessors.length; index++) {
+        const processor = synchronizedProcessors[index]!;
         if (processor.enabled && !processor.enabled()) {
-          hostedCarry.set(processor.tag, 0);
+          carries[index] = 0;
           continue;
         }
-        const carry = (hostedCarry.get(processor.tag) ?? 0) + seconds * processor.clock;
+        const carry = carries[index]! + seconds * processor.clock;
         const target = Math.floor(carry);
         if (target <= 0) {
-          hostedCarry.set(processor.tag, carry);
+          carries[index] = carry;
           continue;
         }
-        hostedCarry.set(processor.tag, carry - processor.run(target));
+        carries[index] = carry - (processor.direct
+          ? processor.direct.runCycles(target)
+          : processor.run(target));
       }
     };
     runAutonomousNow = () => {
@@ -3066,6 +3127,7 @@ class IrBoard implements Board {
     }
     const shares: Record<string, Uint8Array> = {};
     for (const [tag, bytes] of Object.entries(this.shares)) shares[tag] = bytes.slice();
+    for (const sync of this.stateSyncs) sync.capture();
     return {
       format: 1,
       game: this.machine.game,
@@ -3120,6 +3182,7 @@ class IrBoard implements Board {
     }
     const diagnostics = restoreState(this, state.roots, this.walkOptions());
     for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
+    for (const sync of this.stateSyncs) sync.restored();
     // What a catch-up may pay early is not part of a save: a restored machine
     // owes it nothing, and the line settle pays any overrun as it always has.
     this.timerCpuCarriedCycles = 0;
@@ -3241,44 +3304,53 @@ class IrBoard implements Board {
           // A handler that declares `mem_mask` is told which data lanes the
           // access drives, as MAME tells it; the T-Unit's VRAM writes test
           // ACCESSING_BITS_0_7/8_15 and store nothing without it.
-          const masked = device.parameters(method).some(parameter => /\bmem_mask\b/.test(parameter));
+          //
+          // The declaration is fixed for the life of the board, so it is read
+          // here rather than on every access (arity() and parameters() parse
+          // it each time), and the method is reached through its prepared
+          // call rather than overload selection per access: the 1541's drive
+          // CPU polls its two VIAs thousands of times a frame. `Number(...) || 0`
+          // is what `device.call` answers.
+          const parameters = device.parameters(method);
+          const arity = device.arity(method);
+          const masked = parameters.some(parameter => /\bmem_mask\b/.test(parameter));
+          const invoke = device.prepareCall?.(method) ??
+            ((...args: GeneratedCallArgument[]) => device.invoke(method, ...args));
           if (kind === 'read') {
             registry.read[key] = masked
-              ? (_address, offset, memMask = 0xffff) => device.call(method, offset, memMask)
-              : (_address, offset) =>
-                device.arity(method) ? device.call(method, offset) : device.call(method);
+              ? (_address, offset, memMask = 0xffff) => Number(invoke(offset, memMask)) || 0
+              : arity
+                ? (_address, offset) => Number(invoke(offset)) || 0
+                : () => Number(invoke()) || 0;
           } else if (masked) {
             registry.write[key] = (_address, offset, data, memMask = 0xffff) => {
-              device.call(method, offset, data, memMask);
+              invoke(offset, data, memMask);
             };
+          } else if (!parameters[0]?.includes('address_space')) {
+            registry.write[key] = arity <= 1
+              ? (_address, _offset, data) => { invoke(data); }
+              : (_address, offset, data) => { invoke(offset, data); };
           } else {
             registry.write[key] = (_address, offset, data) => {
-              const parameters = device.parameters(method);
-              if (parameters[0]?.includes('address_space')) {
-                const cpuTag = machine.execution.cpus.find(candidateCpu =>
-                  [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(candidate =>
-                    candidate.start === range.start &&
-                    candidate.end === range.end &&
-                    candidate.write === key))?.tag ??
-                  machine.execution.cpus[0]?.tag;
-                const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
-                const space = {
-                  read_byte: (address: number) => bus?.read(address) ?? 0xff,
-                  write_byte: (address: number, value: number) =>
-                    bus?.write(address, value),
-                  device: () => ({
-                    execute: () => ({
-                      adjust_icount: (delta: number) =>
-                        this.adjustGeneratedIcount(cpuTag ?? '', delta),
-                    }),
+              const cpuTag = machine.execution.cpus.find(candidateCpu =>
+                [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(candidate =>
+                  candidate.start === range.start &&
+                  candidate.end === range.end &&
+                  candidate.write === key))?.tag ??
+                machine.execution.cpus[0]?.tag;
+              const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
+              const space = {
+                read_byte: (address: number) => bus?.read(address) ?? 0xff,
+                write_byte: (address: number, value: number) =>
+                  bus?.write(address, value),
+                device: () => ({
+                  execute: () => ({
+                    adjust_icount: (delta: number) =>
+                      this.adjustGeneratedIcount(cpuTag ?? '', delta),
                   }),
-                };
-                device.invoke(method, space, data);
-              } else if (device.arity(method) <= 1) {
-                device.call(method, data);
-              } else {
-                device.call(method, offset, data);
-              }
+                }),
+              };
+              device.invoke(method, space, data);
             };
           }
         }
@@ -5349,6 +5421,25 @@ class IrBoard implements Board {
       !this.machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`]
       ? compileGeneratedMachineHandler(this.machine, handler, bindings)
       : undefined;
+    // An emitted handler takes its arguments in declaration order, which the
+    // signal already fixes, so they are handed over positionally rather than
+    // as a record the dispatch reads back by name.
+    const positional = compiled ? undefined :
+      prepareGeneratedMachinePositional(this.machine, handler, bindings);
+    if (positional) {
+      const declarations = signalParameters(handler.parameters ?? '');
+      return (state, ...sourceArgs) => {
+        const debugCounts = (globalThis as {
+          __mamekitHandlerCounts?: Map<string, number>;
+        }).__mamekitHandlerCounts;
+        if (debugCounts) debugCounts.set(key, (debugCounts.get(key) ?? 0) + 1);
+        const values = new Array<unknown>(declarations.length);
+        for (let index = 0; index < declarations.length; index++) {
+          values[index] = signalArgument(declarations[index]!, index, state, firstArgument, sourceArgs);
+        }
+        return positional(values);
+      };
+    }
     // Resolved once, not per call. A signal wired to a processor's own
     // per-instruction callback delivers seventeen thousand times a frame.
     const dispatch = compiled ??
@@ -5755,20 +5846,25 @@ export function generatedSignalHandlerArguments(
   const declarations = signalParameters(parameters ?? '');
   const args: Record<string, unknown> = { state, data: state };
   for (const [index, declaration] of declarations.entries()) {
-    const name = declaration.name;
-    if (index === 0 && firstArgument !== undefined) {
-      args[name] = firstArgument;
-    } else if (declaration.offset) {
-      args[name] = sourceArgs[0] ?? 0;
-    } else if (declaration.memMask) {
-      args[name] = sourceArgs.length >= 3
-        ? sourceArgs.at(-1)
-        : declaration.memMaskDefault;
-    } else {
-      args[name] = state;
-    }
+    args[declaration.name] = signalArgument(declaration, index, state, firstArgument, sourceArgs);
   }
   return args;
+}
+
+/** What a signal delivers to one declared parameter of its handler. */
+function signalArgument(
+  declaration: SignalParameter,
+  index: number,
+  state: number,
+  firstArgument: unknown,
+  sourceArgs: readonly number[],
+): unknown {
+  if (index === 0 && firstArgument !== undefined) return firstArgument;
+  if (declaration.offset) return sourceArgs[0] ?? 0;
+  if (declaration.memMask) {
+    return sourceArgs.length >= 3 ? sourceArgs.at(-1) : declaration.memMaskDefault;
+  }
+  return state;
 }
 
 /**

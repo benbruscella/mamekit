@@ -38,7 +38,7 @@ const TONES: Record<Tone, { body: string; border: string; color: string }> = {
  * and its accessible name regardless.
  */
 export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys' | 'back'
-  | 'tape' | 'disk' | 'play' | 'stop' | 'rewind' | 'fastForward' | 'power';
+  | 'tape' | 'disk' | 'play' | 'stop' | 'rewind' | 'fastForward' | 'power' | 'paste';
 
 const GLYPHS: Record<Glyph, string> = {
   // two arrows passing: one machine, two players
@@ -68,6 +68,8 @@ const GLYPHS: Record<Glyph, string> = {
   fastForward: '<path d="M4 6l7 6-7 6zM13 6l7 6-7 6z"/>',
   // the power switch: reset the machine
   power: '<path d="M12 3v8"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/>',
+  // a clipboard: text typed into the machine
+  paste: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 10h7M8.5 14h7M8.5 18h4"/>',
 };
 
 /** One glyph, sized for a pill button and coloured by whatever holds it. */
