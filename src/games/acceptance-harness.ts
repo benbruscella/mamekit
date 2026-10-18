@@ -4,6 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
 import { romsDir } from '../paths.ts';
+import { machineSetDir } from '../runtime/rom-source.ts';
 import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
 import { KeyboardInput } from '../runtime/input.ts';
 import {
@@ -105,9 +106,12 @@ export async function runGameAcceptance(
   const framesToRun = options.frames ?? contract.frames;
   const outRoot = resolve(options.outRoot ?? process.env.MAMEKIT_OUT_ROOT ?? join(root, 'dist'));
   const gameDir = gameOutputDir(outRoot, contract.category, contract.game);
+  // A console's own set is filed with its cartridges (consoles/coleco/bios/),
+  // an arcade board's at the category root.
+  const setDir = join(romsDir(root), machineSetDir(contract.category, `${contract.category}/${contract.game}`));
   const romPath = resolve(
     process.env[contract.romEnvironment]
-      ?? join(romsDir(root), contract.category, `${contract.game}.zip`),
+      ?? join(setDir, `${contract.game}.zip`),
   );
   assert.ok(existsSync(gameDir), `${contract.game}: generated output is missing: ${gameDir}`);
 
@@ -118,7 +122,9 @@ export async function runGameAcceptance(
   // cartridge -- the Game Boy's boot ROM, the ColecoVision's BIOS -- and the
   // NES and the 2600 carry nothing at all.
   const systemSet = config.roms.some(rom => rom.loads?.length);
-  assert.ok(!systemSet || existsSync(romPath), `${contract.game}: acceptance ROM is missing: ${romPath}`);
+  assert.ok(!systemSet || existsSync(romPath),
+    `${contract.game}: acceptance ROM is missing: ${romPath}` +
+    (contract.category === 'arcade' ? '' : ' (make -C .data roms-tidy files a loose BIOS set there)'));
   assert.equal(config.game, contract.game);
   assert.equal(config.sound.kind, contract.soundKind);
   assert.deepEqual(
@@ -134,7 +140,7 @@ export async function runGameAcceptance(
   // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
   // names are the MAME device short names carried in the generated manifest.
   for (const romSet of unresolvedDependencyRomSets(config.roms, contract.game, files)) {
-    const devicePath = resolve(join(romsDir(root), contract.category, `${romSet}.zip`));
+    const devicePath = resolve(join(setDir, `${romSet}.zip`));
     assert.ok(
       existsSync(devicePath),
       `${contract.game}: MAME dependency ROM set "${romSet}" is missing: ${devicePath}`,

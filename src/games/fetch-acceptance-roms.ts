@@ -12,7 +12,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ShellConfig } from '../runtime/shell.ts';
 import { unresolvedDependencyRomSets } from '../runtime/shell.ts';
-import { ROM_BUCKET_BASE, encodeRomKey } from '../runtime/rom-source.ts';
+import { ROM_BUCKET_BASE, encodeRomKey, machineSetDir } from '../runtime/rom-source.ts';
 import { readZip } from '../runtime/zip.ts';
 import { gameOutputDir } from '../gen/output-layout.ts';
 import { romsDir } from '../paths.ts';
@@ -22,31 +22,46 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const parallelism = 8;
 
 interface RomRequirement {
-  category: string;
+  /** folder below the ROM root: "arcade", "consoles/coleco/bios", "consoles/nes" */
+  dir: string;
   set: string;
+  /**
+   * Where the bucket held this set before it moved: console BIOS sets sat at
+   * the category root until issue #162 filed them under the console.
+   */
+  formerDir?: string;
 }
 
 function key(requirement: RomRequirement): string {
-  return `${requirement.category}/${requirement.set}`;
+  return `${requirement.dir}/${requirement.set}`;
+}
+
+/** The requirement for a machine's own set, or one of its dependency sets. */
+function machineSet(category: string, game: string, set: string): RomRequirement {
+  const dir = machineSetDir(category, `${category}/${game}`);
+  return { dir, set, ...(dir !== category ? { formerDir: category } : {}) };
 }
 
 async function fetchArchive(requirement: RomRequirement): Promise<Uint8Array> {
-  const objectKey = `${key(requirement)}.zip`;
   const base = (process.env.MAMEKIT_ACCEPTANCE_ROM_BASE ?? ROM_BUCKET_BASE).replace(/\/$/, '');
-  const url = `${base}/${encodeRomKey(objectKey)}`;
+  const keys = [requirement.dir, ...(requirement.formerDir ? [requirement.formerDir] : [])]
+    .map(dir => `${dir}/${requirement.set}.zip`);
   let last = 'request failed';
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) return new Uint8Array(await response.arrayBuffer());
-      last = `HTTP ${response.status}`;
-      if (response.status === 404) break;
-    } catch (error) {
-      last = error instanceof Error ? error.message : String(error);
+  for (const objectKey of keys) {
+    const url = `${base}/${encodeRomKey(objectKey)}`;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) return new Uint8Array(await response.arrayBuffer());
+        last = `${objectKey}: HTTP ${response.status}`;
+        if (response.status === 404) break;
+      } catch (error) {
+        last = `${objectKey}: ${error instanceof Error ? error.message : String(error)}`;
+      }
+      await new Promise(resolveWait => setTimeout(resolveWait, attempt * 1_000));
     }
-    await new Promise(resolveWait => setTimeout(resolveWait, attempt * 1_000));
   }
-  throw new Error(`${objectKey}: ${last}`);
+  throw new Error(last);
 }
 
 async function downloadMissing(requirements: RomRequirement[]): Promise<Map<string, Uint8Array>> {
@@ -56,7 +71,7 @@ async function downloadMissing(requirements: RomRequirement[]): Promise<Map<stri
   await Promise.all(Array.from({ length: Math.min(parallelism, unique.length) }, async () => {
     while (cursor < unique.length) {
       const requirement = unique[cursor++]!;
-      const path = join(romsDir(projectRoot), requirement.category, `${requirement.set}.zip`);
+      const path = join(romsDir(projectRoot), requirement.dir, `${requirement.set}.zip`);
       if (existsSync(path)) {
         downloaded.set(key(requirement), new Uint8Array(readFileSync(path)));
         continue;
@@ -91,10 +106,10 @@ export async function fetchAcceptanceRoms(): Promise<void> {
   // 2600) has no set of its own; its cartridges sit in a folder named after it.
   const withSet = machines.filter(machine =>
     configs.get(machine.game)!.roms.some(rom => rom.loads?.length));
-  const primary = withSet.map(machine => ({ category: machine.category, set: machine.game }));
+  const primary = withSet.map(machine => machineSet(machine.category, machine.game, machine.game));
   const cartridges = [...new Map(contracts.flatMap(contract => contract.cartridge
     ? [[`${contract.category}/${contract.game}/${contract.cartridge}`, {
-        category: `${contract.category}/${contract.game}`,
+        dir: `${contract.category}/${contract.game}`,
         set: contract.cartridge,
       }] as const]
     : [])).values()];
@@ -103,10 +118,10 @@ export async function fetchAcceptanceRoms(): Promise<void> {
   const dependencies: RomRequirement[] = [];
   for (const machine of withSet) {
     const config = configs.get(machine.game)!;
-    const bytes = archives.get(`${machine.category}/${machine.game}`)!;
+    const bytes = archives.get(key(machineSet(machine.category, machine.game, machine.game)))!;
     const files = await readZip(bytes);
     for (const set of unresolvedDependencyRomSets(config.roms, machine.game, files)) {
-      dependencies.push({ category: machine.category, set });
+      dependencies.push(machineSet(machine.category, machine.game, set));
     }
   }
   await downloadMissing(dependencies);

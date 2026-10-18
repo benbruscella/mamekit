@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const srcRoot = join(projectRoot, 'src');
+// Repository tooling (the ROM library, the audit filer) carries its own specs.
+const toolsRoot = join(projectRoot, 'tools');
 
 function specFiles(dir: string): string[] {
   const found: string[] = [];
@@ -46,7 +48,7 @@ function runSpec(file: string): Promise<SpecResult> {
   });
 }
 
-const files = specFiles(srcRoot);
+const files = [...specFiles(srcRoot), ...specFiles(toolsRoot)];
 const requestedJobs = Number(process.env.SPEC_JOBS ?? 4);
 const jobs = Number.isInteger(requestedJobs) && requestedJobs > 0
   ? Math.min(requestedJobs, Math.max(1, files.length))

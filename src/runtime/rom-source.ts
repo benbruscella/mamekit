@@ -25,6 +25,17 @@ export function romSourceUrls(key: string): string[] {
   return [`/romsearch/${encoded}`, `${ROM_BUCKET_BASE}/${encoded}`];
 }
 
+/**
+ * The folder a machine's own ROM sets live in, as a key below the bucket root.
+ * An arcade board's set sits at the category root ("arcade/pacman.zip"); a
+ * console's or computer's BIOS sits inside the system's own folder, beside the
+ * software it runs ("consoles/coleco/bios/coleco.zip",
+ * "computers/c64/bios/c1541.zip"). `system` is that folder's key.
+ */
+export function machineSetDir(category: string, system: string): string {
+  return category === 'arcade' ? category : `${system}/bios`;
+}
+
 /** Fetch bytes for a bucket key, or null when no source had it. */
 export async function fetchRomBytes(key: string): Promise<Uint8Array | null> {
   for (const url of romSourceUrls(key)) {

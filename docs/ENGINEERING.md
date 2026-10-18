@@ -30,7 +30,11 @@ ROMs and artwork are copyrighted, so they live outside version control in one
 hidden, gitignored tree:
 
 ```text
-.data/roms/<category>/<target>.zip    acceptance ROMs (arcade, consoles/*)
+.data/roms/arcade/<set>.zip           arcade sets: each board's own, its parent's, its devices'
+.data/roms/consoles/<system>/         cartridges by software-list short name, BIOS in bios/
+.data/roms/computers/<family>/<list>/ software per software list, BIOS in <family>/bios/
+.data/roms/_new/                      the ROM library's inbox (make roms-import)
+.data/roms/_quarantine/               what no supported machine uses, with the reason logged
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
 .data/release-notes/raw/              MAMEDEV's published whatsnew/messnew notes
 .data/release-notes/index.json        digested driver credits generation reads
@@ -56,6 +60,36 @@ through `romsDir()`, `artworkDir()` and `releaseNotesDir()` rather than
 hardcoding any of them. ROMs are
 never served or deployed — `src/cli.ts` mounts artwork explicitly and nothing
 mounts roms. Run `make -C .data help` for the sync targets.
+
+### ROM LIBRARY
+
+`tools/rom-library.ts` keeps `.data/roms` in the shape the app and the harness
+read, for every supported system at once. "Supported" is derived: the systems
+and their software lists come from the game contracts and each target's
+generated `config.json`, the lists themselves from MAME's `hash/`, so it needs
+a generated `dist/` and nothing in it names a machine.
+
+```sh
+make -C .data roms-status                 # per system: games/entries per list, BIOS, arcade sets
+make -C .data roms-missing LIST=a2600     # the uncovered games (REGION=western LIMIT=40 CSV=1)
+make -C .data roms-missing DAT=1          # + a Logiqx want list per list in roms/_new/_reports/
+make -C .data roms-import DRY=1           # every verdict for roms/_new/, nothing moved
+make -C .data roms-import                 # tidy, then file everything in roms/_new/
+```
+
+Identification is by chip size, CRC32 and SHA1 against the list, never by file
+name. Inputs may be loose files or archives of archives (zip natively; 7z and
+rar through the system's bsdtar), and the chips one archive holds pool, so a
+MAME set of loose chips or a tape whose sides are two files completes as one
+entry. A set is filed as the zip `mame <machine> <name>` loads, its chips
+under the list's own names, and recorded in the shelf's `_manifest.json`.
+A uniform-byte bank is never evidence of anything (a blank C64 cartridge bank
+"matched" ColecoVision chips), but once real chips name a set, the blank banks
+MAME lists beside them are supplied. Nothing is deleted: tidying moves a
+console BIOS set into `<system>/bios/`, renames a computer list folder to its
+list, and quarantines whatever no supported list or machine claims,
+MAME-unsupported sets included; inputs park in `_new/_imported/` and its
+siblings, and every run writes `_new/_reports/`.
 
 MAME source discovery order is implemented by the CLI. Override automatic
 discovery with:
@@ -102,9 +136,9 @@ build is what issue #53 did, with nothing going red.
 A console has no romset to accept against; it is accepted against a cartridge.
 Its contract's scenario names one by MAME software-list short name
 (`cartridge: 'smb1'`), the set lives at
-`.data/roms/consoles/<console>/<cartridge>.zip` beside the console's own set
-(the ColecoVision BIOS, the Game Boy's DMG boot ROM; the NES and the 2600 have
-none), and the harness mounts it through `src/runtime/cart-mount.ts`, the code
+`.data/roms/consoles/<console>/<cartridge>.zip`, with the console's own set in
+`.data/roms/consoles/<console>/bios/` (the ColecoVision BIOS, the Game Boy's DMG
+boot ROM; the NES and the 2600 have none), and the harness mounts it through `src/runtime/cart-mount.ts`, the code
 the console room boots a visitor's cartridge with. Goldens, the save-state round
 trip and the audio probe then apply exactly as for an arcade set. Before #155
 no console had a contract, and the NES and the Game Boy each drew one flat
@@ -186,9 +220,10 @@ the DOS job queue at 1541 RAM `$00`-`$05` (1 is success, 3 no sync, 9 a header
 checksum) alongside the drive's `m_cyl` and the gate array's `cur_live`.
 
 Matched software belongs in `.data/roms/computers/c64/<software-list>/` and
-firmware in `.data/roms/computers/c64/bios/`; processing reports and retained
-source material belong under `.data/roms/_processed/c64/`. The generator reads
-the audit's `_manifest.json` in each of those folders to build the shelf's
+firmware in `.data/roms/computers/c64/bios/`, which is where `make -C .data
+roms-import` files it; processing reports and retained source material belong
+under `.data/roms/_processed/c64/`. The generator reads
+the `_manifest.json` in each of those folders to build the shelf's
 availability index, keyed by the driver family so the PAL and NTSC machines
 share one collection. Neither BIOS nor game data belongs in generated output.
 Cartridge and quickload image loading are still unfinished, so those shelves
