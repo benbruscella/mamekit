@@ -10,7 +10,6 @@ import { PointerInput } from './pointer.ts';
 import { NaturalKeyboard } from './natural-keyboard.ts';
 import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
 import { createOnscreenKeyboard } from './onscreen-keyboard.ts';
-import { diskId, openDiskStore } from './diskstore.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
@@ -1088,8 +1087,7 @@ export async function runShell(
   disks.forEach((disk, index) => {
     const mine = claimed[tapes.length + index]!;
     ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
-      mine.length && typing ? cfg.boot?.command : undefined,
-      cfg.titleKey && mine.length ? { family: cfg.family, titleKey: cfg.titleKey } : undefined));
+      mine.length && typing ? cfg.boot?.command : undefined));
   });
   detached('floppy');
   quickloads.forEach((quickload, index) => {
@@ -3169,8 +3167,6 @@ function diskBay(
   usage?: string,
   /** the command the title starts itself with (ShellConfig.boot), when it does */
   starting?: string,
-  /** where the disks this title writes are kept: its family and its key in the room */
-  keepAs?: { family: string; titleKey: string },
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -3269,46 +3265,13 @@ function diskBay(
   let images = new Map<string, Uint8Array>();
   // What the set's list says of its disks (a write-protected original).
   let features: Readonly<Record<string, string>> | undefined;
-  // A disk the machine writes stays written (diskstore.ts): kept when the
-  // page goes away and before the disk comes out, put back when it goes in.
-  let current: string | undefined;
-  const store = keepAs ? openDiskStore() : undefined;
-  const keepDisk = async (): Promise<void> => {
-    // Taken now: the eject or insert that called this changes `current`
-    // before the store has opened.
-    const image = current;
-    if (!keepAs || !image || !media.written?.()) return;
-    const state = media.contents?.();
-    if (state === undefined) return;
-    try {
-      await (await store!).put({ id: diskId(keepAs.family, keepAs.titleKey, image), family: keepAs.family,
-        set: keepAs.titleKey, image, savedAt: Date.now(), state });
-      log(`kept what the drive wrote to ${image}`);
-    } catch (error) { console.warn(`[disk ${media.tag}] could not keep ${image}:`, error); }
-  };
-  if (keepAs) {
-    addEventListener('pagehide', () => { void keepDisk(); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) void keepDisk(); });
-  }
   const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
     if (!bytes) return;
-    void keepDisk();
     try {
       const started = performance.now();
       media.mount(name.split('.').pop()!.toLowerCase(), bytes, name, features);
-      current = name;
-      if (keepAs) {
-        void store!.then(opened => opened.get(diskId(keepAs.family, keepAs.titleKey, name))).then(record => {
-          if (!record || current !== name) return;
-          try {
-            media.restore?.(record.state);
-            log(`put back what the drive wrote to ${name} on ${new Date(record.savedAt).toLocaleString()}`);
-            say(`${name}: your saved disk`);
-          } catch (error) { console.warn(`[disk ${media.tag}] the kept ${name} did not fit:`, error); }
-        });
-      }
       log(`inserted ${name} (${bytes.length} bytes, read in ${Math.round(performance.now() - started)} ms)`);
       mounted.textContent = name;
       mounted.title = name;
@@ -3322,8 +3285,7 @@ function diskBay(
     paint();
   };
   eject.onclick = () => {
-    void keepDisk();
-    try { media.eject(); current = undefined; log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    try { media.eject(); log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
     catch (error) { say(String(error)); }
     paint(); eject.blur();
   };

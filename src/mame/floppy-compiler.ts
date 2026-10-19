@@ -96,8 +96,10 @@ export function compileFloppyDrive(
     // From the list's `write_protected` feature to the write protect the
     // controller sees: a disk is writable unless its file is read-only or
     // its list says so (Bounty Bob Strikes Back will not load otherwise).
-    // `m_output_format` is the format a dirty disk is saved back in; keeping
-    // a written disk is the host's (call_unload's commit_image).
+    // `m_output_format` is the format a dirty disk would be saved back in;
+    // that save is call_unload's commit_image, which stays with the image
+    // host, and MAMEKIT never writes a disk back: what the machine writes
+    // lasts as long as the disk is in the drive.
     program: compileMameHandler(normalizeMameExecutionSource(`m_image = image; ${loaded}`)),
     source: { file: FLOPPY_SOURCE, line: load.span.line },
   });

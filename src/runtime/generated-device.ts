@@ -1901,7 +1901,7 @@ class IrDevice implements Device {
     this.imageReadOnly = false;
     this.softwarePart = features ? { areas: {}, features: { ...features } } : undefined;
     // The format stands for itself by name: what the drive keeps of it is
-    // only whether there is one to save a written disk back in.
+    // only whether there is one a written disk could be saved back in.
     this.invoke('mount_image', stateValue(heldInstanceName(this.definition.floppyImage), image.instance() as object), best.name);
   }
 

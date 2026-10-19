@@ -2,7 +2,7 @@ import { boardConfigFromIr } from '../ir/host-config.ts';
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
-import { captureState, namedStateFunction, restoreState, stateValue, type StateNode, type WalkOptions } from './machine-state.ts';
+import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
 import {
   createDevice,
   createGeneratedAttotime,
@@ -3075,26 +3075,6 @@ class IrBoard implements Board {
         spinning: () => drive.get('m_mon') === 0,
         track: () => Math.floor(drive.get('m_cyl') / 2) + 1,
         trackCount: () => Math.ceil(drive.get('m_tracks') / 2),
-        // What MAME commits to the image file on unload when it is dirty:
-        // here, the floppy_image the drive holds, as a save state holds it.
-        written: () => Boolean(drive.get('m_image_dirty')),
-        // The drive's own slot, walked as a save state walks it: the image is
-        // a generated device of its own, rebuilt by its factory on the way back.
-        contents: () => {
-          const instance = drive.instance?.() as Record<string, unknown> | undefined;
-          const image = instance?.m_image;
-          return image && typeof image === 'object' ? captureState({ m_image: image }, this.walkOptions()) : undefined;
-        },
-        restore: (contents: unknown) => {
-          const instance = drive.instance?.() as Record<string, unknown> | undefined;
-          if (!instance?.m_image || typeof instance.m_image !== 'object') throw new Error('no disk in the drive');
-          const slot = { m_image: instance.m_image };
-          const problems = restoreState(slot, contents as StateNode, this.walkOptions());
-          if (problems.length) throw new Error(`the kept disk does not fit this one: ${problems[0]!.message ?? problems[0]}`);
-          instance.m_image = slot.m_image;
-          // The flux the head last cached belongs to the image just replaced.
-          if (drive.methodNames().includes('cache_clear')) drive.invoke('cache_clear');
-        },
       }];
     });
   }

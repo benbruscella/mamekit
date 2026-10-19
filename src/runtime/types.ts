@@ -112,12 +112,6 @@ export interface DiskMedia {
   track(): number;
   /** Tracks the drive can reach, counted the same way. */
   trackCount(): number;
-  /** The drive wrote to the disk since it went in (floppy_image_device's `m_image_dirty`). */
-  written?(): boolean;
-  /** The disk as the drive holds it now, to keep: its floppy_image's state. */
-  contents?(): unknown;
-  /** Put kept contents back over the disk now in the drive (the same disk, freshly mounted). */
-  restore?(contents: unknown): void;
 }
 
 /**

@@ -833,7 +833,7 @@ machine*:
 | what a machine's state *is* | capturing and restoring that state |
 | configuration switches (PORT_CONFNAME) and their settings | a Machine settings toggle, kept per title |
 | the keys a driver declares and what each types | the on-screen keyboard that presses them |
-| a floppy image's tracks and its dirty flag | keeping a written disk, and a title's resume point |
+| what a machine's state *is*, a disk in its drive included | a title's resume point |
 
 A host feature is legitimately MAMEKIT's own design and owes MAME nothing:
 it does not need a MAME counterpart, a source span, or a lowering rule. What
@@ -856,14 +856,13 @@ is the driver's keys, each cap the PORT_CHAR it types or MAME's name for it,
 placed on a generic QWERTY grid by the characters it types, with the keys a PC
 has no key for on a row of their own. **Resume** is one automatic save state
 per title, written whenever the page is hidden and loaded the next time the
-same title boots on the same machine. A **written disk** is what MAME would
-commit to the image file on unload when `m_image_dirty` is set: the drive's
-floppy_image is captured into the visitor's browser and put back over a
-freshly mounted copy of the same disk (`src/runtime/diskstore.ts`). A disk
-is writable, as a software-list disk is in MAME, unless its list part says
-`write_protected` (which call_load reads, with the entry's shared features
-inherited as MAME's parser copies them): Bounty Bob Strikes Back will not load
-from a disk that is not.
+same title boots on the same machine. MAMEKIT never writes a disk back:
+MAME commits a dirty image to its file on unload, and that commit stays with
+the image host, so what the machine writes lasts while the disk is in the
+drive. A disk is writable, as a software-list disk is in MAME, unless its list
+part says `write_protected` (which call_load reads, with the entry's shared
+features inherited as MAME's parser copies them): Bounty Bob Strikes Back will
+not load from a disk that is not.
 
 The test for a proposed host feature is therefore not "did this come from
 MAME source" (design test question 1 does not apply) but "would this work
