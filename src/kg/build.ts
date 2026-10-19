@@ -1543,6 +1543,7 @@ function emitInputPorts(
       if (f.name) props.name = f.name;
       if (f.defaultValue !== undefined) props.defaultValue = f.defaultValue;
       if (f.location) props.location = f.location;
+      if (f.config) props.config = true;
       if (f.settings?.length) {
         props.settings = f.settings.map(s => `${s.value}=${s.name}${s.condition ? ` [if ${s.condition}]` : ''}`);
       }
@@ -2244,22 +2245,29 @@ export function constructorConfigCalls(
       }
       const parameters = splitMameArgs(body.slice(start, end - 1));
       if (parameters.length < 3 + extra.length) continue;
-      if (!/machine_config/.test(parameters[0] ?? '') || !/char\s*\*/.test(parameters[1] ?? '') ||
+      // `const char *tag` or `char const *tag`: MAME spells it both ways.
+      if (!/machine_config/.test(parameters[0] ?? '') || !/\bchar\b[\w\s]*\*/.test(parameters[1] ?? '') ||
         !/device_t\s*\*/.test(parameters[2] ?? '')) continue;
       const after = /^\s*(?::[^{;]*)?\{([^{}]*)\}/.exec(body.slice(end));
       if (!after) continue;
       const statements = after[1]!.split(';').map(statement => statement.trim()).filter(Boolean);
       const names = parameters.slice(3).map(parameter => /(\w+)\s*(?:=.*)?$/.exec(parameter)?.[1]);
-      const setters = statements.map(statement => /^(\w+)\s*\(\s*(\w+)\s*\)$/.exec(statement));
-      if (!statements.length || setters.some(setter => !setter || !names.includes(setter[2]))) continue;
+      // The setters of the constructor's own parameters. Anything else it
+      // does -- the IEC slot's `set_options(std::forward<T>(opts), dflt,
+      // false)` -- is configuration this graph records another way.
+      // A slot's default option is the graph's `slotDefault` already.
+      const setters = statements.map(statement => /^(\w+)\s*\(\s*(\w+)\s*\)$/.exec(statement))
+        .filter((setter): setter is RegExpExecArray => Boolean(setter && names.includes(setter[2]) &&
+          setter[1] !== 'set_default_option' && setter[1] !== 'set_fixed'));
+      if (!setters.length) continue;
       const calls = setters.flatMap(setter => {
-        const position = names.indexOf(setter![2]);
+        const position = names.indexOf(setter[2]);
         const argument = extra[position];
         if (argument === undefined) return [];
         const value = configArgument(argument, sources, constants);
-        return value === undefined ? [] : [`${setter![1]}(${value})`];
+        return value === undefined ? [] : [`${setter[1]}(${value})`];
       });
-      return { calls, clockConsumed: setters.some(setter => names.indexOf(setter![2]) === 0) };
+      return { calls, clockConsumed: setters.some(setter => names.indexOf(setter[2]) === 0) };
     }
   }
   return none;

@@ -1317,6 +1317,13 @@ function expressionValueType(
   if (expression.kind === 'unary' && expression.operator === '&') {
     return `${expressionValueType(expression.operand, context) ?? ''}*`;
   }
+  // A container's begin() and end() are iterators, so `track.begin() + si` is
+  // pointer arithmetic: as a number it concatenated the array into a string.
+  // Whatever the receiver's declared type -- `auto &ws = wspans[i]` has none.
+  if (expression.kind === 'call' && expression.callee.kind === 'member' && !expression.args.length &&
+      (expression.callee.property === 'begin' || expression.callee.property === 'end')) {
+    return 'iterator*';
+  }
   if (expression.kind === 'binary' && ['+', '-'].includes(expression.operator)) {
     const left = expressionValueType(expression.left, context);
     const right = expressionValueType(expression.right, context);
@@ -1689,6 +1696,12 @@ function valueMemberCallCode(
   if (!args.length && (property === 'begin' || property === 'end' || property === 'data' || property === 'empty') &&
       /^(?:const\s+)?std::vector\b/.test(expressionValueType(expression.callee.object, context) ?? '')) {
     return `runtime.container(${object}, ${JSON.stringify(property)})`;
+  }
+  // std::vector's insert and erase take iterators into the vector; the
+  // runtime answers them over the array (generatedVectorMethod), and any
+  // other object keeps its own method of the name.
+  if (property === 'insert' || property === 'erase') {
+    return `runtime.vectorMethod(${object}, ${JSON.stringify(property)}${args.map(argument => `, ${argument}`).join('')})`;
   }
   // normalizeMameExecutionSource lowers std::vector::push_back to Array.push.
   // A vector is the container value itself, not a C++ pointer to its first

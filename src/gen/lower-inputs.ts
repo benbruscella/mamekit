@@ -152,7 +152,18 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
         const value = Number(f.props.defaultValue ?? mask); // unused dips default to off (active low)
         init = (init & ~mask) | (value & mask);
         const named = f.props.name ? String(f.props.name) : undefined;
-        dipDefaults.push({ port: tag, mask, value, name: named ?? '' });
+        // A configuration switch carries MAME's own settings, which is what
+        // the shell's Machine settings offers ("Joystick in swapped port").
+        const settings = f.props.config && Array.isArray(f.props.settings)
+          ? (f.props.settings as string[]).flatMap(setting => {
+              const parsed = /^(-?\d+)=(.*?)(?: \[if .*\])?$/.exec(String(setting));
+              return parsed ? [{ value: Number(parsed[1]), name: parsed[2]! }] : [];
+            })
+          : [];
+        dipDefaults.push({
+          port: tag, mask, value, name: named ?? '',
+          ...(f.props.config ? { config: true, settings } : {}),
+        });
         // A configuration switch MAME gives a key to is one a player is meant
         // to operate, not a cabinet setting: the Atari 2600's TV Type, and its
         // two difficulty switches, are physical switches on the console front.

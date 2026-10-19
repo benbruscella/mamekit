@@ -20,7 +20,7 @@ import {
 import type { Board, BoardSnapshot, CassetteMedia, DiskMedia, MachineState, QuickloadMedia, Regions } from '../runtime/types.ts';
 import { NaturalKeyboard } from '../runtime/natural-keyboard.ts';
 import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } from '../runtime/software.ts';
-import { claimImages, emptyMediaSlots, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
+import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
 import { cartImageFromZip, cartSupport, mountCart, resolveCartImage } from '../runtime/cart-mount.ts';
@@ -193,6 +193,7 @@ export async function runGameAcceptance(
     game: config.game,
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
+    ...(software?.powerOn ? { images: software.powerOn } : {}),
   };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const buildRegions = (): Regions => {
@@ -272,7 +273,7 @@ export async function runGameAcceptance(
   );
   assert.equal(board.fbWidth, contract.screen.width);
   assert.equal(board.fbHeight, contract.screen.height);
-  const title = software ? mountContractSoftware(contract, board, software.images) : undefined;
+  const title = software?.images.length ? mountContractSoftware(contract, board, software.images) : undefined;
   // As the shell does (shell.ts): a relative control's frame of travel is
   // handed out against the beam, MAME's frame_interpolate. Without it a board
   // that reads its trackball mid-frame -- Missile Command, from its scanline
@@ -534,7 +535,7 @@ export async function runGameAcceptance(
         { soundWrite: (offset, data, frac, method) => { replayWrites?.push({ offset, data, frac, method }); } },
       );
       deepInput.frameFraction = () => deepBoard.frameFraction?.() ?? 1;
-      if (software) mountContractSoftware(contract, deepBoard, software.images);
+      if (software?.images.length) mountContractSoftware(contract, deepBoard, software.images);
       const scratch = new Uint32Array(deepBoard.fbWidth * deepBoard.fbHeight);
       for (let index = 0; index < roundTrip.step; index++) { deepInput.advance(); deepBoard.frame(scratch); }
       await replayFromState(deepBoard, deepInput, roundTrip.step, roundTrip.state, roundTrip.input, 'divergent');
@@ -926,7 +927,13 @@ async function loadContractSoftware(
   config: ShellConfig,
   root: string,
   gameDir: string,
-): Promise<{ images: MountedImage[]; boot?: SoftwareShelf['boot']; emptySlots: string[] }> {
+): Promise<{
+  images: MountedImage[];
+  /** a cartridge, held by its slot from power-on (BoardConfig.images) */
+  powerOn?: NonNullable<ShellConfig['board']['images']>;
+  boot?: SoftwareShelf['boot'];
+  emptySlots: string[];
+}> {
   const { list, name } = contract.software!;
   const shelf = config.software?.shelves.find(candidate => candidate.list === list);
   assert.ok(shelf, `${contract.game}: the machine has no ${list} shelf`);
@@ -940,9 +947,16 @@ async function loadContractSoftware(
     `${contract.game}: ${name}.zip identifies as ${identified?.entry.name ?? `nothing in ${list}`}`);
   assert.equal(identified.matched, identified.entry.prg.roms.length,
     `${contract.game}: ${name}.zip only partly matches its software-list entry`);
+  const emptySlots = emptyMediaSlots(config.software, list);
+  if (shelf.imageDevice) {
+    // A cartridge's chips go into its slot by area, as the room's Play puts them.
+    const part = softwarePart(members, identified.entry);
+    assert.ok(part, `${contract.game}: ${name}.zip is missing a chip its ${list} entry names`);
+    return { images: [], powerOn: { [shelf.imageDevice]: { name: `${name}.zip`, software: part } }, ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots };
+  }
   const images = mountableImages(members, shelf.extensions, identified.entry);
   assert.ok(images.length, `${contract.game}: ${name}.zip holds no image a ${list} transport reads`);
-  return { images, ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots: emptyMediaSlots(config.software, list) };
+  return { images, ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots };
 }
 
 /** Each transport's first claimed image, inserted before the first frame as the shell's bays insert it. */
@@ -957,7 +971,7 @@ function mountContractSoftware(
   const claimed = claimImages(transports, images);
   claimed.forEach((mine, index) => {
     const image = mine[0];
-    if (image) transports[index]!.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes, image.name);
+    if (image) transports[index]!.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes, image.name, image.features);
   });
   assert.ok(claimed.some(mine => mine.length), `${contract.game}: no transport reads ${images.map(image => image.name).join(', ')}`);
   const tape = tapes.find((_, index) => claimed[index]!.length);

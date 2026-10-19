@@ -27,14 +27,14 @@ import { readZip, crc32 } from './zip.ts';
 import { cartAvailability, fetchRomBytes, machineSetDir, machineSetKeys, type CartAvailability } from './rom-source.ts';
 import { wrapCartTitle } from './console.ts';
 import { artworkSources } from './artwork-source.ts';
-import { emptyMediaSlots, withoutSlotFirmware } from './title-start.ts';
+import { emptyMediaSlots, softwarePart, withoutSlotFirmware } from './title-start.ts';
 import { chooseVersion, onlyVersion, versionFilters, versionLabel, type MachineVersion } from './machine-versions.ts';
 
 const GOLD = '#f2c200';
 const MAX_SET = 16 * 1024 * 1024; // a disk image set; no tape or cart is near it
 
 /** the generated catalogue, as the room reads it (src/kg/softlist.ts writes it) */
-export interface SoftRom { size: number; crc: string; offset: number; file?: string }
+export interface SoftRom { size: number; crc: string; offset: number; file?: string; /** a cartridge chip's dataarea */ area?: string }
 export interface SoftEntry {
   name: string;
   description: string;
@@ -51,6 +51,12 @@ export interface SoftEntry {
   video?: string;
   /** the title's own start command, from its usage note, over its shelf's */
   start?: string;
+  /** each cartridge dataarea's declared size ("roml": 8192) */
+  areas?: Record<string, number>;
+  /** the part's other features: a C64 cartridge's `exrom` and `game` */
+  features?: Record<string, string>;
+  /** configuration switches the title's note asks for (software-shelves usageSwitches) */
+  switches?: { port: string; mask: number; value: number }[];
 }
 export interface SoftCatalog {
   list: string;
@@ -286,7 +292,9 @@ export function identifySet(
  * list can still carry sets in another one: the C64's misc disks include a
  * `.img` its 1541 cannot read, which used to boot with the drive empty.
  */
-export function entryPlayable(entry: Pick<SoftEntry, 'prg'>, shelf: Pick<SoftwareShelf, 'extensions'>): boolean {
+export function entryPlayable(entry: Pick<SoftEntry, 'prg'>, shelf: Pick<SoftwareShelf, 'extensions' | 'imageDevice'>): boolean {
+  // A cartridge is read area by area into its slot, not as an image file.
+  if (shelf.imageDevice) return entry.prg.roms.some(rom => rom.area);
   return entry.prg.roms.some(rom => {
     const extension = rom.file?.includes('.') ? rom.file.split('.').pop()!.toLowerCase() : '';
     return Boolean(extension) && shelf.extensions.includes(extension);
@@ -304,7 +312,9 @@ export function mountableImages(
     .map(([name, bytes]) => ({ name: name.split('/').pop() ?? name, bytes }));
   if (!entry) return images;
   const order = new Map(entry.prg.roms.map((rom, index) => [rom.file?.toLowerCase(), index]));
-  return images.sort((a, b) =>
+  // A list marks a disk write protected as a feature its drive's call_load reads.
+  const features = entry.features;
+  return images.map(image => features ? { ...image, features } : image).sort((a, b) =>
     (order.get(a.name.toLowerCase()) ?? 1e9) - (order.get(b.name.toLowerCase()) ?? 1e9));
 }
 
@@ -870,6 +880,25 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     c.addEventListener('mouseleave', () => { c.style.transform = 'perspective(700px) rotateY(-2deg)'; });
     return c;
   }
+  /**
+   * A title's cover in place of its drawn medium, where its shelf has one
+   * (`shelf.art`, the .webp the site ships under artwork/carts/<list>/). The
+   * drawing stays underneath: a cover that does not load leaves it showing.
+   */
+  function withCover(cover: HTMLElement, shelf: SoftwareShelf | undefined, name: string | undefined): void {
+    const file = shelf && name ? shelf.art?.[name] : undefined;
+    if (!file) return;
+    const [web] = artworkSources(`carts/${shelf!.list}/${file}`);
+    const img = document.createElement('img');
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.setAttribute('data-cover', '');
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px';
+    img.onerror = () => img.remove();
+    img.src = web;
+    cover.appendChild(img);
+  }
   function titleLine(text: string): HTMLElement {
     const box = el('div', 'max-width:164px;height:26px;display:flex;align-items:center;justify-content:center');
     const line = el('div', `display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
@@ -913,6 +942,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       ...(soft.supported ? { supported: soft.supported } : {}),
       ...(soft.parts ? { parts: soft.parts } : {}),
     }), state === 'display');
+    withCover(cover, shelf, soft.name);
     const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-align:center;
       color:${state === 'available' ? '#5ecf7a' : state === 'display' ? '#737ba7' : '#e8b64c'}`);
@@ -999,12 +1029,17 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     const identified = identifySet(members, sources);
     // The shelf on screen is only a hint: a disk image dropped while the
     // tapes are showing belongs on a disk shelf, not refused by the tape one.
-    const takes = (candidate: SoftwareShelf | undefined): boolean =>
-      Boolean(candidate && mountableImages(members, candidate.extensions).length);
+    // A cartridge shelf takes a set its list identifies whole: the slot reads
+    // its chips by area, so there is no image file to look for.
+    const takes = (candidate: SoftwareShelf | undefined): boolean => Boolean(candidate && (candidate.imageDevice
+      ? (identified?.list === candidate.list && softwarePart(members, identified.entry)) ||
+        (!identified && mountableImages(members, candidate.extensions).length)
+      : mountableImages(members, candidate.extensions).length));
     const shelf = shelfFor(identified?.list) ?? (takes(hint) ? hint : shelves.find(takes) ?? hint);
     if (!shelf) { toast(`${name}: no image inside that any shelf here accepts`); return false; }
-    if (!mountableImages(members, shelf.extensions).length) {
-      toast(`${name}: no ${shelf.extensions.map(e => `.${e}`).join(' / ')} image inside`);
+    if (!takes(shelf)) {
+      toast(shelf.imageDevice ? `${name}: not every chip of a ${shelf.list} set is inside`
+        : `${name}: no ${shelf.extensions.map(e => `.${e}`).join(' / ')} image inside`);
       return false;
     }
     // Kept under the machine's parent, and known by its crc whichever version
@@ -1076,6 +1111,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       ...(soft?.supported ? { supported: soft.supported } : {}),
       ...(soft?.parts ? { parts: soft.parts } : {}),
     }), false);
+    withCover(cover, shelf, rec.set);
     cover.style.width = `${TILE_W}px`;
     cover.style.height = `${TILE_H}px`;
     const status = el('div', 'font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;color:#5ecf7a');
@@ -1141,6 +1177,8 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       (rec ? chooseVersion(versions, listed, preference, ownedEntry(rec)?.video) : versionForPowerOn());
     const machine = version.cfg;
     let images: MountedImage[] = [];
+    // A cartridge goes into its slot before the machine starts (BoardConfig.images).
+    let powerOnImages: NonNullable<ShellConfig['board']['images']> | undefined;
     let title = machine.title;
     if (rec) {
       const shelf = shelfOf.get(rec.list ?? '')?.get(version.game) ?? shelfFor(rec.list);
@@ -1150,8 +1188,18 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       let members: Map<string, Uint8Array>;
       try { members = isZip ? await readZip(bytes) : new Map([[rec.name, bytes]]); }
       catch { toast(`${rec.name}: could not read the set`); return; }
-      images = mountableImages(members, shelf.extensions, ownedEntry(rec));
-      if (!images.length) { toast(`${rec.name}: no image inside to mount`); return; }
+      const owned = ownedEntry(rec);
+      const part = shelf.imageDevice && owned ? softwarePart(members, owned) : undefined;
+      if (shelf.imageDevice) {
+        // A list title is its part; a bare file (a .crt) is the file, whose
+        // own header the port's chooser reads.
+        const file = part ? undefined : mountableImages(members, shelf.extensions)[0];
+        if (!part && !file) { toast(`${rec.name}: not every chip of the set is inside`); return; }
+        powerOnImages = { [shelf.imageDevice]: part ? { name: rec.name, software: part } : { name: file!.name, bytes: file!.bytes } };
+      } else {
+        images = mountableImages(members, shelf.extensions, owned);
+        if (!images.length) { toast(`${rec.name}: no image inside to mount`); return; }
+      }
       title = `${stripSet(ownedEntry(rec)?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''))} — ${machine.title}`;
     }
     inRoom = false;
@@ -1167,8 +1215,16 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       ...machine,
       title,
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
-      ...(emptySlots.length ? { board: { ...machine.board, emptySlots } } : {}),
+      ...(emptySlots.length || powerOnImages ? {
+        board: {
+          ...machine.board,
+          ...(emptySlots.length ? { emptySlots } : {}),
+          ...(powerOnImages ? { images: powerOnImages } : {}),
+        },
+      } : {}),
       ...(rec && ownedEntry(rec)?.usage ? { usage: ownedEntry(rec)!.usage } : {}),
+      ...(rec ? { titleKey: rec.id } : {}),
+      ...(rec && ownedEntry(rec)?.switches?.length ? { switches: ownedEntry(rec)!.switches } : {}),
       // A title starts itself: its shelf's command is typed once the machine
       // is up (Power on, with no title, leaves the keyboard to the visitor).
       ...(shelfBoot ? { boot: shelfBoot } : {}),

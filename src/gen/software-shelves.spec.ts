@@ -2,13 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  availabilityFromAudit,
-  catalogExtensions,
-  mediaSlotsOf,
-  mediumKindOf,
-  writeSoftwareShelves,
-} from './software-shelves.ts';
+import { availabilityFromAudit, catalogExtensions, mediaSlotsOf, mediumKindOf, writeSoftwareShelves, usageSwitches } from './software-shelves.ts';
 
 // The medium follows the part interface MAME gives the list.
 assert.equal(mediumKindOf('cbm_cass', 'c64_cass'), 'cassette');
@@ -203,8 +197,43 @@ try {
     transportExtensions: { quickload: ['t64'] },
   })!.shelves[0]!;
   assert.equal(unknownLoader.boot, undefined, 'a loader no policy knows starts nothing itself');
+  // A cartridge goes into the expansion port before power-on, read by area:
+  // its shelf names the port and lists no formats, and a cartridge starts itself.
+  const cartShelf = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'C64_EXPANSION_SLOT', tag: 'exp' }],
+    lists: [{ name: 'c64_cart', status: 'original', filter: 'NTSC' }],
+  })!.shelves[0]!;
+  assert.equal(cartShelf.mountable, true);
+  assert.equal(cartShelf.imageDevice, 'exp');
+  assert.deepEqual(cartShelf.extensions, []);
+  assert.equal(cartShelf.boot, undefined);
+  const crtShelf = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'C64_EXPANSION_SLOT', tag: 'exp' }],
+    lists: [{ name: 'c64_cart', status: 'original', filter: 'NTSC' }],
+    transportExtensions: { cartridge: ['80', 'a0', 'e0', 'crt'] },
+  })!.shelves[0]!;
+  assert.equal(crtShelf.mountable, true, 'a list whose chips are no files still mounts by area');
+  assert.deepEqual(crtShelf.extensions, ['80', 'a0', 'e0', 'crt'], 'and a bare .crt is the port\'s to read');
 } finally {
   rmSync(root, { recursive: true, force: true });
+}
+
+// A usage note that wants the joystick where the machine has none throws the
+// machine's own swap switch; one that wants it where it already is, nothing.
+{
+  const devices = [
+    { type: 'VCS_CONTROL_PORT', tag: 'joy1' },
+    { type: 'VCS_CONTROL_PORT', tag: 'joy2', slotDefault: 'joy' },
+  ];
+  const swap = { port: 'JOYSWAP', mask: 1, value: 0, name: 'Swap joystick ports', config: true,
+    settings: [{ value: 1, name: 'Joystick in swapped port' }, { value: 0, name: 'Joystick in assigned port' }] };
+  assert.deepEqual(usageSwitches('Requires joystick in port 1', devices, [swap]).map(entry => entry.value), [1]);
+  assert.deepEqual(usageSwitches('Requires joystick in port 2', devices, [swap]), []);
+  assert.deepEqual(usageSwitches('Load "GAME",8,1', devices, [swap]), []);
+  assert.deepEqual(usageSwitches('Requires joystick in port 1', devices, [{ ...swap, config: false }]), [],
+    'a DIP switch is the board\'s, not a setting a note can ask for');
 }
 
 console.log('software-shelves.spec: medium kinds, audit reduction and shelf extraction passed');

@@ -7,11 +7,12 @@ import type { KGNode } from '../kg/types.ts';
 import type { Graph } from '../kg/query.ts';
 import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
 
-import { writeSoftwareShelves } from './software-shelves.ts';
+import { writeSoftwareShelves, type ShelfSwitch } from './software-shelves.ts';
 import { connectorFloppyFormats, floppyFormatExtensions } from '../mame/floppy-compiler.ts';
 import { DATASSETTE_IMAGE_EXTENSIONS } from '../mame/cassette-compiler.ts';
 import type { SoftwareShelves } from '../runtime/shell.ts';
 import { romsDir } from '../paths.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
@@ -20,7 +21,7 @@ import type { GenerateOptions } from './generate.ts';
 
 import { CART_SLOT_SUPPORT, CART_INTERFACE_BY_FAMILY, CART_DEFAULT_SLOT, CART_ROM_REGION, CART_GAME_SUPPORT, cartFileExtensions, localCartArt, writeCartShelfIndex } from './cartridge-catalog.ts';
 
-export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefined, opts: GenerateOptions, devices: KGNode[], softlistNodes: KGNode[], category: "arcade" | "consoles" | "computers", family: string, g?: Graph) {
+export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefined, opts: GenerateOptions, devices: KGNode[], softlistNodes: KGNode[], category: "arcade" | "consoles" | "computers", family: string, g?: Graph, switches: readonly ShelfSwitch[] = []) {
   // --- emit ---------------------------------------------------------------------------
   const title = `${game.props.fullname} (${game.props.company}, ${game.props.year})`;
 
@@ -121,6 +122,11 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         .flatMap(call => /^set_extensions\("([^"]*)"\)$/.exec(String(call))?.[1]?.split(',') ?? []))
       .map(extension => extension.trim().toLowerCase())
       .filter(Boolean))];
+    // A cartridge port reads files too, the ones its file_extensions() names:
+    // the C64's expansion port takes .80, .a0, .e0 and .crt.
+    const cartridgeFiles = [...new Set(devices
+      .filter(device => device.props.type === 'C64_EXPANSION_SLOT')
+      .flatMap(device => imageFileExtensions(opts.mameSrc, String(device.props.type))))];
     software = writeSoftwareShelves({
       mameSrc: opts.mameSrc,
       outDir: opts.outDir,
@@ -130,7 +136,10 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         ...(devices.some(device => device.props.type === 'PET_DATASSETTE_PORT')
           ? { cassette: DATASSETTE_IMAGE_EXTENSIONS } : {}),
         ...(quickload.length ? { quickload } : {}),
+        ...(cartridgeFiles.length ? { cartridge: cartridgeFiles } : {}),
       },
+      switches,
+      artFor: localCartArt,
       lists: softlistNodes.map(node => ({
         name: String(node.props.name),
         status: String(node.props.status),
@@ -170,4 +179,20 @@ function imageLoader(g: Graph, device: KGNode): string | undefined {
     }
   }
   return undefined;
+}
+
+/**
+ * The files an image device reads, as its own `file_extensions()` answers:
+ * `return "80,a0,e0,crt";` in the C64 expansion port's header.
+ */
+function imageFileExtensions(mameSrc: string, type: string): string[] {
+  const definition = indexMameHardware(mameSrc).get(type);
+  if (!definition) return [];
+  for (const file of [definition.sourceFile.replace(/\.cpp$/, '.h'), definition.sourceFile]) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    const listed = /\bfile_extensions\s*\(\s*\)[^{;]*\{\s*return\s+"([^"]*)"\s*;/.exec(readFileSync(path, 'utf8'))?.[1];
+    if (listed !== undefined) return listed.split(',').map(extension => extension.trim().toLowerCase()).filter(Boolean);
+  }
+  return [];
 }

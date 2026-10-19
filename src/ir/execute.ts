@@ -2110,7 +2110,9 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     const bytes = args[0] as ArrayLike<number>;
     return (bytes[0]! | bytes[1]! << 8 | bytes[2]! << 16) >>> 0;
   }
-  if (name === 'strcmp') {
+  // As the C library and as `std::` spell it: the floppy drive's call_load
+  // compares its `write_protected` feature with `std::strcmp`.
+  if (name === 'strcmp' || name === 'std::strcmp') {
     const string = (value: unknown): string => {
       if (typeof value === 'string') return value.split('\0')[0]!;
       if (Array.isArray(value) || ArrayBuffer.isView(value)) {
@@ -2195,9 +2197,21 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::make_pair' || name === 'std::make_tuple' || name === 'std::pair' || name === 'std::tuple') {
     return [...args];
   }
+  // C's string-to-integer conversions: a C64 cartridge's `exrom` feature is
+  // the string "0", and its slot reads it with atol.
+  if (name === 'atol' || name === 'atoi' || name === 'atoll') {
+    const text = isLValue(args[0]) ? args[0].get() : args[0];
+    return Number.parseInt(String(text ?? ''), 10) || 0;
+  }
   // Default-constructed, an error_condition is success and a string empty.
   if (name === 'std::error_condition' && !args.length) return 0;
   if (name === 'std::string' && !args.length) return '';
+  // A C string made a std::string is the same text: the CRT reader returns
+  // `std::string(CRT_C64_SLOT_NAMES[hardware])`, the card a .crt needs.
+  if (name === 'std::string' && args.length === 1) {
+    const value = isLValue(args[0]) ? args[0].get() : args[0];
+    if (typeof value === 'string') return value;
+  }
   // osdcomm.h's byte-order helpers. A value read raw out of a file
   // (`image.fread(&address, 2)`) lands in host order, which here, as on
   // every host MAME builds for, is little-endian: making it little-endian is
@@ -2670,6 +2684,9 @@ function evaluateCall(
     }
     if (object && (typeof object === 'object' || typeof object === 'function')) {
       const args = expression.args.map(arg => evaluate(arg, context));
+      if (Array.isArray(object) && (method === 'insert' || method === 'erase')) {
+        return generatedVectorMethod(object, method, ...args);
+      }
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
       // MAME spells every framework accessor as a call, but the runtime models
@@ -3247,6 +3264,11 @@ function comparableValue(value: unknown): unknown {
     if (typeof primitive === 'number') return primitive;
     return value;
   }
+  // A C string is a pointer, and no string is the null one: a C64
+  // cartridge's `get_feature("exrom") != nullptr` holds for the feature "0".
+  // Read as a number, "0" was nullptr and the cartridge's EXROM line never
+  // went low.
+  if (typeof value === 'string') return value;
   return toNumber(value);
 }
 
@@ -3365,12 +3387,96 @@ function scalarBytes(pointer: GeneratedPointer, count: number): Uint8Array {
   return bytes;
 }
 
+/**
+ * The cells of a nested array (`uint8_t m_spr_data[8][4]`) in C's row-major
+ * order, as one flat run of storage: what memcpy and memset of the whole array
+ * address. The runtime holds it as an array of rows, and copying the outer
+ * array copied the rows themselves -- the VIC-II's cycle-57 snapshot of its
+ * sprite data became the very buffer the next fetches wrote, so sprites 0 and
+ * 1 drew the following line's data, a line early.
+ */
+function nestedCells(value: unknown): { row: { [index: number]: unknown }; index: number }[] | undefined {
+  if (!Array.isArray(value) || !value.length || !value.every(row => isIndexableMemory(row))) return undefined;
+  const cells: { row: { [index: number]: unknown }; index: number }[] = [];
+  for (const row of value as ArrayLike<unknown>[]) {
+    const inner = nestedCells(row);
+    if (inner) { cells.push(...inner); continue; }
+    for (let index = 0; index < row.length; index++) cells.push({ row: row as { [index: number]: unknown }, index });
+  }
+  return cells;
+}
+
+/**
+ * A struct as the bytes C lays it out in: its fields in declaration order,
+ * each as wide as it is declared (an array field as its elements, a byte each
+ * unless typed wider). MAME reads a .crt's header straight into
+ * `cbm_crt_header` this way. Byte fields only need no padding, which is the
+ * shape of every struct a file is read into.
+ */
+function structCells(struct: Record<string, unknown>): { set(byte: number): void }[] {
+  const widths = (struct as { [GENERATED_FIELD_WIDTHS]?: Record<string, number> })[GENERATED_FIELD_WIDTHS] ?? {};
+  const cells: { set(byte: number): void }[] = [];
+  for (const name of Object.keys(struct)) {
+    const field = struct[name];
+    if (field && typeof field === 'object' && !ArrayBuffer.isView(field) && !Array.isArray(field)) {
+      cells.push(...structCells(field as Record<string, unknown>));
+    } else if (ArrayBuffer.isView(field) || Array.isArray(field)) {
+      const array = field as { [index: number]: unknown; length: number; BYTES_PER_ELEMENT?: number };
+      const bytes = array.BYTES_PER_ELEMENT ?? 1;
+      for (let index = 0; index < array.length; index++) {
+        for (let byte = 0; byte < bytes; byte++) {
+          cells.push({ set: value => {
+            const current = byte ? Number(array[index]) || 0 : 0;
+            array[index] = current + value * 2 ** (8 * byte);
+          } });
+        }
+      }
+    } else {
+      const bytes = Math.max(1, Math.abs(widths[name] ?? 32) / 8);
+      for (let byte = 0; byte < bytes; byte++) {
+        cells.push({ set: value => {
+          const current = byte ? Number(struct[name]) || 0 : 0;
+          struct[name] = current + value * 2 ** (8 * byte);
+        } });
+      }
+    }
+  }
+  return cells;
+}
+
 function copyGeneratedMemory(
   destination: unknown,
   source: unknown,
   count: number,
   bytewise = false,
 ): void {
+  // Bytes into a struct (`read(file, &header, CRT_HEADER_LENGTH)`).
+  const struct = isGeneratedPointer(destination) && destination.target ? destination.target.get() : destination;
+  if (isGeneratedStruct(struct)) {
+    const origin = generatedMemoryView(source, bytewise);
+    if (!origin) return;
+    const cells = structCells(struct);
+    for (let index = 0; index < Math.min(count, cells.length); index++) {
+      cells[index]!.set(Number(origin.bytes[origin.offset + index] ?? 0) & 0xff);
+    }
+    return;
+  }
+  const targetCells = nestedCells(destination);
+  const originCells = nestedCells(source);
+  if (targetCells || originCells) {
+    const origin = originCells ?? [];
+    const view = originCells ? undefined : generatedMemoryView(source, bytewise);
+    const length = Math.min(count, targetCells?.length ?? count, originCells?.length ?? count);
+    const values = Array.from({ length }, (_, index) => originCells
+      ? origin[index]!.row[origin[index]!.index]
+      : view?.bytes[view.offset + index] ?? 0);
+    if (targetCells) values.forEach((value, index) => { targetCells[index]!.row[targetCells[index]!.index] = value; });
+    else {
+      const target = generatedMemoryView(destination, bytewise);
+      if (target) values.forEach((value, index) => { (target.bytes as { [index: number]: unknown })[target.offset + index] = value; });
+    }
+    return;
+  }
   // `memcpy(&value, bytes, 2)` and `image.fread(&address, 2)` fill a scalar:
   // the bytes become its value, little-endian, and any above them stay.
   if (scalarTarget(destination)) {
@@ -3406,6 +3512,11 @@ export function copyGeneratedBytes(destination: unknown, source: unknown, count:
 }
 
 function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
+  const cells = nestedCells(destination);
+  if (cells) {
+    for (const cell of cells.slice(0, count)) cell.row[cell.index] = value;
+    return;
+  }
   const target = generatedMemoryView(destination, true);
   if (!target) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
@@ -3585,6 +3696,40 @@ export function generatedPointerStore(pointer: unknown, value: unknown): unknown
     (pointer as Record<number, unknown>)[0] = value;
   }
   return value;
+}
+
+/**
+ * std::vector's `insert` and `erase`, over a growable vector held as an array.
+ * They take iterators, which are positions in the vector: `begin()` is the
+ * vector itself and `begin() + i` or `end() - 1` a pointer into it. A plain
+ * array has neither method, so a call on one was optional-chained into
+ * nothing: the floppy drive's wspan_write never changed a track, and every
+ * 1541 write failed its verify (`25, WRITE ERROR`). Anything else keeps its
+ * own method of that name.
+ */
+export function generatedVectorMethod(container: unknown, method: string, ...args: unknown[]): unknown {
+  const vector = isLValue(container) ? container.get() : container;
+  if (!Array.isArray(vector)) {
+    const own = vector && typeof vector === 'object' ? (vector as Record<string, unknown>)[method] : undefined;
+    return typeof own === 'function' ? own.apply(vector, args) ?? 0 : 0;
+  }
+  const position = (iterator: unknown): number => {
+    const held = isLValue(iterator) ? iterator.get() : iterator;
+    if (held === vector) return 0;
+    if (isGeneratedPointer(held) && held.source === vector) return held.offset;
+    throw new Error(`std::vector::${method}: the iterator does not point into the vector`);
+  };
+  const at = position(args[0]);
+  if (method === 'insert') {
+    if (args.length !== 2) throw new Error(`std::vector::insert with ${args.length} arguments is not supported`);
+    vector.splice(at, 0, isLValue(args[1]) ? args[1].get() : args[1]);
+  } else if (method === 'erase') {
+    const end = args.length > 1 ? position(args[1]) : at + 1;
+    vector.splice(at, Math.max(0, end - at));
+  } else {
+    throw new Error(`std::vector has no ${method} here`);
+  }
+  return { generatedPointer: true, source: vector, offset: at };
 }
 
 export function generatedContainerAccessor(value: unknown, method: string): unknown {

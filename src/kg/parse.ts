@@ -1804,6 +1804,8 @@ export interface PortFieldDef {
   defaultValue?: number;
   location?: string;
   settings?: { value: number; name: string; condition?: string }[];
+  /** PORT_CONFNAME: a machine configuration switch, not a DIP bank */
+  config?: boolean;
 }
 export interface PortDef { tag: string; modify?: boolean; fields: PortFieldDef[]; }
 export interface InputPortsDef { name: string; includes?: string[]; ports: PortDef[]; }
@@ -1981,6 +1983,10 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
             name: defStr(args[2]),
             settings: [],
             ...(confMods.length ? { modifiers: confMods } : {}),
+            // A configuration switch is the machine's setup rather than a
+            // board's DIP bank: MAME lists these in its own Machine
+            // Configuration menu (the C64's "Swap joystick ports").
+            ...(tm[1] === 'PORT_CONFNAME' ? { config: true } : {}),
           };
           port.fields.push(dip);
           break;

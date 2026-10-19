@@ -97,8 +97,12 @@ export interface CassetteMedia {
 export interface DiskMedia {
   tag: string;
   extensions: string[];
-  /** Insert a disk image (replacing any disk already in the drive). */
-  mount(extension: string, bytes: Uint8Array): void;
+  /**
+   * Insert a disk image (replacing any disk already in the drive). `features`
+   * are its software-list part's, when it came from one: a list can mark a
+   * disk write protected, as some protection schemes need.
+   */
+  mount(extension: string, bytes: Uint8Array, name?: string, features?: Readonly<Record<string, string>>): void;
   eject(): void;
   /** A disk is in the drive. */
   loaded(): boolean;
@@ -108,6 +112,12 @@ export interface DiskMedia {
   track(): number;
   /** Tracks the drive can reach, counted the same way. */
   trackCount(): number;
+  /** The drive wrote to the disk since it went in (floppy_image_device's `m_image_dirty`). */
+  written?(): boolean;
+  /** The disk as the drive holds it now, to keep: its floppy_image's state. */
+  contents?(): unknown;
+  /** Put kept contents back over the disk now in the drive (the same disk, freshly mounted). */
+  restore?(contents: unknown): void;
 }
 
 /**

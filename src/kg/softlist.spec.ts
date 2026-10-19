@@ -237,5 +237,72 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   eq('first side indexes the set', ntsc.crcIndex['eee24a58'], [0]);
 }
 
+// A C64 cartridge: its slot asks for each dataarea by name, at the size the
+// list declares, and reads its EXROM and GAME lines as features. The VIC-10's
+// Ultimax carts name theirs `lorom` and `uprom`.
+{
+  const cart = buildCatalog(parseSoftwareList(`
+<softwarelist name="c64_cart" description="Commodore 64 cartridges">
+  <software name="vw64">
+    <description>VizaWrite 64</description><year>1984</year><publisher>Viza</publisher>
+    <part name="cart" interface="c64_cart">
+      <feature name="slot" value="vizawrite"/>
+      <feature name="game" value="0"/>
+      <feature name="exrom" value="0"/>
+      <dataarea name="roml" size="0x4000">
+        <rom name="u" size="0x2000" crc="b0cc7564" sha1="x" offset="0"/>
+      </dataarea>
+      <dataarea name="romh" size="0x2000">
+        <rom name="2" size="0x2000" crc="32f2a5df" sha1="x" offset="0"/>
+      </dataarea>
+    </part>
+  </software>
+</softwarelist>`));
+  const entry = cart.entries[0]!;
+  eq('a cartridge keeps its slot apart from its features', [entry.slot, entry.features], ['vizawrite', { game: '0', exrom: '0' }]);
+  eq('each area at its declared size, larger than its chips', entry.areas, { roml: 0x4000, romh: 0x2000 });
+  eq('each chip names its area', entry.prg.roms.map(rom => rom.area), ['roml', 'romh']);
+  const ultimax = buildCatalog(parseSoftwareList(`
+<softwarelist name="vic10" description="VIC-10">
+  <software name="jlander"><description>Jupiter Lander</description><year>1982</year><publisher>Commodore</publisher>
+    <part name="cart" interface="vic10_cart">
+      <dataarea name="uprom" size="0x2000"><rom name="jl.bin" size="0x2000" crc="12345678" sha1="x"/></dataarea>
+    </part>
+  </software>
+</softwarelist>`));
+  eq('an Ultimax cart is identifiable by its uprom', ultimax.crcIndex['12345678'], [0]);
+  eq('and its area is kept', ultimax.entries[0]!.areas, { uprom: 0x2000 });
+}
+
+// A floppy drive's call_load reads `write_protected`, which MAME's parser
+// gives each part from the entry's shared features too: Bounty Bob Strikes
+// Back will not load from a disk that is not protected.
+{
+  const disks = buildCatalog(parseSoftwareList(`
+<softwarelist name="c64_flop_orig" description="C64 disks">
+  <software name="bbsb"><description>Bounty Bob Strikes Back!</description><year>1985</year><publisher>Big Five</publisher>
+    <sharedfeat name="write_protected" value="true" />
+    <part name="flop1" interface="floppy_5_25">
+      <feature name="read_only" value="true"/>
+      <dataarea name="flop" size="208212"><rom name="bbsb.g64" size="208212" crc="69456d8c" sha1="x"/></dataarea>
+    </part>
+  </software>
+  <software name="own"><description>Own</description><year>1985</year><publisher>X</publisher>
+    <sharedfeat name="write_protected" value="true" />
+    <part name="flop1" interface="floppy_5_25">
+      <feature name="write_protected" value="false"/>
+      <dataarea name="flop" size="174848"><rom name="own.d64" size="174848" crc="22222222" sha1="x"/></dataarea>
+    </part>
+  </software>
+  <software name="plain"><description>Plain</description><year>1984</year><publisher>X</publisher>
+    <part name="flop1" interface="floppy_5_25">
+      <dataarea name="flop" size="174848"><rom name="plain.d64" size="174848" crc="11111111" sha1="x"/></dataarea>
+    </part>
+  </software>
+</softwarelist>`));
+  eq('a disk keeps the write protect its list gives it, its part\'s own first',
+    disks.entries.map(entry => entry.features), [{ write_protected: 'true' }, { write_protected: 'false' }, undefined]);
+}
+
 console.log(`\nsoftlist.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

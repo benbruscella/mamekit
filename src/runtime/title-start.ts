@@ -9,6 +9,9 @@
 
 import type { NaturalKeyboard } from './natural-keyboard.ts';
 import type { MountedImage, RomRegionSpec, SoftwareShelf, SoftwareShelves } from './shell.ts';
+import type { SoftEntry } from './software.ts';
+import type { SoftwarePart } from '../ir/host-config.ts';
+import { crc32 } from './zip.ts';
 
 /**
  * The media slots a title boots with empty: every mountable shelf's slots but
@@ -50,6 +53,30 @@ export function claimImages<T extends { extensions: readonly string[] }>(
     pending = pending.filter(image => !mine.includes(image));
     return mine;
   });
+}
+
+/**
+ * A cartridge set as its slot reads it (BoardConfig.images): every dataarea
+ * the list declares, at its declared size, each chip at its offset, and the
+ * part's features with its `slot` among them -- the card MAME's
+ * get_default_card_software would choose. Undefined when a chip is missing.
+ */
+export function softwarePart(
+  members: ReadonlyMap<string, Uint8Array>,
+  entry: Pick<SoftEntry, 'prg' | 'areas' | 'features' | 'slot'>,
+): SoftwarePart | undefined {
+  const chips = entry.prg.roms.filter(rom => rom.area);
+  if (!chips.length) return undefined;
+  const byCrc = new Map([...members.values()].map(bytes => [crc32(bytes).toString(16).padStart(8, '0'), bytes]));
+  const areas: Record<string, Uint8Array> = {};
+  for (const [name, size] of Object.entries(entry.areas ?? {})) areas[name] = new Uint8Array(size);
+  for (const rom of chips) {
+    const bytes = byCrc.get(rom.crc);
+    if (!bytes) return undefined;
+    const area = areas[rom.area!] ??= new Uint8Array(rom.offset + rom.size);
+    area.set(bytes.subarray(0, Math.max(0, Math.min(bytes.length, rom.size, area.length - rom.offset))), rom.offset);
+  }
+  return { areas, features: { ...entry.features, ...(entry.slot ? { slot: entry.slot } : {}) } };
 }
 
 /** The tape a start ends by setting playing. */

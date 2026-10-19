@@ -2,7 +2,7 @@ import { boardConfigFromIr } from '../ir/host-config.ts';
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
-import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
+import { captureState, namedStateFunction, restoreState, stateValue, type StateNode, type WalkOptions } from './machine-state.ts';
 import {
   createDevice,
   createGeneratedAttotime,
@@ -457,9 +457,10 @@ class IrBoard implements Board {
   private deviceClockFollowsProcessors = false;
   /**
    * Brings the device clock up to where the timer-clock processor stands
-   * inside its current instruction (see the core's `suspendsMidInstruction`).
+   * inside its current instruction (see the core's `suspendsMidInstruction`),
+   * or `lag` cycles short of it: 1 leaves the cycle it is on to it.
    */
-  private catchUpDeviceTime?: () => void;
+  private catchUpDeviceTime?: (lag?: number) => void;
   /**
    * Device time a catch-up delivered past the running slice's target. A
    * lockstep slice's booked overrun pays only the rest; any other slice's
@@ -714,6 +715,9 @@ class IrBoard implements Board {
             ? { deferStart: true }
             : {}),
           selectors: cartSelectors(config.cart),
+          // An image held from power-on (BoardConfig.images): a C64 cartridge
+          // is the expansion port's from before the machine starts.
+          ...(config.images?.[specification.tag] ? { image: config.images[specification.tag] } : {}),
           finder: (rawTag, member, kind) => {
             // MAME `required_address_space`: the device's own setter names the
             // processor and space (`m_memspace.set_tag(tag, no)`), after which
@@ -1383,13 +1387,31 @@ class IrBoard implements Board {
       const flatMember = specification?.member &&
         !(specification.hostTag && rootMembers.has(specification.member) && inComposedCard(specification.tag))
         ? specification.member : undefined;
+      // Under MAME's perfect quantum every slice is one processor cycle, the
+      // processor's first: a register access on cycle k finds an executing
+      // device through cycle k-1, and the device runs cycle k after it. So
+      // the VIC-II shows a colour write from the cycle it lands on, and a
+      // CIA's timer reads as it stood. Device time otherwise arrives after
+      // the instruction, which put Batman's raster bars a few cycles early
+      // (222 pixels against MAME 0.289; now none).
+      const synchronized = machine.execution.perfectQuantum === true &&
+        !machine.execution.cpus.some(cpu => cpu.tag === tag) &&
+        device.methodNames().includes('execute_run');
       for (const method of device.methodNames()) {
-        const invoke = device.prepareCall?.(method) ?? ((...args: unknown[]) =>
-          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][]));
+        const accessed = synchronized && (method === 'read' || method === 'write');
+        const synced = <T extends (...args: never[]) => unknown>(call: T): T => accessed
+          ? ((...args: Parameters<T>) => {
+            this.catchUpDeviceTime?.(1);
+            return call(...args);
+          }) as T
+          : call;
+        const invoke = synced(device.prepareCall?.(method) ?? ((...args: unknown[]) =>
+          device.invoke(method, ...args as Parameters<typeof device.invoke>[1][])));
         calls[`${tag}.${method}`] = invoke;
         calls[`m_${tag}.${method}`] = invoke;
         if (flatMember) calls[`${flatMember}.${method}`] = invoke;
-        device.connectCall?.(method, call => {
+        device.connectCall?.(method, connected => {
+          const call = synced(connected);
           calls[`${tag}.${method}`] = call;
           calls[`m_${tag}.${method}`] = call;
           if (flatMember) calls[`${flatMember}.${method}`] = call;
@@ -1907,7 +1929,7 @@ class IrBoard implements Board {
       // whenever its read timer fell due inside the instruction that started
       // the motor: MAME's cassette refuses to move to a negative position.
       if (specification.tag === timerClockCpu?.tag && cpuFacts.suspendsMidInstruction && cpu.elapsedCycles) {
-        this.catchUpDeviceTime = () => {
+        this.catchUpDeviceTime = (lag = 0) => {
           if (this.deliveringDeviceTime || !this.coreExecuting || this.runningCpu !== specification.tag) return;
           // The processor began this slice where its last one overran to.
           if (this.timerCpuCarriedCycles > 0) {
@@ -1919,7 +1941,7 @@ class IrBoard implements Board {
           // whatever it overran comes off its next slice (the frame runner's
           // carry), which is where that much device time would otherwise
           // have been delivered.
-          const reach = this.runningSliceCycles + cpu.elapsedCycles!();
+          const reach = this.runningSliceCycles + cpu.elapsedCycles!() - lag;
           const delivered = timing.previousCycles + this.deviceTimeAheadOfSlice;
           if (!(reach > delivered)) return;
           advanceTimedHardware((reach - delivered) / timerClockHz());
@@ -3041,7 +3063,8 @@ class IrBoard implements Board {
       const drive = device.findDevice?.('floppy');
       if (!drive) return [];
       return [{ tag, extensions: drive.imageExtensions?.() ?? [],
-        mount: (extension: string, bytes: Uint8Array) => drive.mountImage!(extension, bytes),
+        mount: (extension: string, bytes: Uint8Array, name?: string, features?: Readonly<Record<string, string>>) =>
+          drive.mountImage!(extension, bytes, name, features),
         eject: () => drive.unmountImage?.(),
         // floppy_image_device's own state: an image is held, the motor line
         // is active low, and the head counts half-tracks from zero.
@@ -3052,6 +3075,26 @@ class IrBoard implements Board {
         spinning: () => drive.get('m_mon') === 0,
         track: () => Math.floor(drive.get('m_cyl') / 2) + 1,
         trackCount: () => Math.ceil(drive.get('m_tracks') / 2),
+        // What MAME commits to the image file on unload when it is dirty:
+        // here, the floppy_image the drive holds, as a save state holds it.
+        written: () => Boolean(drive.get('m_image_dirty')),
+        // The drive's own slot, walked as a save state walks it: the image is
+        // a generated device of its own, rebuilt by its factory on the way back.
+        contents: () => {
+          const instance = drive.instance?.() as Record<string, unknown> | undefined;
+          const image = instance?.m_image;
+          return image && typeof image === 'object' ? captureState({ m_image: image }, this.walkOptions()) : undefined;
+        },
+        restore: (contents: unknown) => {
+          const instance = drive.instance?.() as Record<string, unknown> | undefined;
+          if (!instance?.m_image || typeof instance.m_image !== 'object') throw new Error('no disk in the drive');
+          const slot = { m_image: instance.m_image };
+          const problems = restoreState(slot, contents as StateNode, this.walkOptions());
+          if (problems.length) throw new Error(`the kept disk does not fit this one: ${problems[0]!.message ?? problems[0]}`);
+          instance.m_image = slot.m_image;
+          // The flux the head last cached belongs to the image just replaced.
+          if (drive.methodNames().includes('cache_clear')) drive.invoke('cache_clear');
+        },
       }];
     });
   }

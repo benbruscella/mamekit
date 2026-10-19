@@ -18,6 +18,7 @@ import { expect, test } from '@playwright/test';
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../support/contracts.ts';
 import { watchFaults } from '../support/game.ts';
 
@@ -26,9 +27,10 @@ const machineDir = join(repoRoot, 'dist/games/computers', MACHINE);
 
 interface Shelf {
   list: string; kind: string; catalogUrl: string; availableUrl?: string; mountable: boolean; entries: number; slots?: string[];
+  extensions: string[]; imageDevice?: string;
   boot?: { delay: number; command: string; play?: boolean };
 }
-interface MachineConfig { software?: { dumpsKey: string; shelves: Shelf[] } }
+interface MachineConfig { software?: { dumpsKey: string; shelves: Shelf[] }; dipDefaults?: { config?: boolean }[] }
 
 const generated = existsSync(join(machineDir, 'config.json'));
 const config: MachineConfig = generated
@@ -282,6 +284,214 @@ test.describe('software room', () => {
     expect(screen).toContain('LOAD"*",8,1');
     expect(screen).toContain('SEARCHING FOR *');
     await expect(page.getByText(/· loading/).first()).toBeVisible({ timeout: 10_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // A cartridge is in the expansion port before the machine starts, read by
+  // area into the card its list names, and starts itself: the program is
+  // running out of the cartridge's ROML window, not waiting at READY.
+  test('a cartridge title boots straight into the cartridge', async ({ page }) => {
+    const shelf = shelves.find(candidate => candidate.kind === 'cartridge' && candidate.mountable && candidate.imageDevice);
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const set = join(family, 'c64_cart', 'kungfum.zip');
+    const firmware = [join(family, 'bios', 'c64.zip')];
+    test.skip(!shelf || !existsSync(set) || !existsSync(firmware[0]!), 'no mountable cartridge shelf, or no local Kung-Fu Master set and firmware');
+    const faults = watchFaults(page);
+    await playLocalSet(page, set, firmware);
+    await page.waitForFunction(() => {
+      const pc = (window as unknown as { mamekit: { board: { snapshot(): { cpus: { pc: number }[] } } } }).mamekit.board.snapshot().cpus[0]!.pc;
+      return pc >= 0x8000 && pc < 0xa000;
+    }, undefined, { timeout: 60_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // A bare .crt, as cartridges are mostly found: the port's own chooser reads
+  // its header for the card, and the cartridge starts the machine.
+  test('a bare .crt boots straight into the cartridge', async ({ page }) => {
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const set = join(family, 'c64_cart', 'pacman.zip');
+    const firmware = [join(family, 'bios', 'c64.zip')];
+    test.skip(!existsSync(set) || !existsSync(firmware[0]!), 'no local Pac-Man set and firmware');
+    // Through a file URL, as e2e/support reaches the repository's own modules.
+    const { readZip } = await import(pathToFileURL(join(repoRoot, 'src/runtime/zip.ts')).href) as
+      { readZip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> };
+    const [rom] = [...(await readZip(new Uint8Array(readFileSync(set)))).values()];
+    // MAME's CRT layout (lib/formats/cbm_crt.cpp): a 64-byte header, then one CHIP packet.
+    const header = new Uint8Array(0x40);
+    header.set(new TextEncoder().encode('C64 CARTRIDGE   '));
+    new DataView(header.buffer).setUint32(0x10, 0x40);
+    new DataView(header.buffer).setUint16(0x14, 0x0100);
+    header[0x18] = 0; // EXROM active
+    header[0x19] = 1;
+    const chip = new Uint8Array(0x10);
+    chip.set(new TextEncoder().encode('CHIP'));
+    new DataView(chip.buffer).setUint32(4, 0x10 + rom!.length);
+    new DataView(chip.buffer).setUint16(0x0c, 0x8000);
+    new DataView(chip.buffer).setUint16(0x0e, rom!.length);
+    const file = join(mkdtempSync(join(tmpdir(), 'mamekit-crt-')), 'pacman.crt');
+    writeFileSync(file, Buffer.concat([header, chip, rom!]));
+    const faults = watchFaults(page);
+    await playLocalSet(page, file, firmware);
+    await page.waitForFunction(() => {
+      const pc = (window as unknown as { mamekit: { board: { snapshot(): { cpus: { pc: number }[] } } } }).mamekit.board.snapshot().cpus[0]!.pc;
+      return pc >= 0x8000 && pc < 0xa000;
+    }, undefined, { timeout: 60_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // MAME's own configuration switch, as a toggle: the C64's "Swap joystick
+  // ports", for the titles that read port 1.
+  test('the machine settings throw MAME\'s own joystick swap', async ({ page }) => {
+    const local = localTitle('cassette');
+    test.skip(!local, 'no local tape set and firmware under .data/roms');
+    test.skip(!config.dipDefaults?.some(dip => dip.config), 'the machine declares no configuration switch');
+    await playLocalSet(page, local!.set, local!.firmware);
+    const swap = page.locator('[data-machine-setting="JOYSWAP"]');
+    await expect(swap).toBeVisible({ timeout: 30_000 });
+    await expect(swap).toHaveAttribute('aria-pressed', 'false');
+    await swap.click();
+    await expect(swap).toHaveAttribute('aria-pressed', 'true');
+    const value = await page.evaluate(() => {
+      const input = (window as unknown as { mamekit: { input: { latch(): void; read(port: string): number } } }).mamekit.input;
+      input.latch();
+      return input.read('JOYSWAP');
+    });
+    expect(value & 1).toBe(1);
+  });
+
+  // The computer's own keyboard on screen: a key pressed there is a key the
+  // machine reads, as BASIC's echo shows.
+  test('the on-screen keyboard types on the computer', async ({ page }) => {
+    const local = localTitle('quickload') ?? localTitle('cassette');
+    test.skip(!local, 'no local firmware');
+    const program = [0x01, 0x08, 0x0e, 0x08, 0x0a, 0x00, 0x99, 0x22, ...[...'QUICK'].map(c => c.charCodeAt(0)), 0x22, 0x00, 0x00, 0x00];
+    const file = join(mkdtempSync(join(tmpdir(), 'mamekit-prg-')), 'quick.prg');
+    writeFileSync(file, Uint8Array.from(program));
+    await playLocalSet(page, file, local!.firmware.slice(0, 1));
+    await expect.poll(() => screenText(page), { timeout: 60_000 }).toMatch(/QUICK\s+READY\./);
+    await page.locator('[data-onscreen-keyboard]').first().click();
+    const panel = page.locator('[data-onscreen-keyboard][role="group"]');
+    await expect(panel).toBeVisible();
+    for (const key of ['H', 'I']) await panel.locator(`[data-key="${key}"]`).click();
+    await expect.poll(() => screenText(page), { timeout: 30_000 }).toMatch(/READY\.\s+HI/);
+  });
+
+  // Leaving a computer title keeps where it was; coming back to it carries on
+  // from there instead of loading the tape again.
+  test('a computer title comes back where it was left', async ({ page }) => {
+    const local = localTitle('cassette');
+    test.skip(!local, 'no local tape set and firmware under .data/roms');
+    await playLocalSet(page, local!.set, local!.firmware);
+    await page.waitForFunction(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } }).mamekit.board.snapshot().frame > 700,
+    undefined, { timeout: 90_000 });
+    const left = await page.evaluate(async () => {
+      dispatchEvent(new Event('pagehide'));
+      // The save lands in IndexedDB; wait until it is there.
+      for (let tries = 0; tries < 50; tries++) {
+        const found = await new Promise<boolean>(resolve => {
+          const open = indexedDB.open('mamekit-saves');
+          open.onsuccess = () => {
+            const db = open.result;
+            const request = db.transaction('saves', 'readonly').objectStore('saves').getAll();
+            request.onsuccess = () => resolve((request.result as { id: string }[]).some(record => record.id.startsWith('resume:')));
+            request.onerror = () => resolve(false);
+          };
+          open.onerror = () => resolve(false);
+        });
+        if (found) return true;
+        await new Promise(next => setTimeout(next, 100));
+      }
+      return false;
+    });
+    expect(left).toBe(true);
+    await page.goto(`/app/g/${MACHINE}/`);
+    const kept = page.locator('[data-owned-set]').first();
+    await expect(kept).toBeVisible({ timeout: 30_000 });
+    await kept.locator('[data-play]').click();
+    await expect(page.getByText(/Back where you left off/)).toBeVisible({ timeout: 60_000 });
+    expect(await page.evaluate(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } }).mamekit.board.snapshot().frame)).toBeGreaterThan(700);
+  });
+
+  // A `.wav` tape, read by MAME's own wavfile.cpp into the cassette image: the
+  // title starts itself and the KERNAL finds the program on it.
+  test('a .wav tape title starts itself and finds its program', async ({ page }) => {
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const set = join(family, 'c64_cass', 'midway.zip');
+    const firmware = [join(family, 'bios', 'c64.zip')];
+    test.skip(!shelves.some(shelf => shelf.kind === 'cassette' && shelf.extensions.includes('wav')) ||
+      !existsSync(set) || !existsSync(firmware[0]!), 'no .wav tape shelf, or no local Midway Campaign set and firmware');
+    const faults = watchFaults(page);
+    await playLocalSet(page, set, firmware);
+    await expect.poll(() => screenText(page), { timeout: 120_000 }).toContain('FOUND MIDWAY CAMPAIGN');
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // A disk the machine writes stays written: what the drive wrote is kept in
+  // the browser when the disk comes out, and put back when it goes in again.
+  test('a disk the machine writes stays written', async ({ page }) => {
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const firmware = ['c64', 'c1541'].map(name => join(family, 'bios', `${name}.zip`));
+    test.skip(!firmware.every(path => existsSync(path)), 'no local C64 and 1541 firmware');
+    // An empty, formatted 35-track D64: the BAM and an empty directory on track 18.
+    const sectors = (track: number) => track <= 17 ? 21 : track <= 24 ? 19 : track <= 30 ? 18 : 17;
+    const disk = new Uint8Array(174848);
+    let bam = 0;
+    for (let track = 1; track < 18; track++) bam += sectors(track) * 256;
+    disk.set([18, 1, 0x41], bam);
+    for (let track = 1; track <= 35; track++) {
+      const bits = ((1 << sectors(track)) - 1) & ~(track === 18 ? 0b11 : 0);
+      disk.set([sectors(track) - (track === 18 ? 2 : 0), bits & 0xff, (bits >> 8) & 0xff, (bits >> 16) & 0xff], bam + 4 * track);
+    }
+    disk.fill(0xa0, bam + 0x90, bam + 0xab);
+    disk.set(new TextEncoder().encode('MAMEKIT'), bam + 0x90);
+    disk.set(new TextEncoder().encode('MK'), bam + 0xa2);
+    disk.set(new TextEncoder().encode('2A'), bam + 0xa5);
+    disk.set([0, 0xff], bam + 256);
+    const file = join(mkdtempSync(join(tmpdir(), 'mamekit-d64-')), 'blank.d64');
+    writeFileSync(file, disk);
+    const faults = watchFaults(page);
+    const type = (text: string) => page.evaluate(typed => {
+      const data = new DataTransfer();
+      data.setData('text/plain', typed);
+      dispatchEvent(new ClipboardEvent('paste', { clipboardData: data }));
+    }, text);
+    const idle = () => page.waitForFunction(() => !(window as unknown as {
+      mamekit: { board: { disks(): { spinning(): boolean }[] } } }).mamekit.board.disks()[0]!.spinning(),
+    undefined, { timeout: 120_000 });
+    await playLocalSet(page, file, firmware);
+    // The title starts itself with LOAD"*",8,1, and an empty disk has nothing
+    // to load; the error drops the RUN typed behind it. Two more seconds of
+    // machine time let the start sequence finish before anything is typed.
+    await expect.poll(() => screenText(page), { timeout: 120_000 }).toMatch(/NOT FOUND\s+ERROR\s+READY\./);
+    await idle();
+    const frame = () => page.evaluate(() => (window as unknown as {
+      mamekit: { board: { snapshot(): { frame: number } } } }).mamekit.board.snapshot().frame);
+    const settled = await frame() + 100;
+    await expect.poll(frame, { timeout: 30_000 }).toBeGreaterThan(settled);
+    await type('10 PRINT"KEPT"\nSAVE"KEEP",8\n');
+    await expect.poll(() => screenText(page), { timeout: 120_000 }).toContain('SAVING KEEP');
+    await idle();
+    expect(await page.evaluate(() => (window as unknown as {
+      mamekit: { board: { disks(): { written(): boolean }[] } } }).mamekit.board.disks()[0]!.written())).toBe(true);
+    await page.locator('[data-disk-eject]').click();
+    await expect.poll(() => page.evaluate(() => new Promise<number>(resolve => {
+      const open = indexedDB.open('mamekit-disks');
+      open.onsuccess = () => {
+        const request = open.result.transaction('disks', 'readonly').objectStore('disks').count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(0);
+      };
+      open.onerror = () => resolve(0);
+    })), { timeout: 30_000 }).toBe(1);
+    // The same disk again: the drive gets back what it wrote.
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Open disk', exact: true }).click();
+    await (await chooser).setFiles(file);
+    await expect(page.getByText(/your saved disk/).first()).toBeVisible({ timeout: 30_000 });
+    await type('LOAD"$",8\nLIST\n');
+    await expect.poll(() => screenText(page), { timeout: 120_000 }).toContain('"KEEP"');
     expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
   });
 

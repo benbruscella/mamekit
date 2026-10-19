@@ -341,7 +341,7 @@ class HandlerParser {
       return undefined;
     }
     if (expression.kind === 'assignment') {
-      const assignments: GeneratedHandlerOperation[] = [{
+      const assignments: GeneratedHandlerOperation[] = tieAssignments(expression, start.offset) ?? [{
         op: 'assign',
         target: expression.target,
         operator: expression.operator,
@@ -1626,4 +1626,30 @@ function expressionName(expression: GeneratedExpression): string {
   if (expression.kind === 'identifier') return expression.name;
   if (expression.kind === 'member') return `${expressionName(expression.object)}.${expression.property}`;
   return '<expression>';
+}
+
+/**
+ * `std::tie(err, buffer, actual) = read(file, size)` assigns a tuple's
+ * elements to existing names, as a structured binding declares new ones: the
+ * tuple is held and each target takes its element, and `std::ignore` takes
+ * nothing. The C64 expansion port reads a raw cartridge image this way.
+ */
+function tieAssignments(
+  expression: Extract<GeneratedExpression, { kind: 'assignment' }>,
+  offset: number,
+): GeneratedHandlerOperation[] | undefined {
+  const target = expression.target;
+  if (expression.operator !== '=' || target.kind !== 'call' || target.callee.kind !== 'identifier' ||
+    target.callee.name !== 'std::tie') return undefined;
+  const holder = `__tie_${offset}`;
+  return [
+    { op: 'declare', name: holder, value: expression.value },
+    ...target.args.flatMap((element, index): GeneratedHandlerOperation[] =>
+      element.kind === 'identifier' && element.name === 'std::ignore' ? [] : [{
+        op: 'assign',
+        target: element,
+        operator: '=',
+        value: { kind: 'index', object: { kind: 'identifier', name: holder }, index: { kind: 'number', value: index } },
+      }]),
+  ];
 }

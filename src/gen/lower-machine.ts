@@ -20,6 +20,7 @@ import { hiscoreTable } from '../mame/hiscore-dat.ts';
 import type { GenerateOptions } from './generate.ts';
 
 import { Graph } from '../kg/query.ts';
+import type { ShelfSwitch } from './software-shelves.ts';
 import { sourceNvramInitializers } from './machine-source.ts';
 export { sourceNvramInitializers, handlerOwnsSharedRam, sourceHandlerDataWidth } from './machine-source.ts';
 
@@ -62,7 +63,7 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   // types another way is MAME's charinfo table, kept to what these keys reach.
   const alternates = naturalKeyboardAlternates(opts.mameSrc, bindings);
 
-  const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family, g);
+  const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family, g, dipDefaults as ShelfSwitch[]);
 
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly

@@ -46,6 +46,29 @@ export interface BoardConfig {
    * room leaves a medium's transport out when the title does not use it.
    */
   emptySlots?: string[];
+  /**
+   * Images held from power-on, by device tag, as MAME's `-cart` mounts one
+   * before the machine starts: the device's own call_load reads it between
+   * its device_start and the first reset. A C64 cartridge arrives this way,
+   * as the software-list part its expansion port loads by area name.
+   */
+  images?: Record<string, BoardImage>;
+}
+
+/** A software-list part as a slot reads it: each dataarea's bytes, and the part's features. */
+export interface SoftwarePart {
+  /** dataarea name -> its bytes, at the size the list declares ("roml", "romh") */
+  areas: Record<string, Uint8Array>;
+  /** `get_feature` answers: a C64 cartridge's `exrom`, `game` and `slot` */
+  features: Record<string, string>;
+}
+
+/** An image a device is handed: a file's bytes, or a software-list part. */
+export interface BoardImage {
+  /** what MAME would call its basename: the set or file name */
+  name: string;
+  bytes?: Uint8Array;
+  software?: SoftwarePart;
 }
 
 /** Use resolved executable facts for composition, preserving host mounting options. */

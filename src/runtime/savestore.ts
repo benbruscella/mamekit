@@ -49,7 +49,10 @@ export function machineIdentity(game: string, boardFacts: unknown, regions: Regi
   const parts = Object.entries(regions)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([tag, bytes]) => `${tag}=${crc32(bytes).toString(16).padStart(8, '0')}`);
-  const facts = crc32(new TextEncoder().encode(JSON.stringify(boardFacts))).toString(16).padStart(8, '0');
+  // A cartridge held from power-on (BoardConfig.images) counts by its crc, not
+  // by a megabyte of JSON digits.
+  const facts = crc32(new TextEncoder().encode(JSON.stringify(boardFacts, (_key, value: unknown) =>
+    ArrayBuffer.isView(value) ? `crc:${crc32(value as Uint8Array).toString(16)}` : value))).toString(16).padStart(8, '0');
   return `${game}|${facts}|${parts.join(',')}`;
 }
 

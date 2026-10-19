@@ -9,6 +9,8 @@ import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { NaturalKeyboard } from './natural-keyboard.ts';
 import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
+import { createOnscreenKeyboard } from './onscreen-keyboard.ts';
+import { diskId, openDiskStore } from './diskstore.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
@@ -375,6 +377,17 @@ export interface ShellConfig {
   /** Start the title the software room booted: its shelf's `boot`. */
   boot?: NonNullable<SoftwareShelf['boot']>;
   /**
+   * The title the software room booted, as the set it keeps for it: what the
+   * title's own host state -- its resume point, its machine settings, the
+   * disks it wrote -- is kept under. Absent for Power on.
+   */
+  titleKey?: string;
+  /**
+   * Configuration switches the title's usage note asks for (the generator's
+   * usageSwitches): a C64 title that wants its joystick in port 1.
+   */
+  switches?: { port: string; mask: number; value: number }[];
+  /**
    * Machines whose firmware kept in this browser is this one's too: a
    * machine's other regional versions, which the room names. The PAL C64
    * loads the NTSC machine's chips, so a c64.zip kept for one boots the other
@@ -436,6 +449,18 @@ export interface SoftwareShelf {
    */
   slots?: string[];
   /**
+   * The device a title's software-list part is handed to at power-on
+   * (BoardConfig.images), for a medium the slot reads by area name rather
+   * than as a file: the C64 expansion port (`exp`) takes a cartridge's `roml`
+   * and `romh`.
+   */
+  imageDevice?: string;
+  /**
+   * The shelf's art, by title: a cover's file under artwork/carts/<list>/,
+   * shown in place of the drawn medium (src/gen/cart-art.ts).
+   */
+  art?: Record<string, string>;
+  /**
    * How a title from this shelf starts once its medium is mounted: the
    * command typed through MAME's natural keyboard after the machine has come
    * up, and whether PLAY is pressed on the tape once it is typed. Generated
@@ -460,6 +485,8 @@ export interface SoftwareShelves {
 export interface MountedImage {
   name: string;
   bytes: Uint8Array;
+  /** Its software-list part's features, as `get_feature` answers them, when it came from a list. */
+  features?: Readonly<Record<string, string>>;
 }
 
 export type RomTransform =
@@ -1061,7 +1088,8 @@ export async function runShell(
   disks.forEach((disk, index) => {
     const mine = claimed[tapes.length + index]!;
     ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
-      mine.length && typing ? cfg.boot?.command : undefined));
+      mine.length && typing ? cfg.boot?.command : undefined,
+      cfg.titleKey && mine.length ? { family: cfg.family, titleKey: cfg.titleKey } : undefined));
   });
   detached('floppy');
   quickloads.forEach((quickload, index) => {
@@ -1322,6 +1350,60 @@ export async function runShell(
       fast.blur();
     };
     group.append(reset, fast);
+    // MAME's Machine Configuration menu: each configuration switch the driver
+    // declares (PORT_CONFNAME) with two settings, as a toggle -- the C64's
+    // "Swap joystick ports", for the titles that read port 1. A title's own
+    // usage note can ask for a setting (cfg.switches, from the generator);
+    // what the visitor chooses is kept for that title.
+    for (const entry of cfg.dipDefaults.filter(dip => dip.config && dip.settings?.length === 2)) {
+      const key = `mamekit:setting:${cfg.game}:${cfg.titleKey ?? 'power-on'}:${entry.port}:${entry.mask}`;
+      const asked = cfg.switches?.find(choice => choice.port === entry.port && choice.mask === entry.mask)?.value;
+      let kept: number | undefined;
+      try { const raw = localStorage.getItem(key); if (raw !== null) kept = Number(raw); } catch { /* not kept */ }
+      let value = kept ?? asked ?? entry.value;
+      const named = (wanted: number): string => entry.settings!.find(setting => setting.value === wanted)?.name ?? String(wanted);
+      const toggle = titleButton(entry.name, entry.name, '', 'normal', 'joystick');
+      toggle.dataset.machineSetting = entry.port;
+      const paint = (): void => {
+        const thrown = value !== entry.value;
+        toggle.setAttribute('aria-pressed', String(thrown));
+        toggle.title = `${named(value)} (MAME's ${entry.name}: click for ${named(entry.settings!.find(setting => setting.value !== value)!.value)})`;
+        paintTitleButton(toggle, thrown);
+      };
+      input.setDip(entry.port, entry.mask, value);
+      paint();
+      if (asked !== undefined && kept === undefined && asked !== entry.value) {
+        console.info(`[settings] ${entry.name}: ${named(asked)}, as the title's note asks`);
+        setTimeout(() => ui.toast(`${named(asked)}, as this title's note asks`), 1200);
+      }
+      toggle.onclick = () => {
+        value = entry.settings!.find(setting => setting.value !== value)!.value;
+        input.setDip(entry.port, entry.mask, value);
+        try { localStorage.setItem(key, String(value)); } catch { /* not kept */ }
+        paint();
+        ui.toast(named(value));
+        toggle.blur();
+      };
+      group.append(toggle);
+    }
+    // The machine's whole keyboard on screen, for keys a PC keyboard has not
+    // got (RUN/STOP, RESTORE, C=, F1 to F8, £) and for a touch screen.
+    if (cfg.bindings.some(binding => binding.type === 'IPT_KEYBOARD')) {
+      const keys = titleButton('Keyboard', 'On-screen keyboard', 'Show the computer\'s own keyboard on screen', 'normal', 'keys');
+      keys.dataset.onscreenKeyboard = '';
+      let panel: HTMLElement | undefined;
+      let open = false;
+      keys.onclick = () => {
+        open = !open;
+        if (open) {
+          panel ??= createOnscreenKeyboard(cfg.bindings, (binding, down) => input.press(binding, down, 'onscreen'));
+          ui.showPopover(keys, panel, () => { open = false; paintTitleButton(keys, false); });
+        } else ui.closePopover();
+        paintTitleButton(keys, open);
+        keys.blur();
+      };
+      group.append(keys);
+    }
     if (tapes.length + disks.length) {
       const warp = titleButton('Warp loading', 'Warp while loading',
         'Fast-forward on its own while a tape or disk is loading, and back to real time when it stops', 'normal', 'fastForward');
@@ -1408,6 +1490,44 @@ export async function runShell(
     event.preventDefault();
     setFastForward(!fastForward);
   });
+
+  // --- resume (issue #161) ---------------------------------------------------
+  // A computer title picks up where it was left, so a three-minute tape load
+  // happens once rather than every visit. One automatic save per title, kept
+  // with the visitor's own saves but off their shelf: written whenever the
+  // page is hidden or left, and loaded the next time the same title boots on
+  // the same machine, in place of starting it again.
+  if (cfg.kind === 'computer' && cfg.titleKey && !joinCode) {
+    const resumeId = `resume:${cfg.game}:${cfg.titleKey}`;
+    const identity = machineIdentity(cfg.game, cfg.board, regions);
+    const store = openSaveStore();
+    const keep = async (): Promise<void> => {
+      // A title just booted has nothing worth coming back to yet.
+      // The machine's own frame count: the shell's is the fps meter's, and
+      // starts again every second.
+      if (netplay.live || board.snapshot().frame < cfg.board.screen.refresh * 10) return;
+      let state: MachineState;
+      try { state = board.save(); } catch { return; }
+      try {
+        await (await store).put({ id: resumeId, game: cfg.game, identity, title: cfg.title, frame: state.frame, createdAt: Date.now(), state });
+      } catch (error) { console.warn(`${cfg.game}: could not keep the resume point: ${(error as Error).message}`); }
+    };
+    addEventListener('pagehide', () => { void keep(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) void keep(); });
+    const record = await (await store).get(resumeId).catch(() => null);
+    if (record && record.identity === identity) {
+      try {
+        input.releaseAll();
+        board.load(record.state);
+        start?.cancel();
+        typing?.cancel();
+        console.info(`[resume] ${cfg.title}: back at frame ${record.frame}`);
+        setTimeout(() => ui.toast('Back where you left off · Reset starts it over'), 600);
+      } catch (error) {
+        console.warn(`${cfg.game}: the resume point did not load: ${(error as Error).message}`);
+      }
+    }
+  }
 
   // --- run loop: fixed timestep at the board's refresh rate --------------------
   const refresh = cfg.board.screen.refresh;
@@ -2924,7 +3044,8 @@ function saveStateDeck(options: {
   let records: SaveRecord[] = [];
   const render = async (): Promise<void> => {
     const opened = await store;
-    records = await opened.list(cfg.game);
+    // The automatic resume point is the room's, not one of the visitor's saves.
+    records = (await opened.list(cfg.game)).filter(record => !record.id.startsWith('resume:'));
     const foreign = records.filter(record => record.identity !== identity).length;
     note.textContent = !opened.persistent
       ? 'Saves last only this session: browser storage is unavailable.'
@@ -3048,6 +3169,8 @@ function diskBay(
   usage?: string,
   /** the command the title starts itself with (ShellConfig.boot), when it does */
   starting?: string,
+  /** where the disks this title writes are kept: its family and its key in the room */
+  keepAs?: { family: string; titleKey: string },
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -3144,13 +3267,48 @@ function diskBay(
   };
 
   let images = new Map<string, Uint8Array>();
+  // What the set's list says of its disks (a write-protected original).
+  let features: Readonly<Record<string, string>> | undefined;
+  // A disk the machine writes stays written (diskstore.ts): kept when the
+  // page goes away and before the disk comes out, put back when it goes in.
+  let current: string | undefined;
+  const store = keepAs ? openDiskStore() : undefined;
+  const keepDisk = async (): Promise<void> => {
+    // Taken now: the eject or insert that called this changes `current`
+    // before the store has opened.
+    const image = current;
+    if (!keepAs || !image || !media.written?.()) return;
+    const state = media.contents?.();
+    if (state === undefined) return;
+    try {
+      await (await store!).put({ id: diskId(keepAs.family, keepAs.titleKey, image), family: keepAs.family,
+        set: keepAs.titleKey, image, savedAt: Date.now(), state });
+      log(`kept what the drive wrote to ${image}`);
+    } catch (error) { console.warn(`[disk ${media.tag}] could not keep ${image}:`, error); }
+  };
+  if (keepAs) {
+    addEventListener('pagehide', () => { void keepDisk(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) void keepDisk(); });
+  }
   const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
     if (!bytes) return;
+    void keepDisk();
     try {
       const started = performance.now();
-      media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      media.mount(name.split('.').pop()!.toLowerCase(), bytes, name, features);
+      current = name;
+      if (keepAs) {
+        void store!.then(opened => opened.get(diskId(keepAs.family, keepAs.titleKey, name))).then(record => {
+          if (!record || current !== name) return;
+          try {
+            media.restore?.(record.state);
+            log(`put back what the drive wrote to ${name} on ${new Date(record.savedAt).toLocaleString()}`);
+            say(`${name}: your saved disk`);
+          } catch (error) { console.warn(`[disk ${media.tag}] the kept ${name} did not fit:`, error); }
+        });
+      }
       log(`inserted ${name} (${bytes.length} bytes, read in ${Math.round(performance.now() - started)} ms)`);
       mounted.textContent = name;
       mounted.title = name;
@@ -3164,11 +3322,23 @@ function diskBay(
     paint();
   };
   eject.onclick = () => {
-    try { media.eject(); log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    void keepDisk();
+    try { media.eject(); current = undefined; log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
     catch (error) { say(String(error)); }
     paint(); eject.blur();
   };
   side.onchange = () => mount(true);
+  // A two-sided game asks for the other side: one press, the way a disk is
+  // turned over, rather than finding it in the list.
+  const flip = titleButton('Flip', 'Flip the disk', 'Put the next disk of this set in the drive', 'normal', 'flip');
+  flip.setAttribute('data-disk-flip', '');
+  flip.hidden = true;
+  flip.onclick = () => {
+    const names = [...images.keys()];
+    side.value = names[(names.indexOf(side.value) + 1) % names.length]!;
+    mount(true);
+    flip.blur();
+  };
   picker.onchange = async () => {
     const file = picker.files?.[0];
     if (!file) return;
@@ -3177,17 +3347,21 @@ function diskBay(
       const bytes = new Uint8Array(await file.arrayBuffer());
       const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
       images = new Map([...files].filter(([name]) => media.extensions.includes(name.split('.').pop()!.toLowerCase())));
+      features = undefined;
       if (!images.size) throw new Error(`No supported disk image found (${media.extensions.join(', ')}).`);
       side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
       side.hidden = images.size < 2;
+      flip.hidden = images.size < 2;
       mount(true);
     } catch (error) { say(String(error)); }
     finally { picker.disabled = false; picker.value = ''; picker.blur(); }
   };
   if (initial.length) {
     images = new Map(initial.map(image => [image.name, image.bytes]));
+    features = initial[0]!.features;
     side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
     side.hidden = images.size < 2;
+    flip.hidden = images.size < 2;
     mount(false);
     // The set's own note says how to start it: LOAD"*",8,1 loads the first
     // file on the disk, which on Jingle Disk is a utility, not the program.
@@ -3207,7 +3381,7 @@ function diskBay(
     ariaLabel: `Disk drive ${media.tag}`,
     left: [picker, mounted, side, readout],
     middle: [],
-    right: [open, eject],
+    right: [flip, open, eject],
     onFocus: releaseKeys,
   };
 }

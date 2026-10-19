@@ -7,6 +7,7 @@ import {
   dereferenceGeneratedValue,
   generatedPackedView,
   generatedContainerAccessor,
+  generatedVectorMethod,
   generatedAdd,
   generatedPointerStore,
   generatedWideBinary,
@@ -28,6 +29,7 @@ import {
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
 import { stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
+import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 import { GeneratedM68705P5Device } from './generated-m68705.ts';
 
@@ -145,6 +147,8 @@ export interface GeneratedDeviceExecutionContext {
   packedView(value: unknown, signed: boolean): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
+  /** std::vector `insert`/`erase` at an iterator, or the object's own method of that name. */
+  vectorMethod(container: unknown, method: string, ...args: unknown[]): unknown;
   /** The container an indexed write stores into, addressed by member name. */
   writableMember(name: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
@@ -182,6 +186,16 @@ export type GeneratedDeviceMethodExecutable = (
 ) => unknown;
 
 export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecutable>;
+
+/**
+ * A cassette image format a cassette device mounts (lib/formats). A legacy
+ * wave filler reports a sample count and fills 16-bit PCM at its own rate
+ * (cbm_tap.cpp); a format with its own identify and load reads the file into
+ * the host's cassette image itself (wavfile.cpp).
+ */
+export type CassetteImageFormat = { extension: string; definition: GeneratedDeviceDefinition; mountMethod: string } & (
+  | { sizeMethod: string; fillMethod: string; sampleRate: number }
+  | { identifyMethod: string; loadMethod: string });
 
 export interface GeneratedDeviceDefinition {
   type: string;
@@ -227,8 +241,7 @@ export interface GeneratedDeviceDefinition {
     ranges: GeneratedDeviceBusRange[];
   };
   role?: string;
-  imageFormats?: { extension: string; definition: GeneratedDeviceDefinition;
-    sizeMethod: string; fillMethod: string; mountMethod: string; sampleRate: number }[];
+  imageFormats?: CassetteImageFormat[];
   floppyFormats?: { name: string; extensions: string[]; definition: GeneratedDeviceDefinition }[];
   floppyImage?: GeneratedDeviceDefinition;
   links?: GeneratedDeviceLink[];
@@ -263,7 +276,8 @@ export type DeviceCallbackListener = (...args: number[]) => number | void;
 export interface Device {
   findDevice?(role: string): Device | undefined;
   imageExtensions?(): string[];
-  mountImage?(extension: string, bytes: Uint8Array, name?: string): void;
+  /** `features` are the list part's, as `get_feature` answers them, when the image came from one. */
+  mountImage?(extension: string, bytes: Uint8Array, name?: string, features?: Readonly<Record<string, string>>): void;
   /**
    * What MAME calls an image device's medium -- its `image_type_name()`:
    * "quickload", "cartridge", "cassette" -- and undefined for any other device.
@@ -400,6 +414,13 @@ export interface GeneratedDeviceOptions {
   inputs?: { read(tag: string): number };
   /** Selected card option for a generated slot definition. */
   slot?: string | number;
+  /**
+   * The image this device holds from power-on (BoardConfig.images): its own
+   * call_load reads it after device_start and before the first reset, and a
+   * software part's `slot` feature picks the slot's card, as MAME's
+   * `get_default_card_software` does.
+   */
+  image?: BoardImage;
   selectors?: Record<string, string | number | undefined>;
   /**
    * Resolve required/optional device finders to host/device proxies, and a
@@ -699,7 +720,14 @@ class IrDevice implements Device {
    * the position it reads from. Host state, as in MAME, where a save state
    * does not carry the media either.
    */
-  private imageFile?: { bytes: Uint8Array; name: string; filetype: string; position: number };
+  private imageFile?: {
+    bytes: Uint8Array; name: string; filetype: string; position: number;
+    eof(): number; tell(): number; seek(offset: unknown, whence: unknown): number;
+  };
+  /** The software-list part the image came from, when it came from one. */
+  private softwarePart?: SoftwarePart;
+  /** device_image_interface's m_readonly, which `make_readonly` sets. */
+  private imageReadOnly = false;
   private lastImageError?: string;
   /** Names the definition declares as device_delegates: their arguments pass by reference. */
   private readonly delegateNames: ReadonlySet<string>;
@@ -1094,6 +1122,7 @@ class IrDevice implements Device {
       copyStruct: copyGeneratedStruct,
       packedView: generatedPackedView,
       container: generatedContainerAccessor,
+      vectorMethod: generatedVectorMethod,
       pointerStore: generatedPointerStore,
       add: generatedAdd,
       subtract: generatedSubtract,
@@ -1132,6 +1161,22 @@ class IrDevice implements Device {
     };
     const pendingTimers = [...this.timers.values()];
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
+    // A struct local with no initializer, built from its declaration
+    // (device-compiler lowerStructLocals): `cbm_crt_header header;`.
+    const structOf = (type: unknown): unknown => {
+      const fields = definition.structs?.[String(type)];
+      return fields ? structMember(fields, definition.structs) : 0;
+    };
+    this.bindings.calls!.STRUCT_OF = structOf as (...args: number[]) => unknown;
+    referenceCalls.STRUCT_OF = structOf;
+    // A vector local constructed with a size (normalizeMameExecutionSource):
+    // that many value-initialized elements of its declared kind, and growing
+    // by more of them. The floppy drive's write_flux starts from
+    // `std::vector<wspan> wspans(1)`.
+    const vectorOf = (type: unknown, count: unknown): unknown =>
+      resizeGeneratedContainer(generatedVector(vectorElement(String(type), definition.structs)), Number(count) || 0);
+    this.bindings.calls!.VECTOR_OF = vectorOf as (...args: number[]) => unknown;
+    referenceCalls.VECTOR_OF = vectorOf;
     for (const method of definition.methods) {
       const parameters = splitParameters(method.parameters);
       const names = parameters.map(parameterName);
@@ -1146,11 +1191,22 @@ class IrDevice implements Device {
       };
     }
 
+    // An image held from power-on is open before the slot picks its card,
+    // which may be the image's to pick (get_default_card_software, below).
+    if (options.image) this.openImage(options.image);
+    if (this.readsOwnFile()) this.hostImageFile(this.members.this as Record<string, unknown>);
+    if (this.definition.floppyFormats) this.hostFloppyImage();
+
     if (definition.slot) {
       const selected = definition.slot.selector
         ? options.selectors?.[definition.slot.selector]
         : options.slot;
-      const option = String(selected ?? definition.slot.default ?? '');
+      // MAME chooses the card of a slot that is an image device from the
+      // image, before the machine starts: the slot's own
+      // get_default_card_software reads a .crt's header, or the title's
+      // `slot` feature through software_get_default_slot.
+      const chosen = selected === undefined && options.image ? this.defaultCardSoftware() : undefined;
+      const option = String(selected ?? chosen ?? definition.slot.default ?? '');
       const childDefinition = definition.slot.options[option];
       if (childDefinition) {
         const cartSpace = definition.slot.install?.space;
@@ -1173,10 +1229,24 @@ class IrDevice implements Device {
               }
             : {}),
         });
-        const proxy = Object.fromEntries(child.methodNames().map(name => [
-          name,
-          (...args: GeneratedCallArgument[]) => child.invoke(name, ...args),
-        ]));
+        // Each method is the card's prepared call, resolved on first use: the
+        // C64 asks its expansion port's card for the bus on every read.
+        const proxy: Record<string, unknown> = Object.fromEntries(child.methodNames().map(name => {
+          let call: ((...args: GeneratedCallArgument[]) => unknown) | undefined;
+          return [name, (...args: GeneratedCallArgument[]) => (call ??= child.prepareCall(name))(...args)];
+        }));
+        // And its members, as MAME's slot reaches into the card it holds: the
+        // C64 expansion port's call_load writes `m_card->m_roml`. Not
+        // enumerable, so a save state does not find the card twice.
+        const card = child.instance() as Record<string, unknown>;
+        for (const member of childDefinition.members) {
+          if (Object.hasOwn(proxy, member.name)) continue;
+          Object.defineProperty(proxy, member.name, {
+            enumerable: false,
+            get: () => card[member.name],
+            set: value => { card[member.name] = value; },
+          });
+        }
         this.members[definition.slot.member] = proxy;
         this.bindings.calls!.get_card_device = () => proxy;
       } else {
@@ -1204,14 +1274,16 @@ class IrDevice implements Device {
       );
     }
 
-    if (this.readsOwnFile()) this.hostImageFile(this.members.this as Record<string, unknown>);
-
     // Every binding the constructor installs is in place; resolve the links
     // the emitted methods read before any of them can run.
     this.refreshCallLinks();
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
     const start = (): void => {
       if (definition.start) this.call(definition.start);
+      // MAME mounts the images it was started with once every device has
+      // started, and resets after: the cartridge is in the card before the
+      // C64's KERNAL looks for one.
+      if (options.image) this.loadOpenImage();
       // device_t::start() ends with notify_clock_changed(): a device derives
       // its clock-scaled constants there, not in device_start. The 64H156
       // sets its bit-cell period that way, and without it the period stayed
@@ -1594,6 +1666,75 @@ class IrDevice implements Device {
   }
 
   /**
+   * image_init, then call_load: the file is open, or the software part in
+   * hand, before the device's own load runs. A quickload's call_load only
+   * arms its timer (snapquik.cpp); the C64 expansion port's reads the part's
+   * areas into its card. A refusal is kept for the host to show.
+   */
+  private loadImage(image: BoardImage): void {
+    this.openImage(image);
+    this.loadOpenImage();
+  }
+
+  /**
+   * The image as the device's own code reads it: a util::core_file over the
+   * bytes, its read position shared with fread and util::read, and the
+   * software part it came from, if any.
+   */
+  private openImage(image: BoardImage): void {
+    const extension = image.name.includes('.') ? image.name.split('.').pop()!.toLowerCase() : '';
+    const file = {
+      bytes: image.bytes ?? new Uint8Array(0), name: image.name, filetype: extension, position: 0,
+      // util::core_file's own calls, as the CRT reader makes them.
+      eof: () => file.position >= file.bytes.length ? 1 : 0,
+      tell: () => file.position,
+      seek: (offset: unknown, whence: unknown) => {
+        const from = Number(whence) === (this.definition.constants.SEEK_CUR ?? 1) ? file.position
+          : Number(whence) === (this.definition.constants.SEEK_END ?? 2) ? file.bytes.length : 0;
+        file.position = Math.max(0, from + Number(offset));
+        return 0;
+      },
+    };
+    this.imageFile = file;
+    this.softwarePart = image.software;
+    this.lastImageError = undefined;
+  }
+
+  /**
+   * get_default_card_software, with the hook MAME hands it: the image file,
+   * unless the image is a software part, whose `slot` feature
+   * software_get_default_slot answers instead.
+   */
+  private defaultCardSoftware(): string | undefined {
+    if (!this.methods.has('get_default_card_software')) return undefined;
+    const hook = {
+      image_file: () => this.imageFile && !this.softwarePart ? this.imageFile : 0,
+      is_filetype: (candidate: unknown) => (this.imageFile?.filetype ?? '') === String(candidate).toLowerCase() ? 1 : 0,
+    };
+    // MAME hands the chooser a file of its own: call_load still reads from the start.
+    const position = this.imageFile?.position ?? 0;
+    if (this.imageFile) this.imageFile.position = 0;
+    try {
+      const card = this.invoke('get_default_card_software', hook);
+      return typeof card === 'string' && card ? card : undefined;
+    } finally {
+      if (this.imageFile) this.imageFile.position = position;
+    }
+  }
+
+  private loadOpenImage(): void {
+    const image = this.imageFile;
+    if (!image || !this.methods.has('call_load')) return;
+    const result = this.invoke('call_load');
+    const error = Array.isArray(result) ? Number(result[0]) || 0 : 0;
+    if (error) {
+      const message = Array.isArray(result) && result[1] ? String(result[1]) : `image_error ${error}`;
+      this.lastImageError = `${this.definition.type}: could not load ${image.name}: ${message}`;
+      console.warn(this.lastImageError);
+    }
+  }
+
+  /**
    * MAME's device_image_interface file calls (emu/diimage.h) over the bytes
    * the host mounted: what a load routine reads its image with. They are the
    * framework's, not the device's, so the host answers them, as it answers
@@ -1635,6 +1776,39 @@ class IrDevice implements Device {
         image.position += count;
         return count;
       },
+      // The software-list half of the interface (diimage.h), over the part the
+      // host mounted: the C64 expansion port asks for `roml` and `romh` by
+      // name, and for its `exrom` and `game` lines as features.
+      loaded_through_softlist: () => this.softwarePart ? 1 : 0,
+      get_software_region_length: tag => this.softwarePart?.areas[String(tag)]?.length ?? 0,
+      get_software_region: tag => this.softwarePart?.areas[String(tag)] ?? 0,
+      load_software_region: (tag, pointer) => {
+        // `ptr = make_unique_clear<u8[]>(size); memcpy(...)`, and only for an
+        // area the part has: an absent one leaves the pointer as it was.
+        const area = this.softwarePart?.areas[String(tag)];
+        if (area?.length && pointer && typeof (pointer as { set?: unknown }).set === 'function') {
+          (pointer as { set(value: unknown): void }).set(area.slice());
+        }
+        return 0;
+      },
+      // A feature the part does not have is nullptr.
+      get_feature: name => this.softwarePart?.features[String(name)] ?? 0,
+      // The card a software part names, else the slot's own default.
+      software_get_default_slot: fallback => this.softwarePart?.features.slot || String(fallback ?? ''),
+      // util::core_file over the mounted bytes, read from where fread left it.
+      image_core_file: () => file(),
+      // util::read: `read(file, length)` answers (error, buffer, actual), and
+      // `read(file, buffer, length)` (error, actual).
+      read: (_core, ...rest) => {
+        const image = file();
+        const length = Number(rest.at(-1)) >>> 0;
+        const count = Math.max(0, Math.min(length, image.bytes.length - image.position));
+        const read = image.bytes.slice(image.position, image.position + count);
+        image.position += count;
+        if (rest.length < 2) return [0, read, count];
+        copyGeneratedBytes(rest[0], read, count);
+        return [0, count];
+      },
       // How snapquik.cpp reports a load its callback refused: the format
       // string and its arguments, kept for the host to show.
       osd_printf_error: (format, ...args) => {
@@ -1647,11 +1821,52 @@ class IrDevice implements Device {
         return 0;
       },
     };
+    // The interpreter hands these their arguments as written -- a string
+    // stays a string, and `load_software_region`'s `std::unique_ptr<u8[]> &`
+    // arrives as the l-value it writes -- when they are reference calls with
+    // MAME's own parameter lists.
+    const parameters: Record<string, string> = {
+      is_filetype: 'std::string_view candidate_filetype',
+      get_software_region_length: 'std::string_view tag',
+      get_software_region: 'std::string_view tag',
+      load_software_region: 'std::string_view tag, std::unique_ptr<u8[]> &ptr',
+      get_feature: 'std::string_view feature_name',
+      software_get_default_slot: 'const char *default_card_slot',
+    };
     for (const [name, call] of Object.entries(surface)) {
       if (typeof self[name] !== 'function') self[name] = call;
-      this.bindings.calls![name] ??= call as (...args: number[]) => number;
+      // The device's own method, or the host's answer to the name, stays:
+      // the board tells every cartridge slot `exists()` is 1, and the NES
+      // slot's pcb_start sets its banks up only for a mounted cartridge.
+      if (this.methods.has(name) || this.bindings.calls![name]) continue;
+      this.bindings.calls![name] = call as (...args: number[]) => number;
+      this.bindings.referenceCalls![name] ??= call;
+      if (parameters[name]) this.bindings.callParameters![name] ??= splitParameters(parameters[name]!);
     }
     this.bindings.calls!.tag ??= self.tag as () => number;
+  }
+
+  /**
+   * What device_image_interface answers a drive about the disk in it: that
+   * one is in, the list part's features, and whether it is read-only. A
+   * visitor's disk is theirs, so it opens read-write as a writable file does
+   * in MAME, and only `make_readonly` -- call_load's answer to a list's
+   * `write_protected` feature -- protects it.
+   */
+  private hostFloppyImage(): void {
+    const surface: Record<string, (...args: unknown[]) => unknown> = {
+      exists: () => this.members.m_image ? 1 : 0,
+      // A feature the part does not have is nullptr.
+      get_feature: name => this.softwarePart?.features[String(name)] ?? 0,
+      make_readonly: () => { this.imageReadOnly = true; return 0; },
+      is_readonly: () => this.imageReadOnly ? 1 : 0,
+    };
+    for (const [name, call] of Object.entries(surface)) {
+      if (this.methods.has(name) || this.bindings.calls![name]) continue;
+      this.bindings.calls![name] = call as (...args: number[]) => number;
+      this.bindings.referenceCalls![name] ??= call;
+    }
+    this.bindings.callParameters!.get_feature ??= splitParameters('std::string_view feature_name');
   }
 
   /**
@@ -1660,18 +1875,18 @@ class IrDevice implements Device {
    * FIFID_EXT, the best scorer loads a floppy_image of the drive's geometry,
    * and the drive's own load path (`mount_image`) takes it from there. The
    * bytes are the host's random_read; the formats and the track store are
-   * MAME's, compiled.
+   * MAME's, compiled. `features` are the list part's, when it came from one.
    */
-  private mountFloppy(extension: string, bytes: Uint8Array): void {
+  private mountFloppy(extension: string, bytes: Uint8Array, features?: Readonly<Record<string, string>>): void {
     const io = { bytes, length: () => bytes.length };
     const formFactor = Number(this.members.m_form_factor) >>> 0;
     const variants = this.members.m_variants ?? [];
-    let best: { score: number; decoder: IrDevice } | undefined;
+    let best: { score: number; decoder: IrDevice; name: string } | undefined;
     for (const format of this.definition.floppyFormats ?? []) {
       const decoder = new IrDevice(format.definition, 0);
       let score = Number(decoder.invoke('identify', io, formFactor, variants)) || 0;
       if (score && format.extensions.includes(extension.toLowerCase())) score |= decoder.constant('FIFID_EXT') ?? 0;
-      if (!best || score > best.score) best = { score, decoder };
+      if (!best || score > best.score) best = { score, decoder, name: format.name };
     }
     if (!best?.score || !this.definition.floppyImage) throw new Error('Unable to identify image file format');
     const image = new IrDevice(this.definition.floppyImage, 0, {
@@ -1681,7 +1896,13 @@ class IrDevice implements Device {
       throw new Error('Incompatible image file format or corrupted data');
     }
     if (this.members.m_image) this.invoke('unmount_image');
-    this.invoke('mount_image', stateValue(heldInstanceName(this.definition.floppyImage), image.instance() as object));
+    // A new image is a new file: device_image_interface::clear() forgets
+    // the last one's read-only flag and part.
+    this.imageReadOnly = false;
+    this.softwarePart = features ? { areas: {}, features: { ...features } } : undefined;
+    // The format stands for itself by name: what the drive keeps of it is
+    // only whether there is one to save a written disk back in.
+    this.invoke('mount_image', stateValue(heldInstanceName(this.definition.floppyImage), image.instance() as object), best.name);
   }
 
   /** Take the disk out (floppy_image_device::call_unload). */
@@ -1689,30 +1910,44 @@ class IrDevice implements Device {
     if (this.methods.has('unmount_image')) this.invoke('unmount_image');
   }
 
-  mountImage(extension: string, bytes: Uint8Array, name?: string): void {
+  mountImage(extension: string, bytes: Uint8Array, name?: string, features?: Readonly<Record<string, string>>): void {
     if (this.definition.floppyFormats) {
-      this.mountFloppy(extension, bytes);
+      this.mountFloppy(extension, bytes, features);
       return;
     }
     if (this.readsOwnFile()) {
-      // image_init, then call_load: the file is open before the device's own
-      // load runs. A quickload's call_load only arms its timer; the driver's
-      // callback reads the file when that fires (snapquik.cpp).
       if (this.imageFile && this.methods.has('call_unload')) this.invoke('call_unload');
-      this.imageFile = { bytes, name: name ?? `image.${extension}`, filetype: extension.toLowerCase(), position: 0 };
-      this.lastImageError = undefined;
-      if (this.methods.has('call_load')) this.invoke('call_load');
+      this.loadImage({ name: name ?? `image.${extension}`, bytes });
       return;
     }
     const format = this.definition.imageFormats?.find(candidate => candidate.extension === extension.toLowerCase());
     if (!format) throw new Error(`${this.definition.type}: unsupported image extension ${extension}`);
     const decoder = new IrDevice(format.definition, 0);
+    if ('loadMethod' in format) {
+      // cassette_image::open_choices: the format's identify fills the options
+      // the image takes its channels and frequency from, then its load reads
+      // the samples out of the file (wavfile.cpp).
+      const image = cassetteImage(bytes);
+      const options = { channels: 0, bits_per_sample: 0, sample_frequency: 0 };
+      const success = format.definition.constants.SUCCESS ?? 0;
+      if (Number(decoder.invoke(format.identifyMethod, image as never, options as never)) !== success) {
+        throw new Error(`not a ${extension} cassette image MAME reads`);
+      }
+      image.open(options);
+      if (Number(decoder.invoke(format.loadMethod, image as never)) !== success) {
+        throw new Error(`the ${extension} cassette image did not load`);
+      }
+      this.invoke(format.mountMethod, image as never);
+      return;
+    }
     const count = Number(decoder.invoke(format.sizeMethod, bytes, bytes.length));
     if (!Number.isSafeInteger(count) || count <= 0) throw new Error('image decoder returned no valid samples');
     const pcm = new Int16Array(count);
     const written = decoder.invoke(format.fillMethod, pcm, count, bytes, 0);
     if (written !== count) throw new Error('image decoder sample count changed during decoding');
-    this.invoke(format.mountMethod, sampleImage(pcm, format.sampleRate));
+    const image = cassetteImage(bytes);
+    image.fromPcm(pcm, format.sampleRate);
+    this.invoke(format.mountMethod, image as never);
   }
 
   links(): readonly GeneratedDeviceLink[] {
@@ -1917,8 +2152,9 @@ function resolveDeviceResource(
   if (resource.kind === 'sample-image') {
     const bytes = options.regions?.[resource.region];
     if (!bytes?.length) return 0;
-    const pcm = new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
-    return sampleImage(pcm, resource.sampleRate);
+    const image = cassetteImage();
+    image.fromPcm(new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2)), resource.sampleRate);
+    return image;
   }
   if (resource.kind === 'number') return resource.value;
   const regions = options.regions ?? {};
@@ -2295,11 +2531,110 @@ export interface GeneratedDeviceSpace {
   readonly memory: Uint8Array;
 }
 
-function sampleImage(pcm: Int16Array, sampleRate: number) {
+/**
+ * MAME's cassette_image (lib/formats/cassimg.cpp) as the host keeps it: each
+ * channel's samples as int32 at the image's own frequency. A format fills it
+ * the way cassimg.cpp lets one -- a legacy wave filler's 16-bit PCM in one
+ * put_samples (cbm_tap.cpp), or `read_samples` over the file's own bytes
+ * (wavfile.cpp) -- and the cassette device reads it with `get_sample`, at the
+ * sample compute_manipulation_ranges rounds the time to. The file is the
+ * host's, as in MAME, where a save state does not carry the media: the store
+ * is closures only, which the state walker passes over.
+ */
+function cassetteImage(file?: Uint8Array) {
+  let channels = 1;
+  let frequency = 0;
+  let count = 0;
+  const store: Int32Array[] = [];
+  // size_t(d + 0.5), of a non-negative time.
+  const round = (value: number): number => Math.floor(value + 0.5);
+  // map_double: `d` scaled by where `value` sits between `low` and `high`.
+  const map = (d: number, low: number, high: number, value: number): number => d * (value - low) / (high - low);
+  const channelStore = (channel: number, length: number): Int32Array => {
+    let samples = store[channel];
+    if (!samples || samples.length < length) {
+      const grown = new Int32Array(Math.max(length, samples ? samples.length * 2 : 0));
+      if (samples) grown.set(samples);
+      store[channel] = samples = grown;
+    }
+    return samples;
+  };
+  /** cassette_image::put_samples over a byte buffer, `spacing` bytes a sample. */
+  const putSamples = (channel: number, time: number, period: number, sampleCount: number,
+    spacing: number, source: Uint8Array, sourceOffset: number, flags: number): void => {
+    if (period === 0) return;
+    const first = round(time * frequency);
+    let last = round((time + period) * frequency);
+    if (last > first) last--;
+    if (count < last + 1) count = last + 1;
+    const samples = channelStore(channel, last + 1);
+    const bytesPerSample = 1 << ((flags & 0x06) / 2);
+    const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
+    for (let index = first; index <= last; index++) {
+      const at = sourceOffset + Math.floor(map(sampleCount, first, last + 1, index)) * spacing;
+      // WAVEFORM_ENDIAN_FLIP: the opposite of the little-endian host.
+      const little = (flags & 0x01) === 0;
+      samples[index] = bytesPerSample === 1
+        ? ((flags & 0x08 ? (source[at]! - 128) << 24 >> 24 : source[at]! << 24 >> 24) << 24)
+        : bytesPerSample === 2
+          ? view.getInt16(at, little) * 65536
+          : view.getInt32(at, little);
+    }
+  };
   return {
-    get_info: () => ({ sample_count: pcm.length, sample_frequency: sampleRate }),
-    get_sample: (_channel: number, time: number, _duration: number, output: unknown) => {
-      generatedPointerStore(output, (pcm[Math.floor(time * sampleRate)] ?? 0) * 65536);
+    /** The 16-bit PCM a legacy wave filler made, at its frequency (legacy_construct). */
+    fromPcm(pcm: Int16Array, sampleRate: number): void {
+      channels = 1;
+      frequency = sampleRate;
+      count = pcm.length;
+      const samples = channelStore(0, pcm.length);
+      for (let index = 0; index < pcm.length; index++) samples[index] = pcm[index]! * 65536;
+    },
+    /** What cassette_image::open takes from the format's identify. */
+    open(options: { channels: number; sample_frequency: number }): void {
+      channels = Number(options.channels) || 1;
+      frequency = Number(options.sample_frequency) >>> 0;
+    },
+    image_size: () => file?.length ?? 0,
+    image_read: (buffer: unknown, offset: number, length: number) => {
+      // read_at: a short read leaves the rest of the buffer as it was.
+      const start = Math.min(Number(offset), file?.length ?? 0);
+      const bytes = file?.subarray(start, Math.min(start + Number(length), file.length)) ?? new Uint8Array(0);
+      copyGeneratedBytes(buffer, bytes, bytes.length);
+      return 0;
+    },
+    read_samples: (channelCount: number, time: number, period: number, sampleCount: number,
+      offset: number, flags: number) => {
+      const bytesPerSample = 1 << ((flags & 0x06) / 2);
+      const spacing = bytesPerSample * channelCount;
+      const buffer = new Uint8Array(8192);
+      let loaded = 0;
+      let at = Number(offset);
+      while (loaded < sampleCount) {
+        const chunk = Math.min(Math.floor(buffer.length / spacing), sampleCount - loaded);
+        const chunkPeriod = map(period, 0, sampleCount, chunk);
+        const chunkTime = time + map(period, 0, sampleCount, loaded);
+        const start = Math.min(at, file?.length ?? 0);
+        const bytes = file?.subarray(start, Math.min(start + chunk * spacing, file.length)) ?? new Uint8Array(0);
+        buffer.set(bytes);
+        for (let channel = 0; channel < channelCount; channel++) {
+          putSamples(channel, chunkTime, chunkPeriod, chunk, spacing, buffer, channel * bytesPerSample, flags);
+        }
+        at += chunk * spacing;
+        loaded += chunk;
+      }
+      return 0;
+    },
+    get_info: () => ({ channels, bits_per_sample: 16, sample_count: count, sample_frequency: frequency }),
+    get_sample: (channel: number, time: number, _period: number, output: unknown) => {
+      // get_samples for one sample: the first of the range
+      // compute_manipulation_ranges makes, whatever the period.
+      const index = round(time * frequency);
+      const from = channel < 0 ? 0 : channel;
+      const to = channel < 0 ? channels - 1 : channel;
+      let sum = 0;
+      for (let at = from; at <= to; at++) sum += store[at]?.[index] ?? 0;
+      generatedPointerStore(output, Math.trunc(sum / (to - from + 1)));
       return 0;
     },
     put_sample: () => { throw new Error('mounted sample image is read-only'); },

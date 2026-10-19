@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import type { FieldBinding } from './input.ts';
 import { NaturalKeyboard } from './natural-keyboard.ts';
 import type { RomRegionSpec, SoftwareShelves } from './shell.ts';
-import { claimImages, emptyMediaSlots, TitleStart, withoutSlotFirmware } from './title-start.ts';
+import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from './title-start.ts';
+import { crc32 } from './zip.ts';
 
 const shelf = (list: string, kind: 'cassette' | 'floppy' | 'cartridge', slots: string[] | undefined, mountable = true) => ({
   list, description: list, interface: list, kind, catalogUrl: `software/${list}.json`,
@@ -88,4 +89,28 @@ assert.equal(cancelled.played, -1);
   assert.ok(presses[0]! > 40, 'typing waits until the start is ready');
 }
 
-console.log('title-start.spec: empty slots, slot firmware, image claims and the start sequence passed');
+// A cartridge set becomes the part its slot reads: each area at the list's
+// size, each chip at its offset, found by crc whatever the zip calls it.
+{
+  const low = Uint8Array.from([1, 2, 3, 4]);
+  const high = Uint8Array.from([9, 9]);
+  const crc = (bytes: Uint8Array) => crc32(bytes).toString(16).padStart(8, '0');
+  const entry = {
+    slot: 'ocean',
+    prg: { size: 6, roms: [
+      { size: 4, crc: crc(low), offset: 2, file: 'u1', area: 'roml' },
+      { size: 2, crc: crc(high), offset: 0, file: 'u2', area: 'romh' },
+    ] },
+    areas: { roml: 8, romh: 2 },
+    features: { exrom: '0', game: '1' },
+  };
+  const part = softwarePart(new Map([['renamed.bin', low], ['other.bin', high]]), entry)!;
+  assert.deepEqual([...part.areas.roml!], [0, 0, 1, 2, 3, 4, 0, 0], 'a chip lands at its offset in an area of the declared size');
+  assert.deepEqual([...part.areas.romh!], [9, 9]);
+  assert.deepEqual(part.features, { exrom: '0', game: '1', slot: 'ocean' }, 'the card it names rides with the features');
+  assert.equal(softwarePart(new Map([['u1', low]]), entry), undefined, 'a set missing a chip is no part');
+  assert.equal(softwarePart(new Map([['a.tap', low]]), { slot: '', prg: { size: 4, roms: [{ size: 4, crc: crc(low), offset: 0 }] } }), undefined,
+    'a tape is an image, not a part');
+}
+
+console.log('title-start.spec: empty slots, slot firmware, image claims, the start sequence and cartridge parts passed');

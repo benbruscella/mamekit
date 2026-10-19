@@ -9,6 +9,7 @@ import {
   executeGeneratedMachineDelegate,
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
+  generatedVectorMethod,
   noteCallLinksChanged,
   prepareGeneratedMachinePositional,
   prepareGeneratedMachineRead,
@@ -676,6 +677,48 @@ check('a struct, or a value never set, behind an address is not overwritten as a
   copyGeneratedBytes(untouched(struct), new Uint8Array([9, 9]), 2);
   copyGeneratedBytes(untouched(undefined), new Uint8Array([9, 9]), 2);
   assert.deepEqual(struct, { a: 1, b: 2 });
+});
+
+// A C string is a pointer, so no string is nullptr -- the C64 cartridge
+// feature "0" included -- and atol reads it as C does.
+check('a string is never nullptr, and atol reads one', () => {
+  const run = (source: string) => executeGeneratedProgram(compileMameHandler(source), {
+    members: {},
+    referenceCalls: { get_feature: (name: unknown) => name === 'exrom' ? '0' : 0 },
+    callParameters: { get_feature: ['std::string_view feature_name'] },
+  }, {}).value;
+  assert.equal(run('return get_feature("exrom") != nullptr;'), 1);
+  assert.equal(run('return get_feature("game") != nullptr;'), 0);
+  assert.equal(run('return atol(get_feature("exrom")) + atol("12");'), 12);
+});
+
+// std::vector's insert and erase take iterators -- positions in the vector --
+// and an array has neither method: the floppy drive's every track write was
+// optional-chained into nothing, so each 1541 write failed its verify.
+check('std::vector insert and erase work at iterators', () => {
+  const run = (source: string) => executeGeneratedProgram(
+    compileMameHandler(normalizeMameExecutionSource(source)), { members: {} }, {}).value;
+  assert.equal(run(`
+    std::vector<int> v;
+    v.push_back(1); v.push_back(2); v.push_back(4);
+    v.insert(v.begin() + 2, 3);
+    v.erase(v.begin());
+    v.erase(v.end() - 1);
+    return v[0] * 10 + v[1] + v.size() * 100;`), 223);
+  const track = [1, 2, 3, 4, 5];
+  generatedVectorMethod(track, 'erase', { generatedPointer: true, source: track, offset: 1 },
+    { generatedPointer: true, source: track, offset: 3 });
+  assert.deepEqual(track, [1, 4, 5]);
+  assert.throws(() => generatedVectorMethod(track, 'erase', [9]), /does not point into the vector/);
+  assert.equal(generatedVectorMethod({ erase: (value: number) => value * 2 }, 'erase', 4), 8,
+    'anything else keeps its own method');
+});
+
+// The floppy drive's call_load spells it `std::strcmp`, and an unknown macro
+// answered 0: equal, so a list's write_protected "false" protected the disk.
+check('std::strcmp compares like strcmp', () => {
+  assert.equal(applyGeneratedMacro('std::strcmp', ['true', 'true']), 0);
+  assert.notEqual(applyGeneratedMacro('std::strcmp', ['false', 'true']), 0);
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

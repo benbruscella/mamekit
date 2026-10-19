@@ -26,12 +26,15 @@ export interface SoftlistDeclaration {
  * medium. A device-library capability table like CART_SLOT_SUPPORT: the board
  * exposes a transport for every cassette, floppy connector and quickload
  * device it composes (generated-board `media()`, `disks()`, `quickloads()`),
- * and nothing yet mounts a cartridge on a computer. A list whose medium has
- * no transport is still a shelf to browse, marked display only.
+ * and a cartridge goes into the expansion port before the machine starts
+ * (BoardConfig.images). A list whose medium has no transport is still a shelf
+ * to browse, marked display only.
  */
 const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   cassette: ['PET_DATASSETTE_PORT', 'CASSETTE'],
-  cartridge: [],
+  // The C64 expansion port: its call_load reads a title's areas into the card
+  // the title names, so a cartridge is a software part, not a file.
+  cartridge: ['C64_EXPANSION_SLOT'],
   // MAME's floppy_connector holds the drive mechanism a disk goes into: the
   // C64's composed 1541 carries one under its gate array.
   floppy: ['FLOPPY_CONNECTOR'],
@@ -219,12 +222,52 @@ function readAuditManifests(dumpsDir: string | undefined): unknown[] {
   return manifests;
 }
 
+/** A machine configuration switch, as lower-inputs emits it (PORT_CONFNAME). */
+export interface ShelfSwitch {
+  port: string;
+  mask: number;
+  value: number;
+  name: string;
+  config?: boolean;
+  settings?: { value: number; name: string }[];
+}
+
+/**
+ * The configuration a title's usage note asks for, when the machine has a
+ * switch that gives it. MAME's C64 plugs its joystick into port 2 and leaves
+ * port 1 empty; 25 titles' notes say they want port 1, which on that machine
+ * is its own "Swap joystick ports" switch thrown. Host policy, as the start
+ * commands are: MAME reads no usage note itself.
+ */
+export function usageSwitches(
+  usage: string,
+  devices: readonly ShelfDevice[],
+  switches: readonly ShelfSwitch[],
+): ShelfSwitch[] {
+  const wanted = /\bjoystick\s+(?:in|into|to)\s+port\s*(\d)\b/i.exec(usage)?.[1];
+  if (!wanted) return [];
+  const port = (device: ShelfDevice): string | undefined => /(\d+)$/.exec(device.tag)?.[1];
+  const sticks = devices.filter(device => device.type === 'VCS_CONTROL_PORT' && device.slotDefault);
+  if (!sticks.length || sticks.some(device => port(device) === wanted)) return [];
+  const swap = switches.find(entry => entry.config && /joystick/i.test(entry.name) && /swap|switch/i.test(entry.name));
+  const thrown = swap?.settings?.find(setting => setting.value !== swap.value);
+  return swap && thrown ? [{ ...swap, value: thrown.value }] : [];
+}
+
 export interface SoftwareShelvesOptions {
   mameSrc: string;
   outDir: string;
   lists: SoftlistDeclaration[];
   /** the devices the board composes, for the mount capability table */
   devices: readonly ShelfDevice[];
+  /** the machine's configuration switches, for a usage note that asks for one */
+  switches?: readonly ShelfSwitch[];
+  /**
+   * A list's shelf art, by software-list short name (src/gen/cart-art.ts over
+   * .data/artwork/carts/<list>/): a C64 title's cover in place of its drawn
+   * tape or disk.
+   */
+  artFor?: (list: string) => Record<string, { cart?: string; sticker?: string }>;
   /**
    * The image extensions a medium's transport reads, where MAME's source says:
    * a floppy connector's `set_formats` names its formats, and each format its
@@ -269,11 +312,19 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
     // What the shelf takes is what its transport reads, the list's own formats
     // first: a dropped image need not be one the list catalogues, and most
     // .prg files a C64 quickload reads are in no list at all.
-    const extensions = readable && playable.length
-      ? [...playable, ...readable.filter(extension => !playable.includes(extension))]
-      : playable;
-    const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)) &&
-      (!readable || playable.length > 0);
+    // A cartridge's parts are read area by area, so its list's files say
+    // nothing about what mounts: its shelf takes the files the port reads
+    // (a bare .crt), and every list title by its areas.
+    const byArea = kind === 'cartridge';
+    const extensions = byArea ? [...(readable ?? [])]
+      : readable && playable.length
+        ? [...playable, ...readable.filter(extension => !playable.includes(extension))]
+        : playable;
+    const transport = options.devices.find(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type));
+    const mountable = Boolean(transport) && (byArea || !readable || playable.length > 0);
+    // A cartridge is read area by area, so its shelf names the slot that takes
+    // the part rather than formats a drive reads.
+    const imageDevice = mountable && kind === 'cartridge' ? transport!.tag : undefined;
     const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
     const policy = slots.length ? shelfPolicy(slots, options.devices)
       : mountable ? boardTransportPolicy(kind, options.devices) : undefined;
@@ -285,6 +336,11 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
         if (start) entry.start = start;
       }
     }
+    // And one that asks for a control setting the machine has carries that.
+    for (const entry of catalog.entries) {
+      const switches = entry.usage ? usageSwitches(entry.usage, options.devices, options.switches ?? []) : [];
+      if (switches.length) entry.switches = switches.map(({ port, mask, value }) => ({ port, mask, value }));
+    }
     mkdirSync(softwareDir, { recursive: true });
     // compact on purpose: the C64's tape list alone is 1,100 entries
     writeFileSync(join(softwareDir, `${list.name}.json`), JSON.stringify(catalog));
@@ -293,6 +349,8 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       writeFileSync(join(softwareDir, `${list.name}.available.json`),
         JSON.stringify({ set: options.dumpsKey, carts: available }));
     }
+    const art = options.artFor?.(list.name) ?? {};
+    const titled = Object.fromEntries(catalog.entries.flatMap(entry => art[entry.name]?.cart ? [[entry.name, art[entry.name]!.cart!]] : []));
     shelves.push({
       list: list.name,
       description: catalog.description,
@@ -305,7 +363,9 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       mountable,
       ...(list.filter ? { filter: list.filter } : {}),
       ...(slots.length ? { slots } : {}),
+      ...(imageDevice ? { imageDevice } : {}),
       ...(boot ? { boot } : {}),
+      ...(Object.keys(titled).length ? { art: titled } : {}),
     });
     log(`software "${list.name}": ${catalog.entries.length} ${kind} sets catalogued` +
       (available.length ? `, ${available.length} dumps available` : '') +

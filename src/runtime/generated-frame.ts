@@ -304,7 +304,7 @@ export class GeneratedFrameRunner {
       // their CPU slices afterwards, so a game that erases and redraws sprites
       // in its VBLANK handler is sampled between the two halves when the
       // presentation is deferred to the frame boundary (Berzerk's player).
-      if (screen.updateMode !== 'scanline' && line === screen.vbstart) {
+      if (screen.updateMode !== 'scanline' && screen.present !== 'frame-boundary' && line === screen.vbstart) {
         this.video?.render(framebuffer);
         rendered = true;
       }
@@ -322,7 +322,9 @@ export class GeneratedFrameRunner {
     }
     this.frames++;
     // A board whose vbstart sits outside the emulated line range never hit the
-    // in-loop presentation above; keep the end-of-frame fallback for it.
+    // in-loop presentation above; keep the end-of-frame fallback for it. A
+    // screen that presents at the frame boundary (GeneratedScreen.present)
+    // always arrives here, where MAME's VBLANK falls.
     if (screen.updateMode !== 'scanline' && !rendered) this.video?.render(framebuffer);
   }
 

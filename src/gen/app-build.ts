@@ -13,7 +13,20 @@ import { inputKeys, sixButtonKeys } from './input-bindings.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
-const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'media/consoles', 'media/computers', 'carts/nes'];
+const WEB_ARTWORK_TREES = ['covers', 'media/marquees', 'media/cabinets', 'media/consoles', 'media/computers'];
+
+/**
+ * Every software list's shelf art (`carts/<list>/`): the NES's label scans,
+ * the C64's covers. A list's art is shipped because its shelf has it, so a
+ * list that gains art needs no entry here.
+ */
+function cartArtTrees(source: string): string[] {
+  const carts = join(source, 'carts');
+  if (!existsSync(carts)) return [];
+  return readdirSync(carts, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && !entry.name.startsWith('_'))
+    .map(entry => `carts/${entry.name}`);
+}
 
 async function shipWebArtwork(outRoot: string): Promise<void> {
   const source = join(projectRoot, '.data/artwork');
@@ -22,7 +35,7 @@ async function shipWebArtwork(outRoot: string): Promise<void> {
   if (!existsSync(source)) return;
   let shipped = 0;
   let bytes = 0;
-  for (const tree of WEB_ARTWORK_TREES) {
+  for (const tree of [...WEB_ARTWORK_TREES, ...cartArtTrees(source)]) {
     const from = join(source, tree);
     if (!existsSync(from)) continue;
     for (const name of readdirSync(from)) {

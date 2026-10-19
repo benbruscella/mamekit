@@ -508,5 +508,65 @@ registerGeneratedDevice({
   assert.equal(createDevice('fixture').imageTypeName?.(), undefined);
 }
 
+// A cartridge port, as the C64's: the image arrives before power-on, the
+// part's `slot` feature picks the card (else the port's software default),
+// and the port's own call_load reads the part's areas into that card through
+// the members MAME's slot reaches into.
+{
+  const card = (type: string, offset: number): GeneratedDeviceDefinition => ({
+    type, constants: {}, callbacks: [], timers: [],
+    members: [
+      { name: 'm_roml', valueType: 'std::unique_ptr<uint8_t[]>', initial: 0 },
+      { name: 'm_roml_size', valueType: 'int', bits: 32, initial: 0 },
+      { name: 'm_exrom', valueType: 'int', bits: 32, initial: 1 },
+    ],
+    methods: [method('read_rom', 'int offs', `return m_roml[offs + ${offset}];`)],
+    summary: { diagnostics: 0 },
+  });
+  registerGeneratedDevice({
+    type: 'CART_PORT_FIXTURE',
+    imageInterface: true,
+    constants: {},
+    members: [{ name: 'm_card', valueType: 'device_card_interface*', initial: 0 }],
+    callbacks: [],
+    timers: [],
+    slot: { member: 'm_card', options: { standard: card('STD_CARD', 0), other: card('OTHER_CARD', 1) } },
+    methods: [
+      // MAME's own chooser: a file's type, else the part's `slot` feature.
+      method('get_default_card_software', 'get_default_card_software_hook &hook',
+        'if (hook.image_file() && hook.is_filetype("crt")) return "other";' +
+        'return software_get_default_slot("standard");'),
+      method('call_load', '',
+        'if (loaded_through_softlist()) {' +
+        '  load_software_region("roml", m_card->m_roml);' +
+        '  m_card->m_roml_size = get_software_region_length("roml");' +
+        '  if (get_feature("exrom") != nullptr) m_card->m_exrom = atol(get_feature("exrom"));' +
+        '}' +
+        'return std::make_pair(std::error_condition(), std::string());'),
+      method('read', 'int offs', 'return m_card->read_rom(offs);'),
+      method('exrom', '', 'return m_card->m_exrom;'),
+    ],
+    summary: { diagnostics: 0 },
+  });
+  const software = (features: Record<string, string>) => ({
+    image: { name: 'title.zip', software: { areas: { roml: Uint8Array.from([5, 6, 7]) }, features } },
+  });
+  const named = createDevice('CART_PORT_FIXTURE', software({ exrom: '0', slot: 'other' }));
+  assert.equal(named.call('read', 0), 6, 'the part names its card');
+  assert.equal(named.call('exrom'), 0, 'the feature "0" is not nullptr, and atol reads it');
+  const plain = createDevice('CART_PORT_FIXTURE', software({}));
+  assert.equal(plain.call('read', 0), 5, 'a part that names none takes the default card');
+  assert.equal(plain.call('exrom'), 1, 'a feature the part lacks leaves the card as it was');
+  const card0 = (plain.instance!() as Record<string, unknown>).m_card as Record<string, unknown>;
+  assert.equal(card0.m_roml_size, 3, 'the slot reaches into its card');
+  assert.ok(!Object.keys(card0).includes('m_roml'), 'members stay out of the card proxy\'s own keys');
+  assert.equal(createDevice('CART_PORT_FIXTURE').call('read', 0), 0, 'no image, no card');
+  // A bare file picks its card from what it is, through the same chooser.
+  const file = createDevice('CART_PORT_FIXTURE', { image: { name: 'game.CRT', bytes: Uint8Array.from([1, 2]) } });
+  assert.equal(((file.instance!() as Record<string, unknown>).m_card as { m_roml_size: number }).m_roml_size, 0,
+    'the file chose the other card (whose call_load read no software part)');
+  assert.ok(((file.instance!() as Record<string, unknown>).m_card as Record<string, unknown>).read_rom, 'and a card is there');
+}
+
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

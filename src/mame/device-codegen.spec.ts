@@ -3,6 +3,8 @@ import {
   dereferenceGeneratedValue,
   executeGeneratedProgram,
   generatedAdd,
+  generatedContainerAccessor,
+  generatedVectorMethod,
   generatedPackedView,
   generatedPointerStore,
 } from '../ir/execute.ts';
@@ -774,6 +776,41 @@ assert.equal(
     dereference: dereferenceGeneratedValue,
     readIndex: (memory: ArrayLike<number>, index: number) => memory[index] ?? 0,
   }), 11);
+}
+
+// A vector's insert and erase take iterators: `track.begin() + at` added an
+// array to a number, and the calls were optional-chained into nothing, so the
+// floppy drive's wspan_write changed no track. A local sized at construction
+// is that many elements of its own kind, not the number.
+{
+  const iterators: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['splice'],
+    methods: [{
+      name: 'splice',
+      parameters: 'std::vector<uint32_t> &track, int at',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler(normalizeMameExecutionSource(`
+        track.insert(track.begin() + at, 7);
+        track.erase(track.begin());
+        return track.size();
+      `)),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(iterators);
+  assert.match(emitted.source, /runtime\.vectorMethod\(track, "insert", runtime\.addressOf\(/);
+  const built = new Function(`return ${emitted.source}`)() as
+    Record<string, (runtime: unknown, ...args: unknown[]) => unknown>;
+  const track = [1, 2, 3];
+  assert.equal(built.splice!({
+    members: {},
+    addressOf: (value: unknown, index: number) => ({ generatedPointer: true, source: value, offset: index }),
+    container: generatedContainerAccessor,
+    vectorMethod: generatedVectorMethod,
+    dereference: dereferenceGeneratedValue,
+  }, track, 2), 3);
+  assert.deepEqual(track, [2, 7, 3]);
+  assert.match(normalizeMameExecutionSource('std::vector<wspan> wspans(1);'), /auto wspans = VECTOR_OF\("wspan", 1\);/);
 }
 
 {

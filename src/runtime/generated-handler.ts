@@ -33,6 +33,7 @@ export {
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
   generatedContainerAccessor,
+  generatedVectorMethod,
   generatedPackedView,
   generatedPeriodicLines,
   generatedAdd,

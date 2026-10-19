@@ -19,6 +19,12 @@ export interface SoftRom {
    * the shelf needs to know which member of the zip is the medium.
    */
   file?: string;
+  /**
+   * The dataarea a cartridge chip loads into ("roml", "romh"), kept because a
+   * cartridge slot asks for each area by name: the C64 expansion port's
+   * call_load reads `roml` and `romh` into separate halves of the card.
+   */
+  area?: string;
 }
 
 export interface SoftArea {
@@ -69,6 +75,25 @@ export interface SoftEntry {
    * its shelf's own `boot` command.
    */
   start?: string;
+  /**
+   * Each cartridge dataarea's declared size, which is what MAME's
+   * `get_software_region_length` answers even where the chips fill less of
+   * it: 21 of the C64 list's 478 cartridge areas are larger than their ROMs.
+   */
+  areas?: Record<string, number>;
+  /**
+   * The part's other features, as `get_feature` answers them, with the
+   * entry's `sharedfeat`s inherited as MAME's parser copies them into each
+   * part: a C64 cartridge's `exrom` and `game` lines, a disk's
+   * `write_protected`.
+   */
+  features?: Record<string, string>;
+  /**
+   * Machine configuration switches the title's usage note asks for, as the
+   * generator's policy reads it (software-shelves.ts): a C64 title that
+   * "Requires joystick in port 1" throws the machine's "Swap joystick ports".
+   */
+  switches?: { port: string; mask: number; value: number }[];
 }
 
 export interface SoftCatalog {
@@ -127,7 +152,10 @@ export interface ParsedSoftwareList {
  * loads, so they land in `prg` in document order and one identification path
  * still serves every list.
  */
-const MEDIA_AREAS = new Set(['cass', 'flop', 'quik', 'roml', 'romh']);
+const MEDIA_AREAS = new Set(['cass', 'flop', 'quik', 'roml', 'romh', 'romx', 'lorom', 'uprom']);
+
+/** Cartridge dataareas a slot loads by name (the C64 and VIC-10 expansion port's). */
+const CART_AREAS = new Set(['roml', 'romh', 'romx', 'lorom', 'uprom']);
 
 export function parseSoftwareList(xml: string): ParsedSoftwareList {
   const head = /<softwarelist\b[^>]*>/.exec(xml);
@@ -175,6 +203,20 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       else if (fm[1] === 'pcb') entry.pcb = fm[2];
       else entry.mirroring = fm[2];
     }
+    // The rest a C64 cartridge's slot reads with get_feature. Only a list
+    // with cartridge areas needs them, so the others stay as they were.
+    if (/<dataarea\s+name="(?:roml|romh|lorom|uprom)"/.test(block)) {
+      for (const fm of block.matchAll(/<feature\s+name="([\w-]+)"\s+value="([^"]*)"/g)) {
+        if (['slot', 'pcb', 'mirroring'].includes(fm[1]!)) continue;
+        entry.features ??= {};
+        entry.features[fm[1]!] ??= unescapeXml(fm[2]!);
+      }
+    }
+    // floppy_image_device::call_load reads `write_protected` of every disk;
+    // a part's own feature wins over the entry's shared one, as in MAME.
+    const writeProtected = /<feature\s+name="write_protected"\s+value="([^"]*)"/.exec(block) ??
+      /<sharedfeat\s+name="write_protected"\s+value="([^"]*)"/.exec(block);
+    if (writeProtected) (entry.features ??= {}).write_protected ??= unescapeXml(writeProtected[1]!);
     const shared = /<sharedfeat\s+name="compatibility"\s+value="([^"]*)"/.exec(block);
     if (shared) entry.compatibility = shared[1];
     const excluded = /<sharedfeat\s+name="incompatibility"\s+value="([^"]*)"/.exec(block);
@@ -205,6 +247,8 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       const mediaArea = areaName !== undefined && MEDIA_AREAS.has(areaName);
       if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea) continue;
       const area: SoftArea = { size, roms: [] };
+      const cartArea = CART_AREAS.has(areaName!);
+      if (cartArea) (entry.areas ??= {})[areaName!] = size;
       for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
         const rAttrs = attrs(rm[0]);
         // fill/reload/continue are load directives, not chips; nodumps have
@@ -218,6 +262,7 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
           crc: rAttrs.crc.toLowerCase(),
           offset: parseOffset(rAttrs.offset),
           ...(rAttrs.name ? { file: rAttrs.name } : {}),
+          ...(cartArea ? { area: areaName } : {}),
         });
       }
       if (areaName === 'chr') entry.chr = area;

@@ -77,7 +77,16 @@ export interface FieldBinding {
   chars?: string[][];
 }
 
-export interface DipDefault { port: string; mask: number; value: number; name: string }
+export interface DipDefault {
+  port: string;
+  mask: number;
+  value: number;
+  name: string;
+  /** PORT_CONFNAME: the machine's own setup, as MAME's Machine Configuration menu lists it */
+  config?: boolean;
+  /** a configuration switch's settings, as MAME names them */
+  settings?: { value: number; name: string }[];
+}
 
 export interface PortSpec { tag: string; init: number }
 

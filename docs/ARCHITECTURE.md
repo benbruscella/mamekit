@@ -607,6 +607,15 @@ fired late with an earlier time than the motor write it followed, and MAME's
 cassette refuses a negative position. A core without the fact (MAME's Z80
 finishes its instruction first too) keeps the old order.
 
+A register access does the same for a device that executes on its own under
+`set_perfect_quantum`. There every slice is one processor cycle with the
+processor first, and MAME's 6502 counts a cycle after its access, so an access
+on cycle k finds a device such as the VIC-II or a CIA through cycle k-1; the
+device runs cycle k after it. The board catches such a device up to that point
+before its `read` or `write` runs. Delivered after the instruction instead, the
+VIC-II showed a colour write up to an instruction early, and every C64 raster
+bar landed a few cycles ahead of MAME's.
+
 Within one delivery the hosted and autonomous processors are clocked up to a
 timer's expiry before its callback runs (`setGeneratedTimerPreFire`), and
 through the rest of the delivery after the last: MAME fires a timer once every
@@ -822,6 +831,9 @@ machine*:
 | NVRAM and battery semantics | keeping that memory between sessions, in the visitor's browser |
 | which bytes hold the score table (hiscore.dat) | when to load and write them, and where they are kept |
 | what a machine's state *is* | capturing and restoring that state |
+| configuration switches (PORT_CONFNAME) and their settings | a Machine settings toggle, kept per title |
+| the keys a driver declares and what each types | the on-screen keyboard that presses them |
+| a floppy image's tracks and its dirty flag | keeping a written disk, and a title's resume point |
 
 A host feature is legitimately MAMEKIT's own design and owes MAME nothing:
 it does not need a MAME counterpart, a source span, or a lowering rule. What
@@ -833,6 +845,25 @@ per-family adapter or a check on a game's name. A save-state walker that
 enumerates `definition.members` is a host feature; one that knows which
 registers a Z80 has is a hardware implementation and belongs nowhere in
 `src/runtime`.
+
+The computer room's host features follow that test. **Machine settings**
+are the driver's own configuration switches: every PORT_CONFNAME with two
+settings becomes a toggle (the C64's "Swap joystick ports", which its driver
+reads to swap the two control ports), and a title whose usage note asks for a
+setting presets it (`switches` on its catalogue entry, from the generator's
+`usageSwitches`). The **on-screen keyboard** (`src/runtime/onscreen-keyboard.ts`)
+is the driver's keys, each cap the PORT_CHAR it types or MAME's name for it,
+placed on a generic QWERTY grid by the characters it types, with the keys a PC
+has no key for on a row of their own. **Resume** is one automatic save state
+per title, written whenever the page is hidden and loaded the next time the
+same title boots on the same machine. A **written disk** is what MAME would
+commit to the image file on unload when `m_image_dirty` is set: the drive's
+floppy_image is captured into the visitor's browser and put back over a
+freshly mounted copy of the same disk (`src/runtime/diskstore.ts`). A disk
+is writable, as a software-list disk is in MAME, unless its list part says
+`write_protected` (which call_load reads, with the entry's shared features
+inherited as MAME's parser copies them): Bounty Bob Strikes Back will not load
+from a disk that is not.
 
 The test for a proposed host feature is therefore not "did this come from
 MAME source" (design test question 1 does not apply) but "would this work
@@ -887,7 +918,21 @@ unchanged for the next generated machine".
    whose transport is not generated yet is browsable but display only. A shelf
    takes every format its transport reads, its list's own first, because a
    dropped image need not be one the list catalogues: MAME's C64 quickload
-   list holds one `.t64`, and a quickload reads any `.prg`. A
+   list holds one `.t64`, and a quickload reads any `.prg`. A tape's formats
+   are its cassette's `lib/formats` code, compiled: `cbm_tap.cpp` fills 16-bit
+   PCM as a legacy wave filler, and `wavfile.cpp` walks a `.wav`'s RIFF chunks
+   and reads its samples into the host's cassette image, which keeps them as
+   `cassimg.cpp` does and hands the cassette the sample nearest the time it
+   asks for. A cartridge is not
+   a file a drive reads: the C64 expansion port's own `call_load` reads a
+   title's dataareas (`roml`, `romh`; `lorom`/`uprom` for a VIC-10 Ultimax
+   cart) by name into the card the title's `slot` feature names, else the
+   one its `get_default_card_software` does (`standard`). So the room hands
+   the board the title's software part (`BoardConfig.images`), the device
+   runtime picks the card from it, and the port's `call_load` runs between
+   its `device_start` and the first reset, as MAME's image manager orders
+   them; `device_image_interface`'s software-list calls
+   (`load_software_region`, `get_feature`) answer from the part. A
    fetched or dropped set is kept in the visitor's browser as the zip it
    arrived in, identified by image CRC against every shelf, and playing it
    hands the shell the set's images to mount on the board's own transport at

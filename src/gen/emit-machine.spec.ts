@@ -45,6 +45,14 @@ import type { BoardConfig } from '../runtime/types.ts';
 if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
   throw new Error('I8085A must use MAME\'s divide-by-two execution clock');
 }
+// device_t::m_clock is a u32: the PAL C64's XTAL(17'734'472)/18 runs at
+// 985248, and a dividing core rounds its integer cycle rate up.
+if (generatedCpuCycleClock('m6510', 17_734_472 / 18) !== 985_248) {
+  throw new Error('a CPU clock must be truncated to MAME\'s u32');
+}
+if (generatedCpuCycleClock('mc6809', 3_579_545.25) !== 894_887) {
+  throw new Error('a dividing core must use MAME\'s (clocks + n - 1) / n');
+}
 // The generated TMS34010 converts its bit addresses to bytes at every access
 // (TMS_READ16/TMS_WRITE16) and its map ranges are scaled to match, so the bus
 // itself shifts nothing: a second conversion here would address 1/8 of RAM.
