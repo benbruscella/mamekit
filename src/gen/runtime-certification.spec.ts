@@ -5,6 +5,8 @@ import {
 } from './runtime-certification.ts';
 
 assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
+  'c64',
+  'c64p',
   'gauntlet',
   'marble',
   'mario',
@@ -25,6 +27,10 @@ assert.equal(
   'a certification must not hide a new hardware gap',
 );
 assert.equal(isRuntimeCertified('arkanoid', [], [], true), false);
+// The PAL C64's contracts never mount a quickload, the one medium not yet
+// generated; a gap beyond it is still a gap.
+assert.equal(isRuntimeCertified('c64p', ['quickload:QUICKLOAD'], [], true), true);
+assert.equal(isRuntimeCertified('c64p', ['quickload:QUICKLOAD', 'exp:C64_EXPANSION_SLOT'], [], true), false);
 assert.equal(
   isRuntimeCertified('trackfld', ['vlm:VLM5030'], ['vlm.data_w'], true),
   false,

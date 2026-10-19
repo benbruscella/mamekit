@@ -81,11 +81,11 @@ export const polepos = sourceTarget({
       1200: { video: '03b28e84', state: 'ee356db3' },
     },
     audio: {
-      writes: 387202,
+      writes: 387204,
       nonzeroWrites: 151192,
-      writeHash: 'b2e0e6f1',
-      pcmHash: '35f026bd',
-      rms: 0.185858,
+      writeHash: '643b7526',
+      pcmHash: '151e2bc4',
+      rms: 0.186143,
     },
   },
 });

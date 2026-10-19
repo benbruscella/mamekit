@@ -6,6 +6,7 @@ import {
   generatedInstanceFactories,
   hasGeneratedDevice,
   registerGeneratedDevice,
+  setGeneratedTimerPreFire,
   type GeneratedDeviceDefinition,
 } from './generated-device.ts';
 
@@ -139,6 +140,20 @@ assert.equal(device.get('m_reschedule_count'), 3,
   'a one-shot timer re-armed by its callback must keep its new schedule');
 device.tick(0.2);
 assert.equal(device.get('m_count'), 9);
+
+// The board clocks its hosted processors up to a timer's expiry before the
+// callback runs, as MAME's scheduler does; the hook hears how far past the
+// expiry the delivered lump reaches, before the callback changes anything.
+const timed = createDevice('fixture', { clock: 2_000 });
+const preFired: [number, number, number][] = [];
+const outerPreFire = setGeneratedTimerPreFire(overshoot => {
+  preFired.push([Math.round(overshoot * 1000), timed.get('m_count'), timed.get('m_reschedule_count')]);
+});
+timed.tick(0.12);
+setGeneratedTimerPreFire(outerPreFire);
+assert.deepEqual(preFired, [[20, 0, 0], [70, 3, 0], [20, 3, 1]],
+  'every firing is announced with its overshoot before its callback runs');
+assert.equal(timed.get('m_reschedule_count'), 2);
 
 assert.throws(() => device.call('missing'), /no generated method/);
 assert.throws(() => device.on('missing', () => {}), /no callback signal/);

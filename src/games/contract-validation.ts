@@ -64,6 +64,15 @@ export function validateGameContract(
       (lifecycle === 'candidate' || medium.status === 'accepted')),
     `${prefix}: a cartridge scenario needs an accepted cartridge medium`);
   }
+  if (contract.software !== undefined) {
+    invariant(contract.cartridge === undefined,
+      `${prefix}: a scenario mounts a cartridge or a software title, not both`);
+    invariant(/^[a-z0-9_]+$/.test(contract.software.list) && /^[a-z0-9_]+$/.test(contract.software.name),
+      `${prefix}: invalid software-list title`);
+    invariant(contract.media?.some(medium => medium.softwareLists?.includes(contract.software!.list) &&
+      (lifecycle === 'candidate' || medium.status === 'accepted')),
+    `${prefix}: a ${contract.software.list} scenario needs that list's medium accepted`);
+  }
   invariant(/^MAMEKIT_[A-Z0-9_]+_ROM$/.test(contract.romEnvironment),
     `${prefix}: invalid ROM environment variable`);
   natural(contract.screen.width, `${prefix}: screen width`);
@@ -108,6 +117,8 @@ export function validateGameContract(
       natural(action.releasedFrames, `${prefix}: released frames`, true);
     } else if ('signal' in action) {
       natural(action.assertedFrames, `${prefix}: asserted frames`);
+    } else if ('text' in action) {
+      invariant(action.text.length > 0, `${prefix}: text action types nothing`);
     }
     const end = actionEnd(action);
     invariant(end <= contract.frames, `${prefix}: input action exceeds frame count`);

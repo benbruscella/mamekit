@@ -56,6 +56,19 @@ export interface SoftEntry {
    * utility and `LOAD"*",8,1` loads nothing that runs.
    */
   usage?: string;
+  /**
+   * The video standard the list says the set was made for
+   * (`<info name="video">`, "PAL" or "NTSC"). Informational in MAME, which
+   * filters by the `compatibility` feature alone; the software room uses it to
+   * choose between a family's regional machines for a set both of them list.
+   */
+  video?: string;
+  /**
+   * The command this title starts with, where MAME's usage note names one
+   * (the generator's boot policy reads it, software-shelves.ts); otherwise
+   * its shelf's own `boot` command.
+   */
+  start?: string;
 }
 
 export interface SoftCatalog {
@@ -154,6 +167,8 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
     if (parts > 1) entry.parts = parts;
     const usage = /<info\s+name="usage"\s+value="([^"]*)"/.exec(block);
     if (usage) entry.usage = unescapeXml(usage[1]!);
+    const video = /<info\s+name="video"\s+value="([^"]*)"/.exec(block);
+    if (video) entry.video = unescapeXml(video[1]!);
 
     for (const fm of block.matchAll(/<feature\s+name="(slot|pcb|mirroring)"\s+value="([^"]*)"/g)) {
       if (fm[1] === 'slot') entry.slot = fm[2];

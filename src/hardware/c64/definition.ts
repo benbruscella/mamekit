@@ -14,3 +14,10 @@ export const C64_PORTS: readonly PortDeclaration[] = [
 
 /** Host-selected adaptive stream rate, shared by rendering and playback. */
 export const C64_AUDIO_RATE = 48000;
+
+/**
+ * The SID renders on the main thread, inside the frame (runtime.ts), and this
+ * worklet only plays its samples: the shared stream worklet, which the
+ * acceptance probe drives the same way.
+ */
+export const C64_AUDIO_WORKLET_ARTIFACT = 'audio/sid-worklet.ts';

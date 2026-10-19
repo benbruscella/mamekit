@@ -265,6 +265,8 @@ export interface Device {
     write: (address: number, data: number) => void): void;
   reset(): void;
   tick(seconds: number): void;
+  /** MAME's `device_post_load` on the device and the devices inside it, after a state load. */
+  postLoad?(): void;
   /** Whether this device or a composed child owns a scheduled timer. */
   needsTick?(): boolean;
   /** Host a device_execute_interface time slice in device cycles. */
@@ -472,6 +474,26 @@ class IrAttotime {
  */
 let timerBacklogSeconds = 0;
 
+/**
+ * Runs everything else the board clocks up to a firing timer's expiry before
+ * its callback, while the board is delivering device time; told how far past
+ * the expiry the delivered lump reaches. MAME's scheduler fires a timer only
+ * once every device has run to it. Firing first and clocking the C64's CIAs
+ * through the whole instruction afterwards set the datassette's FLAG bit with
+ * the CIA still at the instruction's first cycle, so its interrupt pipeline
+ * could assert up to an instruction early: a few cycles of IRQ latency MAME
+ * never shows, and enough for the KERNAL to misframe a tape block at some
+ * phases of the load (issue #161).
+ */
+let timerPreFire: ((overshoot: number) => void) | undefined;
+
+/** Install the pre-fire hook (see timerPreFire); returns the one it replaced. */
+export function setGeneratedTimerPreFire(hook: ((overshoot: number) => void) | undefined): ((overshoot: number) => void) | undefined {
+  const outer = timerPreFire;
+  timerPreFire = hook;
+  return outer;
+}
+
 /** A device-side attotime value, for a save state's factory (machine-state.ts). */
 export function createGeneratedAttotime(seconds: number): object {
   return new IrAttotime(seconds);
@@ -577,6 +599,7 @@ class IrTimer {
       const overshoot = -this.remainingSeconds;
       const firedPeriod = this.period;
       const generation = this.adjustmentGeneration;
+      timerPreFire?.(overshoot);
       // The callback runs at the expiry, not at the end of the lump that
       // carried the clock past it: a scanline tick re-arming for the next line
       // must measure that line from where it actually fired.
@@ -1251,6 +1274,19 @@ class IrDevice implements Device {
     // counters, so without this it is frozen while everything else runs.
     for (const child of this.children) child.tick(seconds);
     this.slotChild?.tick(seconds);
+  }
+
+  /**
+   * MAME calls `device_post_load` on every device once a state is loaded, so
+   * a device can rebuild what save_item cannot hold. The SID's is the
+   * clearest: each voice's waveform routine is a function pointer, chosen
+   * from the registers by `postload()`, and without it a voice kept running
+   * whichever routine it had when the save was loaded over it.
+   */
+  postLoad(): void {
+    if (this.methodNames().includes('device_post_load')) this.invoke('device_post_load');
+    for (const child of this.children) child.postLoad();
+    this.slotChild?.postLoad();
   }
 
   needsTick(): boolean {

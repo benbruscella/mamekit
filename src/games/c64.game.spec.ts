@@ -1,5 +1,5 @@
 import { c64 } from './c64.game.ts';
-import { gameSourceGraph } from '../test-support.ts';
+import { gameSourceGraph } from './test-support.ts';
 import assert from 'node:assert/strict';
 
 const graph = gameSourceGraph(c64.target);

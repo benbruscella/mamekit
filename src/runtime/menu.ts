@@ -35,6 +35,14 @@ interface GameEntry {
   year: string;
   manufacturer: string;
   family: string;
+  /** MAME's parent machine, for a clone: the PAL C64's is the NTSC one (`c64`) */
+  cloneof?: string;
+  /**
+   * Every machine a shelf box stands for, when it is a console's or
+   * computer's regional versions shown as one (menuEntries); the box opens
+   * the room of the first, which offers them all.
+   */
+  variants?: string[];
   /** canonical generated artifact directory, e.g. games/arcade/pacman */
   dataPath: string;
   /** consoles get their own tab + room; absent means arcade */
@@ -91,6 +99,48 @@ export type MenuTab = 'arcade' | 'console' | 'computer';
 export function menuTitle(entry: Pick<GameEntry, 'kind' | 'fullname'>): string {
   return entry.kind === 'computer' ? entry.fullname
     : entry.fullname.replace(/\s*\(.*\)$/, '').split(' / ')[0]!;
+}
+
+/**
+ * The boxes the shelves show, in the order given. A console's or computer's
+ * regional versions -- MAME's clones of one parent, the PAL C64 of the NTSC
+ * one -- are one machine to a visitor, so they are one box: named without the
+ * region, standing in front of its parent, ready if any version is accepted,
+ * and opening a room that offers every version (software.ts picks one per
+ * title). Arcade clones keep a box each, being different games.
+ */
+export function menuEntries<T extends Pick<GameEntry, 'game' | 'kind' | 'fullname' | 'title' | 'cloneof' |
+  'supported' | 'preview' | 'hasRom' | 'hasPhoto' | 'generationGaps' | 'variants'>>(games: readonly T[]): T[] {
+  const room = (entry: T): boolean => entry.kind === 'console' || entry.kind === 'computer';
+  const groups = new Map<string, T[]>();
+  for (const entry of games) {
+    if (!room(entry)) continue;
+    const key = entry.cloneof ?? entry.game;
+    groups.set(key, [...groups.get(key) ?? [], entry]);
+  }
+  const shelved: T[] = [];
+  const done = new Set<string>();
+  for (const entry of games) {
+    const key = entry.cloneof ?? entry.game;
+    if (!room(entry)) { shelved.push(entry); continue; }
+    if (done.has(key)) continue;
+    done.add(key);
+    const versions = groups.get(key)!;
+    if (versions.length === 1) { shelved.push(entry); continue; }
+    const head = versions.find(version => version.game === key) ?? versions[0]!;
+    const accepted = versions.some(version => version.supported !== false && !version.preview);
+    shelved.push({
+      ...head,
+      fullname: head.fullname.replace(/\s*\([^)]*\)$/, ''),
+      title: versions.map(version => version.title).join(' · '),
+      variants: versions.map(version => version.game),
+      supported: versions.some(version => version.supported !== false),
+      preview: !accepted,
+      hasRom: versions.some(version => version.hasRom),
+      generationGaps: accepted ? [] : head.generationGaps,
+    });
+  }
+  return shelved;
 }
 
 function entryTab(entry: Pick<GameEntry, 'kind'>): MenuTab {
@@ -351,7 +401,7 @@ export async function runMenu(): Promise<void> {
   // in its temporal dead zone. That threw once per tile into an unhandled
   // rejection, so the covers simply never appeared and nothing said why.
   const coverRuns = new Map<string, Promise<HTMLImageElement | null>>();
-  for (const entry of games) {
+  for (const entry of menuEntries(games)) {
     const box = buildBox(entry);
     boxes.push({ entry, box, visible: true });
     wall.insertBefore(box, empty);
@@ -477,7 +527,8 @@ export async function runMenu(): Promise<void> {
       box.appendChild(badge);
       const noun = entry.kind === 'computer' ? 'title' : 'cart';
       void openCartStore()
-        .then(s => s.list(entry.game))
+        .then(s => Promise.all((entry.variants ?? [entry.game]).map(game => s.list(game))))
+        .then(lists => lists.flat())
         .then(carts => {
           badge.textContent = carts.length
             ? `${carts.length} ${noun}${carts.length === 1 ? '' : 's'} on the shelf`

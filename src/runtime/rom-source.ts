@@ -36,6 +36,20 @@ export function machineSetDir(category: string, system: string): string {
   return category === 'arcade' ? category : `${system}/bios`;
 }
 
+/**
+ * Every key a machine's own set may be filed under, in the order to try. A
+ * clone's firmware is its parent's chips under a different set name -- the
+ * PAL C64 loads the NTSC machine's ROMs -- and the library files the one zip
+ * under the family (computers/c64/bios/c64.zip), so that name is tried too;
+ * the chips are matched by name and CRC either way. The category root is the
+ * last resort: console BIOS sets sat there before issue #162.
+ */
+export function machineSetKeys(game: string, category: string, system?: string): string[] {
+  const dir = system ? machineSetDir(category, system) : category;
+  const family = system?.split('/').pop();
+  return [...new Set([`${dir}/${game}.zip`, ...(family ? [`${dir}/${family}.zip`] : []), `${category}/${game}.zip`])];
+}
+
 /** Fetch bytes for a bucket key, or null when no source had it. */
 export async function fetchRomBytes(key: string): Promise<Uint8Array | null> {
   for (const url of romSourceUrls(key)) {

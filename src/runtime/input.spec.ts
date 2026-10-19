@@ -478,3 +478,28 @@ console.log('input.spec: a bouncing switch does not flip a held corner');
 }
 console.log('input.spec: a bounce across a frame does not flip a held corner');
 
+
+// A key pressed with Cmd or Ctrl held is the browser's shortcut (Cmd+V pastes
+// into a computer), not machine input; its release still lets go of anything held.
+{
+  const keys = new KeyboardInput([{ port: 'KEYS', mask: 0x01, keys: ['KeyV'], label: 'V' }], [], [{ tag: 'KEYS', init: 0xff }]);
+  const target = new EventTarget();
+  keys.attach(target);
+  const press = (type: 'keydown' | 'keyup', modifiers: { metaKey?: boolean; ctrlKey?: boolean } = {}) => {
+    const event = keyEvent(type, 'KeyV');
+    Object.defineProperties(event, { metaKey: { value: Boolean(modifiers.metaKey) }, ctrlKey: { value: Boolean(modifiers.ctrlKey) } });
+    target.dispatchEvent(event);
+    return event;
+  };
+  const idle = settle(keys).read('KEYS');
+  const shortcut = press('keydown', { metaKey: true });
+  assert.equal(settle(keys).read('KEYS'), idle, 'Cmd+V presses nothing');
+  assert.equal(shortcut.defaultPrevented, false, 'and the browser keeps its paste');
+  press('keydown', { ctrlKey: true });
+  assert.equal(settle(keys).read('KEYS'), idle, 'Ctrl+V presses nothing either');
+  press('keydown');
+  assert.notEqual(settle(keys).read('KEYS'), idle, 'a plain V types');
+  press('keyup', { metaKey: true });
+  assert.equal(settle(keys).read('KEYS'), idle, 'a release with Cmd held still lets go');
+}
+console.log('input.spec: Cmd and Ctrl shortcuts stay the browser\'s');

@@ -23,8 +23,9 @@ interface AcceptanceResult {
 /**
  * The longest any one contract may take before it is treated as stuck.
  *
- * The slowest accepted contract runs a couple of thousand frames and lands
- * well inside a minute and a half, hosted runner included. Without a cap a
+ * The slowest accepted contract, the PAL C64 loading a disk through its 1541
+ * (`c64p:disk`, 2,600 frames in lockstep with the drive's processor), takes
+ * about a minute and a half locally and a few on a hosted runner. Without a cap a
  * child that never exits takes the whole run down with it: the job sits
  * silent for the rest of its hour, GitHub kills it for time, and nothing in
  * the log says which contract stopped. Five minutes is several times the

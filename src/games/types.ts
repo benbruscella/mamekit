@@ -34,12 +34,38 @@ export interface GameResetAction {
   reset: true;
 }
 
+/**
+ * Text typed through MAME's natural keyboard (natural-keyboard.ts), in the
+ * coded form `post_coded` reads: `{ENTER}`, `{F1}` and the rest name keys.
+ * It is paced in emulated time as MAME paces it, so the run goes on while it
+ * types; the next action may not start before the frame it is posted on.
+ */
+export interface GameTextAction {
+  atFrame: number;
+  text: string;
+}
+
 export type GameInputAction =
   | GameKeyAction
   | GameChordAction
   | GameAnalogAction
   | GameMachineSignalAction
-  | GameResetAction;
+  | GameResetAction
+  | GameTextAction;
+
+/**
+ * A software-list title, started the way the software room's Play starts it:
+ * its set at `roms/<the machine's dumps folder>/<list>/<name>.zip`, every chip
+ * matched against the generated catalogue, its images in the transports whose
+ * formats read them, every other medium's slot left empty, and its shelf's
+ * start command typed -- then PLAY pressed, for a tape (title-start.ts).
+ */
+export interface GameSoftwareTitle {
+  /** MAME software list: "c64_cass" */
+  list: string;
+  /** the title's short name in that list: "hero" */
+  name: string;
+}
 
 export interface GameCheckpointGolden {
   video: string;
@@ -109,6 +135,8 @@ export interface GameAcceptanceScenario {
    * room mounts it.
    */
   cartridge?: string;
+  /** The computer title this scenario plays; see GameSoftwareTitle. */
+  software?: GameSoftwareTitle;
   romEnvironment: string;
   frames: number;
   /** Minimum full-contract throughput, including video hashing and audio probing. */
@@ -137,6 +165,8 @@ export interface GameTestContract extends MachineTargetDefinition {
   scenarioId?: string;
   /** See GameAcceptanceScenario.cartridge. */
   cartridge?: string;
+  /** See GameAcceptanceScenario.software. */
+  software?: GameSoftwareTitle;
   romEnvironment: string;
   frames: number;
   /** Minimum full-contract throughput, including video hashing and audio probing. */

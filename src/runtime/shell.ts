@@ -8,13 +8,14 @@ import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from
 import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
 import { NaturalKeyboard } from './natural-keyboard.ts';
+import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
-import { fetchRomBytes, machineSetDir } from './rom-source.ts';
+import { fetchRomBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
 import {
@@ -213,18 +214,9 @@ export interface DropZone {
 async function fetchRomSet(game: string, category = 'arcade', systemKey?: string): Promise<Uint8Array> {
   // A console's or computer's firmware is filed in the system's own folder
   // (consoles/coleco/bios/coleco.zip, computers/c64/bios/c64.zip), beside the
-  // software it runs; an arcade board's set sits at the category root.
-  // A clone's firmware is its parent's chips under a different set name --
-  // the PAL C64 loads the NTSC machine's ROMs -- and the library files the one
-  // zip under the family, so that name is tried too; the chips are matched by
-  // name and CRC either way. The category root is the last resort: console
-  // BIOS sets sat there before issue #162.
-  const dir = systemKey ? machineSetDir(category, systemKey) : category;
-  const family = systemKey?.split('/').pop();
-  const keys = [...new Set([
-    `${dir}/${game}.zip`, ...(family ? [`${dir}/${family}.zip`] : []), `${category}/${game}.zip`,
-  ])];
-  for (const key of keys) {
+  // software it runs; an arcade board's set sits at the category root. See
+  // machineSetKeys for the clone and legacy names tried after it.
+  for (const key of machineSetKeys(game, category, systemKey)) {
     const bytes = await fetchRomBytes(key);
     if (bytes) return bytes;
   }
@@ -244,7 +236,7 @@ function romCategory(dataPath: string): string {
  * directory (consoles/coleco), or the computer family's (computers/c64, which
  * the PAL and NTSC machines share). An arcade board has none.
  */
-function romSystemKey(cfg: ShellConfig): string | undefined {
+export function romSystemKey(cfg: Pick<ShellConfig, 'software' | 'cart' | 'dataPath'>): string | undefined {
   return cfg.software?.dumpsKey ?? (cfg.cart ? cfg.dataPath.replace(/^games\//, '') : undefined);
 }
 
@@ -383,6 +375,13 @@ export interface ShellConfig {
   /** Start the title the software room booted: its shelf's `boot`. */
   boot?: NonNullable<SoftwareShelf['boot']>;
   /**
+   * Machines whose firmware kept in this browser is this one's too: a
+   * machine's other regional versions, which the room names. The PAL C64
+   * loads the NTSC machine's chips, so a c64.zip kept for one boots the other
+   * instead of asking for it again; chips are still matched by name and CRC.
+   */
+  firmwareFrom?: string[];
+  /**
    * The machine is exposed as a beta: compiled and playable, but without
    * gameplay acceptance yet. Set by the room from the manifest's preview flag
    * so the page says so wherever the machine is named.
@@ -424,6 +423,12 @@ export interface SoftwareShelf {
    * transport is not yet generated is still browsable, but display only.
    */
   mountable: boolean;
+  /**
+   * The machine's `set_filter` on the list ("PAL"): the catalogue holds only
+   * what MAME's `is_compatible` lets through, and the room names a family's
+   * regional machines by it.
+   */
+  filter?: string;
   /**
    * The MAME slots whose cards carry this medium's transport ("tape",
    * "iec8"), when it is not fixed to the board. A title on another medium
@@ -828,7 +833,7 @@ export async function runShell(
   // title boots without the 1541, so it must not ask for c1541.zip.
   const emptySlots = cfg.board.emptySlots ?? [];
   if (emptySlots.length) {
-    cfg = { ...cfg, roms: cfg.roms.filter(spec => !emptySlots.some(slot => spec.region.startsWith(`${slot}:`))) };
+    cfg = { ...cfg, roms: withoutSlotFirmware(cfg.roms, emptySlots) };
     console.info(`[media] booting with ${emptySlots.map(slot => `-${slot} ""`).join(' ')}: ` +
       'a transport the title does not use is left out, as MAME leaves an empty slot');
   }
@@ -889,7 +894,7 @@ export async function runShell(
     // stores it in a separate split-set zip.
     const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
     const dependencies = dependencyRomSets(cfg.roms, cfg.game);
-    const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical);
+    const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical, cfg.firmwareFrom);
     if (kept?.complete) {
       ui.status(`Booting ${cfg.title} from the ${cfg.game}.zip kept in this browser…`);
       regions = assembleRegions(cfg.roms, kept.files, ui.status, critical);
@@ -1037,27 +1042,25 @@ export async function runShell(
       ui.addBay(detachedBay(kind, slot, ui.toast, host.attach));
     }
   };
-  // The software room's chosen tape rides in on `mounted`; the first transport
-  // that accepts its extension takes it, the rest start empty.
-  let pending = mounted;
+  // The software room's chosen title rides in on `mounted`: each image goes to
+  // the first transport, tapes then drives, whose formats read it, and the
+  // rest start empty (title-start.ts, which the acceptance harness shares).
+  const tapes = board.media?.() ?? [];
+  const disks = board.disks?.() ?? [];
+  const claimed = claimImages<CassetteMedia | DiskMedia>([...tapes, ...disks], mounted);
   // The deck that took the title's tape, for a boot that ends by pressing PLAY.
-  let bootTape: CassetteMedia | undefined;
-  for (const media of board.media?.() ?? []) {
-    const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
-    if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    if (mine.length) bootTape ??= media;
+  const bootTape = tapes.find((_, index) => claimed[index]!.length);
+  tapes.forEach((media, index) => {
+    const mine = claimed[index]!;
     ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
       mine.length && typing ? cfg.boot?.command : undefined));
-  }
+  });
   detached('cassette');
-  // Disk drives the same way: the chosen disk set's images go to the first
-  // drive whose formats read them.
-  for (const disk of board.disks?.() ?? []) {
-    const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
-    if (mine.length) pending = pending.filter(image => !mine.includes(image));
+  disks.forEach((disk, index) => {
+    const mine = claimed[tapes.length + index]!;
     ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
       mine.length && typing ? cfg.boot?.command : undefined));
-  }
+  });
   detached('floppy');
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -1065,27 +1068,11 @@ export async function runShell(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
 
   // One-click play (issue #161): a title the room booted starts itself with
-  // its shelf's command. The machine is given `delay` seconds of emulated time
-  // to come up, the command is typed through the natural keyboard, and once
-  // it is typed the tape that took the title is set playing; warp while
-  // loading carries the load from there. Every step is counted in frames the
-  // machine ran, so a fast-forward or a stall changes none of it.
-  let boot = cfg.boot && typing
-    ? { command: cfg.boot.command, play: Boolean(cfg.boot.play), wait: Math.round(cfg.boot.delay * cfg.board.screen.refresh), typed: false }
+  // its shelf's command, typed once the machine is up, then PLAY on the tape
+  // that took it; warp while loading carries the load from there.
+  const start = cfg.boot && typing
+    ? new TitleStart(cfg.boot, cfg.board.screen.refresh, typing, bootTape, message => console.info(`[boot] ${message}`))
     : undefined;
-  const advanceBoot = (): void => {
-    if (!boot) return;
-    if (boot.wait > 0) { boot.wait--; return; }
-    if (!boot.typed) {
-      typing!.postCoded(boot.command);
-      boot.typed = true;
-      console.info(`[boot] typing ${JSON.stringify(boot.command)}`);
-      return;
-    }
-    if (typing!.busy()) return;
-    if (boot.play && bootTape && !bootTape.playing()) bootTape.play();
-    boot = undefined;
-  };
 
   // One emulated frame, exactly as the run loop advances it. Browser QA drives
   // this directly so a test can run a precise frame count instead of racing the
@@ -1175,7 +1162,7 @@ export async function runShell(
     typing?.tick(1 / cfg.board.screen.refresh);
     input.advance(netplay.take());
     board.frame(fb);
-    advanceBoot();
+    start?.advance();
     memory.tick();
     if (!hiscoreRestoreAnnounced && memory.hiscoreArmed()) {
       hiscoreRestoreAnnounced = true;
@@ -1293,8 +1280,6 @@ export async function runShell(
   // transport is moving -- a tape the machine's motor is pulling, a disk
   // spinning -- and back to real time the moment it stops. It reads only the
   // board's generic transports, so a machine with any gets it.
-  const tapes = board.media?.() ?? [];
-  const disks = board.disks?.() ?? [];
   const warpKey = `mamekit:warp-while-loading:${cfg.game}`;
   let warpWhileLoading = tapes.length + disks.length > 0;
   try { if (localStorage.getItem(warpKey) === '0') warpWhileLoading = false; } catch { /* no storage: on */ }
@@ -1316,7 +1301,7 @@ export async function runShell(
     group.setAttribute('aria-label', 'Computer');
     group.style.cssText = 'display:inline-flex;align-items:center;gap:7px';
     const reset = titleButton('Reset', 'Reset the computer', 'Reset the computer, as its reset line does', 'normal', 'power');
-    reset.onclick = () => { boot = undefined; typing?.cancel(); input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
+    reset.onclick = () => { start?.cancel(); typing?.cancel(); input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
     const fast = titleButton('Fast-forward', 'Fast-forward',
       'Run as fast as the machine will go, muted, until pressed again', 'normal', 'fastForward');
     fast.dataset.fastForward = '';
@@ -1361,6 +1346,14 @@ export async function runShell(
         typing.post(text);
       };
       group.append(paste);
+      // Cmd/Ctrl+V does the same: the input model leaves a shortcut to the
+      // browser, and the browser's paste carries the text itself.
+      addEventListener('paste', ev => {
+        const text = ev.clipboardData?.getData('text/plain');
+        if (!text) return;
+        ev.preventDefault();
+        typing.post(text);
+      });
     }
     ui.addTitleControls(group);
   }
@@ -2710,18 +2703,27 @@ export async function storedRomFiles(
   game: string,
   specs: RomRegionSpec[],
   critical: Set<string>,
+  /** further machines whose kept sets may hold these chips (ShellConfig.firmwareFrom) */
+  also: readonly string[] = [],
 ): Promise<KeptRomSet | null> {
-  let record;
-  try { record = await store.get(game); } catch { return null; }
-  if (!record) return null;
   const files = new Map<string, Uint8Array>();
-  try {
-    for (const zip of record.zips) mergeRomFiles(files, await readZip(new Uint8Array(zip.bytes)));
-  } catch {
-    await store.remove(game).catch(() => undefined);
-    return null;
+  const zips: StoredZip[] = [];
+  for (const name of [game, ...also]) {
+    let record;
+    try { record = await store.get(name); } catch { continue; }
+    if (!record) continue;
+    try {
+      const own = new Map<string, Uint8Array>();
+      for (const zip of record.zips) mergeRomFiles(own, await readZip(new Uint8Array(zip.bytes)));
+      mergeRomFiles(files, own);
+      zips.push(...record.zips);
+    } catch {
+      // Only the machine's own record is dropped: a sibling's is its own business.
+      if (name === game) await store.remove(game).catch(() => undefined);
+    }
   }
-  return { files, zips: record.zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
+  if (!zips.length) return null;
+  return { files, zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
 }
 
 /** The sets that still hold a boot-critical chip `files` lacks, as the drop screen names them. */

@@ -61,20 +61,36 @@ type ShelfBoot = NonNullable<SoftwareShelf['boot']>;
  * SHIFT+RUN/STOP does); then PLAY. A disk is the same, addressed to the
  * drive's unit, which is the slot's own address.
  */
-const BOOT_POLICY: Record<string, (slot: ShelfDevice) => ShelfBoot | undefined> = {
-  PET_DATASSETTE_PORT: () => ({ delay: 3, command: 'LOAD{ENTER}RUN{ENTER}', play: true }),
-  CBM_IEC_SLOT: slot => slot.slotAddress === undefined ? undefined
-    : { delay: 3, command: `LOAD"*",${slot.slotAddress},1{ENTER}RUN{ENTER}` },
+const BOOT_POLICY: Record<string, {
+  boot(slot: ShelfDevice): ShelfBoot | undefined;
+  /**
+   * A title's own command, when MAME's usage note for it names one: Jingle
+   * Disk's is `Commodore: Load "JINGLE",8,1`, because the first file on that
+   * disk is a utility and `LOAD"*",8,1` starts nothing.
+   */
+  fromUsage?(usage: string): string | undefined;
+}> = {
+  PET_DATASSETTE_PORT: { boot: () => ({ delay: 3, command: 'LOAD{ENTER}RUN{ENTER}', play: true }) },
+  CBM_IEC_SLOT: {
+    boot: slot => slot.slotAddress === undefined ? undefined
+      : { delay: 3, command: `LOAD"*",${slot.slotAddress},1{ENTER}RUN{ENTER}` },
+    fromUsage: usage => {
+      const named = /\bload\s*"([^"]+)"\s*,\s*(\d+)\s*,\s*1\b/i.exec(usage);
+      return named ? `LOAD"${named[1]!.toUpperCase()}",${named[2]},1{ENTER}RUN{ENTER}` : undefined;
+    },
+  },
 };
 
-/** The boot a shelf's slots agree on, when the policy knows one. */
-function shelfBoot(slots: readonly string[], devices: readonly ShelfDevice[]): ShelfBoot | undefined {
-  const boots = slots.map(tag => {
+/** The policy entry a shelf's slots agree on, when the policy knows them. */
+function shelfPolicy(slots: readonly string[], devices: readonly ShelfDevice[]): { boot: ShelfBoot; fromUsage?: (usage: string) => string | undefined } | undefined {
+  const found = slots.map(tag => {
     const slot = devices.find(device => device.tag === tag);
-    return slot ? BOOT_POLICY[slot.type]?.(slot) : undefined;
+    const policy = slot ? BOOT_POLICY[slot.type] : undefined;
+    const boot = slot && policy?.boot(slot);
+    return boot ? { boot, ...(policy!.fromUsage ? { fromUsage: policy!.fromUsage } : {}) } : undefined;
   });
-  return boots.length && boots.every(boot => boot && JSON.stringify(boot) === JSON.stringify(boots[0]))
-    ? boots[0] : undefined;
+  return found.length && found.every(entry => entry && JSON.stringify(entry.boot) === JSON.stringify(found[0]!.boot))
+    ? found[0] : undefined;
 }
 
 /**
@@ -213,14 +229,6 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
     // A list the machine's filter empties -- the C64's one quickload is PAL
     // only -- is not a shelf on this machine; the tab would hold nothing.
     if (!catalog.entries.length) { log(`software "${list.name}": nothing passes the "${list.filter}" filter — no shelf`); continue; }
-    mkdirSync(softwareDir, { recursive: true });
-    // compact on purpose: the C64's tape list alone is 1,100 entries
-    writeFileSync(join(softwareDir, `${list.name}.json`), JSON.stringify(catalog));
-    const available = manifests.flatMap(manifest => availabilityFromAudit(manifest, list.name));
-    if (available.length) {
-      writeFileSync(join(softwareDir, `${list.name}.available.json`),
-        JSON.stringify({ set: options.dumpsKey, carts: available }));
-    }
     // A cartridge list names the chips on the board ("u1", "ba1"), not an
     // image a visitor could drop; only a media list's file names are images.
     // Of those, only the ones the transport reads are playable: the C64's
@@ -232,7 +240,23 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
     const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)) &&
       (!readable || extensions.length > 0);
     const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
-    const boot = shelfBoot(slots, options.devices);
+    const policy = slots.length ? shelfPolicy(slots, options.devices) : undefined;
+    const boot = policy?.boot;
+    // A title whose usage note names its own command carries it (`start`).
+    if (policy?.fromUsage) {
+      for (const entry of catalog.entries) {
+        const start = entry.usage ? policy.fromUsage(entry.usage) : undefined;
+        if (start) entry.start = start;
+      }
+    }
+    mkdirSync(softwareDir, { recursive: true });
+    // compact on purpose: the C64's tape list alone is 1,100 entries
+    writeFileSync(join(softwareDir, `${list.name}.json`), JSON.stringify(catalog));
+    const available = manifests.flatMap(manifest => availabilityFromAudit(manifest, list.name));
+    if (available.length) {
+      writeFileSync(join(softwareDir, `${list.name}.available.json`),
+        JSON.stringify({ set: options.dumpsKey, carts: available }));
+    }
     shelves.push({
       list: list.name,
       description: catalog.description,
@@ -243,6 +267,7 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       extensions,
       entries: catalog.entries.length,
       mountable,
+      ...(list.filter ? { filter: list.filter } : {}),
       ...(slots.length ? { slots } : {}),
       ...(boot ? { boot } : {}),
     });

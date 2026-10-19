@@ -607,6 +607,32 @@ fired late with an earlier time than the motor write it followed, and MAME's
 cassette refuses a negative position. A core without the fact (MAME's Z80
 finishes its instruction first too) keeps the old order.
 
+Within one delivery the hosted and autonomous processors are clocked up to a
+timer's expiry before its callback runs (`setGeneratedTimerPreFire`), and
+through the rest of the delivery after the last: MAME fires a timer once every
+device has run to it. Firing every timer due in an instruction first and then
+clocking the CIAs through the whole instruction set the datassette's FLAG bit
+on a CIA still standing at the instruction's first cycle, so its interrupt
+pipeline could assert up to an instruction early. The KERNAL's tape reader
+measures each pulse from inside that interrupt, and those few cycles were
+enough to misframe Crazy Comets' program block on one PLAY phase in eight
+(`?LOAD ERROR`) where MAME loads it at every phase (#161).
+
+Two timing differences from MAME's C64 remain, recorded rather than fixed.
+MAME measures screen positions from the start of VBLANK
+(`time_until_pos` adds `height - (visarea.bottom + 1)`), so its VBLANK begins
+at time zero and every frame period after; the frame runner puts line 0 there
+instead and presents at line `vbstart`. A machine whose beam is the screen's
+cannot tell, but the VIC-II keeps its own raster from time zero, so MAME
+captures it at the end of its frame and the frame runner at raster 284, with
+the bottom 16 rows a frame old. And the 6510 keeps the exact XTAL quotient
+(985,248.44 Hz) where MAME's `device_t::clock()` is the u32 every generated
+device already gets, so the VIC-II drifts 0.009 cycles a frame behind the
+processor; after about 36 s it is still finishing raster 283 when the frame
+is presented, which shows as one torn row at the bottom where the background
+colour differs from the border. Both are board-wide changes to every target's
+phase or cycle count, so they wait for a change of their own.
+
 A driver's `machine_start` is not run on the board, but what it writes into a
 root RAM device is: the generator interprets the function with only that
 device's `pointer()` and `size()` live (`ramPowerOn`) and records the result as
@@ -840,7 +866,17 @@ unchanged for the next generated machine".
    Which method mounts a board, and whether it is handed that space or reaches
    for it, is read from the bus's own interface -- the Atari 2600 takes the
    space as an argument, the Game Boy's `load()` calls `cart_space()`.
-   Computer targets open their software room instead. A computer's software
+   Computer targets open their software room instead. A machine's regional
+   versions -- MAME's clones of one parent (`meta.json`'s `cloneof`), the PAL
+   C64 of the NTSC one -- are one box on the menu and one room
+   (`menuEntries`, `src/runtime/machine-versions.ts`). The room merges every
+   version's shelves; a title's versions are the ones whose filtered catalogue
+   holds it, and a title only one lists says so (`PAL ONLY`). Play boots the
+   only version that lists it, else the region chosen in the room's REGION
+   control, else on Auto the version whose `set_filter` names the list's own
+   `<info name="video">` note, else an accepted version before a candidate.
+   Each version boots with its own config, and the firmware the browser keeps
+   for one boots the others (`firmwareFrom`). A computer's software
    arrives on several media -- the C64 driver declares cartridge, cassette,
    two floppy and a quickload list -- so the generator writes one catalogue per
    SOFTWARE_LIST declaration under `software/<list>.json`, filtered with the
@@ -865,7 +901,11 @@ unchanged for the next generated machine".
    (`BOOT_POLICY` in `src/gen/software-shelves.ts`; the C64's datassette port
    types `LOAD` and `RUN` while the KERNAL waits for PLAY, its IEC slot
    `LOAD"*",8,1` at the slot's own address). MAME itself starts nothing; its
-   `-autoboot_command` is the user's to give. While a transport moves -- a
+   `-autoboot_command` is the user's to give. Which slots a title leaves
+   empty, which transport takes which image and the start sequence itself
+   live in `src/runtime/title-start.ts`, which the acceptance harness drives
+   too, so a contract's software scenario starts its title exactly as Play
+   does. While a transport moves -- a
    tape the machine's motor pulls, a disk spinning -- the shell fast-forwards
    on its own (warp while loading) and returns to real time when it stops.
    Fast-forward runs frames back to back as tasks of their own rather than

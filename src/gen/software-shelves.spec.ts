@@ -90,7 +90,12 @@ try {
   writeFileSync(join(mameSrc, 'hash', 'c64_flop_orig.xml'), `<?xml version="1.0"?>
 <softwarelist name="c64_flop_orig" description="Commodore 64 original disks">
   <software name="aztecchl"><description>Aztec Challenge</description><year>1983</year><publisher>Cosmi</publisher>
+    <info name="video" value="NTSC"/>
     <part name="flop1" interface="floppy_5_25"><dataarea name="flop" size="4"><rom name="aztec.g64" size="4" crc="2268d7ae" sha1="x"/></dataarea></part>
+  </software>
+  <software name="jingldsk"><description>JingleDisk</description><year>1985</year><publisher>x</publisher>
+    <info name="usage" value="Commodore: Load &quot;jingle&quot;,8,1 / Apple IIc and e: Self boots"/>
+    <part name="flop1" interface="floppy_5_25"><dataarea name="flop" size="4"><rom name="j.g64" size="4" crc="00000003" sha1="x"/></dataarea></part>
   </software>
 </softwarelist>`);
   const dumpsDir = join(root, 'roms', 'computers', 'c64');
@@ -135,6 +140,14 @@ try {
   assert.deepEqual(tapes!.boot, { delay: 3, command: 'LOAD{ENTER}RUN{ENTER}', play: true });
   assert.deepEqual(disks!.boot, { delay: 3, command: 'LOAD"*",8,1{ENTER}RUN{ENTER}' });
   assert.equal(carts!.boot, undefined, 'a medium no policy covers starts nothing');
+  // MAME's machine filter is recorded on each shelf, and a list's own notes
+  // ride on its entries: the video standard, and a start command a usage note
+  // names (Jingle Disk's first file is a utility).
+  assert.equal(disks!.filter, 'NTSC');
+  const diskCatalog = JSON.parse(readFileSync(join(outDir, 'software', 'c64_flop_orig.json'), 'utf8'));
+  assert.equal(diskCatalog.entries.find((entry: { name: string }) => entry.name === 'aztecchl').video, 'NTSC');
+  assert.equal(diskCatalog.entries.find((entry: { name: string }) => entry.name === 'jingldsk').start, 'LOAD"JINGLE",8,1{ENTER}RUN{ENTER}');
+  assert.equal(diskCatalog.entries.find((entry: { name: string }) => entry.name === 'aztecchl').start, undefined);
   assert.deepEqual(disks!.slots, ['iec8'], 'the drive sits under the outermost slot, not its own connector');
   assert.equal(carts!.slots, undefined, 'nothing mounts a cartridge yet');
   assert.equal(tapes!.entries, 1, 'the NTSC filter drops the PAL-only tape');

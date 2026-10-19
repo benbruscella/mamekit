@@ -117,21 +117,17 @@ export class NaturalKeyboard {
    */
   postCoded(text: string, rate = 0): void {
     this.rate = rate;
-    for (let index = 0; index < text.length;) {
-      let ch = String.fromCodePoint(text.codePointAt(index)!);
-      let increment = ch.length;
-      if (ch === '{') {
-        for (const [name, code] of Object.entries(CODED)) {
-          if (text.slice(index + 1, index + 1 + name.length).toUpperCase() === name && text[index + 1 + name.length] === '}') {
-            ch = code;
-            increment = name.length + 2;
-            break;
-          }
-        }
-      }
-      this.postChar(ch, false);
-      index += increment;
-    }
+    for (const ch of decodeCoded(text)) this.postChar(ch, false);
+  }
+
+  /**
+   * The characters of coded text this machine has no key for, which `post`
+   * and `postCoded` drop as MAME does. A start command or a test that types
+   * one would otherwise lose it without a word.
+   */
+  untypable(text: string): string[] {
+    return decodeCoded(text).filter(ch => !this.codes.has(ch) &&
+      !(this.alternates[ch] !== undefined && [...this.alternates[ch]!].every(part => this.codes.has(part))));
   }
 
   /** Abandon whatever is still to be typed, releasing anything it holds. */
@@ -210,4 +206,25 @@ export class NaturalKeyboard {
     if (this.rate) return this.rate;
     return ch === '\r' ? 0.2 : 0.05;
   }
+}
+
+/** `post_coded`'s reading of text: each `{NAME}` escape as the character it stands for. */
+function decodeCoded(text: string): string[] {
+  const out: string[] = [];
+  for (let index = 0; index < text.length;) {
+    let ch = String.fromCodePoint(text.codePointAt(index)!);
+    let increment = ch.length;
+    if (ch === '{') {
+      for (const [name, code] of Object.entries(CODED)) {
+        if (text.slice(index + 1, index + 1 + name.length).toUpperCase() === name && text[index + 1 + name.length] === '}') {
+          ch = code;
+          increment = name.length + 2;
+          break;
+        }
+      }
+    }
+    out.push(ch);
+    index += increment;
+  }
+  return out;
 }

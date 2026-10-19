@@ -1,0 +1,114 @@
+// One-click play (issue #161): a title the software room boots starts itself.
+// A host feature (ARCHITECTURE.md section 8), shared by the shell and the
+// acceptance harness so the gate drives exactly what the browser does: the
+// media slots a title leaves empty, which transport takes which of its
+// images, and the start sequence -- its shelf's command typed through the
+// natural keyboard once the machine is up, then PLAY on the tape that took it.
+// Nothing here names a machine: the slots, formats and command all arrive in
+// the generated software shelves.
+
+import type { NaturalKeyboard } from './natural-keyboard.ts';
+import type { MountedImage, RomRegionSpec, SoftwareShelf, SoftwareShelves } from './shell.ts';
+
+/**
+ * The media slots a title boots with empty: every mountable shelf's slots but
+ * those of the title's own shelf and any attached since. A C64 tape title
+ * boots without the 1541, as MAME's `-iec8 ""` does, rather than running the
+ * drive's processor in lockstep for nothing; `list` undefined is Power on,
+ * which attaches every one.
+ */
+export function emptyMediaSlots(
+  software: SoftwareShelves | undefined,
+  list?: string,
+  attached: readonly string[] = [],
+): string[] {
+  if (list === undefined) return [];
+  const shelves = software?.shelves ?? [];
+  const slots = [...new Set(shelves.flatMap(shelf => shelf.mountable ? shelf.slots ?? [] : []))];
+  const used = new Set([...shelves.find(shelf => shelf.list === list)?.slots ?? [], ...attached]);
+  return slots.filter(slot => !used.has(slot));
+}
+
+/** A slot left empty takes its card's firmware with it: a tape title must not ask for c1541.zip. */
+export function withoutSlotFirmware(roms: readonly RomRegionSpec[], emptySlots: readonly string[]): RomRegionSpec[] {
+  return roms.filter(spec => !emptySlots.some(slot => spec.region.startsWith(`${slot}:`)));
+}
+
+/**
+ * Which of a title's images each transport takes: the first, in the order
+ * given, whose formats read it. The result is parallel to `transports`; the
+ * first image of each is the one mounted, the rest are the sides offered.
+ */
+export function claimImages<T extends { extensions: readonly string[] }>(
+  transports: readonly T[],
+  images: readonly MountedImage[],
+): MountedImage[][] {
+  let pending = [...images];
+  return transports.map(transport => {
+    const mine = pending.filter(image =>
+      transport.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
+    pending = pending.filter(image => !mine.includes(image));
+    return mine;
+  });
+}
+
+/** The tape a start ends by setting playing. */
+export interface StartTape {
+  playing(): boolean;
+  play(): void;
+}
+
+/**
+ * A title's start: `delay` seconds of emulated time for the machine to come
+ * up, the shelf's command typed, then PLAY pressed when the shelf asks for it.
+ * Every step is counted in frames the machine ran, so a fast-forward or a
+ * stall changes none of it.
+ */
+export class TitleStart {
+  private readonly plan: NonNullable<SoftwareShelf['boot']>;
+  private readonly typing: NaturalKeyboard;
+  private readonly tape: StartTape | undefined;
+  private readonly log: (message: string) => void;
+  private wait: number;
+  private typed = false;
+  private finished = false;
+
+  constructor(
+    plan: NonNullable<SoftwareShelf['boot']>,
+    refresh: number,
+    typing: NaturalKeyboard,
+    tape?: StartTape,
+    log: (message: string) => void = () => {},
+  ) {
+    this.plan = plan;
+    this.typing = typing;
+    this.tape = tape;
+    this.log = log;
+    this.wait = Math.round(plan.delay * refresh);
+  }
+
+  /** Still waiting to type, typing, or about to press PLAY. */
+  active(): boolean {
+    return !this.finished;
+  }
+
+  /** Abandon the start, as a reset does; the caller cancels the typing. */
+  cancel(): void {
+    this.finished = true;
+  }
+
+  /** Called once after every frame the machine ran. */
+  advance(): void {
+    if (this.finished) return;
+    if (this.wait > 0) { this.wait--; return; }
+    if (!this.typed) {
+      this.typing.postCoded(this.plan.command);
+      this.typed = true;
+      this.log(`typing ${JSON.stringify(this.plan.command)}`);
+      return;
+    }
+    if (this.typing.busy()) return;
+    if (this.plan.play && this.tape && !this.tape.playing()) this.tape.play();
+    this.finished = true;
+  }
+}

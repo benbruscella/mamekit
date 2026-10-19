@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { c64p } from './c64p.game.ts';
-import { gameSourceGraph } from '../test-support.ts';
+import { gameSourceGraph } from './test-support.ts';
 
 const graph = gameSourceGraph(c64p.target);
 assert.equal(graph.edges.find(edge => edge.from === 'game:c64p' && edge.rel === 'USES_MACHINE')?.to,

@@ -2,7 +2,7 @@ import { addSourceConstructor, compileMameDevice } from '../../mame/device-compi
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
-import { C64_MAME_TYPES } from './definition.ts';
+import { C64_AUDIO_WORKLET_ARTIFACT, C64_MAME_TYPES } from './definition.ts';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseMameConstructors, parseMameSource } from '../../mame/ast.ts';
@@ -93,7 +93,7 @@ export function extractC64(input: CapabilityInput): CapabilityExtraction | undef
       { path: `${stem}.ts`, contents: generatedDeviceExecutableSource(device, `${entry.type.toLowerCase()}.device.ir.json`) },
     );
     if (['MOS6581', 'MOS8580'].includes(entry.type)) result.artifacts.push({
-      path: 'audio/sid-worklet.ts', contents: generatedStreamWorkletSource({
+      path: C64_AUDIO_WORKLET_ARTIFACT, contents: generatedStreamWorkletSource({
         kind: 'sid', sourceFiles: device.sourceFiles, methods: device.methods.map(method => method.name),
       }),
     });

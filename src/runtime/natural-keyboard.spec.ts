@@ -82,4 +82,12 @@ assert.deepEqual(typed('L', false, 0.25), [[0, 'L', true], [1, 'L', false]]);
   assert.equal(keyboard.busy(), false);
 }
 
-console.log('natural-keyboard.spec: MAME key combinations, pacing and alternates passed');
+// What the machine has no key for is dropped, as MAME drops it; a start
+// command or a test asks first, coded escapes and alternates included.
+{
+  const keyboard = new NaturalKeyboard({ press: () => {} }, bindings, { l: 'L' });
+  assert.deepEqual(keyboard.untypable('L"l{ENTER}{F2}'), []);
+  assert.deepEqual(keyboard.untypable('LOAD{F9}'), ['O', 'A', 'D', '{F9}']);
+}
+
+console.log('natural-keyboard.spec: MAME key combinations, pacing, alternates and untypable text passed');

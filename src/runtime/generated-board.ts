@@ -9,6 +9,7 @@ import {
   generatedInstanceFactories,
   generatedTimerBacklog,
   generatedTimerExpiry,
+  setGeneratedTimerPreFire,
   hasGeneratedDevice,
   generatedDeviceRole,
   type Device,
@@ -1025,6 +1026,19 @@ class IrBoard implements Board {
       for (const device of timedDevices) device.tick(seconds);
     };
     let tickHostedProcessors = (_seconds: number): void => {};
+    let hostsProcessors = false;
+    // The lump being delivered and how much of it the hosted processors have
+    // already run, for the one pre-fire hook (allocated once: it is installed
+    // for every instruction's delivery).
+    let lumpSeconds = 0;
+    let lumpHosted = 0;
+    const preFire = (overshoot: number): void => {
+      const step = lumpSeconds - overshoot - lumpHosted;
+      if (step > 0) {
+        tickHostedProcessors(step);
+        lumpHosted += step;
+      }
+    };
     const advanceTimedHardware = (seconds: number): void => {
       if (!(seconds > 0)) return;
       this.timedHardwareDelivered += seconds;
@@ -1032,8 +1046,27 @@ class IrBoard implements Board {
       // answered from the delivery, never caught up again (catchUpDeviceTime).
       const outer = this.deliveringDeviceTime;
       this.deliveringDeviceTime = true;
-      tickGeneratedDevices(seconds);
-      tickHostedProcessors(seconds);
+      // MAME fires a timer once every device has run to its expiry, so the
+      // hosted processors are clocked up to each one before its callback
+      // (timerPreFire) and through the rest of the lump after the last.
+      if (!hostsProcessors) {
+        tickGeneratedDevices(seconds);
+        this.deliveringDeviceTime = outer;
+        return;
+      }
+      const outerLump = lumpSeconds;
+      const outerHosted = lumpHosted;
+      lumpSeconds = seconds;
+      lumpHosted = 0;
+      const outerPreFire = setGeneratedTimerPreFire(preFire);
+      try {
+        tickGeneratedDevices(seconds);
+      } finally {
+        setGeneratedTimerPreFire(outerPreFire);
+      }
+      tickHostedProcessors(seconds - lumpHosted);
+      lumpSeconds = outerLump;
+      lumpHosted = outerHosted;
       this.deliveringDeviceTime = outer;
     };
     // MAME's DISCRETE_SOUND network addresses nodes through the NODE(n) macro,
@@ -2161,6 +2194,7 @@ class IrBoard implements Board {
         carries[index] = hostedCarry.get(processor.tag) ?? 0;
       }),
     });
+    hostsProcessors = synchronizedProcessors.length > 0;
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
       for (let index = 0; index < synchronizedProcessors.length; index++) {
@@ -3157,6 +3191,9 @@ class IrBoard implements Board {
     }
     // Everything a handler runtime resolved from the state it had is stale.
     noteCallLinksChanged();
+    // MAME's post-load pass: each device rebuilds what its saved members
+    // imply (machine.cpp `postload_all_devices`, then the registered hooks).
+    for (const device of this.devices.values()) device.postLoad?.();
   }
 
   /** Write a save into the machine; every part of it that did not fit is returned. */

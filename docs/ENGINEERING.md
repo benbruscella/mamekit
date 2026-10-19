@@ -144,6 +144,24 @@ trip and the audio probe then apply exactly as for an arcade set. Before #155
 no console had a contract, and the NES and the Game Boy each drew one flat
 colour for months with every gate green.
 
+A computer is accepted at its own firmware and against software-list titles.
+A scenario's `software: { list, name }` names one; its set lives at
+`.data/roms/<the machine's dumps folder>/<list>/<name>.zip`
+(`.data/roms/computers/c64/c64_cass/crazycom.zip`), every image is matched
+against the generated catalogue as a cartridge is, and the harness then does
+what the software room's Play does through `src/runtime/title-start.ts`: the
+other media slots booted empty, each image in the transport whose formats read
+it, the shelf's start command typed through the natural keyboard and PLAY
+pressed on a tape. A `{ atFrame, text }` action types MAME's coded form
+(`RUN{ENTER}`) the same way. Natural-keyboard presses and PLAY go into the
+input log, so the save-state round trip replays them exactly. `c64p` has three
+scenarios: BASIC (a SID note and the 10 PRINT maze), a tape (Crazy Comets) and
+an original disk (Bounty Bob Strikes Back), and `fetch:acceptance-roms` fetches
+each title beside the machine's own sets. The harness's silence check reads the
+signal after the browser's speaker high-pass, not the worklet's output the
+golden's `rms` records: the SID's DC offset alone measures 0.5 with every voice
+silent.
+
 A console's own cartridge bus is covered by a colocated spec under
 `src/hardware/<console>/`, which is where a bus that installs itself has to be
 tested: a Game Boy PCB is not describable by an address map, so
@@ -153,8 +171,9 @@ against a recording address space, and reads back the windows it decoded.
 ### C64 development
 
 `c64` (NTSC) and `c64p` (PAL) are computer targets with generated cassette
-transport, a generated 1541 disk drive and SID audio. Use PAL for the current
-selected tape collection.
+transport, a generated 1541 disk drive and SID audio. Both are accepted
+(`src/games/c64.game.ts`, `src/games/c64p.game.ts`): BASIC, a tape and a disk
+each, checked against MAME 0.289's own NTSC and PAL machines.
 
 `npm run gen:all` and `npm run dev` expose all generated targets in the
 catalogue, including the Computers tab. Candidates are labelled experimental;
@@ -174,7 +193,12 @@ transport. It records loading checkpoints and attempts `RUN` after the loader
 prints `READY.`. Its exit status remains unsuccessful until gameplay acceptance
 exists; a matching tape or a BASIC screen is not a gameplay pass.
 
-In the app, open the PAL C64 under **Computers**. The machine page is its
+In the app, open the Commodore 64 under **Computers**: the NTSC and PAL
+machines are one box and one room, and the room's **REGION** control (Auto,
+NTSC, PAL) picks which plays. Auto boots each title on the machine its
+software list lets it through to (MAME's `set_filter`), and of two the one the
+list's video note names, else PAL; a title only one
+machine lists is marked `PAL ONLY` or `NTSC ONLY`. The room is the
 software room: one shelf per software list the driver declares (cassettes,
 cartridges, two disk lists, quickloads), each read from
 `dist/games/computers/c64p/software/<list>.json`. The cassette shelf is the
@@ -216,7 +240,12 @@ MAME 0.289 with `-iec8 "" -cass <image>.tap -video none -nothrottle`, an
 `:u7`'s program space at `$D400`-`$D7FF`; on this side, wrap the board's
 `m_sid.write` call binding after `noteCallLinksChanged()`. Cauldron I & II's
 first 300 seconds produce the same 182,525 SID writes in the same order, and
-the music matches MAME's WAV band for band.
+the music matches MAME's WAV band for band. A load can also depend on the
+phase PLAY lands on, so check more than one: post the command on frames 150
+to 157 on both sides (`TYPEAT` in a Lua frame notifier) and press PLAY once
+`natkeyboard.is_posting` clears; the C64's KERNAL tape reader is sensitive to
+a few cycles of interrupt latency, and a Lua read tap on `$DC06`/`$DC07`/`$DC0D`
+gives MAME's Timer B readings to set beside ours.
 
 The 1541 is MAME's own `c1541`, composed into `iec8` from source: its 6502
 and DOS ROM, both 6522 VIAs, the 64H156 gate array, the ALPS drive mechanism

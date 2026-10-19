@@ -767,6 +767,10 @@ export class KeyboardInput implements InputPorts {
   }
 
   private onKey(ev: KeyboardEvent, down: boolean): void {
+    // A key pressed with Cmd or Ctrl held is the browser's shortcut -- Cmd+V
+    // pastes into a computer (shell.ts) -- never machine input: Control is
+    // never a game binding. Releases still arrive, so nothing is left held.
+    if (down && (ev.metaKey || ev.ctrlKey)) return;
     const hits = this.byKey.get(ev.code);
     if (!hits) {
       if (this.debug && down && !ev.repeat) console.log(`[input f${this.frameCount}] ${ev.code} unbound`);

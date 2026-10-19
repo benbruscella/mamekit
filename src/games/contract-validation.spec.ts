@@ -84,4 +84,25 @@ const normalized = normalizeGameContractExport(nested, {
 assert.equal(normalized.target.game, 'c64');
 assert.deepEqual(normalized.scenarios.map(scenario => scenario.id), ['basic', 'prg']);
 
+// A computer title is played from a shelf whose medium is accepted, and typed
+// text is an action like any other: it may not be empty or overlap.
+const computer: GameTestContract = {
+  ...candidate,
+  game: 'c64p',
+  category: 'computers',
+  media: [{ kind: 'cassette', status: 'accepted', softwareLists: ['c64_cass'] },
+    { kind: 'floppy', status: 'planned', softwareLists: ['c64_flop_orig'] }],
+};
+assert.equal(validateGameContract({ ...computer, software: { list: 'c64_cass', name: 'hero' } }, 'candidate').game, 'c64p');
+assert.throws(() => validateGameContract({ ...computer, software: { list: 'c64_flop_orig', name: 'bbsb' } }, 'accepted'),
+  /c64_flop_orig scenario needs that list's medium accepted/);
+assert.throws(() => validateGameContract({ ...computer, software: { list: 'c64_cass', name: 'H.E.R.O.' } }, 'candidate'),
+  /invalid software-list title/);
+assert.throws(() => validateGameContract({ ...computer, actions: [{ atFrame: 5, text: '' }] }, 'candidate'),
+  /types nothing/);
+assert.throws(() => validateGameContract({
+  ...computer,
+  actions: [{ atFrame: 5, code: 'KeyA', heldFrames: 10, releasedFrames: 5 }, { atFrame: 12, text: 'RUN{ENTER}' }],
+}, 'candidate'), /overlap/);
+
 console.log('contract-validation.spec: candidate and accepted validation passed');
