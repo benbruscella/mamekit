@@ -29,6 +29,7 @@ import {
   dispatchGeneratedCallback,
   dispatchGeneratedCallbacks,
   executeGeneratedCallbackHandler,
+  executeGeneratedMachineDelegate,
   executeGeneratedMachineHandler,
   generatedReferent,
   prepareGeneratedMachineHandler,
@@ -2298,7 +2299,7 @@ class IrBoard implements Board {
       if (!handler?.program || handler.program.diagnostics.length) continue;
       const parameters = handlerParameterDescriptors(handler.parameters);
       const invoke = (...args: unknown[]) =>
-        executeGeneratedMachineHandler(
+        executeGeneratedMachineDelegate(
           machine,
           handler,
           this.bindings,
@@ -3051,6 +3052,21 @@ class IrBoard implements Board {
         spinning: () => drive.get('m_mon') === 0,
         track: () => Math.floor(drive.get('m_cyl') / 2) + 1,
         trackCount: () => Math.ceil(drive.get('m_tracks') / 2),
+      }];
+    });
+  }
+
+  quickloads() {
+    return [...this.devices.entries()].flatMap(([tag, device]) => {
+      // MAME's own word for the medium: a cartridge port reads its own file
+      // too, but only a quickload puts one straight into memory.
+      if (device.imageTypeName?.() !== 'quickload') return [];
+      return [{ tag, extensions: device.imageExtensions?.() ?? [],
+        mount: (extension: string, bytes: Uint8Array, name?: string) => device.mountImage!(extension, bytes, name),
+        // snapquik.cpp's call_load arms the device's timer; the file is read
+        // into memory when it fires.
+        pending: () => Boolean(device.timerPending?.()),
+        error: () => device.imageError?.(),
       }];
     });
   }

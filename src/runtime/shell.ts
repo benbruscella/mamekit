@@ -11,7 +11,7 @@ import { NaturalKeyboard } from './natural-keyboard.ts';
 import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState } from './types.ts';
+import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
@@ -1036,18 +1036,20 @@ export async function runShell(
   };
   // A transport left out still has its strip, in the place it always has,
   // saying so and offering the restart that connects it.
-  const detached = (kind: keyof typeof TRANSPORT_LABELS): void => {
+  const detached = (kind: 'cassette' | 'floppy'): void => {
     for (const slot of emptySlots) {
       if (cfg.software?.shelves.find(shelf => shelf.slots?.includes(slot))?.kind !== kind) continue;
       ui.addBay(detachedBay(kind, slot, ui.toast, host.attach));
     }
   };
   // The software room's chosen title rides in on `mounted`: each image goes to
-  // the first transport, tapes then drives, whose formats read it, and the
-  // rest start empty (title-start.ts, which the acceptance harness shares).
+  // the first transport, tapes then drives then quickloads, whose formats
+  // read it, and the rest start empty (title-start.ts, which the acceptance
+  // harness shares).
   const tapes = board.media?.() ?? [];
   const disks = board.disks?.() ?? [];
-  const claimed = claimImages<CassetteMedia | DiskMedia>([...tapes, ...disks], mounted);
+  const quickloads = board.quickloads?.() ?? [];
+  const claimed = claimImages<CassetteMedia | DiskMedia | QuickloadMedia>([...tapes, ...disks, ...quickloads], mounted);
   // The deck that took the title's tape, for a boot that ends by pressing PLAY.
   const bootTape = tapes.find((_, index) => claimed[index]!.length);
   tapes.forEach((media, index) => {
@@ -1062,6 +1064,11 @@ export async function runShell(
       mine.length && typing ? cfg.boot?.command : undefined));
   });
   detached('floppy');
+  quickloads.forEach((quickload, index) => {
+    const mine = claimed[tapes.length + disks.length + index]!;
+    ui.addBay(quickloadBay(quickload, () => input.releaseAll(), ui.toast, mine, mine.length ? cfg.usage : undefined,
+      mine.length && typing ? cfg.boot?.command : undefined));
+  });
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
@@ -1071,7 +1078,8 @@ export async function runShell(
   // its shelf's command, typed once the machine is up, then PLAY on the tape
   // that took it; warp while loading carries the load from there.
   const start = cfg.boot && typing
-    ? new TitleStart(cfg.boot, cfg.board.screen.refresh, typing, bootTape, message => console.info(`[boot] ${message}`))
+    ? new TitleStart(cfg.boot, cfg.board.screen.refresh, typing, bootTape, message => console.info(`[boot] ${message}`),
+      () => !quickloads.some(quickload => quickload.pending()))
     : undefined;
 
   // One emulated frame, exactly as the run loop advances it. Browser QA drives
@@ -3204,8 +3212,111 @@ function diskBay(
   };
 }
 
+/**
+ * A quickload, as a strip of the control panel: the file on the left and its
+ * state, read back from the generated device -- waiting out the device's
+ * delay, then in memory, or refused. Open on the right. There are no keys to
+ * work: MAME's quickload has nothing between the file and memory.
+ */
+function quickloadBay(
+  media: QuickloadMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+  usage?: string,
+  /** the command the title starts itself with (ShellConfig.boot), when it does */
+  starting?: string,
+): PanelBay {
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = ['.zip', ...media.extensions.map(extension => `.${extension}`)].join(',');
+  picker.setAttribute('aria-label', 'Open a program to quickload');
+  picker.tabIndex = -1;
+  picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  const kinds = media.extensions.map(extension => `.${extension}`).join(' / ');
+  const open = titleButton('Open…', 'Open program', `Load a ${kinds} program straight into memory`, 'quiet', 'disk');
+  open.onclick = () => picker.click();
+
+  const mounted = document.createElement('span');
+  mounted.setAttribute('data-quickload-name', '');
+  mounted.style.cssText = `padding:3px 9px;border-radius:6px;background:#080b1d;border:1px solid #2a3162;
+    color:#9fb0ff;font:600 11px ui-monospace,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.textContent = 'no program';
+  const readout = document.createElement('span');
+  readout.setAttribute('data-quickload-readout', '');
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#cbd1ff;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#3a3f6a;transition:background .15s ease';
+  const stateText = document.createElement('span');
+  stateText.textContent = 'EMPTY';
+  readout.append(lamp, stateText);
+  const log = (text: string): void => console.info(`[quickload ${media.tag}] ${text}`);
+
+  let name: string | undefined;
+  let wasPending = false;
+  let reported: string | undefined;
+  const paint = (): void => {
+    const pending = Boolean(name) && media.pending();
+    const error = media.error();
+    stateText.textContent = !name ? 'EMPTY' : pending ? 'LOADING' : error ? 'REFUSED' : 'IN MEMORY';
+    stateText.style.color = pending ? DECK_GOLD : error ? '#ff8a7a' : '#cbd1ff';
+    lamp.style.background = pending ? DECK_GOLD : error ? '#ff5a4a' : name ? '#4ad48a' : '#3a3f6a';
+    if (wasPending && !pending) {
+      if (error) log(`refused ${name}: ${error}`);
+      else log(`${name} is in memory`);
+    }
+    // The device's own message is MAME's console line; the visitor gets the gist.
+    if (error && error !== reported) { reported = error; say(`${name} is not a program this quickload reads`); }
+    wasPending = pending;
+  };
+  const mount = (image: MountedImage, announce: boolean): void => {
+    try {
+      media.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes, image.name);
+      name = image.name;
+      reported = undefined;
+      mounted.textContent = image.name;
+      mounted.title = image.name;
+      mounted.style.color = '#f4f5ff';
+      log(`holding ${image.name} (${image.bytes.length} bytes) until the device loads it`);
+      if (announce) say(`${image.name} loads in a moment: then type RUN and press Enter`);
+    } catch (error) {
+      console.warn(`[quickload ${media.tag}] could not take ${image.name}:`, error);
+      say(String(error));
+    }
+    paint();
+  };
+  picker.onchange = async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    picker.disabled = true;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
+      const found = [...files].find(([member]) => media.extensions.includes(member.split('.').pop()!.toLowerCase()));
+      if (!found) throw new Error(`No program this quickload reads (${media.extensions.join(', ')}).`);
+      mount({ name: found[0], bytes: found[1] }, true);
+    } catch (error) { say(String(error)); }
+    finally { picker.disabled = false; picker.value = ''; picker.blur(); }
+  };
+  if (initial[0]) {
+    mount(initial[0], false);
+    if (usage) console.info(`[quickload ${media.tag}] MAME's usage note: ${usage}`);
+    say(starting ? `${initial[0].name} loads in a moment: starting it with ${typedCommand(starting)}${usage ? `. MAME's note: ${usage}` : ''}`
+      : `${initial[0].name} loads in a moment: then type RUN and press Enter`);
+  }
+  paint();
+  setInterval(paint, 250);
+  return {
+    id: 'quickload',
+    label: TRANSPORT_LABELS.quickload,
+    ariaLabel: `Quickload ${media.tag}`,
+    left: [picker, mounted, readout],
+    middle: [],
+    right: [open],
+    onFocus: releaseKeys,
+  };
+}
+
 /** Each transport's strip, engraved with the name of the deck it stands for. */
-const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE' } as const;
+const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE', quickload: 'QUICKLOAD' } as const;
 
 /**
  * The strip of a transport whose slot the machine booted empty. It has no
@@ -3213,7 +3324,7 @@ const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE' } as con
  * machine, so the one button restarts the title with it attached.
  */
 function detachedBay(
-  kind: keyof typeof TRANSPORT_LABELS, slot: string, say: (text: string) => void,
+  kind: 'cassette' | 'floppy', slot: string, say: (text: string) => void,
   attach?: (slot: string) => void,
 ): PanelBay {
   const label = TRANSPORT_LABELS[kind];

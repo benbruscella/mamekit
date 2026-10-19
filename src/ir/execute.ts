@@ -375,6 +375,16 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'machine_phase::RESET': 2,
   'machine_phase::RUNNING': 3,
   'machine_phase::EXIT': 4,
+  // emu/diimage.h's image_error, what an image load answers with when it
+  // fails: the C64's quickload rejects a .t64 without its header this way.
+  'image_error::INTERNAL': 1,
+  'image_error::UNSUPPORTED': 2,
+  'image_error::INVALIDIMAGE': 3,
+  'image_error::INVALIDLENGTH': 4,
+  'image_error::ALREADYOPEN': 5,
+  'image_error::NOSOFTWARE': 6,
+  'image_error::BADSOFTWARE': 7,
+  'image_error::UNSPECIFIED': 8,
   M6502_IRQ_LINE: 0,
   M6502_NMI_LINE: -1,
   M6502_SET_OVERFLOW: 16,
@@ -911,8 +921,7 @@ function preparedMachineCalls(
         const bound = bindings.calls?.[alias];
         return bound ? bound(...values.map(callArgument)) : invoke(candidate, values);
       };
-      callParameters[alias] = (candidate.parameters ?? '')
-        .split(',').map(parameter => parameter.trim()).filter(Boolean);
+      callParameters[alias] = splitParameters(candidate.parameters ?? '');
     }
     if (!referenceCalls[candidate.method]) {
       referenceCalls[candidate.method] = (...values) => {
@@ -920,10 +929,7 @@ function preparedMachineCalls(
         return target ? invoke(target, values) : 0;
       };
     }
-    const parameters = (candidate.parameters ?? '')
-      .split(',')
-      .map(parameter => parameter.trim())
-      .filter(Boolean);
+    const parameters = splitParameters(candidate.parameters ?? '');
     callParameters[qualified] = parameters;
     callParameters[scoped] = parameters;
     callParameters[candidate.method] = parameters;
@@ -940,10 +946,7 @@ function preparedMachineCalls(
       candidate.ownerClass === callback.targetClass &&
       candidate.method === callback.targetMethod);
     if (!target) continue;
-    callParameters[callback.member] ??= (target.parameters ?? '')
-      .split(',')
-      .map(parameter => parameter.trim())
-      .filter(Boolean);
+    callParameters[callback.member] ??= splitParameters(target.parameters ?? '');
     referenceCalls[callback.member] ??= (...values) => invoke(target, values);
   }
   // A configured custom device can be a source-defined composite rather than
@@ -1143,6 +1146,23 @@ export function executeGeneratedMachineHandler(
 ): number | undefined {
   const result = executeGeneratedMachineProgram(machine, handler, bindings, args);
   return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
+}
+
+/**
+ * A handler run as a device_delegate, which answers in its C++ type: a tuple
+ * survives -- a quickload's load callback returns std::pair<error, message>,
+ * which snapquik.cpp unpacks as `auto [err, message]` -- and anything else is
+ * the number executeGeneratedMachineHandler answers.
+ */
+export function executeGeneratedMachineDelegate(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+  args: Record<string, unknown>,
+): unknown {
+  const result = executeGeneratedMachineProgram(machine, handler, bindings, args);
+  if (!result.returned || result.value === undefined) return undefined;
+  return Array.isArray(result.value) ? result.value : toNumber(result.value);
 }
 
 export type CompiledGeneratedMachineHandler = (
@@ -1768,13 +1788,33 @@ function parameterNames(parameters: string | undefined): string[] {
   const key = parameters ?? '';
   let names = PARAMETER_NAMES.get(key);
   if (!names) {
-    names = key
-      .split(',')
-      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+    names = splitParameters(key)
+      .map(parameter => /\(\s*\*\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
       .filter((name): name is string => Boolean(name));
     PARAMETER_NAMES.set(key, names);
   }
   return names;
+}
+
+/**
+ * A C++ parameter list, one declaration each. Only top-level commas separate
+ * parameters: a function-pointer parameter carries a list of its own --
+ * MAME's CBM quickload takes `void (*cbm_sethiaddress)(address_space &space,
+ * uint16_t hiaddress)` -- and splitting inside it named the callee's
+ * parameters `space` and `hiaddress)`.
+ */
+export function splitParameters(parameters: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of parameters) {
+    if (ch === '(' || ch === '<' || ch === '[') depth++;
+    else if (ch === ')' || ch === '>' || ch === ']') depth--;
+    if (ch === ',' && depth === 0) { out.push(current.trim()); current = ''; continue; }
+    current += ch;
+  }
+  if (current.trim()) out.push(current.trim());
+  return out.filter(Boolean);
 }
 
 function executeOperations(
@@ -2149,6 +2189,28 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // MAME's decode helpers pass their callback on with `std::forward<T>`, and
   // an unbound call answered zero -- so the inner overload had nothing to call.
   if (name === 'std::forward' || name === 'std::move') return args[0];
+  // A pair or tuple is its values, which is how a structured binding reads
+  // them back: a quickload's load callback answers std::make_pair(error,
+  // message), and snapquik.cpp unpacks it as `auto [err, message]`.
+  if (name === 'std::make_pair' || name === 'std::make_tuple' || name === 'std::pair' || name === 'std::tuple') {
+    return [...args];
+  }
+  // Default-constructed, an error_condition is success and a string empty.
+  if (name === 'std::error_condition' && !args.length) return 0;
+  if (name === 'std::string' && !args.length) return '';
+  // osdcomm.h's byte-order helpers. A value read raw out of a file
+  // (`image.fread(&address, 2)`) lands in host order, which here, as on
+  // every host MAME builds for, is little-endian: making it little-endian is
+  // nothing, and big-endian is a swap.
+  if (/^little_endianize_int(?:16|32|64)$/.test(name)) return toNumber(args[0]);
+  if (name === 'big_endianize_int16') {
+    const value = toNumber(args[0]) & 0xffff;
+    return ((value & 0xff) << 8) | (value >>> 8);
+  }
+  if (name === 'big_endianize_int32') {
+    const value = toNumber(args[0]) >>> 0;
+    return (((value & 0xff) << 24) | ((value & 0xff00) << 8) | ((value >>> 8) & 0xff00) | (value >>> 24)) >>> 0;
+  }
   // MAME's own right-aligned mask helper (util::make_bitmask<T>(n)). The IR
   // drops the width, so the mask is as wide as the requested bits -- which is
   // what every caller asks for. Unbound it answered zero, and an MBC1 masked
@@ -3279,19 +3341,68 @@ function generatedMemoryView(
   return isIndexableMemory(value) ? { bytes: value, offset: 0 } : undefined;
 }
 
+/**
+ * The bytes of a scalar whose address was taken (`&address`), as a byte view.
+ * A local or member is one value here, not storage, so its bytes are its
+ * value's, least significant first, as MAME's little-endian hosts lay it out.
+ */
+function scalarTarget(value: unknown): value is GeneratedPointer & { target: GeneratedLValue } {
+  if (!isGeneratedPointer(value) || !value.target) return false;
+  // A struct or array behind the address is storage of its own, not a value,
+  // and so is one never given a value: the Game Boy slot reads a GBX trailer
+  // struct the same way, into a caller's undeclared `gbxfile::trailer`.
+  const held = value.target.get();
+  return typeof held === 'number' || typeof held === 'boolean';
+}
+
+function scalarBytes(pointer: GeneratedPointer, count: number): Uint8Array {
+  let value = toNumber(pointer.target!.get());
+  const bytes = new Uint8Array(count);
+  for (let index = 0; index < count; index++) {
+    bytes[index] = value & 0xff;
+    value = Math.floor(value / 256);
+  }
+  return bytes;
+}
+
 function copyGeneratedMemory(
   destination: unknown,
   source: unknown,
   count: number,
   bytewise = false,
 ): void {
+  // `memcpy(&value, bytes, 2)` and `image.fread(&address, 2)` fill a scalar:
+  // the bytes become its value, little-endian, and any above them stay.
+  if (scalarTarget(destination)) {
+    const origin = scalarTarget(source)
+      ? { bytes: scalarBytes(source, count), offset: 0 }
+      : generatedMemoryView(source, bytewise);
+    if (!origin) return;
+    const kept = scalarBytes(destination, Math.max(count, 4));
+    for (let index = 0; index < count; index++) kept[index] = Number(origin.bytes[origin.offset + index] ?? 0) & 0xff;
+    let value = 0;
+    for (let index = kept.length - 1; index >= 0; index--) value = value * 256 + kept[index]!;
+    destination.target.set(value);
+    return;
+  }
   const target = generatedMemoryView(destination, bytewise);
-  const origin = generatedMemoryView(source, bytewise);
+  const origin = scalarTarget(source)
+    ? { bytes: scalarBytes(source, count), offset: 0 }
+    : generatedMemoryView(source, bytewise);
   if (!target || !origin) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
   for (let index = 0; index < count; index++) {
     writable[target.offset + index] = origin.bytes[origin.offset + index] ?? 0;
   }
+}
+
+/**
+ * Copy `count` bytes from `source` into whatever a handler passed as a
+ * destination -- a buffer, a pointer into one, or a scalar's address -- as
+ * memcpy would. The host's file reads (an image device's `fread`) land here.
+ */
+export function copyGeneratedBytes(destination: unknown, source: unknown, count: number): void {
+  copyGeneratedMemory(destination, source, count, true);
 }
 
 function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
@@ -3579,8 +3690,7 @@ function generatedCallArguments(
 
 /** Whether a MAME parameter list declares a non-const C++ reference. */
 function hasReferenceParameter(parameters: string | undefined): boolean {
-  return (parameters ?? '')
-    .split(',')
+  return splitParameters(parameters ?? '')
     .some(parameter => parameter.includes('&') && !/\bconst\b/.test(parameter));
 }
 

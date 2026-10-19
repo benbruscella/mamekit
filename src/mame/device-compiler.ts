@@ -140,6 +140,12 @@ export interface GeneratedDeviceDefinition {
    * region (by default the one named by its tag) through `read_byte`.
    */
   romInterface?: { addressBits: number };
+  /**
+   * MAME `device_image_interface`: the device reads a file the host mounts,
+   * through the interface's own calls (`length`, `fread`, `fseek`,
+   * `is_filetype`), as the C64's quickload reads a .prg.
+   */
+  imageInterface?: true;
   constants: Record<string, number>;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
@@ -771,6 +777,7 @@ export function compileMameDevice(
     const width = declaration.baseTemplateArguments?.device_rom_interface?.[0];
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
+  const imageInterface = hierarchy.some(className => classes.get(className)?.bases.includes('device_image_interface'));
   const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
     type,
@@ -778,6 +785,7 @@ export function compileMameDevice(
     hierarchy,
     sourceFiles,
     ...(romInterfaceBits ? { romInterface: { addressBits: romInterfaceBits } } : {}),
+    ...(imageInterface ? { imageInterface: true as const } : {}),
     constants,
     members,
     callbacks,

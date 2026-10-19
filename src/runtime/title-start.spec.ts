@@ -76,4 +76,16 @@ const cancelled = run(3);
 assert.deepEqual(cancelled.presses, [], 'a reset during the delay types nothing');
 assert.equal(cancelled.played, -1);
 
+// A quickload still holding its file keeps the command back past the delay:
+// RUN typed before the program is in memory runs nothing.
+{
+  const presses: number[] = [];
+  let frame = 0;
+  const typing = new NaturalKeyboard({ press: (_, down) => { if (down) presses.push(frame); } }, bindings);
+  const start = new TitleStart({ delay: 0.1, command: 'RUN{ENTER}' }, 50, typing, undefined, () => {}, () => frame >= 40);
+  for (; frame < 200; frame++) { typing.tick(1 / 50); start.advance(); }
+  assert.equal(presses.length, 4);
+  assert.ok(presses[0]! > 40, 'typing waits until the start is ready');
+}
+
 console.log('title-start.spec: empty slots, slot firmware, image claims and the start sequence passed');

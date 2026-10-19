@@ -110,9 +110,27 @@ export interface DiskMedia {
   trackCount(): number;
 }
 
+/**
+ * An image device that loads a file into the machine itself: MAME's
+ * quickload. There is no transport to work -- the file goes straight into
+ * memory once the device's own delay has run out (the C64's is three seconds,
+ * time for BASIC to come up first).
+ */
+export interface QuickloadMedia {
+  tag: string;
+  extensions: string[];
+  /** Hand the device a file; `name` is what MAME would call its basename. */
+  mount(extension: string, bytes: Uint8Array, name?: string): void;
+  /** Mounted, and the device has not loaded it yet. */
+  pending(): boolean;
+  /** Why the last load was refused, as the device reported it. */
+  error(): string | undefined;
+}
+
 export interface Board {
   media?(): CassetteMedia[];
   disks?(): DiskMedia[];
+  quickloads?(): QuickloadMedia[];
   readonly fbWidth: number;
   readonly fbHeight: number;
   frame(fb: Uint32Array): void;

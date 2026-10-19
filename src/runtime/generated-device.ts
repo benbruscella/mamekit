@@ -25,7 +25,7 @@ import {
   generatedSubtract,
   resizeGeneratedContainer,
 } from './generated-handler.ts';
-import { buildCallLinks, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
 import { stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
@@ -190,6 +190,12 @@ export interface GeneratedDeviceDefinition {
   structs?: Record<string, StructField[]>;
   /** MAME `device_rom_interface`: `read_byte` reads the device's own region. */
   romInterface?: { addressBits: number };
+  /**
+   * MAME `device_image_interface`: the device reads a file the host mounts,
+   * through the interface's own calls (`length`, `fread`, `fseek`,
+   * `is_filetype`), as the C64's quickload reads a .prg.
+   */
+  imageInterface?: true;
   allocations?: Record<string, GeneratedDeviceDefinition>;
   construct?: string;
   constants: Record<string, number>;
@@ -257,7 +263,16 @@ export type DeviceCallbackListener = (...args: number[]) => number | void;
 export interface Device {
   findDevice?(role: string): Device | undefined;
   imageExtensions?(): string[];
-  mountImage?(extension: string, bytes: Uint8Array): void;
+  mountImage?(extension: string, bytes: Uint8Array, name?: string): void;
+  /**
+   * What MAME calls an image device's medium -- its `image_type_name()`:
+   * "quickload", "cartridge", "cassette" -- and undefined for any other device.
+   */
+  imageTypeName?(): string | undefined;
+  /** Whether the device still has a timer armed: a quickload not yet loaded. */
+  timerPending?(): boolean;
+  /** The last image load the device reported failing, as its osd_printf_error printed it. */
+  imageError?(): string | undefined;
   /** Eject a mounted image (a floppy drive's call_unload). */
   unmountImage?(): void;
   /** Install a machine-config map over a declared byte-wide device space. */
@@ -679,6 +694,13 @@ class IrDevice implements Device {
   private readonly timers = new Map<string, { timer: IrTimer; callback?: string }>();
   /** The timers in declaration order, walked after every instruction; `fire` is wiring. */
   private readonly timerEntries: { name: string; timer: IrTimer; callback?: string; fire?: (parameter: number) => void }[] = [];
+  /**
+   * The file an image device holds -- device_image_interface's m_file -- and
+   * the position it reads from. Host state, as in MAME, where a save state
+   * does not carry the media either.
+   */
+  private imageFile?: { bytes: Uint8Array; name: string; filetype: string; position: number };
+  private lastImageError?: string;
   /** Names the definition declares as device_delegates: their arguments pass by reference. */
   private readonly delegateNames: ReadonlySet<string>;
   /** generic_latch_8's write is deferred through the scheduler (see executeMethod). */
@@ -1182,6 +1204,8 @@ class IrDevice implements Device {
       );
     }
 
+    if (this.readsOwnFile()) this.hostImageFile(this.members.this as Record<string, unknown>);
+
     // Every binding the constructor installs is in place; resolve the links
     // the emitted methods read before any of them can run.
     this.refreshCallLinks();
@@ -1538,7 +1562,96 @@ class IrDevice implements Device {
 
   imageExtensions(): string[] {
     if (this.definition.floppyFormats) return [...new Set(this.definition.floppyFormats.flatMap(format => format.extensions))];
+    // device_image_interface::file_extensions(), as the device answers it: a
+    // quickload's are its configured set_extensions("p00,prg,t64").
+    if (this.readsOwnFile()) {
+      const listed = this.methods.has('file_extensions') ? this.invoke('file_extensions') : 0;
+      return typeof listed === 'string' ? listed.split(',').map(extension => extension.trim().toLowerCase()).filter(Boolean) : [];
+    }
     return this.definition.imageFormats?.map(format => format.extension) ?? [];
+  }
+
+  /**
+   * An image device whose own call_load reads the file it is handed, rather
+   * than one a format table decodes for it: a quickload, a cartridge port.
+   */
+  private readsOwnFile(): boolean {
+    return Boolean(this.definition.imageInterface && !this.definition.floppyFormats && !this.definition.imageFormats);
+  }
+
+  imageTypeName(): string | undefined {
+    if (!this.definition.imageInterface || !this.methods.has('image_type_name')) return undefined;
+    const name = this.invoke('image_type_name');
+    return typeof name === 'string' ? name : undefined;
+  }
+
+  timerPending(): boolean {
+    return this.timerEntries.some(entry => entry.timer.enabled());
+  }
+
+  imageError(): string | undefined {
+    return this.lastImageError;
+  }
+
+  /**
+   * MAME's device_image_interface file calls (emu/diimage.h) over the bytes
+   * the host mounted: what a load routine reads its image with. They are the
+   * framework's, not the device's, so the host answers them, as it answers
+   * machine() and timer_alloc. The C64's quickload is the device that needs
+   * them: its driver callback, handed the device as `image`, reads a .prg's
+   * load address with `image.fread(&address, 2)` and the rest into RAM.
+   */
+  private hostImageFile(self: Record<string, unknown>): void {
+    const file = () => {
+      // check_for_file(): MAME stops with a fatal error on an unmounted image.
+      if (!this.imageFile) throw new Error(`${this.definition.type}: illegal operation on unmounted image`);
+      return this.imageFile;
+    };
+    const seekCurrent = this.definition.constants.SEEK_CUR ?? 1;
+    const seekEnd = this.definition.constants.SEEK_END ?? 2;
+    const surface: Record<string, (...args: unknown[]) => unknown> = {
+      exists: () => this.imageFile ? 1 : 0,
+      is_open: () => this.imageFile ? 1 : 0,
+      filename: () => this.imageFile?.name ?? 0,
+      basename: () => this.imageFile?.name ?? 0,
+      basename_noext: () => this.imageFile?.name.replace(/\.[^.]*$/, '') ?? 0,
+      filetype: () => this.imageFile?.filetype ?? '',
+      // util::streqlower: the extension, without regard to case.
+      is_filetype: candidate => (this.imageFile?.filetype ?? '') === String(candidate).toLowerCase() ? 1 : 0,
+      check_for_file: () => { file(); return 0; },
+      length: () => file().bytes.length,
+      ftell: () => file().position,
+      fseek: (offset, whence) => {
+        const image = file();
+        const origin = Number(whence) === seekCurrent ? image.position
+          : Number(whence) === seekEnd ? image.bytes.length : 0;
+        image.position = Math.max(0, origin + Number(offset));
+        return 0;
+      },
+      fread: (buffer, length) => {
+        const image = file();
+        const count = Math.max(0, Math.min(Number(length) >>> 0, image.bytes.length - image.position));
+        copyGeneratedBytes(buffer, image.bytes.subarray(image.position, image.position + count), count);
+        image.position += count;
+        return count;
+      },
+      // How snapquik.cpp reports a load its callback refused: the format
+      // string and its arguments, kept for the host to show.
+      osd_printf_error: (format, ...args) => {
+        const message = String(format).replace(/%(?:(\d+)\$)?[-+ #0]*\d*(?:\.\d+)?[sdux]/g, (_match, position: string | undefined) => {
+          const value = position ? args[Number(position) - 1] : args.shift();
+          return String(value ?? '');
+        }).trim();
+        this.lastImageError = message;
+        console.warn(message);
+        return 0;
+      },
+    };
+    for (const [name, call] of Object.entries(surface)) {
+      if (typeof self[name] !== 'function') self[name] = call;
+      this.bindings.calls![name] ??= call as (...args: number[]) => number;
+    }
+    this.bindings.calls!.tag ??= self.tag as () => number;
   }
 
   /**
@@ -1576,9 +1689,19 @@ class IrDevice implements Device {
     if (this.methods.has('unmount_image')) this.invoke('unmount_image');
   }
 
-  mountImage(extension: string, bytes: Uint8Array): void {
+  mountImage(extension: string, bytes: Uint8Array, name?: string): void {
     if (this.definition.floppyFormats) {
       this.mountFloppy(extension, bytes);
+      return;
+    }
+    if (this.readsOwnFile()) {
+      // image_init, then call_load: the file is open before the device's own
+      // load runs. A quickload's call_load only arms its timer; the driver's
+      // callback reads the file when that fires (snapquik.cpp).
+      if (this.imageFile && this.methods.has('call_unload')) this.invoke('call_unload');
+      this.imageFile = { bytes, name: name ?? `image.${extension}`, filetype: extension.toLowerCase(), position: 0 };
+      this.lastImageError = undefined;
+      if (this.methods.has('call_load')) this.invoke('call_load');
       return;
     }
     const format = this.definition.imageFormats?.find(candidate => candidate.extension === extension.toLowerCase());

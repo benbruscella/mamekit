@@ -17,7 +17,7 @@ import {
   type ShellConfig,
   type SoftwareShelf,
 } from '../runtime/shell.ts';
-import type { Board, BoardSnapshot, CassetteMedia, DiskMedia, MachineState, Regions } from '../runtime/types.ts';
+import type { Board, BoardSnapshot, CassetteMedia, DiskMedia, MachineState, QuickloadMedia, Regions } from '../runtime/types.ts';
 import { NaturalKeyboard } from '../runtime/natural-keyboard.ts';
 import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } from '../runtime/software.ts';
 import { claimImages, emptyMediaSlots, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
@@ -323,7 +323,7 @@ export async function runGameAcceptance(
           inputLog.push({ step, type: 'play', transport: title.tape!.tag });
           title.tape!.play();
         },
-      })
+      }, () => {}, () => !title?.quickloads.some(quickload => quickload.pending()))
     : undefined;
   const stepHashes = new Map<number, GameCheckpointGolden>();
   const stepSnapshots = new Map<number, string>();
@@ -950,17 +950,18 @@ function mountContractSoftware(
   contract: GameTestContract,
   board: Board,
   images: readonly MountedImage[],
-): { tape?: CassetteMedia } {
+): { tape?: CassetteMedia; quickloads: QuickloadMedia[] } {
   const tapes = board.media?.() ?? [];
-  const transports: (CassetteMedia | DiskMedia)[] = [...tapes, ...board.disks?.() ?? []];
+  const quickloads = board.quickloads?.() ?? [];
+  const transports: (CassetteMedia | DiskMedia | QuickloadMedia)[] = [...tapes, ...board.disks?.() ?? [], ...quickloads];
   const claimed = claimImages(transports, images);
   claimed.forEach((mine, index) => {
     const image = mine[0];
-    if (image) transports[index]!.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes);
+    if (image) transports[index]!.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes, image.name);
   });
   assert.ok(claimed.some(mine => mine.length), `${contract.game}: no transport reads ${images.map(image => image.name).join(', ')}`);
   const tape = tapes.find((_, index) => claimed[index]!.length);
-  return tape ? { tape } : {};
+  return { ...(tape ? { tape } : {}), quickloads };
 }
 
 export function verifyInputBindings(

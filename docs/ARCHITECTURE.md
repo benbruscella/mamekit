@@ -884,7 +884,10 @@ unchanged for the next generated machine".
    shows one shelf per list. The medium each list holds comes from its part
    interface (`cbm_cass`, `floppy_5_25`, `c64_cart`); whether the generated
    board can mount it comes from the devices the board composes, so a list
-   whose transport is not generated yet is browsable but display only. A
+   whose transport is not generated yet is browsable but display only. A shelf
+   takes every format its transport reads, its list's own first, because a
+   dropped image need not be one the list catalogues: MAME's C64 quickload
+   list holds one `.t64`, and a quickload reads any `.prg`. A
    fetched or dropped set is kept in the visitor's browser as the zip it
    arrived in, identified by image CRC against every shelf, and playing it
    hands the shell the set's images to mount on the board's own transport at
@@ -900,8 +903,14 @@ unchanged for the next generated machine".
    from a host policy keyed by the MAME device the transport's slot is
    (`BOOT_POLICY` in `src/gen/software-shelves.ts`; the C64's datassette port
    types `LOAD` and `RUN` while the KERNAL waits for PLAY, its IEC slot
-   `LOAD"*",8,1` at the slot's own address). MAME itself starts nothing; its
-   `-autoboot_command` is the user's to give. Which slots a title leaves
+   `LOAD"*",8,1` at the slot's own address). A transport on no slot is keyed
+   by what it loads with instead: MAME's quickload (`snapquik.cpp`) hands its
+   file to the driver's load callback, and the C64's callback passes it on to
+   `general_cbm_loadsnap`, the Commodore loader, which sets BASIC's
+   end-of-program pointers -- so the policy types `RUN`, and the start waits
+   until the device's own delay (three seconds on the C64) has put the file
+   in memory. MAME itself starts nothing; its `-autoboot_command` is the
+   user's to give. Which slots a title leaves
    empty, which transport takes which image and the start sequence itself
    live in `src/runtime/title-start.ts`, which the acceptance harness drives
    too, so a contract's software scenario starts its title exactly as Play

@@ -75,6 +75,9 @@ export const DEVICE_MAME_TYPES = [
   'NEOGEO_SPRITE_OPTIMZIED',
   'PIA6821',
   'PIT8253',
+  // The image device whose load the driver's own callback performs
+  // (snapquik.cpp): the C64's .prg/.p00/.t64 quickload.
+  'QUICKLOAD',
   'STARFIELD_05XX',
   'MC6845',
   'MIDTUNIT_VIDEO',

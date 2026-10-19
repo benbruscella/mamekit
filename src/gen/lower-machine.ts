@@ -62,7 +62,7 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   // types another way is MAME's charinfo table, kept to what these keys reach.
   const alternates = naturalKeyboardAlternates(opts.mameSrc, bindings);
 
-  const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family);
+  const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family, g);
 
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly

@@ -16,16 +16,13 @@ export const c64 = {
     machine: { className: 'c64_state', name: 'ntsc' },
     screen: { width: 418, height: 235 },
     soundKind: 'sid',
-    // MAME's quickload image device is not generated yet; the one quickload
-    // the list holds is PAL only, so this machine has no shelf for it.
-    runtimeCoverage: {
-      generationGaps: ['quickload:QUICKLOAD'],
-      handlerGaps: [],
-    },
     media: [
       { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'planned', softwareLists: ['c64_cart'] },
-      { kind: 'quickload', status: 'planned', softwareLists: ['c64_quik'] },
+      // The quickload is the PAL machine's (c64p.game.ts): the one title in
+      // MAME's list is PAL only, so this machine has no shelf to accept it
+      // against, though it quickloads a dropped .prg the same way.
+      { kind: 'quickload', status: 'candidate', softwareLists: ['c64_quik'] },
       { kind: 'cassette', status: 'accepted', softwareLists: ['c64_cass'] },
       { kind: 'floppy', status: 'accepted', softwareLists: ['c64_flop_orig', 'c64_flop_misc'] },
     ],
@@ -52,13 +49,13 @@ export const c64 = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '9e8dba49', state: '56d5048d' },
-        60: { video: 'f53f93ca', state: 'a3d60ad0' },
-        180: { video: '62a14e0f', state: 'fba228c3' },
-        300: { video: '7a60e158', state: '736908fa' },
-        600: { video: '9d74a0ef', state: 'cfe161b8' },
-        900: { video: '7793795b', state: '20afee36' },
-        1200: { video: '084cb3d1', state: '63b0c0f4' },
+        1: { video: '9e8dba49', state: '53ad9ec8' },
+        60: { video: 'f53f93ca', state: 'b6b03060' },
+        180: { video: '62a14e0f', state: '9a705183' },
+        300: { video: '7a60e158', state: 'c09a0946' },
+        600: { video: '9d74a0ef', state: 'da711ff6' },
+        900: { video: '7793795b', state: '781c6639' },
+        1200: { video: '084cb3d1', state: '2306f0a1' },
       },
       audio: {
         writes: 962790,
@@ -87,13 +84,13 @@ export const c64 = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '9e8dba49', state: '796a708d' },
-        300: { video: '38480c9e', state: '03a4807a' },
-        1200: { video: '7f43a144', state: '0f1968be' },
-        2400: { video: 'ff073352', state: 'df3cab42' },
-        3600: { video: '563d2b51', state: '90ffc317' },
-        4700: { video: '42426a2e', state: 'e9751e2f' },
-        5000: { video: '5a021b6b', state: 'cfb0b8df' },
+        1: { video: '9e8dba49', state: '3afe355e' },
+        300: { video: '38480c9e', state: '89a99bd3' },
+        1200: { video: '7f43a144', state: '460eea32' },
+        2400: { video: 'ff073352', state: '2a07bb99' },
+        3600: { video: '563d2b51', state: 'bfd5f093' },
+        4700: { video: '42426a2e', state: 'c60933fe' },
+        5000: { video: '5a021b6b', state: 'baca34f2' },
       },
       audio: {
         writes: 4011626,
@@ -122,12 +119,12 @@ export const c64 = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '9e8dba49', state: '56d5048d' },
-        300: { video: '6a075598', state: '1fa091af' },
-        1200: { video: '606b00d9', state: '59cfdc77' },
-        2400: { video: 'a6b267c4', state: 'e49d1ae5' },
-        3000: { video: 'd6aee0c0', state: '85983953' },
-        3200: { video: 'cc375af9', state: 'f8fbc31c' },
+        1: { video: '9e8dba49', state: '53ad9ec8' },
+        300: { video: '6a075598', state: '6709c3ed' },
+        1200: { video: '606b00d9', state: '6eb228a4' },
+        2400: { video: 'a6b267c4', state: '9340a3f1' },
+        3000: { video: 'd6aee0c0', state: '446a5ac2' },
+        3200: { video: 'cc375af9', state: '19fc877c' },
       },
       audio: {
         writes: 2567441,

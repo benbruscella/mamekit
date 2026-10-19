@@ -1903,7 +1903,8 @@ function deviceConfiguration(
     const match = /^(\w+)\((.*)\)$/.exec(value);
     if (!match) return [];
     const rawArgs = match[2]!.trim();
-    const args = rawArgs ? rawArgs.split(',').map((argument): number | string => {
+    // A string argument may hold commas of its own (`set_extensions("p00,prg,t64")`).
+    const args = rawArgs ? (rawArgs.match(/"[^"]*"|[^,]+/g) ?? []).map((argument): number | string => {
       const raw = argument.trim();
       if (raw === 'true') return 1;
       if (raw === 'false') return 0;

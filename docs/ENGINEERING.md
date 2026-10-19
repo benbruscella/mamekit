@@ -154,9 +154,10 @@ other media slots booted empty, each image in the transport whose formats read
 it, the shelf's start command typed through the natural keyboard and PLAY
 pressed on a tape. A `{ atFrame, text }` action types MAME's coded form
 (`RUN{ENTER}`) the same way. Natural-keyboard presses and PLAY go into the
-input log, so the save-state round trip replays them exactly. `c64p` has three
-scenarios: BASIC (a SID note and the 10 PRINT maze), a tape (Crazy Comets) and
-an original disk (Bounty Bob Strikes Back), and `fetch:acceptance-roms` fetches
+input log, so the save-state round trip replays them exactly. `c64p` has four
+scenarios: BASIC (a SID note and the 10 PRINT maze), a tape (Crazy Comets), an
+original disk (Bounty Bob Strikes Back) and a quickload (Broken Limits, the one
+title in MAME's `c64_quik`, PAL only), and `fetch:acceptance-roms` fetches
 each title beside the machine's own sets. The harness's silence check reads the
 signal after the browser's speaker high-pass, not the worklet's output the
 golden's `rms` records: the SID's DC offset alone measures 0.5 with every voice
@@ -171,9 +172,10 @@ against a recording address space, and reads back the windows it decoded.
 ### C64 development
 
 `c64` (NTSC) and `c64p` (PAL) are computer targets with generated cassette
-transport, a generated 1541 disk drive and SID audio. Both are accepted
-(`src/games/c64.game.ts`, `src/games/c64p.game.ts`): BASIC, a tape and a disk
-each, checked against MAME 0.289's own NTSC and PAL machines.
+transport, a generated 1541 disk drive, a generated quickload and SID audio.
+Both are accepted (`src/games/c64.game.ts`, `src/games/c64p.game.ts`): BASIC,
+a tape and a disk each, checked against MAME 0.289's own NTSC and PAL
+machines, and a quickload on the PAL one.
 
 `npm run gen:all` and `npm run dev` expose all generated targets in the
 catalogue, including the Computers tab. Candidates are labelled experimental;
@@ -201,11 +203,12 @@ list's video note names, else PAL; a title only one
 machine lists is marked `PAL ONLY` or `NTSC ONLY`. The room is the
 software room: one shelf per software list the driver declares (cassettes,
 cartridges, two disk lists, quickloads), each read from
-`dist/games/computers/c64p/software/<list>.json`. The cassette shelf is the
-one whose medium mounts today, so it opens first; a title the local dump
+`dist/games/computers/c64p/software/<list>.json`. Tapes, disks and
+quickloads mount; cartridges are display only, and the cassette shelf opens
+first. A title the local dump
 audit has filed carries a **⌕ Search** that fetches the set into the browser,
-and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP or a
-software-list ZIP. **Play** boots the machine with the set's images mounted
+and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP, a
+disk image, a `.prg`, `.p00` or `.t64`, or a software-list ZIP. **Play** boots the machine with the set's images mounted
 on the tape transport or in the disk drive, after the machine asks for its
 own `c64.zip` and, for a disk title, the drive's `c1541.zip` firmware
 (dropped, or found by the web search under `computers/c64/bios/`). A title
@@ -218,9 +221,13 @@ seconds to come up, its shelf's command (`boot`, generated from the
 `BOOT_POLICY` in `src/gen/software-shelves.ts`) is typed through MAME's
 natural keyboard -- `LOAD` and `RUN` for a tape, with **Play** pressed on the
 deck once they are typed, and `LOAD"*",8,1` and `RUN` for a disk -- and the
-load runs warped. Power on leaves the keyboard to you: type `LOAD"$",8` and
+load runs warped. A quickload needs no command to load: the device holds the
+file for its own three seconds (MAME's `CBM_QUICKLOAD_DELAY`), writes it into
+memory where its header says, and sets BASIC's pointers past it, and the
+start types `RUN` only once that has happened. Power on leaves the keyboard to you: type `LOAD"$",8` and
 `LIST` for a directory. The control panel holds one strip per transport --
-DATASSETTE and DISK DRIVE -- and the toolbar holds **Reset**,
+DATASSETTE, DISK DRIVE and QUICKLOAD, whose **Open…** takes a program at any
+time -- and the toolbar holds **Reset**,
 **Fast-forward**, **Warp loading** (fast-forward on its own while a tape's
 motor runs or the drive spins, remembered per machine) and **Paste** (the
 clipboard typed on the computer's keys), all buttons so the computer retains
@@ -266,8 +273,17 @@ under `.data/roms/_processed/c64/`. The generator reads
 the `_manifest.json` in each of those folders to build the shelf's
 availability index, keyed by the driver family so the PAL and NTSC machines
 share one collection. Neither BIOS nor game data belongs in generated output.
-Cartridge and quickload image loading are still unfinished, so those shelves
-are display only.
+Cartridge loading is still unfinished, so those shelves are display only.
+
+The quickload is MAME's `quickload_image_device`, generated from
+`snapquik.cpp`; the driver's `quickload_c64` callback and the
+`general_cbm_loadsnap` it calls are board handlers. They read the file
+through `device_image_interface`'s calls (`length`, `fread`, `fseek`,
+`is_filetype`), which the device runtime answers over the mounted bytes, as it
+answers `machine()` and `timer_alloc`. To check one against MAME, run
+`-quik <file>` with an `-autoboot_script` that posts `RUN{ENTER}` on frame
+152: the program is in memory on frame 151 on both sides, and Broken Limits'
+intro screen is pixel-identical at frame 1687.
 
 SID oscillator, envelope, noise, mixing and filter behavior is compiled from
 MAME's `sid.cpp`, `sidvoice.cpp`, and `sidenvel.cpp`. The host renders that

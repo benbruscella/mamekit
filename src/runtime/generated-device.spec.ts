@@ -457,5 +457,56 @@ const rebuilt = rebuildImage!({ m_value: 42 }) as { get_value(): number; $factor
 assert.equal(rebuilt.get_value(), 42, 'the rebuilt image runs its methods against the saved data');
 assert.equal(rebuilt.$factory, 'device-instance:HELD_IMAGE_FIXTURE', 'and saves the same way again');
 
+// An image device whose own call_load reads the file: snapquik.cpp's
+// quickload arms a timer there, and its callback reads the file through the
+// device_image_interface calls the host answers.
+registerGeneratedDevice({
+  type: 'QUICKLOAD_FIXTURE',
+  imageInterface: true,
+  constants: { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
+  members: [
+    { name: 'm_file_extensions', valueType: 'const char*', initial: 0 },
+    { name: 'm_size', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_last', valueType: 'int', bits: 32, initial: 0 },
+  ],
+  callbacks: [],
+  timers: [{ member: 'm_timer', callback: 'process' }],
+  methods: [
+    method('device_start', '', 'm_timer = timer_alloc();'),
+    method('set_extensions', 'const char *ext', 'm_file_extensions = ext;'),
+    method('file_extensions', '', 'return m_file_extensions;'),
+    method('image_type_name', '', 'return "quickload";'),
+    method('call_load', '', 'm_timer.adjust(1, 0);'),
+    method('process', 'int param',
+      'check_for_file(); m_size = length();' +
+      'uint8_t last[1]; fseek(-1, SEEK_END); fread(last, 1); m_last = last[0];'),
+  ],
+  summary: { diagnostics: 0 },
+});
+{
+  const quickload = createDevice('QUICKLOAD_FIXTURE');
+  quickload.invoke('set_extensions', 'p00,PRG,t64');
+  assert.equal(quickload.imageTypeName!(), 'quickload');
+  assert.deepEqual(quickload.imageExtensions!(), ['p00', 'prg', 't64'], 'file_extensions(), as the device answers it');
+  assert.equal(quickload.timerPending!(), false);
+  quickload.mountImage!('prg', new Uint8Array([1, 8, 0x2a]), 'game.prg');
+  assert.equal(quickload.timerPending!(), true, 'call_load armed the timer; nothing is read yet');
+  assert.equal(quickload.get('m_size'), 0);
+  quickload.tick(1.5);
+  assert.equal(quickload.timerPending!(), false);
+  assert.equal(quickload.get('m_size'), 3, 'length() is the mounted file');
+  // The surface a driver's load callback reads the file through, handed the
+  // device as `image` (the C64's `image.is_filetype("prg")`).
+  const image = quickload.instance!() as Record<string, (...args: unknown[]) => unknown>;
+  assert.equal(image.is_filetype!('PRG'), 1, 'is_filetype ignores case');
+  assert.equal(image.is_filetype!('t64'), 0);
+  assert.equal(image.basename!(), 'game.prg');
+  assert.equal(quickload.get('m_last'), 0x2a, 'fseek from the end, then fread');
+  assert.equal(quickload.imageError!(), undefined);
+  // A device whose medium MAME calls something else is no quickload, and a
+  // device that is not an image device has no medium at all.
+  assert.equal(createDevice('fixture').imageTypeName?.(), undefined);
+}
+
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

@@ -28,6 +28,7 @@ export {
   dereferenceGeneratedValue,
   executeGeneratedCallbackHandler,
   executeGeneratedHandler,
+  executeGeneratedMachineDelegate,
   executeGeneratedMachineHandler,
   executeGeneratedMachineProgram,
   executeGeneratedProgram,

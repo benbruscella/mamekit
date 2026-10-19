@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import {
   applyGeneratedMacro,
   compileGeneratedMachineHandler,
+  copyGeneratedBytes,
   executeGeneratedHandler,
+  executeGeneratedMachineDelegate,
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
   noteCallLinksChanged,
@@ -618,6 +621,61 @@ check('a board handler runtime palette is a fresh scratch array per read', () =>
   } as unknown as BoardIr;
   executeGeneratedMachineProgram(machine, pen, { members: {}, calls: {} }, {});
   assert.deepEqual(seen, [undefined, false]);
+});
+
+// MAME's CBM quickload reads its file through device_image_interface: the
+// load address into a scalar's own bytes, the program into a vector, a header
+// into a char buffer, and answers std::pair<error, message> -- which a
+// delegate hands back whole, for `auto [err, message]` to unpack.
+check('a file read fills a scalar, a vector and a buffer, and a pair comes back whole', () => {
+  const file = (bytes: number[]) => {
+    const data = new Uint8Array(bytes);
+    let position = 0;
+    return {
+      length: () => data.length,
+      fread: (buffer: unknown, length: number) => {
+        const count = Math.min(length, data.length - position);
+        copyGeneratedBytes(buffer, data.subarray(position, position + count), count);
+        position += count;
+        return count;
+      },
+    };
+  };
+  const load: GeneratedHandler = {
+    id: 'handler:.load', ownerClass: '', method: 'load', parameters: 'device_image_interface &image',
+    // Normalised as the graph builder normalises a handler body.
+    program: compileMameHandler(normalizeMameExecutionSource(`
+      char magic[2];
+      std::vector<uint8_t> data;
+      uint16_t address = 0;
+      int size = image.length();
+      if (image.fread(magic, sizeof(magic)) != sizeof(magic))
+        return std::make_pair(image_error::UNSPECIFIED, std::string());
+      if (memcmp(magic, "OK", sizeof(magic)))
+        return std::make_pair(image_error::INVALIDIMAGE, std::string());
+      image.fread(&address, 2);
+      address = little_endianize_int16(address);
+      size -= 4;
+      data.resize(size);
+      image.fread(&data[0], size);
+      return std::make_pair(address, data[size - 1]);
+    `)),
+  };
+  const machine = { handlers: [load] } as unknown as BoardIr;
+  const run = (bytes: number[]) =>
+    executeGeneratedMachineDelegate(machine, load, { members: {}, calls: {} }, { image: file(bytes) });
+  assert.deepEqual(run([0x4f, 0x4b, 0x01, 0x08, 0xaa, 0xbb, 0xcc]), [0x0801, 0xcc],
+    'both bytes of the address land, little-endian, and the vector holds the rest');
+  assert.deepEqual(run([0x4e, 0x4f, 0x01, 0x08]), [3, ''], 'image_error::INVALIDIMAGE is 3');
+  assert.deepEqual(run([0x4f]), [8, ''], 'a short read is image_error::UNSPECIFIED');
+});
+
+check('a struct, or a value never set, behind an address is not overwritten as a scalar', () => {
+  const struct = { a: 1, b: 2 };
+  const untouched = (held: unknown) => ({ generatedPointer: true, target: { get: () => held, set: () => { throw new Error('written'); } }, offset: 0 });
+  copyGeneratedBytes(untouched(struct), new Uint8Array([9, 9]), 2);
+  copyGeneratedBytes(untouched(undefined), new Uint8Array([9, 9]), 2);
+  assert.deepEqual(struct, { a: 1, b: 2 });
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

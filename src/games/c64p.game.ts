@@ -20,17 +20,10 @@ export const c64p = {
     machine: { className: 'c64_state', name: 'pal' },
     screen: { width: 403, height: 284 },
     soundKind: 'sid',
-    // MAME's quickload image device is not generated yet, so the c64_quik
-    // shelf is display only and no scenario mounts one; nothing these
-    // scenarios run goes near it.
-    runtimeCoverage: {
-      generationGaps: ['quickload:QUICKLOAD'],
-      handlerGaps: [],
-    },
     media: [
       { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'planned', softwareLists: ['c64_cart'] },
-      { kind: 'quickload', status: 'planned', softwareLists: ['c64_quik'] },
+      { kind: 'quickload', status: 'accepted', softwareLists: ['c64_quik'] },
       { kind: 'cassette', status: 'accepted', softwareLists: ['c64_cass'] },
       { kind: 'floppy', status: 'accepted', softwareLists: ['c64_flop_orig', 'c64_flop_misc'] },
     ],
@@ -58,13 +51,13 @@ export const c64p = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '7c30493e', state: 'fa814e84' },
-        60: { video: '19a076a7', state: '81cd9bee' },
-        180: { video: '25be4308', state: '2f1a4d62' },
-        300: { video: '4588160f', state: 'debebd64' },
-        600: { video: '1414eabc', state: '1378db82' },
-        900: { video: 'b2303773', state: '0c73ddb0' },
-        1200: { video: 'ade44655', state: '1d0bf908' },
+        1: { video: '7c30493e', state: 'be33dff9' },
+        60: { video: '19a076a7', state: 'bc7c04f8' },
+        180: { video: '25be4308', state: '97d0faa1' },
+        300: { video: '4588160f', state: '4631df4f' },
+        600: { video: '1414eabc', state: 'caefed36' },
+        900: { video: 'b2303773', state: '6c2e26f1' },
+        1200: { video: 'ade44655', state: '492b5ef3' },
       },
       audio: {
         writes: 1149137,
@@ -93,13 +86,13 @@ export const c64p = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: 'e7dd780f', state: '8568dd18' },
-        300: { video: '18afdc8d', state: 'c4f6dda2' },
-        1200: { video: '18afdc8d', state: '9c3dfe1d' },
-        2400: { video: '703063f2', state: '8ec64383' },
-        3600: { video: '39ca5134', state: 'd3543f84' },
-        4200: { video: '5ca645f1', state: '297da706' },
-        4500: { video: '3374a670', state: '4ce61d3a' },
+        1: { video: 'e7dd780f', state: '6046ed15' },
+        300: { video: '18afdc8d', state: '08fc0bf5' },
+        1200: { video: '18afdc8d', state: '9b327311' },
+        2400: { video: '703063f2', state: '96d26a49' },
+        3600: { video: '39ca5134', state: 'e09f8956' },
+        4200: { video: '5ca645f1', state: '22182c38' },
+        4500: { video: '3374a670', state: '02b94bd7' },
       },
       audio: {
         writes: 4309264,
@@ -130,12 +123,12 @@ export const c64p = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '7c30493e', state: 'fa814e84' },
-        300: { video: '803d484b', state: 'c11ad5fc' },
-        1200: { video: 'a3e6b335', state: '8520f9ef' },
-        2250: { video: 'ca7ed7b0', state: '9176972e' },
-        2500: { video: 'caedcb9c', state: '2505e173' },
-        2600: { video: 'f2bfec23', state: '880eb737' },
+        1: { video: '7c30493e', state: 'be33dff9' },
+        300: { video: '803d484b', state: '82a7a4ae' },
+        1200: { video: 'a3e6b335', state: '293ffb1f' },
+        2250: { video: 'ca7ed7b0', state: '4f869c31' },
+        2500: { video: 'caedcb9c', state: '79e0daab' },
+        2600: { video: 'f2bfec23', state: 'c3e119ac' },
       },
       audio: {
         writes: 2489797,
@@ -143,6 +136,42 @@ export const c64p = {
         writeHash: 'a85847a6',
         pcmHash: '862def62',
         rms: 0.495094,
+      },
+    },
+  }, {
+    // The quickload holds the .t64 for its own three seconds and then writes
+    // it into memory (frame 151); RUN starts its SYS stub, and the intro
+    // text is MAME 0.289's pixel for pixel at frame 1687. SPACE then starts
+    // the demo, which, as in MAME, is silent all the way to frame 2400.
+    id: 'quickload',
+    kind: 'media',
+    software: { list: 'c64_quik', name: 'brklmts' },
+    romEnvironment: 'MAMEKIT_C64_ROM',
+    frames: 2400,
+    minimumFps: 10,
+    checkpoints: [1, 150, 300, 1687, 2000, 2400],
+    actions: [{ atFrame: 1687, text: ' ' }],
+    golden: {
+      regions: {
+        basic: 'f833d117',
+        charom: 'ec4272ee',
+        kernal: 'dbe3e7c7',
+        u17: '54c89351',
+      },
+      checkpoints: {
+        1: { video: 'e7dd780f', state: '6046ed15' },
+        150: { video: '1ab6e43f', state: '725eb17d' },
+        300: { video: '95e37c40', state: 'd70724b8' },
+        1687: { video: '79496de6', state: '9970cccf' },
+        2000: { video: 'de715d07', state: '1c933701' },
+        2400: { video: '9acd5295', state: '66d8a67f' },
+      },
+      audio: {
+        writes: 2298274,
+        nonzeroWrites: 2298274,
+        writeHash: '124ea0d7',
+        pcmHash: '72307f89',
+        rms: 0.5,
       },
     },
   }],

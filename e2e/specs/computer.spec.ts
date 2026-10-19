@@ -15,7 +15,8 @@
 //      with the tape mounted (network-gated, like the console spec).
 
 import { expect, test } from '@playwright/test';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { repoRoot } from '../support/contracts.ts';
 import { watchFaults } from '../support/game.ts';
@@ -281,6 +282,39 @@ test.describe('software room', () => {
     expect(screen).toContain('LOAD"*",8,1');
     expect(screen).toContain('SEARCHING FOR *');
     await expect(page.getByText(/· loading/).first()).toBeVisible({ timeout: 10_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // A quickload has no transport to work: the device holds the file for its
+  // own delay, writes it into memory, and only then is RUN typed.
+  test('a quickload title goes into memory and starts with RUN', async ({ page }) => {
+    const local = localTitle('quickload');
+    test.skip(!local, 'no local quickload set and firmware under .data/roms');
+    const faults = watchFaults(page);
+    await playLocalSet(page, local!.set, local!.firmware);
+    await expect(page.locator('[data-quickload-readout]')).toHaveText(/IN MEMORY/, { timeout: 60_000 });
+    await page.waitForFunction(() =>
+      !(window as unknown as { mamekit: { board: { quickloads(): { pending(): boolean }[] } } }).mamekit.board.quickloads()[0]!.pending(),
+    undefined, { timeout: 60_000 });
+    await expect.poll(() => screenText(page), { timeout: 30_000 }).toContain('RUN');
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // Most .prg files are in no software list: a bare one dropped in the room
+  // lands on the quickload shelf, and RUN starts it.
+  test('a bare .prg quickloads and runs', async ({ page }) => {
+    const local = localTitle('quickload') ?? localTitle('cassette');
+    test.skip(!local || !shelves.some(shelf => shelf.kind === 'quickload' && shelf.extensions.includes('prg')),
+      'no quickload shelf that reads .prg, or no local firmware');
+    // 10 PRINT"QUICK", tokenised, loading at $0801.
+    const program = [0x01, 0x08, 0x0e, 0x08, 0x0a, 0x00, 0x99, 0x22, ...[...'QUICK'].map(c => c.charCodeAt(0)), 0x22, 0x00, 0x00, 0x00];
+    const file = join(mkdtempSync(join(tmpdir(), 'mamekit-prg-')), 'quick.prg');
+    writeFileSync(file, Uint8Array.from(program));
+    const faults = watchFaults(page);
+    await playLocalSet(page, file, local!.firmware.slice(0, 1));
+    await expect(page.locator('[data-quickload-name]')).toHaveText('quick.prg', { timeout: 60_000 });
+    // RUN fills its own 40-column row; the program prints on the next.
+    await expect.poll(() => screenText(page), { timeout: 60_000 }).toMatch(/RUN\s+QUICK/);
     expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
   });
 

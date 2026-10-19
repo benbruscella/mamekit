@@ -24,10 +24,10 @@ export interface SoftlistDeclaration {
 /**
  * Which media the generated runtime can mount, by the device that carries the
  * medium. A device-library capability table like CART_SLOT_SUPPORT: the board
- * exposes a transport for every cassette device it composes (generated-board
- * `media()`), and nothing yet mounts a cartridge, disk or quickload image on a
- * computer. A list whose medium has no transport is still a shelf to browse,
- * marked display only.
+ * exposes a transport for every cassette, floppy connector and quickload
+ * device it composes (generated-board `media()`, `disks()`, `quickloads()`),
+ * and nothing yet mounts a cartridge on a computer. A list whose medium has
+ * no transport is still a shelf to browse, marked display only.
  */
 const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   cassette: ['PET_DATASSETTE_PORT', 'CASSETTE'],
@@ -35,7 +35,8 @@ const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   // MAME's floppy_connector holds the drive mechanism a disk goes into: the
   // C64's composed 1541 carries one under its gate array.
   floppy: ['FLOPPY_CONNECTOR'],
-  quickload: [],
+  // snapquik.cpp's quickload: the driver's own callback reads the file.
+  quickload: ['QUICKLOAD'],
 };
 
 /** A device the board composes, as far as mounting a medium cares. */
@@ -47,6 +48,12 @@ export interface ShelfDevice {
   slotDefault?: string;
   /** the address a bus slot is configured at: 8 for the C64's `iec8` */
   slotAddress?: number;
+  /**
+   * For an image device the driver hands its file to, the free function its
+   * load callback passes the file on to: the C64's quickload callback calls
+   * `general_cbm_loadsnap`, MAME's loader for every Commodore quickload.
+   */
+  loader?: string;
 }
 
 type ShelfBoot = NonNullable<SoftwareShelf['boot']>;
@@ -79,18 +86,40 @@ const BOOT_POLICY: Record<string, {
       return named ? `LOAD"${named[1]!.toUpperCase()}",${named[2]},1{ENTER}RUN{ENTER}` : undefined;
     },
   },
+  // A quickload sits on no slot, so its policy is keyed by the routine its
+  // load callback hands the file to. MAME's CBM loader (cbm_snqk.cpp) puts
+  // the program where its header says and sets BASIC's end-of-program
+  // pointers past it, which is what LOAD leaves behind: RUN starts it. The
+  // file goes in when the device's own delay runs out, and the start waits
+  // for that (title-start.ts) rather than guessing at it.
+  general_cbm_loadsnap: { boot: () => ({ delay: 3, command: 'RUN{ENTER}' }) },
 };
 
-/** The policy entry a shelf's slots agree on, when the policy knows them. */
-function shelfPolicy(slots: readonly string[], devices: readonly ShelfDevice[]): { boot: ShelfBoot; fromUsage?: (usage: string) => string | undefined } | undefined {
-  const found = slots.map(tag => {
-    const slot = devices.find(device => device.tag === tag);
-    const policy = slot ? BOOT_POLICY[slot.type] : undefined;
-    const boot = slot && policy?.boot(slot);
+type ShelfPolicy = { boot: ShelfBoot; fromUsage?: (usage: string) => string | undefined };
+
+/** The policy entry every one of `sources` agrees on, looked up by `key`. */
+function agreedPolicy(
+  sources: readonly (ShelfDevice | undefined)[],
+  key: (device: ShelfDevice) => string | undefined,
+): ShelfPolicy | undefined {
+  const found = sources.map(device => {
+    const name = device ? key(device) : undefined;
+    const policy = name ? BOOT_POLICY[name] : undefined;
+    const boot = device && policy?.boot(device);
     return boot ? { boot, ...(policy!.fromUsage ? { fromUsage: policy!.fromUsage } : {}) } : undefined;
   });
   return found.length && found.every(entry => entry && JSON.stringify(entry.boot) === JSON.stringify(found[0]!.boot))
     ? found[0] : undefined;
+}
+
+/** The policy entry a shelf's slots agree on, when the policy knows them. */
+function shelfPolicy(slots: readonly string[], devices: readonly ShelfDevice[]): ShelfPolicy | undefined {
+  return agreedPolicy(slots.map(tag => devices.find(device => device.tag === tag)), device => device.type);
+}
+
+/** The policy for a medium whose transports sit on the board itself: by what each loads with. */
+function boardTransportPolicy(kind: MediumKind, devices: readonly ShelfDevice[]): ShelfPolicy | undefined {
+  return agreedPolicy(devices.filter(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)), device => device.loader);
 }
 
 /**
@@ -236,11 +265,18 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
     // used to boot one with no disk in the drive.
     const listed = kind === 'cartridge' ? [] : catalogExtensions(catalog);
     const readable = options.transportExtensions?.[kind];
-    const extensions = readable ? listed.filter(extension => readable.includes(extension)) : listed;
+    const playable = readable ? listed.filter(extension => readable.includes(extension)) : listed;
+    // What the shelf takes is what its transport reads, the list's own formats
+    // first: a dropped image need not be one the list catalogues, and most
+    // .prg files a C64 quickload reads are in no list at all.
+    const extensions = readable && playable.length
+      ? [...playable, ...readable.filter(extension => !playable.includes(extension))]
+      : playable;
     const mountable = options.devices.some(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)) &&
-      (!readable || extensions.length > 0);
+      (!readable || playable.length > 0);
     const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
-    const policy = slots.length ? shelfPolicy(slots, options.devices) : undefined;
+    const policy = slots.length ? shelfPolicy(slots, options.devices)
+      : mountable ? boardTransportPolicy(kind, options.devices) : undefined;
     const boot = policy?.boot;
     // A title whose usage note names its own command carries it (`start`).
     if (policy?.fromUsage) {

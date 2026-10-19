@@ -181,7 +181,28 @@ try {
   assert.deepEqual(unreadable.extensions, []);
   const readable = disksFor(['d64', 'g64', 'g41', 'g71']);
   assert.equal(readable.mountable, true);
-  assert.deepEqual(readable.extensions, ['g64']);
+  assert.deepEqual(readable.extensions, ['g64', 'd64', 'g41', 'g71'],
+    "the list's own formats first, then the rest the drive reads, for an image dropped bare");
+  // A quickload sits on no slot: its start is keyed by the routine its load
+  // callback hands the file to, and it reads what its config set.
+  const quickload = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'QUICKLOAD', tag: 'quickload', loader: 'general_cbm_loadsnap' }],
+    lists: [{ name: 'c64_quik', status: 'original', filter: 'PAL' }],
+    transportExtensions: { quickload: ['p00', 'prg', 't64'] },
+  })!.shelves[0]!;
+  assert.equal(quickload.kind, 'quickload');
+  assert.equal(quickload.mountable, true);
+  assert.deepEqual(quickload.extensions, ['t64', 'p00', 'prg'], 'a bare .prg is a quickload too');
+  assert.equal(quickload.slots, undefined, 'a board device leaves no slot to empty');
+  assert.deepEqual(quickload.boot, { delay: 3, command: 'RUN{ENTER}' });
+  const unknownLoader = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'QUICKLOAD', tag: 'quickload', loader: 'some_other_loadsnap' }],
+    lists: [{ name: 'c64_quik', status: 'original', filter: 'PAL' }],
+    transportExtensions: { quickload: ['t64'] },
+  })!.shelves[0]!;
+  assert.equal(unknownLoader.boot, undefined, 'a loader no policy knows starts nothing itself');
 } finally {
   rmSync(root, { recursive: true, force: true });
 }

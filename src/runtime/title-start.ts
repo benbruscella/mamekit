@@ -62,13 +62,16 @@ export interface StartTape {
  * A title's start: `delay` seconds of emulated time for the machine to come
  * up, the shelf's command typed, then PLAY pressed when the shelf asks for it.
  * Every step is counted in frames the machine ran, so a fast-forward or a
- * stall changes none of it.
+ * stall changes none of it. `ready` holds the typing back for as long as it
+ * says no: a quickload puts the program in memory only when its own delay
+ * runs out, and RUN typed before that runs nothing.
  */
 export class TitleStart {
   private readonly plan: NonNullable<SoftwareShelf['boot']>;
   private readonly typing: NaturalKeyboard;
   private readonly tape: StartTape | undefined;
   private readonly log: (message: string) => void;
+  private readonly ready: () => boolean;
   private wait: number;
   private typed = false;
   private finished = false;
@@ -79,11 +82,13 @@ export class TitleStart {
     typing: NaturalKeyboard,
     tape?: StartTape,
     log: (message: string) => void = () => {},
+    ready: () => boolean = () => true,
   ) {
     this.plan = plan;
     this.typing = typing;
     this.tape = tape;
     this.log = log;
+    this.ready = ready;
     this.wait = Math.round(plan.delay * refresh);
   }
 
@@ -102,6 +107,7 @@ export class TitleStart {
     if (this.finished) return;
     if (this.wait > 0) { this.wait--; return; }
     if (!this.typed) {
+      if (!this.ready()) return;
       this.typing.postCoded(this.plan.command);
       this.typed = true;
       this.log(`typing ${JSON.stringify(this.plan.command)}`);
