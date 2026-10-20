@@ -29,11 +29,12 @@ export interface SaveRecord {
   /** a small image of the screen as it was, as a data URL */
   thumbnail?: string;
   /**
-   * The image each transport held, by transport tag. A cassette's samples are
-   * the host's media, not machine state, so a load puts the same image back
-   * before the state: a tape position is only right against its own side.
+   * The image each transport held, by transport tag: its name and the CRC of
+   * its bytes (transport-media.ts). A cassette's samples are the host's
+   * media, not machine state, so a load puts the same image back before the
+   * state, or refuses: a tape position is only right against its own tape.
    */
-  media?: Record<string, string>;
+  media?: Record<string, { name: string; crc: string }>;
   state: MachineState;
 }
 

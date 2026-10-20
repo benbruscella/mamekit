@@ -433,11 +433,11 @@ test.describe('software room', () => {
     const kept = await page.evaluate(async () => {
       dispatchEvent(new Event('pagehide'));
       for (let tries = 0; tries < 50; tries++) {
-        const media = await new Promise<Record<string, string> | undefined>(resolve => {
+        const media = await new Promise<Record<string, { name: string }> | undefined>(resolve => {
           const open = indexedDB.open('mamekit-saves');
           open.onsuccess = () => {
             const request = open.result.transaction('saves', 'readonly').objectStore('saves').getAll();
-            request.onsuccess = () => resolve((request.result as { id: string; media?: Record<string, string> }[])
+            request.onsuccess = () => resolve((request.result as { id: string; media?: Record<string, { name: string }> }[])
               .find(record => record.id.startsWith('resume:'))?.media);
             request.onerror = () => resolve(undefined);
           };
@@ -448,7 +448,7 @@ test.describe('software room', () => {
       }
       return undefined;
     });
-    expect(Object.values(kept ?? {})).toContain(second);
+    expect(Object.values(kept ?? {}).map(image => image.name)).toContain(second);
     await page.goto(`/app/g/${MACHINE}/`);
     const shelved = page.locator('[data-owned-set]').first();
     await expect(shelved).toBeVisible({ timeout: 30_000 });
@@ -482,6 +482,33 @@ test.describe('software room', () => {
     await page.getByRole('button', { name: 'Load latest save', exact: true }).click();
     await expect(page.getByText(/That save needs/)).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('[data-tape-name]')).toHaveText(replacement!);
+  });
+
+  // Two sets can give different tapes one name: batman and batmano both hold
+  // a Batman_Side_1.tap. A save records the bytes too, so the other tape of
+  // that name is not taken for the one it was made with.
+  test('a save is not loaded over another tape of the same name', async ({ page }) => {
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const set = join(family, 'c64_cass', 'batman.zip');
+    const other = join(family, 'c64_cass', 'batmano.zip');
+    const firmware = [join(family, 'bios', 'c64.zip')];
+    test.skip(![set, other, firmware[0]!].every(path => existsSync(path)), 'no local batman and batmano tape sets and firmware');
+    await playLocalSet(page, set, firmware);
+    const name = page.locator('[data-tape-name]');
+    await expect(name).toHaveText(/\.tap$/i, { timeout: 30_000 });
+    const mounted = await name.textContent();
+    await page.getByRole('button', { name: 'Save state', exact: true }).click();
+    await expect(page.getByText(/^Saved · frame/)).toBeVisible({ timeout: 30_000 });
+    const chooser = page.waitForEvent('filechooser');
+    // The deck logs each mount; the other set's tape has the same name, so the
+    // strip alone cannot show it went in.
+    const remounted = page.waitForEvent('console', { predicate: message => /\[tape .*\] mounted /.test(message.text()), timeout: 30_000 });
+    await page.getByRole('button', { name: 'Open tape', exact: true }).click();
+    await (await chooser).setFiles(other);
+    await remounted;
+    await expect(name).toHaveText(mounted!);
+    await page.getByRole('button', { name: 'Load latest save', exact: true }).click();
+    await expect(page.getByText(/That save needs the .* it was made with/)).toBeVisible({ timeout: 30_000 });
   });
 
   // A `.wav` tape, read by MAME's own wavfile.cpp into the cassette image: the

@@ -12,6 +12,7 @@ import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
 import { createOnscreenKeyboard } from './onscreen-keyboard.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
+import { missingMedia, putMedia, recordMedia, transportImage, type TransportImage, type TransportMedia } from './transport-media.ts';
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
@@ -1101,23 +1102,6 @@ export async function runShell(
       mine.length && typing ? cfg.boot?.command : undefined));
   });
 
-  // What each transport holds, by tag, and putting a recorded set of them back.
-  const transportMedia = (): Record<string, string> => Object.fromEntries(transportImages.flatMap(transport => {
-    const name = transport.current();
-    return name ? [[transport.tag, name]] : [];
-  }));
-  // Answers the images it could not put back: a transport gone, or one whose
-  // set in hand no longer holds that image (another tape was opened since).
-  const restoreTransportMedia = (media: Record<string, string> | undefined): string[] => {
-    const missing: string[] = [];
-    for (const [tag, name] of Object.entries(media ?? {})) {
-      const transport = transportImages.find(candidate => candidate.tag === tag);
-      if (name === transport?.current()) continue;
-      if (!transport?.select(name)) missing.push(name);
-    }
-    return missing;
-  };
-
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
@@ -1476,8 +1460,9 @@ export async function runShell(
     identity: machineIdentity(cfg.game, cfg.board, regions),
     save: () => board.save(),
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
-    media: transportMedia,
-    restoreMedia: restoreTransportMedia,
+    media: () => recordMedia(transportImages),
+    missingMedia: media => missingMedia(transportImages, media),
+    putMedia: media => putMedia(transportImages, media),
     screen: ui.canvas,
     toast: ui.toast,
     // The shelf hangs off its own button rather than joining the page
@@ -1532,30 +1517,36 @@ export async function runShell(
       try { state = board.save(); } catch { return; }
       try {
         await (await store).put({ id: resumeId, game: cfg.game, identity, title: cfg.title, frame: state.frame, createdAt: Date.now(),
-          media: transportMedia(), state });
+          media: recordMedia(transportImages), state });
       } catch (error) { console.warn(`${cfg.game}: could not keep the resume point: ${(error as Error).message}`); }
     };
     addEventListener('pagehide', () => { void keep(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) void keep(); });
     const record = await (await store).get(resumeId).catch(() => null);
-    const before = transportMedia();
     // A resume point is only good against the media it was made with: its
-    // tape position against that tape's own samples.
-    const missing = record && record.identity === identity ? restoreTransportMedia(record.media) : [];
+    // tape position against that tape's own samples. Every image is checked
+    // before any transport moves.
+    const missing = record && record.identity === identity ? missingMedia(transportImages, record.media) : [];
     if (missing.length) {
-      restoreTransportMedia(before);
       console.warn(`[resume] ${cfg.title}: not resumed, ${missing.join(', ')} is not in hand`);
     } else if (record && record.identity === identity) {
+      const before = recordMedia(transportImages);
+      // The machine as it stands with those images in, should the load fail.
+      let standing: MachineState | undefined;
+      try { standing = board.save(); } catch { /* mid-frame: nothing to go back to */ }
       try {
         input.releaseAll();
+        putMedia(transportImages, record.media);
         board.load(record.state);
         start?.cancel();
         typing?.cancel();
         console.info(`[resume] ${cfg.title}: back at frame ${record.frame}`);
         setTimeout(() => ui.toast('Back where you left off · Reset starts it over'), 600);
       } catch (error) {
-        // The load rolled the machine back; the transports go back with it.
-        restoreTransportMedia(before);
+        // Back as it was: the images that were in, then the machine as it
+        // stood with them, the tape's position and transport included.
+        putMedia(transportImages, before);
+        if (standing) { try { board.load(standing); } catch { /* the failed load's own rollback stands */ } }
         console.warn(`${cfg.game}: the resume point did not load: ${(error as Error).message}`);
       }
     }
@@ -2983,9 +2974,11 @@ function saveStateDeck(options: {
   save: () => MachineState;
   load: (state: MachineState) => void;
   /** the image each transport holds, recorded with a save */
-  media: () => Record<string, string>;
-  /** put a save's images back in their transports, before its state; the names it could not */
-  restoreMedia: (media: Record<string, string> | undefined) => string[];
+  media: () => TransportMedia;
+  /** the images a save needs that are not in hand, checked without moving a transport */
+  missingMedia: (media: SaveRecord['media']) => string[];
+  /** put a save's images back in their transports, before its state */
+  putMedia: (media: TransportMedia | undefined) => void;
   screen: HTMLCanvasElement;
   toast: (text: string) => void;
   /** the deck changed height: the screen takes what is left */
@@ -3156,20 +3149,26 @@ function saveStateDeck(options: {
       toast('That save was made with a different ROM set or build');
       return false;
     }
-    const before = options.media();
     // The state is only good against the media it was saved with: a tape
-    // position against that tape's own samples.
-    const missing = options.restoreMedia(record.media);
+    // position against that tape's own samples. Every image is checked
+    // before any transport moves, so a refused load leaves them all running.
+    const missing = options.missingMedia(record.media);
     if (missing.length) {
-      options.restoreMedia(before);
-      toast(`That save needs ${missing.join(', ')}: open it again to load the save`);
+      toast(`That save needs the ${missing.join(', ')} it was made with: open that image to load it`);
       return false;
     }
+    const before = options.media();
+    // The machine as it stands with those images in, should the load fail.
+    let standing: MachineState | undefined;
+    try { standing = options.save(); } catch { /* mid-frame: nothing to go back to */ }
     try {
+      options.putMedia(record.media);
       options.load(record.state);
     } catch (error) {
-      // The load rolled the machine back; the transports go back with it.
-      options.restoreMedia(before);
+      // Back as it was: the images that were in, then the machine as it
+      // stood with them, the tape's position and transport included.
+      options.putMedia(before);
+      if (standing) { try { options.load(standing); } catch { /* the failed load's own rollback stands */ } }
       toast(`Could not load: ${(error as Error).message.split('\n')[0]}`);
       return false;
     }
@@ -3398,15 +3397,7 @@ function diskBay(
     middle: [],
     right: [flip, open, eject],
     onFocus: releaseKeys,
-    image: {
-      tag: media.tag,
-      current: () => current,
-      select: name => {
-        if (!images.has(name)) return false;
-        if (name !== current) { side.value = name; mount(false); }
-        return current === name;
-      },
-    },
+    image: transportImage(media.tag, () => images, () => current, name => { side.value = name; mount(false); }),
   };
 }
 
@@ -3576,17 +3567,6 @@ export interface PanelBay {
   image?: TransportImage;
 }
 
-/**
- * The image a transport holds, by name. A save records it and a load puts it
- * back first: a cassette's samples are host media, not machine state, so a
- * tape position restored over the other side of a tape reads that side.
- */
-export interface TransportImage {
-  tag: string;
-  current(): string | undefined;
-  /** Put the set's image of that name in, quietly: false when the set in hand has none. */
-  select(name: string): boolean;
-}
 
 /**
  * The tape transport, as a strip of the control panel: the image on the
@@ -3776,14 +3756,6 @@ function cassetteBay(
     middle: [],
     right: [open, play, stop, rewind],
     onFocus: releaseKeys,
-    image: {
-      tag: media.tag,
-      current: () => current,
-      select: name => {
-        if (!images.has(name)) return false;
-        if (name !== current) { side.value = name; mount(false); }
-        return current === name;
-      },
-    },
+    image: transportImage(media.tag, () => images, () => current, name => { side.value = name; mount(false); }),
   };
 }
