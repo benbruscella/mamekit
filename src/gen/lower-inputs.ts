@@ -13,7 +13,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 
 import type { GenerateOptions } from './generate.ts';
 
-import { inputKeys, inputLabel, inputPlayer, joystickWays, keypadKeys, portChars, portCodeKeys, computerKeyboardKeys, fieldConditionHolds, portLabel } from './input-bindings.ts';
+import { inputKeys, inputLabel, inputPlayer, joystickWays, keyName, keypadKeys, portChars, portCodeKeys, computerKeyboardKeys, fieldConditionHolds, portLabel } from './input-bindings.ts';
 
 import { Graph } from '../kg/query.ts';
 
@@ -434,7 +434,10 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
           port: tag,
           mask,
           keys,
-          label: named ?? (type === 'IPT_KEYBOARD' ? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
+          // A key MAME leaves unnamed is named by what it types, as MAME's
+          // own input menu names it; only a key that types nothing falls back
+          // to the PC key it sits on.
+          label: named ?? (type === 'IPT_KEYBOARD' ? keyName(portChars(mods)) ?? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
             ?? inputLabel(opts.game, type) ?? type,
           type,
           ...(player !== 1 ? { player } : {}),

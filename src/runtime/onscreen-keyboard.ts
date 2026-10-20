@@ -4,9 +4,12 @@
 // declares, built from its generated bindings, for a visitor whose keyboard
 // lacks the machine's own keys -- RUN/STOP, RESTORE, C=, CLR/HOME, the C64's
 // F1 to F8, £, ↑ and ← -- or who has no keyboard at all. Nothing here names a
-// machine: a key's legend comes from MAME's own PORT_CHAR or PORT_NAME, and
-// its place from the characters it types, laid on a generic QWERTY grid; a
-// key that types none of those goes on a row of the machine's own keys.
+// machine. A key's legend is MAME's: the character it types, else its
+// PORT_NAME or the name MAME's own input menu gives it. Its place is the PC
+// key MAME's PORT_CODE puts it on: MAME lays a computer's keyboard over the
+// PC's by position (the C64's + and - on the two keys after 0, its @ and *
+// after P), so the PC's rows give back the machine's own. A key on no PC
+// typing key goes on a row of the machine's own keys.
 
 import type { FieldBinding } from './input.ts';
 
@@ -24,42 +27,40 @@ export interface OnscreenKey {
 /** The rows the keys sit on, top to bottom, the machine's own keys first. */
 export type OnscreenLayout = OnscreenKey[][];
 
-// The US QWERTY rows, unshifted then shifted, which place a key by what it types.
-const QWERTY_ROWS: readonly string[] = [
-  '`1234567890-=~!@#$%^&*()_+',
-  'qwertyuiop[]\\{}|',
-  "asdfghjkl;':\"",
-  'zxcvbnm,./<>?',
+// The PC's typing rows, by KeyboardEvent.code, which place a key by the PC
+// key MAME binds it to.
+const PC_ROWS: readonly (readonly string[])[] = [
+  ['Backquote', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal', 'Backspace'],
+  ['Tab', 'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash'],
+  ['CapsLock', 'KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter'],
+  ['ShiftLeft', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'ShiftRight'],
 ];
-
-/** MAME's coded names for keys that type no character, as a cap would print them. */
-const CODED_LEGENDS: Readonly<Record<string, string>> = {
-  ENTER: 'RETURN', HOME: 'HOME', INSERT: 'INST', DEL: 'DEL', BACKSPACE: 'DEL',
-  UP: 'CRSR ↑', DOWN: 'CRSR ↓', LEFT: 'CRSR ←', RIGHT: 'CRSR →', ESC: 'ESC', TAB: 'TAB',
-};
 
 const MODIFIER_CODES = /^\{(?:SHIFT_\d|LSHIFT|RSHIFT|LCONTROL|RCONTROL|LALT|RALT|LWIN|RWIN)\}$/;
 
 function firstChars(binding: FieldBinding): string[] {
-  return (binding.chars ?? []).map(entry => entry[0] ?? '').filter(Boolean);
+  return (binding.chars ?? []).map(entry => entry[0] ?? '');
 }
 
-/** A key's cap, from what it types where it types a character, else MAME's name for it. */
+/** A character a cap can print: one that is not a MAME key code or a control character. */
+function printable(typed: string | undefined): typed is string {
+  return Boolean(typed) && !/^\{\w+\}$/.test(typed!) && typed! > ' ';
+}
+
+/**
+ * A key's cap: what it types where it types a character, else MAME's name for
+ * it (its PORT_NAME, or what MAME's input menu calls an unnamed key). A
+ * function key reads as the key it is ("F5"), whichever PC key types it.
+ */
 export function keyLegend(binding: FieldBinding): { legend: string; shifted?: string } {
   const [plain, shift] = firstChars(binding);
-  const named = binding.label.trim();
-  if (!plain) return { legend: named.toUpperCase() };
-  if (plain === '\r') return { legend: 'RETURN' };
   if (plain === ' ') return { legend: 'SPACE' };
-  const coded = /^\{(\w+)\}$/.exec(plain)?.[1];
-  // A named key keeps MAME's two-word name ("INST DEL", "CRSR ↑ ↓", "CLR HOME").
-  if (coded || plain < ' ') {
-    if (/\s/.test(named)) return { legend: named.toUpperCase() };
-    return { legend: coded ? (CODED_LEGENDS[coded] ?? coded.replace(/_/g, ' ')) : named.toUpperCase() };
+  if (printable(plain)) {
+    const legend = plain.toUpperCase();
+    return printable(shift) && shift.toUpperCase() !== legend ? { legend, shifted: shift } : { legend };
   }
-  const legend = plain.toUpperCase();
-  const other = shift && !/^\{/.test(shift) && shift.toUpperCase() !== legend ? shift : undefined;
-  return other ? { legend, shifted: other } : { legend };
+  const functionKey = /^\{(F\d+)\}$/.exec(plain ?? '')?.[1];
+  return { legend: functionKey ?? binding.label.trim().toUpperCase() };
 }
 
 function keyKind(binding: FieldBinding): OnscreenKey['kind'] {
@@ -71,39 +72,44 @@ function keyKind(binding: FieldBinding): OnscreenKey['kind'] {
   return 'key';
 }
 
-/** Where a key goes on the QWERTY grid, by what it types: [row, column], or none. */
+/** Where a key goes on the PC's rows, by the PC key it is bound to: [row, column], or none. */
 function gridPlace(binding: FieldBinding): [number, number] | undefined {
-  for (const typed of firstChars(binding)) {
-    if (typed.length !== 1) continue;
-    const char = typed.toLowerCase();
-    for (let row = 0; row < QWERTY_ROWS.length; row++) {
-      const column = QWERTY_ROWS[row]!.indexOf(char);
-      // Shifted symbols sit after the row's own keys, so 1 stays before !.
+  for (const code of binding.keys) {
+    for (let row = 0; row < PC_ROWS.length; row++) {
+      const column = PC_ROWS[row]!.indexOf(code);
       if (column >= 0) return [row, column];
     }
   }
   return undefined;
 }
 
+/** A function key's number, which orders the machine's own row: F1 before F3. */
+function functionNumber(key: OnscreenKey): number {
+  const number = /^F(\d+)$/.exec(key.legend)?.[1];
+  return number === undefined ? Infinity : Number(number);
+}
+
 /**
- * The machine's keys as rows: its own keys (named, function, cursor, the
- * characters a PC keyboard has no key for), then the four QWERTY rows, then
- * the modifiers with the space bar. Order within a row follows the grid,
- * then the driver's own declaration order.
+ * The machine's keys as rows: its own keys (function, cursor and editing keys
+ * on no PC typing key), then the PC's four typing rows as the machine's keys
+ * fill them, then the space bar with any modifier left over. Function keys
+ * come first and in order; everything else keeps the driver's own order.
  */
 export function onscreenLayout(bindings: readonly FieldBinding[]): OnscreenLayout {
   const keys = bindings.filter(binding => binding.type === 'IPT_KEYBOARD');
   const own: OnscreenKey[] = [];
-  const grid: { key: OnscreenKey; column: number }[][] = QWERTY_ROWS.map(() => []);
+  const grid: { key: OnscreenKey; column: number }[][] = PC_ROWS.map(() => []);
   const bottom: OnscreenKey[] = [];
   for (const binding of keys) {
     const key: OnscreenKey = { binding, kind: keyKind(binding), ...keyLegend(binding) };
-    if (key.kind !== 'key' || key.legend === 'SPACE') { bottom.push(key); continue; }
-    const place = key.legend === 'RETURN' ? undefined : gridPlace(binding);
+    const place = key.legend === 'SPACE' ? undefined : gridPlace(binding);
     if (place) grid[place[0]]!.push({ key, column: place[1] });
+    else if (key.kind !== 'key' || key.legend === 'SPACE') bottom.push(key);
     else own.push(key);
   }
   const rows: OnscreenLayout = [];
+  // A stable sort: function keys by number, the rest as declared.
+  own.sort((a, b) => Math.min(functionNumber(a), 1e9) - Math.min(functionNumber(b), 1e9));
   if (own.length) rows.push(own);
   for (const row of grid) if (row.length) rows.push(row.sort((a, b) => a.column - b.column).map(entry => entry.key));
   if (bottom.length) rows.push(bottom);

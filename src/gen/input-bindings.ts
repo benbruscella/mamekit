@@ -71,6 +71,38 @@ export function portChars(modifiers: readonly string[]): string[][] | undefined 
   return states.length ? states : undefined;
 }
 
+/**
+ * MAME's name for a keyboard key no PORT_NAME names: ioport_field::key_name,
+ * the first character the key types, with MAME's own word for a key that
+ * types none. A computer's keys sit on the PC's by position, so the key and
+ * the PC key under it differ: the C64's `PORT_CODE(KEYCODE_F3)
+ * PORT_CHAR(UCHAR_MAMEKEY(F5))` is its F5, typed on the PC's F3, and named
+ * after the PC key it read "F3".
+ */
+export function keyName(chars: readonly (readonly string[])[] | undefined): string | undefined {
+  const first = chars?.[0]?.[0];
+  if (first === undefined) return undefined;
+  const plain: Record<string, string> = { '\b': 'Backspace', '\t': 'Tab', '\f': 'Clear', '\r': 'Enter', '\x1b': 'Esc', ' ': 'Space' };
+  if (plain[first]) return plain[first];
+  const coded = /^\{(\w+)\}$/.exec(first)?.[1];
+  if (!coded) return first;
+  const named: Record<string, string> = {
+    SHIFT_1: 'Shift', SHIFT_2: 'Ctrl', ESC: 'Esc', INSERT: 'Insert', DEL: 'Delete', HOME: 'Home', END: 'End',
+    PGUP: 'Page Up', PGDN: 'Page Down', LEFT: 'Cursor Left', RIGHT: 'Cursor Right', UP: 'Cursor Up',
+    DOWN: 'Cursor Down', SLASH_PAD: 'Keypad /', ASTERISK: 'Keypad *', MINUS_PAD: 'Keypad -',
+    PLUS_PAD: 'Keypad +', DEL_PAD: 'Keypad .', ENTER_PAD: 'Keypad Enter', BS_PAD: 'Keypad Backspace',
+    TAB_PAD: 'Keypad Tab', '00_PAD': 'Keypad 00', '000_PAD': 'Keypad 000', COMMA_PAD: 'Keypad ,',
+    EQUALS_PAD: 'Keypad =', PRTSCR: 'Print Screen', PAUSE: 'Pause', LSHIFT: 'Left Shift',
+    RSHIFT: 'Right Shift', LCONTROL: 'Left Ctrl', RCONTROL: 'Right Ctrl', LALT: 'Left Alt',
+    RALT: 'Right Alt', SCRLOCK: 'Scroll Lock', NUMLOCK: 'Num Lock', CAPSLOCK: 'Caps Lock',
+    LWIN: 'Left Win', RWIN: 'Right Win', MENU: 'Menu', CANCEL: 'Break',
+  };
+  if (named[coded]) return named[coded];
+  if (/^F\d+$/.test(coded)) return coded;
+  const pad = /^(\d)_PAD$/.exec(coded)?.[1];
+  return pad ? `Keypad ${pad}` : coded;
+}
+
 /** A PORT_CHAR argument list split at its top-level commas, quotes respected. */
 function charArguments(body: string): string[] {
   const parts: string[] = [];

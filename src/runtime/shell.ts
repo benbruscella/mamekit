@@ -1854,25 +1854,34 @@ export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: Po
     const roles = [...new Set(pointer.bindings().map(b => fnLabel(b.label).replace(/ (left|right|up|down)$/i, '')))];
     parts.push(`Mouse or spinner: ${roles.join(', ')}${pointer.isCaptured ? ' (Esc releases)' : ' (click screen to capture)'}`);
   }
-  if (cfg.kind === 'computer') {
-    const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
-    return [...head, 'Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
-  }
   const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
   const stickOrder = ['move', 'left stick', 'right stick'];
-  for (const [name, { keys, pads: stickPads }] of [...sticks]
-    .sort(([a], [b]) => stickOrder.indexOf(a) - stickOrder.indexOf(b))) {
-    // Four arrows read as "Arrows" and a few as themselves ("←→"); other keys
-    // are named up, down, left, right ("W/S").
-    const codes = [...keys.keys()];
-    const named = order.every(k => keys.has(k))
-      ? 'Arrows'
-      : codes.every(k => order.includes(k))
-        ? order.filter(k => keys.has(k)).map(keyLabel).join('')
-        : codes.sort((a, b) => keys.get(a)! - keys.get(b)!).map(keyLabel).join('/');
-    const label = [named, ...stickPads].filter(Boolean).join(' or ');
-    if (label) head.push(`${label}: ${name}`);
+  const stickLines = [...sticks]
+    .sort(([a], [b]) => stickOrder.indexOf(a) - stickOrder.indexOf(b))
+    .flatMap(([name, { keys, pads: stickPads }]) => {
+      // Four arrows read as "Arrows" and a few as themselves ("←→"); other keys
+      // are named up, down, left, right ("W/S").
+      const codes = [...keys.keys()];
+      const named = order.every(k => keys.has(k))
+        ? 'Arrows'
+        : codes.every(k => order.includes(k))
+          ? order.filter(k => keys.has(k)).map(keyLabel).join('')
+          : codes.sort((a, b) => keys.get(a)! - keys.get(b)!).map(keyLabel).join('/');
+      const label = [named, ...stickPads].filter(Boolean).join(' or ');
+      return label ? [{ name, label }] : [];
+    });
+  if (cfg.kind === 'computer') {
+    const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
+    // The joystick a computer has plugged in is worked from the same keyboard,
+    // and nothing on screen says which keys those are: a title that wants it
+    // (Boulder Dash, "press button to play") is otherwise a guess.
+    const fire = parts.filter(part => /: fire\b/.test(part)).map(part => part.replace(/: fire\b/, ' fire'));
+    const joystick = stickLines.length || fire.length
+      ? [`Joystick: ${[...stickLines.map(stick => stick.label), ...fire].join(', ')}`]
+      : [];
+    return [...head, 'Keyboard: type directly', ...joystick, ...specialKeys, 'Esc: menu'].join(' · ');
   }
+  for (const { name, label } of stickLines) head.push(`${label}: ${name}`);
   return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');
 }
 

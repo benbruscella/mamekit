@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { cString, portChars, portLabel } from './input-bindings.ts';
+import { cString, keyName, portChars, portLabel } from './input-bindings.ts';
 import { mameCharacterAlternates, naturalKeyboardAlternates } from './natural-keyboard.ts';
 
 const mameSrc = process.env.MAME_SRC ?? '../mame';
@@ -23,6 +23,15 @@ assert.deepEqual(
   [['\r'], ['£'], ['{SHIFT_1}'], [','], ["'"], ['a', 'A']],
 );
 assert.equal(portChars(['PORT_CODE(KEYCODE_F1)']), undefined, 'a key MAME gives no character types nothing');
+
+// A key MAME leaves unnamed is named by what it types (ioport_field::key_name):
+// the C64's F5 sits on the PC's F3, and is still F5.
+assert.equal(keyName(portChars(['PORT_CODE(KEYCODE_F3)', 'PORT_CHAR(UCHAR_MAMEKEY(F5))'])), 'F5');
+assert.equal(keyName(portChars(['PORT_CODE(KEYCODE_OPENBRACE)', "PORT_CHAR('@')"])), '@');
+assert.equal(keyName(portChars(['PORT_CHAR(UCHAR_MAMEKEY(LCONTROL))'])), 'Left Ctrl');
+assert.equal(keyName(portChars(['PORT_CHAR(13)'])), 'Enter');
+assert.equal(keyName(portChars(["PORT_CHAR(' ')"])), 'Space');
+assert.equal(keyName(undefined), undefined, 'a key that types nothing has no name of its own');
 
 // MAME's own table, read from source; kept per machine to what its keys reach.
 const alternates = mameCharacterAlternates(readFileSync(join(mameSrc, 'src/emu/natkeyboard.cpp'), 'utf8'));
