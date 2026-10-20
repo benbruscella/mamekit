@@ -721,4 +721,16 @@ check('std::strcmp compares like strcmp', () => {
   assert.notEqual(applyGeneratedMacro('std::strcmp', ['false', 'true']), 0);
 });
 
+// A TZX block reads its 3-byte length through a pointer into the tape
+// (`get_u24le(&cur_block[16])`); read as a bare array it was 0, and Elite's
+// 48K tape stopped after its BASIC loader.
+check('multibyte loads read through a pointer', () => {
+  const tape = new Uint8Array([0, 0, 0x02, 0x1c, 0x00, 0x11]);
+  const at = (offset: number) => ({ generatedPointer: true, source: tape, offset });
+  assert.equal(applyGeneratedMacro('get_u24le', [at(2)]), 0x1c02);
+  assert.equal(applyGeneratedMacro('get_u24le', [at(3)]), 0x11001c);
+  assert.equal(applyGeneratedMacro('get_u16le', [at(2)]), 0x1c02);
+  assert.equal(applyGeneratedMacro('get_u24le', [[1, 2, 3]]), 0x030201);
+});
+
 console.log(`execute.spec: ${passed} passed, 0 failed`);

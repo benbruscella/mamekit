@@ -2125,10 +2125,6 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
  * for a name it does not know, so callers keep their own fallbacks.
  */
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
-  if (name === 'get_u24le') {
-    const bytes = args[0] as ArrayLike<number>;
-    return (bytes[0]! | bytes[1]! << 8 | bytes[2]! << 16) >>> 0;
-  }
   // As the C library and as `std::` spell it: the floppy drive's call_load
   // compares its `write_protected` feature with `std::strcmp`.
   if (name === 'strcmp' || name === 'std::strcmp') {
@@ -2385,10 +2381,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // A C++ `throw`, as handler-ir lowers it: the source gave up here.
   if (name === '__throw') throw new Error('MAME source threw an exception');
   // MAME util/multibyte.h: little- and big-endian loads from a byte pointer.
-  if (name === 'get_u16le' || name === 'get_u32le' || name === 'get_u16be' || name === 'get_u32be') {
+  // The pointer is usually into a buffer (`&cur_block[16]`): a TZX turbo or
+  // pure-data block's length is a get_u24le there, and read as a bare array
+  // it was 0, so Elite's 48K tape ended after its BASIC loader.
+  if (/^get_u(16|24|32)(le|be)$/.test(name)) {
     const byte = (index: number): number => toNumber(isGeneratedPointer(args[0])
       ? pointerValue(args[0], index) : (args[0] as ArrayLike<number>)[index]) & 0xff;
-    const count = name.includes('16') ? 2 : 4;
+    const count = name.includes('16') ? 2 : name.includes('24') ? 3 : 4;
     let value = 0;
     for (let index = 0; index < count; index++) {
       value += byte(name.endsWith('le') ? index : count - 1 - index) * 2 ** (8 * index);
