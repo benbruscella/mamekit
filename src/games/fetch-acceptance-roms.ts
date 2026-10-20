@@ -114,6 +114,16 @@ export async function fetchAcceptanceRoms(): Promise<void> {
     }
     return [machine.game, JSON.parse(readFileSync(configPath, 'utf8')) as ShellConfig] as const;
   }));
+  // A title is filed on its list's shelf, so a machine that plays one must
+  // have been generated with that list: without its hash/<list>.xml (CI checks
+  // out MAME sparsely) the machine has no shelves, no dumps folder, and every
+  // key below would point at the category root.
+  for (const contract of contracts) {
+    if (contract.software && !configs.get(contract.game)!.software?.dumpsKey) {
+      throw new Error(`${contract.game}: a scenario plays ${contract.software.list}:${contract.software.name}, but the ` +
+        `generated machine has no software shelves -- generate it with hash/${contract.software.list}.xml in the MAME checkout`);
+    }
+  }
   // A console with nothing on board but its cartridge slot (the NES, the
   // 2600) has no set of its own; its cartridges sit in a folder named after it.
   const withSet = machines.filter(machine =>
