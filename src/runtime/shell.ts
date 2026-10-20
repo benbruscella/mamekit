@@ -165,6 +165,8 @@ export interface SoundSpec {
   auxiliary?: GeneratedDacFilterPlan;
   /** Source-routed secondary stream devices mixed by the generated worklet. */
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
+  /** Total routed gain of the main-thread streams posted beside the owning chip. */
+  streamGain?: number;
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
@@ -455,6 +457,12 @@ export interface SoftwareShelf {
    * and `romh`.
    */
   imageDevice?: string;
+  /**
+   * The card `imageDevice` holds while a title from this shelf plays, when
+   * the list is the card's rather than the machine's (BoardConfig.slotCards):
+   * a Spectrum cartridge boots with the ZX Interface 2 in `exp`.
+   */
+  card?: string;
   /**
    * The shelf's art, by title: a cover's file under artwork/carts/<list>/,
    * shown in place of the drawn medium (src/gen/cart-art.ts).
@@ -863,6 +871,11 @@ export async function runShell(
     cfg = { ...cfg, roms: withoutSlotFirmware(cfg.roms, emptySlots) };
     console.info(`[media] booting with ${emptySlots.map(slot => `-${slot} ""`).join(' ')}: ` +
       'a transport the title does not use is left out, as MAME leaves an empty slot');
+  }
+  const slotCards = Object.entries(cfg.board.slotCards ?? {});
+  if (slotCards.length) {
+    console.info(`[media] booting with ${slotCards.map(([slot, card]) => `-${slot} ${card}`).join(' ')}: ` +
+      'the title\'s medium is read by that card');
   }
   const ui = buildDom(cfg);
 
@@ -1273,6 +1286,7 @@ export async function runShell(
           ...(device.sampleRegion ? { sampleRom: regions[device.sampleRegion] } : {}),
         })),
         filterChain: cfg.sound.filterChain,
+        ...(cfg.sound.streamGain ? { streamGain: cfg.sound.streamGain } : {}),
         discreteMixer: cfg.sound.discreteMixer,
         resistorLoads: cfg.sound.resistorLoads,
         discreteDac: cfg.sound.discreteDac,
@@ -3474,7 +3488,11 @@ function quickloadBay(
       mounted.title = image.name;
       mounted.style.color = '#f4f5ff';
       log(`holding ${image.name} (${image.bytes.length} bytes) until the device loads it`);
-      if (announce) say(`${image.name} loads in a moment: then type RUN and press Enter`);
+      if (announce) {
+        say(media.medium === 'snapshot'
+          ? `${image.name} goes into memory in a moment and carries on from where it was saved`
+          : `${image.name} loads in a moment: then type RUN and press Enter`);
+      }
     } catch (error) {
       console.warn(`[quickload ${media.tag}] could not take ${image.name}:`, error);
       say(String(error));
@@ -3503,9 +3521,9 @@ function quickloadBay(
   paint();
   setInterval(paint, 250);
   return {
-    id: 'quickload',
-    label: TRANSPORT_LABELS.quickload,
-    ariaLabel: `Quickload ${media.tag}`,
+    id: media.medium === 'snapshot' ? 'snapshot' : 'quickload',
+    label: engravedLabel(media.deck) ?? TRANSPORT_LABELS.quickload,
+    ariaLabel: `${media.deck ?? 'Quickload'} ${media.tag}`,
     left: [picker, mounted, readout],
     middle: [],
     right: [open],
@@ -3515,6 +3533,15 @@ function quickloadBay(
 
 /** Each transport's strip, engraved with the name of the deck it stands for. */
 const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE', quickload: 'QUICKLOAD' } as const;
+
+/**
+ * The strip's engraving from MAME's own name for the deck: the last word of
+ * "Commodore 1530 Datassette" is the C64's DATASSETTE, the Spectrum's
+ * "Cassette" its CASSETTE, snapquik.cpp's "Snapshot" a SNAPSHOT.
+ */
+function engravedLabel(deck: string | undefined): string | undefined {
+  return deck?.trim().split(/\s+/).at(-1)?.toUpperCase() || undefined;
+}
 
 /**
  * The strip of a transport whose slot the machine booted empty. It has no
@@ -3759,7 +3786,7 @@ function cassetteBay(
   setInterval(paint, 250);
   return {
     id: 'tape',
-    label: TRANSPORT_LABELS.cassette,
+    label: engravedLabel(media.deck) ?? TRANSPORT_LABELS.cassette,
     ariaLabel: `Cassette ${media.tag}`,
     left: [picker, mounted, side, readout],
     middle: [],

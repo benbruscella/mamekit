@@ -486,6 +486,16 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.spaceAccessors !== undefined) {
+    for (const [index, entry] of reader.array(execution.spaceAccessors, 'execution.spaceAccessors').entries()) {
+      const accessor = reader.object(entry, `execution.spaceAccessors[${index}]`);
+      reader.string(accessor.member, `execution.spaceAccessors[${index}].member`);
+      reader.string(accessor.cpu, `execution.spaceAccessors[${index}].cpu`);
+      if (!['program', 'io', 'opcodes'].includes(String(accessor.space))) {
+        reader.fail(`execution.spaceAccessors[${index}].space`, 'not an address space');
+      }
+    }
+  }
   if (execution.banks !== undefined) {
     for (const [index, entry] of reader.array(execution.banks, 'execution.banks').entries()) {
       const path = `execution.banks[${index}]`;
@@ -493,6 +503,7 @@ function decodeExecution(reader: Reader, value: unknown): void {
       const source = sourceOf(bank);
       reader.string(bank.tag, `${path}.tag`, source);
       reader.optionalString(bank.region, `${path}.region`, source);
+      reader.optionalString(bank.device, `${path}.device`, source);
       if (bank.entryRegions !== undefined) {
         for (const [position, region] of reader.array(
           bank.entryRegions, `${path}.entryRegions`, source).entries()) {

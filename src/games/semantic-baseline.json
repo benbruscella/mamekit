@@ -290,7 +290,7 @@
       "palette": "none"
     },
     "gauntlet": {
-      "sha256": "8ccc31ff45eb76aceaf260212436f6ec0ba4f91e5ae98a6159437b75eb28b533",
+      "sha256": "a693c89cb7ff55edbbe80bccd1018bf6693a82554969c6578d1d314edd2be80f",
       "callbacks": 15,
       "frameEvents": 10,
       "devices": 20,
@@ -344,7 +344,7 @@
       "palette": "prom:proms"
     },
     "hyperspt": {
-      "sha256": "92d77e5c4e6246c12c120634b93c8ba508b2fcd55f7f8b3eed294262d09f316c",
+      "sha256": "fec7ec5fa48ead5f8db4c9195f511f6bd2d70e616d2332dfb8fdff5fdad289af",
       "callbacks": 10,
       "frameEvents": 2,
       "devices": 14,
@@ -551,7 +551,7 @@
       "palette": "prom:proms"
     },
     "polepos": {
-      "sha256": "7a2c841ac3bef32bce55939d196f382ea857ea0ab7c19bcae1216bfa151df4f6",
+      "sha256": "1e8b00896d4d3d67b909544938209fd355edd4212c7d171359dd7b435ba8aeae",
       "callbacks": 67,
       "frameEvents": 5,
       "devices": 25,
@@ -693,6 +693,24 @@
       "handlers": 24,
       "maps": 4,
       "palette": "prom:maincpu"
+    },
+    "spec128": {
+      "sha256": "fb39e7434331b5e9fae0a3631ce811e130c6d5f8921b5fbbcbd71c26cbc0bbd4",
+      "callbacks": 13,
+      "frameEvents": 1,
+      "devices": 17,
+      "handlers": 82,
+      "maps": 7,
+      "palette": "none"
+    },
+    "spectrum": {
+      "sha256": "ae967bd25911e7a4f3fdfc10ccc855e961219277b077e2ef129aeff734115592",
+      "callbacks": 13,
+      "frameEvents": 1,
+      "devices": 14,
+      "handlers": 58,
+      "maps": 4,
+      "palette": "none"
     },
     "spyhunt": {
       "sha256": "47e3d71771b29fe7d24b5243be71d4e2c6203a104b1e8b5e78579c1bed941529",

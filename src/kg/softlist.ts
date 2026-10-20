@@ -161,8 +161,12 @@ export interface ParsedSoftwareList {
  */
 const MEDIA_AREAS = new Set(['cass', 'flop', 'quik', 'roml', 'romh', 'romx', 'lorom', 'uprom']);
 
-/** Cartridge dataareas a slot loads by name (the C64 and VIC-10 expansion port's). */
-const CART_AREAS = new Set(['roml', 'romh', 'romx', 'lorom', 'uprom']);
+/**
+ * Cartridge dataareas a slot loads by name: the C64 and VIC-10 expansion
+ * port's, and the single `rom` a generic cartridge slot asks for
+ * (`common_get_size("rom")`, the ZX Interface 2's).
+ */
+const CART_AREAS = new Set(['roml', 'romh', 'romx', 'lorom', 'uprom', 'rom']);
 
 export function parseSoftwareList(xml: string): ParsedSoftwareList {
   const head = /<softwarelist\b[^>]*>/.exec(xml);

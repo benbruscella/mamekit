@@ -24,6 +24,8 @@ export const TYPE_WORDS = new Set([
   's8', 's16', 's32', 's64', 'u8', 'u16', 'u32', 'u64',
   'int8_t', 'int16_t', 'int32_t', 'int64_t',
   'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'unsigned',
+  // Plain C widths: the Spectrum's .z80 loader declares `unsigned short`.
+  'short', 'long',
 ]);
 
 const BINARY_PRECEDENCE: Record<string, number> = {
@@ -56,11 +58,23 @@ const ASSIGNMENT_OPERATORS = new Set([
  * Unsupported constructs remain attached as diagnostics; callers must not
  * guess at their behavior.
  */
-export function compileMameHandler(body: string): GeneratedHandlerProgram {
+export function compileMameHandler(
+  body: string,
+  options: { returnType?: string } = {},
+): GeneratedHandlerProgram {
+  // `return { l, r, t, b };` list-initialises the declared return type, which
+  // for a class with a constructor of those arguments is that construction:
+  // the Spectrum's `rectangle get_screen_area()`.
+  const returnType = options.returnType && /^[A-Za-z_]\w*$/.test(options.returnType)
+    ? options.returnType
+    : undefined;
+  const listReturns = returnType
+    ? body.replace(/\breturn\s*\{([^{};]*)\}\s*;/g, (_all, values: string) => `return ${returnType}(${values});`)
+    : body;
   // C++ pointer-to-member invocation has no distinct runtime value in the IR.
   // Preserve it as a normal call through the member slot; the surrounding
   // source null check still controls whether the call is reached.
-  const executable = body
+  const executable = listReturns
     .replace(
       /\(\s*this\s*->\s*\*\s*(m_\w+)\s*\)\s*\(/g,
       '$1(',
@@ -1146,6 +1160,23 @@ class HandlerParser {
     // otherwise be two identifiers in a row and fail the whole statement, which
     // is what dropped every `memset(line, 0xFF, sizeof line)` in TIA's
     // scanline compositor.
+    // `sizeof(uint8_t *)`: a pointer type, which reads as no expression. TZX's
+    // block table is `malloc(count * sizeof(uint8_t*))`.
+    if (this.atText('sizeof') && this.tokens[this.index + 1]?.text === '(') {
+      let cursor = this.index + 2;
+      const words: string[] = [];
+      while (this.tokens[cursor]?.kind === 'identifier') words.push(this.tokens[cursor++]!.text);
+      let stars = 0;
+      while (this.tokens[cursor]?.text === '*') { stars++; cursor++; }
+      if (words.length && stars && this.tokens[cursor]?.text === ')') {
+        this.index = cursor + 1;
+        return {
+          kind: 'call',
+          callee: { kind: 'identifier', name: 'sizeof' },
+          args: [{ kind: 'identifier', name: `${words.join(' ')}${'*'.repeat(stars)}` }],
+        };
+      }
+    }
     if (this.atText('sizeof') && this.tokens[this.index + 1]?.text !== '(') {
       this.take();
       const operand = this.parseUnary();

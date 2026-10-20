@@ -453,6 +453,17 @@ ${emitPublicSetCases(definition)}
     }
   }
 
+  /**
+   * MAME device_state_interface::set_state_int: the entry's register, then
+   * the core's own state_import for an entry that asks for it (a new PC
+   * restarts the Z80's instruction pipeline there).
+   */
+  setStateInt(index: number, value: number): void {
+    switch (index) {
+${emitSetStateIntCases(definition)}
+    }
+  }
+
   hasMethod(name: string): boolean {
     return GENERATED_METHOD_NAMES.has(name);
   }
@@ -836,6 +847,28 @@ function emitStateIntCases(definition: GeneratedCpuDefinition): string {
     if (!register || !definition.aliases[register] || seen.has(value)) continue;
     seen.add(value);
     lines.push(`      case ${value}: return this.${register}; // ${name}`);
+  }
+  return lines.join('\n');
+}
+
+function emitSetStateIntCases(definition: GeneratedCpuDefinition): string {
+  const lines: string[] = [];
+  const seen = new Set<number>();
+  const importable = definition.methods.some(method => method.name === 'state_import');
+  for (const entry of definition.stateEntries ?? []) {
+    if (seen.has(entry.index)) continue;
+    seen.add(entry.index);
+    const alias = Object.entries(definition.aliases).find(([, candidate]) =>
+      candidate.member === entry.target.member && candidate.part === entry.target.part)?.[0];
+    const path = alias ?? (entry.target.part === 'word' ? `${entry.target.member}.w`
+      : entry.target.part === 'high' ? `${entry.target.member}.b.h`
+      : entry.target.part === 'low' ? `${entry.target.member}.b.l`
+      : entry.target.member);
+    const value = entry.mask !== undefined ? `value & ${entry.mask}` : 'value';
+    lines.push(`      case ${entry.index}: // ${entry.name}`);
+    lines.push(`        this.set(${JSON.stringify(path)}, ${value});`);
+    if (entry.import && importable) lines.push(`        this.invoke('state_import', ${entry.index});`);
+    lines.push('        return;');
   }
   return lines.join('\n');
 }

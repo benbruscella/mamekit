@@ -23,7 +23,7 @@ import {
 } from '../mame/device-compiler.ts';
 import {
   stripComments, parseDefines, parseGames, parseRomSets, parseAddressMaps,
-  parseMachineConfigs, parseMemberTags, parseClassMemberTags, parseInputPorts, parseGfxLayouts,
+  evaluateRectangle, statementAudioRoutes, parseAddrMapForwarders, parseMachineConfigs, resolveLiteralConditionals, parseMemberTags, parseClassMemberTags, parseInputPorts, parseGfxLayouts,
   parseStateClassConstants,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
@@ -135,7 +135,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       g.node('SourceFile', `file:${inc}`, { path: inc, external: true });
       g.edge(`file:${rel}`, `file:${inc}`, 'INCLUDES');
     }
-    combined += `\n// ==== ${rel} ====\n` + stripComments(raw);
+    combined += `\n// ==== ${rel} ====\n` + resolveLiteralConditionals(stripComments(raw));
   }
   const driverRel = driverFile.slice(mameSrc.length + 1);
   const fileId = `file:${driverRel}`;
@@ -152,8 +152,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // Framework vocabulary every driver reaches through emu.h rather than an
   // include of its own: digfx.h's MAX_GFX_ELEMENTS bounds the free-slot scan a
   // driver runs before building a graphics set at run time (Atari System 1),
-  // and unresolved it made that loop run zero times.
-  const pendingExternalIncludes = ['emu/digfx.h', ...slashIncludes];
+  // and unresolved it made that loop run zero times. distate.h's generic state
+  // indices are how a core names its PC to the driver: z80.h's `Z80_PC =
+  // STATE_GENPC`, which the Spectrum's snapshot loader sets last.
+  const pendingExternalIncludes = ['emu/digfx.h', 'emu/distate.h', ...slashIncludes];
   const seenExternalIncludes = new Set<string>();
   while (pendingExternalIncludes.length) {
     const inc = pendingExternalIncludes.shift()!;
@@ -203,6 +205,63 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   const stateClassConstants = parseStateClassConstants(combined);
   const deviceTypes = parseDeviceTypeDecls(combined);
 
+  const configHelpers = externalSources.flatMap((source, index) =>
+    /static\s+void\s+\w+\s*\(\s*machine_config/.test(source)
+      ? parseMameAst([{ file: `external-config-${index}.h`, source }]).units.flatMap(unit =>
+          unit.functions.filter(fn => /^machine_config\s*&/.test(fn.parameters)))
+      : []).concat(
+    // A driver's own config member that takes more than `config` is a helper
+    // expanded at its call site: Bomb Jack's
+    // `template <typename T> bombjack_base(machine_config &config, T &&psg_type)`
+    // instantiates `psg_type(config, m_ay8910[0], ...)` with the caller's AY8910.
+    ast.ast.units.flatMap(unit => unit.functions.filter(fn =>
+      /^machine_config\s*&\s*\w+\s*,/.test(fn.parameters))),
+  // One definition per helper: a composed card's same-directory headers join
+  // the family (the 1541 brings cbmiec.h), and then the bus's own static
+  // `cbm_iec_slot_device::add` is found as an external and a family member
+  // both, and an ambiguous helper expands to nothing.
+  ).filter((fn, index, all) =>
+    all.findIndex(other => other.className === fn.className && other.name === fn.name) === index);
+  const machineConfigs = parseMachineConfigs(
+    combined, memberTags, consts, configHelpers,
+    Object.assign({}, ...externalSources.map(parseAddrMapForwarders)),
+  );
+
+  // A device sub-config that calls its base class's config, which then
+  // configures a device the derived one created: the Spectrum AY cards build
+  // `m_ay0` themselves and spectrum_ay_device::device_add_mconfig routes it.
+  for (const cfg of machineConfigs) {
+    for (const call of cfg.calls) {
+      const qualified = /^(\w+)::(\w+)$/.exec(call);
+      const callee = qualified
+        ? machineConfigs.find(candidate => candidate.cls === qualified[1] && candidate.name === qualified[2])
+        : undefined;
+      for (const patch of callee?.devicePatches ?? []) {
+        const device = cfg.devices.find(candidate => candidate.tag === patch.tag);
+        if (!device) continue;
+        device.config.push(...patch.config);
+        for (const statement of patch.config) {
+          const routes = statementAudioRoutes(statement, consts);
+          if (routes.length) (device.audioRoutes ??= []).push(...routes);
+        }
+      }
+    }
+  }
+
+  // A slot's third argument is an address on some buses (the IEC slot's
+  // unit 8) and the clock on others (`AY_SLOT(config, "ay_slot",
+  // X1_128_SINCLAIR / 20, ...)`): the slot's own constructor says which.
+  for (const cfg of machineConfigs) {
+    for (const dev of cfg.devices) {
+      if (dev.slotAddress === undefined) continue;
+      const slotClass = deviceTypes[dev.type] ?? indexMameHardware(mameSrc).get(dev.type)?.className;
+      if (slotClass && slotThirdArgument(slotClass, [combined, ...externalSources]) === 'clock') {
+        dev.clock = dev.slotAddress;
+        delete dev.slotAddress;
+      }
+    }
+  }
+
   // --- games ---
   const games = parseGames(combined);
   const initPatches = parseInitPatches(combined, consts);
@@ -213,8 +272,15 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ['GAME', 'GAMEX', 'GAMEL', 'CONS', 'SYST', 'COMP'], 1, gm.name,
     )?.span;
     const initFunction = ast.findFunctionInHierarchy(gm.cls, gm.init);
+    // `m_ram->size()` is the RAM device's configured default: the Spectrum's
+    // init installs `0x5b00 .. m_ram->size() + 0x3fff` into its bank space.
+    const ramSizes = configuredRamSizes(machineConfigs, gm.machine, memberTags);
+    const sizedInitBody = (body: string): string => body.replace(
+      /\b(m_\w+)\s*->\s*size\s*\(\s*\)/g,
+      (all, member: string) => ramSizes[member] !== undefined ? String(ramSizes[member]) : all,
+    );
     const installedHandlers = initFunction
-      ? parseInstalledHandlers(effectiveInitBody(ast, gm.cls, initFunction, consts), consts)
+      ? parseInstalledHandlers(sizedInitBody(effectiveInitBody(ast, gm.cls, initFunction, consts)), consts)
           .flatMap(handler => {
             // The CPU whose space the install targets; the main CPU's when the
             // source does not say.
@@ -399,19 +465,6 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
 
   // --- machine configs ---
   const gfxDecodes = parseGfxDecodes(combined, consts);
-  const configHelpers = externalSources.flatMap((source, index) =>
-    /static\s+void\s+\w+\s*\(\s*machine_config/.test(source)
-      ? parseMameAst([{ file: `external-config-${index}.h`, source }]).units.flatMap(unit =>
-          unit.functions.filter(fn => /^machine_config\s*&/.test(fn.parameters)))
-      : []).concat(
-    // A driver's own config member that takes more than `config` is a helper
-    // expanded at its call site: Bomb Jack's
-    // `template <typename T> bombjack_base(machine_config &config, T &&psg_type)`
-    // instantiates `psg_type(config, m_ay8910[0], ...)` with the caller's AY8910.
-    ast.ast.units.flatMap(unit => unit.functions.filter(fn =>
-      /^machine_config\s*&\s*\w+\s*,/.test(fn.parameters))),
-  );
-  const machineConfigs = parseMachineConfigs(combined, memberTags, consts, configHelpers);
   // A slot whose default card runs a program of its own is part of the
   // machine MAME builds: the C64's iec8 holds a 1541, whose 6502 runs the
   // drive's DOS against two VIAs and a GCR gate array. The card's source is
@@ -431,7 +484,8 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         ? processorCards.get(`${dev.slotOptions}/${dev.slotDefault}`)
         : undefined;
       if (card) {
-        cfg.devices.push({ type: card.type, tag: `${dev.tag}:${dev.slotDefault}`, clock: null, addrMaps: {}, config: [] });
+        // MAME clocks a card with its slot's clock when the option names none.
+        cfg.devices.push({ type: card.type, tag: `${dev.tag}:${dev.slotDefault}`, clock: dev.clock ?? null, addrMaps: {}, config: [] });
         composedCards.add(`device:${cfg.cls}.${cfg.name}/${dev.tag}:${dev.slotDefault}`);
         continue;
       }
@@ -573,11 +627,21 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       cfg.name,
       'start',
     );
+    // video_start is a start too, and where the Spectrum allocates its
+    // interrupt and screen-finish timers.
+    const timerVideoStart = ast.findFunctionInHierarchy(cfg.cls, 'video_start');
+    if (timerVideoStart) pendingTimerStarts.push(timerVideoStart);
     while (pendingTimerStarts.length) {
       const fn = pendingTimerStarts.shift()!;
       const key = `${fn.className}.${fn.name}`;
       if (timerStartHandlers.has(key)) continue;
       timerStartHandlers.add(key);
+      // A qualified call reaches the class it names, not the override:
+      // `spectrum_state::video_start()` from the 128K's own video_start.
+      for (const call of fn.body.matchAll(/\b(\w+)::(\w+)\s*\(/g)) {
+        const target = ast.findFunction(call[1]!, call[2]!);
+        if (target) pendingTimerStarts.push(target);
+      }
       // Drivers commonly allocate their scanline timers in a helper called
       // by machine_start (Berzerk uses create_irq_timer/create_nmi_timer).
       // The timer callback is part of the selected machine whenever that
@@ -644,10 +708,40 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       return [...fn.body.matchAll(/\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*(\w+)::(\w+)\s*\)/g)]
         // Armed by the function that allocates it, through its own closure
         // (missile's machine_start arms m_irq_timer via schedule_next_irq).
-        .flatMap(match => functionClosureContains(ast, fn, body => body.includes(`${match[1]}->adjust`))
+        // Or, for one video_start allocates, armed by another handler of the
+        // driver's: the Spectrum's vblank callback arms its IRQ timer, whose
+        // callback arms the one that clears the line again. Only there: a
+        // machine-start timer armed elsewhere is one the runtime already
+        // schedules its own way (Neo Geo's raster interrupts, Simpsons'
+        // sprite DMA), and lowering it too fires it twice.
+        .flatMap(match => functionClosureContains(ast, fn, body => body.includes(`${match[1]}->adjust`)) ||
+          (method === 'video_start' &&
+            ast.ast.units.some(unit => unit.functions.some(candidate => candidate.body.includes(`${match[1]}->adjust`))))
           ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
           : []);
     });
+    // A timer armed inside a line rather than at its start: MAME's
+    // `time_until_pos(v, h)` with a pixel, or a duration in clocks (the
+    // Spectrum's IRQ, raised at the screen area's left edge and held for 32
+    // T-states). Only those need the board to fire them between instructions;
+    // one aimed at a line start keeps its line (Missile Command's).
+    const preciseTimers = armedTimers.map(entry => /^([^=]+)=/.exec(entry)![1]!).filter(member =>
+      ast.ast.units.some(unit => unit.functions.some(fn => {
+        for (const call of fn.body.matchAll(new RegExp(`\\b${member}\\s*->\\s*adjust\\s*\\(`, 'g'))) {
+          const open = call.index + call[0].length - 1;
+          const close = matchingParenthesis(fn.body, open);
+          const argument = fn.body.slice(open + 1, close < 0 ? undefined : close);
+          if (/\bclocks_to_attotime\s*\(|\bfrom_ticks\s*\(/.test(argument)) return true;
+          const position = /\btime_until_pos\s*\(/.exec(argument);
+          if (position) {
+            const start = position.index + position[0].length - 1;
+            const end = matchingParenthesis(argument, start);
+            const args = splitMameArgs(argument.slice(start + 1, end < 0 ? undefined : end));
+            if (args.length > 1 && args[1]!.trim() !== '0') return true;
+          }
+        }
+        return false;
+      })));
     for (const entry of armedTimers) {
       const [, handler, arming] = /^[^=]+=([^@]+)@(.+)$/.exec(entry)!;
       for (const key of [handler!, arming!]) {
@@ -663,6 +757,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       name: cfg.name,
       calls: cfg.calls,
       ...(armedTimers.length ? { armedTimers } : {}),
+      ...(preciseTimers.length ? { preciseTimers } : {}),
       ...(driverStateMembers(ast, cfg.cls).length
         ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
         : {}),
@@ -807,12 +902,30 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           .map(bank => ({ bank, source: start.span }))
         : [];
     });
+    // `m_ram->size()` is the RAM device's configured size: the 128K counts
+    // its bank entries as `m_ram->size() / 0x4000`.
+    const bankRamSizes = configuredRamSizes(machineConfigs, cfg.name, memberTags);
+    const sizedBankBody = (body: string): string => body.replace(
+      /\b(m_\w+)\s*->\s*size\s*\(\s*\)/g,
+      (all, member: string) => bankRamSizes[member] !== undefined ? String(bankRamSizes[member]) : all,
+    );
     const bankSources = [
       ...bankFunctions.flatMap(fn =>
-        parseMemoryBanks(fn.body, memberTags, consts).map(bank => ({ bank, source: fn.span }))),
+        parseMemoryBanks(sizedBankBody(fn.body), memberTags, consts).map(bank => ({ bank, source: fn.span }))),
       ...overrideBankSources,
       ...deviceBankSources,
     ];
+    // `m_maincpu->space(AS_PROGRAM).specific(m_program)`: a member the driver
+    // reads a processor's space through (the 128K fetches every opcode with
+    // `m_program.read_byte`), bound where the machine starts.
+    const spaceAccessors = [...new Set(bankFunctions.flatMap(fn => [...fn.body.matchAll(
+      /\b(m_\w+)\s*->\s*space\s*\(\s*(AS_\w+)?\s*\)\s*\.\s*(?:specific|cache)\s*\(\s*(m_\w+)\s*\)/g,
+    )].flatMap(match => {
+      const cpu = memberTags[match[1]!]?.replace(/^:/, '');
+      const space = { AS_PROGRAM: 'program', AS_IO: 'io', AS_OPCODES: 'opcodes' }[match[2] ?? 'AS_PROGRAM'];
+      return cpu && space ? [`${match[3]}=${cpu}:${space}`] : [];
+    })))];
+    if (spaceAccessors.length) g.node('MachineConfig', cfgId, { spaceAccessors });
     for (const [index, { bank, source }] of bankSources.entries()) {
       // One node per configure call: a bank's entries may be placed by several.
       const window = bankSources.filter(other => other.bank.tag === bank.tag).length > 1
@@ -826,6 +939,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         entries: bank.entries,
         ...(bank.region ? { region: bank.region } : {}),
         ...(bank.entryMember ? { entryMember: bank.entryMember } : {}),
+        ...(bank.device ? { device: bank.device } : {}),
         offset: bank.offset,
         stride: bank.stride,
         ...(bank.dynamicShift !== undefined ? { dynamicShift: bank.dynamicShift } : {}),
@@ -911,6 +1025,12 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       const deviceStart = deviceTypes[dev.type]
         ? ast.findFunctionInHierarchy(deviceTypes[dev.type]!, 'device_start')
         : undefined;
+      // `AY8912(config, m_ay0, clock())` inside a card's device_add_mconfig:
+      // clock() is the card's own, which MAME gives it from the slot.
+      if (dev.clock === null && dev.clockExpr && configClock !== undefined && /\bclock\s*\(\s*\)/.test(dev.clockExpr)) {
+        const clock = evalExpr(dev.clockExpr.replace(/\bclock\s*\(\s*\)/g, String(configClock)), consts);
+        if (clock !== null) { dev.clock = clock; delete dev.clockExpr; }
+      }
       const props: Record<string, PropValue> = {
         type: dev.type, tag: dev.tag, clock: dev.clock, config: dev.config,
         ...(finders.length === 1 ? { member: finders[0]! } : {}),
@@ -942,7 +1062,17 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           const text = value.trim();
           if (/^"[^"]*"$/.test(text)) return text;
           const finder = /^m_\w+$/.test(text) ? memberTags[text] : undefined;
-          return finder ? JSON.stringify(finder) : null;
+          if (finder) return JSON.stringify(finder);
+          // A format list, which the device keeps by name (`set_formats(tzx_cassette_formats)`).
+          if (call[1] === 'set_formats' && /^\w+$/.test(text)) return JSON.stringify(text);
+          // A rectangle the config computes: the Spectrum ULA's
+          // `set_screen(m_screen, get_screen_area())`.
+          const rectangle = evaluateRectangle(text, cfgFunction?.body ?? cfg.raw, cfg.cls, combined, consts);
+          if (rectangle) return JSON.stringify({ rectangle });
+          // A `static const` table the config hands over whole: the
+          // Spectrum's `set_levels(4, speaker_levels)` beeper volumes.
+          const table = /^\w+$/.test(text) ? staticTableValues(combined, text, consts) : undefined;
+          return table ? JSON.stringify(table) : null;
         });
         return values.every((value): value is string => value !== null)
           ? [`${call[1]}(${values.join(',')})`]
@@ -951,14 +1081,23 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       // Arguments past the tag that select a constructor overload of setters.
       // A framework device (src/devices) is declared outside the family, so its
       // class comes from MAME's hardware index, read only when one is added so.
-      const addedWith = splitMameArgs(/\(([\s\S]*)/.exec(dev.config[0] ?? '')?.[1] ?? '').length;
-      const deviceClass = deviceTypes[dev.type] ?? (addedWith > 3
+      const addition = dev.config[0] ?? '';
+      const typeCall = new RegExp(`\\b${dev.type}\\s*\\(`).exec(addition);
+      const addOpen = typeCall ? typeCall.index + typeCall[0].length - 1 : addition.indexOf('(');
+      const addClose = addOpen < 0 ? -1 : matchingParenthesis(addition, addOpen);
+      const addedArgs = addOpen < 0 ? [] : splitMameArgs(addition.slice(addOpen + 1, addClose < 0 ? undefined : addClose));
+      const addedWith = addedArgs.length;
+      // A third argument is a clock unless it is a string: the snapshot's
+      // `SNAPSHOT(config, "snapshot", "sna,z80")` is its extension list.
+      const constructorArgument = addedWith > 3 || /^\s*"/.test(addedArgs[2] ?? '');
+      const deviceClass = deviceTypes[dev.type] ?? (constructorArgument
         ? (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.className
         : undefined);
       const constructed = deviceClass
         ? constructorConfigCalls(dev.config[0] ?? '', deviceClass, [combined, ...externalSources], consts)
         : { calls: [], clockConsumed: false };
       configCalls.push(...constructed.calls);
+
       if (configCalls.length) props.configCalls = configCalls;
       // A third argument a setter took is the constructor's, not a clock: the
       // quickload's is its extension list. The OKI6295's constructor passes
@@ -2082,6 +2221,17 @@ function emitCallbacks(
   }
 }
 
+/** A `static const`/`constexpr` array's values, when every entry is a constant. */
+function staticTableValues(source: string, name: string, consts: Record<string, number>): number[] | undefined {
+  const declaration = new RegExp(
+    `\\bstatic\\s+(?:(?:const|constexpr|inline)\\s+)+[\\w:]+\\s+${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([^{}]*)\\}`,
+  ).exec(source);
+  if (!declaration) return undefined;
+  const values = splitMameArgs(declaration[1]!).map(value => value.trim()).filter(Boolean)
+    .map(value => evalExpr(value.replace(/(\d)f$/i, '$1'), consts));
+  return values.length && values.every((value): value is number => value !== null) ? values : undefined;
+}
+
 function handlerProps(
   ast: MameAstIndex,
   ownerClass: string,
@@ -2147,8 +2297,11 @@ function handlerProps(
     // a single parameter left `A` unresolved, so the specialized handler
     // addressed `m_pia[A]` and reached no PIA at all. A pack contributes no
     // parameter, which is what an empty pack is.
+    // The AST read the header wherever it sits; `template <u8 Bank> u8
+    // spectrum_128_state::spectrum_128_ram_r(...)` keeps it on the function's
+    // own line, inside the span, where the prefix below never sees it.
     const declaration = /template\s*<([^<>]*)>\s*$/.exec(prefix);
-    const names = splitMameArgs(declaration?.[1] ?? '').flatMap(parameter => {
+    const names = !declaration && fn.templateParameters?.length ? fn.templateParameters : splitMameArgs(declaration?.[1] ?? '').flatMap(parameter => {
       const text = parameter.trim();
       if (!text || text.includes('...')) return [];
       const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(text)?.[1];
@@ -2197,6 +2350,7 @@ function handlerProps(
     } : fn ? {
       sourceParameters: fn.parameters.trim(),
       sourceBody: body!.trim(),
+      ...(fn.returnType ? { sourceReturnType: fn.returnType } : {}),
     } : {}),
   };
 }
@@ -2212,6 +2366,17 @@ function handlerProps(
  * `clockConsumed` says a setter took the third argument, the one that is
  * otherwise the clock.
  */
+/** The name a slot's templated constructor gives the argument after `owner`. */
+function slotThirdArgument(className: string, sources: readonly string[]): string | undefined {
+  for (const source of sources) {
+    const constructor = new RegExp(
+      `\\b${className}\\s*\\(\\s*(?:const\\s+)?machine_config\\s+(?:const\\s+)?&\\s*\\w+\\s*,[^,]*,[^,]*,\\s*[\\w\\s]+?\\b(\\w+)\\s*,\\s*T\\s*&&`,
+    ).exec(source);
+    if (constructor) return constructor[1];
+  }
+  return undefined;
+}
+
 export function constructorConfigCalls(
   addStatement: string,
   className: string,
@@ -2219,7 +2384,9 @@ export function constructorConfigCalls(
   constants: Record<string, number>,
 ): { calls: string[]; clockConsumed: boolean } {
   const none = { calls: [], clockConsumed: false };
-  const added = /^\s*\w+\s*\(/.exec(addStatement);
+  // `TYPE(config, ...)`, or the same wrapped to keep a reference:
+  // `snapshot_image_device &snapshot(SNAPSHOT(config, "snapshot", "sna,z80"))`.
+  const added = /^\s*\w+\s*\(/.exec(addStatement) ?? /\b[A-Z][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
   if (!added) return none;
   const open = addStatement.indexOf('(', added.index);
   let depth = 0;
@@ -2546,12 +2713,38 @@ function resolveSlotInputs(
     return result;
   };
 
+  // The cards a title's medium puts in the slot instead of its default: one
+  // that declares a software list and the cartridge slot that reads it (the
+  // ZX Interface 2 and its `spectrum_cart`). Its controls are the machine's
+  // while that title plays -- the Interface 2's two Sinclair joysticks.
+  const mediumCards = (slotOptions: string): string[] => {
+    for (const dir of busDirs) {
+      for (const f of readdirSync(dir).filter(name => name.endsWith('.cpp'))) {
+        const table = new RegExp(
+          `void\\s+${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&[^)]*\\)\\s*\\{([\\s\\S]*?)\\}`,
+        ).exec(readFileSync(join(dir, f), 'utf8'))?.[1];
+        if (!table) continue;
+        const types = new Map([...table.matchAll(/option_add(?:_internal)?\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g)]
+          .map(match => [match[2]!, match[1]!]));
+        const sources = readdirSync(dir).filter(name => name.endsWith('.cpp'))
+          .map(name => stripComments(readFileSync(join(dir, name), 'utf8')));
+        return [...types].flatMap(([type, option]) => {
+          const source = sources.find(text => new RegExp(`DEFINE_DEVICE_TYPE\\(\\s*${type}\\s*,`).test(text));
+          return source && /\bSOFTWARE_LIST\s*\(/.test(source) && /\bGENERIC_CARTSLOT\s*\(/.test(source) ? [option] : [];
+        });
+      }
+    }
+    return [];
+  };
   for (const cfg of machineConfigs) {
     for (const dev of cfg.devices) {
-      if (!dev.slotOptions || !dev.slotDefault) continue;
-      const inputsId = resolve(dev.slotOptions, dev.slotDefault);
-      if (!inputsId) continue;
-      g.edge(`device:${cfg.cls}.${cfg.name}/${dev.tag}`, inputsId, 'USES_INPUTS', { option: dev.slotDefault });
+      if (!dev.slotOptions) continue;
+      const options = [...new Set([...(dev.slotDefault ? [dev.slotDefault] : []), ...mediumCards(dev.slotOptions)])];
+      for (const option of options) {
+        const inputsId = resolve(dev.slotOptions, option);
+        if (!inputsId) continue;
+        g.edge(`device:${cfg.cls}.${cfg.name}/${dev.tag}`, inputsId, 'USES_INPUTS', { option });
+      }
     }
   }
 }
@@ -2574,6 +2767,7 @@ function processorSlotCards(
   machineConfigs: { devices: { slotOptions?: string; slotDefault?: string }[] }[],
 ): Map<string, { type: string; cls: string; files: string[] }> {
   const cards = new Map<string, { type: string; cls: string; files: string[] }>();
+  let hardware: ReturnType<typeof indexMameHardware> | undefined;
   const busDirs = [...new Set(
     slashIncludes.filter(inc => inc.startsWith('bus/')).map(inc => join(mameSrc, 'src/devices', dirname(inc))),
   )].filter(dir => existsSync(dir));
@@ -2603,13 +2797,28 @@ function processorSlotCards(
         if (type) break;
       }
       if (!type) continue;
+      // `DEFINE_DEVICE_TYPE(T, cls, ...)`, or the private form whose class
+      // sits in a namespace: `DEFINE_DEVICE_TYPE_PRIVATE(AY_SLOT_AY8912,
+      // device_ay_slot_interface, bus::spectrum::ay_slot::ay8912_device, ...)`.
       const definition = files.map(file => ({
         file,
-        match: new RegExp(`DEFINE_DEVICE_TYPE\\(\\s*${type}\\s*,\\s*(\\w+)\\s*,`).exec(read(file)),
+        match: new RegExp(`DEFINE_DEVICE_TYPE\\(\\s*${type}\\s*,\\s*(\\w+)\\s*,`).exec(read(file)) ??
+          new RegExp(`DEFINE_DEVICE_TYPE_PRIVATE\\(\\s*${type}\\s*,\\s*\\w+\\s*,\\s*(?:\\w+::)*(\\w+)\\s*,`).exec(read(file)),
       })).find(candidate => candidate.match);
       if (!definition) continue;
       const header = definition.file.replace(/\.cpp$/, '.h');
+      // The card's own unit, and the same-directory headers it includes with
+      // their implementations: a card's base class (the Spectrum AY cards'
+      // spectrum_ay_device) is declared beside the slot, not with the card.
       const units = [definition.file, ...(existsSync(header) ? [header] : [])];
+      for (let index = 0; index < units.length; index++) {
+        for (const included of parseIncludes(read(units[index]!))) {
+          if (included.includes('/')) continue;
+          for (const candidate of [join(dirname(definition.file), included), join(dirname(definition.file), included.replace(/\.h$/, '.cpp'))]) {
+            if (existsSync(candidate) && !units.includes(candidate)) units.push(candidate);
+          }
+        }
+      }
       const parsed = units.map(file => parseMameSource(file.slice(mameSrc.length + 1), read(file)));
       const classes = new Map(parsed.flatMap(unit => unit.classes).map(entry => [entry.name, entry]));
       const hierarchy: string[] = [];
@@ -2619,11 +2828,23 @@ function processorSlotCards(
       }
       const mconfig = hierarchy.map(cls => parsed.flatMap(unit => unit.functions)
         .find(fn => fn.className === cls && fn.name === 'device_add_mconfig')).find(Boolean);
-      if (!mconfig || !/set_addrmap\s*\(\s*AS_PROGRAM\b/.test(mconfig.body)) continue;
+      // A card that runs a program (the 1541), or one that carries a sound
+      // chip (the Spectrum 128's AY8912 behind its AY slot): either is part
+      // of the machine MAME builds and has to run with it.
+      const sounding = mconfig && [...mconfig.body.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,/g)]
+        .some(device => (hardware ??= indexMameHardware(mameSrc)).get(device[1]!)?.sourceFile.startsWith('src/devices/sound/'));
+      if (!mconfig || (!/set_addrmap\s*\(\s*AS_PROGRAM\b/.test(mconfig.body) && !sounding)) continue;
       cards.set(key, {
         type,
         cls: definition.match![1]!,
-        files: units.map(file => file.slice(mameSrc.length + 1)),
+        // The card's own unit and header, and of the sibling units read to
+        // find its bases only the one whose device_add_mconfig builds it (the
+        // AY cards' spectrum_ay_device). The 1541's c1541.cpp includes
+        // cbmiec.h, the bus it plugs into, which is no part of the card and
+        // must not join the machine's own source.
+        files: units.filter((file, index) =>
+          index === 0 || file === header || file.endsWith(mconfig.span.file))
+          .map(file => file.slice(mameSrc.length + 1)),
       });
     }
   }
@@ -2711,6 +2932,8 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         config: string[];
         replacementType?: string;
         clock?: number;
+        slotOptions?: string;
+        slotDefault?: string;
         screenRaw?: {
           pixclock: number; htotal: number; hbend: number; hbstart: number;
           vtotal: number; vbend: number; vbstart: number;
@@ -2725,6 +2948,10 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         String(node.props.tag) === patch.tag);
       if (!device) continue;
       if (patch.replacementType) device.props.type = patch.replacementType;
+      if (patch.slotOptions !== undefined) {
+        device.props.slotOptions = patch.slotOptions;
+        device.props.slotDefault = patch.slotDefault ?? '';
+      }
       if (patch.clock !== undefined && !patchedClocks.has(patch.tag)) {
         device.props.clock = patch.clock;
         patchedClocks.add(patch.tag);
@@ -3265,6 +3492,48 @@ function evalCondition(condition: string, consts: Record<string, number>): boole
  * maincpu finder; `m_adpcm_sound->get_cpu()` is the Williams ADPCM board's
  * `m_cpu`, a child of the device (`adpcm:cpu`).
  */
+/**
+ * The default size of every RAM device a machine config (and the configs it
+ * calls) adds, by the finder member that reaches it: `RAM(config, m_ram)
+ * .set_default_size("48K")` is 49152 under `m_ram`.
+ */
+function configuredRamSizes(
+  configs: readonly ReturnType<typeof parseMachineConfigs>[number][],
+  machine: string,
+  memberTags: Record<string, string>,
+): Record<string, number> {
+  const sizes: Record<string, number> = {};
+  const seen = new Set<string>();
+  const visit = (name: string): void => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    const cfg = configs.find(candidate => candidate.name === name);
+    if (!cfg) return;
+    for (const called of cfg.calls) visit(called);
+    for (const device of cfg.devices) {
+      if (device.type !== 'RAM') continue;
+      const size = [...device.config.join('\n').matchAll(/set_default_size\s*\(\s*"(\d+)([KM]?)"/gi)].at(-1);
+      if (!size) continue;
+      const bytes = Number(size[1]) * (size[2]?.toUpperCase() === 'M' ? 1 << 20 : size[2] ? 1 << 10 : 1);
+      for (const [member, tag] of Object.entries(memberTags)) {
+        if (tag === device.tag && member.startsWith('m_')) sizes[member] = bytes;
+      }
+    }
+    // A derived config resizes the base's device: the 128K's
+    // `m_ram->set_default_size("128K")` after the 48K's own declaration.
+    for (const patch of cfg.devicePatches) {
+      const size = [...patch.config.join('\n').matchAll(/set_default_size\s*\(\s*"(\d+)([KM]?)"/gi)].at(-1);
+      if (!size) continue;
+      const bytes = Number(size[1]) * (size[2]?.toUpperCase() === 'M' ? 1 << 20 : size[2] ? 1 << 10 : 1);
+      for (const [member, tag] of Object.entries(memberTags)) {
+        if (tag === patch.tag && member.startsWith('m_')) sizes[member] = bytes;
+      }
+    }
+  };
+  visit(machine);
+  return sizes;
+}
+
 function installTargetTag(
   ast: MameAstIndex,
   className: string,
@@ -3325,4 +3594,16 @@ function initStaticTables(
     });
   }
   return tables;
+}
+
+/** The index of the parenthesis closing the one at `open`, or -1. */
+function matchingParenthesis(text: string, open: number): number {
+  let depth = 0;
+  for (let index = open; index < text.length; index++) {
+    if (text[index] === '"') {
+      for (index++; index < text.length && text[index] !== '"'; index++) if (text[index] === '\\') index++;
+    } else if (text[index] === '(') depth++;
+    else if (text[index] === ')' && --depth === 0) return index;
+  }
+  return -1;
 }

@@ -11,7 +11,10 @@ export function lowerRamAllocation(
   props: Record<string, unknown>, mameSource: string,
 ): Pick<GeneratedDevice, 'memoryAllocations' | 'memberValues'> {
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
-  const sizeText = /\.set_default_size\(\s*"([^"]+)"\s*\)/.exec(config)?.[1];
+  // A derived config patches the base's size (`m_ram->set_default_size("128K")`
+  // after the 48K Spectrum's own declaration), so the last call is the one.
+  const sizeText = [...config.matchAll(/\.set_default_size\(\s*"([^"]+)"\s*\)|->\s*set_default_size\(\s*"([^"]+)"\s*\)/g)]
+    .map(match => match[1] ?? match[2]).at(-1);
   if (!sizeText) return {};
   const source = readFileSync(join(mameSource, 'src/devices/machine/ram.cpp'), 'utf8');
   const allocation = /(m_\w+)\.reset\(std::malloc\((m_\w+)\)\)/.exec(source);
@@ -23,7 +26,8 @@ export function lowerRamAllocation(
   const parsed = /^(\d+)\s*(\w*)$/.exec(sizeText.trim());
   const multiple = parsed && units[parsed[2]!.toLowerCase()];
   const bytes = parsed && multiple ? Number(parsed[1]) * multiple : 0;
-  const fill = evalExpr(/\.set_default_value\(([^)]+)\)/.exec(config)?.[1] ?? defaultFill, {});
+  const fillText = [...config.matchAll(/(?:\.|->)\s*set_default_value\(([^)]+)\)/g)].at(-1)?.[1];
+  const fill = evalExpr(fillText ?? defaultFill, {});
   if (!Number.isSafeInteger(bytes) || bytes <= 0 || fill === null) throw new Error(`unsupported RAM configuration ${sizeText}`);
   return {
     memberValues: { [allocation[2]!]: bytes },

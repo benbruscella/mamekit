@@ -9,6 +9,7 @@ import {
   generatedInstanceFactories,
   generatedTimerBacklog,
   generatedTimerExpiry,
+  withGeneratedTimerExpiry,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
   generatedDeviceRole,
@@ -16,7 +17,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { callLinksGeneration, DEFAULT_CONSTANTS, noteCallLinksChanged, prepareGeneratedMachinePositional } from '../ir/execute.ts';
+import { callLinksGeneration, DEFAULT_CONSTANTS, generatedVector, noteCallLinksChanged, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner } from './generated-frame.ts';
 import {
@@ -73,6 +74,7 @@ import {
   generatedCpuEndianness,
 } from './generated-board-shape.ts';
 import { hasDeviceType, hasHandler } from './generated-source-shape.ts';
+import { GeneratedRectangle, isEncodedRectangle } from './rectangle.ts';
 
 export type BoardFactory = (
   config: BoardConfig,
@@ -171,7 +173,7 @@ export function createGeneratedBoard(
   inputs: InputPorts,
   sinks: BoardSinks,
 ): Board {
-  const configured = withEmptySlots(machine, config.emptySlots);
+  const configured = withSlotCards(withEmptySlots(machine, config.emptySlots), config.slotCards);
   return new IrBoard(configured, boardConfigFromIr(configured, config), regions, inputs, sinks);
 }
 
@@ -231,6 +233,26 @@ export function withEmptySlots(machine: BoardIr, slots: readonly string[] | unde
       frameEvents: execution.frameEvents.filter(event =>
         !inCard(event.ownerTag) && !removed.has(event.callbackId)),
     },
+  };
+}
+
+/**
+ * The machine with these slots holding another of their options, as MAME's
+ * `-exp intf2` builds it. Only a slot device and an option it offers count; a
+ * card the board composes at its own level (a processor or a sound chip) is
+ * the default's alone, so a slot holding one keeps it.
+ */
+export function withSlotCards(machine: BoardIr, cards: Readonly<Record<string, string>> | undefined): BoardIr {
+  const chosen = Object.entries(cards ?? {}).filter(([slot]) => machine.devices?.some(device =>
+    device.tag === slot && device.slotDefault !== undefined &&
+    !machine.devices?.some(other => other.tag.startsWith(`${slot}:`))));
+  if (!chosen.length) return machine;
+  const selected = new Map(chosen);
+  return {
+    ...machine,
+    devices: machine.devices?.map(device => selected.has(device.tag)
+      ? { ...device, slotDefault: selected.get(device.tag)! }
+      : device),
   };
 }
 
@@ -326,6 +348,10 @@ class IrBoard implements Board {
    */
   private readonly cpuReportedSuspended = new Map<string, boolean>();
   private readonly devices = new Map<string, Device>();
+  /** `address_map_bank_device` spaces, by tag: saved with the processors' buses. */
+  private readonly bankDeviceBuses = new Map<string, Bus>();
+  /** Each RAM device's allocated bytes, for the banks that window them. */
+  private readonly deviceAllocations = new Map<string, Uint8Array>();
   /** What a finder holds for each generated device and processor, by tag. */
   private readonly deviceReferents = new Map<string, unknown>();
   /**
@@ -387,6 +413,14 @@ class IrBoard implements Board {
   private readonly shares: Record<string, Uint8Array> = {};
   private readonly declarativeEeprom = new Map<string, Device>();
   private videoPrimitives?: GeneratedMameVideoPrimitives;
+  /**
+   * Driver one-shots (`genericTimers` marked `driver`) that fire between
+   * instructions rather than at the next line boundary, as MAME's scheduler
+   * fires them: the Spectrum raises its frame interrupt 24 T-states into a
+   * line and drops it 32 T-states later.
+   */
+  private readonly preciseTimerMembers = new Set<string>();
+  private firingPreciseTimers = false;
   /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
   private readonly pendingTimers = new Map<string, { at: number; param: number }>();
   private readonly genericTimerFires = new Map<string, () => void>();
@@ -583,10 +617,10 @@ class IrBoard implements Board {
     for (const specification of machine.devices ?? []) {
       if (hasGeneratedDevice(specification.type) && generatedDeviceRole(specification.type) !== 'passive-storage') {
         const screenHost = {
-          time_until_pos: (position: number) => {
+          time_until_pos: (position: number, hpos = 0) => {
             this.deviceClockFollowsProcessors = true;
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
+            const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal + this.lineFractionAt(hpos);
             // Answered in the clock the device timers themselves run on, not
             // in whole beam lines. MAME measures the beam to the attosecond,
             // so a scanline callback re-arming for "one line further on"
@@ -611,7 +645,11 @@ class IrBoard implements Board {
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
             return Math.floor(this.beamPosition()) % vtotal;
           },
-          hpos: () => 0,
+          hpos: () => this.beamHpos(),
+          // screen_device::clock(): the pixel clock set_raw gave it.
+          clock: () => machine.execution.screen.pixelClock ??
+            machine.execution.screen.refresh * (machine.execution.screen.htotal ?? machine.execution.screen.width) *
+              machine.execution.screen.vtotal,
           // MAME's screen dimensions are the whole raster, not the visible
           // window: a device that allocates a bitmap from them addresses it in
           // raster coordinates.
@@ -702,8 +740,11 @@ class IrBoard implements Board {
           inputs,
           members: {
             ...configuredMembers,
-            ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) =>
-              [name, allocatedMemory(allocation)])),
+            ...Object.fromEntries(Object.entries(specification.memoryAllocations ?? {}).map(([name, allocation]) => {
+              const memory = allocatedMemory(allocation);
+              if (!this.deviceAllocations.has(specification.tag)) this.deviceAllocations.set(specification.tag, memory);
+              return [name, memory];
+            })),
           },
           // An empty string is an empty slot (withEmptySlots), not "use the
           // default card".
@@ -805,6 +846,16 @@ class IrBoard implements Board {
                   Number(seconds) * this.cycleClockOf(cpuSpec),
                 );
               }
+              // device_execute_interface::local_time(): where the processor
+              // stands now. The Spectrum's ULA takes it, less machine().time(),
+              // to find the cycle its interrupt fell on (m_int_at), which every
+              // contention window is measured from.
+              if (method === 'local_time') return () => this.cpuSeconds(cpuSpec);
+              if (method === 'clocks_to_attotime') {
+                return (clocks: number) => Number(clocks) / this.cycleClockOf(cpuSpec);
+              }
+              // device_t::clock(), the processor's configured clock.
+              if (method === 'clock') return () => cpuSpec.clock;
               if (method === 'reset') return () => this.cpus.get(cpuSpec.tag)?.reset();
               // Hardware that takes the bus away from the processor removes
               // the cycles it will not get. Without this the call fell through
@@ -847,7 +898,7 @@ class IrBoard implements Board {
             // enumerable, so a save state still sees an object with no keys.
             const finder = Object.create(new Proxy({}, { get: resolve })) as object;
             for (const service of [
-              'space', 'cycles_to_attotime', 'total_cycles', 'attotime_to_cycles',
+              'space', 'cycles_to_attotime', 'total_cycles', 'attotime_to_cycles', 'local_time', 'clocks_to_attotime', 'clock',
               'reset', 'adjust_icount', 'set_input_line',
             ]) {
               Object.defineProperty(finder, service, { value: resolve({}, service), enumerable: false });
@@ -913,6 +964,19 @@ class IrBoard implements Board {
           },
           regions,
           configuration: config,
+          // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
+          // lowered from the driver's constant arguments. MAME makes them
+          // before device_start, which is where the Spectrum ULA derives its
+          // line timings from the screen area it was configured with.
+          configure: configured => {
+            for (const configuration of specification.configuration ?? []) {
+              if (!configured.methodNames().includes(configuration.method)) continue;
+              // A rectangle travels as its edges; the device gets MAME's value.
+              configured.invoke(configuration.method, ...configuration.args.map(argument => isEncodedRectangle(argument)
+                ? new GeneratedRectangle(...argument.rectangle) as unknown as number
+                : argument as number));
+            }
+          },
           banks: this.generatedBanks,
           resourceCache: this.generatedResources,
         });
@@ -928,13 +992,6 @@ class IrBoard implements Board {
         for (const owner of constantOwners) {
           for (const [name, value] of Object.entries(device.constants())) {
             deviceConstants[`${owner}::${name}`] = value;
-          }
-        }
-        // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
-        // lowered from the driver's constant arguments.
-        for (const configuration of specification.configuration ?? []) {
-          if (device.methodNames().includes(configuration.method)) {
-            device.invoke(configuration.method, ...configuration.args);
           }
         }
         this.devices.set(specification.tag, device);
@@ -1046,6 +1103,18 @@ class IrBoard implements Board {
     };
     const advanceTimedHardware = (seconds: number): void => {
       if (!(seconds > 0)) return;
+      deliverTimedHardware(seconds);
+      // Precise driver timers come due on the same clock, after the devices
+      // have been clocked to it.
+      if (this.preciseTimerMembers.size && this.pendingTimers.size && !this.deliveringDeviceTime &&
+        !this.firingPreciseTimers) {
+        // Not re-entered: asking the time catches devices up (a 6502 board's
+        // catchUpDeviceTime), which delivers time, which would ask again.
+        this.firingPreciseTimers = true;
+        try { this.firePreciseTimers(); } finally { this.firingPreciseTimers = false; }
+      }
+    };
+    const deliverTimedHardware = (seconds: number): void => {
       this.timedHardwareDelivered += seconds;
       // A device asking the time while its clock is being delivered is
       // answered from the delivery, never caught up again (catchUpDeviceTime).
@@ -1221,6 +1290,11 @@ class IrBoard implements Board {
         // MAME's region finder. Video handlers already have it; a machine
         // handler can want it too — Mr. Do!'s protection read answers with a
         // byte of its own program ROM.
+        // A sized vector local (normalizeMameExecutionSource), as devices
+        // have it: `std::vector<uint8_t> snapshot_data(snapshot_size)` is
+        // the buffer the Spectrum's snapshot loader reads the file into.
+        VECTOR_OF: (_type: unknown, count: unknown) =>
+          resizeGeneratedContainer(generatedVector(), Number(count) || 0),
         memregion: (...args: unknown[]) => {
           const tag = String(generatedCallValue(args[0]) ?? '');
           const bytes = regions[tag];
@@ -1262,8 +1336,11 @@ class IrBoard implements Board {
       // the fallback paths, and binding them here shadows those -- a stubbed
       // `update_partial` cost Centiped the mid-frame render its interrupt
       // performs, which is visible in its very first frame.
-      calls[`${screenMember}.time_until_pos`] ??= position => {
-        const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal;
+      calls[`${screenMember}.time_until_pos`] ??= (position, hpos) => {
+        // MAME targets `vpos * scantime + hpos * pixeltime`: the Spectrum
+        // raises its interrupt 48 pixels (24 T-states) into line 0.
+        const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal +
+          this.lineFractionAt(Number(hpos ?? 0));
         let lines = target - this.beamPosition();
         if (lines <= 0) lines += vtotal;
         return lines / (refresh * vtotal);
@@ -1276,6 +1353,7 @@ class IrBoard implements Board {
     // of them; unmodelled, `adjust` resolved to nothing, int3 never fired and
     // the board spun in its own video timing with a black screen.
     for (const timer of machine.execution.genericTimers ?? []) {
+      if (timer.driver && timer.precise) this.preciseTimerMembers.add(timer.member);
       const fire = (): void => {
         const pending = this.pendingTimers.get(timer.member);
         if (!pending) return;
@@ -1283,11 +1361,15 @@ class IrBoard implements Board {
         const handler = machine.handlers?.find(candidate =>
           `${candidate.ownerClass}.${candidate.method}` === timer.handler);
         if (!handler?.program || handler.program.diagnostics.length) return;
-        executeGeneratedMachineHandler(machine, handler, this.bindings, {
+        const run = () => executeGeneratedMachineHandler(machine, handler, this.bindings, {
           param: pending.param,
           // MAME hands a TIMER_DEVICE_CALLBACK_MEMBER its own device too.
           timer: pending.param,
         });
+        // A precise timer fires between instructions, a hair after its
+        // expiry; MAME's callback sees the expiry itself.
+        if (timer.driver) withGeneratedTimerExpiry(pending.at, run);
+        else run();
       };
       this.genericTimerFires.set(timer.member, fire);
       calls[`${timer.member}.adjust`] = (when, param = 0) => {
@@ -1529,6 +1611,9 @@ class IrBoard implements Board {
     for (const bank of machine.execution.bankDevices ?? []) {
       const bus = new Bus(bank.ranges, new Uint8Array(), registry, this.shares,
         bank.dataWidth === 16 ? 16 : 8, regions, 'little', bank.unmapHigh === true);
+      // Its RAM is machine state like a processor bus's: the 48K's
+      // 0x5b00-0xffff is the bank device's own.
+      this.bankDeviceBuses.set(bank.tag, bus);
       const mask = (bank.addrWidth >= 32 ? 0xffffffff : (2 ** bank.addrWidth) - 1) &
         (bank.mask ?? 0xffffffff);
       const window = this.hostModel(`bank-device.${bank.tag}`, { offset: 0 });
@@ -1736,6 +1821,21 @@ class IrBoard implements Board {
         cpuMember,
       ].filter(Boolean) as string[]) {
         calls[`${owner}.space`] = () => programSpace;
+      }
+      // `space(AS_*).specific(m_program)`: the member is that space, so a
+      // read through it runs the map's handlers exactly as the processor's do.
+      for (const accessor of machine.execution.spaceAccessors ?? []) {
+        if (accessor.cpu !== specification.tag) continue;
+        const read = accessor.space === 'io'
+          ? (address: number) => bus.in?.(address) ?? 0xff
+          : accessor.space === 'opcodes'
+            ? (address: number) => (bus.readOpcode ?? bus.read).call(bus, address)
+            : (address: number) => bus.read(address);
+        const write = accessor.space === 'io'
+          ? (address: number, value: number) => bus.out?.(address, value)
+          : (address: number, value: number) => bus.write(address, value);
+        calls[`${accessor.member}.read_byte`] = read;
+        calls[`${accessor.member}.write_byte`] = write;
       }
       const mask = specification.mask ?? 0xffff;
       const busAddress = (address: number) =>
@@ -2009,6 +2109,13 @@ class IrBoard implements Board {
       };
       calls[`m_${specification.tag}.total_cycles`] = () =>
         this.totalCycles(specification.tag);
+      // device_execute_interface's time conversions, at the processor's own
+      // clock, and `local_time()`, where the processor stands now.
+      calls[`m_${specification.tag}.clocks_to_attotime`] = clocks =>
+        Number(clocks) / this.cycleClockOf(specification);
+      calls[`m_${specification.tag}.attotime_to_cycles`] = seconds =>
+        Math.floor(Number(seconds) * this.cycleClockOf(specification));
+      calls[`m_${specification.tag}.local_time`] = () => this.cpuSeconds(specification);
       calls[`m_${specification.tag}.set_unscaled_clock`] = clock => {
         this.setCpuClock(specification, Number(clock));
         return 0;
@@ -2022,6 +2129,12 @@ class IrBoard implements Board {
       // MAME's device_state_interface, by the state index the CPU's own lowered
       // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
       calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
+      // And its write half: a snapshot loader restores every register this
+      // way, and the core's state_import settles what the write implies.
+      calls[`m_${specification.tag}.set_state_int`] = (state, value) => {
+        cpu.setStateInt?.(Number(state), Number(value));
+        return 0;
+      };
       // A driver charges its own CPU for cycles hardware stole from it (Congo
       // Bongo's sprite DMA bills five per entry copied).
       calls[`m_${specification.tag}.adjust_icount`] = delta => {
@@ -2041,7 +2154,8 @@ class IrBoard implements Board {
       const cpuSpecification = machine.devices?.find(device => device.tag === specification.tag);
       const cpuMethodNames = [
         'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
-        'suspended', 'state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
+        'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
+        'clocks_to_attotime', 'attotime_to_cycles', 'local_time',
         ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
       ];
       this.deviceReferents.set(specification.tag, Object.fromEntries(cpuMethodNames.map(name => [
@@ -2057,7 +2171,8 @@ class IrBoard implements Board {
       if (member) {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
-          'suspended', 'state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
+          'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
+          'clocks_to_attotime', 'attotime_to_cycles', 'local_time',
           ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
         ];
         for (const name of cpuMethods) {
@@ -2449,6 +2564,19 @@ class IrBoard implements Board {
         : undefined;
       video = new GeneratedVideoRenderer(machine, primitives, deviceUpdate);
       this.video = video;
+      // MAME's `update_now()` is `update_partial(vpos(), hpos())`: the
+      // picture up to the beam, mid-line included. The Spectrum calls it on
+      // every border or screen-memory write, which is what draws its raster
+      // effects where they happened.
+      const screenDevice = machine.devices?.find(device => device.type === 'SCREEN');
+      const screenOwners = [screenDevice?.tag, screenDevice?.member, 'm_screen'].filter(Boolean) as string[];
+      for (const owner of new Set(screenOwners)) {
+        calls[`${owner}.hpos`] = () => this.beamHpos();
+        calls[`${owner}.update_now`] = () => {
+          if (activeFramebuffer) video?.updatePartialAt(activeFramebuffer, this.beamLine(), this.beamHpos());
+          return 1;
+        };
+      }
     }
     this.frameRunner = new GeneratedFrameRunner({
       machine,
@@ -2969,6 +3097,38 @@ class IrBoard implements Board {
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
   }
 
+  /** Fire every precise driver timer that has come due, earliest first. */
+  private firePreciseTimers(): void {
+    let earliest = Infinity;
+    for (const [member, pending] of this.pendingTimers) {
+      if (pending.at < earliest && this.preciseTimerMembers.has(member)) earliest = pending.at;
+    }
+    if (earliest === Infinity) return;
+    const now = this.machineSeconds();
+    if (earliest > now) return;
+    const due = [...this.pendingTimers]
+      .filter(([member, pending]) => pending.at <= now && this.preciseTimerMembers.has(member))
+      .sort((left, right) => left[1].at - right[1].at);
+    for (const [member] of due) this.genericTimerFires.get(member)?.();
+  }
+
+  /** Pixel `hpos` of a line as a fraction of that line, for `time_until_pos(vpos, hpos)`. */
+  private lineFractionAt(hpos: number): number {
+    const screen = this.machine.execution.screen;
+    return Math.max(0, Math.floor(Number(hpos) || 0)) / Math.max(1, screen.htotal ?? screen.width);
+  }
+
+  /** The beam's pixel within its line: MAME's `screen_device::hpos()`. */
+  private beamHpos(): number {
+    const screen = this.machine.execution.screen;
+    const htotal = Math.max(1, screen.htotal ?? screen.width);
+    const running = this.runningCpu
+      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
+      : undefined;
+    const fraction = running === undefined ? this.currentLineFraction : running - Math.floor(running);
+    return Math.min(htotal - 1, Math.floor(fraction * htotal));
+  }
+
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
   private beamLine(): number {
     const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
@@ -3044,6 +3204,7 @@ class IrBoard implements Board {
         return value;
       };
       return [{ tag, extensions: cassette.imageExtensions?.() ?? [],
+        ...(device.deviceName?.() ? { deck: device.deviceName!()! } : {}),
         mount: (extension: string, bytes: Uint8Array) => cassette.mountImage!(extension, bytes),
         play: () => { cassette.call('change_state', constant('CASSETTE_PLAY'), constant('CASSETTE_MASK_UISTATE')); },
         stop: () => { cassette.call('change_state', constant('CASSETTE_STOPPED'), constant('CASSETTE_MASK_UISTATE')); },
@@ -3083,8 +3244,12 @@ class IrBoard implements Board {
     return [...this.devices.entries()].flatMap(([tag, device]) => {
       // MAME's own word for the medium: a cartridge port reads its own file
       // too, but only a quickload puts one straight into memory.
-      if (device.imageTypeName?.() !== 'quickload') return [];
-      return [{ tag, extensions: device.imageExtensions?.() ?? [],
+      // A snapshot is snapquik.cpp's other device: the same file-in-memory
+      // load, of a whole machine state (the Spectrum's .sna and .z80).
+      const medium = device.imageTypeName?.();
+      if (medium !== 'quickload' && medium !== 'snapshot') return [];
+      return [{ tag, medium, extensions: device.imageExtensions?.() ?? [],
+        ...(device.deviceName?.() ? { deck: device.deviceName!()! } : {}),
         mount: (extension: string, bytes: Uint8Array, name?: string) => device.mountImage!(extension, bytes, name),
         // snapquik.cpp's call_load arms the device's timer; the file is read
         // into memory when it fires.
@@ -3151,7 +3316,7 @@ class IrBoard implements Board {
    */
   stateKeys(): readonly string[] {
     return [
-      'cpus', 'cpuBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
+      'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
       'cpuSliceCycles', 'runningSliceCycles', 'devices', 'generatedBanks',
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
@@ -5009,7 +5174,13 @@ class IrBoard implements Board {
         void index;
         return bytes;
       });
-      if (!region && !ownedEntries?.some(Boolean)) {
+      // A RAM device's own bytes: the device allocates them, the bank only
+      // windows them, so a write through either is seen by both.
+      const deviceStorage = bank.device ? this.bankDeviceStorage(bank.device) : undefined;
+      if (bank.device && !deviceStorage) {
+        throw new Error(`${machine.game}: memory bank "${bank.tag}" has no storage on device "${bank.device}"`);
+      }
+      if (!region && !deviceStorage && !ownedEntries?.some(Boolean)) {
         throw new Error(`${machine.game}: memory bank "${bank.tag}" has no backing storage`);
       }
       const selection = this.hostModel(`bank.${bank.tag}`, {
@@ -5035,8 +5206,21 @@ class IrBoard implements Board {
         setEntry(pending);
         this.pendingBankEntry.delete(bank.tag);
       }
+      // `memory_bank::base()`: the selected entry's bytes, which the 128K's
+      // RAM handlers index directly.
+      const entryBytes = (): Uint8Array | undefined => {
+        const owned = ownedEntries?.[selection.entry];
+        if (owned) return owned;
+        const offset = bank.entryOffsets[selection.entry] ?? 0;
+        if (deviceStorage) return deviceStorage.subarray(offset);
+        const entryRegionName = bank.entryRegions?.[selection.entry] ?? bank.region;
+        const entryRegion = entryRegionName ? regions[entryRegionName] : region;
+        return entryRegion?.subarray(offset);
+      };
       for (const alias of [bank.tag, `m_${bank.tag}`, bank.member]) {
         this.bindings.calls![`${alias}.set_entry`] = setEntry;
+        this.bindings.calls![`${alias}.entry`] ??= () => selection.entry;
+        this.bindings.calls![`${alias}.base`] ??= entryBytes as never;
         if (ownedEntries) {
           // Some drivers allocate bank-owned storage during video_start and
           // then publish the resulting pointer with configure_entry().  The
@@ -5064,6 +5248,7 @@ class IrBoard implements Board {
       registry.read[`bank.${bank.tag}`] = (_address, offset) => {
         const owned = ownedEntries?.[selection.entry];
         if (owned) return owned[offset] ?? 0xff;
+        if (deviceStorage) return deviceStorage[(bank.entryOffsets[selection.entry] ?? 0) + offset] ?? 0xff;
         const entryRegionName = bank.entryRegions?.[selection.entry] ?? bank.region;
         const entryRegion = entryRegionName ? regions[entryRegionName] : region;
         const base = bank.dynamicShift !== undefined && entryRegion
@@ -5077,6 +5262,11 @@ class IrBoard implements Board {
           if (offset >= 0 && offset < owned.length) owned[offset] = data;
           return;
         }
+        if (deviceStorage) {
+          const index = (bank.entryOffsets[selection.entry] ?? 0) + offset;
+          if (index >= 0 && index < deviceStorage.length) deviceStorage[index] = data;
+          return;
+        }
         const entryRegionName = bank.entryRegions?.[selection.entry] ?? bank.region;
         const entryRegion = entryRegionName ? regions[entryRegionName] : region;
         const base = bank.dynamicShift !== undefined && entryRegion
@@ -5086,6 +5276,11 @@ class IrBoard implements Board {
         if (entryRegion && index >= 0 && index < entryRegion.length) entryRegion[index] = data;
       };
     }
+  }
+
+  /** The bytes a RAM device allocated (`ram_device::m_pointer`), for a bank over them. */
+  private bankDeviceStorage(tag: string): Uint8Array | undefined {
+    return this.deviceAllocations.get(tag);
   }
 
   /**

@@ -404,7 +404,14 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_FLIPX: 1,
   TILEMAP_FLIPY: 2,
   TILEMAP_DRAW_OPAQUE: 0x80,
+  // <numbers>: the speaker's sinc kernel steps by `std::numbers::pi / 2 / 4`.
+  'std::numbers::pi': Math.PI,
   'attotime::never': Infinity,
+  // emu/attotime.h: attoseconds are carried as plain numbers.
+  ATTOSECONDS_PER_SECOND: 1e18,
+  ATTOSECONDS_PER_MILLISECOND: 1e15,
+  ATTOSECONDS_PER_MICROSECOND: 1e12,
+  ATTOSECONDS_PER_NANOSECOND: 1e9,
   'attotime::zero': 0,
 };
 
@@ -726,6 +733,7 @@ function preparedHandlerRuntime(
     shiftRight: applyGeneratedShiftRight,
     same: generatedValuesEqual,
     andAssign: applyGeneratedAndAssign,
+    and: applyGeneratedAnd,
     // The board's state object only holds what a handler has written, so a
     // read can miss three things the interpreter resolves: a declared getter,
     // a member whose stored value is undefined, and a device finder, which
@@ -1580,6 +1588,16 @@ function compileFastExpression(
         return toNumber(leftValue) + toNumber(rightValue);
       };
     }
+    if (operator === '&') {
+      return context => {
+        const leftValue = left(context);
+        const rightValue = right(context);
+        if (isIntersectable(leftValue)) return intersection(leftValue, rightValue);
+        return typeof leftValue === 'bigint' || typeof rightValue === 'bigint'
+          ? wideBinary('&', leftValue, rightValue)
+          : toNumber(leftValue) & toNumber(rightValue);
+      };
+    }
     if (operator === '-') {
       return context => {
         const leftValue = left(context);
@@ -1758,8 +1776,8 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
     return value => toNumber(value) << 24 >> 24;
   }
   if (declared === 'bool') return value => toNumber(value) ? 1 : 0;
-  if (declared === 'uint16_t' || declared === 'u16') return value => toNumber(value) & 0xffff;
-  if (declared === 'int16_t' || declared === 's16') {
+  if (declared === 'uint16_t' || declared === 'u16' || declared === 'unsigned short') return value => toNumber(value) & 0xffff;
+  if (declared === 'int16_t' || declared === 's16' || declared === 'short') {
     return value => toNumber(value) << 16 >> 16;
   }
   // `offs_t` is MAME's own name for a u32 address offset.
@@ -2007,6 +2025,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       const equal = generatedValuesEqual(leftValue, rightValue);
       return expression.operator === '==' ? Number(equal) : Number(!equal);
     }
+    if (expression.operator === '&' && isIntersectable(leftValue)) return intersection(leftValue, rightValue);
     if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
       return wideBinary(expression.operator, leftValue, rightValue);
     }
@@ -2242,6 +2261,14 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOC16') return new Uint16Array(Math.max(0, toNumber(args[0])));
   if (name === 'ALLOC32') return new Uint32Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
+  // <cmath>'s std:: spellings answer as the C ones: the speaker filter sums
+  // `std::abs(m_ampl[c])`, and unbound that sum was 0 and every sample
+  // divided by it.
+  if (name.startsWith('std::') && ['abs', 'fabs', 'floor', 'ceil', 'pow', 'sqrt', 'exp', 'log', 'log10',
+    'tan', 'atan', 'atan2', 'cos', 'sin'].includes(name.slice(5))) {
+    return applyGeneratedMacro(name.slice(5) === 'abs' ? 'fabs' : name.slice(5), args);
+  }
+  if (name === 'abs') return Math.abs(toNumber(args[0]));
   if (name === 'floor') return Math.floor(toNumber(args[0]));
   // The C math functions MAME's palette and DSP arithmetic reaches for.
   if (name === 'ceil') return Math.ceil(toNumber(args[0]));
@@ -2310,6 +2337,11 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     // for every object and then cleared its active flag.
     return generatedAdd(args[2], count);
   }
+  // C's untyped allocation: storage that holds whatever is put in it, a
+  // pointer table as readily as bytes (TZX's block list). free() releases
+  // nothing here.
+  if (name === 'malloc') return new Array<unknown>(Math.max(0, toNumber(args[0]))).fill(0);
+  if (name === 'free') return 0;
   if (name === 'memset') {
     fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
     return args[0];
@@ -2376,6 +2408,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
   if (name === 'RES_K') return toNumber(args[0]) * 1e3;
   if (name === 'RES_M') return toNumber(args[0]) * 1e6;
+  // emu/attotime.h's own conversions and its (seconds, attoseconds)
+  // constructor, in the seconds every duration is held in here. The speaker
+  // steps its intermediate samples by `attotime(0, HZ_TO_ATTOSECONDS(rate))`;
+  // unbound that step was 0 and its catch-up loop never ended.
+  if (name === 'HZ_TO_ATTOSECONDS') return Math.trunc(1e18 / toNumber(args[0]));
+  if (name === 'ATTOSECONDS_TO_DOUBLE') return toNumber(args[0]) * 1e-18;
+  if (name === 'attotime') return args.length ? toNumber(args[0]) + toNumber(args[1] ?? 0) * 1e-18 : 0;
   if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
   // Durations are seconds here, as from_hz and from_ticks already are.
   if (name === 'attotime::from_seconds' || name === 'attotime::from_double') return toNumber(args[0]);
@@ -3288,9 +3327,46 @@ function comparableValue(value: unknown): unknown {
  * page of gfxram before the first page was ever copied, so cps1_build_palette
  * read the wrong half of palette RAM and left the palette black.
  */
+/** A value whose `&` is an intersection: MAME's `rectangle`. */
+interface Intersectable {
+  intersect(other: unknown): void;
+  min_x: number;
+  max_x: number;
+  min_y: number;
+  max_y: number;
+}
+
+function isIntersectable(value: unknown): value is Intersectable {
+  return Boolean(value) && typeof value === 'object' &&
+    typeof (value as { intersect?: unknown }).intersect === 'function';
+}
+
+/**
+ * `rectangle::operator&`: a new rectangle, the intersection of the two. The
+ * Spectrum's screen update clips each border strip to the update's cliprect
+ * this way.
+ */
+function intersection(left: Intersectable, right: unknown): Intersectable {
+  const copy = Object.assign(Object.create(Object.getPrototypeOf(left)), left) as Intersectable;
+  copy.intersect(right);
+  return copy;
+}
+
+/** C++ `a & b` as the interpreter applies it, for emitted code. */
+export function applyGeneratedAnd(left: unknown, right: unknown): unknown {
+  if (isIntersectable(left)) return intersection(left, right);
+  return toNumber(left) & toNumber(right);
+}
+
 export function generatedValuesEqual(left: unknown, right: unknown): boolean {
   const leftValue = comparableValue(left);
   const rightValue = comparableValue(right);
+  // `rectangle::operator==` compares the four edges: the Spectrum's screen
+  // update draws its border only where the visible area is not the screen.
+  if (isIntersectable(leftValue) && isIntersectable(rightValue)) {
+    return leftValue.min_x === rightValue.min_x && leftValue.max_x === rightValue.max_x &&
+      leftValue.min_y === rightValue.min_y && leftValue.max_y === rightValue.max_y;
+  }
   if (isGeneratedPointer(leftValue) && isGeneratedPointer(rightValue)) {
     return leftValue.source === rightValue.source &&
       leftValue.offset === rightValue.offset;
@@ -3332,6 +3408,8 @@ function isGeneratedPointer(value: unknown): value is GeneratedPointer {
 
 /** sizeof for the fixed-width integer names MAME device sources use. */
 function typeByteWidth(name: string): number {
+  // A pointer, on the 64-bit hosts MAME is built for.
+  if (name.trim().endsWith('*')) return 8;
   const match = /(?:^|_)(?:u|s|int|uint)?(8|16|32|64)(?:_t)?$/.exec(name);
   if (match) return Number(match[1]) / 8;
   if (['char', 'bool', 'u8', 's8'].includes(name)) return 1;

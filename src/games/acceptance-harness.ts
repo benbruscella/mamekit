@@ -193,6 +193,7 @@ export async function runGameAcceptance(
     game: config.game,
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
+    ...(software?.slotCards ? { slotCards: software.slotCards } : {}),
     ...(software?.powerOn ? { images: software.powerOn } : {}),
   };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
@@ -931,6 +932,8 @@ async function loadContractSoftware(
   images: MountedImage[];
   /** a cartridge, held by its slot from power-on (BoardConfig.images) */
   powerOn?: NonNullable<ShellConfig['board']['images']>;
+  /** the card a card's list needs in its slot (BoardConfig.slotCards) */
+  slotCards?: Record<string, string>;
   boot?: SoftwareShelf['boot'];
   emptySlots: string[];
 }> {
@@ -952,7 +955,11 @@ async function loadContractSoftware(
     // A cartridge's chips go into its slot by area, as the room's Play puts them.
     const part = softwarePart(members, identified.entry);
     assert.ok(part, `${contract.game}: ${name}.zip is missing a chip its ${list} entry names`);
-    return { images: [], powerOn: { [shelf.imageDevice]: { name: `${name}.zip`, software: part } }, ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots };
+    return {
+      images: [], powerOn: { [shelf.imageDevice]: { name: `${name}.zip`, software: part } },
+      ...(shelf.card ? { slotCards: { [shelf.imageDevice]: shelf.card } } : {}),
+      ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots,
+    };
   }
   const images = mountableImages(members, shelf.extensions, identified.entry);
   assert.ok(images.length, `${contract.game}: ${name}.zip holds no image a ${list} transport reads`);
@@ -1121,7 +1128,7 @@ function audioResult(
     result: {
       writes: writes.length,
       nonzeroWrites: writes.filter(write => write.offset >= 0 && write.data !== 0).length,
-      writeHash: hash(new TextEncoder().encode(JSON.stringify(writes))),
+      writeHash: jsonArrayHash(writes),
       pcmHash: hash(new Uint8Array(pcm.buffer)),
       rms: Math.round(Math.sqrt(squares / Math.max(1, sampleCount)) * 1_000_000) / 1_000_000,
     },
@@ -1244,6 +1251,22 @@ function installWorkletGlobals(): void {
 
 function hash(bytes: Uint8Array): string {
   return crc32(bytes).toString(16).padStart(8, '0');
+}
+
+/**
+ * `hash` of `JSON.stringify(items)`, without building the string: a stream
+ * board writes one sample per 48 kHz tick, and a tape title's 12,000 frames
+ * of them is past the longest string V8 will make. The CRC runs on over the
+ * same bytes in pieces, so the value is the one the whole string gives.
+ */
+function jsonArrayHash(items: readonly unknown[]): string {
+  const encoder = new TextEncoder();
+  let value = crc32(encoder.encode('['));
+  for (let start = 0; start < items.length; start += 4096) {
+    const text = items.slice(start, start + 4096).map(item => JSON.stringify(item) ?? 'null').join(',');
+    value = crc32(encoder.encode(start ? `,${text}` : text), value);
+  }
+  return crc32(encoder.encode(']'), value).toString(16).padStart(8, '0');
 }
 
 function moduleUrl(path: string): string {

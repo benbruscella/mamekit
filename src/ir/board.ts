@@ -226,7 +226,7 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   /** Setter calls from the machine config: numbers, and tags as strings. */
-  configuration?: { method: string; args: (number | string)[] }[];
+  configuration?: { method: string; args: (number | string | number[] | { rectangle: number[] })[] }[];
   /**
    * Delegates the machine configuration binds on this device, by setter:
    * `m_maincpu->set_scanline_ind16_callback(m_video,
@@ -567,6 +567,11 @@ export interface GeneratedGenericTimer {
    * timeslice at each of its expiries, so the board schedules by the line.
    */
   driver?: true;
+  /**
+   * Armed inside a line (`time_until_pos(v, h)` with a pixel, or a duration
+   * in clocks), so it fires between instructions rather than at a line.
+   */
+  precise?: true;
   source?: BoardSourceRef;
 }
 
@@ -630,6 +635,11 @@ export interface GeneratedExecutionPlan {
     /** Driver-owned byte arrays backing entries instead of a ROM region. */
     entryMembers?: (string | null)[];
     /**
+     * A RAM device whose `pointer()` storage backs the entries instead of a
+     * ROM region: the 128K's `configure_entries(0, 8, m_ram->pointer(), 0x4000)`.
+     */
+    device?: string;
+    /**
      * Byte offset into the region for each bank entry, indexed by MAME entry
      * number. A bank configured by several calls (configure_entries plus a
      * stray configure_entry) is fully described here; unconfigured entries are
@@ -649,6 +659,11 @@ export interface GeneratedExecutionPlan {
    * through a handshake nothing coarser survives.
    */
   perfectQuantum?: boolean;
+  /**
+   * MAME `space(AS_*).specific(m_x)` / `.cache(m_x)`: a driver member that
+   * reads and writes a processor's address space directly.
+   */
+  spaceAccessors?: { member: string; cpu: string; space: 'program' | 'io' | 'opcodes' }[];
   customs?: {
     port: string;
     mask: number;
@@ -1230,6 +1245,13 @@ export interface GeneratedSoundBinding {
   nesApu?: GeneratedNesApuPlan;
   /** FILTER_BIQUAD stages MAME places between this core and its board output. */
   filterChain?: GeneratedBiquadStage[];
+  /**
+   * Devices on the same speaker that render their own stream on the main
+   * thread (sound_stream_update at machine().sample_rate()), with the gain
+   * their route reaches the speaker at: the Spectrum 128's beeper and
+   * cassette, beside its AY.
+   */
+  streamDevices?: { deviceTag: string; gain: number }[];
 }
 
 export interface GeneratedAudioRoute {
@@ -1375,6 +1397,8 @@ export interface GeneratedHandlerRuntime {
   same(left: unknown, right: unknown): boolean;
   /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
   andAssign(current: unknown, value: unknown): unknown;
+  /** C++ `&`: a new rectangle when the left side is one, else bitwise. */
+  and(left: unknown, right: unknown): unknown;
   /** A member read the state object has no entry for, as the interpreter resolves it. */
   member(name: string): unknown;
   /**

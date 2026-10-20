@@ -3217,6 +3217,16 @@ export class GeneratedAy8910Mixer {
   private readonly outputRate: number;
   private readonly deviceTags: string[];
   private muted = false;
+  /**
+   * Streams the main thread renders beside the chips (a beeper, a cassette)
+   * arrive as stream.pcm at their own rate, already weighted by their
+   * routes; streamGain is that weight's total, so the mix stays MAME's.
+   */
+  private readonly streamGain: number;
+  private readonly streamQueue: number[] = [];
+  private streamRate = 0;
+  private streamPhase = 0;
+  private streamHeld = 0;
 
   constructor(
     clock: number,
@@ -3227,9 +3237,11 @@ export class GeneratedAy8910Mixer {
     discreteMixer?: GeneratedDiscreteMixerPlanData,
     deviceTags: string[] = [],
     resistorLoads: readonly (readonly number[])[] = [],
+    streamGain = 0,
   ) {
     this.outputRate = outputRate;
     this.deviceTags = deviceTags;
+    this.streamGain = streamGain;
     const count = Math.max(1, chips);
     this.cores = Array.from({ length: count }, (_, chip) =>
       new GeneratedAy8910Core(clock, resistorLoads[chip]));
@@ -3344,6 +3356,13 @@ export class GeneratedAy8910Mixer {
       this.discreteValues.set(offset, data);
       return;
     }
+    // A main-thread stream's sample, its rate in the offset. A stalled
+    // consumer must not grow the queue without bound.
+    if (method === 'stream.pcm') {
+      this.streamRate = offset;
+      if (this.streamQueue.length < 8192) this.streamQueue.push(data);
+      return;
+    }
     const auxiliaryWrite = this.auxiliaryWrites.get(method ?? '');
     if (auxiliaryWrite) {
       auxiliaryWrite.core.write(auxiliaryWrite.method, data);
@@ -3452,11 +3471,19 @@ export class GeneratedAy8910Mixer {
     for (const device of this.auxiliary) {
       mixed += device.core.sample() * device.gain * device.outputGain;
     }
+    if (this.streamRate > 0) {
+      this.streamPhase += this.streamRate / this.outputRate;
+      while (this.streamPhase >= 1) {
+        this.streamPhase -= 1;
+        if (this.streamQueue.length) this.streamHeld = this.streamQueue.shift()!;
+      }
+      mixed += this.streamHeld;
+    }
     // A fully source-compiled analog mixer uses MAME's physical add_route
     // gains. Legacy stream packages retain their established weighted mix.
     const output = this.sourceAnalogMix
       ? mixed
-      : mixed / (this.gainTotal + this.auxiliaryGainTotal);
+      : mixed / (this.gainTotal + this.auxiliaryGainTotal + this.streamGain);
     return Math.max(-1, Math.min(1, output));
   }
 
@@ -3859,6 +3886,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         discreteMixer?: GeneratedDiscreteMixerPlanData;
         resistorLoads?: number[][];
+        streamGain?: number;
         refresh?: number;
         offset?: number;
         data?: number;
@@ -3875,6 +3903,7 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
           message.discreteMixer,
           message.deviceTags,
           message.resistorLoads,
+          message.streamGain,
         );
         this.renderer = new GeneratedAy8910FrameRenderer(
           this.mixer,

@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, parseTextMacros } from '../kg/parse.ts';
+import { evalExpr, parseTextMacros, resolveLiteralConditionals } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   parseMameAst,
@@ -34,7 +34,13 @@ import { monomorphizeFunctionTemplate } from './function-template.ts';
  * (cbm_tap.cpp); a format with its own identify and load reads the file into
  * the host's cassette image itself (wavfile.cpp).
  */
-export type CassetteImageFormat = { extension: string; definition: GeneratedDeviceDefinition; mountMethod: string } & (
+export type CassetteImageFormat = {
+  extension: string;
+  definition: GeneratedDeviceDefinition;
+  mountMethod: string;
+  /** The CASSETTE_FORMATLIST the format came from, when a machine picks one with set_formats. */
+  list?: string;
+} & (
   | { sizeMethod: string; fillMethod: string; sampleRate: number }
   | { identifyMethod: string; loadMethod: string });
 
@@ -44,6 +50,8 @@ export interface GeneratedDeviceMember {
   bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
   initial?: number;
+  /** A `const char *` member's string literal initializer. */
+  initialText?: string;
   values?: unknown[];
   /**
    * MAME memory containers rather than scalar state. A `shared` member is a
@@ -141,6 +149,8 @@ export interface GeneratedDeviceMethod {
 
 export interface GeneratedDeviceDefinition {
   schemaVersion: 1;
+  /** MAME's own name for the device: DEFINE_DEVICE_TYPE's full name ("Commodore 1530 Datassette"). */
+  description?: string;
   type: string;
   className: string;
   hierarchy: string[];
@@ -280,6 +290,17 @@ export interface GeneratedDeviceDefinition {
     member: string;
     type: string;
     definition: GeneratedDeviceDefinition;
+    /**
+     * The child's device_delegates this device's own methods fill, by
+     * delegate member: the ZX Interface 2 hands its GENERIC_CARTSLOT
+     * `set_device_load(FUNC(spectrum_intf2_device::cart_load))`.
+     */
+    delegateTargets?: Record<string, string>;
+    /**
+     * The option table a child slot's machine config names, compiled:
+     * `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, ...)`.
+     */
+    slotOptions?: string;
   }[];
   summary: {
     methods: number;
@@ -325,7 +346,10 @@ export function compileMameDevice(
 ): GeneratedDeviceDefinition {
   const sourceFiles = localSourceFiles(mameSrc, definition.sourceFile);
   const sources = sourceFiles.map(file => {
-    const source = readFileSync(join(mameSrc, file), 'utf8');
+    // `#if 1 ... #else ... #endif` keeps the branch the preprocessor keeps:
+    // the speaker's device_start builds its sinc kernel under `#if 1` and a
+    // flat one under `#else`, and both used to run, the second winning.
+    const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'));
     return { file, source: options.transformSource ? options.transformSource(file, source) : source };
   });
   for (const library of formatLibrarySources(mameSrc, sources)) {
@@ -660,15 +684,31 @@ export function compileMameDevice(
       initial: 0,
     });
   }
+  const constructorStrings: Record<string, string> = {};
   const constructorValues = constructorInitialValues(
     definition.className,
     sources.map(source => source.source).join('\n'),
     constants,
+    constructorStrings,
   );
   for (const member of members) {
     if (constructorValues[member.name] !== undefined) {
       member.initial = constructorValues[member.name];
     }
+    if (constructorStrings[member.name] !== undefined) member.initialText = constructorStrings[member.name];
+  }
+  // A pointer member the constructor points at a file-scope table holds that
+  // table: the speaker's `m_levels(default_levels)`, `{ 0.0, 1.0 }`.
+  const tables = constructorTableValues(
+    definition.className,
+    sources.map(source => source.source).join('\n'),
+    constants,
+  );
+  for (const member of members) {
+    const table = tables[member.name];
+    if (!table) continue;
+    member.values = table;
+    delete member.initial;
   }
   // Every timer a member holds, with or without a callback. The runtime
   // builds them all up front and binds each to its member, so the source's
@@ -718,7 +758,23 @@ export function compileMameDevice(
       if (!childDefinition) continue;
       const child = compileMameDevice(mameSrc, childDefinition, childType, nested);
       if (child.summary.diagnostics) continue;
-      children.push({ member, type: childType, definition: child });
+      const delegateTargets: Record<string, string> = {};
+      for (const setter of mconfig.matchAll(new RegExp(
+        String.raw`\b${member}\s*->\s*(\w+)\s*\(\s*FUNC\s*\(\s*\w+::(\w+)\s*\)\s*\)`, 'g'))) {
+        const delegate = child.delegates?.[setter[1]!];
+        if (delegate) delegateTargets[delegate] = setter[2]!;
+      }
+      // `TYPE(config, m_member, options_function, ...)`: a slot's card table.
+      const call = mconfig.slice(match.index + match[0].length);
+      const slotOptions = /^\s*,\s*([a-z_]\w*)\s*[,)]/.exec(call)?.[1];
+      const childSlot = slotOptions ? composeChildSlot(mameSrc, child, slotOptions, nested) : undefined;
+      if (childSlot) child.slot = childSlot;
+      children.push({
+        member, type: childType, definition: child,
+        ...(Object.keys(delegateTargets).length ? { delegateTargets } : {}),
+        ...(slotOptions && /\bget_card_device\s*\(/.test(child.sourceFiles.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'))
+          ? { slotOptions } : {}),
+      });
     }
   }
   // Bitmap entry points are necessarily frame/scanline hot paths. Methods
@@ -795,6 +851,7 @@ export function compileMameDevice(
     schemaVersion: 1,
     type,
     className: definition.className,
+    ...(definition.description ? { description: definition.description } : {}),
     hierarchy,
     sourceFiles,
     ...(romInterfaceBits ? { romInterface: { addressBits: romInterfaceBits } } : {}),
@@ -1188,6 +1245,42 @@ function formatLibrarySources(
   return libraries;
 }
 
+/**
+ * A child that is itself a slot, with the card table its owner's machine
+ * config hands it: `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, ...)`
+ * offers `generic_plain_slot`'s one card, GENERIC_ROM_PLAIN, and the slot's
+ * own `m_cart = get_card_device();` names the member that reaches it. The
+ * table lives beside the slot's source (bus/generic/carts.cpp). A slot whose
+ * default is nullptr picks its card from the image, through
+ * get_default_card_software, so no default is recorded.
+ */
+function composeChildSlot(
+  mameSrc: string,
+  child: GeneratedDeviceDefinition,
+  table: string,
+  nested: ReadonlySet<string>,
+): GeneratedDeviceDefinition['slot'] | undefined {
+  const own = child.sourceFiles.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n');
+  const member = /\b(m_\w+)\s*=\s*get_card_device\s*\(\s*\)/.exec(own)?.[1];
+  if (!member) return undefined;
+  const directory = join(mameSrc, dirname(child.sourceFiles[0]!));
+  const known = indexMameHardware(mameSrc);
+  for (const file of readdirSync(directory).filter(name => name.endsWith('.cpp'))) {
+    const source = readFileSync(join(directory, file), 'utf8');
+    const body = new RegExp(String.raw`device_slot_interface\s*&\s*${table}\s*\(\s*device_slot_interface\s*&\s*\w+\s*\)\s*\{([\s\S]*?)\n\}`).exec(source)?.[1];
+    if (!body) continue;
+    const options: Record<string, GeneratedDeviceDefinition> = {};
+    for (const option of body.matchAll(/option_add(?:_internal)?\s*\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g)) {
+      const card = known.get(option[2]!);
+      if (!card || nested.has(option[2]!)) continue;
+      const compiled = compileMameDevice(mameSrc, card, option[2]!, new Set([...nested, child.type]));
+      if (!compiled.summary.diagnostics) options[option[1]!] = compiled;
+    }
+    return Object.keys(options).length ? { member, options } : undefined;
+  }
+  return undefined;
+}
+
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
   const files: string[] = [];
   const seen = new Set<string>();
@@ -1576,7 +1669,8 @@ function compileMethod(
   return {
     name: method.name,
     parameters: method.parameters,
-    program: compileMameHandler(normalizeMameExecutionSource(body)),
+    program: compileMameHandler(normalizeMameExecutionSource(body),
+      method.returnType ? { returnType: method.returnType } : {}),
     source: {
       file: method.span.file,
       line: method.span.line,
@@ -1705,7 +1799,9 @@ export function memberDeclarations(
     /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    // `char const *m_default_card;` -- east const, as generic_slot_device
+    // spells all three of its strings.
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?(?:\s+const)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     // A builtin spelled in more than one word -- VLM5030's
     // `unsigned int m_current_energy;` -- and a pointer to a struct the
     // source names with its elaborated specifier, `const struct
@@ -1730,6 +1826,9 @@ export function memberDeclarations(
       const name = (pointer ? match[3] : match[2])!;
       const bound = pointer ? match[4] : match[3];
       if (members.some(member => member.name === name)) continue;
+      // A statement inside an inline body is not a declaration: slot.h's
+      // `return nullptr;` read as a member named nullptr of type return.
+      if (/^(?:return|using|typedef|friend|case|goto|delete|throw|else|co_return)$/.test(match[1]!.trim())) continue;
       const valueType = `${match[1]!.replace(/\s+/g, ' ').trim()}${star ?? ''}`;
       // MAME's array creators carry their count as a template argument rather
       // than a declarator bound: `memory_bank_array_creator<2> m_bank_rom`.
@@ -1877,6 +1976,12 @@ export function constructorInitialValues(
   concreteClass: string,
   source: string,
   constants: Record<string, number> = {},
+  /**
+   * Members a constructor initialises with a string literal, filled in when
+   * given: generic_slot_device's `m_default_card("rom")`, the card a
+   * cartridge loads into.
+   */
+  strings?: Record<string, string>,
 ): Record<string, number> {
   const constructors = new Map<string, Constructor[]>();
   const pattern = /\b(\w+)::\1\s*\(/g;
@@ -1926,7 +2031,9 @@ export function constructorInitialValues(
         constantValue(arg, { ...constants, ...env }) ?? 0);
       if (constructors.has(initializer.name)) visit(initializer.name, args);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
-        result[initializer.name] = args[0]!;
+        const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1];
+        if (text !== undefined && strings) strings[initializer.name] = text;
+        else result[initializer.name] = args[0]!;
       }
     }
     for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
@@ -1936,6 +2043,38 @@ export function constructorInitialValues(
     activeConstructors.delete(activeKey);
   };
   visit(concreteClass);
+  return result;
+}
+
+/**
+ * Members a constructor initialises with a file-scope `static const` or
+ * `constexpr` array (`m_levels(default_levels)`), with that array's values.
+ */
+export function constructorTableValues(
+  concreteClass: string,
+  source: string,
+  constants: Record<string, number> = {},
+): Record<string, number[]> {
+  const tables = new Map<string, number[]>();
+  for (const match of source.matchAll(
+    /\bstatic\s+(?:(?:const|constexpr|inline)\s+)+[\w:]+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;/g,
+  )) {
+    const values = splitMameArgs(match[2]!).map(value => value.trim()).filter(Boolean)
+      .map(value => constantValue(value, constants) ?? Number(value.replace(/f$/i, '')));
+    if (values.length && values.every(value => Number.isFinite(value))) tables.set(match[1]!, values);
+  }
+  const result: Record<string, number[]> = {};
+  if (!tables.size) return result;
+  const constructor = new RegExp(`\\b${concreteClass}::${concreteClass}\\s*\\(`).exec(source);
+  if (!constructor) return result;
+  const open = source.indexOf('(', constructor.index);
+  const close = matchingPair(source, open, '(', ')');
+  const brace = close < 0 ? -1 : source.indexOf('{', close + 1);
+  if (brace < 0) return result;
+  for (const initializer of source.slice(close + 1, brace).matchAll(/\b(m_\w+)\s*\(\s*(\w+)\s*\)/g)) {
+    const table = tables.get(initializer[2]!);
+    if (table) result[initializer[1]!] = table;
+  }
   return result;
 }
 

@@ -134,6 +134,7 @@ import { analogValue } from '../mame/audio-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
+import { STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
@@ -452,7 +453,9 @@ export function lowerGeneratedMachine(
         ...(hasSourceBody ? { body: String(node.props.sourceBody) } : {}),
         ...(Object.keys(constants).length ? { constants } : {}),
         ...(hasSourceBody ? {
-          program: compileMameHandler(normalizeMameExecutionSource(String(node.props.sourceBody))),
+          program: compileMameHandler(normalizeMameExecutionSource(String(node.props.sourceBody)), {
+            ...(typeof node.props.sourceReturnType === 'string' ? { returnType: node.props.sourceReturnType } : {}),
+          }),
         } : {}),
         ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
         ...(finderAliases.has(node.id) ? { finderAliases: [...finderAliases.get(node.id)!].sort() } : {}),
@@ -483,7 +486,7 @@ export function lowerGeneratedMachine(
         method: fn.name,
         parameters: fn.parameters,
         body: fn.body,
-        program: compileMameHandler(body),
+        program: compileMameHandler(body, fn.returnType ? { returnType: fn.returnType } : {}),
         source: sourceRef({
           sourceFile: fn.span.file,
           sourceLine: fn.span.line,
@@ -668,7 +671,8 @@ export function lowerGeneratedMachine(
     const [, member, handler, arming] = match as unknown as [string, string, string, string];
     if (reachedHandlers.has(handler) || genericTimers.some(timer => timer.member === member)) continue;
     if (!handlers.some(candidate => `${candidate.ownerClass}.${candidate.method}` === handler)) continue;
-    genericTimers.push({ tag: member.replace(/^m_/, ''), member, handler, driver: true });
+    const precise = ((selectedMachine?.props.preciseTimers as string[] | undefined) ?? []).includes(member);
+    genericTimers.push({ tag: member.replace(/^m_/, ''), member, handler, driver: true, ...(precise ? { precise: true as const } : {}) });
     if (!startHandlers.includes(arming)) startHandlers.unshift(arming);
   }
   // Timers a composed device allocates in its device_start (build.ts). A
@@ -688,6 +692,16 @@ export function lowerGeneratedMachine(
   // the request to the whole machine however deep it is set.
   const perfectQuantumBoard = graph.nodes.some(node =>
     node.label === 'MachineConfig' && node.props.perfectQuantum === true);
+  const cpuTags = new Set(devices.map(device => device.tag));
+  const spaceAccessors = [...new Map(graph.nodes
+    .filter(node => node.label === 'MachineConfig' && Array.isArray(node.props.spaceAccessors))
+    .flatMap(node => (node.props.spaceAccessors as string[]).map(text => {
+      const [member, target] = text.split('=') as [string, string];
+      const [cpu, space] = target.split(':') as [string, 'program' | 'io' | 'opcodes'];
+      return { member, cpu, space };
+    }))
+    .filter(accessor => cpuTags.has(accessor.cpu))
+    .map(accessor => [accessor.member, accessor])).values()];
   // Widths for the driver state class's own integer members, so the board can
   // give them storage that wraps the way MAME's C++ declaration does.
   //
@@ -798,6 +812,7 @@ export function lowerGeneratedMachine(
     ...(startHandlers.length ? { startHandlers } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
+    ...(spaceAccessors.length ? { spaceAccessors } : {}),
     ...(memoryBanks.length ? { banks: memoryBanks } : {}),
     ...(accessTaps.length ? { accessTaps } : {}),
     screen: {
@@ -930,6 +945,12 @@ export function lowerGeneratedMachine(
   // reach the chip and only the sample pull needs wiring.
   const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(device.type));
   const gameboyApu = devices.find(device => device.type === 'DMG_APU');
+  // A speaker the board drives, with whatever else renders a routed stream
+  // at machine().sample_rate() beside it.
+  const streamDevices = devices.some(device => device.type === 'SPEAKER_SOUND')
+    ? devices.filter(device => STREAM_SOUND_TYPES.includes(device.type) &&
+      lowerAudioRoutes(graph, [device]).length > 0)
+    : [];
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
@@ -1145,7 +1166,29 @@ export function lowerGeneratedMachine(
                 ? { routes: lowerAudioRoutes(graph, [tiaDevice]) }
                 : {}),
             }
+        : streamDevices.length
+          ? {
+              // Devices rendering their own stream beside the processor (the
+              // Spectrum's beeper and its cassette), mixed by routed gain.
+              kind: 'stream',
+              deviceTag: streamDevices[0]!.tag,
+              deviceTags: streamDevices.map(device => device.tag),
+              deviceType: streamDevices[0]!.type,
+              writeMethods: [],
+              enableMethods: [],
+              controlOffset: -1,
+              routes: lowerAudioRoutes(graph, streamDevices),
+            }
         : undefined;
+  // A speaker or cassette routed beside a chip that owns the worklet.
+  const auxiliaryStreams = sound && sound.kind !== 'stream'
+    ? devices.filter(device => STREAM_SOUND_TYPES.includes(device.type))
+      .flatMap(device => {
+        const gain = lowerAudioRoutes(graph, [device])[0]?.gain;
+        return gain === undefined ? [] : [{ deviceTag: device.tag, gain }];
+      })
+    : [];
+  if (sound && auxiliaryStreams.length) Object.assign(sound, { streamDevices: auxiliaryStreams });
   // set_screen_update selects the renderer entry point; it is consumed by
   // GeneratedVideoRenderer and is not a devcb signal dispatched at runtime.
   // A device_delegate setter is configuration too: the owning device invokes
@@ -1473,6 +1516,7 @@ function lowerMemoryBanks(
       tag,
       member: String(first.props.member),
       ...(first.props.region ? { region: String(first.props.region) } : {}),
+      ...(first.props.device ? { device: String(first.props.device) } : {}),
       ...(new Set(entryRegions.filter(Boolean)).size > 1
         ? { entryRegions }
         : {}),
@@ -1502,12 +1546,24 @@ export function lowerAudioRoutes(
     const singleOutput = config.includes('AY8910_SINGLE_OUTPUT');
     for (const edge of graph.edges.filter(candidate =>
       candidate.from === device.id && candidate.rel === 'HAS_AUDIO_ROUTE')) {
-      const node = byId.get(edge.to);
+      let node = byId.get(edge.to);
       if (!node) continue;
-      const gain = Number(node.props.gain);
+      let gain = Number(node.props.gain);
+      // Which of the chip's outputs this route carries is the chip's own
+      // route's to say, wherever the signal goes on from there.
+      const chipOutput = String(node.props.output);
+      // A chip routed into its owner (a slot card's AY) reaches the speaker
+      // through the owner's own route, at the product of the gains.
+      if (node.props.target === '^^') {
+        const owner = routeOwner(graph, device.id, true);
+        const onward = owner ? resolvedAudioRoute(graph, byId, owner.id) : undefined;
+        if (!onward) continue;
+        gain *= onward.gain;
+        node = onward.route;
+      }
       const target = String(node.props.target);
       const targetInput = Number(node.props.input);
-      const rawOutput = String(node.props.output);
+      const rawOutput = chipOutput;
       const outputChannels = rawOutput === 'ALL_OUTPUTS'
         ? sourceDevice?.props.type === 'YM2203' || sourceDevice?.props.type === 'YM2610'
           ? [0, 1, 2, 3]
@@ -1740,18 +1796,30 @@ function resolvedAudioRoute(
     const route = edge ? byId.get(edge.to) : undefined;
     if (!route) return undefined;
     gain *= Number(route.props.gain);
-    if (route.props.target !== '^') return { route, gain };
-    // A sub-device is declared in its owner's device_add_mconfig, which the
-    // node id names (`device:<owner class>.device_add_mconfig/<tag>`); the
-    // owner is the device of that class.
-    const ownerClass = /^device:([\w:]+)\.device_add_mconfig\//.exec(current)?.[1];
-    const owner = ownerClass
-      ? graph.nodes.find(node => node.label === 'Device' && node.props.cls === ownerClass)
-      : undefined;
+    if (route.props.target !== '^' && route.props.target !== '^^') return { route, gain };
+    const owner = routeOwner(graph, current, route.props.target === '^^');
     if (!owner) return undefined;
     current = owner.id;
   }
   return undefined;
+}
+
+/**
+ * The device a `*this` ('^') or DEVICE_SELF_OWNER ('^^') route lands on. A
+ * sub-device is declared in its owner's device_add_mconfig, which the node id
+ * names (`device:<owner class>.device_add_mconfig/<tag>`); the owner is the
+ * device of that class, and its own owner the device one tag up
+ * (`ay_slot:ay_ay8912` is the AY slot's card).
+ */
+function routeOwner(graph: KnowledgeGraph, deviceId: string, ownersOwner: boolean): KGNode | undefined {
+  const ownerClass = /^device:([\w:]+)\.device_add_mconfig\//.exec(deviceId)?.[1];
+  const owner = ownerClass
+    ? graph.nodes.find(node => node.label === 'Device' && node.props.cls === ownerClass)
+    : undefined;
+  if (!owner || !ownersOwner) return owner;
+  const tag = String(owner.props.tag);
+  const parent = tag.includes(':') ? tag.slice(0, tag.lastIndexOf(':')) : undefined;
+  return parent ? graph.nodes.find(node => node.label === 'Device' && node.props.tag === parent) : undefined;
 }
 
 export function lowerAuxiliaryAudioDevices(
@@ -1946,7 +2014,7 @@ function deviceDelegates(
 
 function deviceConfiguration(
   props: Record<string, unknown>,
-): { method: string; args: (number | string)[] }[] {
+): { method: string; args: (number | string | number[] | { rectangle: number[] })[] }[] {
   const encoded = Array.isArray(props.configCalls)
     ? props.configCalls.map(String)
     : [];
@@ -1963,14 +2031,18 @@ function deviceConfiguration(
     if (!match) return [];
     const rawArgs = match[2]!.trim();
     // A string argument may hold commas of its own (`set_extensions("p00,prg,t64")`).
-    const args = rawArgs ? (rawArgs.match(/"[^"]*"|[^,]+/g) ?? []).map((argument): number | string => {
+    const args = rawArgs ? (rawArgs.match(/\{[^}]*\}|"[^"]*"|\[[^\]]*\]|[^,]+/g) ?? []).map((argument): number | string | number[] | { rectangle: number[] } => {
       const raw = argument.trim();
       if (raw === 'true') return 1;
       if (raw === 'false') return 0;
       if (/^"[^"]*"$/.test(raw)) return raw.slice(1, -1);
+      // A whole table (set_levels' volumes), encoded by the graph as JSON.
+      if (raw.startsWith('[')) return JSON.parse(raw) as number[];
+      // A rectangle (the ULA's screen area), encoded the same way.
+      if (raw.startsWith('{')) return JSON.parse(raw) as { rectangle: number[] };
       return Number(raw);
     }) : [];
-    return args.every(argument => typeof argument === 'string' || Number.isFinite(argument))
+    return args.every(argument => typeof argument === 'string' || typeof argument === 'object' || Number.isFinite(argument))
       ? [{ method: match[1]!, args }]
       : [];
   }).filter((entry, index, all) => all.findIndex(candidate =>
@@ -2160,7 +2232,9 @@ function lowerFrameEvents(
         callbackId: callback.id,
         ownerTag: callback.ownerTag,
         signal: callback.signal,
-        line: vbstart,
+        // VBLANK begins at vbstart; a screen whose visible area runs to the
+        // last line (the Spectrum's, 312 of 312) begins it at line 0.
+        line: vbstart % Math.max(1, vtotal),
         state: 1,
         ...(callback.source ? { source: callback.source } : {}),
       });

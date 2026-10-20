@@ -149,9 +149,11 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
 </softwarelist>`);
   const entry = parsed.entries[0]!;
   eq('rom dataarea becomes the program area', entry.prg.size, 16384);
+  // Each chip keeps the area it loads into: a generic cartridge slot asks
+  // for `rom` by name (common_get_size("rom")).
   eq('rom dataarea keeps every chip', entry.prg.roms, [
-    { size: 8192, crc: '3cab8c1f', offset: 0, file: 'carnival.1' },
-    { size: 8192, crc: '4cf856a9', offset: 8192, file: 'carnival.2' },
+    { size: 8192, crc: '3cab8c1f', offset: 0, file: 'carnival.1', area: 'rom' },
+    { size: 8192, crc: '4cf856a9', offset: 8192, file: 'carnival.2', area: 'rom' },
   ]);
   eq('a single-area list has no chr', entry.chr, undefined);
   const cat = buildCatalog(parsed);

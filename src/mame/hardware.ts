@@ -17,6 +17,12 @@ import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
 export interface HardwareUse {
   game: string;
   tags: string[];
+  /**
+   * The machine-config statements each use was configured with, for a
+   * package whose lowering depends on them: a cassette compiles the format
+   * list its `set_formats(...)` names. Compile-time only; not in the manifest.
+   */
+  configuration?: string[];
 }
 
 export interface MameHardwareDefinition {
@@ -228,6 +234,7 @@ export function buildHardwareClosure(
 ): HardwareClosure {
   const definitions = indexMameHardware(mameSrc);
   const uses = new Map<string, Map<string, Set<string>>>();
+  const configurations = new Map<string, Map<string, Set<string>>>();
   // Device-node ids encode where the device was declared:
   //   device:<class>.device_add_mconfig/<tag> — inside another device
   //   device:<machineConfig>/<tag>            — at board level
@@ -251,6 +258,11 @@ export function buildHardwareClosure(
       tags.add(String(device.props.tag));
       games.set(game, tags);
       uses.set(type, games);
+      const statements = configurations.get(type) ?? new Map<string, Set<string>>();
+      const lines = statements.get(game) ?? new Set<string>();
+      for (const line of (device.props.config as string[] | undefined) ?? []) lines.add(String(line));
+      statements.set(game, lines);
+      configurations.set(type, statements);
       const declared = /^device:(\w+)\.device_add_mconfig\//.exec(device.id);
       if (declared) {
         const classes = declaringClasses.get(type) ?? new Set<string>();
@@ -279,7 +291,10 @@ export function buildHardwareClosure(
       const definition = resolveDefinition(type, definitions);
       const usedBy = [...games.entries()]
         .sort(([left], [right]) => left.localeCompare(right))
-        .map(([game, tags]) => ({ game, tags: [...tags].sort() }));
+        .map(([game, tags]) => {
+          const configuration = [...configurations.get(type)?.get(game) ?? []];
+          return { game, tags: [...tags].sort(), ...(configuration.length ? { configuration } : {}) };
+        });
       if (!definition || isDeclarativeHostHardwareType(type)) {
         return {
           type,
@@ -524,6 +539,7 @@ export async function emitHardwareClosure(
 
   const compactEntry = (entry: HardwareClosureEntry) => ({
     ...entry,
+    uses: entry.uses.map(({ game, tags }) => ({ game, tags })),
     methods: entry.methods.map(method => ({
       name: method.name,
       parameters: method.parameters,

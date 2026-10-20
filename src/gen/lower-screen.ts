@@ -148,7 +148,7 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
       ? 'scanline' as const
       : graph.nodes.some(node =>
           node.label === 'Handler' &&
-          String(node.props.sourceBody ?? '').includes('update_partial('))
+          /\bupdate_(?:partial|now)\s*\(/.test(String(node.props.sourceBody ?? '')))
         || screenOwnerUpdatesPartially(opts.mameSrc, graph)
         ? 'partial' as const
         : 'frame' as const,

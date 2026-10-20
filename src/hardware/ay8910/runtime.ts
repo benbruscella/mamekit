@@ -9,6 +9,8 @@ import {
   type SoundRuntimeContext,
   type SoundRuntimeHooks,
 } from '../sound-runtime.ts';
+import { createStreamMixer } from '../speaker/runtime.ts';
+import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
 
 /** Registers 14 and 15 are the general-purpose I/O ports. */
 const PORT_A = 14;
@@ -125,10 +127,20 @@ export function installAy8910Runtime(context: SoundRuntimeContext): SoundRuntime
       };
     }
   }
+  // Devices beside the AY that render their own stream on the main thread
+  // (the Spectrum 128's beeper and its cassette): mixed there and handed to
+  // the worklet as one PCM stream, which it resamples into the AY's mix.
+  const streams = sound.streamDevices?.length
+    ? createStreamMixer(context, sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+      (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
+    : undefined;
   // The selected register per chip, the register file the worklet mirrors,
   // and the last filter settings sent: a save state carries them so a load
   // resumes the same write stream (machine-state.ts).
-  return { state: { addresses, registers, filters } };
+  return {
+    state: { addresses, registers, filters, ...(streams ? { streams: streams.state } : {}) },
+    ...(streams ? { reset: streams.reset, tickCpu: streams.tickCpu } : {}),
+  };
 }
 
 /** Register-space extension carrying MAME filter_rc_device settings. */

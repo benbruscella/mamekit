@@ -2666,7 +2666,10 @@ export function foldFileScopeTables(body: string, unit: string): string {
   const source = stripComments(unit);
   for (const match of source.matchAll(declaration)) {
     const [, type, name] = match as unknown as [string, string, string];
-    if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+    const indexed = new RegExp(`\\b${name}\\s*\\[`).test(body);
+    // A whole table handed on as an argument: `set_pen_colors(0, spectrum_pens)`.
+    const whole = new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(body);
+    if (!indexed && !whole) continue;
     // A table the method declares itself is its own local.
     if (new RegExp(`\\b${name}\\s*\\[[^\\]]*\\]\\s*=`).test(body)) continue;
     const open = match.index! + match[0].length - 1;
@@ -2683,6 +2686,7 @@ export function foldFileScopeTables(body: string, unit: string): string {
       new RegExp(`\\b${name}\\s*\\[${subscript}\\]`, 'g'),
       (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
     );
+    if (whole) body = body.replace(new RegExp(`\\b${name}\\b(?!\\s*\\[)`, 'g'), `ARRAY(${values.join(', ')})`);
   }
   return body;
 }
@@ -3707,7 +3711,7 @@ function addHandler(
     method: fn.name,
     parameters: fn.parameters.trim(),
     body: fn.body.trim(),
-    program: compileMameHandler(executableBody),
+    program: compileMameHandler(executableBody, fn.returnType ? { returnType: fn.returnType } : {}),
     constants: Object.fromEntries([
       ...Object.entries(constants).filter(([name]) => new RegExp(`\\b${name}\\b`).test(fn.body)),
       // A class-scoped constant is declared unqualified and used qualified:

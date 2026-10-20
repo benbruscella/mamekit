@@ -49,6 +49,8 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
     method: string;
     viewTag?: string;
     viewEntry?: number;
+    /** The device whose space the install names, when it is not the main CPU's. */
+    cpu?: string;
   }> = [];
   // Numeric members the game's state class fixes in its own constructor. A
   // machine config shared with a sibling game -- a2600 and a2600p share
@@ -513,8 +515,17 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       const options = setting('set_options');
       const dataWidth = number(options?.[1]) ?? number(setting('set_data_width')?.[0]) ?? 8;
       const addrWidth = number(options?.[2]) ?? number(setting('set_addr_width')?.[0]) ?? 32;
-      const stride = number(setting('set_stride')?.[0]) ?? 0;
+      // `set_options(endianness, data_width, addr_width, stride)` or set_stride.
+      const stride = number(options?.[3]) ?? number(setting('set_stride')?.[0]) ?? 0;
       const mask = inheritedGlobalMask(map.id);
+      // A driver init may install into the bank device's own space: the
+      // Spectrum's `m_specmem->space(AS_PROGRAM).install_ram(0x5b00, ...)`.
+      const installs = [
+        ...(Array.isArray(game.props.installedHandlers)
+          ? game.props.installedHandlers.map(value => JSON.parse(String(value)) as typeof machineInstalledHandlers[number])
+          : []),
+        ...machineInstalledHandlers,
+      ].filter(handler => handler.cpu === tag && handler.space === 'AS_PROGRAM');
       return [{
         tag,
         ...(device.props.member ? { member: String(device.props.member) } : {}),
@@ -524,12 +535,23 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
         // A processor's ROM comes from its own region, so rangeSpec leaves the
         // region to the CPU; a bank device has no region of its own and every
         // ROM window names one (`.rom().region("maincpu", 0x5000)`).
-        ranges: collectRanges(map.id).map(range => ({
-          ...rangeSpec(range, tag),
-          ...(range.props.rom && typeof range.props.region === 'string'
-            ? { region: range.props.region }
-            : {}),
-        })),
+        ranges: [
+          ...collectRanges(map.id).map(range => ({
+            ...rangeSpec(range, tag),
+            ...(range.props.rom && typeof range.props.region === 'string'
+              ? { region: range.props.region }
+              : {}),
+          })),
+          ...installs.map(handler => (handler.kind as string) === 'ram'
+            ? { start: handler.start, end: handler.end, kind: 'ram' as const }
+            : {
+                start: handler.start,
+                end: handler.end,
+                kind: 'handler' as const,
+                ...(handler.mirror !== undefined ? { mirror: handler.mirror } : {}),
+                [handler.kind]: `${handler.className}.${handler.method}`,
+              }),
+        ],
         ...(mask !== undefined ? { mask } : {}),
         ...(mapUnmapsHigh(map.id) ? { unmapHigh: true } : {}),
       }];

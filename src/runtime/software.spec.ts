@@ -75,6 +75,31 @@ assert.deepEqual(mountableImages(set, ['g64']), [], 'a disk shelf takes no tape'
 assert.deepEqual(mountableImages(new Map([['dir/side.TAP', side1]]), ['tap']).map(i => i.name), ['side.TAP'],
   'extension match is case-insensitive and the folder is dropped');
 
+// A merged set (MAME's own layout): the parent's tape at the root, a clone's
+// two sides under the clone's folder. The zip is the parent, though the
+// clone matches more images, and only the parent's tape is mounted.
+const parentTape = new Uint8Array([4, 4, 4]);
+const merged: SoftCatalog = {
+  list: 'spectrum_cass', description: 'Sinclair ZX Spectrum cassettes', interface: 'spectrum_cass',
+  entries: [
+    { name: 'mminer', description: 'Manic Miner', year: '1983', publisher: 'Bug-Byte Software', slot: '',
+      prg: { size: 3, roms: [{ size: 3, crc: hex8(crc32(parentTape)), offset: 0, file: 'manic miner.tzx' }] } },
+    { name: 'mminers', cloneof: 'mminer', description: 'Manic Miner (Software Projects)', year: '1983',
+      publisher: 'Software Projects', slot: '', parts: 2, prg: { size: 8, roms: [
+        { size: 4, crc: hex8(crc32(side1)), offset: 0, file: 'side 1.tzx' },
+        { size: 4, crc: hex8(crc32(side2)), offset: 0, file: 'side 2.tzx' },
+      ] } },
+  ],
+  crcIndex: { [hex8(crc32(parentTape))]: [0], [hex8(crc32(side1))]: [1] },
+};
+const mergedSet = new Map([
+  ['manic miner.tzx', parentTape], ['mminers/side 1.tzx', side1], ['mminers/side 2.tzx', side2],
+]);
+const parent = identifySet(mergedSet, [merged]);
+assert.equal(parent?.entry.name, 'mminer', 'a merged zip is the set at its root');
+assert.deepEqual(mountableImages(mergedSet, ['tzx'], parent!.entry).map(image => image.name), ['manic miner.tzx'],
+  'the clones in a merged zip are not the parent\'s sides');
+
 // A set is playable only through an image its shelf's transport reads: the
 // misc disk list's .img set boots with the drive empty otherwise.
 assert.equal(entryPlayable({ prg: { size: 1, roms: [{ size: 1, crc: '', offset: 0, file: 'dd001boot.img' }] } }, { extensions: ['d64'] }), false);

@@ -1,5 +1,5 @@
 
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +9,7 @@ import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
 
 import { writeSoftwareShelves, type ShelfSwitch } from './software-shelves.ts';
 import { connectorFloppyFormats, floppyFormatExtensions } from '../mame/floppy-compiler.ts';
-import { DATASSETTE_IMAGE_EXTENSIONS } from '../mame/cassette-compiler.ts';
+import { DATASSETTE_IMAGE_EXTENSIONS, cassetteFormatListExtensions } from '../mame/cassette-compiler.ts';
 import type { SoftwareShelves } from '../runtime/shell.ts';
 import { romsDir } from '../paths.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
@@ -104,7 +104,15 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
   // directory is tried first and the family's is the fallback.
   let software: SoftwareShelves | undefined;
   if (kind === 'computer') {
-    const dumpsDir = [opts.game, family]
+    // The collection belongs to the driver that declares the software lists:
+    // the Spectrum 128's spec128.cpp builds on spectrum.cpp's
+    // spectrum_common, whose `spectrum_cass` it shares with the 48K.
+    const listFamily = softlistNodes
+      .map(node => /^softlist:([^/]+)\//.exec(node.id)?.[1])
+      .map(config => config && g?.node(`machine:${config}`)?.props.sourceFile)
+      .map(file => typeof file === 'string' ? basename(file).replace(/\.cpp$/, '') : undefined)
+      .find(Boolean) ?? family;
+    const dumpsDir = [opts.game, listFamily, family]
       .map(name => join(romsDir(projectRoot), category, name))
       .find(dir => existsSync(dir));
     // What the disk transport reads, from MAME's own registrations: the
@@ -127,6 +135,14 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
     const cartridgeFiles = [...new Set(devices
       .filter(device => device.props.type === 'C64_EXPANSION_SLOT')
       .flatMap(device => imageFileExtensions(opts.mameSrc, String(device.props.type))))];
+    // A board's own cassette reads the formats its config names:
+    // `m_cassette->set_formats(tzx_cassette_formats)` is TZX, TAP and CDT,
+    // and not the .mp3 files a few Spectrum sets hold.
+    const cassetteFormats = [...new Set(devices
+      .filter(device => device.props.type === 'CASSETTE')
+      .flatMap(device => (Array.isArray(device.props.configCalls) ? device.props.configCalls : [])
+        .flatMap(call => /^set_formats\("(\w+)"\)$/.exec(String(call))?.[1] ?? []))
+      .flatMap(list => cassetteFormatListExtensions(opts.mameSrc, list)))];
     software = writeSoftwareShelves({
       mameSrc: opts.mameSrc,
       outDir: opts.outDir,
@@ -134,17 +150,24 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         ...(floppy?.length ? { floppy } : {}),
         // A datassette port's deck reads what the cassette compiler wires.
         ...(devices.some(device => device.props.type === 'PET_DATASSETTE_PORT')
-          ? { cassette: DATASSETTE_IMAGE_EXTENSIONS } : {}),
+          ? { cassette: DATASSETTE_IMAGE_EXTENSIONS }
+          : cassetteFormats.length ? { cassette: cassetteFormats } : {}),
         ...(quickload.length ? { quickload } : {}),
         ...(cartridgeFiles.length ? { cartridge: cartridgeFiles } : {}),
       },
       switches,
       artFor: localCartArt,
-      lists: softlistNodes.map(node => ({
-        name: String(node.props.name),
-        status: String(node.props.status),
-        ...(node.props.filter ? { filter: String(node.props.filter) } : {}),
-      })),
+      lists: [
+        ...softlistNodes.map(node => ({
+          name: String(node.props.name),
+          status: String(node.props.status),
+          ...(node.props.filter ? { filter: String(node.props.filter) } : {}),
+        })),
+        // A list the machine declares itself is the machine's shelf.
+        ...cardSoftwareLists(opts.mameSrc, devices).filter((list, index, all) =>
+          !softlistNodes.some(node => node.props.name === list.name) &&
+          all.findIndex(other => other.name === list.name) === index),
+      ],
       devices: devices.map(device => ({
         type: String(device.props.type),
         tag: String(device.props.tag),
@@ -153,13 +176,54 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         ...(g && imageLoader(g, device) ? { loader: imageLoader(g, device) } : {}),
       })),
       ...(dumpsDir ? { dumpsDir } : {}),
-      dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,
+      dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : listFamily}`,
       log: line => console.log(line),
     });
     if (!software) console.warn('  ! computer declares no software list this build can read — the room will accept dropped media only');
   }
 
   return { title, cart, software, cartEntries };
+}
+
+/**
+ * The software lists a slot's cards declare, each with the card and the
+ * image device on it that reads the list. The ZX Interface 2 declares
+ * `spectrum_cart` in its own device_add_mconfig, beside the
+ * `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "spectrum_cart",
+ * "bin,rom")` that takes it, so a Spectrum's cartridges are a shelf of the
+ * expansion slot holding that card, not of the machine.
+ */
+function cardSoftwareLists(mameSrc: string, devices: readonly KGNode[]) {
+  const hardware = indexMameHardware(mameSrc);
+  const lists: { name: string; status: string; card: { slot: string; option: string; transport: string; extensions: string[] } }[] = [];
+  for (const slot of devices) {
+    const table = slot.props.slotOptions;
+    const definition = typeof table === 'string' ? hardware.get(String(slot.props.type)) : undefined;
+    if (!definition) continue;
+    const directory = join(mameSrc, dirname(definition.sourceFile));
+    const body = readdirSync(directory).filter(file => file.endsWith('.cpp'))
+      .map(file => new RegExp(String.raw`void\s+${table}\s*\(\s*device_slot_interface\s*&\s*\w+\s*\)\s*\{([\s\S]*?)\n\}`)
+        .exec(readFileSync(join(directory, file), 'utf8'))?.[1])
+      .find(Boolean);
+    for (const option of body?.matchAll(/option_add(?:_internal)?\s*\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g) ?? []) {
+      const card = hardware.get(option[2]!);
+      if (!card) continue;
+      const source = readFileSync(join(mameSrc, card.sourceFile), 'utf8');
+      const mconfig = /device_add_mconfig\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(source)?.[1]?.replace(/\/\/[^\n]*/g, '') ?? '';
+      const image = /\b([A-Z][A-Z0-9_]+)\s*\(\s*config\s*,\s*m_\w+\s*,\s*\w+\s*,\s*"[^"]*"\s*,\s*"([^"]*)"\s*\)/.exec(mconfig);
+      for (const list of mconfig.matchAll(/SOFTWARE_LIST\s*\([^)]*\)\s*\.\s*set_(original|compatible)\s*\(\s*"([^"]+)"\s*\)/g)) {
+        if (!image) continue;
+        lists.push({
+          name: list[2]!, status: list[1]!,
+          card: {
+            slot: String(slot.props.tag), option: option[1]!, transport: image[1]!,
+            extensions: image[2]!.split(',').map(extension => extension.trim().toLowerCase()).filter(Boolean),
+          },
+        });
+      }
+    }
+  }
+  return lists;
 }
 
 /**

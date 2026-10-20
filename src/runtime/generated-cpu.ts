@@ -179,6 +179,8 @@ export interface Cpu {
   get(name: string): number;
   /** MAME device_state_interface::state_int, by the CPU's own state index. */
   stateInt(index: number): number;
+  /** MAME device_state_interface::set_state_int, and the core's state_import. */
+  setStateInt?(index: number, value: number): void;
   set(name: string, value: number): void;
   invoke(name: string, ...args: number[]): number;
   /** Whether the core lowered a method of this name from its MAME source. */

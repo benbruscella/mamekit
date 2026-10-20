@@ -12,6 +12,9 @@ const mameSrc = process.env.MAME_SRC ?? '../mame';
 
 // MAME writes its legends in UTF-8 byte escapes.
 assert.equal(portLabel(['PORT_NAME("CRSR \\xE2\\x86\\x91 \\xE2\\x86\\x93")']), 'CRSR ↑ ↓');
+// The Spectrum's X key: a UTF-8 legend and a char32_t pound sign.
+assert.equal(portLabel(['PORT_NAME(u8"x    X    £      EXP")']), 'x    X    £      EXP');
+assert.deepEqual(portChars(["PORT_CHAR('x')", "PORT_CHAR('X')", "PORT_CHAR(U'£')"]), [['x'], ['X'], ['£']]);
 assert.equal(cString('a\\\\b\\"c\\101\\n'), 'a\\b"cA\n');
 
 // One list per shift state, in declaration order; a key with no character is

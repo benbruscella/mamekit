@@ -1,9 +1,9 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evalExpr, parseDefines } from '../kg/parse.ts';
 import { parseMameSource } from './ast.ts';
 import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './cpu-compiler.ts';
-import { compileMameDevice, lowerStructLocals, structDeclarations, type GeneratedDeviceDefinition } from './device-compiler.ts';
+import { compileMameDevice, lowerStructLocals, structDeclarations, type CassetteImageFormat, type GeneratedDeviceDefinition } from './device-compiler.ts';
 import { indexMameHardware } from './hardware.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { stripCppComments } from './initializer.ts';
@@ -99,7 +99,12 @@ export function compileWavTapeFormat(mameSource: string): GeneratedDeviceDefinit
  */
 export const DATASSETTE_IMAGE_EXTENSIONS: readonly string[] = ['tap', 'wav'];
 
-export function compileDatassetteOptions(mameSource: string): Record<string, GeneratedDeviceDefinition> {
+/**
+ * MAME's cassette transport (imagedev/cassette.cpp): the methods a machine
+ * drives it through, plus `mount_image`, the successful-load branch of
+ * `internal_load` that takes a mounted image from the host.
+ */
+export function compileCassetteDevice(mameSource: string): GeneratedDeviceDefinition {
   const hardware = indexMameHardware(mameSource);
   const cassette = compileMameDevice(mameSource, hardware.get('CASSETTE')!, 'CASSETTE');
   const live = new Set(['device_start', 'update', 'change_state', 'get_state', 'input', 'output',
@@ -117,6 +122,19 @@ export function compileDatassetteOptions(mameSource: string): Record<string, Gen
     program: compileMameHandler(normalizeMameExecutionSource(`if (!image) return; m_cassette = image; ${initialized}`)),
     source: { file, line: load.span.line } });
   cassette.role = 'cassette';
+  summarize(cassette);
+  return cassette;
+}
+
+function summarize(device: GeneratedDeviceDefinition): void {
+  device.summary = { methods: device.methods.length,
+    compiledMethods: device.methods.filter(method => !method.program.diagnostics.length).length,
+    diagnostics: device.methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0) };
+}
+
+export function compileDatassetteOptions(mameSource: string): Record<string, GeneratedDeviceDefinition> {
+  const hardware = indexMameHardware(mameSource);
+  const cassette = compileCassetteDevice(mameSource);
   const format = compileCbmTapeFormat(mameSource);
   const { extension: wavExtension, ...wav } = compileWavTapeFormat(mameSource);
   cassette.imageFormats = [{ extension: DATASSETTE_IMAGE_EXTENSIONS[0]!, definition: format,
@@ -147,4 +165,219 @@ export function compileDatassetteOptions(mameSource: string): Record<string, Gen
     card.children = [{ member: 'm_cassette', type: 'CASSETTE', definition: cassette }];
     return [match[1]!, card];
   }));
+}
+
+/** Where MAME's legacy format helpers are declared: LOG_FORMATS lives here. */
+const IMAGE_UTILITY_HEADER = 'src/lib/formats/imageutl.h';
+
+/**
+ * Statements that call a macro the preprocessor makes dead code:
+ * `#define LOG_FORMATS(...) do { if (0) osd_printf_info(__VA_ARGS__); } while (false)`.
+ * Left in, their arguments are still evaluated, against tables (TZX's
+ * `archive_ident`) nothing else reads.
+ */
+function stripDeadMacroCalls(source: string, headers: readonly string[]): string {
+  const dead = headers.flatMap(header => [...header.matchAll(
+    /#define\s+(\w+)\s*\([^)]*\)\s*do\s*\{\s*if\s*\(\s*0\s*\)[^\n]*\}\s*while\s*\(\s*(?:false|0)\s*\)/g,
+  )].map(match => match[1]!));
+  let result = source;
+  for (const name of dead) {
+    for (let at = result.search(new RegExp(`\\b${name}\\s*\\(`)); at >= 0; at = result.search(new RegExp(`\\b${name}\\s*\\(`))) {
+      const open = result.indexOf('(', at);
+      let depth = 0;
+      let end = open;
+      for (; end < result.length; end++) {
+        const ch = result[end];
+        if (ch === '"' || ch === "'") {
+          for (end++; end < result.length && result[end] !== ch; end++) if (result[end] === '\\') end++;
+        } else if (ch === '(') depth++;
+        else if (ch === ')' && --depth === 0) break;
+      }
+      const semicolon = /^\s*;/.exec(result.slice(end + 1));
+      result = `${result.slice(0, at)}${semicolon ? ';' : '0'}${result.slice(end + 1 + (semicolon ? semicolon[0].length : 0))}`;
+    }
+  }
+  return result;
+}
+
+/** A `{ ... }` aggregate initializer's top-level entries. */
+function initializerEntries(body: string): string[] {
+  const entries: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < body.length; index++) {
+    const ch = body[index];
+    if (ch === '"' || ch === "'") {
+      for (index++; index < body.length && body[index] !== ch; index++) if (body[index] === '\\') index++;
+    } else if (ch === '(' || ch === '{') depth++;
+    else if (ch === ')' || ch === '}') depth--;
+    else if (ch === ',' && depth === 0) {
+      entries.push(body.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  entries.push(body.slice(start).trim());
+  return entries.filter(Boolean);
+}
+
+/**
+ * File-scope state a legacy format keeps: TZX's `wave_data`, `block_count`,
+ * `blocks` and `t_scale`, and its constant tables (`TZX_HEADER`).
+ */
+function formatFileMembers(source: string, constants: Record<string, number>): GeneratedDeviceDefinition['members'] {
+  const members: GeneratedDeviceDefinition['members'] = [];
+  const widths: Record<string, { bits: 8 | 16 | 32; signed: boolean }> = {
+    int8_t: { bits: 8, signed: true }, uint8_t: { bits: 8, signed: false }, char: { bits: 8, signed: true },
+    int16_t: { bits: 16, signed: true }, uint16_t: { bits: 16, signed: false },
+    int: { bits: 32, signed: true }, int32_t: { bits: 32, signed: true }, uint32_t: { bits: 32, signed: false },
+  };
+  for (const match of source.matchAll(/^static\s+(?:const\s+)?(\w+)\s*(\*{0,2})\s*(\w+)\s*(\[\s*\w*\s*\])?\s*(?:=\s*([^;]+))?;/gm)) {
+    const [, type, pointer, name, array, initializer] = match as unknown as [string, string, string, string, string | undefined, string | undefined];
+    if (pointer) {
+      members.push({ name, valueType: `${type}${pointer}`, initial: 0 });
+      continue;
+    }
+    if (array) {
+      const body = /^\{([\s\S]*)\}$/.exec(initializer?.trim() ?? '')?.[1];
+      if (body === undefined) continue;
+      const values = initializerEntries(body).map(entry => {
+        const character = /^'(\\?.)'$/.exec(entry)?.[1];
+        if (character) return character.length === 2 ? ({ n: 10, t: 9, r: 13, '0': 0 } as Record<string, number>)[character[1]!] ?? character.charCodeAt(1) : character.charCodeAt(0);
+        return evalExpr(entry, constants);
+      });
+      if (values.some(value => value === null)) continue;
+      const width = widths[type] ?? { bits: 32 as const, signed: true };
+      members.push({ name, valueType: type, bits: width.bits, signed: width.signed, arrayLength: values.length, values: values as number[] });
+      continue;
+    }
+    const width = widths[type];
+    const value = initializer === undefined ? 0 : evalExpr(initializer.replace(/(\d)f\b/g, '$1'), constants);
+    if (value === null) continue;
+    members.push(width
+      ? { name, valueType: type, bits: width.bits, signed: width.signed, initial: value }
+      : { name, valueType: type, initial: value });
+  }
+  return members;
+}
+
+/**
+ * A `cassette_image::LegacyWaveFiller` format, compiled: the file's own
+ * functions reachable from the filler's `fill_wave` and `chunk_sample_calc`,
+ * its file-scope state and its defines. The host runs MAME's
+ * `legacy_construct` around them -- count, allocate, fill -- exactly as
+ * cassimg.cpp does for the C64's `.tap` and the Spectrum's `.tzx`.
+ */
+function compileLegacyFiller(
+  mameSource: string,
+  file: string,
+  fillerName: string,
+): { definition: GeneratedDeviceDefinition; fill: string; size: string; sampleRate: number } {
+  const raw = readFileSync(join(mameSource, file), 'utf8');
+  const header = readFileSync(join(mameSource, IMAGE_UTILITY_HEADER), 'utf8');
+  const source = stripDeadMacroCalls(stripInactivePreprocessorBranches(stripCppComments(raw)), [header]);
+  const constants = parseDefines(source);
+  const filler = new RegExp(`LegacyWaveFiller\\s+${fillerName}\\s*=\\s*\\{([^}]*)\\}`).exec(source)?.[1];
+  if (!filler) throw new Error(`${file}: no LegacyWaveFiller ${fillerName}`);
+  const [fill, , , size, frequency] = initializerEntries(filler);
+  const sampleRate = evalExpr(frequency ?? '0', constants) || 11025;
+  if (!fill || !size || size === 'nullptr') throw new Error(`${file}: ${fillerName} has no sample count`);
+  const functions = parseMameSource(file, source).functions;
+  const byName = new Map(functions.map(fn => [fn.name, fn]));
+  const reached = new Set<string>();
+  const pending = [fill, size];
+  while (pending.length) {
+    const name = pending.shift()!;
+    const fn = byName.get(name);
+    if (!fn || reached.has(name)) continue;
+    reached.add(name);
+    for (const call of fn.body.matchAll(/\b(\w+)\s*\(/g)) if (byName.has(call[1]!)) pending.push(call[1]!);
+  }
+  const methods = [...reached].map(name => {
+    const method = byName.get(name)!;
+    return { name, parameters: method.parameters,
+      program: compileMameHandler(normalizeMameExecutionSource(method.body),
+        method.returnType ? { returnType: method.returnType } : {}),
+      source: { file, line: method.span.line } };
+  });
+  const definition: GeneratedDeviceDefinition = {
+    schemaVersion: 1, type: `${fillerName.toUpperCase()}_FORMAT`, className: fillerName,
+    hierarchy: [], sourceFiles: [file], constants, members: formatFileMembers(source, constants),
+    callbacks: [], timers: [], methods, hotMethods: [...reached],
+    summary: { methods: methods.length, compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
+      diagnostics: methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0) },
+  };
+  return { definition, fill, size, sampleRate };
+}
+
+/**
+ * The formats of a `CASSETTE_FORMATLIST` a machine hands its cassette with
+ * `set_formats(...)`: the Spectrum's `tzx_cassette_formats` is the TZX and
+ * TAP legacy fillers of tzx_cas.cpp. Every format answers for each extension
+ * its `cassette_image::Format` names (`"tap,blk"`).
+ */
+export function compileCassetteFormatList(mameSource: string, listName: string): CassetteImageFormat[] {
+  const { file, entries } = cassetteFormatListEntries(mameSource, listName);
+  const formats: CassetteImageFormat[] = [];
+  for (const entry of entries) {
+    if (entry.wav) {
+      const { extension, ...wav } = compileWavTapeFormat(mameSource);
+      formats.push({ extension, definition: wav, identifyMethod: 'wavfile_identify', loadMethod: 'wavfile_load', mountMethod: 'mount_image', list: listName });
+      continue;
+    }
+    const compiled = compileLegacyFiller(mameSource, file, entry.filler!);
+    for (const extension of entry.extensions) {
+      formats.push({ extension, definition: compiled.definition, sizeMethod: compiled.size,
+        fillMethod: compiled.fill, sampleRate: compiled.sampleRate, mountMethod: 'mount_image', list: listName });
+    }
+  }
+  return formats;
+}
+
+/**
+ * The extensions a `CASSETTE_FORMATLIST` reads here: the ones of its formats
+ * this compiler builds (the legacy wave fillers and wavfile), so a shelf
+ * offers only the images the deck can play.
+ */
+export function cassetteFormatListExtensions(mameSource: string, listName: string): string[] {
+  return [...new Set(cassetteFormatListEntries(mameSource, listName).entries
+    .flatMap(entry => entry.wav ? ['wav'] : entry.extensions))];
+}
+
+function cassetteFormatListEntries(mameSource: string, listName: string): {
+  file: string;
+  entries: { wav?: true; extensions: string[]; filler?: string }[];
+} {
+  const directory = 'src/lib/formats';
+  const file = readdirSync(join(mameSource, directory))
+    .filter(name => name.endsWith('.cpp'))
+    .map(name => `${directory}/${name}`)
+    .find(candidate => new RegExp(`CASSETTE_FORMATLIST_START\\s*\\(\\s*${listName}\\s*\\)`)
+      .test(readFileSync(join(mameSource, candidate), 'utf8')));
+  if (!file) throw new Error(`MAME declares no cassette format list ${listName}`);
+  const source = stripCppComments(readFileSync(join(mameSource, file), 'utf8'));
+  const list = new RegExp(`CASSETTE_FORMATLIST_START\\s*\\(\\s*${listName}\\s*\\)([\\s\\S]*?)CASSETTE_FORMATLIST_END`).exec(source)?.[1] ?? '';
+  const entries: { wav?: true; extensions: string[]; filler?: string }[] = [];
+  // The list macro opens every list with formats of its own:
+  // `CASSETTE_FORMATLIST_START(name)` is `{ &cassette_image::wavfile_format,
+  // &cassette_image::flacfile_format,` before the list's own entries.
+  const header = readFileSync(join(mameSource, 'src/lib/formats/cassimg.h'), 'utf8');
+  const opening = /#define\s+CASSETTE_FORMATLIST_START\s*\(\s*\w+\s*\)((?:[^\n]*\\\n)*[^\n]*)/.exec(header)?.[1] ?? '';
+  const implicit = [...opening.matchAll(/&\s*(cassette_image::\w+)/g)].map(match => match[1]!);
+  const named = [...list.matchAll(/CASSETTE_FORMAT\s*\(\s*([\w:]+)\s*\)/g)].map(match => match[1]!);
+  for (const name of [...implicit, ...named]) {
+    if (name === 'cassette_image::wavfile_format') {
+      entries.push({ wav: true, extensions: ['wav'] });
+      continue;
+    }
+    // FLAC has a reader of its own, not a wave filler; it is not compiled.
+    if (name.startsWith('cassette_image::')) continue;
+    const format = new RegExp(`cassette_image::Format\\s+${name}\\s*=\\s*\\{([^}]*)\\}`).exec(source)?.[1];
+    const [extensions = '', identify = ''] = format ? initializerEntries(format) : [];
+    const filler = new RegExp(`\\b${identify}\\s*\\([^)]*\\)\\s*\\{[^}]*legacy_identify\\s*\\([^,]*,\\s*&\\s*(\\w+)`).exec(source)?.[1];
+    // A format with a reader of its own (FLAC) is not compiled yet; the list
+    // keeps the ones that are.
+    if (!filler) continue;
+    entries.push({ filler, extensions: extensions.replace(/"/g, '').split(',').map(value => value.trim()).filter(Boolean) });
+  }
+  return { file, entries };
 }
