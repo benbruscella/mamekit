@@ -1106,11 +1106,16 @@ export async function runShell(
     const name = transport.current();
     return name ? [[transport.tag, name]] : [];
   }));
-  const restoreTransportMedia = (media: Record<string, string> | undefined): void => {
-    for (const transport of transportImages) {
-      const name = media?.[transport.tag];
-      if (name && name !== transport.current()) transport.select(name);
+  // Answers the images it could not put back: a transport gone, or one whose
+  // set in hand no longer holds that image (another tape was opened since).
+  const restoreTransportMedia = (media: Record<string, string> | undefined): string[] => {
+    const missing: string[] = [];
+    for (const [tag, name] of Object.entries(media ?? {})) {
+      const transport = transportImages.find(candidate => candidate.tag === tag);
+      if (name === transport?.current()) continue;
+      if (!transport?.select(name)) missing.push(name);
     }
+    return missing;
   };
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -1533,11 +1538,16 @@ export async function runShell(
     addEventListener('pagehide', () => { void keep(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) void keep(); });
     const record = await (await store).get(resumeId).catch(() => null);
-    if (record && record.identity === identity) {
-      const before = transportMedia();
+    const before = transportMedia();
+    // A resume point is only good against the media it was made with: its
+    // tape position against that tape's own samples.
+    const missing = record && record.identity === identity ? restoreTransportMedia(record.media) : [];
+    if (missing.length) {
+      restoreTransportMedia(before);
+      console.warn(`[resume] ${cfg.title}: not resumed, ${missing.join(', ')} is not in hand`);
+    } else if (record && record.identity === identity) {
       try {
         input.releaseAll();
-        restoreTransportMedia(record.media);
         board.load(record.state);
         start?.cancel();
         typing?.cancel();
@@ -2974,8 +2984,8 @@ function saveStateDeck(options: {
   load: (state: MachineState) => void;
   /** the image each transport holds, recorded with a save */
   media: () => Record<string, string>;
-  /** put a save's images back in their transports, before its state */
-  restoreMedia: (media: Record<string, string> | undefined) => void;
+  /** put a save's images back in their transports, before its state; the names it could not */
+  restoreMedia: (media: Record<string, string> | undefined) => string[];
   screen: HTMLCanvasElement;
   toast: (text: string) => void;
   /** the deck changed height: the screen takes what is left */
@@ -3147,8 +3157,15 @@ function saveStateDeck(options: {
       return false;
     }
     const before = options.media();
+    // The state is only good against the media it was saved with: a tape
+    // position against that tape's own samples.
+    const missing = options.restoreMedia(record.media);
+    if (missing.length) {
+      options.restoreMedia(before);
+      toast(`That save needs ${missing.join(', ')}: open it again to load the save`);
+      return false;
+    }
     try {
-      options.restoreMedia(record.media);
       options.load(record.state);
     } catch (error) {
       // The load rolled the machine back; the transports go back with it.

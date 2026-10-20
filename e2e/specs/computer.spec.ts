@@ -457,6 +457,33 @@ test.describe('software room', () => {
     await expect(page.locator('[data-tape-name]')).toHaveText(second);
   });
 
+  // A save is only good against the tape it was made with: when the deck holds
+  // another tape now, the save is refused rather than loaded over the wrong
+  // samples.
+  test('a save whose tape is no longer in the deck is not loaded', async ({ page }) => {
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const set = join(family, 'c64_cass', '180.zip');
+    const other = join(family, 'c64_cass', '1985a.zip');
+    const firmware = [join(family, 'bios', 'c64.zip')];
+    test.skip(![set, other, firmware[0]!].every(path => existsSync(path)), 'no local 180 and 1985 tape sets and firmware');
+    await playLocalSet(page, set, firmware);
+    const sides = page.getByRole('combobox', { name: 'Tape image' });
+    await expect(sides).toBeVisible({ timeout: 30_000 });
+    const second = (await sides.locator('option').allTextContents())[1]!;
+    await sides.selectOption(second);
+    await expect(page.locator('[data-tape-name]')).toHaveText(second);
+    await page.getByRole('button', { name: 'Save state', exact: true }).click();
+    await expect(page.getByText(/^Saved · frame/)).toBeVisible({ timeout: 30_000 });
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Open tape', exact: true }).click();
+    await (await chooser).setFiles(other);
+    await expect(page.locator('[data-tape-name]')).not.toHaveText(second, { timeout: 30_000 });
+    const replacement = await page.locator('[data-tape-name]').textContent();
+    await page.getByRole('button', { name: 'Load latest save', exact: true }).click();
+    await expect(page.getByText(/That save needs/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('[data-tape-name]')).toHaveText(replacement!);
+  });
+
   // A `.wav` tape, read by MAME's own wavfile.cpp into the cassette image: the
   // title starts itself and the KERNAL finds the program on it.
   test('a .wav tape title starts itself and finds its program', async ({ page }) => {
