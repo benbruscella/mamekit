@@ -68,9 +68,25 @@ export interface FieldBinding {
    * which its own restriction treats as 8.
    */
   ways?: number;
+  /**
+   * What MAME's natural keyboard types with a keyboard key: its `PORT_CHAR`s,
+   * one list per shift state (`[["2"], ['"']]`). A key that types no
+   * character is spelled the way MAME's coded strings name it (`{F1}`), and a
+   * shift key says which it is (`{SHIFT_1}`). See natural-keyboard.ts.
+   */
+  chars?: string[][];
 }
 
-export interface DipDefault { port: string; mask: number; value: number; name: string }
+export interface DipDefault {
+  port: string;
+  mask: number;
+  value: number;
+  name: string;
+  /** PORT_CONFNAME: the machine's own setup, as MAME's Machine Configuration menu lists it */
+  config?: boolean;
+  /** a configuration switch's settings, as MAME names them */
+  settings?: { value: number; name: string }[];
+}
 
 export interface PortSpec { tag: string; init: number }
 
@@ -760,6 +776,10 @@ export class KeyboardInput implements InputPorts {
   }
 
   private onKey(ev: KeyboardEvent, down: boolean): void {
+    // A key pressed with Cmd or Ctrl held is the browser's shortcut -- Cmd+V
+    // pastes into a computer (shell.ts) -- never machine input: Control is
+    // never a game binding. Releases still arrive, so nothing is left held.
+    if (down && (ev.metaKey || ev.ctrlKey)) return;
     const hits = this.byKey.get(ev.code);
     if (!hits) {
       if (this.debug && down && !ev.repeat) console.log(`[input f${this.frameCount}] ${ev.code} unbound`);

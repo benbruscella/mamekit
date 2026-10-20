@@ -4,13 +4,15 @@ import { join, resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { KGNode } from '../kg/types.ts';
+import type { Graph } from '../kg/query.ts';
 import { parseSoftwareList, buildCatalog } from '../kg/softlist.ts';
 
-import { writeSoftwareShelves } from './software-shelves.ts';
+import { writeSoftwareShelves, type ShelfSwitch } from './software-shelves.ts';
 import { connectorFloppyFormats, floppyFormatExtensions } from '../mame/floppy-compiler.ts';
 import { DATASSETTE_IMAGE_EXTENSIONS } from '../mame/cassette-compiler.ts';
 import type { SoftwareShelves } from '../runtime/shell.ts';
 import { romsDir } from '../paths.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
@@ -19,7 +21,7 @@ import type { GenerateOptions } from './generate.ts';
 
 import { CART_SLOT_SUPPORT, CART_INTERFACE_BY_FAMILY, CART_DEFAULT_SLOT, CART_ROM_REGION, CART_GAME_SUPPORT, cartFileExtensions, localCartArt, writeCartShelfIndex } from './cartridge-catalog.ts';
 
-export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefined, opts: GenerateOptions, devices: KGNode[], softlistNodes: KGNode[], category: "arcade" | "consoles" | "computers", family: string) {
+export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefined, opts: GenerateOptions, devices: KGNode[], softlistNodes: KGNode[], category: "arcade" | "consoles" | "computers", family: string, g?: Graph, switches: readonly ShelfSwitch[] = []) {
   // --- emit ---------------------------------------------------------------------------
   const title = `${game.props.fullname} (${game.props.company}, ${game.props.year})`;
 
@@ -112,6 +114,19 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         devices.flatMap(device => device.props.sourceFile ? [String(device.props.sourceFile)] : []))
         .flatMap(name => floppyFormatExtensions(opts.mameSrc, name)))]
       : undefined;
+    // A quickload reads what its machine config told it to:
+    // `QUICKLOAD(config, "quickload", "p00,prg,t64", ...)` runs set_extensions.
+    const quickload = [...new Set(devices
+      .filter(device => device.props.type === 'QUICKLOAD')
+      .flatMap(device => (Array.isArray(device.props.configCalls) ? device.props.configCalls : [])
+        .flatMap(call => /^set_extensions\("([^"]*)"\)$/.exec(String(call))?.[1]?.split(',') ?? []))
+      .map(extension => extension.trim().toLowerCase())
+      .filter(Boolean))];
+    // A cartridge port reads files too, the ones its file_extensions() names:
+    // the C64's expansion port takes .80, .a0, .e0 and .crt.
+    const cartridgeFiles = [...new Set(devices
+      .filter(device => device.props.type === 'C64_EXPANSION_SLOT')
+      .flatMap(device => imageFileExtensions(opts.mameSrc, String(device.props.type))))];
     software = writeSoftwareShelves({
       mameSrc: opts.mameSrc,
       outDir: opts.outDir,
@@ -120,7 +135,11 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         // A datassette port's deck reads what the cassette compiler wires.
         ...(devices.some(device => device.props.type === 'PET_DATASSETTE_PORT')
           ? { cassette: DATASSETTE_IMAGE_EXTENSIONS } : {}),
+        ...(quickload.length ? { quickload } : {}),
+        ...(cartridgeFiles.length ? { cartridge: cartridgeFiles } : {}),
       },
+      switches,
+      artFor: localCartArt,
       lists: softlistNodes.map(node => ({
         name: String(node.props.name),
         status: String(node.props.status),
@@ -130,6 +149,8 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
         type: String(device.props.type),
         tag: String(device.props.tag),
         ...(device.props.slotDefault ? { slotDefault: String(device.props.slotDefault) } : {}),
+        ...(typeof device.props.slotAddress === 'number' ? { slotAddress: device.props.slotAddress } : {}),
+        ...(g && imageLoader(g, device) ? { loader: imageLoader(g, device) } : {}),
       })),
       ...(dumpsDir ? { dumpsDir } : {}),
       dumpsKey: `${category}/${dumpsDir ? basename(dumpsDir) : family}`,
@@ -139,4 +160,39 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
   }
 
   return { title, cart, software, cartEntries };
+}
+
+/**
+ * The free function an image device's load delegate hands its file to: the
+ * callback (`set_load_callback(FUNC(c64_state::quickload_c64))`) is a driver
+ * handler, and the routine it calls with the image is the loader. The C64's
+ * is `general_cbm_loadsnap`, shared by every Commodore quickload.
+ */
+function imageLoader(g: Graph, device: KGNode): string | undefined {
+  for (const { node: callback } of g.out(device.id, 'HAS_CALLBACK')) {
+    if (callback.props.signal !== 'set_load_callback') continue;
+    for (const { node: handler } of g.out(callback.id, 'CALLS_HANDLER')) {
+      const called = g.out(handler.id, 'CALLS_HANDLER')
+        .map(edge => edge.node)
+        .find(node => node.props.ownerClass === '' && String(handler.props.sourceBody ?? '').includes(`${String(node.props.method)}(`));
+      if (called) return String(called.props.method);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * The files an image device reads, as its own `file_extensions()` answers:
+ * `return "80,a0,e0,crt";` in the C64 expansion port's header.
+ */
+function imageFileExtensions(mameSrc: string, type: string): string[] {
+  const definition = indexMameHardware(mameSrc).get(type);
+  if (!definition) return [];
+  for (const file of [definition.sourceFile.replace(/\.cpp$/, '.h'), definition.sourceFile]) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    const listed = /\bfile_extensions\s*\(\s*\)[^{;]*\{\s*return\s+"([^"]*)"\s*;/.exec(readFileSync(path, 'utf8'))?.[1];
+    if (listed !== undefined) return listed.split(',').map(extension => extension.trim().toLowerCase()).filter(Boolean);
+  }
+  return [];
 }

@@ -22,11 +22,29 @@ import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
 import { sourceRegionBindings } from '../mame/video-compiler.ts';
 import { lowerRamAllocation, ramPowerOn } from '../mame/ram-compiler.ts';
 
-/** MAME device input clocks converted to the instruction-cycle scheduler rate. */
-export function generatedCpuCycleClock(type: string | undefined, clock: number): number {
-  if (type === 'i8085a') return clock / 2;
+/**
+ * A processor's clock as MAME holds it. `device_t::m_clock` is a u32, so the
+ * quotient a machine config writes -- the PAL C64's XTAL(17'734'472)/18 is
+ * 985248.44 -- is 985248 before anything runs. Kept fractional, the 6510 ran
+ * 0.44 cycles a second ahead of the VIC-II it shares a bus with, which is
+ * every generated device's u32 clock: nine cycles of drift after a minute,
+ * and raster effects a line out against MAME.
+ */
+export function generatedCpuClock(clock: number): number {
+  return Math.trunc(clock);
+}
+
+/**
+ * MAME device input clocks converted to the instruction-cycle scheduler rate:
+ * device_execute_interface's `clocks_to_cycles` of the u32 clock, in the
+ * integers MAME computes it in (each core's execute_clocks_to_cycles rounds up).
+ */
+export function generatedCpuCycleClock(type: string | undefined, rawClock: number): number {
+  const clock = generatedCpuClock(rawClock);
+  const divided = (divider: number): number => Math.floor((clock + divider - 1) / divider);
+  if (type === 'i8085a') return divided(2);
   // tms34010.h execute_clocks_to_cycles: (clocks + 8 - 1) / 8.
-  if (type === 'tms34010') return clock / 8;
+  if (type === 'tms34010') return divided(8);
   if (
     type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
     type === 'm6803' || type === 'm6808' || type === 'nsc8105' ||
@@ -34,13 +52,45 @@ export function generatedCpuCycleClock(type: string | undefined, clock: number):
     // (m6800.h/m6801.h execute_cycles_to_clocks); only the external-E-clock
     // variants (m6803e, mc6809e-style) run 1:1 and stay off this list.
     type === 'hd63701y0'
-  ) return clock / 4;
+  ) return divided(4);
   // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 is a
   // plain mcs48_cpu_device, only i8021/i8022 use the /30 variant.
   if (
     type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715'
-  ) return clock / 15;
+  ) return divided(15);
   return clock;
+}
+
+/**
+ * Whether a screen presents at MAME's own moment rather than our vbstart.
+ * MAME's screen frame starts at VBLANK -- `vpos()` counts from
+ * `m_vblank_start_time`, so at t=0 the beam is at vbstart and `screen_update`
+ * runs at t = T, 2T, ... -- while this runtime's frame starts at line 0. For a
+ * board whose CPUs and devices take their timing from the screen that offset
+ * is the whole phase of the machine, and it stays as it is here. But where the
+ * picture is a device's own bitmap that the device draws by its own raster and
+ * never reads the beam for, and nothing else is timed from the screen, the
+ * screen decides one thing only: when that bitmap is copied. Copied at
+ * vbstart, the C64's VIC-II had just finished raster 283, and the 0.0088
+ * cycles a frame its u32 clock drifts against the fractional refresh (as it
+ * does in MAME) tore the bottom row within a minute. Copied when MAME copies
+ * it, at the frame boundary, the visible lines are long finished.
+ */
+function presentsAtFrameBoundary(
+  mameSrc: string,
+  ownerType: string | undefined,
+  updateMode: 'frame' | 'scanline' | 'partial' | undefined,
+  frameEventCount: number,
+): boolean {
+  if (!mameSrc || !ownerType || frameEventCount || (updateMode ?? 'frame') !== 'frame') return false;
+  const definition = indexMameHardware(mameSrc).get(ownerType);
+  if (!definition) return false;
+  const files = [definition.sourceFile, definition.sourceFile.replace(/\.cpp$/, '.h')]
+    .map(file => join(mameSrc, file))
+    .filter(existsSync);
+  if (!files.length) return false;
+  const beam = /\b(?:screen\(\)|m_screen)\s*(?:\.|->)\s*(?:vpos|hpos|vblank|hblank|frame_number|time_until_pos|time_until_vblank_start|time_until_vblank_end|time_until_update)\s*\(/;
+  return files.every(file => !beam.test(readFileSync(file, 'utf8')));
 }
 
 /** Explicit address-space facts emitted once instead of rediscovered by the runtime. */
@@ -84,6 +134,7 @@ import { analogValue } from '../mame/audio-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
 export function lowerGeneratedMachine(
@@ -329,6 +380,9 @@ export function lowerGeneratedMachine(
         : {}),
       ...(Array.isArray(node.props.interfaceHandlers) && node.props.interfaceHandlers.length
         ? { interfaceHandlers: node.props.interfaceHandlers.map(String) }
+        : {}),
+      ...(Array.isArray(node.props.cardMembers) && node.props.cardMembers.length
+        ? { cardMembers: node.props.cardMembers.map(String) }
         : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
@@ -692,6 +746,7 @@ export function lowerGeneratedMachine(
     const space = generatedCpuAddressSpace(cpu.type, cpu.tag);
     return {
       ...cpu,
+      clock: generatedCpuClock(cpu.clock),
       ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
         ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
         : {}),
@@ -725,7 +780,7 @@ export function lowerGeneratedMachine(
     return [{
       tag: device.tag,
       kind: 'cpu' as const,
-      clock: device.clock,
+      clock: generatedCpuClock(device.clock),
       cycleClock: runtimeCpu?.cycleClock ?? generatedCpuCycleClock(device.type.toLowerCase(), device.clock),
       space: generatedCpuAddressSpace(device.type, device.tag),
     }];
@@ -752,6 +807,7 @@ export function lowerGeneratedMachine(
         ? (executionCpus.some(cpu => cpu.tag === screenUpdateDeviceTag) ? 'cpu' as const : 'device' as const)
         : 'screen' as const,
       ...(videoOutputDevice?.clock ? { pixelClock: videoOutputDevice.clock } : {}),
+
       ...(callbacks.find(callback => /scanline/i.test(callback.signal))?.targetMethod
         ? { scanlineCallback: callbacks.find(callback => /scanline/i.test(callback.signal))!.targetMethod }
         : {}),
@@ -838,6 +894,12 @@ export function lowerGeneratedMachine(
       },
     } : {}),
   };
+  if (presentsAtFrameBoundary(
+    String(graph.meta.mameSrc ?? ''),
+    screenUpdateDeviceTag ? deviceByTag.get(screenUpdateDeviceTag)?.type : undefined,
+    execution.screen.updateMode,
+    execution.frameEvents.length,
+  )) execution.screen = { ...execution.screen, present: 'frame-boundary' };
   const soundDevice = devices.find(device =>
     device.type === 'NAMCO_WSG' || device.type === 'POLEPOS_WSG');
   const nesCpu = nesApu && devices.find(device =>
@@ -1900,7 +1962,8 @@ function deviceConfiguration(
     const match = /^(\w+)\((.*)\)$/.exec(value);
     if (!match) return [];
     const rawArgs = match[2]!.trim();
-    const args = rawArgs ? rawArgs.split(',').map((argument): number | string => {
+    // A string argument may hold commas of its own (`set_extensions("p00,prg,t64")`).
+    const args = rawArgs ? (rawArgs.match(/"[^"]*"|[^,]+/g) ?? []).map((argument): number | string => {
       const raw = argument.trim();
       if (raw === 'true') return 1;
       if (raw === 'false') return 0;

@@ -77,6 +77,11 @@ export function writeExhibit(data: Awaited<ReturnType<typeof lowerMachine>>, opt
     } catch { /* malformed dat — skip */ }
   }
 
+  // MAME's parent machine (`COMP(1982, c64p, c64, ...)`): a regional version
+  // is a clone of the machine it was made from, which is how the boot menu
+  // shelves a computer's or console's versions as one box.
+  const cloneof = opts.fullGraph?.edges.find(edge =>
+    edge.from === `game:${opts.game}` && edge.rel === 'CLONE_OF')?.to.replace(/^game:/, '');
   writeFileSync(join(opts.outDir, 'meta.json'), JSON.stringify({
     game: opts.game,
     title,
@@ -84,6 +89,7 @@ export function writeExhibit(data: Awaited<ReturnType<typeof lowerMachine>>, opt
     year: game.props.year,
     manufacturer: game.props.company,
     family,
+    ...(cloneof ? { cloneof } : {}),
     ...(kind ? { kind } : {}),
     driverFile: graph.meta.driverFile,
     ...(graph.meta.license ? { license: graph.meta.license } : {}),

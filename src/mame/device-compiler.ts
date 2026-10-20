@@ -28,6 +28,16 @@ import {
 import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 import { monomorphizeFunctionTemplate } from './function-template.ts';
 
+/**
+ * A cassette image format a cassette device mounts (lib/formats). A legacy
+ * wave filler reports a sample count and fills 16-bit PCM at its own rate
+ * (cbm_tap.cpp); a format with its own identify and load reads the file into
+ * the host's cassette image itself (wavfile.cpp).
+ */
+export type CassetteImageFormat = { extension: string; definition: GeneratedDeviceDefinition; mountMethod: string } & (
+  | { sizeMethod: string; fillMethod: string; sampleRate: number }
+  | { identifyMethod: string; loadMethod: string });
+
 export interface GeneratedDeviceMember {
   name: string;
   valueType: string;
@@ -140,6 +150,12 @@ export interface GeneratedDeviceDefinition {
    * region (by default the one named by its tag) through `read_byte`.
    */
   romInterface?: { addressBits: number };
+  /**
+   * MAME `device_image_interface`: the device reads a file the host mounts,
+   * through the interface's own calls (`length`, `fread`, `fseek`,
+   * `is_filetype`), as the C64's quickload reads a .prg.
+   */
+  imageInterface?: true;
   constants: Record<string, number>;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
@@ -207,8 +223,7 @@ export interface GeneratedDeviceDefinition {
   floppyFormats?: { name: string; extensions: string[]; definition: GeneratedDeviceDefinition }[];
   /** MAME's floppy_image track store, built for each mounted disk. */
   floppyImage?: GeneratedDeviceDefinition;
-  imageFormats?: { extension: string; definition: GeneratedDeviceDefinition;
-    sizeMethod: string; fillMethod: string; mountMethod: string; sampleRate: number }[];
+  imageFormats?: CassetteImageFormat[];
   links?: {
     call: string;
     targetRole: string;
@@ -313,6 +328,10 @@ export function compileMameDevice(
     const source = readFileSync(join(mameSrc, file), 'utf8');
     return { file, source: options.transformSource ? options.transformSource(file, source) : source };
   });
+  for (const library of formatLibrarySources(mameSrc, sources)) {
+    sources.push(library);
+    sourceFiles.push(library.file);
+  }
   const ast = parseMameAst(sources);
   const classes = new Map(
     ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]),
@@ -771,6 +790,7 @@ export function compileMameDevice(
     const width = declaration.baseTemplateArguments?.device_rom_interface?.[0];
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
+  const imageInterface = hierarchy.some(className => classes.get(className)?.bases.includes('device_image_interface'));
   const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
     type,
@@ -778,6 +798,7 @@ export function compileMameDevice(
     hierarchy,
     sourceFiles,
     ...(romInterfaceBits ? { romInterface: { addressBits: romInterfaceBits } } : {}),
+    ...(imageInterface ? { imageInterface: true as const } : {}),
     constants,
     members,
     callbacks,
@@ -924,7 +945,7 @@ function resolveArityOverloads(device: GeneratedDeviceDefinition): void {
   }
 }
 
-function lowerStructLocals(device: GeneratedDeviceDefinition): void {
+export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
   resolveArityOverloads(device);
   // `this->method(...)` on the device's own method is the same call as
   // `method(...)`, and only the plain form passes reference parameters by
@@ -983,6 +1004,17 @@ function lowerStructLocals(device: GeneratedDeviceDefinition): void {
             callee: { kind: 'identifier', name: 'STRUCT_ARRAY' },
             args: [value.args[0] ?? { kind: 'number', value: 0 }, ...fields.map(field => string(field.name))],
           };
+        }
+      }
+      // A struct declared without an initializer is still a struct, all zero:
+      // `cbm_crt_header header;` is then read into byte by byte. The device
+      // runtime builds it from the declaration (STRUCT_OF), with each field's
+      // width and each array field's length, which a name/value list cannot
+      // carry.
+      if (fields && !value && !operation.static) {
+        const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
+        if (!/[*&]/.test(operation.valueType!)) {
+          value = { kind: 'call', callee: { kind: 'identifier', name: 'STRUCT_OF' }, args: [string(leaf)] };
         }
       }
       const declared: GeneratedHandlerOperation = { ...operation, ...(value ? { value } : {}) };
@@ -1122,6 +1154,38 @@ function executionDataAddressBits(
   const args = splitMameArgs(constructor[1]!);
   const width = Number(evalExpr(args.at(-1) ?? '', constants));
   return Number.isInteger(width) && width > 0 && width <= 16 ? width : undefined;
+}
+
+/**
+ * The image-format library a device reads its files with, when it calls into
+ * one: `#include "formats/cbm_crt.h"` declares `cbm_crt_read_header`, and
+ * src/lib/formats/cbm_crt.cpp defines it. The header and its source join the
+ * device's own -- their structs, defines and tables with them -- only when a
+ * function the header declares is called, so a device that merely names a
+ * format class (every floppy connector) compiles exactly as it did.
+ */
+function formatLibrarySources(
+  mameSrc: string,
+  sources: readonly { file: string; source: string }[],
+): { file: string; source: string }[] {
+  const own = sources.map(({ source }) => stripCppComments(source)).join('\n');
+  const libraries: { file: string; source: string }[] = [];
+  const seen = new Set(sources.map(({ file }) => file));
+  for (const match of own.matchAll(/^\s*#include\s+"formats\/(\w+)\.h"/gm)) {
+    const header = `src/lib/formats/${match[1]}.h`;
+    const implementation = `src/lib/formats/${match[1]}.cpp`;
+    if (seen.has(implementation) || !existsSync(join(mameSrc, header)) || !existsSync(join(mameSrc, implementation))) continue;
+    const declared = stripCppComments(readFileSync(join(mameSrc, header), 'utf8'));
+    // File-scope declarations only: a format class's methods are its own.
+    const outside = declared.replace(/\b(?:class|struct)\s+\w+[^;{]*\{(?:[^{}]|\{[^{}]*\})*\}\s*;/g, '');
+    const names = [...outside.matchAll(/^[\w:<>*&\s]+?\b(\w+)\s*\([^;{}]*\)\s*;/gm)].map(name => name[1]!);
+    if (!names.some(name => new RegExp(`\\b${name}\\s*\\(`).test(own))) continue;
+    seen.add(implementation);
+    for (const file of [header, implementation]) {
+      libraries.push({ file, source: readFileSync(join(mameSrc, file), 'utf8') });
+    }
+  }
+  return libraries;
 }
 
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
@@ -1465,7 +1529,11 @@ function compileMethod(
     expandFunctionMacros(method.body, functionMacros),
     memberAliases,
   ).replace(
-    /\bm_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
+    // The device's own allocations, which the runtime makes from the member's
+    // declaration. Not another device's: the C64 expansion port gives its
+    // card a ROM with `m_card->m_roml = std::make_unique<uint8_t[]>(size)`,
+    // and stripping the right-hand side left a dangling `m_card->` behind.
+    /(?<![\w.>])(?:this->)?m_\w+\s*=\s*std::make_unique\s*<[^;]+;\s*/g,
     '',
   ).replace(
     // The runtime builds every member timer and binds it to its member
@@ -1503,6 +1571,8 @@ function compileMethod(
             `TABLE((${row}) * ${table.columns} + (${column}), ${table.values.join(', ')})`,
         );
   }
+  // A table's entries can be macros themselves (the CRT format's UNSUPPORTED).
+  body = expandStringMacros(body, stringMacros);
   return {
     name: method.name,
     parameters: method.parameters,
@@ -1607,7 +1677,7 @@ export function memberDeclarations(
     for (const declarator of match[2]!.split(',').map(value => value.trim())) {
       const parsed = /^([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
       const name = parsed[1]!;
-      const arrayLength = parsed[2] === undefined ? undefined : Number(parsed[2]);
+      const arrayLength = parsed[2] === undefined ? undefined : arrayBound(parsed[2]);
       if (!members.some(member => member.name === name)) {
         members.push({ valueType, name,
           ...(arrayLength !== undefined && Number.isInteger(arrayLength) ? { arrayLength } : {}) });
@@ -1667,7 +1737,7 @@ export function memberDeclarations(
       // MBC's ROM windows lost the bank behind them.
       const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1];
       const arrayLength = bound
-        ? Number(bound.trim())
+        ? arrayBound(bound)
         : templateCount ? Number(templateCount) : undefined;
       // `uint8_t m_wave_ram[2][0x10];` -- a C array member may have more than
       // one bound, and only the outermost is the declarator the runtime
@@ -1686,6 +1756,16 @@ export function memberDeclarations(
     }
   }
   return members;
+}
+
+/**
+ * A declarator's array bound, which MAME often writes as arithmetic: the
+ * VIC-II's `m_border_color_sample[0x400 / 8]`. Read with `Number()` it was
+ * NaN, so the member had no length and every store into it went through the
+ * emitter's name-addressed slow path on each of the chip's cycles.
+ */
+function arrayBound(bound: string): number {
+  return Number(evalExpr(bound.trim(), {}) ?? Number.NaN);
 }
 
 function maskNestedClasses(source: string): string {
@@ -2154,6 +2234,17 @@ function constantTables(source: string): Record<string, ConstantTable> {
       values: splitMameArgs(match[2]!).map(value => value.trim()),
     };
   }
+  // A table of C strings: the CRT format's `static char const *const
+  // CRT_C64_SLOT_NAMES[] = { "standard", UNSUPPORTED, "final3", ... }`, the
+  // card each hardware type needs. Its entries keep their spelling; a macro
+  // among them is expanded where the table is used.
+  for (const match of source.matchAll(
+    /\bstatic\s+(?:const\s+)?char\s+(?:const\s*)?\*\s*(?:const\s+)?(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+  )) {
+    tables[match[1]!] ??= {
+      values: splitMameArgs(match[2]!).map(value => value.trim()).filter(Boolean),
+    };
+  }
   // A class's static table is declared in the header and defined out of line,
   // qualified and without `static`: `const int gameboy_sound_device::
   // wave_duty_table[4] = {...}`. Methods reference the unqualified name, and
@@ -2322,7 +2413,7 @@ function staticStructConstants(
   return lifted;
 }
 
-function structDeclarations(
+export function structDeclarations(
   sources: readonly { file: string; source: string }[],
   constants: Record<string, number>,
 ): Map<string, GeneratedStructField[]> {

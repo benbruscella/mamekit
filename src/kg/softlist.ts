@@ -19,6 +19,19 @@ export interface SoftRom {
    * the shelf needs to know which member of the zip is the medium.
    */
   file?: string;
+  /**
+   * The dataarea a cartridge chip loads into ("roml", "romh"), kept because a
+   * cartridge slot asks for each area by name: the C64 expansion port's
+   * call_load reads `roml` and `romh` into separate halves of the card.
+   */
+  area?: string;
+  /**
+   * Where MAME loads the chip again (`loadflag="reload"`, ROM_RELOAD): the
+   * loader seeks back to the file's start and reads `size` bytes at each
+   * offset. Print Technik-Help's 4 KB ROM fills both halves of its 8 KB ROML
+   * this way. Kept for a cartridge area, which is assembled from its chips.
+   */
+  reloads?: { offset: number; size: number }[];
 }
 
 export interface SoftArea {
@@ -56,6 +69,38 @@ export interface SoftEntry {
    * utility and `LOAD"*",8,1` loads nothing that runs.
    */
   usage?: string;
+  /**
+   * The video standard the list says the set was made for
+   * (`<info name="video">`, "PAL" or "NTSC"). Informational in MAME, which
+   * filters by the `compatibility` feature alone; the software room uses it to
+   * choose between a family's regional machines for a set both of them list.
+   */
+  video?: string;
+  /**
+   * The command this title starts with, where MAME's usage note names one
+   * (the generator's boot policy reads it, software-shelves.ts); otherwise
+   * its shelf's own `boot` command.
+   */
+  start?: string;
+  /**
+   * Each cartridge dataarea's declared size, which is what MAME's
+   * `get_software_region_length` answers even where the chips fill less of
+   * it: 21 of the C64 list's 478 cartridge areas are larger than their ROMs.
+   */
+  areas?: Record<string, number>;
+  /**
+   * The part's other features, as `get_feature` answers them, with the
+   * entry's `sharedfeat`s inherited as MAME's parser copies them into each
+   * part: a C64 cartridge's `exrom` and `game` lines, a disk's
+   * `write_protected`.
+   */
+  features?: Record<string, string>;
+  /**
+   * Machine configuration switches the title's usage note asks for, as the
+   * generator's policy reads it (software-shelves.ts): a C64 title that
+   * "Requires joystick in port 1" throws the machine's "Swap joystick ports".
+   */
+  switches?: { port: string; mask: number; value: number }[];
 }
 
 export interface SoftCatalog {
@@ -114,7 +159,10 @@ export interface ParsedSoftwareList {
  * loads, so they land in `prg` in document order and one identification path
  * still serves every list.
  */
-const MEDIA_AREAS = new Set(['cass', 'flop', 'quik', 'roml', 'romh']);
+const MEDIA_AREAS = new Set(['cass', 'flop', 'quik', 'roml', 'romh', 'romx', 'lorom', 'uprom']);
+
+/** Cartridge dataareas a slot loads by name (the C64 and VIC-10 expansion port's). */
+const CART_AREAS = new Set(['roml', 'romh', 'romx', 'lorom', 'uprom']);
 
 export function parseSoftwareList(xml: string): ParsedSoftwareList {
   const head = /<softwarelist\b[^>]*>/.exec(xml);
@@ -154,12 +202,28 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
     if (parts > 1) entry.parts = parts;
     const usage = /<info\s+name="usage"\s+value="([^"]*)"/.exec(block);
     if (usage) entry.usage = unescapeXml(usage[1]!);
+    const video = /<info\s+name="video"\s+value="([^"]*)"/.exec(block);
+    if (video) entry.video = unescapeXml(video[1]!);
 
     for (const fm of block.matchAll(/<feature\s+name="(slot|pcb|mirroring)"\s+value="([^"]*)"/g)) {
       if (fm[1] === 'slot') entry.slot = fm[2];
       else if (fm[1] === 'pcb') entry.pcb = fm[2];
       else entry.mirroring = fm[2];
     }
+    // The rest a C64 cartridge's slot reads with get_feature. Only a list
+    // with cartridge areas needs them, so the others stay as they were.
+    if (/<dataarea\s+name="(?:roml|romh|lorom|uprom)"/.test(block)) {
+      for (const fm of block.matchAll(/<feature\s+name="([\w-]+)"\s+value="([^"]*)"/g)) {
+        if (['slot', 'pcb', 'mirroring'].includes(fm[1]!)) continue;
+        entry.features ??= {};
+        entry.features[fm[1]!] ??= unescapeXml(fm[2]!);
+      }
+    }
+    // floppy_image_device::call_load reads `write_protected` of every disk;
+    // a part's own feature wins over the entry's shared one, as in MAME.
+    const writeProtected = /<feature\s+name="write_protected"\s+value="([^"]*)"/.exec(block) ??
+      /<sharedfeat\s+name="write_protected"\s+value="([^"]*)"/.exec(block);
+    if (writeProtected) (entry.features ??= {}).write_protected ??= unescapeXml(writeProtected[1]!);
     const shared = /<sharedfeat\s+name="compatibility"\s+value="([^"]*)"/.exec(block);
     if (shared) entry.compatibility = shared[1];
     const excluded = /<sharedfeat\s+name="incompatibility"\s+value="([^"]*)"/.exec(block);
@@ -190,20 +254,31 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       const mediaArea = areaName !== undefined && MEDIA_AREAS.has(areaName);
       if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea) continue;
       const area: SoftArea = { size, roms: [] };
+      const cartArea = CART_AREAS.has(areaName!);
+      if (cartArea) (entry.areas ??= {})[areaName!] = size;
+      // The chip a reload repeats: the one just before it, if it was kept.
+      let previous: SoftRom | undefined;
       for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
         const rAttrs = attrs(rm[0]);
-        // fill/reload/continue are load directives, not chips; nodumps have
-        // no crc to match against. baddumps keep their crc — still the bytes
-        // a real cart dump will carry.
+        if (rAttrs.loadflag === 'reload') {
+          if (cartArea && previous) (previous.reloads ??= []).push({ offset: parseOffset(rAttrs.offset), size: parseSize(rAttrs.size) });
+          continue;
+        }
+        // fill/continue are load directives, not chips; nodumps have no crc
+        // to match against. baddumps keep their crc — still the bytes a real
+        // cart dump will carry.
+        previous = undefined;
         if (rAttrs.loadflag) continue;
         if (rAttrs.status === 'nodump') continue;
         if (!rAttrs.crc) continue;
-        area.roms.push({
+        previous = {
           size: parseSize(rAttrs.size),
           crc: rAttrs.crc.toLowerCase(),
           offset: parseOffset(rAttrs.offset),
           ...(rAttrs.name ? { file: rAttrs.name } : {}),
-        });
+          ...(cartArea ? { area: areaName } : {}),
+        };
+        area.roms.push(previous);
       }
       if (areaName === 'chr') entry.chr = area;
       else if (mediaArea && entry.prg.roms.length) {

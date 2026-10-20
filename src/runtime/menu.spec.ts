@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  menuEntries,
   browseSlug,
   matchesMenuEntry,
   menuShelfMaxWidth,
@@ -59,3 +60,35 @@ assert.equal(
   'BLOCKED · 2',
 );
 assert.equal(menuTileSash({ supported: false, hasRom: true })?.text, 'BLOCKED');
+
+// A computer's regional versions -- MAME's clones of one parent -- are one box:
+// named without the region, ready when any version is accepted, counting every
+// version's shelf; arcade clones stay boxes of their own.
+{
+  type Entry = {
+    game: string; kind: 'computer' | 'arcade'; fullname: string; title: string; supported: boolean; hasRom: boolean;
+    hasPhoto: boolean; generationGaps: string[]; cloneof?: string; preview?: boolean; variants?: string[];
+  };
+  const entry = (game: string, kind: 'computer' | 'arcade', extra: Partial<Entry> = {}): Entry => ({
+    game, kind, fullname: `Machine ${game} (${game.toUpperCase()})`, title: game, supported: true, hasRom: false,
+    hasPhoto: game === 'base', generationGaps: [], ...extra,
+  });
+  const shelved = menuEntries([
+    entry('pac', 'arcade'),
+    entry('pacclone', 'arcade', { cloneof: 'pac' }),
+    entry('base', 'computer', { preview: true }),
+    entry('basepal', 'computer', { cloneof: 'base', hasRom: true }),
+    entry('alone', 'computer'),
+  ]);
+  assert.deepEqual(shelved.map(item => item.game), ['pac', 'pacclone', 'base', 'alone']);
+  const family = shelved.find(item => item.game === 'base')!;
+  assert.equal(family.fullname, 'Machine base');
+  assert.deepEqual(family.variants, ['base', 'basepal']);
+  assert.equal(family.preview, false, 'an accepted version makes the box ready');
+  assert.equal(family.hasRom, true);
+  assert.equal(family.hasPhoto, true, 'the box shows its parent\'s photograph');
+  assert.equal(menuTileSash(family)?.text, 'PLAY');
+  assert.equal(shelved.find(item => item.game === 'alone')!.variants, undefined);
+  const unready = menuEntries([entry('base', 'computer', { preview: true }), entry('basepal', 'computer', { cloneof: 'base', preview: true })]);
+  assert.equal(menuTileSash(unready[0]!)?.text, 'EXPERIMENTAL');
+}

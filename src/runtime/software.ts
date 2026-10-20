@@ -17,18 +17,30 @@
 // set holds; the shell's own transport controls mount them at power-on and
 // the machine's firmware is asked for the way any romset is.
 
-import { betaBadge, runShell, type MountedImage, type ShellConfig, type SoftwareShelf } from './shell.ts';
+import {
+  betaBadge, requiredRomRegions, runShell, storedRomFiles, type MountedImage, type ShellConfig, type SoftwareShelf,
+} from './shell.ts';
+import { openRomStore } from './romstore.ts';
+import { firmwareSets as firmwareStatus, holdsFirmware, type FirmwareSet } from './firmware-status.ts';
 import { openCartStore, type CartRecord } from './cartstore.ts';
 import { readZip, crc32 } from './zip.ts';
-import { cartAvailability, fetchRomBytes, type CartAvailability } from './rom-source.ts';
+import { cartAvailability, fetchRomBytes, machineSetDir, machineSetKeys, type CartAvailability } from './rom-source.ts';
 import { wrapCartTitle } from './console.ts';
 import { artworkSources } from './artwork-source.ts';
+import { emptyMediaSlots, softwarePart, withoutSlotFirmware } from './title-start.ts';
+import { chooseVersion, onlyVersion, versionFilters, versionLabel, type MachineVersion } from './machine-versions.ts';
 
 const GOLD = '#f2c200';
 const MAX_SET = 16 * 1024 * 1024; // a disk image set; no tape or cart is near it
 
 /** the generated catalogue, as the room reads it (src/kg/softlist.ts writes it) */
-export interface SoftRom { size: number; crc: string; offset: number; file?: string }
+export interface SoftRom {
+  size: number; crc: string; offset: number; file?: string;
+  /** a cartridge chip's dataarea */
+  area?: string;
+  /** where MAME reads the chip again from its start (`loadflag="reload"`) */
+  reloads?: { offset: number; size: number }[];
+}
 export interface SoftEntry {
   name: string;
   description: string;
@@ -41,6 +53,16 @@ export interface SoftEntry {
   parts?: number;
   /** MAME's note on starting the set: `Commodore: Load "JINGLE",8,1` */
   usage?: string;
+  /** the video standard the list says the set was made for (`<info name="video">`) */
+  video?: string;
+  /** the title's own start command, from its usage note, over its shelf's */
+  start?: string;
+  /** each cartridge dataarea's declared size ("roml": 8192) */
+  areas?: Record<string, number>;
+  /** the part's other features: a C64 cartridge's `exrom` and `game` */
+  features?: Record<string, string>;
+  /** configuration switches the title's note asks for (software-shelves usageSwitches) */
+  switches?: { port: string; mask: number; value: number }[];
 }
 export interface SoftCatalog {
   list: string;
@@ -53,6 +75,10 @@ export interface SoftCatalog {
 /** games.json manifest entry (the fields the room shows in the header) */
 interface MenuEntry {
   game: string;
+  kind?: string;
+  dataPath?: string;
+  /** MAME's parent machine, for a regional version */
+  cloneof?: string;
   fullname: string;
   year: string;
   manufacturer: string;
@@ -272,7 +298,9 @@ export function identifySet(
  * list can still carry sets in another one: the C64's misc disks include a
  * `.img` its 1541 cannot read, which used to boot with the drive empty.
  */
-export function entryPlayable(entry: Pick<SoftEntry, 'prg'>, shelf: Pick<SoftwareShelf, 'extensions'>): boolean {
+export function entryPlayable(entry: Pick<SoftEntry, 'prg'>, shelf: Pick<SoftwareShelf, 'extensions' | 'imageDevice'>): boolean {
+  // A cartridge is read area by area into its slot, not as an image file.
+  if (shelf.imageDevice) return entry.prg.roms.some(rom => rom.area);
   return entry.prg.roms.some(rom => {
     const extension = rom.file?.includes('.') ? rom.file.split('.').pop()!.toLowerCase() : '';
     return Boolean(extension) && shelf.extensions.includes(extension);
@@ -290,33 +318,63 @@ export function mountableImages(
     .map(([name, bytes]) => ({ name: name.split('/').pop() ?? name, bytes }));
   if (!entry) return images;
   const order = new Map(entry.prg.roms.map((rom, index) => [rom.file?.toLowerCase(), index]));
-  return images.sort((a, b) =>
+  // A list marks a disk write protected as a feature its drive's call_load reads.
+  const features = entry.features;
+  return images.map(image => features ? { ...image, features } : image).sort((a, b) =>
     (order.get(a.name.toLowerCase()) ?? 1e9) - (order.get(b.name.toLowerCase()) ?? 1e9));
 }
 
 // --- the room ---------------------------------------------------------------------------
 
 export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
-  document.title = cfg.title;
   addEventListener('popstate', () => location.reload());
-  const shelves = cfg.software?.shelves ?? [];
-  const dumpsKey = cfg.software?.dumpsKey ?? cfg.dataPath.replace(/^games\//, '');
-  const firmware = cfg.roms.some(spec => spec.loads.length > 0);
+  const [store, manifest] = await Promise.all([openCartStore(), fetchManifest()]);
+  // A machine's regional versions -- MAME's clones of one parent, the PAL C64
+  // of the NTSC one -- share one room (machine-versions.ts). Each keeps its own
+  // config and the catalogues its own software-list filter let through, and
+  // Play picks the version per title.
+  const entry = manifest.find(item => item.game === cfg.game) ?? null;
+  const familyName = entry?.cloneof ?? cfg.game;
+  const versions = await loadVersions(cfg, entry, manifest, familyName);
+  const head = versions.find(version => version.game === familyName) ?? versions[0]!;
+  const familyTitle = (head.entry?.fullname ?? head.cfg.title).replace(/\s*\(.*\)$/, '');
+  document.title = versions.length > 1 ? familyTitle : cfg.title;
+  // Every version's shelves, one tab per list: the same lists, filtered per
+  // machine, so a tab holds what any version can play.
+  const shelves: SoftwareShelf[] = [];
+  const shelfOf = new Map<string, Map<string, SoftwareShelf>>();
+  for (const version of versions) {
+    for (const shelf of version.cfg.software?.shelves ?? []) {
+      let byVersion = shelfOf.get(shelf.list);
+      if (!byVersion) {
+        byVersion = new Map();
+        shelfOf.set(shelf.list, byVersion);
+        shelves.push(shelf);
+      }
+      byVersion.set(version.game, shelf);
+    }
+  }
+  const dumpsKey = head.cfg.software?.dumpsKey ?? head.cfg.dataPath.replace(/^games\//, '');
+  const firmware = head.cfg.roms.some(spec => spec.loads.length > 0);
   // The sets the machine asks for, as the drop screen names them: a C64 with
   // its 1541 wants c64.zip and the drive's c1541.zip.
-  const firmwareSets = [...new Set(cfg.roms.filter(spec => spec.loads.length > 0)
-    .flatMap(spec => spec.loads.map(load => load.romSet ?? spec.romSet ?? cfg.game)))]
+  const firmwareSets = [...new Set(head.cfg.roms.filter(spec => spec.loads.length > 0)
+    .flatMap(spec => spec.loads.map(load => load.romSet ?? spec.romSet ?? head.game)))]
     .map(set => `${set}.zip`);
   const firmwareNames = firmwareSets.length > 1
     ? `${firmwareSets.slice(0, -1).join(', ')} and ${firmwareSets.at(-1)}`
-    : firmwareSets[0] ?? `${cfg.game}.zip`;
+    : firmwareSets[0] ?? `${head.game}.zip`;
 
-  const [store, entry] = await Promise.all([openCartStore(), fetchOwnEntry(cfg)]);
   // A candidate machine is exposed by the development build as a preview:
   // the menu opens it, so the room plays it. Only a build whose closure lacks
   // the board is barred.
-  const coreSupported = entry?.supported !== false || entry?.preview === true;
+  const coreSupported = versions.some(version => version.entry?.supported !== false || version.entry?.preview === true);
+  /** Each list's titles across every version, the first version's entry kept. */
   const catalogs = new Map<string, SoftCatalog>();
+  /** Every version's own catalogues, as generated: what a dropped set is identified against. */
+  const sources: SoftCatalog[] = [];
+  /** For each list, the versions whose catalogues hold each title. */
+  const listedBy = new Map<string, Map<string, string[]>>();
   const availability = new Map<string, Map<string, CartAvailability>>();
   const loading = new Map<string, Promise<void>>();
   let inRoom = true;
@@ -325,18 +383,36 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   const shelfFor = (list: string | undefined): SoftwareShelf | undefined =>
     shelves.find(shelf => shelf.list === list);
 
-  /** Fetch a shelf's catalogue and availability once; the room is usable before either lands. */
+  /** Fetch a shelf's catalogues and availability once; the room is usable before either lands. */
   function loadShelf(shelf: SoftwareShelf): Promise<void> {
     let pending = loading.get(shelf.list);
     if (pending) return pending;
     pending = (async () => {
-      try {
-        const r = await fetch(`../${cfg.dataPath}/${shelf.catalogUrl}`);
-        if (r.ok) catalogs.set(shelf.list, await r.json() as SoftCatalog);
-      } catch { /* the shelf stays empty and says so */ }
-      if (shelf.availableUrl) {
+      const merged: SoftEntry[] = [];
+      const names = new Map<string, string[]>();
+      let first: SoftCatalog | undefined;
+      for (const [game, own] of shelfOf.get(shelf.list) ?? []) {
+        const version = versions.find(candidate => candidate.game === game)!;
         try {
-          const r = await fetch(`../${cfg.dataPath}/${shelf.availableUrl}`);
+          const r = await fetch(`../${version.cfg.dataPath}/${own.catalogUrl}`);
+          if (!r.ok) continue;
+          const catalog = await r.json() as SoftCatalog;
+          sources.push(catalog);
+          first ??= catalog;
+          for (const item of catalog.entries) {
+            const holders = names.get(item.name);
+            if (holders) holders.push(game);
+            else { names.set(item.name, [game]); merged.push(item); }
+          }
+        } catch { /* that version's shelf stays out; the room says so if all do */ }
+      }
+      if (first) catalogs.set(shelf.list, { ...first, entries: merged });
+      listedBy.set(shelf.list, names);
+      const listing = [...shelfOf.get(shelf.list) ?? []].find(([, own]) => own.availableUrl);
+      if (listing) {
+        const version = versions.find(candidate => candidate.game === listing[0])!;
+        try {
+          const r = await fetch(`../${version.cfg.dataPath}/${listing[1].availableUrl}`);
           const byName = new Map<string, CartAvailability>();
           for (const cart of cartAvailability(r.ok ? await r.json() : null)) {
             if (cart.tier === 'verified' && cart.name) byName.set(cart.name, cart);
@@ -360,24 +436,84 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     justify-content:space-between;background:linear-gradient(180deg,#0f1330,#05060f)`);
   const heading = el('div', '');
   const h1 = el('div', `font-size:30px;font-weight:900;color:${GOLD};line-height:1.1`);
-  h1.textContent = (entry?.fullname ?? cfg.title).replace(/\s*\(.*\)$/, '');
+  h1.textContent = familyTitle;
   // A preview machine says so where it is named: it plays, but its emulation
   // has no gameplay acceptance yet, so a failed tape is a known possibility.
-  const preview = entry?.preview === true || entry?.supported === false;
-  if (preview) h1.appendChild(betaBadge());
+  // With versions, the version says so on its own button instead.
+  if (versions.every(version => version.preview)) h1.appendChild(betaBadge());
   const sub = el('div', 'color:#8f99d2;font-size:13px;margin-top:4px');
-  sub.textContent = [entry?.manufacturer, entry?.year, cfg.title.replace(/^.*\((\w+)\)\s*\(.*$/, '$1')]
+  sub.textContent = [head.entry?.manufacturer, head.entry?.year,
+    versions.length > 1 ? '' : cfg.title.replace(/^.*\((\w+)\)\s*\(.*$/, '$1')]
     .filter(Boolean).join(' · ');
   heading.append(h1, sub);
+  // The region, chosen here rather than on the boot menu: Auto plays each
+  // title on the version its software list lets it through to, and of two the
+  // one the list says it was made for; a version picked by hand wins wherever
+  // the title runs on it. Remembered per machine.
+  const regionKey = `mamekit:region:${familyName}`;
+  let preference = 'auto';
+  try {
+    const stored = localStorage.getItem(regionKey);
+    if (stored && versions.some(version => version.game === stored)) preference = stored;
+  } catch { /* no storage: Auto */ }
+  const regionButtons = new Map<string, HTMLButtonElement>();
+  if (versions.length > 1) {
+    const region = el('div', 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px');
+    region.setAttribute('data-region-control', '');
+    region.setAttribute('role', 'group');
+    region.setAttribute('aria-label', 'Region');
+    const caption = el('span', 'color:#7f8ac9;font:700 11px ui-monospace,monospace;letter-spacing:2px');
+    caption.textContent = 'REGION';
+    region.appendChild(caption);
+    for (const [value, text, title] of [
+      ['auto', 'AUTO', 'Each title on the version its software list allows, and of two the one the list says it was made for'],
+      ...versions.map(version => [version.game, version.label,
+        `${version.entry?.fullname ?? version.game}${version.preview ? ' — in beta: no gameplay acceptance yet' : ''}`]),
+    ] as [string, string, string][]) {
+      const choice = document.createElement('button');
+      choice.setAttribute('data-region', value);
+      choice.title = title;
+      choice.textContent = text;
+      if (versions.find(version => version.game === value)?.preview) {
+        const beta = el('span', 'margin-left:6px;font-size:9px;letter-spacing:1px;opacity:.75');
+        beta.textContent = 'BETA';
+        choice.appendChild(beta);
+      }
+      choice.addEventListener('click', () => {
+        preference = value;
+        try { localStorage.setItem(regionKey, value); } catch { /* not kept */ }
+        paintRegion();
+        choice.blur();
+      });
+      regionButtons.set(value, choice);
+      region.appendChild(choice);
+    }
+    heading.appendChild(region);
+  }
+  function paintRegion(): void {
+    for (const [value, choice] of regionButtons) {
+      const on = value === preference;
+      choice.setAttribute('aria-pressed', String(on));
+      choice.style.cssText = `padding:5px 12px;border-radius:999px;font:800 11px ui-monospace,monospace;letter-spacing:1px;cursor:pointer;
+        ${on ? `background:${GOLD};color:#1b1b1b;border:2px solid ${GOLD}` : 'background:#111633;color:#cbd1ff;border:2px solid #303a78'}`;
+    }
+    const power = versionForPowerOn();
+    powerBtn.title = `${firmware
+      ? `Boot the machine with nothing loaded — it asks for its own ${firmwareNames} firmware first`
+      : 'Boot the machine with nothing loaded'}${versions.length > 1 ? ` (${power.entry?.fullname ?? power.game})` : ''}`;
+  }
+  function versionForPowerOn(): Version {
+    return chooseVersion(versions, undefined, preference);
+  }
   // The machine itself, as the console room shows its console: a photograph
   // on genuine transparency, so it sits in the banner rather than pasted on.
   // Asked for only when the build shipped one, and dropped if it will not
   // decode, so a build without the artwork tree shows the heading alone.
   const masthead = el('div', 'display:flex;align-items:center;gap:22px;min-width:0');
-  if (entry?.hasPhoto) {
+  if (head.entry?.hasPhoto) {
     const hero = el('div', `width:200px;height:104px;flex:0 0 auto;display:none;align-items:center;justify-content:center`);
     hero.setAttribute('data-computer-hero', '');
-    const [web, archival] = artworkSources(`media/computers/${cfg.game}.png`);
+    const [web, archival] = artworkSources(`media/computers/${head.game}.png`);
     const photo = document.createElement('img');
     photo.decoding = 'async';
     photo.alt = '';
@@ -403,7 +539,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   insertBtn.title = `Drop a set zip or a bare image (${shelves.flatMap(s => s.extensions).map(e => `.${e}`).join(' ')}) anywhere on this page`;
   insertBtn.addEventListener('click', () => picker.click());
   const dossier = document.createElement('a');
-  dossier.href = `g/${encodeURIComponent(cfg.game)}/dossier/`;
+  dossier.href = `g/${encodeURIComponent(head.game)}/dossier/`;
   dossier.textContent = 'Dossier';
   dossier.style.cssText = 'padding:8px 16px;border-radius:8px;font-weight:700;text-decoration:none;border:2px solid #2a3160;color:#9fb0ff';
   const back = document.createElement('a');
@@ -419,6 +555,128 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     ? `Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser; playing it boots the machine, which first asks for its own ${firmwareNames} firmware (dropped, or found by the web search).`
     : 'Software is never distributed with mamekit. A title you fetch or drop is kept only in this browser.';
   root.appendChild(notes);
+
+  // --- firmware ---------------------------------------------------------------------------
+  // What the machine's firmware is and which of it this browser keeps, said
+  // here, before Play, rather than on the drop screen after it: a missing
+  // drive ROM costs only the disks, and a dropped or fetched set boots every
+  // version (firmware-status.ts). Play itself never waits on a decision.
+  const romStore = await openRomStore();
+  const critical = requiredRomRegions(head.cfg.roms, head.cfg.board.cpus.map(cpu => cpu.region));
+  const mediaSlots = [...new Set(shelves.flatMap(shelf => shelf.slots ?? []))];
+  const siblings = versions.filter(version => version !== head).map(version => version.game);
+  let keptFiles = new Map<string, Uint8Array>();
+  let sets: FirmwareSet[] = [];
+  const firmwareBar = el('div', `max-width:1280px;margin:12px auto 0;padding:10px 36px 0;box-sizing:border-box;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px`);
+  firmwareBar.setAttribute('data-firmware-status', '');
+  if (firmware) root.appendChild(firmwareBar);
+  const firmwarePicker = document.createElement('input');
+  firmwarePicker.type = 'file';
+  firmwarePicker.accept = '.zip';
+  firmwarePicker.multiple = true;
+  firmwarePicker.tabIndex = -1;
+  firmwarePicker.setAttribute('aria-hidden', 'true');
+  firmwarePicker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  root.appendChild(firmwarePicker);
+  firmwarePicker.addEventListener('change', () => {
+    const files = [...(firmwarePicker.files ?? [])];
+    firmwarePicker.value = '';
+    void (async () => {
+      for (const file of files) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        if (!await keepFirmware(file.name, bytes)) toast(`${file.name}: no chip this machine loads`);
+      }
+    })();
+  });
+  /** What a medium needs, as the bar says it: "disks need it". */
+  const slotNoun = (slot: string): string => {
+    const kinds = [...new Set(shelves.filter(shelf => shelf.slots?.includes(slot)).map(shelf => mediumNoun(shelf.kind)))];
+    return kinds.length ? kinds.join(' and ') : `the ${slot} slot`;
+  };
+  function paintFirmware(): void {
+    firmwareBar.textContent = '';
+    const caption = el('span', 'color:#7f8ac9;font:700 11px ui-monospace,monospace;letter-spacing:2px');
+    caption.textContent = 'FIRMWARE';
+    firmwareBar.appendChild(caption);
+    for (const set of sets) {
+      const chip = el('span', `padding:3px 10px;border-radius:999px;font:700 11px ui-monospace,monospace;
+        ${set.kept ? 'color:#5ecf7a;border:1px solid #2b6b3d' : 'color:#f0a35e;border:1px solid #7a4b20'}`);
+      chip.setAttribute('data-firmware', set.name);
+      chip.dataset.kept = String(set.kept);
+      chip.textContent = `${set.kept ? '✓' : '✗'} ${set.name}.zip${set.kept ? '' : set.slot ? ` — ${slotNoun(set.slot)} need it` : ' — every title needs it'}`;
+      chip.title = set.kept ? `${set.name}.zip is kept in this browser` : `${set.name}.zip is not in this browser yet`;
+      firmwareBar.appendChild(chip);
+    }
+    const missing = sets.filter(set => !set.kept);
+    const add = button('◍ Add firmware…', false, true);
+    add.setAttribute('data-firmware-add', '');
+    add.style.cssText += ';padding:4px 12px;font-size:12px';
+    add.title = `Choose ${firmwareNames} (kept only in this browser)`;
+    add.addEventListener('click', () => firmwarePicker.click());
+    firmwareBar.appendChild(add);
+    if (missing.length) {
+      const search = button('⌕ Search the web', false, true);
+      search.setAttribute('data-firmware-search', '');
+      search.style.cssText += ';padding:4px 12px;font-size:12px';
+      search.addEventListener('click', () => { void searchFirmware(missing); });
+      firmwareBar.appendChild(search);
+    } else {
+      const ok = el('span', 'color:#5f6aa8');
+      ok.textContent = 'kept in this browser — titles boot straight in';
+      firmwareBar.appendChild(ok);
+    }
+    paintNeeds();
+  }
+  async function refreshFirmware(): Promise<void> {
+    const kept = await storedRomFiles(romStore, head.game, head.cfg.roms, critical, siblings);
+    keptFiles = kept?.files ?? new Map();
+    sets = firmwareStatus(head.cfg.roms, head.game, keptFiles, mediaSlots);
+    paintFirmware();
+  }
+  /** Keep a zip that holds this machine's chips with the rest of its firmware; false if it holds none. */
+  async function keepFirmware(name: string, bytes: Uint8Array): Promise<boolean> {
+    let members: Map<string, Uint8Array>;
+    try { members = await readZip(bytes); } catch { return false; }
+    if (!holdsFirmware(members, head.cfg.roms)) return false;
+    const record = await romStore.get(head.game).catch(() => null);
+    const zips = [...(record?.zips ?? []).filter(zip => zip.name.toLowerCase() !== name.toLowerCase()),
+      { name, bytes: bytes.slice().buffer }];
+    try { await romStore.put({ game: head.game, zips, addedAt: Date.now() }); }
+    catch { toast(`${name}: this browser could not keep it`); return true; }
+    toast(romStore.persistent ? `${name} kept in this browser` : `${name} kept for this visit only`);
+    await refreshFirmware();
+    return true;
+  }
+  /** The web search the drop screen offers, from here: each missing set under the keys the app tries. */
+  async function searchFirmware(missing: FirmwareSet[]): Promise<void> {
+    const category = head.cfg.dataPath.replace(/^games\//, '').split('/')[0] ?? 'computers';
+    for (const set of missing) {
+      const dir = machineSetDir(category, dumpsKey);
+      const keys = set.name === head.game
+        ? machineSetKeys(set.name, category, dumpsKey)
+        : [...new Set([`${dir}/${set.name}.zip`, `${category}/${set.name}.zip`])];
+      let found = false;
+      for (const key of keys) {
+        const bytes = await fetchRomBytes(key);
+        if (bytes && await keepFirmware(`${set.name}.zip`, bytes)) { found = true; break; }
+      }
+      if (!found) toast(`${set.name}.zip: no web source had it — add your own`);
+    }
+  }
+  /** The sets a title cannot boot without, for the version that would play it. */
+  function missingFor(rec: CartRecord | null): string[] {
+    const version = rec
+      ? chooseVersion(versions, rec.list && rec.set ? listedBy.get(rec.list)?.get(rec.set) : undefined, preference, ownedEntry(rec)?.video)
+      : versionForPowerOn();
+    const empty = emptyMediaSlots(version.cfg.software, rec?.list, []);
+    const roms = withoutSlotFirmware(version.cfg.roms, empty);
+    const regions = new Set(roms.map(spec => spec.region));
+    return sets.filter(set => !set.kept && (!set.slot || !empty.includes(set.slot)))
+      .filter(set => head.cfg.roms.some(spec => regions.has(spec.region) && spec.loads.length > 0 &&
+        spec.loads.some(load => (load.romSet ?? spec.romSet ?? head.game) === set.name)))
+      .map(set => `${set.name}.zip`);
+  }
 
   const board = el('div', 'max-width:1280px;margin:0 auto;padding:0 36px;box-sizing:border-box');
   root.appendChild(board);
@@ -509,14 +767,17 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     const tab = document.createElement('button');
     tab.setAttribute('role', 'tab');
     tab.setAttribute('data-media-tab', shelf.list);
-    // Two lists of one medium -- the C64's own cartridges and the VIC-10's,
-    // its original and miscellaneous disks -- are told apart by list name.
-    const shared = shelves.filter(other => other.kind === shelf.kind).length > 1;
-    tab.textContent = `${mediumNoun(shelf.kind).toUpperCase()}${shared ? ` · ${shelf.list}` : ''} · ${shelf.entries.toLocaleString()}`;
+    tab.textContent = tabText(shelf, Math.max(...[...shelfOf.get(shelf.list)!.values()].map(own => own.entries)));
     tab.title = `${shelf.description} (hash/${shelf.list}.xml)${shelf.mountable ? '' : ' — display only until the medium mounts'}`;
     tab.addEventListener('click', () => { void showShelf(shelf); });
     tabs.appendChild(tab);
     tabButtons.set(shelf.list, tab);
+  }
+  function tabText(shelf: SoftwareShelf, count: number): string {
+    // Two lists of one medium -- the C64's own cartridges and the VIC-10's,
+    // its original and miscellaneous disks -- are told apart by list name.
+    const shared = shelves.filter(other => other.kind === shelf.kind).length > 1;
+    return `${mediumNoun(shelf.kind).toUpperCase()}${shared ? ` · ${shelf.list}` : ''} · ${count.toLocaleString()}`;
   }
   function paintTabs(): void {
     for (const [list, tab] of tabButtons) {
@@ -533,6 +794,8 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     entry: SoftEntry;
     avail?: CartAvailability;
     haystack: string;
+    /** the versions whose catalogues hold the title */
+    versions?: string[];
   }
   let rows: LibraryRow[] = [];
   let limit = 48;
@@ -543,11 +806,13 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   function buildRows(shelf: SoftwareShelf): LibraryRow[] {
     const catalog = catalogs.get(shelf.list);
     const avail = availability.get(shelf.list);
+    const names = listedBy.get(shelf.list);
     return (catalog?.entries ?? []).map(entry => ({
       shelf,
       entry,
       avail: avail?.get(entry.name),
       haystack: `${entry.description} ${entry.publisher} ${entry.year} ${entry.name}`.toLocaleLowerCase(),
+      versions: names?.get(entry.name),
     }));
   }
 
@@ -561,6 +826,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     await loadShelf(shelf);
     if (active !== shelf) return;
     rows = buildRows(shelf);
+    tabButtons.get(shelf.list)!.textContent = tabText(shelf, rows.length);
     const verified = availability.get(shelf.list)?.size ?? 0;
     scope.textContent = '';
     for (const [value, label] of [
@@ -620,6 +886,25 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     c.addEventListener('mouseleave', () => { c.style.transform = 'perspective(700px) rotateY(-2deg)'; });
     return c;
   }
+  /**
+   * A title's cover in place of its drawn medium, where its shelf has one
+   * (`shelf.art`, the .webp the site ships under artwork/carts/<list>/). The
+   * drawing stays underneath: a cover that does not load leaves it showing.
+   */
+  function withCover(cover: HTMLElement, shelf: SoftwareShelf | undefined, name: string | undefined): void {
+    const file = shelf && name ? shelf.art?.[name] : undefined;
+    if (!file) return;
+    const [web] = artworkSources(`carts/${shelf!.list}/${file}`);
+    const img = document.createElement('img');
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.setAttribute('data-cover', '');
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px';
+    img.onerror = () => img.remove();
+    img.src = web;
+    cover.appendChild(img);
+  }
   function titleLine(text: string): HTMLElement {
     const box = el('div', 'max-width:164px;height:26px;display:flex;align-items:center;justify-content:center');
     const line = el('div', `display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
@@ -628,6 +913,15 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     box.title = text;
     box.appendChild(line);
     return box;
+  }
+  /** A title only one version lists says which: MAME's filter keeps it off the other's shelf. */
+  function regionChip(only: Version): HTMLElement {
+    const chip = el('div', `padding:1px 8px;border-radius:999px;border:1px solid #3d4689;color:#aeb8ff;
+      font:800 9px ui-monospace,monospace;letter-spacing:1px`);
+    chip.setAttribute('data-region-only', only.game);
+    chip.textContent = `${only.label} ONLY`;
+    chip.title = `Only the ${only.entry?.fullname ?? only.label} lists this title; Play starts that version`;
+    return chip;
   }
   function smallBtn(text: string, attr: string, solid: boolean, enabled: boolean): HTMLButtonElement {
     const b = button(text, solid, enabled);
@@ -654,12 +948,15 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       ...(soft.supported ? { supported: soft.supported } : {}),
       ...(soft.parts ? { parts: soft.parts } : {}),
     }), state === 'display');
+    withCover(cover, shelf, soft.name);
     const label = el('div', `max-width:164px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-align:center;
       color:${state === 'available' ? '#5ecf7a' : state === 'display' ? '#737ba7' : '#e8b64c'}`);
     label.textContent = state === 'available' ? '' : state === 'display' ? 'DISPLAY ONLY' : 'INSERT YOUR OWN';
     if (!label.textContent) label.style.display = 'none';
     item.append(cover, titleLine(stripSet(soft.description)), label);
+    const only = onlyVersion(versions, row.versions);
+    if (only) item.insertBefore(regionChip(only), label);
     item.title = `${soft.description} — ${zipName}${state === 'display'
       ? shelf.mountable
         ? ` · not a format this ${mediumNoun(shelf.kind, 1)} drive reads (${shelf.extensions.map(extension => `.${extension}`).join(' ')})`
@@ -714,7 +1011,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   }
 
   // --- ingestion -------------------------------------------------------------------------
-  interface Owned { rec: CartRecord; item: HTMLElement }
+  interface Owned { rec: CartRecord; item: HTMLElement; needs?: HTMLElement }
   const owned: Owned[] = [];
 
   /**
@@ -735,23 +1032,31 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     // Identify against every shelf, not only the one on screen: a dropped
     // file names no shelf, and a fetched one is checked the same way.
     await Promise.all(shelves.map(loadShelf));
-    const identified = identifySet(members, catalogs.values());
+    const identified = identifySet(members, sources);
     // The shelf on screen is only a hint: a disk image dropped while the
     // tapes are showing belongs on a disk shelf, not refused by the tape one.
-    const takes = (candidate: SoftwareShelf | undefined): boolean =>
-      Boolean(candidate && mountableImages(members, candidate.extensions).length);
+    // A cartridge shelf takes a set its list identifies whole: the slot reads
+    // its chips by area, so there is no image file to look for.
+    const takes = (candidate: SoftwareShelf | undefined): boolean => Boolean(candidate && (candidate.imageDevice
+      ? (identified?.list === candidate.list && softwarePart(members, identified.entry)) ||
+        (!identified && mountableImages(members, candidate.extensions).length)
+      : mountableImages(members, candidate.extensions).length));
     const shelf = shelfFor(identified?.list) ?? (takes(hint) ? hint : shelves.find(takes) ?? hint);
     if (!shelf) { toast(`${name}: no image inside that any shelf here accepts`); return false; }
-    if (!mountableImages(members, shelf.extensions).length) {
-      toast(`${name}: no ${shelf.extensions.map(e => `.${e}`).join(' / ')} image inside`);
+    if (!takes(shelf)) {
+      toast(shelf.imageDevice ? `${name}: not every chip of a ${shelf.list} set is inside`
+        : `${name}: no ${shelf.extensions.map(e => `.${e}`).join(' / ')} image inside`);
       return false;
     }
-    const id = `${cfg.game}:${hex8(crc32(bytes))}`;
-    const existing = owned.find(o => o.rec.id === id);
+    // Kept under the machine's parent, and known by its crc whichever version
+    // a set was first kept under, so one title is on one shelf.
+    const crc = hex8(crc32(bytes));
+    const id = `${familyName}:${crc}`;
+    const existing = owned.find(o => o.rec.id.split(':').pop() === crc);
     if (existing) { flash(existing.item); return true; }
     const rec: CartRecord = {
       id,
-      console: cfg.game,
+      console: familyName,
       name: identified ? `${identified.entry.name}.zip` : name,
       bytes: bytes.slice().buffer,
       size: bytes.length,
@@ -765,8 +1070,23 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     owned.push(tile);
     ownRow.appendChild(tile.item);
     ownHead.style.display = '';
+    paintNeeds();
     flash(tile.item);
     return true;
+  }
+
+  function paintNeeds(): void {
+    for (const own of owned) {
+      if (!own.needs) continue;
+      const missing = missingFor(own.rec);
+      own.needs.textContent = missing.length ? `NEEDS ${missing.join(' + ')}` : '';
+      own.needs.title = missing.length ? 'Play asks for it first; add it above to boot straight in' : '';
+    }
+    if (firmware) {
+      const missing = missingFor(null);
+      powerBtn.dataset.needs = missing.join(' ');
+      powerBtn.title = `${powerBtn.title.replace(/ — needs .*$/, '')}${missing.length ? ` — needs ${missing.join(' + ')}` : ''}`;
+    }
   }
 
   function flash(item: HTMLElement): void {
@@ -797,6 +1117,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       ...(soft?.supported ? { supported: soft.supported } : {}),
       ...(soft?.parts ? { parts: soft.parts } : {}),
     }), false);
+    withCover(cover, shelf, rec.set);
     cover.style.width = `${TILE_W}px`;
     cover.style.height = `${TILE_H}px`;
     const status = el('div', 'font-size:10px;font-weight:700;letter-spacing:.8px;text-align:center;min-height:13px;color:#5ecf7a');
@@ -823,47 +1144,100 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     buttons.append(play, eject);
     cover.onclick = () => { if (canPlay) void boot(rec); };
     item.append(cover, titleLine(title), status, buttons);
+    const only = rec.list && rec.set ? onlyVersion(versions, listedBy.get(rec.list)?.get(rec.set)) : undefined;
+    if (only) item.insertBefore(regionChip(only), status);
     item.title = `${title} — ${rec.name}`;
-    return { rec, item };
+    // What this title still needs before it boots straight in, kept current
+    // with the firmware bar.
+    const needs = el('div', 'font:700 10px ui-monospace,monospace;letter-spacing:.5px;color:#f0a35e;text-align:center;min-height:0');
+    needs.setAttribute('data-needs', '');
+    item.insertBefore(needs, buttons);
+    // MAME's own note on the title, where you play it: which joystick port,
+    // when to turn the tape. (One naming a start command is typed by Play.)
+    if (soft?.usage) {
+      const note = el('div', `max-width:${TILE_W}px;color:#9aa4dc;font-size:10.5px;line-height:1.35;text-align:center;
+        display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden`);
+      note.setAttribute('data-usage', '');
+      note.textContent = `ⓘ ${soft.usage}`;
+      note.title = `MAME's note: ${soft.usage}`;
+      item.insertBefore(note, needs);
+    }
+    return { rec, item, needs };
   }
 
   // --- boot -----------------------------------------------------------------------------
   // A medium's transport is attached only for the titles that use it: a tape
   // title boots with the disk drive's slot empty, as MAME's `-iec8 ""` does,
   // rather than running the 1541's processor in lockstep with the machine's
-  // own for nothing. Power on attaches every one.
-  const mediaSlots = [...new Set(shelves.flatMap(shelf => shelf.mountable ? shelf.slots ?? [] : []))];
+  // own for nothing. Power on attaches every one (title-start.ts).
   // A title restarted from inside the machine to connect a transport comes
   // back through a reload; this carries what to boot across it.
-  const restartKey = `mamekit:restart:${cfg.game}`;
+  const restartKey = `mamekit:restart:${familyName}`;
 
-  async function boot(rec: CartRecord | null, attached: string[] = [], restarted = false): Promise<void> {
+  async function boot(rec: CartRecord | null, attached: string[] = [], restarted = false, pinned?: string): Promise<void> {
+    // The version that plays it: the one its software list lets it through to,
+    // else the region chosen here (machine-versions.ts). A restart to connect
+    // a transport comes back to the same one.
+    const listed = rec?.list && rec.set ? listedBy.get(rec.list)?.get(rec.set) : undefined;
+    const version = versions.find(candidate => candidate.game === pinned) ??
+      (rec ? chooseVersion(versions, listed, preference, ownedEntry(rec)?.video) : versionForPowerOn());
+    const machine = version.cfg;
     let images: MountedImage[] = [];
-    let title = cfg.title;
+    // A cartridge goes into its slot before the machine starts (BoardConfig.images).
+    let powerOnImages: NonNullable<ShellConfig['board']['images']> | undefined;
+    let title = machine.title;
     if (rec) {
-      const shelf = shelfFor(rec.list);
+      const shelf = shelfOf.get(rec.list ?? '')?.get(version.game) ?? shelfFor(rec.list);
       if (!shelf?.mountable) { toast(`${rec.name}: this medium does not mount yet`); return; }
       const bytes = new Uint8Array(rec.bytes);
       const isZip = bytes[0] === 0x50 && bytes[1] === 0x4b;
       let members: Map<string, Uint8Array>;
       try { members = isZip ? await readZip(bytes) : new Map([[rec.name, bytes]]); }
       catch { toast(`${rec.name}: could not read the set`); return; }
-      images = mountableImages(members, shelf.extensions, ownedEntry(rec));
-      if (!images.length) { toast(`${rec.name}: no image inside to mount`); return; }
-      title = `${stripSet(ownedEntry(rec)?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''))} — ${cfg.title}`;
+      const owned = ownedEntry(rec);
+      const part = shelf.imageDevice && owned ? softwarePart(members, owned) : undefined;
+      if (shelf.imageDevice) {
+        // A list title is its part; a bare file (a .crt) is the file, whose
+        // own header the port's chooser reads.
+        const file = part ? undefined : mountableImages(members, shelf.extensions)[0];
+        if (!part && !file) { toast(`${rec.name}: not every chip of the set is inside`); return; }
+        powerOnImages = { [shelf.imageDevice]: part ? { name: rec.name, software: part } : { name: file!.name, bytes: file!.bytes } };
+      } else {
+        images = mountableImages(members, shelf.extensions, owned);
+        if (!images.length) { toast(`${rec.name}: no image inside to mount`); return; }
+      }
+      title = `${stripSet(ownedEntry(rec)?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''))} — ${machine.title}`;
     }
     inRoom = false;
     document.body.textContent = '';
     document.body.style.cssText = '';
-    const used = new Set([...(rec ? shelfFor(rec.list)?.slots ?? [] : mediaSlots), ...attached]);
-    const emptySlots = mediaSlots.filter(slot => !used.has(slot));
+    const emptySlots = emptyMediaSlots(machine.software, rec?.list, attached);
+    const shelfStart = rec ? (shelfOf.get(rec.list ?? '')?.get(version.game) ?? shelfFor(rec.list))?.boot : undefined;
+    // A title whose usage note names its own command starts with that one.
+    const ownStart = rec ? ownedEntry(rec)?.start : undefined;
+    const shelfBoot = shelfStart && ownStart ? { ...shelfStart, command: ownStart } : shelfStart;
+    if (versions.length > 1) console.info(`[room] ${rec ? rec.name : 'power on'}: the ${version.entry?.fullname ?? version.game}`);
     const cfg2: ShellConfig = {
-      ...cfg,
+      ...machine,
       title,
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
-      ...(emptySlots.length ? { board: { ...cfg.board, emptySlots } } : {}),
+      ...(emptySlots.length || powerOnImages ? {
+        board: {
+          ...machine.board,
+          ...(emptySlots.length ? { emptySlots } : {}),
+          ...(powerOnImages ? { images: powerOnImages } : {}),
+        },
+      } : {}),
       ...(rec && ownedEntry(rec)?.usage ? { usage: ownedEntry(rec)!.usage } : {}),
-      ...(preview ? { preview: true } : {}),
+      ...(rec ? { titleKey: rec.id } : {}),
+      ...(rec && ownedEntry(rec)?.switches?.length ? { switches: ownedEntry(rec)!.switches } : {}),
+      // A title starts itself: its shelf's command is typed once the machine
+      // is up (Power on, with no title, leaves the keyboard to the visitor).
+      ...(shelfBoot ? { boot: shelfBoot } : {}),
+      ...(version.preview ? { preview: true } : {}),
+      // The other versions' kept firmware is this one's too: the PAL C64 loads
+      // the NTSC machine's chips, and a set kept for one boots the other.
+      ...(versions.length > 1 ? { firmwareFrom: versions.filter(other => other !== version).map(other => other.game) } : {}),
     };
     // The restart reloads the entry this pushed, so it must not push another.
     if (restarted) history.replaceState({ set: rec?.id ?? null }, '', location.href);
@@ -871,7 +1245,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     await runShell(cfg2, undefined, images, {
       attach: slot => {
         try {
-          sessionStorage.setItem(restartKey, JSON.stringify({ set: rec?.id ?? null, attached: [...attached, slot] }));
+          sessionStorage.setItem(restartKey, JSON.stringify({ set: rec?.id ?? null, attached: [...attached, slot], version: version.game }));
         } catch { /* no session storage: the reload lands in the room */ }
         location.reload();
       },
@@ -951,6 +1325,8 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
       let bytes: Uint8Array;
       try { bytes = new Uint8Array(await f.arrayBuffer()); }
       catch { toast(`${f.name}: could not read the file`); continue; }
+      // The machine's own firmware dropped on the room is kept as firmware.
+      if (firmware && /\.zip$/i.test(f.name) && await keepFirmware(f.name, bytes)) continue;
       await ingest(f.name, bytes, active);
     }
   }
@@ -973,6 +1349,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
 
   // --- go ----------------------------------------------------------------------------------
   paintTabs();
+  paintRegion();
   if (active) void showShelf(active);
   else {
     const empty = el('div', 'grid-column:1/-1;padding:38px;color:#7982b8;text-align:center');
@@ -981,7 +1358,12 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   }
   // The visitor's own sets need their catalogues to show a title; load those
   // shelves too, without holding the library.
-  const recs = await store.list(cfg.game);
+  // Every version's kept sets, one shelf of them: a title kept by crc once.
+  const recs: CartRecord[] = [];
+  for (const rec of (await Promise.all(versions.map(version => store.list(version.game)))).flat()) {
+    const crc = rec.id.split(':').pop();
+    if (!recs.some(other => other.id.split(':').pop() === crc)) recs.push(rec);
+  }
   await Promise.all([...new Set(recs.map(rec => rec.list).filter(Boolean))]
     .map(list => shelfFor(list)).filter((shelf): shelf is SoftwareShelf => Boolean(shelf)).map(loadShelf));
   for (const rec of recs) {
@@ -990,9 +1372,10 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     ownRow.appendChild(tile.item);
   }
   ownHead.style.display = owned.length ? '' : 'none';
+  if (firmware) await refreshFirmware();
 
   // Back from a restart that connected a transport: boot the same title again.
-  let restart: { set: string | null; attached: string[] } | undefined;
+  let restart: { set: string | null; attached: string[]; version?: string } | undefined;
   try {
     const raw = sessionStorage.getItem(restartKey);
     sessionStorage.removeItem(restartKey);
@@ -1000,13 +1383,50 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   } catch { /* storage unavailable or unreadable: stay in the room */ }
   if (restart) {
     const rec = restart.set === null ? null : recs.find(candidate => candidate.id === restart.set);
-    if (rec !== undefined) void boot(rec, Array.isArray(restart.attached) ? restart.attached.map(String) : [], true);
+    if (rec !== undefined) void boot(rec, Array.isArray(restart.attached) ? restart.attached.map(String) : [], true, restart.version);
   }
 }
 
-async function fetchOwnEntry(cfg: ShellConfig): Promise<MenuEntry | null> {
-  try {
-    const games = await fetch('../games.json').then(r => r.json()) as MenuEntry[];
-    return games.find(g => g.game === cfg.game) ?? null;
-  } catch { return null; }
+async function fetchManifest(): Promise<MenuEntry[]> {
+  try { return await fetch('../games.json').then(r => r.json()) as MenuEntry[]; }
+  catch { return []; }
+}
+
+/** One regional version, with the config it boots with and its manifest entry. */
+interface Version extends MachineVersion {
+  cfg: ShellConfig;
+  entry: MenuEntry | null;
+  /** exposed before gameplay acceptance (or unbuildable): says BETA */
+  preview: boolean;
+}
+
+function versionOf(cfg: ShellConfig, entry: MenuEntry | null): Version {
+  return {
+    game: cfg.game,
+    cfg,
+    entry,
+    label: versionLabel(entry?.fullname ?? cfg.title, cfg.game),
+    filters: versionFilters(cfg.software?.shelves ?? []),
+    accepted: entry ? entry.supported !== false && !entry.preview : true,
+    titles: (cfg.software?.shelves ?? []).reduce((sum, shelf) => sum + shelf.entries, 0),
+    preview: entry?.preview === true || entry?.supported === false,
+  };
+}
+
+/**
+ * The room's versions: this machine and every other clone of its parent the
+ * manifest lists, parent first. One whose config does not load is left out
+ * rather than offered and failing.
+ */
+async function loadVersions(cfg: ShellConfig, entry: MenuEntry | null, manifest: readonly MenuEntry[], family: string): Promise<Version[]> {
+  const listed = manifest.filter(other => other.kind === entry?.kind && (other.cloneof ?? other.game) === family);
+  const versions = (await Promise.all(listed.map(async other => {
+    if (other.game === cfg.game) return versionOf(cfg, other);
+    try {
+      const r = await fetch(`../${other.dataPath}/config.json`);
+      return r.ok ? versionOf(await r.json() as ShellConfig, other) : undefined;
+    } catch { return undefined; }
+  }))).filter((version): version is Version => Boolean(version));
+  if (!versions.some(version => version.game === cfg.game)) versions.unshift(versionOf(cfg, entry));
+  return versions.sort((a, b) => Number(b.game === family) - Number(a.game === family));
 }

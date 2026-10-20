@@ -1,10 +1,19 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import {
   applyGeneratedMacro,
   compileGeneratedMachineHandler,
+  copyGeneratedBytes,
   executeGeneratedHandler,
+  executeGeneratedMachineDelegate,
+  executeGeneratedMachineProgram,
   executeGeneratedProgram,
+  generatedVectorMethod,
+  noteCallLinksChanged,
+  prepareGeneratedMachinePositional,
+  prepareGeneratedMachineRead,
+  prepareGeneratedMachineWrite,
 } from './execute.ts';
 import type { BoardIr, GeneratedHandler, GeneratedHandlerProgram } from './board.ts';
 
@@ -545,6 +554,171 @@ check('a wide literal narrows back to a number once the result fits', () => {
   const value = executeGeneratedProgram(program, {}).value;
   assert.equal(typeof value, 'number');
   assert.equal(value, 2);
+});
+
+// The prepared entry points a bus or a signal calls an emitted handler through
+// hand it its arguments directly, and must mean what the general dispatch
+// means: the same runtime, links refreshed when a binding changes.
+check('prepared reads, writes and positional calls agree with the general dispatch', () => {
+  const read: GeneratedHandler = {
+    id: 'handler:read', ownerClass: 'test_state', method: 'read', parameters: 'offs_t offset',
+    program: compileMameHandler('return m_ram[offset] + m_bias->get();'),
+  };
+  const write: GeneratedHandler = {
+    id: 'handler:write', ownerClass: 'test_state', method: 'write', parameters: 'offs_t offset, uint8_t data',
+    program: compileMameHandler('m_ram[offset] = data;'),
+  };
+  const line: GeneratedHandler = {
+    id: 'handler:line', ownerClass: 'test_state', method: 'line_w', parameters: 'int state',
+    program: compileMameHandler('m_latched = state;'),
+  };
+  const machine = {
+    handlers: [read, write, line],
+    compiledHandlerLinks: ['m_bias.get'],
+    compiledHandlers: {
+      'test_state.read': (runtime: { members: { m_ram: Uint8Array }; links?: Record<string, () => number> }, offset: number) =>
+        runtime.members.m_ram[offset]! + runtime.links!['m_bias.get']!(),
+      'test_state.write': (runtime: { members: { m_ram: Uint8Array } }, offset: number, data: number) => {
+        runtime.members.m_ram[offset] = data;
+      },
+      'test_state.line_w': (runtime: { members: Record<string, unknown> }, state: number) => {
+        runtime.members.m_latched = state;
+      },
+    },
+  } as unknown as BoardIr;
+  const members: Record<string, unknown> = { m_ram: new Uint8Array(4), m_latched: 0 };
+  const calls: Record<string, () => number> = { 'm_bias.get': () => 10 };
+  const bindings = { members, calls };
+  const prepared = prepareGeneratedMachineRead(machine, read, bindings);
+  prepareGeneratedMachineWrite(machine, write, bindings)!(2, 5);
+  assert.equal(prepared(2), 15);
+  assert.equal(prepared(2), executeGeneratedMachineProgram(machine, read, bindings, { offset: 2 }).value);
+  calls['m_bias.get'] = () => 20;
+  noteCallLinksChanged();
+  assert.equal(prepared(2), 25, 'a rebound call is seen by an entry point prepared before it');
+  prepareGeneratedMachinePositional(machine, line, bindings)!([1]);
+  assert.equal(members.m_latched, 1);
+  assert.equal(prepareGeneratedMachinePositional({ ...machine, compiledHandlers: {} } as BoardIr, line, bindings), undefined,
+    'a handler with no emitted body has no positional form');
+});
+
+// The runtime emitted board code reads its members and links from has no
+// palette of its own: every read is a fresh scratch array, as it always was.
+check('a board handler runtime palette is a fresh scratch array per read', () => {
+  const pen: GeneratedHandler = {
+    id: 'handler:pen', ownerClass: 'test_state', method: 'pen', parameters: '',
+    program: compileMameHandler('return 0;'),
+  };
+  let seen: unknown[] = [];
+  const machine = {
+    handlers: [pen],
+    compiledHandlers: {
+      'test_state.pen': (runtime: { palette: number[] }) => {
+        runtime.palette[0] = 7;
+        seen = [runtime.palette[0], runtime.palette === runtime.palette];
+        return 0;
+      },
+    },
+  } as unknown as BoardIr;
+  executeGeneratedMachineProgram(machine, pen, { members: {}, calls: {} }, {});
+  assert.deepEqual(seen, [undefined, false]);
+});
+
+// MAME's CBM quickload reads its file through device_image_interface: the
+// load address into a scalar's own bytes, the program into a vector, a header
+// into a char buffer, and answers std::pair<error, message> -- which a
+// delegate hands back whole, for `auto [err, message]` to unpack.
+check('a file read fills a scalar, a vector and a buffer, and a pair comes back whole', () => {
+  const file = (bytes: number[]) => {
+    const data = new Uint8Array(bytes);
+    let position = 0;
+    return {
+      length: () => data.length,
+      fread: (buffer: unknown, length: number) => {
+        const count = Math.min(length, data.length - position);
+        copyGeneratedBytes(buffer, data.subarray(position, position + count), count);
+        position += count;
+        return count;
+      },
+    };
+  };
+  const load: GeneratedHandler = {
+    id: 'handler:.load', ownerClass: '', method: 'load', parameters: 'device_image_interface &image',
+    // Normalised as the graph builder normalises a handler body.
+    program: compileMameHandler(normalizeMameExecutionSource(`
+      char magic[2];
+      std::vector<uint8_t> data;
+      uint16_t address = 0;
+      int size = image.length();
+      if (image.fread(magic, sizeof(magic)) != sizeof(magic))
+        return std::make_pair(image_error::UNSPECIFIED, std::string());
+      if (memcmp(magic, "OK", sizeof(magic)))
+        return std::make_pair(image_error::INVALIDIMAGE, std::string());
+      image.fread(&address, 2);
+      address = little_endianize_int16(address);
+      size -= 4;
+      data.resize(size);
+      image.fread(&data[0], size);
+      return std::make_pair(address, data[size - 1]);
+    `)),
+  };
+  const machine = { handlers: [load] } as unknown as BoardIr;
+  const run = (bytes: number[]) =>
+    executeGeneratedMachineDelegate(machine, load, { members: {}, calls: {} }, { image: file(bytes) });
+  assert.deepEqual(run([0x4f, 0x4b, 0x01, 0x08, 0xaa, 0xbb, 0xcc]), [0x0801, 0xcc],
+    'both bytes of the address land, little-endian, and the vector holds the rest');
+  assert.deepEqual(run([0x4e, 0x4f, 0x01, 0x08]), [3, ''], 'image_error::INVALIDIMAGE is 3');
+  assert.deepEqual(run([0x4f]), [8, ''], 'a short read is image_error::UNSPECIFIED');
+});
+
+check('a struct, or a value never set, behind an address is not overwritten as a scalar', () => {
+  const struct = { a: 1, b: 2 };
+  const untouched = (held: unknown) => ({ generatedPointer: true, target: { get: () => held, set: () => { throw new Error('written'); } }, offset: 0 });
+  copyGeneratedBytes(untouched(struct), new Uint8Array([9, 9]), 2);
+  copyGeneratedBytes(untouched(undefined), new Uint8Array([9, 9]), 2);
+  assert.deepEqual(struct, { a: 1, b: 2 });
+});
+
+// A C string is a pointer, so no string is nullptr -- the C64 cartridge
+// feature "0" included -- and atol reads it as C does.
+check('a string is never nullptr, and atol reads one', () => {
+  const run = (source: string) => executeGeneratedProgram(compileMameHandler(source), {
+    members: {},
+    referenceCalls: { get_feature: (name: unknown) => name === 'exrom' ? '0' : 0 },
+    callParameters: { get_feature: ['std::string_view feature_name'] },
+  }, {}).value;
+  assert.equal(run('return get_feature("exrom") != nullptr;'), 1);
+  assert.equal(run('return get_feature("game") != nullptr;'), 0);
+  assert.equal(run('return atol(get_feature("exrom")) + atol("12");'), 12);
+});
+
+// std::vector's insert and erase take iterators -- positions in the vector --
+// and an array has neither method: the floppy drive's every track write was
+// optional-chained into nothing, so each 1541 write failed its verify.
+check('std::vector insert and erase work at iterators', () => {
+  const run = (source: string) => executeGeneratedProgram(
+    compileMameHandler(normalizeMameExecutionSource(source)), { members: {} }, {}).value;
+  assert.equal(run(`
+    std::vector<int> v;
+    v.push_back(1); v.push_back(2); v.push_back(4);
+    v.insert(v.begin() + 2, 3);
+    v.erase(v.begin());
+    v.erase(v.end() - 1);
+    return v[0] * 10 + v[1] + v.size() * 100;`), 223);
+  const track = [1, 2, 3, 4, 5];
+  generatedVectorMethod(track, 'erase', { generatedPointer: true, source: track, offset: 1 },
+    { generatedPointer: true, source: track, offset: 3 });
+  assert.deepEqual(track, [1, 4, 5]);
+  assert.throws(() => generatedVectorMethod(track, 'erase', [9]), /does not point into the vector/);
+  assert.equal(generatedVectorMethod({ erase: (value: number) => value * 2 }, 'erase', 4), 8,
+    'anything else keeps its own method');
+});
+
+// The floppy drive's call_load spells it `std::strcmp`, and an unknown macro
+// answered 0: equal, so a list's write_protected "false" protected the disk.
+check('std::strcmp compares like strcmp', () => {
+  assert.equal(applyGeneratedMacro('std::strcmp', ['true', 'true']), 0);
+  assert.notEqual(applyGeneratedMacro('std::strcmp', ['false', 'true']), 0);
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

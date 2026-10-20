@@ -10,11 +10,127 @@
  */
 export function portLabel(modifiers: string[]): string | undefined {
   for (const modifier of modifiers) {
-    const literal = /PORT_NAME\("(?:%p )?([^"]+)"\)/.exec(modifier)?.[1];
-    if (literal) return literal;
+    const literal = /PORT_NAME\("(?:%p )?((?:[^"\\]|\\.)+)"\)/.exec(modifier)?.[1];
+    if (literal) return cString(literal);
     const shared = /PORT_NAME\(\s*DEF_STR\(\s*(\w+)\s*\)\s*\)/.exec(modifier)?.[1];
     if (shared) return shared.replace(/_/g, ' ');
   }
+  return undefined;
+}
+
+/**
+ * The text a C string literal's body denotes. MAME writes its key legends in
+ * UTF-8 byte escapes -- the C64's cursor keys are
+ * `PORT_NAME("CRSR \xE2\x86\x91 \xE2\x86\x93")` -- and taken literally the
+ * legend read `CRSR \xE2\x86\x91` instead of `CRSR ↑ ↓`.
+ */
+export function cString(body: string): string {
+  const bytes: number[] = [];
+  const encoder = new TextEncoder();
+  const simple: Record<string, number> = { n: 10, r: 13, t: 9, '0': 0, a: 7, b: 8, f: 12, v: 11 };
+  for (let index = 0; index < body.length; index++) {
+    const ch = body[index]!;
+    if (ch !== '\\' || index + 1 >= body.length) {
+      bytes.push(...encoder.encode(ch));
+      continue;
+    }
+    const next = body[++index]!;
+    const hex = next === 'x' ? /^[0-9a-fA-F]{1,2}/.exec(body.slice(index + 1))?.[0] : undefined;
+    const octal = /^[0-7]{1,3}/.exec(body.slice(index))?.[0];
+    if (hex) {
+      bytes.push(parseInt(hex, 16));
+      index += hex.length;
+    } else if (octal && octal !== '0') {
+      bytes.push(parseInt(octal, 8) & 0xff);
+      index += octal.length - 1;
+    } else {
+      bytes.push(simple[next] ?? next.charCodeAt(0));
+    }
+  }
+  return new TextDecoder().decode(new Uint8Array(bytes));
+}
+
+/**
+ * What MAME's natural keyboard can type with a key: its `PORT_CHAR`s, one
+ * list per shift state in declaration order (`PORT_CHAR('2') PORT_CHAR('"')`
+ * is 2 unshifted and `"` with the first shift key), each holding the one or
+ * two characters MAME lists for that state. A character is itself; a key with
+ * no character is MAME's coded-string spelling of it (`{DOWN}`, `{F1}`), and
+ * a shift key says which it is (`{SHIFT_1}`). Absent when MAME declares none.
+ */
+export function portChars(modifiers: readonly string[]): string[][] | undefined {
+  const states: string[][] = [];
+  for (const modifier of modifiers) {
+    const body = /^PORT_CHAR\s*\(([\s\S]*)\)$/.exec(modifier.trim())?.[1];
+    if (body === undefined) continue;
+    states.push(charArguments(body).flatMap(argument => {
+      const code = charCode(argument);
+      return code === undefined ? [] : [code];
+    }));
+  }
+  return states.length ? states : undefined;
+}
+
+/**
+ * MAME's name for a keyboard key no PORT_NAME names: ioport_field::key_name,
+ * the first character the key types, with MAME's own word for a key that
+ * types none. A computer's keys sit on the PC's by position, so the key and
+ * the PC key under it differ: the C64's `PORT_CODE(KEYCODE_F3)
+ * PORT_CHAR(UCHAR_MAMEKEY(F5))` is its F5, typed on the PC's F3, and named
+ * after the PC key it read "F3".
+ */
+export function keyName(chars: readonly (readonly string[])[] | undefined): string | undefined {
+  const first = chars?.[0]?.[0];
+  if (first === undefined) return undefined;
+  const plain: Record<string, string> = { '\b': 'Backspace', '\t': 'Tab', '\f': 'Clear', '\r': 'Enter', '\x1b': 'Esc', ' ': 'Space' };
+  if (plain[first]) return plain[first];
+  const coded = /^\{(\w+)\}$/.exec(first)?.[1];
+  if (!coded) return first;
+  const named: Record<string, string> = {
+    SHIFT_1: 'Shift', SHIFT_2: 'Ctrl', ESC: 'Esc', INSERT: 'Insert', DEL: 'Delete', HOME: 'Home', END: 'End',
+    PGUP: 'Page Up', PGDN: 'Page Down', LEFT: 'Cursor Left', RIGHT: 'Cursor Right', UP: 'Cursor Up',
+    DOWN: 'Cursor Down', SLASH_PAD: 'Keypad /', ASTERISK: 'Keypad *', MINUS_PAD: 'Keypad -',
+    PLUS_PAD: 'Keypad +', DEL_PAD: 'Keypad .', ENTER_PAD: 'Keypad Enter', BS_PAD: 'Keypad Backspace',
+    TAB_PAD: 'Keypad Tab', '00_PAD': 'Keypad 00', '000_PAD': 'Keypad 000', COMMA_PAD: 'Keypad ,',
+    EQUALS_PAD: 'Keypad =', PRTSCR: 'Print Screen', PAUSE: 'Pause', LSHIFT: 'Left Shift',
+    RSHIFT: 'Right Shift', LCONTROL: 'Left Ctrl', RCONTROL: 'Right Ctrl', LALT: 'Left Alt',
+    RALT: 'Right Alt', SCRLOCK: 'Scroll Lock', NUMLOCK: 'Num Lock', CAPSLOCK: 'Caps Lock',
+    LWIN: 'Left Win', RWIN: 'Right Win', MENU: 'Menu', CANCEL: 'Break',
+  };
+  if (named[coded]) return named[coded];
+  if (/^F\d+$/.test(coded)) return coded;
+  const pad = /^(\d)_PAD$/.exec(coded)?.[1];
+  return pad ? `Keypad ${pad}` : coded;
+}
+
+/** A PORT_CHAR argument list split at its top-level commas, quotes respected. */
+function charArguments(body: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < body.length; index++) {
+    const ch = body[index];
+    if (ch === "'" || ch === '"') {
+      for (index++; index < body.length && body[index] !== ch; index++) if (body[index] === '\\') index++;
+    } else if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === ',' && depth === 0) {
+      parts.push(body.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  parts.push(body.slice(start).trim());
+  return parts.filter(Boolean);
+}
+
+function charCode(argument: string): string | undefined {
+  const literal = /^'((?:[^'\\]|\\.)+)'$/.exec(argument)?.[1];
+  if (literal !== undefined) return cString(literal);
+  if (/^(?:0x[0-9a-fA-F]+|\d+)$/.test(argument)) return String.fromCodePoint(Number(argument));
+  const key = /^UCHAR_MAMEKEY\s*\(\s*(\w+)\s*\)$/.exec(argument)?.[1];
+  if (key) return `{${key}}`;
+  const shift = /^UCHAR_SHIFT_(\d)$/.exec(argument)?.[1];
+  if (shift) return `{SHIFT_${shift}}`;
   return undefined;
 }
 

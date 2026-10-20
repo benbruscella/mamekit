@@ -88,16 +88,19 @@ export function compileFloppyDrive(
   const source = readFileSync(join(mameSrc, FLOPPY_SOURCE), 'utf8');
   const load = parseMameSource(FLOPPY_SOURCE, source).functions
     .find(method => method.className === 'floppy_image_device' && method.name === 'call_load');
-  const loaded = load && /char const \*const wp = get_feature\("write_protected"\);[\s\S]*?m_output_format = is_readonly\(\) \? nullptr : best_format;([\s\S]*?)if \(!m_cur_load_cb\.isnull\(\)\)/.exec(load.body)?.[1];
-  if (!load || loaded === undefined) throw new Error('MAME floppy call_load success path changed');
+  const loaded = load && /(char const \*const wp = get_feature\("write_protected"\);[\s\S]*?)if \(!m_cur_load_cb\.isnull\(\)\)/.exec(load.body)?.[1];
+  if (!load || loaded === undefined || !/\bbest_format\b/.test(loaded)) throw new Error('MAME floppy call_load success path changed');
   drive.methods.push({
     name: 'mount_image',
-    parameters: 'floppy_image *image',
-    // A mounted image is a software-list or visitor-supplied dump, which MAME
-    // opens read-only: no output format, so the drive reports its write
-    // protect and the controller never writes.
-    program: compileMameHandler(normalizeMameExecutionSource(
-      `m_image = image; m_output_format = nullptr; ${loaded}`)),
+    parameters: 'floppy_image *image, const floppy_image_format_t *best_format',
+    // From the list's `write_protected` feature to the write protect the
+    // controller sees: a disk is writable unless its file is read-only or
+    // its list says so (Bounty Bob Strikes Back will not load otherwise).
+    // `m_output_format` is the format a dirty disk would be saved back in;
+    // that save is call_unload's commit_image, which stays with the image
+    // host, and MAMEKIT never writes a disk back: what the machine writes
+    // lasts as long as the disk is in the drive.
+    program: compileMameHandler(normalizeMameExecutionSource(`m_image = image; ${loaded}`)),
     source: { file: FLOPPY_SOURCE, line: load.span.line },
   });
   // call_unload, whole: the drive notices a disk leaving by its write-protect

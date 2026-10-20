@@ -144,6 +144,25 @@ trip and the audio probe then apply exactly as for an arcade set. Before #155
 no console had a contract, and the NES and the Game Boy each drew one flat
 colour for months with every gate green.
 
+A computer is accepted at its own firmware and against software-list titles.
+A scenario's `software: { list, name }` names one; its set lives at
+`.data/roms/<the machine's dumps folder>/<list>/<name>.zip`
+(`.data/roms/computers/c64/c64_cass/crazycom.zip`), every image is matched
+against the generated catalogue as a cartridge is, and the harness then does
+what the software room's Play does through `src/runtime/title-start.ts`: the
+other media slots booted empty, each image in the transport whose formats read
+it, the shelf's start command typed through the natural keyboard and PLAY
+pressed on a tape. A `{ atFrame, text }` action types MAME's coded form
+(`RUN{ENTER}`) the same way. Natural-keyboard presses and PLAY go into the
+input log, so the save-state round trip replays them exactly. `c64p` has four
+scenarios: BASIC (a SID note and the 10 PRINT maze), a tape (Crazy Comets), an
+original disk (Bounty Bob Strikes Back) and a quickload (Broken Limits, the one
+title in MAME's `c64_quik`, PAL only), and `fetch:acceptance-roms` fetches
+each title beside the machine's own sets. The harness's silence check reads the
+signal after the browser's speaker high-pass, not the worklet's output the
+golden's `rms` records: the SID's DC offset alone measures 0.5 with every voice
+silent.
+
 A console's own cartridge bus is covered by a colocated spec under
 `src/hardware/<console>/`, which is where a bus that installs itself has to be
 tested: a Game Boy PCB is not describable by an address map, so
@@ -153,8 +172,11 @@ against a recording address space, and reads back the windows it decoded.
 ### C64 development
 
 `c64` (NTSC) and `c64p` (PAL) are computer targets with generated cassette
-transport, a generated 1541 disk drive and SID audio. Use PAL for the current
-selected tape collection.
+transport, a generated 1541 disk drive, a generated quickload, the expansion
+port with every cartridge card a software list names, and SID audio. Both
+are accepted (`src/games/c64.game.ts`, `src/games/c64p.game.ts`): BASIC, a
+tape, a disk and a cartridge each, checked against MAME 0.289's own NTSC and
+PAL machines, and a quickload and an Ultimax cartridge on the PAL one.
 
 `npm run gen:all` and `npm run dev` expose all generated targets in the
 catalogue, including the Computers tab. Candidates are labelled experimental;
@@ -174,14 +196,19 @@ transport. It records loading checkpoints and attempts `RUN` after the loader
 prints `READY.`. Its exit status remains unsuccessful until gameplay acceptance
 exists; a matching tape or a BASIC screen is not a gameplay pass.
 
-In the app, open the PAL C64 under **Computers**. The machine page is its
+In the app, open the Commodore 64 under **Computers**: the NTSC and PAL
+machines are one box and one room, and the room's **REGION** control (Auto,
+NTSC, PAL) picks which plays. Auto boots each title on the machine its
+software list lets it through to (MAME's `set_filter`), and of two the one the
+list's video note names, else PAL; a title only one
+machine lists is marked `PAL ONLY` or `NTSC ONLY`. The room is the
 software room: one shelf per software list the driver declares (cassettes,
 cartridges, two disk lists, quickloads), each read from
-`dist/games/computers/c64p/software/<list>.json`. The cassette shelf is the
-one whose medium mounts today, so it opens first; a title the local dump
+`dist/games/computers/c64p/software/<list>.json`. Tapes, disks, quickloads
+and cartridges all mount, and the cassette shelf opens first. A title the local dump
 audit has filed carries a **⌕ Search** that fetches the set into the browser,
-and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP or a
-software-list ZIP. **Play** boots the machine with the set's images mounted
+and **◍ Insert your own…** (or a drop anywhere on the page) takes a TAP, a
+disk image, a `.prg`, `.p00` or `.t64`, or a software-list ZIP. **Play** boots the machine with the set's images mounted
 on the tape transport or in the disk drive, after the machine asks for its
 own `c64.zip` and, for a disk title, the drive's `c1541.zip` firmware
 (dropped, or found by the web search under `computers/c64/bios/`). A title
@@ -189,14 +216,33 @@ boots with only its own transport attached: a tape title leaves `iec8` empty
 and a disk title leaves `tape` empty, as MAME's `-iec8 ""` and `-tape ""` do.
 The missing transport's strip reads NOT CONNECTED, and **Connect** restarts
 the title with it. **Power on** attaches both. Multi-image sets expose an image
-selector. For a tape, type `LOAD` and press Enter, then click **Play** on the
-transport. If the loader returns to `READY.`, type `RUN` and press Enter; the
-game's turbo loader may continue reading the tape before its title screen
-appears. For a disk, type `LOAD"*",8,1` (or `LOAD"$",8` and `LIST` for the
-directory). The control panel holds one strip per transport -- DATASSETTE and
-DISK DRIVE -- and the toolbar holds **Reset computer** and **Fast-forward**,
-all buttons so the computer retains its letter and function keys. Tape speed
-remains under the emulated computer's motor control.
+selector. **Play** starts the title itself: once the machine has had three
+seconds to come up, its shelf's command (`boot`, generated from the
+`BOOT_POLICY` in `src/gen/software-shelves.ts`) is typed through MAME's
+natural keyboard -- `LOAD` and `RUN` for a tape, with **Play** pressed on the
+deck once they are typed, and `LOAD"*",8,1` and `RUN` for a disk -- and the
+load runs warped. A quickload needs no command to load: the device holds the
+file for its own three seconds (MAME's `CBM_QUICKLOAD_DELAY`), writes it into
+memory where its header says, and sets BASIC's pointers past it, and the
+start types `RUN` only once that has happened. Power on leaves the keyboard to you: type `LOAD"$",8` and
+`LIST` for a directory. The control panel holds one strip per transport --
+DATASSETTE, DISK DRIVE (with **Flip** for a set of more than one disk) and
+QUICKLOAD, whose **Open…** takes a program at any time -- and the toolbar holds
+**Swap joystick ports** (MAME's own JOYSWAP switch, preset for the 25 titles
+whose note asks for port 1 and kept per title), **Keyboard** (the C64's whole
+keyboard on screen), **Reset**,
+**Fast-forward**, **Warp loading** (fast-forward on its own while a tape's
+motor runs or the drive spins, remembered per machine) and **Paste** (the
+clipboard typed on the computer's keys), all buttons so the computer retains
+its letter and function keys. Leaving a title keeps where it was: the next
+Play of the same title carries on from there (Reset starts it over), and a
+disk the machine wrote to is put back as it was written. Tape speed remains under the emulated
+computer's motor control.
+
+To type into a board from Node, as the app does: build a `NaturalKeyboard`
+(`src/runtime/natural-keyboard.ts`) over the `KeyboardInput` and the config's
+`bindings` and `naturalKeyboard.alternates`, `post()` or `postCoded()` the
+text, and call its `tick(1 / refresh)` before `advance()` on every frame.
 `e2e/specs/computer.spec.ts` is the browser gate for the room.
 
 To check what a tape title does against MAME itself, drive both the same way:
@@ -206,13 +252,19 @@ MAME 0.289 with `-iec8 "" -cass <image>.tap -video none -nothrottle`, an
 `:u7`'s program space at `$D400`-`$D7FF`; on this side, wrap the board's
 `m_sid.write` call binding after `noteCallLinksChanged()`. Cauldron I & II's
 first 300 seconds produce the same 182,525 SID writes in the same order, and
-the music matches MAME's WAV band for band.
+the music matches MAME's WAV band for band. A load can also depend on the
+phase PLAY lands on, so check more than one: post the command on frames 150
+to 157 on both sides (`TYPEAT` in a Lua frame notifier) and press PLAY once
+`natkeyboard.is_posting` clears; the C64's KERNAL tape reader is sensitive to
+a few cycles of interrupt latency, and a Lua read tap on `$DC06`/`$DC07`/`$DC0D`
+gives MAME's Timer B readings to set beside ours.
 
 The 1541 is MAME's own `c1541`, composed into `iec8` from source: its 6502
 and DOS ROM, both 6522 VIAs, the 64H156 gate array, the ALPS drive mechanism
 and the `d64`/`g64` formats. MAME's 1541 reads a disk a flux reversal at a time
-on a 16 MHz gate-array clock, and the drive is not yet real-time in the
-browser while the spindle runs. Even with the motor off, an attached 1541 puts
+on a 16 MHz gate-array clock; headless, a whole Nebulus load now averages real
+time (about 19.5 ms a 20 ms PAL frame), with its hardest stretch just over it.
+Even with the motor off, an attached 1541 puts
 the machine in permanent lockstep with a second processor, which is why tape
 titles boot without it. To diagnose the drive in Node, boot an isolated build, mount an image
 through `board.disks()[0].mount(extension, bytes)`, type `LOAD"$",8`, and read
@@ -226,8 +278,28 @@ under `.data/roms/_processed/c64/`. The generator reads
 the `_manifest.json` in each of those folders to build the shelf's
 availability index, keyed by the driver family so the PAL and NTSC machines
 share one collection. Neither BIOS nor game data belongs in generated output.
-Cartridge and quickload image loading are still unfinished, so those shelves
-are display only.
+
+A cartridge title boots with the cartridge already in the expansion port and
+both other slots empty, and starts itself; nothing is typed. The port's 54
+cards are compiled from MAME's own `c64_expansion_cards`, limited to the ones
+`c64_cart` and `vic10` name (`src/hardware/c64/extract.ts`), and a title whose
+list names none takes `standard`. To check one against MAME, run
+`-cart <set> -iec8 "" -tape ""` with the set in `<rompath>/c64_cart/` and
+snapshot a frame: Pac-Man, Kung-Fu Master, Robocop 2, Narco Police, the C64GS
+cartridge and three VIC-10 carts are pixel-identical to MAME 0.289. A bare
+`.crt`, `.80`, `.a0` or `.e0` dropped in the room goes in as a file: the port's
+own `get_default_card_software` reads a `.crt`'s header for its card through
+MAME's `lib/formats/cbm_crt.cpp`, compiled in because the port calls it.
+
+The quickload is MAME's `quickload_image_device`, generated from
+`snapquik.cpp`; the driver's `quickload_c64` callback and the
+`general_cbm_loadsnap` it calls are board handlers. They read the file
+through `device_image_interface`'s calls (`length`, `fread`, `fseek`,
+`is_filetype`), which the device runtime answers over the mounted bytes, as it
+answers `machine()` and `timer_alloc`. To check one against MAME, run
+`-quik <file>` with an `-autoboot_script` that posts `RUN{ENTER}` on frame
+152: the program is in memory on frame 151 on both sides, and Broken Limits'
+intro screen is pixel-identical at frame 1687.
 
 SID oscillator, envelope, noise, mixing and filter behavior is compiled from
 MAME's `sid.cpp`, `sidvoice.cpp`, and `sidenvel.cpp`. The host renders that
@@ -469,11 +541,14 @@ Choose the layer from evidence, not from the visible symptom.
 | A sound chip's pin is polled by a CPU | its engine belongs on the main thread, not the worklet |
 | A main-thread chip runs at double or half speed | `tickCpu` fires per processor; drive it from one, and not one that can be held in reset |
 | A machine's SCREEN carries no geometry | the video device that claimed it with `set_screen`, whose `device_config_complete` sets the raw params |
-| A compiled board is slow with a flat profile | `%HasFastProperties` on what its hot path reads; a dictionary-mode table wants a resolved links table, not a faster hardware model |
+| A compiled board is slow with a flat profile | `%HasFastProperties` on what its hot path reads; a dictionary-mode table wants a resolved links table, not a faster hardware model. An object literal with a getter is born in dictionary mode, and so is a table built one key at a time |
+| A small emitted method still costs a call per use | its bytecode size (`node --print-bytecode --print-bytecode-filter=<method>`) against V8's 460-byte inlining limit; a cold path spelled inline belongs in a runtime helper |
 | A device method the profile shows interpreted | its codegen decline (`supportsMethod` with `onUnsupported`), or a slot card/child never marked a root |
 | A device reads display memory no CPU map mentions | its own `device_memory_interface` space, not a board share |
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
 | A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |
+| A device writes and nothing changes | a container method emitted as `?.()` on an array that has no such method (`insert`, `erase`), or an iterator added to as a number; read the drive's own error channel (a 1541's `25, WRITE ERROR`) |
+| A raster effect lands a few cycles early | an executing device's register access ran before the device reached the access's cycle (perfect quantum: catch up to k-1) |
 | Compiled device code and the interpreter disagree | the emitter's operator, not the device: `>>` on a negative value (`runtime.shiftRight`), a bus read repeated inside a macro expansion |
 | A device's integer array holds out-of-range values | its element width; a fixed C++ array is backed by the matching typed array |
 | A driver's IRQ arrives a line early or late | where its timer was armed against the beam: driver emu_timers fire after the line settles and schedule the board by the line |

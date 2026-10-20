@@ -39,6 +39,12 @@ jobs:
             hash/gameboy.xml
             hash/coleco.xml
             hash/a2600.xml
+            hash/c64_cart.xml
+            hash/c64_cass.xml
+            hash/c64_flop_orig.xml
+            hash/c64_flop_misc.xml
+            hash/c64_quik.xml
+            hash/vic10.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
@@ -85,6 +91,12 @@ jobs:
             hash/gameboy.xml
             hash/coleco.xml
             hash/a2600.xml
+            hash/c64_cart.xml
+            hash/c64_cass.xml
+            hash/c64_flop_orig.xml
+            hash/c64_flop_misc.xml
+            hash/c64_quik.xml
+            hash/vic10.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 

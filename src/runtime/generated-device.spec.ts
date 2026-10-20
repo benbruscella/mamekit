@@ -6,6 +6,7 @@ import {
   generatedInstanceFactories,
   hasGeneratedDevice,
   registerGeneratedDevice,
+  setGeneratedTimerPreFire,
   type GeneratedDeviceDefinition,
 } from './generated-device.ts';
 
@@ -139,6 +140,20 @@ assert.equal(device.get('m_reschedule_count'), 3,
   'a one-shot timer re-armed by its callback must keep its new schedule');
 device.tick(0.2);
 assert.equal(device.get('m_count'), 9);
+
+// The board clocks its hosted processors up to a timer's expiry before the
+// callback runs, as MAME's scheduler does; the hook hears how far past the
+// expiry the delivered lump reaches, before the callback changes anything.
+const timed = createDevice('fixture', { clock: 2_000 });
+const preFired: [number, number, number][] = [];
+const outerPreFire = setGeneratedTimerPreFire(overshoot => {
+  preFired.push([Math.round(overshoot * 1000), timed.get('m_count'), timed.get('m_reschedule_count')]);
+});
+timed.tick(0.12);
+setGeneratedTimerPreFire(outerPreFire);
+assert.deepEqual(preFired, [[20, 0, 0], [70, 3, 0], [20, 3, 1]],
+  'every firing is announced with its overshoot before its callback runs');
+assert.equal(timed.get('m_reschedule_count'), 2);
 
 assert.throws(() => device.call('missing'), /no generated method/);
 assert.throws(() => device.on('missing', () => {}), /no callback signal/);
@@ -341,6 +356,32 @@ const bitmap = createDevice('BITMAP_BOX_TEST').invoke('draw') as { pixels: Uint3
 assert.deepEqual([...bitmap.pixels], [0, 0, 0, 0, 7, 7, 0, 0, 7, 7, 0, 0],
   'plot_box must clip on all edges without spilling into adjacent rows');
 
+// copybitmap onto the screen's own pixels, unscaled, is a row copy -- with the
+// same clipping to the source, the clip rectangle and the visible window as
+// the per-pixel path a scaled screen takes.
+registerGeneratedDevice({
+  type: 'BITMAP_COPY_TEST', constants: {}, callbacks: [],
+  members: [{ name: 'm_bitmap', valueType: 'bitmap_rgb32' }],
+  methods: [method('copy', 'bitmap_rgb32 &bitmap, const rectangle &cliprect', `
+    m_bitmap.allocate(6, 4);
+    for (int y = 0; y < 4; y++)
+      for (int x = 0; x < 6; x++)
+        m_bitmap.pix(y, x) = y * 16 + x;
+    copybitmap(bitmap, m_bitmap, 0, 0, 0, 0, cliprect);
+    return 0;`)],
+  summary: { diagnostics: 0 },
+});
+{
+  const screen = { pixels: new Uint32Array(4 * 3), width: 4, height: 3, xScale: 1, yScale: 1, scaledXOffset: 1, scaledYOffset: 1 };
+  createDevice('BITMAP_COPY_TEST').invoke('copy', { direct: screen }, { min_x: 0, max_x: 4, min_y: 0, max_y: 3 });
+  const expected = new Uint32Array(4 * 3);
+  for (let y = 1; y <= 3; y++) {
+    for (let x = 1; x <= 4; x++) expected[(y - 1) * 4 + (x - 1)] = y * 16 + x;
+  }
+  assert.deepEqual([...screen.pixels], [...expected],
+    'an unscaled copy lands each source row at the visible window\'s offset, clipped');
+}
+
 registerGeneratedDevice({
   type: 'REFINED_MEMBER_TEST', constants: {}, callbacks: [],
   members: [
@@ -415,6 +456,126 @@ assert.ok(rebuildImage, 'a drive registers the image it holds when it is built, 
 const rebuilt = rebuildImage!({ m_value: 42 }) as { get_value(): number; $factory: string };
 assert.equal(rebuilt.get_value(), 42, 'the rebuilt image runs its methods against the saved data');
 assert.equal(rebuilt.$factory, 'device-instance:HELD_IMAGE_FIXTURE', 'and saves the same way again');
+
+// An image device whose own call_load reads the file: snapquik.cpp's
+// quickload arms a timer there, and its callback reads the file through the
+// device_image_interface calls the host answers.
+registerGeneratedDevice({
+  type: 'QUICKLOAD_FIXTURE',
+  imageInterface: true,
+  constants: { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
+  members: [
+    { name: 'm_file_extensions', valueType: 'const char*', initial: 0 },
+    { name: 'm_size', valueType: 'int', bits: 32, initial: 0 },
+    { name: 'm_last', valueType: 'int', bits: 32, initial: 0 },
+  ],
+  callbacks: [],
+  timers: [{ member: 'm_timer', callback: 'process' }],
+  methods: [
+    method('device_start', '', 'm_timer = timer_alloc();'),
+    method('set_extensions', 'const char *ext', 'm_file_extensions = ext;'),
+    method('file_extensions', '', 'return m_file_extensions;'),
+    method('image_type_name', '', 'return "quickload";'),
+    method('call_load', '', 'm_timer.adjust(1, 0);'),
+    method('process', 'int param',
+      'check_for_file(); m_size = length();' +
+      'uint8_t last[1]; fseek(-1, SEEK_END); fread(last, 1); m_last = last[0];'),
+  ],
+  summary: { diagnostics: 0 },
+});
+{
+  const quickload = createDevice('QUICKLOAD_FIXTURE');
+  quickload.invoke('set_extensions', 'p00,PRG,t64');
+  assert.equal(quickload.imageTypeName!(), 'quickload');
+  assert.deepEqual(quickload.imageExtensions!(), ['p00', 'prg', 't64'], 'file_extensions(), as the device answers it');
+  assert.equal(quickload.timerPending!(), false);
+  quickload.mountImage!('prg', new Uint8Array([1, 8, 0x2a]), 'game.prg');
+  assert.equal(quickload.timerPending!(), true, 'call_load armed the timer; nothing is read yet');
+  assert.equal(quickload.get('m_size'), 0);
+  quickload.tick(1.5);
+  assert.equal(quickload.timerPending!(), false);
+  assert.equal(quickload.get('m_size'), 3, 'length() is the mounted file');
+  // The surface a driver's load callback reads the file through, handed the
+  // device as `image` (the C64's `image.is_filetype("prg")`).
+  const image = quickload.instance!() as Record<string, (...args: unknown[]) => unknown>;
+  assert.equal(image.is_filetype!('PRG'), 1, 'is_filetype ignores case');
+  assert.equal(image.is_filetype!('t64'), 0);
+  assert.equal(image.basename!(), 'game.prg');
+  assert.equal(quickload.get('m_last'), 0x2a, 'fseek from the end, then fread');
+  assert.equal(quickload.imageError!(), undefined);
+  // A device whose medium MAME calls something else is no quickload, and a
+  // device that is not an image device has no medium at all.
+  assert.equal(createDevice('fixture').imageTypeName?.(), undefined);
+}
+
+// A cartridge port, as the C64's: the image arrives before power-on, the
+// part's `slot` feature picks the card (else the port's software default),
+// and the port's own call_load reads the part's areas into that card through
+// the members MAME's slot reaches into.
+{
+  const card = (type: string, offset: number): GeneratedDeviceDefinition => ({
+    type, constants: {}, callbacks: [], timers: [],
+    members: [
+      { name: 'm_roml', valueType: 'std::unique_ptr<uint8_t[]>', initial: 0 },
+      { name: 'm_roml_size', valueType: 'int', bits: 32, initial: 0 },
+      { name: 'm_exrom', valueType: 'int', bits: 32, initial: 1 },
+      { name: 'm_bank', valueType: 'int', bits: 32, initial: 0 },
+    ],
+    methods: [method('read_rom', 'int offs', `return m_roml[offs + ${offset}];`), method('device_reset', '', 'm_bank = 0;')],
+    reset: 'device_reset',
+    summary: { diagnostics: 0 },
+  });
+  registerGeneratedDevice({
+    type: 'CART_PORT_FIXTURE',
+    imageInterface: true,
+    constants: {},
+    members: [{ name: 'm_card', valueType: 'device_card_interface*', initial: 0 }],
+    callbacks: [],
+    timers: [],
+    slot: { member: 'm_card', options: { standard: card('STD_CARD', 0), other: card('OTHER_CARD', 1) } },
+    methods: [
+      // MAME's own chooser: a file's type, else the part's `slot` feature.
+      method('get_default_card_software', 'get_default_card_software_hook &hook',
+        'if (hook.image_file() && hook.is_filetype("crt")) return "other";' +
+        'return software_get_default_slot("standard");'),
+      method('call_load', '',
+        'if (loaded_through_softlist()) {' +
+        '  load_software_region("roml", m_card->m_roml);' +
+        '  m_card->m_roml_size = get_software_region_length("roml");' +
+        '  if (get_feature("exrom") != nullptr) m_card->m_exrom = atol(get_feature("exrom"));' +
+        '}' +
+        'return std::make_pair(std::error_condition(), std::string());'),
+      method('read', 'int offs', 'return m_card->read_rom(offs);'),
+      method('exrom', '', 'return m_card->m_exrom;'),
+      method('bank_w', 'int data', 'm_card->m_bank = data;'),
+      method('bank', '', 'return m_card->m_bank;'),
+    ],
+    summary: { diagnostics: 0 },
+  });
+  const software = (features: Record<string, string>) => ({
+    image: { name: 'title.zip', software: { areas: { roml: Uint8Array.from([5, 6, 7]) }, features } },
+  });
+  const named = createDevice('CART_PORT_FIXTURE', software({ exrom: '0', slot: 'other' }));
+  assert.equal(named.call('read', 0), 6, 'the part names its card');
+  assert.equal(named.call('exrom'), 0, 'the feature "0" is not nullptr, and atol reads it');
+  const plain = createDevice('CART_PORT_FIXTURE', software({}));
+  assert.equal(plain.call('read', 0), 5, 'a part that names none takes the default card');
+  assert.equal(plain.call('exrom'), 1, 'a feature the part lacks leaves the card as it was');
+  const card0 = (plain.instance!() as Record<string, unknown>).m_card as Record<string, unknown>;
+  assert.equal(card0.m_roml_size, 3, 'the slot reaches into its card');
+  assert.ok(!Object.keys(card0).includes('m_roml'), 'members stay out of the card proxy\'s own keys');
+  assert.equal(createDevice('CART_PORT_FIXTURE').call('read', 0), 0, 'no image, no card');
+  // device_t::reset resets the card in the slot after the slot itself.
+  plain.call('bank_w', 1);
+  assert.equal(plain.call('bank'), 1);
+  plain.reset();
+  assert.equal(plain.call('bank'), 0, 'a reset slot resets its card');
+  // A bare file picks its card from what it is, through the same chooser.
+  const file = createDevice('CART_PORT_FIXTURE', { image: { name: 'game.CRT', bytes: Uint8Array.from([1, 2]) } });
+  assert.equal(((file.instance!() as Record<string, unknown>).m_card as { m_roml_size: number }).m_roml_size, 0,
+    'the file chose the other card (whose call_load read no software part)');
+  assert.ok(((file.instance!() as Record<string, unknown>).m_card as Record<string, unknown>).read_rom, 'and a card is there');
+}
 
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

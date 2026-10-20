@@ -175,7 +175,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   const memberMacroRe =
-    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|K051960_CB_MEMBER|K052109_CB_MEMBER|K053246_CB_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
+    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|K051960_CB_MEMBER|K052109_CB_MEMBER|K053246_CB_MEMBER|QUICKLOAD_LOAD_MEMBER|SNAPSHOT_LOAD_MEMBER|DEVICE_IMAGE_LOAD_MEMBER|DEVICE_IMAGE_UNLOAD_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
   while ((fm = memberMacroRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
     const braceEnd = matchPair(masked, braceStart, '{', '}');
@@ -386,7 +386,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   // the following constructor's initialiser list -- which buried both macros,
   // and with them the whole Namco 54xx device type.
   const freeFunctionRe =
-    /(?:^|\n)((?:[\w:<>,~*&]+[^\S\n]+)+(?:[*&]+[^\S\n]*)?)(\w+)[^\S\n]*\(([^;{}()]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
+    /(?:^|\n)((?:[\w:<>,~*&]+[^\S\n]+)+(?:[*&]+[^\S\n]*)?)(\w+)[^\S\n]*\(((?:[^;{}()]|\([^;{}()]*\))*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
   const classBodies = classes.map(declaration =>
     [declaration.bodySpan.start, declaration.bodySpan.end] as [number, number]);
   let ff: RegExpExecArray | null;
@@ -540,6 +540,10 @@ function memberMacroParameters(name: string): string {
   if (name === 'K053246_CB_MEMBER') {
     return 'int &code, int &color, int &priority_mask';
   }
+  // An image device's load hooks (snapquik.h, diimage.h): the device itself,
+  // whose file the hook reads.
+  if (name === 'QUICKLOAD_LOAD_MEMBER' || name === 'SNAPSHOT_LOAD_MEMBER') return 'snapshot_image_device &image';
+  if (name === 'DEVICE_IMAGE_LOAD_MEMBER' || name === 'DEVICE_IMAGE_UNLOAD_MEMBER') return 'device_image_interface &image';
   return 'int param';
 }
 

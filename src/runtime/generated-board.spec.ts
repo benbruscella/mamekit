@@ -548,6 +548,32 @@ clockedBoard.frame(new Uint32Array(1));
 assert.ok(instructionObservations.some(samples => new Set(samples).size > 1),
   'clocked peripheral counters must advance between CPU instructions within one scanline');
 
+// A clocked peripheral's fractional cycles are part of a save state. They are
+// delivered after every instruction, so they run in a plain array, written into
+// the saved record (`hostedCarry`) when a save is taken and read back from it
+// when one is restored: a save loaded and saved again is the same save.
+{
+  const carryMachine: BoardIr = {
+    ...clockedMachine, game: 'clocked-carry-fixture',
+    devices: [{ ...clockedMachine.devices![0]!, clock: 4000 }],
+  };
+  const carryBoard = createGeneratedBoard(carryMachine,
+    { game: carryMachine.game, family: 'fixture', cpus: [], ranges: [],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 }, clocks: { namco06: 0, wsg: 0 } },
+    { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+  const fb = new Uint32Array(1);
+  carryBoard.frame(fb);
+  const saved = carryBoard.save();
+  const carry = (state: typeof saved) =>
+    [...((state.roots as { hostState: { hostedCarry: Map<string, number> } }).hostState.hostedCarry)];
+  assert.ok(carry(saved).every(([, value]) => value > 0 && value < 1), 'the fixture leaves a fractional carry');
+  carryBoard.frame(fb);
+  carryBoard.frame(fb);
+  assert.notDeepEqual(carry(carryBoard.save()), carry(saved), 'the carry moved on');
+  carryBoard.load(saved);
+  assert.deepEqual(carry(carryBoard.save()), carry(saved));
+}
+
 registerGeneratedDevice({
   type: 'HOSTED_MEMORY_FIXTURE', constants: {}, callbacks: [],
   members: ['m_cache', 'm_data'].map(name => ({ name, valueType: 'address_space', initial: 0 })),

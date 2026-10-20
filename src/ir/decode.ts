@@ -583,6 +583,11 @@ function decodeDevices(reader: Reader, value: unknown): void {
         reader.string(name, `${path}.interfaceHandlers[${position}]`, source);
       }
     }
+    if (device.cardMembers !== undefined) {
+      for (const [position, name] of reader.array(device.cardMembers, `${path}.cardMembers`, source).entries()) {
+        reader.string(name, `${path}.cardMembers[${position}]`, source);
+      }
+    }
     reader.optionalString(device.member, `${path}.member`, source);
     reader.optionalNumber(device.clock, `${path}.clock`, source);
     if (device.memoryAllocations !== undefined) {

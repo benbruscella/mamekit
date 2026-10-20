@@ -4,17 +4,23 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
 import { romsDir } from '../paths.ts';
-import { machineSetDir } from '../runtime/rom-source.ts';
+import { machineSetDir, machineSetKeys } from '../runtime/rom-source.ts';
 import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
 import { KeyboardInput } from '../runtime/input.ts';
 import {
   assembleRegions,
   applyRomTransforms,
   checkRomSet,
+  romSystemKey,
   unresolvedDependencyRomSets,
+  type MountedImage,
   type ShellConfig,
+  type SoftwareShelf,
 } from '../runtime/shell.ts';
-import type { Board, BoardSnapshot, MachineState, Regions } from '../runtime/types.ts';
+import type { Board, BoardSnapshot, CassetteMedia, DiskMedia, MachineState, QuickloadMedia, Regions } from '../runtime/types.ts';
+import { NaturalKeyboard } from '../runtime/natural-keyboard.ts';
+import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } from '../runtime/software.ts';
+import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
 import { cartImageFromZip, cartSupport, mountCart, resolveCartImage } from '../runtime/cart-mount.ts';
@@ -26,6 +32,16 @@ import type {
 } from './types.ts';
 import { assertExecutableActions } from './input-actions.ts';
 import { audioLimitations } from '../runtime/audio-fidelity.ts';
+
+/** One host input the save-state replay must repeat, at the step it happened. */
+type InputLogEntry = { step: number } & (
+  | { type: 'keydown' | 'keyup'; code: string }
+  | { type: 'reset' }
+  /** a natural-keyboard press: the binding's index in config.bindings */
+  | { type: 'press'; binding: number; down: boolean }
+  /** PLAY on a tape transport, by its tag */
+  | { type: 'play'; transport: string }
+);
 
 export interface SoundWrite {
   offset: number;
@@ -40,6 +56,13 @@ interface AudioProbe {
     writes: SoundWrite[],
     wavPath?: string,
   ): GameAcceptanceGolden['audio'];
+  /**
+   * RMS of what reaches the browser's destination: after the speaker's
+   * high-pass and master gain. The golden's `rms` is the worklet's own output,
+   * which keeps a chip's DC offset -- the SID's alone measures 0.5 with every
+   * voice silent -- so this, not that, is what says the machine made a sound.
+   */
+  audibleRms(): number;
 }
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -106,18 +129,30 @@ export async function runGameAcceptance(
   const framesToRun = options.frames ?? contract.frames;
   const outRoot = resolve(options.outRoot ?? process.env.MAMEKIT_OUT_ROOT ?? join(root, 'dist'));
   const gameDir = gameOutputDir(outRoot, contract.category, contract.game);
-  // A console's own set is filed with its cartridges (consoles/coleco/bios/),
-  // an arcade board's at the category root.
-  const setDir = join(romsDir(root), machineSetDir(contract.category, `${contract.category}/${contract.game}`));
-  const romPath = resolve(
-    process.env[contract.romEnvironment]
-      ?? join(setDir, `${contract.game}.zip`),
-  );
   assert.ok(existsSync(gameDir), `${contract.game}: generated output is missing: ${gameDir}`);
 
-  const config = JSON.parse(
+  let config = JSON.parse(
     readFileSync(join(gameDir, 'config.json'), 'utf8'),
   ) as ShellConfig;
+  // A console's own set is filed with its cartridges (consoles/coleco/bios/),
+  // a computer's with its family's software (the PAL C64 loads
+  // computers/c64/bios/c64.zip), an arcade board's at the category root:
+  // the keys the app itself tries (machineSetKeys).
+  const systemKey = romSystemKey(config);
+  const setDir = join(romsDir(root), machineSetDir(contract.category, systemKey ?? `${contract.category}/${contract.game}`));
+  const setPaths = machineSetKeys(contract.game, contract.category, systemKey).map(key => join(romsDir(root), key));
+  const romPath = resolve(
+    process.env[contract.romEnvironment]
+      ?? setPaths.find(path => existsSync(path)) ?? setPaths[0]!,
+  );
+  // A computer title boots with the media slots it does not use empty, and
+  // their cards' firmware goes with them, as in the software room.
+  const software = contract.software
+    ? await loadContractSoftware(contract, config, root, gameDir)
+    : undefined;
+  if (software?.emptySlots.length) {
+    config = { ...config, roms: withoutSlotFirmware(config.roms, software.emptySlots) };
+  }
   // A console's own set holds only what the machine carries without a
   // cartridge -- the Game Boy's boot ROM, the ColecoVision's BIOS -- and the
   // NES and the 2600 carry nothing at all.
@@ -157,6 +192,8 @@ export async function runGameAcceptance(
     ...config.board,
     game: config.game,
     ...(cartridge ? { cart: cartridge.cart } : {}),
+    ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
+    ...(software?.powerOn ? { images: software.powerOn } : {}),
   };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const buildRegions = (): Regions => {
@@ -236,6 +273,7 @@ export async function runGameAcceptance(
   );
   assert.equal(board.fbWidth, contract.screen.width);
   assert.equal(board.fbHeight, contract.screen.height);
+  const title = software?.images.length ? mountContractSoftware(contract, board, software.images) : undefined;
   // As the shell does (shell.ts): a relative control's frame of travel is
   // handed out against the beam, MAME's frame_interpolate. Without it a board
   // that reads its trackball mid-frame -- Missile Command, from its scanline
@@ -260,7 +298,34 @@ export async function runGameAcceptance(
   const canSave = typeof (board as { save?: unknown }).save === 'function';
   /** Frames run so far; the key log and the per-step hashes are keyed by it. */
   let step = 0;
-  const inputLog: { step: number; type: 'keydown' | 'keyup' | 'reset'; code?: string }[] = [];
+  const inputLog: InputLogEntry[] = [];
+  // MAME's natural keyboard, as the shell builds it, for typed text and a
+  // title's start command. What it presses and the PLAY a start ends with go
+  // into the log, so the save-state replay presses exactly the same.
+  const typing = config.bindings.some(binding => binding.chars?.length)
+    ? new NaturalKeyboard({
+        press: (binding, down, source) => {
+          inputLog.push({ step, type: 'press', binding: config.bindings.indexOf(binding), down });
+          input.press(binding, down, source);
+        },
+      }, config.bindings, config.naturalKeyboard?.alternates)
+    : undefined;
+  for (const text of [
+    ...contract.actions.flatMap(action => 'text' in action ? [action.text] : []),
+    ...(software?.boot ? [software.boot.command] : []),
+  ]) {
+    assert.ok(typing, `${contract.game}: the machine has no keys that type, so it cannot type ${JSON.stringify(text)}`);
+    assert.deepEqual(typing.untypable(text), [], `${contract.game}: no key types these characters of ${JSON.stringify(text)}`);
+  }
+  const start = software?.boot && typing
+    ? new TitleStart(software.boot, config.board.screen.refresh, typing, title?.tape && {
+        playing: () => title.tape!.playing(),
+        play: () => {
+          inputLog.push({ step, type: 'play', transport: title.tape!.tag });
+          title.tape!.play();
+        },
+      }, () => {}, () => !title?.quickloads.some(quickload => quickload.pending()))
+    : undefined;
   const stepHashes = new Map<number, GameCheckpointGolden>();
   const stepSnapshots = new Map<number, string>();
   let debugNext: MachineState | undefined;
@@ -305,6 +370,7 @@ export async function runGameAcceptance(
       assert.ok(bus, `${contract.game}: diagnostic CPU bus ${write.cpu} is missing`);
       bus.write(write.address, write.data);
     }
+    typing?.tick(1 / config.board.screen.refresh);
     input.advance();
     traceLog.length = 0;
     board.frame(framebuffer);
@@ -384,7 +450,7 @@ export async function runGameAcceptance(
         video: hash(new Uint8Array(framebuffer.buffer)),
         state: stateHash(snapshot),
       });
-      if (process.env.MAMEKIT_STATE_DEBUG === '1') {
+      if (process.env.MAMEKIT_STATE_DEBUG === '1' || process.env.MAMEKIT_STATE_DIFF === '1') {
         stepSnapshots.set(step, stableJson(snapshot));
         if (step === roundTrip.step + 1) { debugNext = board.save(); debugTrace = [...traceLog]; }
       }
@@ -405,6 +471,9 @@ export async function runGameAcceptance(
       };
       bookkeepingMs += performance.now() - started;
     }
+    // After the frame's hashes, as the shell steps it after the frame: a
+    // PLAY pressed here is replayed before the next frame, where it acts.
+    start?.advance();
   };
   const send = (type: 'keydown' | 'keyup', code: string): void => {
     inputLog.push({ step, type, code });
@@ -421,6 +490,10 @@ export async function runGameAcceptance(
     }
     if ('codes' in action) {
       pulseMany(send, action.codes, runFrame, action.heldFrames, action.releasedFrames);
+      continue;
+    }
+    if ('text' in action) {
+      typing!.postCoded(action.text);
       continue;
     }
     if ('analog' in action || 'signal' in action) {
@@ -462,6 +535,7 @@ export async function runGameAcceptance(
         { soundWrite: (offset, data, frac, method) => { replayWrites?.push({ offset, data, frac, method }); } },
       );
       deepInput.frameFraction = () => deepBoard.frameFraction?.() ?? 1;
+      if (software?.images.length) mountContractSoftware(contract, deepBoard, software.images);
       const scratch = new Uint32Array(deepBoard.fbWidth * deepBoard.fbHeight);
       for (let index = 0; index < roundTrip.step; index++) { deepInput.advance(); deepBoard.frame(scratch); }
       await replayFromState(deepBoard, deepInput, roundTrip.step, roundTrip.state, roundTrip.input, 'divergent');
@@ -498,12 +572,19 @@ export async function runGameAcceptance(
         for (; logIndex < inputLog.length && inputLog[logIndex]!.step === replayStep; logIndex++) {
           const entry = inputLog[logIndex]!;
           if (entry.type === 'reset') target.reset();
-          else key(replayTarget, entry.type, entry.code!);
+          else if (entry.type === 'press') targetInput.press(config.bindings[entry.binding]!, entry.down, 'natural-keyboard');
+          else if (entry.type === 'play') target.media?.().find(media => media.tag === entry.transport)!.play();
+          else key(replayTarget, entry.type, entry.code);
         }
         targetInput.advance();
         traceLog.length = 0;
         target.frame(replayFramebuffer);
         replayStep++;
+        if (process.env.MAMEKIT_STATE_DIFF === '1' && debugNext && replayStep === fromStep + 1) {
+          // Every container that differs one frame after the load, whether or
+          // not the picture or the snapshot noticed (sound state, mostly).
+          for (const line of [...diffStates(debugNext, target.save())].slice(0, 40)) console.log(`  differs after one frame: ${line}`);
+        }
         const expected = stepHashes.get(replayStep);
         const actual = {
           video: hash(new Uint8Array(replayFramebuffer.buffer)),
@@ -536,6 +617,11 @@ export async function runGameAcceptance(
     const original = allWrites.slice(roundTrip.writes);
     const trace = (list: SoundWrite[]) => hash(new TextEncoder().encode(
       list.map(write => `${write.offset}:${write.data}:${write.method ?? ''}:${write.frac ?? ''}`).join('\n')));
+    if (process.env.MAMEKIT_STATE_DEBUG === '1') {
+      const at = original.findIndex((write, index) => JSON.stringify(write) !== JSON.stringify(writes[index]));
+      if (at >= 0) console.log(`first differing sound write ${at} of ${original.length}: ` +
+        `${JSON.stringify(original.slice(at, at + 3))} / ${JSON.stringify(writes.slice(at, at + 3))}`);
+    }
     assert.equal(
       `${writes.length}/${trace(writes)}`,
       `${original.length}/${trace(original)}`,
@@ -682,10 +768,11 @@ export async function runGameAcceptance(
       })})`,
   );
   assert.ok(
-    result.audio.rms > 0.001,
+    audio.audibleRms() > 0.001,
     `${contract.game}: generated sound is silent ` +
       `(${JSON.stringify({
         audio: result.audio,
+        audibleRms: audio.audibleRms(),
         methods: Object.fromEntries(
           [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
             method,
@@ -829,6 +916,68 @@ async function mountContractCartridge(
   return mounted;
 }
 
+/**
+ * The scenario's computer title, read the way the software room reads one:
+ * identified against its shelf's generated catalogue with every image
+ * matched, as a cartridge is, and its images in the order the list names
+ * them. Its shelf says how it starts and which media slots it leaves empty.
+ */
+async function loadContractSoftware(
+  contract: GameTestContract,
+  config: ShellConfig,
+  root: string,
+  gameDir: string,
+): Promise<{
+  images: MountedImage[];
+  /** a cartridge, held by its slot from power-on (BoardConfig.images) */
+  powerOn?: NonNullable<ShellConfig['board']['images']>;
+  boot?: SoftwareShelf['boot'];
+  emptySlots: string[];
+}> {
+  const { list, name } = contract.software!;
+  const shelf = config.software?.shelves.find(candidate => candidate.list === list);
+  assert.ok(shelf, `${contract.game}: the machine has no ${list} shelf`);
+  assert.ok(shelf.mountable, `${contract.game}: ${list} media do not mount yet`);
+  const path = join(romsDir(root), config.software!.dumpsKey, list, `${name}.zip`);
+  assert.ok(existsSync(path), `${contract.game}: acceptance title is missing: ${path}`);
+  const catalog = JSON.parse(readFileSync(join(gameDir, shelf.catalogUrl), 'utf8')) as SoftwareCatalog;
+  const members = await readZip(new Uint8Array(readFileSync(path)));
+  const identified = identifySet(members, [catalog]);
+  assert.equal(identified?.entry.name, name,
+    `${contract.game}: ${name}.zip identifies as ${identified?.entry.name ?? `nothing in ${list}`}`);
+  assert.equal(identified.matched, identified.entry.prg.roms.length,
+    `${contract.game}: ${name}.zip only partly matches its software-list entry`);
+  const emptySlots = emptyMediaSlots(config.software, list);
+  if (shelf.imageDevice) {
+    // A cartridge's chips go into its slot by area, as the room's Play puts them.
+    const part = softwarePart(members, identified.entry);
+    assert.ok(part, `${contract.game}: ${name}.zip is missing a chip its ${list} entry names`);
+    return { images: [], powerOn: { [shelf.imageDevice]: { name: `${name}.zip`, software: part } }, ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots };
+  }
+  const images = mountableImages(members, shelf.extensions, identified.entry);
+  assert.ok(images.length, `${contract.game}: ${name}.zip holds no image a ${list} transport reads`);
+  return { images, ...(shelf.boot ? { boot: shelf.boot } : {}), emptySlots };
+}
+
+/** Each transport's first claimed image, inserted before the first frame as the shell's bays insert it. */
+function mountContractSoftware(
+  contract: GameTestContract,
+  board: Board,
+  images: readonly MountedImage[],
+): { tape?: CassetteMedia; quickloads: QuickloadMedia[] } {
+  const tapes = board.media?.() ?? [];
+  const quickloads = board.quickloads?.() ?? [];
+  const transports: (CassetteMedia | DiskMedia | QuickloadMedia)[] = [...tapes, ...board.disks?.() ?? [], ...quickloads];
+  const claimed = claimImages(transports, images);
+  claimed.forEach((mine, index) => {
+    const image = mine[0];
+    if (image) transports[index]!.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes, image.name, image.features);
+  });
+  assert.ok(claimed.some(mine => mine.length), `${contract.game}: no transport reads ${images.map(image => image.name).join(', ')}`);
+  const tape = tapes.find((_, index) => claimed[index]!.length);
+  return { ...(tape ? { tape } : {}), quickloads };
+}
+
 export function verifyInputBindings(
   contract: GameTestContract,
   config: ShellConfig,
@@ -892,6 +1041,7 @@ async function createAudioProbe(
     outputRate: PROBE_OUTPUT_RATE,
   });
   const chunks: Float32Array[] = [];
+  let audible = 0;
   return {
     render(writes, capture) {
       const samples = renderer.render(writes);
@@ -899,15 +1049,14 @@ async function createAudioProbe(
     },
     finish(writes, wavPath) {
       const { result, pcm } = audioResult(writes, chunks);
-      if (wavPath) {
-        writePcm16Wav(
-          wavPath,
-          applyBrowserOutputStage(pcm, config.sound, PROBE_OUTPUT_RATE),
-          PROBE_OUTPUT_RATE,
-        );
-      }
+      const output = applyBrowserOutputStage(pcm, config.sound, PROBE_OUTPUT_RATE);
+      let squares = 0;
+      for (const sample of output) squares += sample * sample;
+      audible = Math.sqrt(squares / Math.max(1, output.length));
+      if (wavPath) writePcm16Wav(wavPath, output, PROBE_OUTPUT_RATE);
       return result;
     },
+    audibleRms: () => audible,
   };
 }
 

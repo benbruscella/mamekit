@@ -1,3 +1,4 @@
+import { naturalKeyboardAlternates } from './natural-keyboard.ts';
 import { lowerTopology } from './lower-topology.ts';
 import { lowerScreen } from './lower-screen.ts';
 import { lowerSound } from './lower-sound.ts';
@@ -19,6 +20,7 @@ import { hiscoreTable } from '../mame/hiscore-dat.ts';
 import type { GenerateOptions } from './generate.ts';
 
 import { Graph } from '../kg/query.ts';
+import type { ShelfSwitch } from './software-shelves.ts';
 import { sourceNvramInitializers } from './machine-source.ts';
 export { sourceNvramInitializers, handlerOwnsSharedRam, sourceHandlerDataWidth } from './machine-source.ts';
 
@@ -57,8 +59,11 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   const { roms } = lowerRoms(opts, g, romset, devices, graph);
 
   const { customs, inputLatches, bindings, dipDefaults, portSpecs, inputChangedHandlers } = lowerInputs(g, inputs, graph, opts, devices);
+  // MAME's natural keyboard types through the keys' own PORT_CHARs; what it
+  // types another way is MAME's charinfo table, kept to what these keys reach.
+  const alternates = naturalKeyboardAlternates(opts.mameSrc, bindings);
 
-  const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family);
+  const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family, g, dipDefaults as ShelfSwitch[]);
 
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly
@@ -163,6 +168,7 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
     ...(cart ? { cart } : {}),
     ...(software ? { software } : {}),
     bindings,
+    ...(alternates ? { naturalKeyboard: { alternates } } : {}),
     dipDefaults,
     ports: portSpecs,
     // no romUrl: ROMs are never fetched — the shell only accepts user drops

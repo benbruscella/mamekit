@@ -7,13 +7,17 @@ import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
+import { NaturalKeyboard } from './natural-keyboard.ts';
+import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
+import { createOnscreenKeyboard } from './onscreen-keyboard.ts';
 import { AudioOutput } from './audio.ts';
 import { readZip, crc32 } from './zip.ts';
-import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState } from './types.ts';
+import { missingMedia, putMedia, recordMedia, transportImage, type TransportImage, type TransportMedia } from './transport-media.ts';
+import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
-import { fetchRomBytes, machineSetDir } from './rom-source.ts';
+import { fetchRomBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
 import {
@@ -212,18 +216,9 @@ export interface DropZone {
 async function fetchRomSet(game: string, category = 'arcade', systemKey?: string): Promise<Uint8Array> {
   // A console's or computer's firmware is filed in the system's own folder
   // (consoles/coleco/bios/coleco.zip, computers/c64/bios/c64.zip), beside the
-  // software it runs; an arcade board's set sits at the category root.
-  // A clone's firmware is its parent's chips under a different set name --
-  // the PAL C64 loads the NTSC machine's ROMs -- and the library files the one
-  // zip under the family, so that name is tried too; the chips are matched by
-  // name and CRC either way. The category root is the last resort: console
-  // BIOS sets sat there before issue #162.
-  const dir = systemKey ? machineSetDir(category, systemKey) : category;
-  const family = systemKey?.split('/').pop();
-  const keys = [...new Set([
-    `${dir}/${game}.zip`, ...(family ? [`${dir}/${family}.zip`] : []), `${category}/${game}.zip`,
-  ])];
-  for (const key of keys) {
+  // software it runs; an arcade board's set sits at the category root. See
+  // machineSetKeys for the clone and legacy names tried after it.
+  for (const key of machineSetKeys(game, category, systemKey)) {
     const bytes = await fetchRomBytes(key);
     if (bytes) return bytes;
   }
@@ -243,7 +238,7 @@ function romCategory(dataPath: string): string {
  * directory (consoles/coleco), or the computer family's (computers/c64, which
  * the PAL and NTSC machines share). An arcade board has none.
  */
-function romSystemKey(cfg: ShellConfig): string | undefined {
+export function romSystemKey(cfg: Pick<ShellConfig, 'software' | 'cart' | 'dataPath'>): string | undefined {
   return cfg.software?.dumpsKey ?? (cfg.cart ? cfg.dataPath.replace(/^games\//, '') : undefined);
 }
 
@@ -374,6 +369,32 @@ export interface ShellConfig {
    */
   usage?: string;
   /**
+   * MAME's natural keyboard, for a machine whose keys declare `PORT_CHAR`s:
+   * the characters it types another way (MAME's `charinfo`, kept to what
+   * this machine's keys reach). See natural-keyboard.ts.
+   */
+  naturalKeyboard?: { alternates: Record<string, string> };
+  /** Start the title the software room booted: its shelf's `boot`. */
+  boot?: NonNullable<SoftwareShelf['boot']>;
+  /**
+   * The title the software room booted, as the set it keeps for it: what the
+   * title's own host state -- its resume point, its machine settings, the
+   * disks it wrote -- is kept under. Absent for Power on.
+   */
+  titleKey?: string;
+  /**
+   * Configuration switches the title's usage note asks for (the generator's
+   * usageSwitches): a C64 title that wants its joystick in port 1.
+   */
+  switches?: { port: string; mask: number; value: number }[];
+  /**
+   * Machines whose firmware kept in this browser is this one's too: a
+   * machine's other regional versions, which the room names. The PAL C64
+   * loads the NTSC machine's chips, so a c64.zip kept for one boots the other
+   * instead of asking for it again; chips are still matched by name and CRC.
+   */
+  firmwareFrom?: string[];
+  /**
    * The machine is exposed as a beta: compiled and playable, but without
    * gameplay acceptance yet. Set by the room from the manifest's preview flag
    * so the page says so wherever the machine is named.
@@ -416,11 +437,42 @@ export interface SoftwareShelf {
    */
   mountable: boolean;
   /**
+   * The machine's `set_filter` on the list ("PAL"): the catalogue holds only
+   * what MAME's `is_compatible` lets through, and the room names a family's
+   * regional machines by it.
+   */
+  filter?: string;
+  /**
    * The MAME slots whose cards carry this medium's transport ("tape",
    * "iec8"), when it is not fixed to the board. A title on another medium
    * boots with these slots empty, as MAME's `-iec8 ""` leaves them.
    */
   slots?: string[];
+  /**
+   * The device a title's software-list part is handed to at power-on
+   * (BoardConfig.images), for a medium the slot reads by area name rather
+   * than as a file: the C64 expansion port (`exp`) takes a cartridge's `roml`
+   * and `romh`.
+   */
+  imageDevice?: string;
+  /**
+   * The shelf's art, by title: a cover's file under artwork/carts/<list>/,
+   * shown in place of the drawn medium (src/gen/cart-art.ts).
+   */
+  art?: Record<string, string>;
+  /**
+   * How a title from this shelf starts once its medium is mounted: the
+   * command typed through MAME's natural keyboard after the machine has come
+   * up, and whether PLAY is pressed on the tape once it is typed. Generated
+   * host policy (software-shelves.ts BOOT_POLICY).
+   */
+  boot?: {
+    /** seconds of emulated time before typing */
+    delay: number;
+    /** MAME's coded form: `LOAD{ENTER}RUN{ENTER}` */
+    command: string;
+    play?: boolean;
+  };
 }
 
 export interface SoftwareShelves {
@@ -433,6 +485,8 @@ export interface SoftwareShelves {
 export interface MountedImage {
   name: string;
   bytes: Uint8Array;
+  /** Its software-list part's features, as `get_feature` answers them, when it came from a list. */
+  features?: Readonly<Record<string, string>>;
 }
 
 export type RomTransform =
@@ -806,7 +860,7 @@ export async function runShell(
   // title boots without the 1541, so it must not ask for c1541.zip.
   const emptySlots = cfg.board.emptySlots ?? [];
   if (emptySlots.length) {
-    cfg = { ...cfg, roms: cfg.roms.filter(spec => !emptySlots.some(slot => spec.region.startsWith(`${slot}:`))) };
+    cfg = { ...cfg, roms: withoutSlotFirmware(cfg.roms, emptySlots) };
     console.info(`[media] booting with ${emptySlots.map(slot => `-${slot} ""`).join(' ')}: ` +
       'a transport the title does not use is left out, as MAME leaves an empty slot');
   }
@@ -867,7 +921,7 @@ export async function runShell(
     // stores it in a separate split-set zip.
     const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
     const dependencies = dependencyRomSets(cfg.roms, cfg.game);
-    const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical);
+    const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical, cfg.firmwareFrom);
     if (kept?.complete) {
       ui.status(`Booting ${cfg.title} from the ${cfg.game}.zip kept in this browser…`);
       regions = assembleRegions(cfg.roms, kept.files, ui.status, critical);
@@ -915,6 +969,12 @@ export async function runShell(
   const pointer = new PointerInput(input, cfg.bindings);
   pointer.debug = input.debug;
   pointer.attach(ui.canvas);
+  // MAME's natural keyboard: text typed through the machine's own keys, as
+  // their PORT_CHARs say -- a paste, or a title's start command. Absent on a
+  // machine whose keys type nothing.
+  const typing = cfg.bindings.some(binding => binding.chars?.length)
+    ? new NaturalKeyboard(input, cfg.bindings, cfg.naturalKeyboard?.alternates)
+    : undefined;
   // The legend is first drawn before either source exists; redraw it now
   // that both do, and again whenever a pad or the pointer capture changes.
   ui.controls(controlsHelp(cfg, pads, pointer));
@@ -1003,33 +1063,56 @@ export async function runShell(
   };
   // A transport left out still has its strip, in the place it always has,
   // saying so and offering the restart that connects it.
-  const detached = (kind: keyof typeof TRANSPORT_LABELS): void => {
+  const detached = (kind: 'cassette' | 'floppy'): void => {
     for (const slot of emptySlots) {
       if (cfg.software?.shelves.find(shelf => shelf.slots?.includes(slot))?.kind !== kind) continue;
       ui.addBay(detachedBay(kind, slot, ui.toast, host.attach));
     }
   };
-  // The software room's chosen tape rides in on `mounted`; the first transport
-  // that accepts its extension takes it, the rest start empty.
-  let pending = mounted;
-  for (const media of board.media?.() ?? []) {
-    const mine = pending.filter(image => media.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
-    if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
-  }
+  // The software room's chosen title rides in on `mounted`: each image goes to
+  // the first transport, tapes then drives then quickloads, whose formats
+  // read it, and the rest start empty (title-start.ts, which the acceptance
+  // harness shares).
+  const tapes = board.media?.() ?? [];
+  const disks = board.disks?.() ?? [];
+  const quickloads = board.quickloads?.() ?? [];
+  const claimed = claimImages<CassetteMedia | DiskMedia | QuickloadMedia>([...tapes, ...disks, ...quickloads], mounted);
+  // The deck that took the title's tape, for a boot that ends by pressing PLAY.
+  const bootTape = tapes.find((_, index) => claimed[index]!.length);
+  const transportImages: TransportImage[] = [];
+  const addTransport = (bay: PanelBay): void => {
+    if (bay.image) transportImages.push(bay.image);
+    ui.addBay(bay);
+  };
+  tapes.forEach((media, index) => {
+    const mine = claimed[index]!;
+    addTransport(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
+      mine.length && typing ? cfg.boot?.command : undefined));
+  });
   detached('cassette');
-  // Disk drives the same way: the chosen disk set's images go to the first
-  // drive whose formats read them.
-  for (const disk of board.disks?.() ?? []) {
-    const mine = pending.filter(image => disk.extensions.includes(image.name.split('.').pop()!.toLowerCase()));
-    if (mine.length) pending = pending.filter(image => !mine.includes(image));
-    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined));
-  }
+  disks.forEach((disk, index) => {
+    const mine = claimed[tapes.length + index]!;
+    addTransport(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
+      mine.length && typing ? cfg.boot?.command : undefined));
+  });
   detached('floppy');
+  quickloads.forEach((quickload, index) => {
+    const mine = claimed[tapes.length + disks.length + index]!;
+    ui.addBay(quickloadBay(quickload, () => input.releaseAll(), ui.toast, mine, mine.length ? cfg.usage : undefined,
+      mine.length && typing ? cfg.boot?.command : undefined));
+  });
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+
+  // One-click play (issue #161): a title the room booted starts itself with
+  // its shelf's command, typed once the machine is up, then PLAY on the tape
+  // that took it; warp while loading carries the load from there.
+  const start = cfg.boot && typing
+    ? new TitleStart(cfg.boot, cfg.board.screen.refresh, typing, bootTape, message => console.info(`[boot] ${message}`),
+      () => !quickloads.some(quickload => quickload.pending()))
+    : undefined;
 
   // One emulated frame, exactly as the run loop advances it. Browser QA drives
   // this directly so a test can run a precise frame count instead of racing the
@@ -1037,6 +1120,9 @@ export async function runShell(
   // Declared before the frame helpers that read it: `step()` is exposed on
   // window.mamekit and can run a frame before the run loop is set up.
   let fastForward = false;
+  // Fast-forward the machine chose for itself while a transport loads (see
+  // warp while loading, below); either one runs the machine unthrottled.
+  let warping = false;
 
   // The board says how far through a frame it is, so a dial's frame of
   // travel is handed out gradually, as MAME does, instead of in one lump.
@@ -1111,8 +1197,12 @@ export async function runShell(
     // identical.
     pointer.advance();
     if (!netplay.begin()) return false;
+    // Typed keys are paced in emulated time, so the source only moves on a
+    // frame that runs; what it presses lands in the next one.
+    typing?.tick(1 / cfg.board.screen.refresh);
     input.advance(netplay.take());
     board.frame(fb);
+    start?.advance();
     memory.tick();
     if (!hiscoreRestoreAnnounced && memory.hiscoreArmed()) {
       hiscoreRestoreAnnounced = true;
@@ -1120,7 +1210,7 @@ export async function runShell(
     }
     // Fast-forward outruns the worklet, and a queued frame is permanent
     // latency rather than a dropped one, so its audio is discarded instead.
-    if (fastForward) audio.discard();
+    if (fastForward || warping) audio.discard();
     else audio.flush(); // one batch message per emulated frame
     netplay.end(() => machineFingerprint(board));
     frames++;
@@ -1224,7 +1314,21 @@ export async function runShell(
   const masterVolume = cfg.sound.masterGain ?? 1;
   const setFastForward = (on: boolean): void => {
     fastForward = on;
-    audio.setVolume(on ? 0 : masterVolume);
+    audio.setVolume(fastForward || warping ? 0 : masterVolume);
+  };
+  // Warp while loading (issue #161): fast-forward on its own while a
+  // transport is moving -- a tape the machine's motor is pulling, a disk
+  // spinning -- and back to real time the moment it stops. It reads only the
+  // board's generic transports, so a machine with any gets it.
+  const warpKey = `mamekit:warp-while-loading:${cfg.game}`;
+  let warpWhileLoading = tapes.length + disks.length > 0;
+  try { if (localStorage.getItem(warpKey) === '0') warpWhileLoading = false; } catch { /* no storage: on */ }
+  const updateWarp = (): void => {
+    const loading = tapes.some(tape => tape.playing() && tape.motorOn()) || disks.some(disk => disk.spinning());
+    const next = warpWhileLoading && loading;
+    if (next === warping) return;
+    warping = next;
+    audio.setVolume(fastForward || warping ? 0 : masterVolume);
   };
   if (cfg.kind === 'computer') {
     // A computer keeps every key on its keyboard, so Reset and Fast-forward
@@ -1237,7 +1341,7 @@ export async function runShell(
     group.setAttribute('aria-label', 'Computer');
     group.style.cssText = 'display:inline-flex;align-items:center;gap:7px';
     const reset = titleButton('Reset', 'Reset the computer', 'Reset the computer, as its reset line does', 'normal', 'power');
-    reset.onclick = () => { input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
+    reset.onclick = () => { start?.cancel(); typing?.cancel(); input.releaseAll(); board.reset(); memory.reset(); reset.blur(); };
     const fast = titleButton('Fast-forward', 'Fast-forward',
       'Run as fast as the machine will go, muted, until pressed again', 'normal', 'fastForward');
     fast.dataset.fastForward = '';
@@ -1250,6 +1354,101 @@ export async function runShell(
       fast.blur();
     };
     group.append(reset, fast);
+    // MAME's Machine Configuration menu: each configuration switch the driver
+    // declares (PORT_CONFNAME) with two settings, as a toggle -- the C64's
+    // "Swap joystick ports", for the titles that read port 1. A title's own
+    // usage note can ask for a setting (cfg.switches, from the generator);
+    // what the visitor chooses is kept for that title.
+    for (const entry of cfg.dipDefaults.filter(dip => dip.config && dip.settings?.length === 2)) {
+      const key = `mamekit:setting:${cfg.game}:${cfg.titleKey ?? 'power-on'}:${entry.port}:${entry.mask}`;
+      const asked = cfg.switches?.find(choice => choice.port === entry.port && choice.mask === entry.mask)?.value;
+      let kept: number | undefined;
+      try { const raw = localStorage.getItem(key); if (raw !== null) kept = Number(raw); } catch { /* not kept */ }
+      let value = kept ?? asked ?? entry.value;
+      const named = (wanted: number): string => entry.settings!.find(setting => setting.value === wanted)?.name ?? String(wanted);
+      const toggle = titleButton(entry.name, entry.name, '', 'normal', 'joystick');
+      toggle.dataset.machineSetting = entry.port;
+      const paint = (): void => {
+        const thrown = value !== entry.value;
+        toggle.setAttribute('aria-pressed', String(thrown));
+        toggle.title = `${named(value)} (MAME's ${entry.name}: click for ${named(entry.settings!.find(setting => setting.value !== value)!.value)})`;
+        paintTitleButton(toggle, thrown);
+      };
+      input.setDip(entry.port, entry.mask, value);
+      paint();
+      if (asked !== undefined && kept === undefined && asked !== entry.value) {
+        console.info(`[settings] ${entry.name}: ${named(asked)}, as the title's note asks`);
+        setTimeout(() => ui.toast(`${named(asked)}, as this title's note asks`), 1200);
+      }
+      toggle.onclick = () => {
+        value = entry.settings!.find(setting => setting.value !== value)!.value;
+        input.setDip(entry.port, entry.mask, value);
+        try { localStorage.setItem(key, String(value)); } catch { /* not kept */ }
+        paint();
+        ui.toast(named(value));
+        toggle.blur();
+      };
+      group.append(toggle);
+    }
+    // The machine's whole keyboard on screen, for keys a PC keyboard has not
+    // got (RUN/STOP, RESTORE, C=, F1 to F8, £) and for a touch screen.
+    if (cfg.bindings.some(binding => binding.type === 'IPT_KEYBOARD')) {
+      const keys = titleButton('Keyboard', 'On-screen keyboard', 'Show the computer\'s own keyboard on screen', 'normal', 'keys');
+      keys.dataset.onscreenKeyboard = '';
+      let panel: HTMLElement | undefined;
+      let open = false;
+      keys.onclick = () => {
+        open = !open;
+        if (open) {
+          panel ??= createOnscreenKeyboard(cfg.bindings, (binding, down) => input.press(binding, down, 'onscreen'));
+          ui.showPopover(keys, panel, () => { open = false; paintTitleButton(keys, false); });
+        } else ui.closePopover();
+        paintTitleButton(keys, open);
+        keys.blur();
+      };
+      group.append(keys);
+    }
+    if (tapes.length + disks.length) {
+      const warp = titleButton('Warp loading', 'Warp while loading',
+        'Fast-forward on its own while a tape or disk is loading, and back to real time when it stops', 'normal', 'fastForward');
+      warp.dataset.warpWhileLoading = '';
+      const paint = (): void => {
+        warp.setAttribute('aria-pressed', String(warpWhileLoading));
+        paintTitleButton(warp, warpWhileLoading);
+      };
+      paint();
+      warp.onclick = () => {
+        warpWhileLoading = !warpWhileLoading;
+        try { localStorage.setItem(warpKey, warpWhileLoading ? '1' : '0'); } catch { /* not kept */ }
+        updateWarp();
+        paint();
+        warp.blur();
+      };
+      group.append(warp);
+    }
+    if (typing) {
+      // The clipboard typed through the machine's own keys, as MAME's
+      // natural keyboard pastes: at the keyboard's pace, in emulated time.
+      const paste = titleButton('Paste', 'Paste text into the computer',
+        'Type the clipboard\'s text on the computer\'s keyboard', 'normal', 'paste');
+      paste.dataset.paste = '';
+      paste.onclick = async () => {
+        paste.blur();
+        let text: string | undefined;
+        try { text = await navigator.clipboard?.readText(); } catch { /* refused */ }
+        if (text === undefined) { ui.toast('The browser would not share its clipboard'); return; }
+        typing.post(text);
+      };
+      group.append(paste);
+      // Cmd/Ctrl+V does the same: the input model leaves a shortcut to the
+      // browser, and the browser's paste carries the text itself.
+      addEventListener('paste', ev => {
+        const text = ev.clipboardData?.getData('text/plain');
+        if (!text) return;
+        ev.preventDefault();
+        typing.post(text);
+      });
+    }
     ui.addTitleControls(group);
   }
   // --- save states (issue #129) ---------------------------------------------
@@ -1261,6 +1460,9 @@ export async function runShell(
     identity: machineIdentity(cfg.game, cfg.board, regions),
     save: () => board.save(),
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
+    media: () => recordMedia(transportImages),
+    missingMedia: media => missingMedia(transportImages, media),
+    putMedia: media => putMedia(transportImages, media),
     screen: ui.canvas,
     toast: ui.toast,
     // The shelf hangs off its own button rather than joining the page
@@ -1296,6 +1498,60 @@ export async function runShell(
     setFastForward(!fastForward);
   });
 
+  // --- resume (issue #161) ---------------------------------------------------
+  // A computer title picks up where it was left, so a three-minute tape load
+  // happens once rather than every visit. One automatic save per title, kept
+  // with the visitor's own saves but off their shelf: written whenever the
+  // page is hidden or left, and loaded the next time the same title boots on
+  // the same machine, in place of starting it again.
+  if (cfg.kind === 'computer' && cfg.titleKey && !joinCode) {
+    const resumeId = `resume:${cfg.game}:${cfg.titleKey}`;
+    const identity = machineIdentity(cfg.game, cfg.board, regions);
+    const store = openSaveStore();
+    const keep = async (): Promise<void> => {
+      // A title just booted has nothing worth coming back to yet.
+      // The machine's own frame count: the shell's is the fps meter's, and
+      // starts again every second.
+      if (netplay.live || board.snapshot().frame < cfg.board.screen.refresh * 10) return;
+      let state: MachineState;
+      try { state = board.save(); } catch { return; }
+      try {
+        await (await store).put({ id: resumeId, game: cfg.game, identity, title: cfg.title, frame: state.frame, createdAt: Date.now(),
+          media: recordMedia(transportImages), state });
+      } catch (error) { console.warn(`${cfg.game}: could not keep the resume point: ${(error as Error).message}`); }
+    };
+    addEventListener('pagehide', () => { void keep(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) void keep(); });
+    const record = await (await store).get(resumeId).catch(() => null);
+    // A resume point is only good against the media it was made with: its
+    // tape position against that tape's own samples. Every image is checked
+    // before any transport moves.
+    const missing = record && record.identity === identity ? missingMedia(transportImages, record.media) : [];
+    if (missing.length) {
+      console.warn(`[resume] ${cfg.title}: not resumed, ${missing.join(', ')} is not in hand`);
+    } else if (record && record.identity === identity) {
+      const before = recordMedia(transportImages);
+      // The machine as it stands with those images in, should the load fail.
+      let standing: MachineState | undefined;
+      try { standing = board.save(); } catch { /* mid-frame: nothing to go back to */ }
+      try {
+        input.releaseAll();
+        putMedia(transportImages, record.media);
+        board.load(record.state);
+        start?.cancel();
+        typing?.cancel();
+        console.info(`[resume] ${cfg.title}: back at frame ${record.frame}`);
+        setTimeout(() => ui.toast('Back where you left off · Reset starts it over'), 600);
+      } catch (error) {
+        // Back as it was: the images that were in, then the machine as it
+        // stood with them, the tape's position and transport included.
+        putMedia(transportImages, before);
+        if (standing) { try { board.load(standing); } catch { /* the failed load's own rollback stands */ } }
+        console.warn(`${cfg.game}: the resume point did not load: ${(error as Error).message}`);
+      }
+    }
+  }
+
   // --- run loop: fixed timestep at the board's refresh rate --------------------
   const refresh = cfg.board.screen.refresh;
   const frameMs = 1000 / refresh;
@@ -1303,15 +1559,36 @@ export async function runShell(
   let last = performance.now();
   let frames = 0;
   let fpsWindowStart = last;
-  // How long the display gives each tick, smoothed: fast-forward fills it.
-  let displayMs = 1000 / 60;
+  // Fast-forward runs frames back to back, not only inside the display's tick.
+  // A tick fits a whole number of frames: at ~7 ms a C64 frame, a 60 Hz
+  // display's 16.7 ms took two -- 120 fps -- and left the rest of it idle,
+  // after an earlier fixed 10 ms batch had run that machine slower forwarded
+  // than not (issue #157). Each frame is a task of its own from a message
+  // channel (a timer would be clamped to 4 ms), so input, the display and the
+  // page get the thread between any two, and the tick presents. A hidden page
+  // runs nothing, as the display's own ticks stop there.
+  const pumpChannel = new MessageChannel();
+  let pumpQueued = false;
+  const queuePump = (): void => {
+    if (pumpQueued) return;
+    pumpQueued = true;
+    pumpChannel.port2.postMessage(0);
+  };
+  pumpChannel.port1.onmessage = () => {
+    pumpQueued = false;
+    if (!(fastForward || warping) || paused || qaDrive || document.hidden) return;
+    if (!runFrame()) return; // in a room, only as far as the other player
+    queuePump();
+  };
+
   const tick = (now: number) => {
     if (input.debug && now - last > 50) {
       console.log(`[stall] ${Math.round(now - last)}ms between frames at ${Math.round(now)}`);
     }
-    // A stalled tick says nothing about the display's rate, so it is left out.
-    if (now - last > 2 && now - last < 50) displayMs += (now - last - displayMs) * 0.1;
     pads.poll();
+    // Whether a transport is loading, read once a tick: it decides the pace
+    // of the frames this tick runs.
+    updateWarp();
     acc += now - last;
     last = now;
     if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
@@ -1326,20 +1603,9 @@ export async function runShell(
     if (paused) {
       // Nothing runs, but the panel keeps reporting: the readout below says
       // so rather than leaving a still picture to be read as a crash.
-    } else if (fastForward && !qaDrive) {
-      // As many frames as fit the display's tick, presented once. It used to
-      // be a fixed 10 ms, which on a 60 Hz display left a third of every tick
-      // idle -- and a machine whose frame takes longer than that (a C64 is
-      // ~15 ms) ran one frame a tick, slower fast-forwarded than not
-      // (issue #157). The tick is measured, and a few milliseconds are left
-      // over for the page itself so F, Esc and the panel still answer. The
-      // cap stops a fast machine running away.
-      const until = now + Math.max(6, Math.min(displayMs, 40) - 3);
-      let batch = 0;
-      do {
-        if (!runFrame()) break; // in a room, only as far as the other player
-        batch++;
-      } while (performance.now() < until && batch < 120);
+    } else if ((fastForward || warping) && !qaDrive) {
+      // The frames run in the pump below; the tick only presents the latest.
+      queuePump();
       ui.blit(image);
       acc = 0; // the timestep's backlog means nothing at this speed
     } else if (!qaDrive) {
@@ -1358,6 +1624,7 @@ export async function runShell(
       // page spent two of its lines saying the same thing twice.
       const rate = paused ? ['⏸ paused'] : [`${frames} fps`];
       if (fastForward && !paused) rate[0] = `▶▶ ${rate[0]}${cfg.kind === 'computer' ? '' : ' (F)'}`;
+      else if (warping && !paused) rate[0] = `▶▶ ${rate[0]} · loading`;
       const room = netplay.status();
       if (room) rate.push(room);
       const detail = [`pc=${hex4(snap.cpus[0].pc)}`];
@@ -1587,25 +1854,34 @@ export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: Po
     const roles = [...new Set(pointer.bindings().map(b => fnLabel(b.label).replace(/ (left|right|up|down)$/i, '')))];
     parts.push(`Mouse or spinner: ${roles.join(', ')}${pointer.isCaptured ? ' (Esc releases)' : ' (click screen to capture)'}`);
   }
-  if (cfg.kind === 'computer') {
-    const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
-    return [...head, 'Keyboard: type directly', ...specialKeys, 'Esc: menu'].join(' · ');
-  }
   const order = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
   const stickOrder = ['move', 'left stick', 'right stick'];
-  for (const [name, { keys, pads: stickPads }] of [...sticks]
-    .sort(([a], [b]) => stickOrder.indexOf(a) - stickOrder.indexOf(b))) {
-    // Four arrows read as "Arrows" and a few as themselves ("←→"); other keys
-    // are named up, down, left, right ("W/S").
-    const codes = [...keys.keys()];
-    const named = order.every(k => keys.has(k))
-      ? 'Arrows'
-      : codes.every(k => order.includes(k))
-        ? order.filter(k => keys.has(k)).map(keyLabel).join('')
-        : codes.sort((a, b) => keys.get(a)! - keys.get(b)!).map(keyLabel).join('/');
-    const label = [named, ...stickPads].filter(Boolean).join(' or ');
-    if (label) head.push(`${label}: ${name}`);
+  const stickLines = [...sticks]
+    .sort(([a], [b]) => stickOrder.indexOf(a) - stickOrder.indexOf(b))
+    .flatMap(([name, { keys, pads: stickPads }]) => {
+      // Four arrows read as "Arrows" and a few as themselves ("←→"); other keys
+      // are named up, down, left, right ("W/S").
+      const codes = [...keys.keys()];
+      const named = order.every(k => keys.has(k))
+        ? 'Arrows'
+        : codes.every(k => order.includes(k))
+          ? order.filter(k => keys.has(k)).map(keyLabel).join('')
+          : codes.sort((a, b) => keys.get(a)! - keys.get(b)!).map(keyLabel).join('/');
+      const label = [named, ...stickPads].filter(Boolean).join(' or ');
+      return label ? [{ name, label }] : [];
+    });
+  if (cfg.kind === 'computer') {
+    const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
+    // The joystick a computer has plugged in is worked from the same keyboard,
+    // and nothing on screen says which keys those are: a title that wants it
+    // (Boulder Dash, "press button to play") is otherwise a guess.
+    const fire = parts.filter(part => /: fire\b/.test(part)).map(part => part.replace(/: fire\b/, ' fire'));
+    const joystick = stickLines.length || fire.length
+      ? [`Joystick: ${[...stickLines.map(stick => stick.label), ...fire].join(', ')}`]
+      : [];
+    return [...head, 'Keyboard: type directly', ...joystick, ...specialKeys, 'Esc: menu'].join(' · ');
   }
+  for (const { name, label } of stickLines) head.push(`${label}: ${name}`);
   return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');
 }
 
@@ -2587,18 +2863,27 @@ export async function storedRomFiles(
   game: string,
   specs: RomRegionSpec[],
   critical: Set<string>,
+  /** further machines whose kept sets may hold these chips (ShellConfig.firmwareFrom) */
+  also: readonly string[] = [],
 ): Promise<KeptRomSet | null> {
-  let record;
-  try { record = await store.get(game); } catch { return null; }
-  if (!record) return null;
   const files = new Map<string, Uint8Array>();
-  try {
-    for (const zip of record.zips) mergeRomFiles(files, await readZip(new Uint8Array(zip.bytes)));
-  } catch {
-    await store.remove(game).catch(() => undefined);
-    return null;
+  const zips: StoredZip[] = [];
+  for (const name of [game, ...also]) {
+    let record;
+    try { record = await store.get(name); } catch { continue; }
+    if (!record) continue;
+    try {
+      const own = new Map<string, Uint8Array>();
+      for (const zip of record.zips) mergeRomFiles(own, await readZip(new Uint8Array(zip.bytes)));
+      mergeRomFiles(files, own);
+      zips.push(...record.zips);
+    } catch {
+      // Only the machine's own record is dropped: a sibling's is its own business.
+      if (name === game) await store.remove(game).catch(() => undefined);
+    }
   }
-  return { files, zips: record.zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
+  if (!zips.length) return null;
+  return { files, zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
 }
 
 /** The sets that still hold a boot-critical chip `files` lacks, as the drop screen names them. */
@@ -2697,6 +2982,12 @@ function saveStateDeck(options: {
   identity: string;
   save: () => MachineState;
   load: (state: MachineState) => void;
+  /** the image each transport holds, recorded with a save */
+  media: () => TransportMedia;
+  /** the images a save needs that are not in hand, checked without moving a transport */
+  missingMedia: (media: SaveRecord['media']) => string[];
+  /** put a save's images back in their transports, before its state */
+  putMedia: (media: TransportMedia | undefined) => void;
   screen: HTMLCanvasElement;
   toast: (text: string) => void;
   /** the deck changed height: the screen takes what is left */
@@ -2791,7 +3082,8 @@ function saveStateDeck(options: {
   let records: SaveRecord[] = [];
   const render = async (): Promise<void> => {
     const opened = await store;
-    records = await opened.list(cfg.game);
+    // The automatic resume point is the room's, not one of the visitor's saves.
+    records = (await opened.list(cfg.game)).filter(record => !record.id.startsWith('resume:'));
     const foreign = records.filter(record => record.identity !== identity).length;
     note.textContent = !opened.persistent
       ? 'Saves last only this session: browser storage is unavailable.'
@@ -2848,6 +3140,7 @@ function saveStateDeck(options: {
       frame: state.frame,
       createdAt,
       thumbnail: thumbnail(),
+      media: options.media(),
       state,
     };
     try {
@@ -2865,9 +3158,26 @@ function saveStateDeck(options: {
       toast('That save was made with a different ROM set or build');
       return false;
     }
+    // The state is only good against the media it was saved with: a tape
+    // position against that tape's own samples. Every image is checked
+    // before any transport moves, so a refused load leaves them all running.
+    const missing = options.missingMedia(record.media);
+    if (missing.length) {
+      toast(`That save needs the ${missing.join(', ')} it was made with: open that image to load it`);
+      return false;
+    }
+    const before = options.media();
+    // The machine as it stands with those images in, should the load fail.
+    let standing: MachineState | undefined;
+    try { standing = options.save(); } catch { /* mid-frame: nothing to go back to */ }
     try {
+      options.putMedia(record.media);
       options.load(record.state);
     } catch (error) {
+      // Back as it was: the images that were in, then the machine as it
+      // stood with them, the tape's position and transport included.
+      options.putMedia(before);
+      if (standing) { try { options.load(standing); } catch { /* the failed load's own rollback stands */ } }
       toast(`Could not load: ${(error as Error).message.split('\n')[0]}`);
       return false;
     }
@@ -2913,6 +3223,8 @@ function diskBay(
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
   speed: () => string = () => '',
   usage?: string,
+  /** the command the title starts itself with (ShellConfig.boot), when it does */
+  starting?: string,
 ): PanelBay {
   const picker = document.createElement('input');
   picker.type = 'file';
@@ -3009,13 +3321,18 @@ function diskBay(
   };
 
   let images = new Map<string, Uint8Array>();
+  // What the set's list says of its disks (a write-protected original).
+  let features: Readonly<Record<string, string>> | undefined;
+  let current: string | undefined;
   const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
     if (!bytes) return;
     try {
       const started = performance.now();
-      media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      current = undefined;
+      media.mount(name.split('.').pop()!.toLowerCase(), bytes, name, features);
+      current = name;
       log(`inserted ${name} (${bytes.length} bytes, read in ${Math.round(performance.now() - started)} ms)`);
       mounted.textContent = name;
       mounted.title = name;
@@ -3029,11 +3346,22 @@ function diskBay(
     paint();
   };
   eject.onclick = () => {
-    try { media.eject(); log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    try { media.eject(); current = undefined; log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
     catch (error) { say(String(error)); }
     paint(); eject.blur();
   };
   side.onchange = () => mount(true);
+  // A two-sided game asks for the other side: one press, the way a disk is
+  // turned over, rather than finding it in the list.
+  const flip = titleButton('Flip', 'Flip the disk', 'Put the next disk of this set in the drive', 'normal', 'flip');
+  flip.setAttribute('data-disk-flip', '');
+  flip.hidden = true;
+  flip.onclick = () => {
+    const names = [...images.keys()];
+    side.value = names[(names.indexOf(side.value) + 1) % names.length]!;
+    mount(true);
+    flip.blur();
+  };
   picker.onchange = async () => {
     const file = picker.files?.[0];
     if (!file) return;
@@ -3042,23 +3370,30 @@ function diskBay(
       const bytes = new Uint8Array(await file.arrayBuffer());
       const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
       images = new Map([...files].filter(([name]) => media.extensions.includes(name.split('.').pop()!.toLowerCase())));
+      features = undefined;
       if (!images.size) throw new Error(`No supported disk image found (${media.extensions.join(', ')}).`);
       side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
       side.hidden = images.size < 2;
+      flip.hidden = images.size < 2;
       mount(true);
     } catch (error) { say(String(error)); }
     finally { picker.disabled = false; picker.value = ''; picker.blur(); }
   };
   if (initial.length) {
     images = new Map(initial.map(image => [image.name, image.bytes]));
+    features = initial[0]!.features;
     side.replaceChildren(...[...images.keys()].map(name => new Option(name, name)));
     side.hidden = images.size < 2;
+    flip.hidden = images.size < 2;
     mount(false);
     // The set's own note says how to start it: LOAD"*",8,1 loads the first
     // file on the disk, which on Jingle Disk is a utility, not the program.
     if (usage) console.info(`[disk ${media.tag}] MAME's usage note: ${usage}`);
     setTimeout(() => {
-      if (media.loaded()) say(usage ? `${side.value} in the drive. MAME's note: ${usage}` : `${side.value} in the drive: type LOAD"*",8,1 and press Enter`);
+      if (media.loaded()) {
+        say(starting ? `${side.value} in the drive: starting it with ${typedCommand(starting)}${usage ? `. MAME's note: ${usage}` : ''}`
+          : usage ? `${side.value} in the drive. MAME's note: ${usage}` : `${side.value} in the drive: type LOAD"*",8,1 and press Enter`);
+      }
     }, 600);
   }
   paint();
@@ -3069,13 +3404,117 @@ function diskBay(
     ariaLabel: `Disk drive ${media.tag}`,
     left: [picker, mounted, side, readout],
     middle: [],
-    right: [open, eject],
+    right: [flip, open, eject],
+    onFocus: releaseKeys,
+    image: transportImage(media.tag, () => images, () => current, name => { side.value = name; mount(false); }),
+  };
+}
+
+/**
+ * A quickload, as a strip of the control panel: the file on the left and its
+ * state, read back from the generated device -- waiting out the device's
+ * delay, then in memory, or refused. Open on the right. There are no keys to
+ * work: MAME's quickload has nothing between the file and memory.
+ */
+function quickloadBay(
+  media: QuickloadMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
+  usage?: string,
+  /** the command the title starts itself with (ShellConfig.boot), when it does */
+  starting?: string,
+): PanelBay {
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = ['.zip', ...media.extensions.map(extension => `.${extension}`)].join(',');
+  picker.setAttribute('aria-label', 'Open a program to quickload');
+  picker.tabIndex = -1;
+  picker.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+  const kinds = media.extensions.map(extension => `.${extension}`).join(' / ');
+  const open = titleButton('Open…', 'Open program', `Load a ${kinds} program straight into memory`, 'quiet', 'disk');
+  open.onclick = () => picker.click();
+
+  const mounted = document.createElement('span');
+  mounted.setAttribute('data-quickload-name', '');
+  mounted.style.cssText = `padding:3px 9px;border-radius:6px;background:#080b1d;border:1px solid #2a3162;
+    color:#9fb0ff;font:600 11px ui-monospace,monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap`;
+  mounted.textContent = 'no program';
+  const readout = document.createElement('span');
+  readout.setAttribute('data-quickload-readout', '');
+  readout.style.cssText = `display:inline-flex;align-items:center;gap:7px;color:#cbd1ff;
+    font:600 11px ui-monospace,monospace;letter-spacing:.4px;white-space:nowrap`;
+  const lamp = document.createElement('span');
+  lamp.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#3a3f6a;transition:background .15s ease';
+  const stateText = document.createElement('span');
+  stateText.textContent = 'EMPTY';
+  readout.append(lamp, stateText);
+  const log = (text: string): void => console.info(`[quickload ${media.tag}] ${text}`);
+
+  let name: string | undefined;
+  let wasPending = false;
+  let reported: string | undefined;
+  const paint = (): void => {
+    const pending = Boolean(name) && media.pending();
+    const error = media.error();
+    stateText.textContent = !name ? 'EMPTY' : pending ? 'LOADING' : error ? 'REFUSED' : 'IN MEMORY';
+    stateText.style.color = pending ? DECK_GOLD : error ? '#ff8a7a' : '#cbd1ff';
+    lamp.style.background = pending ? DECK_GOLD : error ? '#ff5a4a' : name ? '#4ad48a' : '#3a3f6a';
+    if (wasPending && !pending) {
+      if (error) log(`refused ${name}: ${error}`);
+      else log(`${name} is in memory`);
+    }
+    // The device's own message is MAME's console line; the visitor gets the gist.
+    if (error && error !== reported) { reported = error; say(`${name} is not a program this quickload reads`); }
+    wasPending = pending;
+  };
+  const mount = (image: MountedImage, announce: boolean): void => {
+    try {
+      media.mount(image.name.split('.').pop()!.toLowerCase(), image.bytes, image.name);
+      name = image.name;
+      reported = undefined;
+      mounted.textContent = image.name;
+      mounted.title = image.name;
+      mounted.style.color = '#f4f5ff';
+      log(`holding ${image.name} (${image.bytes.length} bytes) until the device loads it`);
+      if (announce) say(`${image.name} loads in a moment: then type RUN and press Enter`);
+    } catch (error) {
+      console.warn(`[quickload ${media.tag}] could not take ${image.name}:`, error);
+      say(String(error));
+    }
+    paint();
+  };
+  picker.onchange = async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    picker.disabled = true;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const files = /\.zip$/i.test(file.name) ? await readZip(bytes) : new Map([[file.name, bytes]]);
+      const found = [...files].find(([member]) => media.extensions.includes(member.split('.').pop()!.toLowerCase()));
+      if (!found) throw new Error(`No program this quickload reads (${media.extensions.join(', ')}).`);
+      mount({ name: found[0], bytes: found[1] }, true);
+    } catch (error) { say(String(error)); }
+    finally { picker.disabled = false; picker.value = ''; picker.blur(); }
+  };
+  if (initial[0]) {
+    mount(initial[0], false);
+    if (usage) console.info(`[quickload ${media.tag}] MAME's usage note: ${usage}`);
+    say(starting ? `${initial[0].name} loads in a moment: starting it with ${typedCommand(starting)}${usage ? `. MAME's note: ${usage}` : ''}`
+      : `${initial[0].name} loads in a moment: then type RUN and press Enter`);
+  }
+  paint();
+  setInterval(paint, 250);
+  return {
+    id: 'quickload',
+    label: TRANSPORT_LABELS.quickload,
+    ariaLabel: `Quickload ${media.tag}`,
+    left: [picker, mounted, readout],
+    middle: [],
+    right: [open],
     onFocus: releaseKeys,
   };
 }
 
 /** Each transport's strip, engraved with the name of the deck it stands for. */
-const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE' } as const;
+const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE', quickload: 'QUICKLOAD' } as const;
 
 /**
  * The strip of a transport whose slot the machine booted empty. It has no
@@ -3083,7 +3522,7 @@ const TRANSPORT_LABELS = { cassette: 'DATASSETTE', floppy: 'DISK DRIVE' } as con
  * machine, so the one button restarts the title with it attached.
  */
 function detachedBay(
-  kind: keyof typeof TRANSPORT_LABELS, slot: string, say: (text: string) => void,
+  kind: 'cassette' | 'floppy', slot: string, say: (text: string) => void,
   attach?: (slot: string) => void,
 ): PanelBay {
   const label = TRANSPORT_LABELS[kind];
@@ -3133,7 +3572,10 @@ export interface PanelBay {
   right: HTMLElement[];
   /** focus moved into the strip: the machine should let go of held keys */
   onFocus?: () => void;
+  /** the image the transport holds, for a save to record and a load to put back */
+  image?: TransportImage;
 }
+
 
 /**
  * The tape transport, as a strip of the control panel: the image on the
@@ -3142,11 +3584,18 @@ export interface PanelBay {
  * What it has to say goes to the screen's toast rather than a third line
  * of prose under the keys.
  */
+/** A coded boot command as words: `LOAD{ENTER}RUN{ENTER}` reads "LOAD ⏎ RUN ⏎". */
+function typedCommand(command: string): string {
+  return command.replace(/\{ENTER\}/gi, ' ⏎ ').replace(/\s+/g, ' ').trim();
+}
+
 function cassetteBay(
   media: CassetteMedia, releaseKeys: () => void, say: (text: string) => void, initial: MountedImage[] = [],
   activity?: (id: string, text: string | undefined, lit?: boolean) => void,
   speed: () => string = () => '',
   usage?: string,
+  /** the command the title starts itself with (ShellConfig.boot), when it does */
+  starting?: string,
 ): PanelBay {
   // A hidden native input behind a deck button: the browser's own control
   // cannot be styled and its "No file chosen" says nothing about the deck.
@@ -3250,6 +3699,7 @@ function cassetteBay(
   press(rewind, () => media.rewind(), () => 'Tape rewound');
 
   let images = new Map<string, Uint8Array>();
+  let current: string | undefined;
   const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
@@ -3257,7 +3707,9 @@ function cassetteBay(
     try {
       media.stop();
       const started = performance.now();
+      current = undefined;
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      current = name;
       console.info(`[tape ${media.tag}] mounted ${name} (${bytes.length} bytes, decoded in ${Math.round(performance.now() - started)} ms)`);
       hasTape = true;
       for (const key of keys) key.disabled = false;
@@ -3297,7 +3749,10 @@ function cassetteBay(
     mount(false);
     if (usage) console.info(`[tape ${media.tag}] MAME's usage note: ${usage}`);
     setTimeout(() => {
-      if (hasTape) say(usage ? `${side.value} mounted. MAME's note: ${usage}` : `${side.value} mounted: type LOAD, press Enter, then Play`);
+      if (hasTape) {
+        say(starting ? `${side.value} mounted: starting it with ${typedCommand(starting)}, then Play${usage ? `. MAME's note: ${usage}` : ''}`
+          : usage ? `${side.value} mounted. MAME's note: ${usage}` : `${side.value} mounted: type LOAD, press Enter, then Play`);
+      }
     }, 600);
   }
   paint();
@@ -3310,5 +3765,6 @@ function cassetteBay(
     middle: [],
     right: [open, play, stop, rewind],
     onFocus: releaseKeys,
+    image: transportImage(media.tag, () => images, () => current, name => { side.value = name; mount(false); }),
   };
 }

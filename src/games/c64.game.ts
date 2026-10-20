@@ -1,0 +1,171 @@
+import type { MachineTargetContract } from './types.ts';
+
+/**
+ * The NTSC Commodore 64, accepted the way the PAL one is (c64p.game.ts): at
+ * BASIC, and against the same tape and disk started the way the software
+ * room's Play starts them. Both titles were made for PAL and both run on
+ * MAME 0.289's NTSC machine -- Crazy Comets' title by frame 5000, Bounty
+ * Bob's by 3200 -- so the scenarios check the NTSC machine's own clocks
+ * (a 6567 VIC-II, 1.023 MHz, 263 lines of 65 cycles) through the same loads.
+ */
+export const c64 = {
+  target: {
+    game: 'c64',
+    category: 'computers',
+    driver: 'src/mame/commodore/c64.cpp',
+    machine: { className: 'c64_state', name: 'ntsc' },
+    screen: { width: 418, height: 235 },
+    soundKind: 'sid',
+    media: [
+      { kind: 'bios', status: 'accepted' },
+      { kind: 'cartridge', status: 'accepted', softwareLists: ['c64_cart', 'vic10'] },
+      // The quickload is the PAL machine's (c64p.game.ts): the one title in
+      // MAME's list is PAL only, so this machine has no shelf to accept it
+      // against, though it quickloads a dropped .prg the same way.
+      { kind: 'quickload', status: 'candidate', softwareLists: ['c64_quik'] },
+      { kind: 'cassette', status: 'accepted', softwareLists: ['c64_cass'] },
+      { kind: 'floppy', status: 'accepted', softwareLists: ['c64_flop_orig', 'c64_flop_misc'] },
+    ],
+  },
+  scenarios: [{
+    // BASIC through the natural keyboard: a held SID note, then the 10 PRINT maze.
+    id: 'basic',
+    kind: 'keyboard',
+    romEnvironment: 'MAMEKIT_C64_ROM',
+    frames: 1200,
+    minimumFps: 10,
+    checkpoints: [1, 60, 180, 300, 600, 900, 1200],
+    actions: [{
+      atFrame: 150,
+      text: 'POKE54296,15:POKE54278,240:POKE54273,30:POKE54276,17{ENTER}' +
+        '10 PRINTCHR$(205.5+RND(1));:GOTO10{ENTER}RUN{ENTER}',
+    }],
+    golden: {
+      regions: {
+        basic: 'f833d117',
+        charom: 'ec4272ee',
+        'iec8:c1541:ucd5': '2abdc483',
+        kernal: 'dbe3e7c7',
+        u17: '54c89351',
+      },
+      checkpoints: {
+        1: { video: '4861246c', state: '53ad9ec8' },
+        60: { video: 'f53f93ca', state: 'b6b03060' },
+        180: { video: 'd02f0c00', state: '88791d47' },
+        300: { video: '73f81365', state: '5d246034' },
+        600: { video: '9d74a0ef', state: '3a181741' },
+        900: { video: '7e0b8b66', state: '1357a9cf' },
+        1200: { video: 'd7a5d4d0', state: '6b1682b1' },
+      },
+      audio: {
+        writes: 962790,
+        nonzeroWrites: 962790,
+        writeHash: '2f784d5f',
+        pcmHash: 'edf9648e',
+        rms: 0.463688,
+      },
+    },
+  }, {
+    // LOAD and RUN typed at PRESS PLAY ON TAPE, PLAY, the KERNAL load, then
+    // the title and its music, as on MAME's NTSC machine.
+    id: 'tape',
+    kind: 'media',
+    software: { list: 'c64_cass', name: 'crazycom' },
+    romEnvironment: 'MAMEKIT_C64_ROM',
+    frames: 5000,
+    minimumFps: 10,
+    checkpoints: [1, 300, 1200, 2400, 3600, 4700, 5000],
+    actions: [],
+    golden: {
+      regions: {
+        basic: 'f833d117',
+        charom: 'ec4272ee',
+        kernal: 'dbe3e7c7',
+        u17: '54c89351',
+      },
+      checkpoints: {
+        1: { video: '8ca0e53c', state: '3afe355e' },
+        300: { video: '38480c9e', state: '5ebff1ca' },
+        1200: { video: '7f43a144', state: 'a50cb54c' },
+        2400: { video: '566c28c6', state: '53b8068e' },
+        3600: { video: '06039738', state: '23f68da4' },
+        4700: { video: 'c62c660d', state: 'c4133241' },
+        5000: { video: '0254cb32', state: 'd7f077b1' },
+      },
+      audio: {
+        writes: 4011626,
+        nonzeroWrites: 4011626,
+        writeHash: '23ff7bad',
+        pcmHash: 'e32ff389',
+        rms: 0.458045,
+      },
+    },
+  }, {
+    // LOAD"*",8,1 and RUN; the title's own fast loader, then the title screen.
+    id: 'disk',
+    kind: 'media',
+    software: { list: 'c64_flop_orig', name: 'bbsb' },
+    romEnvironment: 'MAMEKIT_C64_ROM',
+    frames: 3200,
+    minimumFps: 10,
+    checkpoints: [1, 300, 1200, 2400, 3000, 3200],
+    actions: [],
+    golden: {
+      regions: {
+        basic: 'f833d117',
+        charom: 'ec4272ee',
+        'iec8:c1541:ucd5': '2abdc483',
+        kernal: 'dbe3e7c7',
+        u17: '54c89351',
+      },
+      checkpoints: {
+        1: { video: '4861246c', state: '53ad9ec8' },
+        300: { video: 'cddb3f5f', state: '13883ff8' },
+        1200: { video: '606b00d9', state: '080c36a6' },
+        2400: { video: 'a6b267c4', state: 'bcac83c6' },
+        3000: { video: 'b5febdde', state: 'c7d74a33' },
+        3200: { video: '1f90114f', state: 'c3d2986e' },
+      },
+      audio: {
+        writes: 2567441,
+        nonzeroWrites: 2567441,
+        writeHash: 'd70b0ba5',
+        pcmHash: '8a3765f8',
+        rms: 0.49341,
+      },
+    },
+  }, {
+    // Atarisoft's Pac-Man, a standard 8K cartridge: its title, then F1 into a
+    // game. The menu is MAME 0.289's pixel for pixel on the NTSC machine.
+    id: 'cartridge',
+    kind: 'media',
+    software: { list: 'c64_cart', name: 'pacman' },
+    romEnvironment: 'MAMEKIT_C64_ROM',
+    frames: 1800,
+    minimumFps: 10,
+    checkpoints: [1, 300, 900, 1200, 1800],
+    actions: [{ atFrame: 900, text: '{F1}' }],
+    golden: {
+      regions: {
+        basic: 'f833d117',
+        charom: 'ec4272ee',
+        kernal: 'dbe3e7c7',
+        u17: '54c89351',
+      },
+      checkpoints: {
+        1: { video: '8ca0e53c', state: '9a9185c9' },
+        300: { video: '2887b870', state: '6603206d' },
+        900: { video: '5d4c18b8', state: 'c20b7c50' },
+        1200: { video: '35409cdc', state: 'e0a3cf89' },
+        1800: { video: 'eed8b6a1', state: 'fae9196d' },
+      },
+      audio: {
+        writes: 1444185,
+        nonzeroWrites: 1444185,
+        writeHash: '5889e8fe',
+        pcmHash: '930426e3',
+        rms: 0.469306,
+      },
+    },
+  }],
+} satisfies MachineTargetContract;

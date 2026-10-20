@@ -28,6 +28,13 @@ export interface SaveRecord {
   createdAt: number;
   /** a small image of the screen as it was, as a data URL */
   thumbnail?: string;
+  /**
+   * The image each transport held, by transport tag: its name and the CRC of
+   * its bytes (transport-media.ts). A cassette's samples are the host's
+   * media, not machine state, so a load puts the same image back before the
+   * state, or refuses: a tape position is only right against its own tape.
+   */
+  media?: Record<string, { name: string; crc: string }>;
   state: MachineState;
 }
 
@@ -49,7 +56,10 @@ export function machineIdentity(game: string, boardFacts: unknown, regions: Regi
   const parts = Object.entries(regions)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([tag, bytes]) => `${tag}=${crc32(bytes).toString(16).padStart(8, '0')}`);
-  const facts = crc32(new TextEncoder().encode(JSON.stringify(boardFacts))).toString(16).padStart(8, '0');
+  // A cartridge held from power-on (BoardConfig.images) counts by its crc, not
+  // by a megabyte of JSON digits.
+  const facts = crc32(new TextEncoder().encode(JSON.stringify(boardFacts, (_key, value: unknown) =>
+    ArrayBuffer.isView(value) ? `crc:${crc32(value as Uint8Array).toString(16)}` : value))).toString(16).padStart(8, '0');
   return `${game}|${facts}|${parts.join(',')}`;
 }
 

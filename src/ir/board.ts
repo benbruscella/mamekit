@@ -215,6 +215,12 @@ export interface GeneratedDevice {
    * whose methods run these handlers in the card's own scope.
    */
   interfaceHandlers?: string[];
+  /**
+   * Every data member a composed card's classes declare, by name. The bus a
+   * card plugs into may set some of them (`m_bus`, `m_slot`), so they are
+   * members of the card's scope that none of its own handlers assign.
+   */
+  cardMembers?: string[];
   member?: string;
   clock?: number;
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
@@ -515,6 +521,14 @@ export interface GeneratedScreen {
   ownerTag?: string;
   ownerKind?: 'screen' | 'cpu' | 'device';
   pixelClock?: number;
+  /**
+   * When the picture is copied out. Absent: at vbstart, the start of MAME's
+   * VBLANK in this runtime's line-0 frame. `frame-boundary`: at the end of the
+   * frame, which is where MAME's own VBLANK falls for a screen whose picture a
+   * device draws by its own raster and nothing is timed from (emit-machine
+   * presentsAtFrameBoundary): the C64's VIC-II, the 2600's TIA, the Game Boy's LCD.
+   */
+  present?: 'frame-boundary';
   scanlineCallback?: string;
   shiftRegisterCallbacks?: { read?: string; write?: string };
   source?: BoardSourceRef;
@@ -1363,6 +1377,20 @@ export interface GeneratedHandlerRuntime {
   andAssign(current: unknown, value: unknown): unknown;
   /** A member read the state object has no entry for, as the interpreter resolves it. */
   member(name: string): unknown;
+  /**
+   * The value half of an emitted board call through a member, for when no
+   * binding answers it: called with arguments it calls the value's method
+   * (0 when there is none), called without it reads an accessor the way the
+   * interpreter does (a method is called, a scalar read, a container asked).
+   * A member that holds nothing falls back to `bare`, the method's own name.
+   * `direct` uses the object as it stands rather than dereferencing it.
+   */
+  memberCall(
+    object: unknown,
+    property: string,
+    direct: number,
+    bare: ((...args: any[]) => unknown) | undefined,
+  ): (...args: any[]) => unknown;
   /** The container an indexed write stores into, materialised on first use. */
   writableMember(name: string): unknown;
   /**

@@ -2,13 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  availabilityFromAudit,
-  catalogExtensions,
-  mediaSlotsOf,
-  mediumKindOf,
-  writeSoftwareShelves,
-} from './software-shelves.ts';
+import { availabilityFromAudit, catalogExtensions, mediaSlotsOf, mediumKindOf, writeSoftwareShelves, usageSwitches } from './software-shelves.ts';
 
 // The medium follows the part interface MAME gives the list.
 assert.equal(mediumKindOf('cbm_cass', 'c64_cass'), 'cassette');
@@ -90,7 +84,12 @@ try {
   writeFileSync(join(mameSrc, 'hash', 'c64_flop_orig.xml'), `<?xml version="1.0"?>
 <softwarelist name="c64_flop_orig" description="Commodore 64 original disks">
   <software name="aztecchl"><description>Aztec Challenge</description><year>1983</year><publisher>Cosmi</publisher>
+    <info name="video" value="NTSC"/>
     <part name="flop1" interface="floppy_5_25"><dataarea name="flop" size="4"><rom name="aztec.g64" size="4" crc="2268d7ae" sha1="x"/></dataarea></part>
+  </software>
+  <software name="jingldsk"><description>JingleDisk</description><year>1985</year><publisher>x</publisher>
+    <info name="usage" value="Commodore: Load &quot;jingle&quot;,8,1 / Apple IIc and e: Self boots"/>
+    <part name="flop1" interface="floppy_5_25"><dataarea name="flop" size="4"><rom name="j.g64" size="4" crc="00000003" sha1="x"/></dataarea></part>
   </software>
 </softwarelist>`);
   const dumpsDir = join(root, 'roms', 'computers', 'c64');
@@ -111,7 +110,7 @@ try {
       { type: 'MOS6581', tag: 'u18' },
       { type: 'PET_DATASSETTE_PORT', tag: 'tape', slotDefault: 'c1530' },
       { type: 'CBM_IEC', tag: 'iec_bus' },
-      { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541' },
+      { type: 'CBM_IEC_SLOT', tag: 'iec8', slotDefault: 'c1541', slotAddress: 8 },
       { type: 'FLOPPY_CONNECTOR', tag: 'iec8:c1541:uc4:0' },
     ],
     log: line => lines.push(line),
@@ -129,6 +128,20 @@ try {
   assert.equal(tapes!.kind, 'cassette');
   assert.equal(tapes!.mountable, true, 'the datassette port is the tape transport');
   assert.deepEqual(tapes!.slots, ['tape'], 'the datassette port is itself the slot');
+  // A title starts itself (one-click play): LOAD and RUN typed while the
+  // KERNAL waits for PLAY, then PLAY; a disk addressed to its drive's unit,
+  // which is the IEC slot's own address.
+  assert.deepEqual(tapes!.boot, { delay: 3, command: 'LOAD{ENTER}RUN{ENTER}', play: true });
+  assert.deepEqual(disks!.boot, { delay: 3, command: 'LOAD"*",8,1{ENTER}RUN{ENTER}' });
+  assert.equal(carts!.boot, undefined, 'a medium no policy covers starts nothing');
+  // MAME's machine filter is recorded on each shelf, and a list's own notes
+  // ride on its entries: the video standard, and a start command a usage note
+  // names (Jingle Disk's first file is a utility).
+  assert.equal(disks!.filter, 'NTSC');
+  const diskCatalog = JSON.parse(readFileSync(join(outDir, 'software', 'c64_flop_orig.json'), 'utf8'));
+  assert.equal(diskCatalog.entries.find((entry: { name: string }) => entry.name === 'aztecchl').video, 'NTSC');
+  assert.equal(diskCatalog.entries.find((entry: { name: string }) => entry.name === 'jingldsk').start, 'LOAD"JINGLE",8,1{ENTER}RUN{ENTER}');
+  assert.equal(diskCatalog.entries.find((entry: { name: string }) => entry.name === 'aztecchl').start, undefined);
   assert.deepEqual(disks!.slots, ['iec8'], 'the drive sits under the outermost slot, not its own connector');
   assert.equal(carts!.slots, undefined, 'nothing mounts a cartridge yet');
   assert.equal(tapes!.entries, 1, 'the NTSC filter drops the PAL-only tape');
@@ -162,9 +175,65 @@ try {
   assert.deepEqual(unreadable.extensions, []);
   const readable = disksFor(['d64', 'g64', 'g41', 'g71']);
   assert.equal(readable.mountable, true);
-  assert.deepEqual(readable.extensions, ['g64']);
+  assert.deepEqual(readable.extensions, ['g64', 'd64', 'g41', 'g71'],
+    "the list's own formats first, then the rest the drive reads, for an image dropped bare");
+  // A quickload sits on no slot: its start is keyed by the routine its load
+  // callback hands the file to, and it reads what its config set.
+  const quickload = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'QUICKLOAD', tag: 'quickload', loader: 'general_cbm_loadsnap' }],
+    lists: [{ name: 'c64_quik', status: 'original', filter: 'PAL' }],
+    transportExtensions: { quickload: ['p00', 'prg', 't64'] },
+  })!.shelves[0]!;
+  assert.equal(quickload.kind, 'quickload');
+  assert.equal(quickload.mountable, true);
+  assert.deepEqual(quickload.extensions, ['t64', 'p00', 'prg'], 'a bare .prg is a quickload too');
+  assert.equal(quickload.slots, undefined, 'a board device leaves no slot to empty');
+  assert.deepEqual(quickload.boot, { delay: 3, command: 'RUN{ENTER}' });
+  const unknownLoader = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'QUICKLOAD', tag: 'quickload', loader: 'some_other_loadsnap' }],
+    lists: [{ name: 'c64_quik', status: 'original', filter: 'PAL' }],
+    transportExtensions: { quickload: ['t64'] },
+  })!.shelves[0]!;
+  assert.equal(unknownLoader.boot, undefined, 'a loader no policy knows starts nothing itself');
+  // A cartridge goes into the expansion port before power-on, read by area:
+  // its shelf names the port and lists no formats, and a cartridge starts itself.
+  const cartShelf = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'C64_EXPANSION_SLOT', tag: 'exp' }],
+    lists: [{ name: 'c64_cart', status: 'original', filter: 'NTSC' }],
+  })!.shelves[0]!;
+  assert.equal(cartShelf.mountable, true);
+  assert.equal(cartShelf.imageDevice, 'exp');
+  assert.deepEqual(cartShelf.extensions, []);
+  assert.equal(cartShelf.boot, undefined);
+  const crtShelf = writeSoftwareShelves({
+    mameSrc, outDir, dumpsKey: 'computers/c64',
+    devices: [{ type: 'C64_EXPANSION_SLOT', tag: 'exp' }],
+    lists: [{ name: 'c64_cart', status: 'original', filter: 'NTSC' }],
+    transportExtensions: { cartridge: ['80', 'a0', 'e0', 'crt'] },
+  })!.shelves[0]!;
+  assert.equal(crtShelf.mountable, true, 'a list whose chips are no files still mounts by area');
+  assert.deepEqual(crtShelf.extensions, ['80', 'a0', 'e0', 'crt'], 'and a bare .crt is the port\'s to read');
 } finally {
   rmSync(root, { recursive: true, force: true });
+}
+
+// A usage note that wants the joystick where the machine has none throws the
+// machine's own swap switch; one that wants it where it already is, nothing.
+{
+  const devices = [
+    { type: 'VCS_CONTROL_PORT', tag: 'joy1' },
+    { type: 'VCS_CONTROL_PORT', tag: 'joy2', slotDefault: 'joy' },
+  ];
+  const swap = { port: 'JOYSWAP', mask: 1, value: 0, name: 'Swap joystick ports', config: true,
+    settings: [{ value: 1, name: 'Joystick in swapped port' }, { value: 0, name: 'Joystick in assigned port' }] };
+  assert.deepEqual(usageSwitches('Requires joystick in port 1', devices, [swap]).map(entry => entry.value), [1]);
+  assert.deepEqual(usageSwitches('Requires joystick in port 2', devices, [swap]), []);
+  assert.deepEqual(usageSwitches('Load "GAME",8,1', devices, [swap]), []);
+  assert.deepEqual(usageSwitches('Requires joystick in port 1', devices, [{ ...swap, config: false }]), [],
+    'a DIP switch is the board\'s, not a setting a note can ask for');
 }
 
 console.log('software-shelves.spec: medium kinds, audit reduction and shelf extraction passed');

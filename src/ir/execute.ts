@@ -375,6 +375,16 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'machine_phase::RESET': 2,
   'machine_phase::RUNNING': 3,
   'machine_phase::EXIT': 4,
+  // emu/diimage.h's image_error, what an image load answers with when it
+  // fails: the C64's quickload rejects a .t64 without its header this way.
+  'image_error::INTERNAL': 1,
+  'image_error::UNSUPPORTED': 2,
+  'image_error::INVALIDIMAGE': 3,
+  'image_error::INVALIDLENGTH': 4,
+  'image_error::ALREADYOPEN': 5,
+  'image_error::NOSOFTWARE': 6,
+  'image_error::BADSOFTWARE': 7,
+  'image_error::UNSPECIFIED': 8,
   M6502_IRQ_LINE: 0,
   M6502_NMI_LINE: -1,
   M6502_SET_OVERFLOW: 16,
@@ -656,13 +666,25 @@ function preparedHandlerRuntime(
   for (const name in prepared.referenceCalls) {
     calls[name] = prepared.referenceCalls[name]!;
   }
-  return prepared.runtime = runtime = {
-    get members() { return bindings.members ??= {}; },
+  // Every emitted board handler reads `runtime.members`, `runtime.links` and
+  // `runtime.readIndex` on each call, so this object must stay in V8's fast
+  // mode. An object literal carrying an accessor is built as a dictionary
+  // (every one of those reads was a hash probe -- a third of a C64 bus read),
+  // so the fields are plain data, the links slots exist from the start rather
+  // than being added later, and the one accessor is defined afterwards.
+  const fields = {
+    members: bindings.members ??= {},
     calls,
-    get palette() { return []; },
-    readIndex: (value, index) => isGeneratedPointer(value)
-      ? pointerValue(value, index)
-      : indexValue(value, index),
+    links: undefined as GeneratedHandlerRuntime['links'],
+    linksGeneration: undefined as number | undefined,
+    // Memory a handler indexes is almost always a typed array (RAM, a ROM
+    // region, a share); answer it before the pointer and reference probes,
+    // which on a typed array are two prototype-chain misses per access.
+    readIndex: (value: unknown, index: number) => ArrayBuffer.isView(value)
+      ? (value as Uint8Array)[index] ?? 0
+      : isGeneratedPointer(value)
+        ? pointerValue(value, index)
+        : indexValue(value, index),
     writeIndex: (value, index, next) => {
       if (isGeneratedPointer(value)) setPointerValue(value, index, next);
       else if (ArrayBuffer.isView(value)) (value as Uint8Array)[index] = toNumber(next);
@@ -750,7 +772,23 @@ function preparedHandlerRuntime(
         : 0;
     },
     overrides: bindings.referenceCalls ?? {},
-  };
+    memberCall: (object, property, direct, bare) => (...args) => {
+      if (object == null) return bare?.(...args) ?? 0;
+      const target = (direct ? object : dereferenceGeneratedValue(object)) as Record<string, unknown>;
+      const value = target[property] as ((...values: unknown[]) => unknown) | number | boolean | undefined;
+      if (args.length) return (value == null ? undefined : (value as (...values: unknown[]) => unknown).apply(target, args)) ?? 0;
+      if (typeof value === 'function') return value.call(target);
+      if (typeof value === 'number' || typeof value === 'boolean') return value;
+      return generatedContainerAccessor(object, property);
+    },
+  } satisfies Omit<GeneratedHandlerRuntime, 'palette'> & { linksGeneration?: number };
+  // A board handler has no palette of its own: every read is a fresh scratch
+  // array, as it always was.
+  prepared.runtime = runtime = Object.defineProperty(fields, 'palette', {
+    get: () => [],
+    enumerable: true,
+  }) as typeof fields & Pick<GeneratedHandlerRuntime, 'palette'>;
+  return runtime;
 }
 
 /**
@@ -883,8 +921,7 @@ function preparedMachineCalls(
         const bound = bindings.calls?.[alias];
         return bound ? bound(...values.map(callArgument)) : invoke(candidate, values);
       };
-      callParameters[alias] = (candidate.parameters ?? '')
-        .split(',').map(parameter => parameter.trim()).filter(Boolean);
+      callParameters[alias] = splitParameters(candidate.parameters ?? '');
     }
     if (!referenceCalls[candidate.method]) {
       referenceCalls[candidate.method] = (...values) => {
@@ -892,10 +929,7 @@ function preparedMachineCalls(
         return target ? invoke(target, values) : 0;
       };
     }
-    const parameters = (candidate.parameters ?? '')
-      .split(',')
-      .map(parameter => parameter.trim())
-      .filter(Boolean);
+    const parameters = splitParameters(candidate.parameters ?? '');
     callParameters[qualified] = parameters;
     callParameters[scoped] = parameters;
     callParameters[candidate.method] = parameters;
@@ -912,10 +946,7 @@ function preparedMachineCalls(
       candidate.ownerClass === callback.targetClass &&
       candidate.method === callback.targetMethod);
     if (!target) continue;
-    callParameters[callback.member] ??= (target.parameters ?? '')
-      .split(',')
-      .map(parameter => parameter.trim())
-      .filter(Boolean);
+    callParameters[callback.member] ??= splitParameters(target.parameters ?? '');
     referenceCalls[callback.member] ??= (...values) => invoke(target, values);
   }
   // A configured custom device can be a source-defined composite rather than
@@ -996,6 +1027,83 @@ export function prepareGeneratedMachineCall(
   };
 }
 
+/**
+ * prepareGeneratedMachineCall for a bus read, `(offset)`, which runs on every
+ * access the processor makes: the emitted method is called directly, with no
+ * rest-argument wrapper and no bound-function trampoline in between. A handler
+ * with no emitted body takes the general path.
+ *
+ * Resolved on first use, since board construction installs services after bus
+ * handlers, and the runtime is re-resolved whenever a host binding changes, so
+ * its links table never outlives the bindings it was built from.
+ */
+export function prepareGeneratedMachineRead(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): (offset: number) => unknown {
+  let compiled: GeneratedCompiledHandler | undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  let general: ((...args: unknown[]) => unknown) | undefined;
+  return offset => {
+    if (runtime !== undefined && runtime.linksGeneration === callLinksGeneration) {
+      return compiled!(runtime, offset);
+    }
+    if (general) return general(offset);
+    compiled ??= machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+    if (!compiled) return (general = prepareGeneratedMachineCall(machine, handler, bindings))(offset);
+    runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    return compiled(runtime, offset);
+  };
+}
+
+/**
+ * The write counterpart of prepareGeneratedMachineRead, for an emitted handler
+ * taking exactly `(offset, data)`: the bus calls it on every store, and the
+ * general path built a named argument record per write to read it back by
+ * name. Undefined when the handler has no emitted body.
+ */
+export function prepareGeneratedMachineWrite(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): ((offset: number, data: number) => void) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  return (offset, data) => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    compiled(runtime, offset, data);
+  };
+}
+
+/**
+ * The compiled dispatch with its arguments already in declaration order, for a
+ * host that knows each one's value: the board's signal handlers, which
+ * otherwise built a named record per delivery only for the dispatch to read it
+ * back by name. The 1541's gate array raises BYTE READY six thousand times a
+ * frame. Undefined when the handler has no emitted body; the runtime is kept
+ * current as for prepareGeneratedMachineRead.
+ */
+export function prepareGeneratedMachinePositional(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings,
+): ((values: readonly unknown[]) => number | undefined) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  // As buildGeneratedMachineDispatch: an absent argument is 0, and a C++
+  // reference arrives as its referent.
+  const argument = (value: unknown): unknown =>
+    value === undefined ? 0 : isLValue(value) ? value.get() : value;
+  return values => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    const value = values.length === 0 ? compiled(runtime)
+      : values.length === 1 ? compiled(runtime, argument(values[0]))
+        : compiled(runtime, ...values.map(argument));
+    return value === undefined ? undefined : toNumber(value);
+  };
+}
+
 function buildGeneratedMachineDispatch(
   machine: BoardIr,
   handler: GeneratedHandler,
@@ -1038,6 +1146,23 @@ export function executeGeneratedMachineHandler(
 ): number | undefined {
   const result = executeGeneratedMachineProgram(machine, handler, bindings, args);
   return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
+}
+
+/**
+ * A handler run as a device_delegate, which answers in its C++ type: a tuple
+ * survives -- a quickload's load callback returns std::pair<error, message>,
+ * which snapquik.cpp unpacks as `auto [err, message]` -- and anything else is
+ * the number executeGeneratedMachineHandler answers.
+ */
+export function executeGeneratedMachineDelegate(
+  machine: BoardIr,
+  handler: GeneratedHandler,
+  bindings: GeneratedHandlerBindings,
+  args: Record<string, unknown>,
+): unknown {
+  const result = executeGeneratedMachineProgram(machine, handler, bindings, args);
+  if (!result.returned || result.value === undefined) return undefined;
+  return Array.isArray(result.value) ? result.value : toNumber(result.value);
 }
 
 export type CompiledGeneratedMachineHandler = (
@@ -1663,13 +1788,33 @@ function parameterNames(parameters: string | undefined): string[] {
   const key = parameters ?? '';
   let names = PARAMETER_NAMES.get(key);
   if (!names) {
-    names = key
-      .split(',')
-      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+    names = splitParameters(key)
+      .map(parameter => /\(\s*\*\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
       .filter((name): name is string => Boolean(name));
     PARAMETER_NAMES.set(key, names);
   }
   return names;
+}
+
+/**
+ * A C++ parameter list, one declaration each. Only top-level commas separate
+ * parameters: a function-pointer parameter carries a list of its own --
+ * MAME's CBM quickload takes `void (*cbm_sethiaddress)(address_space &space,
+ * uint16_t hiaddress)` -- and splitting inside it named the callee's
+ * parameters `space` and `hiaddress)`.
+ */
+export function splitParameters(parameters: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of parameters) {
+    if (ch === '(' || ch === '<' || ch === '[') depth++;
+    else if (ch === ')' || ch === '>' || ch === ']') depth--;
+    if (ch === ',' && depth === 0) { out.push(current.trim()); current = ''; continue; }
+    current += ch;
+  }
+  if (current.trim()) out.push(current.trim());
+  return out.filter(Boolean);
 }
 
 function executeOperations(
@@ -1965,7 +2110,9 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     const bytes = args[0] as ArrayLike<number>;
     return (bytes[0]! | bytes[1]! << 8 | bytes[2]! << 16) >>> 0;
   }
-  if (name === 'strcmp') {
+  // As the C library and as `std::` spell it: the floppy drive's call_load
+  // compares its `write_protected` feature with `std::strcmp`.
+  if (name === 'strcmp' || name === 'std::strcmp') {
     const string = (value: unknown): string => {
       if (typeof value === 'string') return value.split('\0')[0]!;
       if (Array.isArray(value) || ArrayBuffer.isView(value)) {
@@ -2044,6 +2191,40 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // MAME's decode helpers pass their callback on with `std::forward<T>`, and
   // an unbound call answered zero -- so the inner overload had nothing to call.
   if (name === 'std::forward' || name === 'std::move') return args[0];
+  // A pair or tuple is its values, which is how a structured binding reads
+  // them back: a quickload's load callback answers std::make_pair(error,
+  // message), and snapquik.cpp unpacks it as `auto [err, message]`.
+  if (name === 'std::make_pair' || name === 'std::make_tuple' || name === 'std::pair' || name === 'std::tuple') {
+    return [...args];
+  }
+  // C's string-to-integer conversions: a C64 cartridge's `exrom` feature is
+  // the string "0", and its slot reads it with atol.
+  if (name === 'atol' || name === 'atoi' || name === 'atoll') {
+    const text = isLValue(args[0]) ? args[0].get() : args[0];
+    return Number.parseInt(String(text ?? ''), 10) || 0;
+  }
+  // Default-constructed, an error_condition is success and a string empty.
+  if (name === 'std::error_condition' && !args.length) return 0;
+  if (name === 'std::string' && !args.length) return '';
+  // A C string made a std::string is the same text: the CRT reader returns
+  // `std::string(CRT_C64_SLOT_NAMES[hardware])`, the card a .crt needs.
+  if (name === 'std::string' && args.length === 1) {
+    const value = isLValue(args[0]) ? args[0].get() : args[0];
+    if (typeof value === 'string') return value;
+  }
+  // osdcomm.h's byte-order helpers. A value read raw out of a file
+  // (`image.fread(&address, 2)`) lands in host order, which here, as on
+  // every host MAME builds for, is little-endian: making it little-endian is
+  // nothing, and big-endian is a swap.
+  if (/^little_endianize_int(?:16|32|64)$/.test(name)) return toNumber(args[0]);
+  if (name === 'big_endianize_int16') {
+    const value = toNumber(args[0]) & 0xffff;
+    return ((value & 0xff) << 8) | (value >>> 8);
+  }
+  if (name === 'big_endianize_int32') {
+    const value = toNumber(args[0]) >>> 0;
+    return (((value & 0xff) << 24) | ((value & 0xff00) << 8) | ((value >>> 8) & 0xff00) | (value >>> 24)) >>> 0;
+  }
   // MAME's own right-aligned mask helper (util::make_bitmask<T>(n)). The IR
   // drops the width, so the mask is as wide as the requested bits -- which is
   // what every caller asks for. Unbound it answered zero, and an MBC1 masked
@@ -2503,6 +2684,9 @@ function evaluateCall(
     }
     if (object && (typeof object === 'object' || typeof object === 'function')) {
       const args = expression.args.map(arg => evaluate(arg, context));
+      if (Array.isArray(object) && (method === 'insert' || method === 'erase')) {
+        return generatedVectorMethod(object, method, ...args);
+      }
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
       // MAME spells every framework accessor as a call, but the runtime models
@@ -3080,6 +3264,11 @@ function comparableValue(value: unknown): unknown {
     if (typeof primitive === 'number') return primitive;
     return value;
   }
+  // A C string is a pointer, and no string is the null one: a C64
+  // cartridge's `get_feature("exrom") != nullptr` holds for the feature "0".
+  // Read as a number, "0" was nullptr and the cartridge's EXROM line never
+  // went low.
+  if (typeof value === 'string') return value;
   return toNumber(value);
 }
 
@@ -3174,14 +3363,138 @@ function generatedMemoryView(
   return isIndexableMemory(value) ? { bytes: value, offset: 0 } : undefined;
 }
 
+/**
+ * The bytes of a scalar whose address was taken (`&address`), as a byte view.
+ * A local or member is one value here, not storage, so its bytes are its
+ * value's, least significant first, as MAME's little-endian hosts lay it out.
+ */
+function scalarTarget(value: unknown): value is GeneratedPointer & { target: GeneratedLValue } {
+  if (!isGeneratedPointer(value) || !value.target) return false;
+  // A struct or array behind the address is storage of its own, not a value,
+  // and so is one never given a value: the Game Boy slot reads a GBX trailer
+  // struct the same way, into a caller's undeclared `gbxfile::trailer`.
+  const held = value.target.get();
+  return typeof held === 'number' || typeof held === 'boolean';
+}
+
+function scalarBytes(pointer: GeneratedPointer, count: number): Uint8Array {
+  let value = toNumber(pointer.target!.get());
+  const bytes = new Uint8Array(count);
+  for (let index = 0; index < count; index++) {
+    bytes[index] = value & 0xff;
+    value = Math.floor(value / 256);
+  }
+  return bytes;
+}
+
+/**
+ * The cells of a nested array (`uint8_t m_spr_data[8][4]`) in C's row-major
+ * order, as one flat run of storage: what memcpy and memset of the whole array
+ * address. The runtime holds it as an array of rows, and copying the outer
+ * array copied the rows themselves -- the VIC-II's cycle-57 snapshot of its
+ * sprite data became the very buffer the next fetches wrote, so sprites 0 and
+ * 1 drew the following line's data, a line early.
+ */
+function nestedCells(value: unknown): { row: { [index: number]: unknown }; index: number }[] | undefined {
+  if (!Array.isArray(value) || !value.length || !value.every(row => isIndexableMemory(row))) return undefined;
+  const cells: { row: { [index: number]: unknown }; index: number }[] = [];
+  for (const row of value as ArrayLike<unknown>[]) {
+    const inner = nestedCells(row);
+    if (inner) { cells.push(...inner); continue; }
+    for (let index = 0; index < row.length; index++) cells.push({ row: row as { [index: number]: unknown }, index });
+  }
+  return cells;
+}
+
+/**
+ * A struct as the bytes C lays it out in: its fields in declaration order,
+ * each as wide as it is declared (an array field as its elements, a byte each
+ * unless typed wider). MAME reads a .crt's header straight into
+ * `cbm_crt_header` this way. Byte fields only need no padding, which is the
+ * shape of every struct a file is read into.
+ */
+function structCells(struct: Record<string, unknown>): { set(byte: number): void }[] {
+  const widths = (struct as { [GENERATED_FIELD_WIDTHS]?: Record<string, number> })[GENERATED_FIELD_WIDTHS] ?? {};
+  const cells: { set(byte: number): void }[] = [];
+  for (const name of Object.keys(struct)) {
+    const field = struct[name];
+    if (field && typeof field === 'object' && !ArrayBuffer.isView(field) && !Array.isArray(field)) {
+      cells.push(...structCells(field as Record<string, unknown>));
+    } else if (ArrayBuffer.isView(field) || Array.isArray(field)) {
+      const array = field as { [index: number]: unknown; length: number; BYTES_PER_ELEMENT?: number };
+      const bytes = array.BYTES_PER_ELEMENT ?? 1;
+      for (let index = 0; index < array.length; index++) {
+        for (let byte = 0; byte < bytes; byte++) {
+          cells.push({ set: value => {
+            const current = byte ? Number(array[index]) || 0 : 0;
+            array[index] = current + value * 2 ** (8 * byte);
+          } });
+        }
+      }
+    } else {
+      const bytes = Math.max(1, Math.abs(widths[name] ?? 32) / 8);
+      for (let byte = 0; byte < bytes; byte++) {
+        cells.push({ set: value => {
+          const current = byte ? Number(struct[name]) || 0 : 0;
+          struct[name] = current + value * 2 ** (8 * byte);
+        } });
+      }
+    }
+  }
+  return cells;
+}
+
 function copyGeneratedMemory(
   destination: unknown,
   source: unknown,
   count: number,
   bytewise = false,
 ): void {
+  // Bytes into a struct (`read(file, &header, CRT_HEADER_LENGTH)`).
+  const struct = isGeneratedPointer(destination) && destination.target ? destination.target.get() : destination;
+  if (isGeneratedStruct(struct)) {
+    const origin = generatedMemoryView(source, bytewise);
+    if (!origin) return;
+    const cells = structCells(struct);
+    for (let index = 0; index < Math.min(count, cells.length); index++) {
+      cells[index]!.set(Number(origin.bytes[origin.offset + index] ?? 0) & 0xff);
+    }
+    return;
+  }
+  const targetCells = nestedCells(destination);
+  const originCells = nestedCells(source);
+  if (targetCells || originCells) {
+    const origin = originCells ?? [];
+    const view = originCells ? undefined : generatedMemoryView(source, bytewise);
+    const length = Math.min(count, targetCells?.length ?? count, originCells?.length ?? count);
+    const values = Array.from({ length }, (_, index) => originCells
+      ? origin[index]!.row[origin[index]!.index]
+      : view?.bytes[view.offset + index] ?? 0);
+    if (targetCells) values.forEach((value, index) => { targetCells[index]!.row[targetCells[index]!.index] = value; });
+    else {
+      const target = generatedMemoryView(destination, bytewise);
+      if (target) values.forEach((value, index) => { (target.bytes as { [index: number]: unknown })[target.offset + index] = value; });
+    }
+    return;
+  }
+  // `memcpy(&value, bytes, 2)` and `image.fread(&address, 2)` fill a scalar:
+  // the bytes become its value, little-endian, and any above them stay.
+  if (scalarTarget(destination)) {
+    const origin = scalarTarget(source)
+      ? { bytes: scalarBytes(source, count), offset: 0 }
+      : generatedMemoryView(source, bytewise);
+    if (!origin) return;
+    const kept = scalarBytes(destination, Math.max(count, 4));
+    for (let index = 0; index < count; index++) kept[index] = Number(origin.bytes[origin.offset + index] ?? 0) & 0xff;
+    let value = 0;
+    for (let index = kept.length - 1; index >= 0; index--) value = value * 256 + kept[index]!;
+    destination.target.set(value);
+    return;
+  }
   const target = generatedMemoryView(destination, bytewise);
-  const origin = generatedMemoryView(source, bytewise);
+  const origin = scalarTarget(source)
+    ? { bytes: scalarBytes(source, count), offset: 0 }
+    : generatedMemoryView(source, bytewise);
   if (!target || !origin) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
   for (let index = 0; index < count; index++) {
@@ -3189,7 +3502,21 @@ function copyGeneratedMemory(
   }
 }
 
+/**
+ * Copy `count` bytes from `source` into whatever a handler passed as a
+ * destination -- a buffer, a pointer into one, or a scalar's address -- as
+ * memcpy would. The host's file reads (an image device's `fread`) land here.
+ */
+export function copyGeneratedBytes(destination: unknown, source: unknown, count: number): void {
+  copyGeneratedMemory(destination, source, count, true);
+}
+
 function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
+  const cells = nestedCells(destination);
+  if (cells) {
+    for (const cell of cells.slice(0, count)) cell.row[cell.index] = value;
+    return;
+  }
   const target = generatedMemoryView(destination, true);
   if (!target) return;
   const writable = target.bytes as unknown as { [index: number]: unknown };
@@ -3371,6 +3698,40 @@ export function generatedPointerStore(pointer: unknown, value: unknown): unknown
   return value;
 }
 
+/**
+ * std::vector's `insert` and `erase`, over a growable vector held as an array.
+ * They take iterators, which are positions in the vector: `begin()` is the
+ * vector itself and `begin() + i` or `end() - 1` a pointer into it. A plain
+ * array has neither method, so a call on one was optional-chained into
+ * nothing: the floppy drive's wspan_write never changed a track, and every
+ * 1541 write failed its verify (`25, WRITE ERROR`). Anything else keeps its
+ * own method of that name.
+ */
+export function generatedVectorMethod(container: unknown, method: string, ...args: unknown[]): unknown {
+  const vector = isLValue(container) ? container.get() : container;
+  if (!Array.isArray(vector)) {
+    const own = vector && typeof vector === 'object' ? (vector as Record<string, unknown>)[method] : undefined;
+    return typeof own === 'function' ? own.apply(vector, args) ?? 0 : 0;
+  }
+  const position = (iterator: unknown): number => {
+    const held = isLValue(iterator) ? iterator.get() : iterator;
+    if (held === vector) return 0;
+    if (isGeneratedPointer(held) && held.source === vector) return held.offset;
+    throw new Error(`std::vector::${method}: the iterator does not point into the vector`);
+  };
+  const at = position(args[0]);
+  if (method === 'insert') {
+    if (args.length !== 2) throw new Error(`std::vector::insert with ${args.length} arguments is not supported`);
+    vector.splice(at, 0, isLValue(args[1]) ? args[1].get() : args[1]);
+  } else if (method === 'erase') {
+    const end = args.length > 1 ? position(args[1]) : at + 1;
+    vector.splice(at, Math.max(0, end - at));
+  } else {
+    throw new Error(`std::vector has no ${method} here`);
+  }
+  return { generatedPointer: true, source: vector, offset: at };
+}
+
 export function generatedContainerAccessor(value: unknown, method: string): unknown {
   const held = isLValue(value) ? value.get() : value;
   if (typeof held === 'number') {
@@ -3474,8 +3835,7 @@ function generatedCallArguments(
 
 /** Whether a MAME parameter list declares a non-const C++ reference. */
 function hasReferenceParameter(parameters: string | undefined): boolean {
-  return (parameters ?? '')
-    .split(',')
+  return splitParameters(parameters ?? '')
     .some(parameter => parameter.includes('&') && !/\bconst\b/.test(parameter));
 }
 

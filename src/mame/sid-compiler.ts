@@ -159,7 +159,7 @@ export function compileSid(mameSource: string, hardware: MameHardwareDefinition)
   const compiled = methods.map(method => lower(method));
   const wrapperFile = 'src/devices/sound/mos6581.cpp';
   const wrapperUnit = parseMameSource(wrapperFile, maskComments(readFileSync(join(mameSource, wrapperFile), 'utf8')));
-  for (const method of wrapperUnit.functions.filter(method => method.className === 'mos6581_device' && ['device_start', 'device_reset', 'sound_stream_update', 'read', 'write'].includes(method.name))) compiled.push(lower(method, true));
+  for (const method of wrapperUnit.functions.filter(method => method.className === 'mos6581_device' && ['device_start', 'device_reset', 'device_post_load', 'sound_stream_update', 'read', 'write'].includes(method.name))) compiled.push(lower(method, true));
   compiled.find(method => method.name === 'device_start')!.program.operations.unshift(...compileMameHandler(functionTables.join('\n')).operations);
   const members = [...wrapper.members.filter(member => member.name !== 'm_token'), ...rootMembers, ...globals];
   return { ...wrapper, sourceFiles: [...new Set([...wrapper.sourceFiles, 'src/emu/sound.h', ...units.map(unit => unit.file)])], constants,

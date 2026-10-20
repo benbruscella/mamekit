@@ -1254,10 +1254,14 @@ function emitCall(
   }
   const signal = context.definition.callbacks?.[name];
   if (signal) return `(this.bus.signal?.(${JSON.stringify(signal)}, ${args[0] ?? '0'}) ?? 0)`;
-  // devcb `isunset()` on one of the core's own lines: a bus that routes
-  // signals decides whether anything is bound to it.
+  // devcb `isunset()` on one of the core's own lines: the bus names the lines
+  // the machine connected. A bus that does not falls back to whether it
+  // routes signals at all.
   const unset = /^(m_\w+)\.isunset$/.exec(name);
-  if (unset && context.definition.callbacks?.[unset[1]!]) return '(this.bus.signal ? 0 : 1)';
+  const unsetSignal = unset ? context.definition.callbacks?.[unset[1]!] : undefined;
+  if (unsetSignal) {
+    return `(this.bus.boundSignals ? (this.bus.boundSignals.has(${JSON.stringify(unsetSignal)}) ? 0 : 1) : (this.bus.signal ? 0 : 1))`;
+  }
 
   if ((name === 'POSTINC' || name === 'POSTDEC') && expression.args[0]) {
     const target = targetInfo(expression.args[0], context);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { indexMameHardware } from './hardware.ts';
-import { compileMameDevice, constructorInitialValues } from './device-compiler.ts';
+import { compileMameDevice, constructorInitialValues, memberDeclarations } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import {
   clearGeneratedDevices,
@@ -27,6 +27,30 @@ assert.deepEqual(
   { m_first: 1, m_second: 2, m_third: 3, m_four: 4 },
   'comments between constructor initializers must not hide following member defaults',
 );
+// An array bound MAME writes as arithmetic is still the member's length. The
+// VIC-II declares `m_border_color_sample[0x400 / 8]`; read with Number() the
+// bound was NaN, the member had no length, and every per-cycle store into it
+// took the name-addressed path instead of a direct one.
+{
+  const span = { file: 'src/devices/video/test.h', start: 0, end: 0, line: 1, column: 1, endLine: 1, endColumn: 1 };
+  const members = memberDeclarations({
+    kind: 'class',
+    name: 'test_device',
+    bases: [],
+    body: `
+      uint8_t m_reg[0x80];
+      uint8_t m_border_color_sample[0x400 / 8];
+      uint16_t m_first[2 * 4], m_second[1 << 3];
+    `,
+    span,
+    bodySpan: span,
+  });
+  const length = (name: string) => members.find(member => member.name === name)?.arrayLength;
+  assert.equal(length('m_reg'), 128);
+  assert.equal(length('m_border_color_sample'), 128);
+  assert.equal(length('m_first'), 8, 'a grouped declarator evaluates its bound too');
+  assert.equal(length('m_second'), 8);
+}
 const definition = hardware.get('LS259');
 assert.ok(definition, 'MAME hardware index should resolve LS259');
 

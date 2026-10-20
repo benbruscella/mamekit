@@ -243,4 +243,69 @@ function bothWays(
     'interpreted and compiled hardware calls must preserve the receiver when its core is absent');
 }
 
+// A call through a member the board has not bound reaches the value, as the
+// interpreter does -- a method called with its arguments, an accessor read
+// whether it is a method or data -- through one runtime call rather than the
+// inline ladder, which kept the C64's memory decode too large to inline.
+// A binding, when there is one, still wins.
+{
+  const poll = handler('poll', '', `
+    for (int y = 0; y < 2; y++)
+      for (int x = 0; x < 2; x++)
+        m_total[y * 2 + x] = m_port->read(x) + m_port->level() + m_port->width();
+  `);
+  const machine = board([poll], ['total']);
+  machine.devices = [{ id: 'device:port', tag: 'port', type: 'TEST_PORT', member: 'm_port' }];
+  const emitted = generatedBoardHandlersSource(machine);
+  assert.match(emitted.source, /runtime\.memberCall\(members\.m_port, "read"/);
+  const unbound = bothWays(machine, poll, () => ({
+    members: {
+      m_total: new Uint8Array(4),
+      m_port: { read: (x: number) => x * 3, level: 5, width: () => 2 },
+    },
+    calls: {},
+  }));
+  const [interpreted, compiled] = unbound.states as [{ m_total: Uint8Array }, { m_total: Uint8Array }];
+  assert.deepEqual([...compiled.m_total], [...interpreted.m_total]);
+  assert.deepEqual([...compiled.m_total], [7, 10, 7, 10]);
+  const bound = bothWays(machine, poll, () => ({
+    members: {
+      m_total: new Uint8Array(4),
+      m_port: { read: () => 99, level: 5, width: () => 2 },
+    },
+    calls: { 'm_port.read': (x: number) => x + 100 },
+  }));
+  const [interpretedBound, compiledBound] = bound.states as [{ m_total: Uint8Array }, { m_total: Uint8Array }];
+  assert.deepEqual([...compiledBound.m_total], [...interpretedBound.m_total]);
+  assert.equal(compiledBound.m_total[1], 108, 'the board binding answers before the value');
+}
+
+// A composed card's own handlers run in the card's scope, where the bus it
+// plugs into sets members none of them assign (`m_bus` in a 1541). The card's
+// declared members make those names known, so its serial-port handlers
+// compile and resolve them exactly as the interpreter does.
+{
+  const port = handler('serial_r', '', `
+    int data = 0;
+    for (int i = 0; i < 2; i++)
+      for (int j = 0; j < 1; j++)
+        data |= m_bus->data_r() << i;
+    return data;
+  `, 'card_device_base');
+  const machine = board([port]);
+  assert.deepEqual(generatedBoardHandlersSource(machine).handlers, [],
+    'an undeclared member keeps the handler interpreted');
+  machine.devices = [{
+    id: 'device:card', tag: 'slot:card', type: 'TEST_CARD',
+    classHierarchy: ['card_device', 'card_device_base'],
+    cardMembers: ['m_bus'],
+  }];
+  const result = bothWays(machine, port, () => ({
+    members: { m_bus: { data_r: () => 1 } },
+    calls: {},
+  }));
+  assert.equal(result.compiled, result.interpreted);
+  assert.equal(result.compiled, 3);
+}
+
 console.log('emit-handler-codegen.spec: emitted board handlers match the interpreter');

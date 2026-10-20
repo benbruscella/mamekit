@@ -108,7 +108,13 @@ function matchParen(src: string, open: number): number {
   for (let i = open; i < src.length; i++) {
     const c = src[i];
     if (c === '"') i = findStringEnd(src, i);
-    else if (c === '(') depth++;
+    else if (c === "'" && !(/[0-9a-fA-F]/.test(src[i - 1] ?? '') && /[0-9a-fA-F]/.test(src[i + 1] ?? ''))) {
+      // A character literal, as stripComments reads one: the C64's
+      // `PORT_CHAR('"')` and `PORT_CHAR('(')` are a quote and a parenthesis
+      // that open nothing. Read as code, the key lost every PORT_CHAR after
+      // its first. Apostrophes inside numeric literals are separators.
+      for (i++; i < src.length && src[i] !== "'"; i++) if (src[i] === '\\') i++;
+    } else if (c === '(') depth++;
     else if (c === ')') {
       depth--;
       if (depth === 0) return i;
@@ -926,6 +932,12 @@ export interface DeviceDef {
   /** slot devices: NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, "joypad") */
   slotOptions?: string;
   slotDefault?: string;
+  /**
+   * The address a bus slot is configured at, written before its options
+   * table: `CBM_IEC_SLOT(config, "iec8", 8, cbm_iec_devices, "c1541")` is
+   * the drive a C64 calls device 8.
+   */
+  slotAddress?: number;
   /** every raw config statement that mentioned this device (for the generator + human) */
   config: string[];
   /** GFXDECODE(config, ..., gfx_name) reference */
@@ -1593,6 +1605,9 @@ export function parseMachineConfigs(
         if (slotIndex >= 0) {
           dev.slotOptions = args[slotIndex].trim();
           dev.slotDefault = unquote(args[slotIndex + 1]);
+          // Not a clock, but still a fact of the slot's own.
+          const address = slotIndex === 3 ? evalExpr(args[2] ?? '', consts) : null;
+          if (address !== null) dev.slotAddress = address;
           dev.clock = null;
           delete dev.clockExpr;
         }
@@ -1789,6 +1804,8 @@ export interface PortFieldDef {
   defaultValue?: number;
   location?: string;
   settings?: { value: number; name: string; condition?: string }[];
+  /** PORT_CONFNAME: a machine configuration switch, not a DIP bank */
+  config?: boolean;
 }
 export interface PortDef { tag: string; modify?: boolean; fields: PortFieldDef[]; }
 export interface InputPortsDef { name: string; includes?: string[]; ports: PortDef[]; }
@@ -1966,6 +1983,10 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
             name: defStr(args[2]),
             settings: [],
             ...(confMods.length ? { modifiers: confMods } : {}),
+            // A configuration switch is the machine's setup rather than a
+            // board's DIP bank: MAME lists these in its own Machine
+            // Configuration menu (the C64's "Swap joystick ports").
+            ...(tm[1] === 'PORT_CONFNAME' ? { config: true } : {}),
           };
           port.fields.push(dip);
           break;

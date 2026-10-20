@@ -3787,6 +3787,14 @@ export function normalizeMameExecutionSource(source: string): string {
       (_, type: string) => `${allocIntrinsic(type)}(`,
     )
     .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(')
+    // A local constructed with a size holds that many value-initialized
+    // elements, of its own kind (the device runtime's VECTOR_OF), rather than
+    // reading as the number: the floppy drive's write_flux fills in
+    // `std::vector<wspan> wspans(1)`, and `wspans[0].start` threw on a 1.
+    .replace(
+      /\bstd::vector\s*<\s*([A-Za-z_][\w:]*)\s*>\s+(\w+)\s*\(([^;{}()]+)\)\s*;/g,
+      'auto $2 = VECTOR_OF("$1", $3);',
+    )
     // A default-constructed local std::vector is an empty, growable array.
     // Keeping it as an uninitialised declaration materialises numeric zero,
     // so push_back silently does nothing and a later reverse walk is empty

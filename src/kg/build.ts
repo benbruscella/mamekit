@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
   MameAstIndex, parseCallChain, parseMameAst, parseMameSource, spanProps, splitMameArgs,
-  type MameFunction, type SourceSpan,
+  type MameClass, type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
@@ -895,6 +895,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         configClock,
       );
     }
+    let hardwareIndex: ReturnType<typeof indexMameHardware> | undefined;
     for (const dev of cfg.devices) {
       // namespaced by class AND config name: every device-board class has a
       // config called device_add_mconfig, and different classes reuse tags
@@ -947,8 +948,22 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           ? [`${call[1]}(${values.join(',')})`]
           : [];
       });
+      // Arguments past the tag that select a constructor overload of setters.
+      // A framework device (src/devices) is declared outside the family, so its
+      // class comes from MAME's hardware index, read only when one is added so.
+      const addedWith = splitMameArgs(/\(([\s\S]*)/.exec(dev.config[0] ?? '')?.[1] ?? '').length;
+      const deviceClass = deviceTypes[dev.type] ?? (addedWith > 3
+        ? (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.className
+        : undefined);
+      const constructed = deviceClass
+        ? constructorConfigCalls(dev.config[0] ?? '', deviceClass, [combined, ...externalSources], consts)
+        : { calls: [], clockConsumed: false };
+      configCalls.push(...constructed.calls);
       if (configCalls.length) props.configCalls = configCalls;
-      if (dev.clockExpr) props.clockExpr = dev.clockExpr;
+      // A third argument a setter took is the constructor's, not a clock: the
+      // quickload's is its extension list. The OKI6295's constructor passes
+      // its third on as the clock and sets only pin 7 from the fourth.
+      if (dev.clockExpr && !constructed.clockConsumed) props.clockExpr = dev.clockExpr;
       if (dev.screenRaw) {
         props.screenRaw = [
           dev.screenRaw.pixclock, dev.screenRaw.htotal, dev.screenRaw.hbend, dev.screenRaw.hbstart,
@@ -964,6 +979,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       if (dev.screenVideoAttributes?.length) props.screenVideoAttributes = dev.screenVideoAttributes;
       if (dev.slotOptions) props.slotOptions = dev.slotOptions;
       if (dev.slotDefault) props.slotDefault = dev.slotDefault;
+      if (dev.slotAddress !== undefined) props.slotAddress = dev.slotAddress;
       g.node('Device', devId, props);
       g.edge(cfgId, devId, 'HAS_DEVICE');
       for (const [index, route] of (dev.audioRoutes ?? []).entries()) {
@@ -1104,6 +1120,21 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       handlers.push(`${fn.className}.${name}`);
     }
     if (handlers.length) device.props.interfaceHandlers = handlers;
+    // The data members the card's classes declare. Some are set by a device
+    // the card plugs into rather than by the card's own handlers -- the IEC
+    // bus's add_device writes `m_bus` and `m_slot` into every drive -- so the
+    // board's compiler cannot discover them from the handlers, and without
+    // them the 1541's serial-port handlers stayed interpreted.
+    const card = [...processorCards.values()].find(candidate => candidate.cls === cls);
+    const members = [...new Set([
+      ...declarations,
+      ...(card ? includedBaseDeclarations(mameSrc, card.files, declarations) : []),
+    ].flatMap(declaration =>
+      memberDeclarations(declaration)
+        .filter(member => !/\bconst\b/.test(member.valueType) &&
+          !/^(?:enum|struct|union|class)$/.test(member.name))
+        .map(member => member.name)))].sort();
+    if (members.length) device.props.cardMembers = members;
     const reset = ast.findFunctionInHierarchy(cls, 'device_reset');
     if (reset) {
       g.edge(devId, emitSourceHandlerClosure(g, ast, reset.className, 'device_reset', consts, reset.span), 'CALLS_HANDLER');
@@ -1512,6 +1543,7 @@ function emitInputPorts(
       if (f.name) props.name = f.name;
       if (f.defaultValue !== undefined) props.defaultValue = f.defaultValue;
       if (f.location) props.location = f.location;
+      if (f.config) props.config = true;
       if (f.settings?.length) {
         props.settings = f.settings.map(s => `${s.value}=${s.name}${s.condition ? ` [if ${s.condition}]` : ''}`);
       }
@@ -1777,6 +1809,42 @@ function driverStateMembers(
  * Only classes the parsed sources actually declare are listed; MAME's own
  * device_t roots are not part of any generated handler set.
  */
+/**
+ * Base classes of a card's hierarchy that its own units do not declare: the
+ * bus interface a drive implements is declared with the bus
+ * (`device_cbm_iec_interface` in cbmiec.h), and the parallel cable's with the
+ * cable. Read from the headers the card's units include, beside the unit or
+ * under src/devices, one level deep.
+ */
+function includedBaseDeclarations(
+  mameSrc: string,
+  files: readonly string[],
+  declarations: readonly MameClass[],
+): MameClass[] {
+  const known = new Set(declarations.map(declaration => declaration.name));
+  const wanted = new Set(declarations
+    .flatMap(declaration => declaration.bases.map(base => base.split('::').at(-1)!))
+    .filter(name => !known.has(name)));
+  const found: MameClass[] = [];
+  if (!wanted.size) return found;
+  for (const file of files) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    for (const include of parseIncludes(readFileSync(path, 'utf8'))) {
+      const header = [join(dirname(path), include), join(mameSrc, 'src/devices', include)]
+        .find(candidate => existsSync(candidate));
+      if (!header) continue;
+      const unit = parseMameSource(header.slice(mameSrc.length + 1), stripComments(readFileSync(header, 'utf8')));
+      for (const declaration of unit.classes) {
+        if (wanted.has(declaration.name) && !found.some(entry => entry.name === declaration.name)) {
+          found.push(declaration);
+        }
+      }
+    }
+  }
+  return found;
+}
+
 function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {
   const classes = new Map(
     ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
@@ -2133,6 +2201,103 @@ function handlerProps(
   };
 }
 
+/**
+ * The machine-config setters a device's own constructor runs on the arguments
+ * it was added with. MAME's quickload is added as
+ * `QUICKLOAD(config, "quickload", "p00,prg,t64", CBM_QUICKLOAD_DELAY)`, and the
+ * constructor overload those arguments select is two setters:
+ * `set_extensions(extensions); set_delay(delay);` (snapquik.h). Only an
+ * overload whose body is nothing but setters of its own parameters is read,
+ * and a duration is an attotime, which a generated device holds as seconds.
+ * `clockConsumed` says a setter took the third argument, the one that is
+ * otherwise the clock.
+ */
+export function constructorConfigCalls(
+  addStatement: string,
+  className: string,
+  sources: readonly string[],
+  constants: Record<string, number>,
+): { calls: string[]; clockConsumed: boolean } {
+  const none = { calls: [], clockConsumed: false };
+  const added = /^\s*\w+\s*\(/.exec(addStatement);
+  if (!added) return none;
+  const open = addStatement.indexOf('(', added.index);
+  let depth = 0;
+  let close = -1;
+  for (let index = open; index < addStatement.length; index++) {
+    if (addStatement[index] === '(') depth++;
+    else if (addStatement[index] === ')' && --depth === 0) { close = index; break; }
+  }
+  if (close < 0) return none;
+  const extra = splitMameArgs(addStatement.slice(open + 1, close)).slice(2);
+  if (!extra.length) return none;
+  for (const source of sources) {
+    const declared = new RegExp(`\\bclass\\s+${className}\\b[^;{]*\\{`).exec(source);
+    if (!declared) continue;
+    const body = source.slice(declared.index + declared[0].length);
+    for (const constructor of body.matchAll(new RegExp(`\\b${className}\\s*\\(`, 'g'))) {
+      const start = constructor.index + constructor[0].length;
+      let level = 1;
+      let end = start;
+      for (; end < body.length && level; end++) {
+        if (body[end] === '(') level++;
+        else if (body[end] === ')') level--;
+      }
+      const parameters = splitMameArgs(body.slice(start, end - 1));
+      if (parameters.length < 3 + extra.length) continue;
+      // `const char *tag` or `char const *tag`: MAME spells it both ways.
+      if (!/machine_config/.test(parameters[0] ?? '') || !/\bchar\b[\w\s]*\*/.test(parameters[1] ?? '') ||
+        !/device_t\s*\*/.test(parameters[2] ?? '')) continue;
+      const after = /^\s*(?::[^{;]*)?\{([^{}]*)\}/.exec(body.slice(end));
+      if (!after) continue;
+      const statements = after[1]!.split(';').map(statement => statement.trim()).filter(Boolean);
+      const names = parameters.slice(3).map(parameter => /(\w+)\s*(?:=.*)?$/.exec(parameter)?.[1]);
+      // The setters of the constructor's own parameters. Anything else it
+      // does -- the IEC slot's `set_options(std::forward<T>(opts), dflt,
+      // false)` -- is configuration this graph records another way.
+      // A slot's default option is the graph's `slotDefault` already.
+      const setters = statements.map(statement => /^(\w+)\s*\(\s*(\w+)\s*\)$/.exec(statement))
+        .filter((setter): setter is RegExpExecArray => Boolean(setter && names.includes(setter[2]) &&
+          setter[1] !== 'set_default_option' && setter[1] !== 'set_fixed'));
+      if (!setters.length) continue;
+      const calls = setters.flatMap(setter => {
+        const position = names.indexOf(setter[2]);
+        const argument = extra[position];
+        if (argument === undefined) return [];
+        const value = configArgument(argument, sources, constants);
+        return value === undefined ? [] : [`${setter[1]}(${value})`];
+      });
+      return { calls, clockConsumed: setters.some(setter => names.indexOf(setter[2]) === 0) };
+    }
+  }
+  return none;
+}
+
+/** A config argument as a setter takes it: a string literal, or a number (an attotime as seconds). */
+function configArgument(text: string, sources: readonly string[], constants: Record<string, number>): string | undefined {
+  let value = text.trim();
+  if (/^"[^"]*"$/.test(value)) return value;
+  // Object-like defines, a level or two deep: CBM_QUICKLOAD_DELAY is
+  // `(attotime::from_seconds(3))`.
+  for (let pass = 0; pass < 3; pass++) {
+    const name = /^\(?\s*([A-Z_][A-Z0-9_]*)\s*\)?$/.exec(value)?.[1];
+    if (!name) break;
+    const defined = sources.map(source => new RegExp(`^[ \\t]*#define\\s+${name}\\s+(.+)$`, 'm').exec(source)?.[1])
+      .find(Boolean);
+    if (!defined) break;
+    value = defined.trim();
+  }
+  const seconds = value
+    .replace(/attotime::zero/g, '0')
+    .replace(/attotime::from_seconds\s*\(([^()]*)\)/g, '($1)')
+    .replace(/attotime::from_msec\s*\(([^()]*)\)/g, '(($1)/1000)')
+    .replace(/attotime::from_usec\s*\(([^()]*)\)/g, '(($1)/1000000)')
+    .replace(/attotime::from_nsec\s*\(([^()]*)\)/g, '(($1)/1000000000)')
+    .replace(/attotime::from_hz\s*\(([^()]*)\)/g, '(1/($1))');
+  const number = evalExpr(seconds, constants);
+  return number === null ? undefined : String(number);
+}
+
 function emitSourceHandlerClosure(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -2250,6 +2415,14 @@ function emitSourceHandlerClosure(
       visited,
     );
     g.edge(handlerId, targetId, 'CALLS_HANDLER', { finder: `${member}.${callName}` });
+  }
+  // A free function passed as a value -- a function pointer, which MAME's
+  // CBM quickload takes for the routine that sets BASIC's end pointers
+  // (`general_cbm_loadsnap(image, space, 0, cbm_quick_sethiaddress)`) -- is
+  // as much a dependency as one that is called.
+  for (const match of fn.body.matchAll(/[(,]\s*([A-Za-z_]\w*)\s*(?=[,)])/g)) {
+    const named = ast.findUniqueFunction(match[1]!);
+    if (named && named.className === '') callNames.add(match[1]!);
   }
   for (const callName of accessorNames) {
     if (callNames.has(callName)) continue;

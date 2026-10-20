@@ -75,6 +75,9 @@ void bombjack_state::bombjack(machine_config &config) {
   eq('addressed slots retain their selected disk drive',
     [config?.devices[0]?.slotOptions, config?.devices[0]?.slotDefault, config?.devices[0]?.clock],
     ['cbm_iec_devices', 'drive', null]);
+  // The address is not a clock, but it is the drive's unit number: a C64
+  // loads from device 8 because the slot is configured at 8.
+  eq('an addressed slot keeps its address', config?.devices[0]?.slotAddress, 8);
 }
 
 // The C64 keyboard declares a double-quote character before its machine
@@ -257,6 +260,22 @@ eq('memory-region finder configures a source-derived bank entry', parseMemoryBan
   region: 'maincpu', offset: 0x8000, stride: 0,
   raw: 'm_bank1->configure_entry(0, m_maincpu_region->base() + 0x8000)',
 }]);
+
+// A key's PORT_CHARs are one per shift state, and a character literal is a
+// character: the C64's `2` key is PORT_CHAR('2') PORT_CHAR('"') and its `8` is
+// PORT_CHAR('8') PORT_CHAR('('). Matched as code, the quote and the
+// parenthesis swallowed every modifier after them, and the natural keyboard
+// could not type a quote.
+eq('character literals do not unbalance a key\'s modifiers', parseInputPorts(String.raw`
+INPUT_PORTS_START( keys )
+  PORT_START("ROW7")
+  PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_2) PORT_CHAR('2') PORT_CHAR('"')
+  PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_KEYBOARD ) PORT_CODE(KEYCODE_8) PORT_CHAR('8') PORT_CHAR('(')
+INPUT_PORTS_END
+`)[0]?.ports[0]?.fields.map(field => field.modifiers), [
+  ['PORT_CODE(KEYCODE_2)', "PORT_CHAR('2')", `PORT_CHAR('"')`],
+  ['PORT_CODE(KEYCODE_8)', "PORT_CHAR('8')", "PORT_CHAR('(')"],
+]);
 
 eq('service DIP keeps its source default and polarity', parseInputPorts(`
 INPUT_PORTS_START( board )

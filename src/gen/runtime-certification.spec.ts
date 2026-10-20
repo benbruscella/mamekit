@@ -25,6 +25,8 @@ assert.equal(
   'a certification must not hide a new hardware gap',
 );
 assert.equal(isRuntimeCertified('arkanoid', [], [], true), false);
+// The C64's quickload is generated now, so the gap it once excused fails closed.
+assert.equal(isRuntimeCertified('c64p', ['quickload:QUICKLOAD'], [], true), false);
 assert.equal(
   isRuntimeCertified('trackfld', ['vlm:VLM5030'], ['vlm.data_w'], true),
   false,

@@ -13,7 +13,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 
 import type { GenerateOptions } from './generate.ts';
 
-import { inputKeys, inputLabel, inputPlayer, joystickWays, keypadKeys, portCodeKeys, computerKeyboardKeys, fieldConditionHolds, portLabel } from './input-bindings.ts';
+import { inputKeys, inputLabel, inputPlayer, joystickWays, keyName, keypadKeys, portChars, portCodeKeys, computerKeyboardKeys, fieldConditionHolds, portLabel } from './input-bindings.ts';
 
 import { Graph } from '../kg/query.ts';
 
@@ -152,7 +152,18 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
         const value = Number(f.props.defaultValue ?? mask); // unused dips default to off (active low)
         init = (init & ~mask) | (value & mask);
         const named = f.props.name ? String(f.props.name) : undefined;
-        dipDefaults.push({ port: tag, mask, value, name: named ?? '' });
+        // A configuration switch carries MAME's own settings, which is what
+        // the shell's Machine settings offers ("Joystick in swapped port").
+        const settings = f.props.config && Array.isArray(f.props.settings)
+          ? (f.props.settings as string[]).flatMap(setting => {
+              const parsed = /^(-?\d+)=(.*?)(?: \[if .*\])?$/.exec(String(setting));
+              return parsed ? [{ value: Number(parsed[1]), name: parsed[2]! }] : [];
+            })
+          : [];
+        dipDefaults.push({
+          port: tag, mask, value, name: named ?? '',
+          ...(f.props.config ? { config: true, settings } : {}),
+        });
         // A configuration switch MAME gives a key to is one a player is meant
         // to operate, not a cabinet setting: the Atari 2600's TV Type, and its
         // two difficulty switches, are physical switches on the console front.
@@ -423,7 +434,10 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
           port: tag,
           mask,
           keys,
-          label: named ?? (type === 'IPT_KEYBOARD' ? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
+          // A key MAME leaves unnamed is named by what it types, as MAME's
+          // own input menu names it; only a key that types nothing falls back
+          // to the PC key it sits on.
+          label: named ?? (type === 'IPT_KEYBOARD' ? keyName(portChars(mods)) ?? keys[0]?.replace(/^(Key|Digit)/, '') : undefined)
             ?? inputLabel(opts.game, type) ?? type,
           type,
           ...(player !== 1 ? { player } : {}),
@@ -441,6 +455,8 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
             : {}),
           ...(mods.includes('PORT_TOGGLE') ? { toggle: true } : {}),
           ...(joystickWays(mods) !== undefined ? { ways: joystickWays(mods) } : {}),
+          // What MAME's natural keyboard types with this key, per shift state.
+          ...(type === 'IPT_KEYBOARD' && portChars(mods) ? { chars: portChars(mods) } : {}),
         });
       }
     }

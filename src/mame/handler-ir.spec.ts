@@ -639,4 +639,20 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
   );
 }
 
-console.log('handler-ir.spec: 73 passed');
+// std::tie assigns a tuple's elements to names that already exist, as the
+// C64 expansion port reads a raw image: `std::tie(err, buffer, actual) =
+// read(file, size)`. std::ignore takes nothing.
+{
+  const program = compileMameHandler('std::tie(err, m_card->m_roml, std::ignore) = read(file, size); return err;');
+  assert.deepEqual(program.diagnostics, []);
+  assert.deepEqual(program.operations.slice(0, 3).map(operation => operation.op), ['declare', 'assign', 'assign']);
+  const members: Record<string, unknown> = { m_card: { m_roml: 0 } };
+  const result = executeGeneratedProgram(program, {
+    members,
+    calls: { read: () => [5, 'bytes', 7] as unknown as number },
+  }, { err: 0, file: 0, size: 0 });
+  assert.equal(result.value, 5);
+  assert.equal((members.m_card as { m_roml: unknown }).m_roml, 'bytes');
+}
+
+console.log('handler-ir.spec: 74 passed');

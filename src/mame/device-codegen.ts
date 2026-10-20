@@ -518,6 +518,7 @@ export function supportsMethod(
     ...Object.keys(method.constants ?? {}),
   ]);
   const callees = calledIdentifiers(method.program.operations);
+  const addressOnly = addressOnlyLocals(method.program.operations, locals);
   let supported = true;
   visitOperations(method.program.operations, operation => {
     visitOperationExpressions(operation, expression => {
@@ -565,7 +566,15 @@ export function supportsMethod(
               // arithmetic whose emitted form does not yet match the
               // interpreter -- The Simpsons' sprite DMA compiled that way and
               // its attract drifted from the golden.
-              members.has(expression.operand.name)
+              members.has(expression.operand.name) ||
+              // A local whose address is all the method ever uses: what the
+              // callee does through it no emitted code here can observe, and
+              // the callee is handed the same lvalue-backed pointer the
+              // interpreter would build. The CBM tape format's fill_wave hands
+              // `&p` to the sample writer this way, and declining it ran a
+              // tape's whole PCM conversion -- a second and more -- through
+              // interpreted get/set closures, one pair per sample.
+              addressOnly.has(expression.operand.name)
             )
           );
       } else if (expression.kind === 'binary') {
@@ -675,7 +684,7 @@ function emitMethod(
   const hoisted = [...(context.hoisted ?? [])]
     .map(name =>
       `    const ${hoistedName(name)} = members.${name} ?? ` +
-      `runtime.member(${JSON.stringify(name)});`)
+      (context.boardScope ? `runtime.member(${JSON.stringify(name)});` : '0;'))
     .join('\n');
   // Only a method that calls out fetches the links table, and it falls back
   // to the raw calls dictionary for a runtime that carries none (a test
@@ -830,17 +839,25 @@ function emitOperation(
  * A call target uses `members.<name>` directly instead — see emitCallObject,
  * where any fallback would make an unmaterialised device look present.
  */
+/**
+ * A source-resolved const scalar's value: it cannot change after
+ * construction, so it is emitted as the number it is.
+ */
+function constMemberValue(name: string, context: EmitContext): number | undefined {
+  if (!context.stableMembers?.has(name) || context.boardScope) return undefined;
+  const member = context.definition.members.find(candidate => candidate.name === name);
+  return member?.bits && member.initial !== undefined && /\bconst\b/.test(member.valueType) &&
+    !member.valueType.includes('*')
+    ? member.initial
+    : undefined;
+}
+
 function memberValue(name: string, context?: EmitContext): string {
   if (context?.stableMembers?.has(name)) {
-    const member = !context.boardScope
-      ? context.definition.members.find(candidate => candidate.name === name) : undefined;
-    if (member?.bits && member.initial !== undefined && /\bconst\b/.test(member.valueType) &&
-        !member.valueType.includes('*')) {
-      // A source-resolved const scalar cannot change after construction.
-      // Specialising chip variants here lets the JS compiler remove their
-      // unused timing/rendering branches instead of testing them every dot.
-      return String(member.initial);
-    }
+    // Specialising chip variants here lets the JS compiler remove their
+    // unused timing/rendering branches instead of testing them every dot.
+    const constant = constMemberValue(name, context);
+    if (constant !== undefined) return String(constant);
     context.hoisted?.add(name);
     return hoistedName(name);
   }
@@ -848,6 +865,13 @@ function memberValue(name: string, context?: EmitContext): string {
   // quoted key: emitted bare it was a syntax error that failed the whole
   // build rather than one lookup.
   const key = /^[A-Za-z_$][\w$]*$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
+  // A device declares every member up front, and its runtime answers an
+  // absent one with 0 (generated-device.ts), so the fallback is that constant
+  // rather than a call spelled at every read. The difference is bytecode, and
+  // bytecode is what decides whether V8 inlines a method: the CIA's
+  // update_pb, sixteen member reads long, was 515 bytes against a limit of
+  // 460.
+  if (context && !context.boardScope) return `(members${key} ?? 0)`;
   return `(members${key} ?? runtime.member(${JSON.stringify(name)}))`;
 }
 
@@ -877,6 +901,14 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
   const structs = new Set(definition.members
     .filter(member => member.fields && !member.arrayLength && !member.valueType.includes('*'))
     .map(member => member.name));
+  // A device's fixed C arrays exist before any of its methods run, and an
+  // indexed write stores straight into one (isDirectArray), so it never
+  // rebinds: the VIC-II clears its 1,024-byte sprite collision buffer every
+  // raster line, and re-reading the member at each of those stores was 4% of
+  // a C64 frame. A board materialises its arrays on first write instead.
+  const fixedArrays = new Set(definition.boardScope ? [] : definition.members
+    .filter(member => member.arrayLength !== undefined)
+    .map(member => member.name));
   for (const method of definition.methods) {
     visitOperations(method.program.operations, operation => {
       if (operation.op !== 'assign') return;
@@ -887,8 +919,11 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
       // member points at leaves the binding alone -- which is what the Game
       // Boy PPU does to `m_line` on every dot.
       let target = operation.target;
+      const indexed = target.kind === 'index';
       while (target.kind === 'index') target = target.object;
-      if (target.kind === 'identifier') rebound.add(target.name);
+      if (target.kind !== 'identifier') return;
+      if (indexed && fixedArrays.has(target.name)) return;
+      rebound.add(target.name);
     });
     // A member whose address is taken is written through the pointer:
     // `COMBINE_DATA(&m_midtunit_control)` updates it before the same method
@@ -948,13 +983,19 @@ function emitCallObject(
  * is a tree of literals. Emitting it as written put 464 literal comparisons
  * in the VIC's per-cycle loop; a source constant is a constant here too.
  */
-function literalValue(expression: GeneratedExpression): number | undefined {
+function literalValue(expression: GeneratedExpression, context?: EmitContext): number | undefined {
   if (expression.kind === 'number') {
     return expression.wide === undefined && !expression.floating && Number.isInteger(expression.value)
       ? expression.value : undefined;
   }
+  // A name emitExpression would spell as a number: a constant, or a device's
+  // const scalar member. The VIC-II tests its own `m_variant` against each
+  // chip it could be, and with the member already a literal in the emitted
+  // text, each test survived as `Number(4) === Number(4)` -- hundreds of
+  // them in its per-cycle methods, and bytecode V8 counts against inlining.
+  if (expression.kind === 'identifier') return context ? literalIdentifier(expression.name, context) : undefined;
   if (expression.kind === 'unary') {
-    const operand = literalValue(expression.operand);
+    const operand = literalValue(expression.operand, context);
     if (operand === undefined) return undefined;
     if (expression.operator === '!') return operand ? 0 : 1;
     if (expression.operator === '-') return -operand;
@@ -963,13 +1004,13 @@ function literalValue(expression: GeneratedExpression): number | undefined {
     return undefined;
   }
   if (expression.kind === 'conditional') {
-    const condition = literalValue(expression.condition);
+    const condition = literalValue(expression.condition, context);
     if (condition === undefined) return undefined;
-    return literalValue(condition ? expression.whenTrue : expression.whenFalse);
+    return literalValue(condition ? expression.whenTrue : expression.whenFalse, context);
   }
   if (expression.kind !== 'binary') return undefined;
-  const left = literalValue(expression.left);
-  const right = literalValue(expression.right);
+  const left = literalValue(expression.left, context);
+  const right = literalValue(expression.right, context);
   if (left === undefined || right === undefined) return undefined;
   switch (expression.operator) {
     case '==': return left === right ? 1 : 0;
@@ -988,9 +1029,29 @@ function literalValue(expression: GeneratedExpression): number | undefined {
     case '^': return left ^ right;
     // 32-bit shifts, as C++ on the int operands these literals are.
     case '<<': return right >= 0 && right < 32 ? left << right : undefined;
-    case '>>': return right >= 0 && right < 32 ? left >> right : undefined;
+    // A left operand past 31 bits would fold as JavaScript's arithmetic shift
+    // of its int32 conversion, where the emitted runtime.shiftRight treats a
+    // positive value as logical.
+    case '>>': return right >= 0 && right < 32 && left <= 0x7fffffff ? left >> right : undefined;
     default: return undefined;
   }
+}
+
+/** The integer an identifier is emitted as, resolved exactly as emitExpression does. */
+function literalIdentifier(name: string, context: EmitContext): number | undefined {
+  if (context.locals.has(name)) return undefined;
+  if (name === 'true') return 1;
+  if (name === 'false' || name === 'nullptr') return 0;
+  const leaf = name.split('::').at(-1)!;
+  const constant = context.methodConstants?.[name] ??
+    context.definition.constants[name] ??
+    (leaf !== name ? DEFAULT_CONSTANTS[name] : undefined) ??
+    context.methodConstants?.[leaf] ??
+    context.definition.constants[leaf];
+  if (constant !== undefined) return Number.isInteger(constant) ? constant : undefined;
+  if (context.compiled.has(name)) return undefined;
+  const value = Number(constMemberValue(name, context));
+  return Number.isInteger(value) ? value : undefined;
 }
 
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
@@ -998,7 +1059,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     return expression.wide === undefined ? String(expression.value) : `${expression.wide}n`;
   }
   if (expression.kind === 'binary' || expression.kind === 'conditional' || expression.kind === 'unary') {
-    const folded = literalValue(expression);
+    const folded = literalValue(expression, context);
     if (folded !== undefined && Number.isSafeInteger(folded)) return String(folded);
   }
   if (expression.kind === 'string') return JSON.stringify(expression.value);
@@ -1255,6 +1316,13 @@ function expressionValueType(
   }
   if (expression.kind === 'unary' && expression.operator === '&') {
     return `${expressionValueType(expression.operand, context) ?? ''}*`;
+  }
+  // A container's begin() and end() are iterators, so `track.begin() + si` is
+  // pointer arithmetic: as a number it concatenated the array into a string.
+  // Whatever the receiver's declared type -- `auto &ws = wspans[i]` has none.
+  if (expression.kind === 'call' && expression.callee.kind === 'member' && !expression.args.length &&
+      (expression.callee.property === 'begin' || expression.callee.property === 'end')) {
+    return 'iterator*';
   }
   if (expression.kind === 'binary' && ['+', '-'].includes(expression.operator)) {
     const left = expressionValueType(expression.left, context);
@@ -1537,10 +1605,22 @@ function emitCall(
     // The bound branch never evaluates the object, matching the interpreter,
     // which resolves the name before it looks at any value.
     const boundName = context.boardScope ? memberCallName(expression) : undefined;
-    const onValue = emitValueMemberCall(expression, object, args, context);
+    const value = emitValueMemberCall(expression, object, args, context);
+    const onValue = value.code;
     if (boundName) {
       const lookup = callLink(context, boundName);
-      if (context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object))) {
+      const concrete = context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object));
+      if (value.generic) {
+        // The same three arms, with the value's two folded into one runtime
+        // call. The board binds nearly every such call, so that half is cold,
+        // and spelled inline -- every argument written twice -- it made the
+        // C64's memory decode too large for V8 to inline anything into:
+        // read_pla was 879 bytes of bytecode and read_memory 1,906.
+        const bare = concrete ? 'undefined' : callLink(context, expression.callee.property);
+        return `(${lookup} ?? runtime.memberCall(${object}, ${JSON.stringify(expression.callee.property)}, ` +
+          `${value.generic.direct ? 1 : 0}, ${bare}))(${args.join(', ')})`;
+      }
+      if (concrete) {
         return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
           `(${object}) != null ? ${onValue} : 0)`;
       }
@@ -1582,7 +1662,23 @@ function emitValueMemberCall(
   object: string,
   args: readonly string[],
   context: EmitContext,
-): string {
+): { code: string; generic?: { direct: boolean } } {
+  const code = valueMemberCallCode(expression, object, args, context);
+  return typeof code === 'string' ? { code } : code;
+}
+
+/**
+ * The value half of a member call. A call that reaches one of the two generic
+ * forms -- a method called with arguments, or an accessor MAME spells as a
+ * call -- also says so, and whether the object is used as it stands
+ * (`runtime.memberCall` answers those two forms exactly).
+ */
+function valueMemberCallCode(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  object: string,
+  args: readonly string[],
+  context: EmitContext,
+): string | { code: string; generic: { direct: boolean } } {
   if (expression.callee.kind !== 'member') return `${object}(${args.join(', ')})`;
   const property = expression.callee.property;
   if (property === 'get' && !args.length &&
@@ -1600,6 +1696,12 @@ function emitValueMemberCall(
   if (!args.length && (property === 'begin' || property === 'end' || property === 'data' || property === 'empty') &&
       /^(?:const\s+)?std::vector\b/.test(expressionValueType(expression.callee.object, context) ?? '')) {
     return `runtime.container(${object}, ${JSON.stringify(property)})`;
+  }
+  // std::vector's insert and erase take iterators into the vector; the
+  // runtime answers them over the array (generatedVectorMethod), and any
+  // other object keeps its own method of the name.
+  if (property === 'insert' || property === 'erase') {
+    return `runtime.vectorMethod(${object}, ${JSON.stringify(property)}${args.map(argument => `, ${argument}`).join('')})`;
   }
   // normalizeMameExecutionSource lowers std::vector::push_back to Array.push.
   // A vector is the container value itself, not a C++ pointer to its first
@@ -1662,16 +1764,19 @@ function emitValueMemberCall(
     // made junglek and elevator throw a TypeError out of `characterram_w`.
     // The optional call costs nothing when the method is there.
     return args.length
-      ? `(${access}?.(${args.join(', ')}) ?? 0)`
+      ? { code: `(${access}?.(${args.join(', ')}) ?? 0)`, generic: { direct: directObject } }
       : `(${access}?.() ?? runtime.container(${object}, ${JSON.stringify(property)}))`;
   }
   // A MAME memory container answers its own accessors from the container: a
   // `std::unique_ptr<u8[]>` is a plain array at run time, so `m_vram.get()` has
   // no method to call and the pointer it would return *is* the array. Falling
   // through to 0 made the Game Boy PPU fetch every tile from address zero.
-  return `(typeof ${access} === 'function' ? ${access}() : ` +
-    `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : ` +
-    `runtime.container(${object}, ${JSON.stringify(property)}))`;
+  return {
+    code: `(typeof ${access} === 'function' ? ${access}() : ` +
+      `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : ` +
+      `runtime.container(${object}, ${JSON.stringify(property)}))`,
+    generic: { direct: directObject },
+  };
 }
 
 /**
@@ -2174,6 +2279,30 @@ function collectLocals(
       : undefined;
     context.locals.set(operation.name, inferred ?? operation.valueType);
   });
+}
+
+/**
+ * Locals the method never names except to take their address (`&p`).
+ */
+function addressOnlyLocals(
+  operations: GeneratedHandlerOperation[],
+  locals: ReadonlySet<string>,
+): Set<string> {
+  const named = new Map<string, number>();
+  const addressed = new Map<string, number>();
+  visitOperations(operations, operation => {
+    visitOperationExpressions(operation, expression => {
+      if (expression.kind === 'identifier' && locals.has(expression.name)) {
+        named.set(expression.name, (named.get(expression.name) ?? 0) + 1);
+      } else if (
+        expression.kind === 'unary' && expression.operator === '&' &&
+        expression.operand.kind === 'identifier' && locals.has(expression.operand.name)
+      ) {
+        addressed.set(expression.operand.name, (addressed.get(expression.operand.name) ?? 0) + 1);
+      }
+    });
+  });
+  return new Set([...addressed].filter(([name, count]) => named.get(name) === count).map(([name]) => name));
 }
 
 function collectLocalNames(
