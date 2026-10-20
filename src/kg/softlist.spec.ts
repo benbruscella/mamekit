@@ -274,6 +274,24 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   eq('and its area is kept', ultimax.entries[0]!.areas, { uprom: 0x2000 });
 }
 
+// ROM_RELOAD: Print Technik-Help's one 4 KB chip fills both halves of its
+// 8 KB ROML, read again from the start of the file.
+{
+  const reloaded = buildCatalog(parseSoftwareList(`
+<softwarelist name="c64_cart" description="C64 cartridges">
+  <software name="pthelp"><description>Print Technik-Help</description><year>19??</year><publisher>unknown</publisher>
+    <part name="cart" interface="c64_cart">
+      <dataarea name="roml" size="0x2000">
+        <rom name="shelp.ba1" size="0x1000" crc="ecfeda87" sha1="x"/>
+        <rom size="0x1000" offset="0x1000" loadflag="reload" />
+      </dataarea>
+    </part>
+  </software>
+</softwarelist>`));
+  eq('a reload repeats the chip before it, not a chip of its own',
+    reloaded.entries[0]!.prg.roms.map(rom => [rom.crc, rom.offset, rom.reloads]), [['ecfeda87', 0, [{ offset: 0x1000, size: 0x1000 }]]]);
+}
+
 // A floppy drive's call_load reads `write_protected`, which MAME's parser
 // gives each part from the entry's shared features too: Bounty Bob Strikes
 // Back will not load from a disk that is not protected.

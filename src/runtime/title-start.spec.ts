@@ -111,6 +111,12 @@ assert.equal(cancelled.played, -1);
   assert.equal(softwarePart(new Map([['u1', low]]), entry), undefined, 'a set missing a chip is no part');
   assert.equal(softwarePart(new Map([['a.tap', low]]), { slot: '', prg: { size: 4, roms: [{ size: 4, crc: crc(low), offset: 0 }] } }), undefined,
     'a tape is an image, not a part');
+  // Print Technik-Help: one 4 KB chip, reloaded into the top of its 8 KB ROML.
+  const mirrored = softwarePart(new Map([['shelp.ba1', low]]), {
+    slot: '', prg: { size: 4, roms: [{ size: 4, crc: crc(low), offset: 0, area: 'roml', reloads: [{ offset: 4, size: 4 }] }] },
+    areas: { roml: 8 },
+  })!;
+  assert.deepEqual([...mirrored.areas.roml!], [1, 2, 3, 4, 1, 2, 3, 4], 'a reload reads the chip again from its start');
 }
 
 console.log('title-start.spec: empty slots, slot firmware, image claims, the start sequence and cartridge parts passed');

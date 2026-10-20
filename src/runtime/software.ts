@@ -34,7 +34,13 @@ const GOLD = '#f2c200';
 const MAX_SET = 16 * 1024 * 1024; // a disk image set; no tape or cart is near it
 
 /** the generated catalogue, as the room reads it (src/kg/softlist.ts writes it) */
-export interface SoftRom { size: number; crc: string; offset: number; file?: string; /** a cartridge chip's dataarea */ area?: string }
+export interface SoftRom {
+  size: number; crc: string; offset: number; file?: string;
+  /** a cartridge chip's dataarea */
+  area?: string;
+  /** where MAME reads the chip again from its start (`loadflag="reload"`) */
+  reloads?: { offset: number; size: number }[];
+}
 export interface SoftEntry {
   name: string;
   description: string;

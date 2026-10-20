@@ -1321,6 +1321,11 @@ class IrDevice implements Device {
     this.runningCycles = undefined;
     for (const child of this.children) child.reset();
     if (this.definition.reset) this.call(this.definition.reset);
+    // The card in a slot is one of its subdevices, and device_t::reset
+    // resets those after the device itself: an Ocean cartridge's
+    // device_reset puts it back on bank 0, so a reset machine restarts from
+    // the cartridge's own entry rather than whichever bank it last switched to.
+    this.slotChild?.reset();
   }
 
   /**

@@ -519,8 +519,10 @@ registerGeneratedDevice({
       { name: 'm_roml', valueType: 'std::unique_ptr<uint8_t[]>', initial: 0 },
       { name: 'm_roml_size', valueType: 'int', bits: 32, initial: 0 },
       { name: 'm_exrom', valueType: 'int', bits: 32, initial: 1 },
+      { name: 'm_bank', valueType: 'int', bits: 32, initial: 0 },
     ],
-    methods: [method('read_rom', 'int offs', `return m_roml[offs + ${offset}];`)],
+    methods: [method('read_rom', 'int offs', `return m_roml[offs + ${offset}];`), method('device_reset', '', 'm_bank = 0;')],
+    reset: 'device_reset',
     summary: { diagnostics: 0 },
   });
   registerGeneratedDevice({
@@ -545,6 +547,8 @@ registerGeneratedDevice({
         'return std::make_pair(std::error_condition(), std::string());'),
       method('read', 'int offs', 'return m_card->read_rom(offs);'),
       method('exrom', '', 'return m_card->m_exrom;'),
+      method('bank_w', 'int data', 'm_card->m_bank = data;'),
+      method('bank', '', 'return m_card->m_bank;'),
     ],
     summary: { diagnostics: 0 },
   });
@@ -561,6 +565,11 @@ registerGeneratedDevice({
   assert.equal(card0.m_roml_size, 3, 'the slot reaches into its card');
   assert.ok(!Object.keys(card0).includes('m_roml'), 'members stay out of the card proxy\'s own keys');
   assert.equal(createDevice('CART_PORT_FIXTURE').call('read', 0), 0, 'no image, no card');
+  // device_t::reset resets the card in the slot after the slot itself.
+  plain.call('bank_w', 1);
+  assert.equal(plain.call('bank'), 1);
+  plain.reset();
+  assert.equal(plain.call('bank'), 0, 'a reset slot resets its card');
   // A bare file picks its card from what it is, through the same chooser.
   const file = createDevice('CART_PORT_FIXTURE', { image: { name: 'game.CRT', bytes: Uint8Array.from([1, 2]) } });
   assert.equal(((file.instance!() as Record<string, unknown>).m_card as { m_roml_size: number }).m_roml_size, 0,

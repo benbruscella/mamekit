@@ -1078,15 +1078,20 @@ export async function runShell(
   const claimed = claimImages<CassetteMedia | DiskMedia | QuickloadMedia>([...tapes, ...disks, ...quickloads], mounted);
   // The deck that took the title's tape, for a boot that ends by pressing PLAY.
   const bootTape = tapes.find((_, index) => claimed[index]!.length);
+  const transportImages: TransportImage[] = [];
+  const addTransport = (bay: PanelBay): void => {
+    if (bay.image) transportImages.push(bay.image);
+    ui.addBay(bay);
+  };
   tapes.forEach((media, index) => {
     const mine = claimed[index]!;
-    ui.addBay(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
+    addTransport(cassetteBay(media, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
       mine.length && typing ? cfg.boot?.command : undefined));
   });
   detached('cassette');
   disks.forEach((disk, index) => {
     const mine = claimed[tapes.length + index]!;
-    ui.addBay(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
+    addTransport(diskBay(disk, () => input.releaseAll(), ui.toast, mine, ui.activity, speed, mine.length ? cfg.usage : undefined,
       mine.length && typing ? cfg.boot?.command : undefined));
   });
   detached('floppy');
@@ -1095,6 +1100,18 @@ export async function runShell(
     ui.addBay(quickloadBay(quickload, () => input.releaseAll(), ui.toast, mine, mine.length ? cfg.usage : undefined,
       mine.length && typing ? cfg.boot?.command : undefined));
   });
+
+  // What each transport holds, by tag, and putting a recorded set of them back.
+  const transportMedia = (): Record<string, string> => Object.fromEntries(transportImages.flatMap(transport => {
+    const name = transport.current();
+    return name ? [[transport.tag, name]] : [];
+  }));
+  const restoreTransportMedia = (media: Record<string, string> | undefined): void => {
+    for (const transport of transportImages) {
+      const name = media?.[transport.tag];
+      if (name && name !== transport.current()) transport.select(name);
+    }
+  };
 
   const fb = new Uint32Array(board.fbWidth * board.fbHeight);
   const image = new ImageData(
@@ -1454,6 +1471,8 @@ export async function runShell(
     identity: machineIdentity(cfg.game, cfg.board, regions),
     save: () => board.save(),
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
+    media: transportMedia,
+    restoreMedia: restoreTransportMedia,
     screen: ui.canvas,
     toast: ui.toast,
     // The shelf hangs off its own button rather than joining the page
@@ -1507,21 +1526,26 @@ export async function runShell(
       let state: MachineState;
       try { state = board.save(); } catch { return; }
       try {
-        await (await store).put({ id: resumeId, game: cfg.game, identity, title: cfg.title, frame: state.frame, createdAt: Date.now(), state });
+        await (await store).put({ id: resumeId, game: cfg.game, identity, title: cfg.title, frame: state.frame, createdAt: Date.now(),
+          media: transportMedia(), state });
       } catch (error) { console.warn(`${cfg.game}: could not keep the resume point: ${(error as Error).message}`); }
     };
     addEventListener('pagehide', () => { void keep(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) void keep(); });
     const record = await (await store).get(resumeId).catch(() => null);
     if (record && record.identity === identity) {
+      const before = transportMedia();
       try {
         input.releaseAll();
+        restoreTransportMedia(record.media);
         board.load(record.state);
         start?.cancel();
         typing?.cancel();
         console.info(`[resume] ${cfg.title}: back at frame ${record.frame}`);
         setTimeout(() => ui.toast('Back where you left off · Reset starts it over'), 600);
       } catch (error) {
+        // The load rolled the machine back; the transports go back with it.
+        restoreTransportMedia(before);
         console.warn(`${cfg.game}: the resume point did not load: ${(error as Error).message}`);
       }
     }
@@ -2948,6 +2972,10 @@ function saveStateDeck(options: {
   identity: string;
   save: () => MachineState;
   load: (state: MachineState) => void;
+  /** the image each transport holds, recorded with a save */
+  media: () => Record<string, string>;
+  /** put a save's images back in their transports, before its state */
+  restoreMedia: (media: Record<string, string> | undefined) => void;
   screen: HTMLCanvasElement;
   toast: (text: string) => void;
   /** the deck changed height: the screen takes what is left */
@@ -3100,6 +3128,7 @@ function saveStateDeck(options: {
       frame: state.frame,
       createdAt,
       thumbnail: thumbnail(),
+      media: options.media(),
       state,
     };
     try {
@@ -3117,9 +3146,13 @@ function saveStateDeck(options: {
       toast('That save was made with a different ROM set or build');
       return false;
     }
+    const before = options.media();
     try {
+      options.restoreMedia(record.media);
       options.load(record.state);
     } catch (error) {
+      // The load rolled the machine back; the transports go back with it.
+      options.restoreMedia(before);
       toast(`Could not load: ${(error as Error).message.split('\n')[0]}`);
       return false;
     }
@@ -3265,13 +3298,16 @@ function diskBay(
   let images = new Map<string, Uint8Array>();
   // What the set's list says of its disks (a write-protected original).
   let features: Readonly<Record<string, string>> | undefined;
+  let current: string | undefined;
   const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
     if (!bytes) return;
     try {
       const started = performance.now();
+      current = undefined;
       media.mount(name.split('.').pop()!.toLowerCase(), bytes, name, features);
+      current = name;
       log(`inserted ${name} (${bytes.length} bytes, read in ${Math.round(performance.now() - started)} ms)`);
       mounted.textContent = name;
       mounted.title = name;
@@ -3285,7 +3321,7 @@ function diskBay(
     paint();
   };
   eject.onclick = () => {
-    try { media.eject(); log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
+    try { media.eject(); current = undefined; log('ejected'); mounted.textContent = 'no disk'; mounted.title = ''; mounted.style.color = '#9fb0ff'; say('Disk ejected'); }
     catch (error) { say(String(error)); }
     paint(); eject.blur();
   };
@@ -3345,6 +3381,15 @@ function diskBay(
     middle: [],
     right: [flip, open, eject],
     onFocus: releaseKeys,
+    image: {
+      tag: media.tag,
+      current: () => current,
+      select: name => {
+        if (!images.has(name)) return false;
+        if (name !== current) { side.value = name; mount(false); }
+        return current === name;
+      },
+    },
   };
 }
 
@@ -3510,6 +3555,20 @@ export interface PanelBay {
   right: HTMLElement[];
   /** focus moved into the strip: the machine should let go of held keys */
   onFocus?: () => void;
+  /** the image the transport holds, for a save to record and a load to put back */
+  image?: TransportImage;
+}
+
+/**
+ * The image a transport holds, by name. A save records it and a load puts it
+ * back first: a cassette's samples are host media, not machine state, so a
+ * tape position restored over the other side of a tape reads that side.
+ */
+export interface TransportImage {
+  tag: string;
+  current(): string | undefined;
+  /** Put the set's image of that name in, quietly: false when the set in hand has none. */
+  select(name: string): boolean;
 }
 
 /**
@@ -3634,6 +3693,7 @@ function cassetteBay(
   press(rewind, () => media.rewind(), () => 'Tape rewound');
 
   let images = new Map<string, Uint8Array>();
+  let current: string | undefined;
   const mount = (announce: boolean) => {
     const name = side.value;
     const bytes = images.get(name);
@@ -3641,7 +3701,9 @@ function cassetteBay(
     try {
       media.stop();
       const started = performance.now();
+      current = undefined;
       media.mount(name.split('.').pop()!.toLowerCase(), bytes);
+      current = name;
       console.info(`[tape ${media.tag}] mounted ${name} (${bytes.length} bytes, decoded in ${Math.round(performance.now() - started)} ms)`);
       hasTape = true;
       for (const key of keys) key.disabled = false;
@@ -3697,5 +3759,14 @@ function cassetteBay(
     middle: [],
     right: [open, play, stop, rewind],
     onFocus: releaseKeys,
+    image: {
+      tag: media.tag,
+      current: () => current,
+      select: name => {
+        if (!images.has(name)) return false;
+        if (name !== current) { side.value = name; mount(false); }
+        return current === name;
+      },
+    },
   };
 }

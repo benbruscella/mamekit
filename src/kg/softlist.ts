@@ -25,6 +25,13 @@ export interface SoftRom {
    * call_load reads `roml` and `romh` into separate halves of the card.
    */
   area?: string;
+  /**
+   * Where MAME loads the chip again (`loadflag="reload"`, ROM_RELOAD): the
+   * loader seeks back to the file's start and reads `size` bytes at each
+   * offset. Print Technik-Help's 4 KB ROM fills both halves of its 8 KB ROML
+   * this way. Kept for a cartridge area, which is assembled from its chips.
+   */
+  reloads?: { offset: number; size: number }[];
 }
 
 export interface SoftArea {
@@ -249,21 +256,29 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       const area: SoftArea = { size, roms: [] };
       const cartArea = CART_AREAS.has(areaName!);
       if (cartArea) (entry.areas ??= {})[areaName!] = size;
+      // The chip a reload repeats: the one just before it, if it was kept.
+      let previous: SoftRom | undefined;
       for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
         const rAttrs = attrs(rm[0]);
-        // fill/reload/continue are load directives, not chips; nodumps have
-        // no crc to match against. baddumps keep their crc — still the bytes
-        // a real cart dump will carry.
+        if (rAttrs.loadflag === 'reload') {
+          if (cartArea && previous) (previous.reloads ??= []).push({ offset: parseOffset(rAttrs.offset), size: parseSize(rAttrs.size) });
+          continue;
+        }
+        // fill/continue are load directives, not chips; nodumps have no crc
+        // to match against. baddumps keep their crc — still the bytes a real
+        // cart dump will carry.
+        previous = undefined;
         if (rAttrs.loadflag) continue;
         if (rAttrs.status === 'nodump') continue;
         if (!rAttrs.crc) continue;
-        area.roms.push({
+        previous = {
           size: parseSize(rAttrs.size),
           crc: rAttrs.crc.toLowerCase(),
           offset: parseOffset(rAttrs.offset),
           ...(rAttrs.name ? { file: rAttrs.name } : {}),
           ...(cartArea ? { area: areaName } : {}),
-        });
+        };
+        area.roms.push(previous);
       }
       if (areaName === 'chr') entry.chr = area;
       else if (mediaArea && entry.prg.roms.length) {

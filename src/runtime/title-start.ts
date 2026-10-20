@@ -57,9 +57,10 @@ export function claimImages<T extends { extensions: readonly string[] }>(
 
 /**
  * A cartridge set as its slot reads it (BoardConfig.images): every dataarea
- * the list declares, at its declared size, each chip at its offset, and the
- * part's features with its `slot` among them -- the card MAME's
- * get_default_card_software would choose. Undefined when a chip is missing.
+ * the list declares, at its declared size, each chip at its offset and again
+ * wherever the list reloads it, and the part's features with its `slot`
+ * among them -- the card MAME's get_default_card_software would choose.
+ * Undefined when a chip is missing.
  */
 export function softwarePart(
   members: ReadonlyMap<string, Uint8Array>,
@@ -73,8 +74,11 @@ export function softwarePart(
   for (const rom of chips) {
     const bytes = byCrc.get(rom.crc);
     if (!bytes) return undefined;
-    const area = areas[rom.area!] ??= new Uint8Array(rom.offset + rom.size);
-    area.set(bytes.subarray(0, Math.max(0, Math.min(bytes.length, rom.size, area.length - rom.offset))), rom.offset);
+    // The chip at its offset, then again wherever the list reloads it.
+    for (const { offset, size } of [{ offset: rom.offset, size: rom.size }, ...rom.reloads ?? []]) {
+      const area = areas[rom.area!] ??= new Uint8Array(offset + size);
+      area.set(bytes.subarray(0, Math.max(0, Math.min(bytes.length, size, area.length - offset))), offset);
+    }
   }
   return { areas, features: { ...entry.features, ...(entry.slot ? { slot: entry.slot } : {}) } };
 }

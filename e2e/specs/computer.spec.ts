@@ -414,6 +414,49 @@ test.describe('software room', () => {
       (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } }).mamekit.board.snapshot().frame)).toBeGreaterThan(700);
   });
 
+  // A cassette's samples are the host's media, not machine state: a resume
+  // point records which image the deck held, and puts that one back first.
+  test('a resumed tape title comes back on the image it was left on', async ({ page }) => {
+    const family = join(repoRoot, '.data/roms', config.software?.dumpsKey ?? 'computers/c64');
+    const set = join(family, 'c64_cass', '180.zip');
+    const firmware = [join(family, 'bios', 'c64.zip')];
+    test.skip(!existsSync(set) || !existsSync(firmware[0]!), 'no local two-image tape set (180) and firmware');
+    await playLocalSet(page, set, firmware);
+    const sides = page.getByRole('combobox', { name: 'Tape image' });
+    await expect(sides).toBeVisible({ timeout: 30_000 });
+    const second = (await sides.locator('option').allTextContents())[1]!;
+    await sides.selectOption(second);
+    await expect(page.locator('[data-tape-name]')).toHaveText(second);
+    await page.waitForFunction(() =>
+      (window as unknown as { mamekit: { board: { snapshot(): { frame: number } } } }).mamekit.board.snapshot().frame > 700,
+    undefined, { timeout: 90_000 });
+    const kept = await page.evaluate(async () => {
+      dispatchEvent(new Event('pagehide'));
+      for (let tries = 0; tries < 50; tries++) {
+        const media = await new Promise<Record<string, string> | undefined>(resolve => {
+          const open = indexedDB.open('mamekit-saves');
+          open.onsuccess = () => {
+            const request = open.result.transaction('saves', 'readonly').objectStore('saves').getAll();
+            request.onsuccess = () => resolve((request.result as { id: string; media?: Record<string, string> }[])
+              .find(record => record.id.startsWith('resume:'))?.media);
+            request.onerror = () => resolve(undefined);
+          };
+          open.onerror = () => resolve(undefined);
+        });
+        if (media) return media;
+        await new Promise(next => setTimeout(next, 100));
+      }
+      return undefined;
+    });
+    expect(Object.values(kept ?? {})).toContain(second);
+    await page.goto(`/app/g/${MACHINE}/`);
+    const shelved = page.locator('[data-owned-set]').first();
+    await expect(shelved).toBeVisible({ timeout: 30_000 });
+    await shelved.locator('[data-play]').click();
+    await expect(page.getByText(/Back where you left off/)).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('[data-tape-name]')).toHaveText(second);
+  });
+
   // A `.wav` tape, read by MAME's own wavfile.cpp into the cassette image: the
   // title starts itself and the KERNAL finds the program on it.
   test('a .wav tape title starts itself and finds its program', async ({ page }) => {
