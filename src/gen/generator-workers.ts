@@ -19,9 +19,14 @@ export function defaultGeneratorJobs(
   return Math.max(1, Math.min(targetCount, cpuCount, memoryBound, 8));
 }
 
-/** Signals produced by a crashed runtime, rather than a generator exception. */
+/**
+ * Signals produced by a crashed runtime, rather than a generator exception.
+ * Node 26 on macOS arm64 reports V8's own faults in JIT-compiled code --
+ * EXC_BAD_ACCESS with no native frame -- as SIGILL, the same intermittent
+ * crash earlier releases delivered as SIGBUS or SIGSEGV.
+ */
 export function retryableGeneratorSignal(signal: NodeJS.Signals | null): boolean {
-  return signal === 'SIGBUS' || signal === 'SIGSEGV' || signal === 'SIGABRT';
+  return signal === 'SIGBUS' || signal === 'SIGSEGV' || signal === 'SIGABRT' || signal === 'SIGILL';
 }
 
 /**
