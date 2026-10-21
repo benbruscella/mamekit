@@ -15,6 +15,7 @@ import {
 } from '../../mame/hardware.ts';
 import { shareCardInterface } from '../../ir/card-interface.ts';
 import { nesCartOptions } from './ines-mappers.ts';
+import { softwareListPeripherals } from '../../kg/softlist.ts';
 import type {
   CapabilityArtifact,
   CapabilityExtraction,
@@ -64,11 +65,10 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
     if (entry.type === 'PPU_2C02') {
       device.links = machineWiring.ppuLinks;
     } else if (entry.type === 'NES_CONTROL_PORT') {
-      const joypad = compileRequired(input.mameSource, definitions, 'NES_JOYPAD');
       device.slot = {
         member: slotCardMember(input.mameSource, definition, 'm_device'),
         default: controllerDefaultOption(input.mameSource),
-        options: { joypad },
+        options: controllerOptions(input.mameSource, definitions),
       };
     } else if (entry.type === 'NES_CART_SLOT') {
       // The slot is an image device: MAME's own get_default_card_software
@@ -169,18 +169,41 @@ function nesBusMethods(
   return [...methods];
 }
 
-function compileRequired(
+/**
+ * The controllers the NES's own ports can hold that something asks for: each
+ * port's default card (the joypad), and every option a software list the
+ * machine declares names in a title's `peripheral` feature -- nes.xml asks
+ * for `zapper`, `vaus` and `powerpad`, which are MAME's own option names in
+ * the ports' tables. A controller that does not compile is left out.
+ */
+function controllerOptions(
   mameSource: string,
   definitions: Map<string, MameHardwareDefinition>,
-  type: string,
-): GeneratedDeviceDefinition {
-  const definition = definitions.get(type);
-  if (!definition) throw new Error(`NES source closure is missing ${type}`);
-  const device = compileMameDevice(mameSource, definition, type);
-  if (device.summary.diagnostics) {
-    throw new Error(`${type} has ${device.summary.diagnostics} generated-device diagnostics`);
+): Record<string, GeneratedDeviceDefinition> {
+  const driver = readFileSync(join(mameSource, 'src/mame/nintendo/nes.cpp'), 'utf8');
+  const machine = extractFunctionBody(driver, 'void nes_state::nes(machine_config &config)');
+  const ports = [...machine.matchAll(/NES_CONTROL_PORT\s*\(\s*config\s*,\s*\w+\s*,\s*(\w+)\s*,\s*(?:"(\w+)"|nullptr)/g)]
+    .map(match => ({ table: match[1]!, default: match[2] }));
+  const peripherals = new Set<string>();
+  for (const list of machine.matchAll(/SOFTWARE_LIST\s*\([^)]*\)\s*\.set_original\s*\(\s*"(\w+)"/g)) {
+    const xml = join(mameSource, 'hash', `${list[1]}.xml`);
+    for (const name of softwareListPeripherals(readFileSync(xml, 'utf8'))) peripherals.add(name);
   }
-  return device;
+  const tables = readFileSync(join(mameSource, 'src/devices/bus/nes_ctrl/ctrl.cpp'), 'utf8');
+  const options: Record<string, GeneratedDeviceDefinition> = {};
+  for (const port of ports) {
+    const body = extractFunctionBody(tables, `void ${port.table}(device_slot_interface &device)`);
+    for (const match of body.matchAll(/option_add(?:_internal)?\s*\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g)) {
+      const [, option, type] = match;
+      if (options[option!] || (option !== port.default && !peripherals.has(option!))) continue;
+      const controller = definitions.get(type!);
+      if (!controller) continue;
+      const compiled = compileMameDevice(mameSource, controller, type!);
+      if (!compiled.summary.diagnostics) options[option!] = compiled;
+    }
+  }
+  if (!options.joypad) throw new Error('MAME NES controller ports no longer offer the joypad');
+  return options;
 }
 
 /** Resolve the option string MAME assigns to the standard controller card. */

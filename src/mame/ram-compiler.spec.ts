@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { lowerRamAllocation, ramPowerOn } from './ram-compiler.ts';
+import { lowerRamAllocation, ramPowerOn, sharePowerOn } from './ram-compiler.ts';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MameAstIndex, parseMameAst } from './ast.ts';
@@ -43,4 +43,21 @@ assert.equal(expanded[0xcc9d], 0x00, "Cauldron's first SID frame reads $00 from 
 assert.equal(ramPowerOn('save_item(NAME(m_ram));', 'm_ram', 16, 0xff), undefined, 'a start that never writes the memory is not run');
 assert.equal(ramPowerOn('for (int i = 0; i < 4; i++) m_ram->pointer()[i] = 0xff;', 'm_ram', 4, 0xff), undefined,
   'writing the fill it already has changes nothing');
+// A driver's machine_start writing a RAM share: the NES fills its 2 KB with
+// alternating 0x00/0xff for software that reads RAM it never wrote.
+{
+  const nes = `
+    for (int i = 0; i < 0x800; i += 2)
+    {
+      m_mainram[i] = 0x00;
+      m_mainram[i + 1] = 0xff;
+    }
+    m_ciram = std::make_unique<uint8_t[]>(0x800);
+    if (m_cartslot && m_cartslot->m_cart) { space.install_read_handler(0x4100, 0x5fff, 0); }`;
+  const bytes = sharePowerOn(nes, 'm_mainram', 0x800);
+  assert.equal(bytes?.length, 0x800);
+  assert.deepEqual(bytes?.slice(0x6fe, 0x704), [0, 0xff, 0, 0xff, 0, 0xff]);
+  assert.equal(sharePowerOn(nes, 'm_videoram', 0x400), undefined, 'a share the function never indexes');
+}
+
 console.log('ram-compiler.spec: source allocation size and fill passed');

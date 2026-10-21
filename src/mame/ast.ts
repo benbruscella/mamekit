@@ -187,7 +187,7 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   }
 
   const memberMacroRe =
-    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|K051960_CB_MEMBER|K052109_CB_MEMBER|K053246_CB_MEMBER|QUICKLOAD_LOAD_MEMBER|SNAPSHOT_LOAD_MEMBER|DEVICE_IMAGE_LOAD_MEMBER|DEVICE_IMAGE_UNLOAD_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
+    /\b(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|K051960_CB_MEMBER|K052109_CB_MEMBER|K053246_CB_MEMBER|QUICKLOAD_LOAD_MEMBER|SNAPSHOT_LOAD_MEMBER|DEVICE_IMAGE_LOAD_MEMBER|DEVICE_IMAGE_UNLOAD_MEMBER|INPUT_CHANGED_MEMBER)\s*\(\s*(\w+)::(\w+)\s*\)\s*\{/g;
   while ((fm = memberMacroRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
     const braceEnd = matchPair(masked, braceStart, '{', '}');
@@ -556,6 +556,9 @@ function memberMacroParameters(name: string): string {
   // whose file the hook reads.
   if (name === 'QUICKLOAD_LOAD_MEMBER' || name === 'SNAPSHOT_LOAD_MEMBER') return 'snapshot_image_device &image';
   if (name === 'DEVICE_IMAGE_LOAD_MEMBER' || name === 'DEVICE_IMAGE_UNLOAD_MEMBER') return 'device_image_interface &image';
+  // A port field's PORT_CHANGED_MEMBER: the NES Zapper arms its trigger timer
+  // here, and reads the timer rather than the button.
+  if (name === 'INPUT_CHANGED_MEMBER') return 'ioport_field &field, u32 param, ioport_value oldval, ioport_value newval';
   return 'int param';
 }
 

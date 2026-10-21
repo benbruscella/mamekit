@@ -20,6 +20,7 @@ import {
 import { generatedDeviceDefinition, slotCardForImage } from './generated-device.ts';
 import type { BoardImage } from '../ir/host-config.ts';
 import type { ShellConfig } from './shell.ts';
+import { peripheralCards } from './input.ts';
 import type { Regions } from './types.ts';
 
 /** The generated device registry a slot device is looked up in. */
@@ -124,6 +125,8 @@ export function mountCart(
   regions: Regions;
   cart: NonNullable<ShellConfig['board']['cart']>;
   images?: Record<string, BoardImage>;
+  /** Controllers the title needs, by slot (its list's `peripheral` feature). */
+  slotCards?: Record<string, string>;
 } | null {
   const regions: Regions = {};
   const device = cfg.cart?.slotDevice;
@@ -132,7 +135,14 @@ export function mountCart(
     const image: BoardImage = entry && !resolved.approx
       ? { name: entry.name, software: inesSoftwarePart(resolved.ines, entry) }
       : { name: 'cartridge.nes', bytes: resolved.ines.file };
-    return { regions, cart: {}, images: { [device.tag]: image } };
+    // Duck Hunt asks for the Zapper, Arkanoid for the Vaus: the room fits
+    // the controller as MAME's `-ctrl2 zapper` would.
+    const peripherals = entry?.features?.peripheral?.split(',').map(name => name.trim()).filter(Boolean) ?? [];
+    const slotCards = peripheralCards(cfg.bindings ?? [], peripherals);
+    return {
+      regions, cart: {}, images: { [device.tag]: image },
+      ...(Object.keys(slotCards).length ? { slotCards } : {}),
+    };
   }
   if (resolved.ines) {
     regions.prg = mountedINesPrg(resolved.ines);

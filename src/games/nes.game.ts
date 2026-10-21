@@ -76,25 +76,108 @@ export const nes = {
     golden: {
       regions: {
         maincpu: 'd7978eeb',
-        // MAME's own region names: the card's prg_alloc/vrom_alloc in call_load.
         'nes_slot:cart:chr_rom': '867b51ad',
         'nes_slot:cart:prg_rom': '5cf548d3',
       },
       checkpoints: {
         1: { video: 'f0e232c6', state: 'b89b95a5' },
-        60: { video: '256433ef', state: '1a9c8b5f' },
-        180: { video: '3761e544', state: 'fe8ae7cf' },
-        300: { video: '256433ef', state: '350e3b4f' },
-        600: { video: 'ea875eff', state: '42d7790a' },
-        900: { video: 'bf4550e3', state: '5fe99624' },
-        1200: { video: 'e72984f5', state: '4697653f' },
+        60: { video: '256433ef', state: '3c2b8762' },
+        180: { video: '3761e544', state: '480d7b7b' },
+        300: { video: '256433ef', state: '13b93772' },
+        600: { video: 'ea875eff', state: '5d1b3a10' },
+        900: { video: 'bf4550e3', state: '795e9a19' },
+        1200: { video: 'e72984f5', state: 'aee93699' },
       },
       audio: {
         writes: 5003,
         nonzeroWrites: 4201,
-        writeHash: 'c18f7974',
+        writeHash: 'd9f3ea94',
         pcmHash: 'a5088f65',
         rms: 0.078903,
+      },
+    },
+  }, {
+    // The Zapper, fitted because nes.xml asks for it (`peripheral`): aimed
+    // at the first duck of Game A and fired. The game blacks the screen, then
+    // draws a white box where the duck is and reads the gun's light sensor
+    // as the beam crosses it -- MAME's sensor reading the picture drawn so
+    // far (`screen().update_now()`, `pixel()`). A hit drops the duck and
+    // scores 500, as MAME 0.289 does with the same shot.
+    id: 'duckhunt',
+    kind: 'gameplay',
+    cartridge: 'duckhunt',
+    romEnvironment: 'MAMEKIT_NES_ROM',
+    frames: 761,
+    minimumFps: 30,
+    checkpoints: [1, 300, 620, 629, 661, 701, 761],
+    actions: [
+      { atFrame: 101, code: 'Enter', heldFrames: 6, releasedFrames: 10 },
+      { atFrame: 621, aim: [95, 106] },
+      { atFrame: 622, code: 'Space', heldFrames: 6, releasedFrames: 10 },
+    ],
+    golden: {
+      regions: {
+        maincpu: 'd7978eeb',
+        'nes_slot:cart:chr_rom': '4e049e03',
+        'nes_slot:cart:prg_rom': 'f4286d0f',
+      },
+      checkpoints: {
+        1: { video: 'f0e232c6', state: 'f8ba696b' },
+        300: { video: '2802be17', state: '1404ab31' },
+        620: { video: 'b45aaef8', state: '2c358dc7' },
+        629: { video: '07673647', state: 'd8214c72' },
+        661: { video: 'da960a92', state: 'f62997c8' },
+        701: { video: 'fdb94dbb', state: '469a706b' },
+        761: { video: '899c4ed9', state: '89576222' },
+      },
+      audio: {
+        writes: 1579,
+        nonzeroWrites: 1517,
+        writeHash: '912fbaaa',
+        pcmHash: '243748b1',
+        rms: 0.129845,
+      },
+    },
+  }, {
+    // The Vaus, fitted because nes.xml asks for it: its button serves the
+    // game, and its paddle (MAME's PORT_MINMAX 0x78-0x1f8, PORT_CENTERDELTA 0)
+    // is driven to each end and stays where it is put.
+    id: 'arkanoid',
+    kind: 'gameplay',
+    cartridge: 'arkanoid',
+    romEnvironment: 'MAMEKIT_NES_ROM',
+    frames: 1060,
+    minimumFps: 30,
+    checkpoints: [1, 300, 600, 900, 950, 1000, 1060],
+    actions: [
+      { atFrame: 200, code: 'Space', heldFrames: 5, releasedFrames: 60 },
+      { atFrame: 270, code: 'Space', heldFrames: 5, releasedFrames: 60 },
+      { atFrame: 340, code: 'Space', heldFrames: 5, releasedFrames: 60 },
+      { atFrame: 410, code: 'Space', heldFrames: 5, releasedFrames: 60 },
+      { atFrame: 900, code: 'ArrowLeft', heldFrames: 40, releasedFrames: 10 },
+      { atFrame: 960, code: 'ArrowRight', heldFrames: 60, releasedFrames: 10 },
+    ],
+    golden: {
+      regions: {
+        maincpu: 'd7978eeb',
+        'nes_slot:cart:chr_rom': 'c5789b20',
+        'nes_slot:cart:prg_rom': 'b8bb48d3',
+      },
+      checkpoints: {
+        1: { video: 'f0e232c6', state: '971fdfe9' },
+        300: { video: 'f600b5c6', state: 'd2a6c74b' },
+        600: { video: '14afe57f', state: 'afc6a570' },
+        900: { video: '27003867', state: 'd56ad5ff' },
+        950: { video: '23a5344e', state: 'a32b0855' },
+        1000: { video: '31dbae3e', state: '7d165f27' },
+        1060: { video: '897e3274', state: '4450cd80' },
+      },
+      audio: {
+        writes: 3660,
+        nonzeroWrites: 3659,
+        writeHash: '9d47e96b',
+        pcmHash: '71e63b95',
+        rms: 0.093778,
       },
     },
   }],

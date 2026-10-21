@@ -103,6 +103,18 @@ assert.equal(
 );
 clearGeneratedDevices();
 
+// The controllers a title can ask for, from MAME's own port tables: the
+// joypad, and each option nes.xml names in a `peripheral` feature.
+{
+  const port = JSON.parse(extraction.artifacts.find(artifact =>
+    artifact.path.endsWith('nes_control_port.device.ir.json'))!.contents);
+  for (const option of ['joypad', 'zapper', 'vaus', 'powerpad']) {
+    assert.ok(port.slot.options[option], `the control port offers ${option}`);
+  }
+  assert.ok(port.slot.options.zapper.methods.some((method: { name: string }) => method.name === 'trigger'),
+    'the Zapper\'s PORT_CHANGED_MEMBER trigger is a method of the card');
+}
+
 const slot = extraction.artifacts.find(artifact =>
   artifact.path.endsWith('nes_cart_slot.device.ir.json'));
 assert.ok(slot);

@@ -26,6 +26,16 @@ export function portHandlers(ranges: RangeSpec[], inputs: InputPorts): Record<st
 }
 
 export interface FieldBinding {
+  /**
+   * The slot card this control belongs to (`ctrl2:zapper`), for a controller
+   * only some titles fit: the binding is live only while that card is in.
+   */
+  card?: string;
+  /**
+   * A light gun's axis (IPT_LIGHTGUN_X/Y): the port holds where the pointer
+   * is over the screen, mapped across MAME's PORT_MINMAX.
+   */
+  lightgun?: { axis: 'x' | 'y'; min: number; max: number };
   port: string;   // "IN0", "IN1", ...
   mask: number;
   /** DOM KeyboardEvent.code values that activate this field; empty for a player the keyboard does not serve */
@@ -53,6 +63,12 @@ export interface FieldBinding {
    * snapped straight to full lock and back was unusable.
    */
   keyDelta?: number;
+  /**
+   * MAME's PORT_CENTERDELTA for an absolute analog control: 0 means it stays
+   * where it was put when nothing drives it (the Vaus paddle), anything else
+   * that it springs back to rest.
+   */
+  centerDelta?: number;
   /** Relative masked delta applied each emulated frame while held. */
   relativeDelta?: number;
   /**
@@ -100,7 +116,44 @@ export interface PortSpec { tag: string; init: number }
 export type InputEvent =
   | { kind: 'edge'; binding: number; down: boolean; source: string }
   | { kind: 'travel'; binding: number; units: number }
+  /** A light gun's axis, set to where it is aimed. */
+  | { kind: 'aim'; binding: number; value: number }
   | { kind: 'release' };
+
+/**
+ * The bindings live with these cards in their slots: a controller only some
+ * titles fit (the NES Zapper, `card: "ctrl2:zapper"`) is bound only while it
+ * is in, and every other binding always.
+ */
+export function bindingsForCards(
+  bindings: readonly FieldBinding[],
+  slotCards: Readonly<Record<string, string>> | undefined,
+): FieldBinding[] {
+  return bindings.filter(binding => {
+    if (!binding.card) return true;
+    const at = binding.card.indexOf(':');
+    return slotCards?.[binding.card.slice(0, at)] === binding.card.slice(at + 1);
+  });
+}
+
+/**
+ * The slot cards a title's controllers need: each name in its software
+ * list's `peripheral` feature that is a card some binding belongs to, in the
+ * slot that binding names. The first listed wins a slot.
+ */
+export function peripheralCards(
+  bindings: readonly FieldBinding[],
+  peripherals: readonly string[],
+): Record<string, string> {
+  const cards: Record<string, string> = {};
+  for (const peripheral of peripherals) {
+    const card = bindings.find(binding => binding.card?.endsWith(`:${peripheral}`))?.card;
+    if (!card) continue;
+    const slot = card.slice(0, card.indexOf(':'));
+    cards[slot] ??= peripheral;
+  }
+  return cards;
+}
 
 /**
  * Which player a binding serves. Start and coin carry their player in the
@@ -122,6 +175,7 @@ interface Field {
   player: number;
   toggle: boolean;
   activeValue?: number;
+  centerDelta?: number;
   keyDelta?: number;
   relativeDelta?: number;
   /** MAME's PORT_nWAY for this switch, when the source declared one. */
@@ -300,6 +354,7 @@ export class KeyboardInput implements InputPorts {
         toggle: b.toggle === true,
         activeValue: b.activeValue,
         keyDelta: b.keyDelta,
+        ...(b.centerDelta !== undefined ? { centerDelta: b.centerDelta } : {}),
         relativeDelta: b.relativeDelta,
         ways: b.ways,
       };
@@ -629,6 +684,8 @@ export class KeyboardInput implements InputPorts {
       const first = group[0]!;
       const shift = Math.log2(first.mask & -first.mask);
       const held = group.find(field => this.pressed(field));
+      // A control MAME leaves where it was put stays there when let go.
+      if (!held && group.every(field => field.centerDelta === 0)) continue;
       const target = held?.activeValue !== undefined
         ? (held.activeValue & first.mask) >>> shift
         : (this.init[first.port] & first.mask) >>> shift;
@@ -683,6 +740,13 @@ export class KeyboardInput implements InputPorts {
     if (event.kind === 'travel') {
       if (phase === 'travel' && field.relativeDelta !== undefined && event.units) {
         this.travel(field, event.units);
+      }
+      return;
+    }
+    if (event.kind === 'aim') {
+      if (phase === 'travel') {
+        const shift = Math.log2(field.mask & -field.mask);
+        this.state[field.port] = (this.state[field.port] & ~field.mask) | ((event.value << shift) & field.mask);
       }
       return;
     }
@@ -745,6 +809,32 @@ export class KeyboardInput implements InputPorts {
     const field = this.byBinding.get(binding);
     if (!field || field.relativeDelta === undefined || !units) return;
     this.post({ kind: 'travel', binding: field.index, units });
+  }
+
+  /**
+   * Aim a light gun's axis: `fraction` is where the pointer is across the
+   * screen, 0 to 1, and the port reads it across the field's PORT_MINMAX.
+   */
+  aim(binding: FieldBinding, fraction: number): void {
+    const range = binding.lightgun;
+    if (!range || !Number.isFinite(fraction)) return;
+    const clamped = Math.max(0, Math.min(1, fraction));
+    this.set(binding, Math.round(range.min + clamped * (range.max - range.min)));
+  }
+
+  /** Put an absolute control's field at `value` (its own units), at the frame boundary. */
+  set(binding: FieldBinding, value: number): void {
+    const field = this.byBinding.get(binding);
+    if (!field || !Number.isFinite(value)) return;
+    this.post({ kind: 'aim', binding: field.index, value: Math.round(value) });
+  }
+
+  /** An absolute control's field as it stands, in its own units. */
+  value(binding: FieldBinding): number {
+    const field = this.byBinding.get(binding);
+    if (!field) return 0;
+    const shift = Math.log2(field.mask & -field.mask);
+    return ((this.state[field.port] ?? 0) & field.mask) >>> shift;
   }
 
   private drive(h: Field, down: boolean, repeat: boolean, source: string): void {

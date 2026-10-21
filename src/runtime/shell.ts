@@ -4,9 +4,10 @@
 
 import { createBoard, loadBoardSlotCards } from './generated-board.ts';
 import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
-import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
+import { bindingsForCards, KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { GamepadInput, padName } from './gamepad.ts';
 import { PointerInput } from './pointer.ts';
+import { LightgunInput } from './lightgun.ts';
 import { NaturalKeyboard } from './natural-keyboard.ts';
 import { claimImages, TitleStart, withoutSlotFirmware } from './title-start.ts';
 import { createOnscreenKeyboard } from './onscreen-keyboard.ts';
@@ -882,6 +883,8 @@ export async function runShell(
     console.info(`[media] booting with ${emptySlots.map(slot => `-${slot} ""`).join(' ')}: ` +
       'a transport the title does not use is left out, as MAME leaves an empty slot');
   }
+  // A controller's controls are live only while its card is in the slot.
+  cfg = { ...cfg, bindings: bindingsForCards(cfg.bindings, cfg.board.slotCards) };
   const slotCards = Object.entries(cfg.board.slotCards ?? {});
   if (slotCards.length) {
     console.info(`[media] booting with ${slotCards.map(([slot, card]) => `-${slot} ${card}`).join(' ')}: ` +
@@ -992,6 +995,8 @@ export async function runShell(
   const pointer = new PointerInput(input, cfg.bindings);
   pointer.debug = input.debug;
   pointer.attach(ui.canvas);
+  // A light gun is aimed where the pointer is and fired with its button.
+  new LightgunInput(input, cfg.bindings).attach(ui.canvas);
   // MAME's natural keyboard: text typed through the machine's own keys, as
   // their PORT_CHARs say -- a paste, or a title's start command. Absent on a
   // machine whose keys type nothing.
@@ -1924,6 +1929,7 @@ export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: Po
   const head = connected.map(pad =>
     `🎮 ${padName(pad.id)}${connected.length > 1 ? ` (player ${pad.player})` : ''} connected`);
   // A dial or trackball also takes the mouse -- which is what a spinner is.
+  if (cfg.bindings.some(binding => binding.lightgun)) parts.push('Mouse: aim at the screen, click to fire');
   if (pointer?.active) {
     const roles = [...new Set(pointer.bindings().map(b => fnLabel(b.label).replace(/ (left|right|up|down)$/i, '')))];
     parts.push(`Mouse or spinner: ${roles.join(', ')}${pointer.isCaptured ? ' (Esc releases)' : ' (click screen to capture)'}`);

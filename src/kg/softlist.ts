@@ -358,3 +358,16 @@ export function buildCatalog(parsed: ParsedSoftwareList, filter?: string): SoftC
     crcIndex,
   };
 }
+
+/**
+ * The controllers a software list says its titles need: every value of a
+ * `peripheral` feature (nes.xml: `zapper`, `vaus`, `powerpad`, ...), a
+ * comma-separated value counting once per name.
+ */
+export function softwareListPeripherals(xml: string): Set<string> {
+  const names = new Set<string>();
+  for (const match of xml.matchAll(/<feature\s+name="peripheral"\s+value="([^"]*)"/g)) {
+    for (const name of match[1]!.split(',')) if (name.trim()) names.add(name.trim());
+  }
+  return names;
+}

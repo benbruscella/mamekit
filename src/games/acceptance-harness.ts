@@ -6,7 +6,7 @@ import { gameOutputDir } from '../gen/output-layout.ts';
 import { romsDir } from '../paths.ts';
 import { machineSetDir, machineSetKeys } from '../runtime/rom-source.ts';
 import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
-import { KeyboardInput } from '../runtime/input.ts';
+import { bindingsForCards, KeyboardInput } from '../runtime/input.ts';
 import {
   assembleRegions,
   applyRomTransforms,
@@ -41,6 +41,8 @@ type InputLogEntry = { step: number } & (
   | { type: 'press'; binding: number; down: boolean }
   /** PLAY on a tape transport, by its tag */
   | { type: 'play'; transport: string }
+  /** an absolute control set to a value: a light gun aimed */
+  | { type: 'set'; binding: number; value: number }
 );
 
 export interface SoundWrite {
@@ -200,11 +202,16 @@ export async function runGameAcceptance(
     game: config.game,
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
-    ...(software?.slotCards ? { slotCards: software.slotCards } : {}),
+    ...(software?.slotCards || cartridge?.slotCards
+      ? { slotCards: { ...software?.slotCards, ...cartridge?.slotCards } }
+      : {}),
     ...(software?.powerOn || cartridge?.images
       ? { images: { ...software?.powerOn, ...cartridge?.images } }
       : {}),
   };
+  // A controller's controls are live only while its card is in the slot, as
+  // the shell has them.
+  config = { ...config, bindings: bindingsForCards(config.bindings, boardConfig.slotCards) };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const buildRegions = (): Regions => {
     const assembled = assembleRegions(config.roms, files, () => {}, critical);
@@ -504,6 +511,16 @@ export async function runGameAcceptance(
       typing!.postCoded(action.text);
       continue;
     }
+    if ('aim' in action) {
+      const axes = config.bindings.filter(binding => binding.lightgun);
+      if (!axes.length) throw new Error(`${contract.game}: an aim action needs a light gun`);
+      for (const binding of axes) {
+        const value = action.aim[binding.lightgun!.axis === 'x' ? 0 : 1];
+        inputLog.push({ step, type: 'set', binding: config.bindings.indexOf(binding), value });
+        input.set(binding, value);
+      }
+      continue;
+    }
     if ('analog' in action || 'signal' in action) {
       throw new Error(`${contract.game}: unsupported input action`);
     }
@@ -582,6 +599,7 @@ export async function runGameAcceptance(
           if (entry.type === 'reset') target.reset();
           else if (entry.type === 'press') targetInput.press(config.bindings[entry.binding]!, entry.down, 'natural-keyboard');
           else if (entry.type === 'play') target.media?.().find(media => media.tag === entry.transport)!.play();
+          else if (entry.type === 'set') targetInput.set(config.bindings[entry.binding]!, entry.value);
           else key(replayTarget, entry.type, entry.code);
         }
         targetInput.advance();
@@ -1027,9 +1045,10 @@ export function verifyInputBindings(
       key(target, 'keyup', code);
       input.latch();
     }
-    if (binding.relativeDelta !== undefined) {
+    if (binding.relativeDelta !== undefined || binding.centerDelta === 0) {
       // A dial is a persistent hardware counter, not a switch that springs
-      // back on keyup. Restore the preflight probe before the actual replay.
+      // back on keyup, and a paddle with no centre delta (the Vaus) stays
+      // where it was put. Restore the preflight probe before the replay.
       input.setDip(binding.port, binding.mask, released);
     }
     assert.equal(input.read(binding.port), released);

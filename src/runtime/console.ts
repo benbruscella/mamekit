@@ -634,7 +634,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     document.body.textContent = '';
     const mounted = mountCart(cfg, resolved);
     if (!mounted) return;
-    const { regions, cart, images } = mounted;
+    const { regions, cart, images, slotCards } = mounted;
     const cfg2: ShellConfig = {
       ...cfg,
       title: resolved.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''),
@@ -643,6 +643,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
         ...cfg.board, // CLONE — never mutate the fetched config
         cart,
         ...(images ? { images: { ...cfg.board.images, ...images } } : {}),
+        ...(slotCards ? { slotCards: { ...cfg.board.slotCards, ...slotCards } } : {}),
       },
     };
     void runShell(cfg2, regions);

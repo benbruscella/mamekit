@@ -126,6 +126,9 @@ export const CART_GAME_SUPPORT: Record<string, string[]> = {
     // MMC3 (TxROM)
     'smb2', 'smb3', 'megaman3', 'megaman4', 'megaman5', 'megaman6', 'kirby',
     'batman', 'ddragon2', 'advisln3', 'bublbob2',
+    // With the controller their list asks for (#167): Duck Hunt's Zapper is
+    // above with NROM; Arkanoid's Vaus is checked by its own contract.
+    'arkanoid',
   ],
   // Booted on the generated board and their framebuffers read back: each
   // reaches its playfield and keeps drawing, at or above the machine's own
