@@ -20,6 +20,17 @@ for (const [body, expected] of [
   assert.deepEqual(program.diagnostics, []);
   assert.equal(executeGeneratedProgram(program, {}).value, expected);
 }
+// `return { ... };` list-initialises the declared return type: the Spectrum's
+// `rectangle get_screen_area()` failed to lower and answered zero.
+{
+  const area = compileMameHandler('return { 48, 48 + 256 - 1, 64, 64 + 192 - 1 };', { returnType: 'rectangle' });
+  assert.deepEqual(area.diagnostics, []);
+  const value = executeGeneratedProgram(area, {
+    calls: { rectangle: (...edges: number[]) => ({ edges }) },
+  }).value as { edges: number[] };
+  assert.deepEqual(value.edges, [48, 303, 64, 255]);
+  assert.deepEqual(compileMameHandler('return { 1, 2 };').diagnostics, ['invalid return statement']);
+}
 assert.deepEqual(pacmanVideo.diagnostics, []);
 assert.equal(pacmanVideo.operations.length, 2);
 assert.equal(pacmanVideo.operations[0]?.op, 'assign');

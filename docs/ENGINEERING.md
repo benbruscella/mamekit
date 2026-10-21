@@ -309,6 +309,56 @@ generated device against emulated time and sends PCM to the audio worklet.
 `MAME_SRC` and `CXX` override the source directory and compiler. The colocated
 SID spec also checks the recorded native samples and envelope release.
 
+### ZX Spectrum development
+
+The 48K (`spectrum`) and the 128K (`spec128`, with the +2 on the same tile)
+are generated from `spectrum.cpp` and `spec128.cpp`. Their firmware belongs in
+`.data/roms/computers/spectrum/bios/` (`spectrum.zip`, `spec128.zip`,
+`specpls2.zip`) and their software in
+`.data/roms/computers/spectrum/<software-list>/`: both machines share one
+collection, because `spectrum_cass` is declared by `spectrum.cpp`'s
+`spectrum_common`, which the 128K's config calls. A merged software-list zip
+(MAME's own layout: the parent's images at the root, each clone's under
+`<clone>/`) is identified as the parent.
+
+**Tapes.** `spectrum_cass` mounts on the machine's own `CASSETTE`, which
+reads MAME's `tzx_cassette_formats` (TZX, TAP and `.blk`, compiled from
+`lib/formats/tzx_cas.cpp`, and WAV). **Play** starts a tape the way the
+firmware takes it: on the 48K `j""` and ENTER (LOAD "" in K mode), on the
+128K and +2 ENTER on the menu's Tape Loader, then PLAY. The cassette sits on
+no slot and hands no loader its file, so the start is keyed by the board's
+ULA type instead (`BOARD_BOOT_POLICY` in `src/gen/software-shelves.ts`). The
+Spectrum's cassette has no motor line: it plays from PLAY until MAME stops it
+at the end of the tape, so warp while loading runs for exactly that long.
+`castool convert spectrum <tape> <out.wav>` (from the MAME 0.289 release)
+gives MAME's own waveform to compare a tape against; Manic Miner and
+AstroBlaster decode sample for sample.
+
+**Cartridges.** `spectrum_cart` is the ZX Interface 2's list, declared in that
+card's own `device_add_mconfig` beside the `GENERIC_CARTSLOT` that reads it,
+so its shelf carries `card: "intf2"` and a cartridge title boots with
+`BoardConfig.slotCards` putting the Interface 2 in `exp` in place of the 48K's
+Kempston joystick (MAME's `-exp intf2 -cart <set>`). The Interface 2's two
+Sinclair joysticks are bound while it holds the slot. To check against MAME:
+`spectrum -exp intf2 -cart jetpac` with the software-list folder on
+`-rompath` and `-hashpath` pointing at MAME's `hash/`.
+
+**Snapshots.** The `SNAPSHOT` device takes `.sna`, `.z80` and the rest of
+`spec_snqk.cpp`'s formats from the room's SNAPSHOT strip, and the driver's
+loader restores the Z80 through MAME's `set_state_int`, which the generated
+core answers from its own `state_add` table and `state_import`. MAME runs
+`-snapshot <file>`; a homemade 48K `.sna` is pixel-identical at frame 100.
+
+**Checking frames against MAME.** MAME's frame notifier fires at the end of a
+frame and the harness hook before one, so an input MAME posts on frame N is
+this side's frame N + 1; MAME's snapshot of frame N is this side's frame N.
+With that, the 48K's boot, BASIC typed by keyword (PRINT, then BEEP after the
+CAPS SHIFT + SYMBOL SHIFT chord for E mode), the 128K menu, Jet Pac's title,
+menu and game start, and a snapshot are pixel-identical to MAME 0.289. Jet
+Pac's play then diverges within ten frames of the start: its aliens are drawn
+from the Z80's R register, and the two sides do not yet run the same number of
+instructions per frame.
+
 Neither command holds a target list of its own. `gen:all` is
 `node bin/mamekit.js --all`, and the set is derived from the acceptance
 contracts in `src/games/contracts.ts`: a game with a contract is by definition

@@ -43,6 +43,57 @@ export function stripComments(src: string): string {
   return out;
 }
 
+/**
+ * `#if <integer literal>` blocks resolved as the preprocessor resolves them,
+ * with `#elif <literal>`, `#else` and `#endif`. A drop-in alternative left
+ * in a config (`#if 1 ... #else config.set_perfect_quantum(...) #endif` in
+ * the Spectrum's) otherwise reads as both branches, and the directive glues
+ * itself to the next statement. Dropped lines stay as blank lines so source
+ * lines keep their numbers; a condition that is not a literal is left alone.
+ */
+export function resolveLiteralConditionals(src: string): string {
+  const lines = src.split('\n');
+  // Each open block: whether it is a literal one we resolve, whether its
+  // current branch is live, and whether some earlier branch already was.
+  const stack: { literal: boolean; live: boolean; taken: boolean }[] = [];
+  const outerLive = () => stack.every(block => !block.literal || block.live);
+  return lines.map(line => {
+    const directive = /^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b\s*(.*)$/.exec(line);
+    if (!directive) return outerLive() ? line : '';
+    const [, keyword, rest = ''] = directive;
+    const literal = /^\(?\s*(\d+)\s*\)?\s*$/.exec(rest.trim());
+    if (keyword === 'if' || keyword === 'ifdef' || keyword === 'ifndef') {
+      const isLiteral = keyword === 'if' && Boolean(literal);
+      const live = isLiteral ? Number(literal![1]) !== 0 : true;
+      const printed = outerLive();
+      stack.push({ literal: isLiteral, live, taken: live });
+      return isLiteral || !printed ? '' : line;
+    }
+    const block = stack[stack.length - 1];
+    if (!block?.literal) {
+      if (keyword === 'endif') stack.pop();
+      return outerLive() ? line : '';
+    }
+    if (keyword === 'endif') {
+      stack.pop();
+      return '';
+    }
+    if (keyword === 'else') {
+      block.live = !block.taken;
+      block.taken = true;
+    } else if (literal) {
+      block.live = !block.taken && Number(literal[1]) !== 0;
+      block.taken ||= block.live;
+    } else {
+      // `#elif NAME` after a literal branch: cannot be decided, so it is
+      // live only when nothing before it was.
+      block.live = !block.taken;
+      block.taken = true;
+    }
+    return '';
+  }).join('\n');
+}
+
 function findStringEnd(src: string, start: number): number {
   for (let i = start + 1; i < src.length; i++) {
     if (src[i] === '\\') i++;
@@ -180,7 +231,7 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
-  if (!/^[\s0-9a-fA-FxX+\-*/().<>&|^]*$/.test(s)) return null;
+  if (!/^[\s0-9a-fA-FxX+\-*/().<>&|^?:=!]*$/.test(s)) return null;
   // recursive-descent evaluation, no eval()
   let pos = 0;
   const peek = () => { while (pos < s.length && /\s/.test(s[pos])) pos++; return s[pos]; };
@@ -188,7 +239,7 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
     const c = peek();
     if (c === '(') {
       pos++;
-      const v = parseBitOr();
+      const v = parseConditional();
       if (peek() !== ')') return null;
       pos++;
       return v;
@@ -238,12 +289,39 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
       v = operator === '<<' ? v << r : v >> r;
     }
   }
-  function parseBitAnd(): number | null {
+  // C's relational and equality operators, answering 1 or 0.
+  function parseRelational(): number | null {
     let v = parseShift();
+    if (v === null) return null;
+    for (;;) {
+      peek();
+      const operator = /^(<=|>=|<(?!<)|>(?!>))/.exec(s.slice(pos))?.[1];
+      if (!operator) return v;
+      pos += operator.length;
+      const r = parseShift();
+      if (r === null) return null;
+      v = Number(operator === '<=' ? v <= r : operator === '>=' ? v >= r : operator === '<' ? v < r : v > r);
+    }
+  }
+  function parseEquality(): number | null {
+    let v = parseRelational();
+    if (v === null) return null;
+    for (;;) {
+      peek();
+      const operator = s.slice(pos, pos + 2);
+      if (operator !== '==' && operator !== '!=') return v;
+      pos += 2;
+      const r = parseRelational();
+      if (r === null) return null;
+      v = Number(operator === '==' ? v === r : v !== r);
+    }
+  }
+  function parseBitAnd(): number | null {
+    let v = parseEquality();
     if (v === null) return null;
     while (peek() === '&' && s[pos + 1] !== '&') {
       pos++;
-      const r = parseShift();
+      const r = parseEquality();
       if (r === null) return null;
       v = (v & r) >>> 0;
     }
@@ -271,7 +349,19 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
     }
     return v;
   }
-  const v = parseBitOr();
+  function parseConditional(): number | null {
+    const condition = parseBitOr();
+    if (condition === null) return null;
+    if (peek() !== '?') return condition;
+    pos++;
+    const whenTrue = parseConditional();
+    if (whenTrue === null || peek() !== ':') return null;
+    pos++;
+    const whenFalse = parseConditional();
+    if (whenFalse === null) return null;
+    return condition ? whenTrue : whenFalse;
+  }
+  const v = parseConditional();
   peek();
   return pos >= s.length && v !== null && Number.isFinite(v) ? v : null;
 }
@@ -844,6 +934,46 @@ function splitStatements(body: string): string[] {
 }
 
 /** Parse a `.m1(args).m2(args)...` chain. */
+/**
+ * One `add_route(output, target, gain[, input])`. A quoted target is a
+ * speaker or mixer by tag. `*this` routes a sub-device into the device that
+ * owns it (the Williams ADPCM board mixes its YM2151, DAC and OKI into itself);
+ * '^' names that owner. `DEVICE_SELF_OWNER` goes one further, to the owner's
+ * owner: a Spectrum 128 AY card routes its chip to the AY slot that holds it,
+ * and the slot to the speakers. '^^' names that one.
+ */
+function parseAudioRoute(
+  args: readonly string[],
+  consts: Record<string, number>,
+  raw: string,
+): NonNullable<DeviceDef['audioRoutes']>[number] | undefined {
+  const [output = '', target = '', gain = '', input = ''] = args;
+  const parsedGain = evalExpr(gain, consts);
+  const parsedInput = input ? evalExpr(input, consts) : null;
+  const owned = /^\*\s*this$/.test(target.trim());
+  const ownerOwned = target.trim() === 'DEVICE_SELF_OWNER';
+  if ((!target.trim().startsWith('"') && !owned && !ownerOwned) || parsedGain === null) return undefined;
+  return {
+    output: output.trim(),
+    target: owned ? '^' : ownerOwned ? '^^' : unquote(target),
+    gain: parsedGain,
+    ...(parsedInput !== null ? { input: parsedInput } : {}),
+    raw,
+  };
+}
+
+/** Every `add_route` on a device statement such as `m_ay0->add_route(...).add_route(...)`. */
+export function statementAudioRoutes(
+  statement: string,
+  consts: Record<string, number>,
+): NonNullable<DeviceDef['audioRoutes']> {
+  const at = statement.indexOf('add_route');
+  if (at < 0) return [];
+  return parseChain(`.${statement.slice(at)}`)
+    .filter(chain => chain.method === 'add_route')
+    .flatMap(chain => parseAudioRoute(chain.args, consts, statement) ?? []);
+}
+
 function parseChain(s: string): { method: string; args: string[] }[] {
   const out: { method: string; args: string[] }[] = [];
   let i = 0;
@@ -995,6 +1125,9 @@ export interface MachineConfigDef {
     replacementType?: string;
     clock?: number;
     screenRaw?: DeviceDef['screenRaw'];
+    /** A replaced slot's option table and default card ('' for none). */
+    slotOptions?: string;
+    slotDefault?: string;
   }[];
   /** set_info(...) changes to a GFXDECODE device instantiated by a called config. */
   gfxDecodePatches: { tag: string; name: string; raw: string }[];
@@ -1009,6 +1142,8 @@ export interface MemoryBankDef {
   region?: string;
   /** Array/member storage allocated by the driver rather than a ROM region. */
   entryMember?: string;
+  /** A RAM device whose `pointer()` storage the entries index (`m_ram->pointer()`). */
+  device?: string;
   offset: number;
   stride: number;
   /** Entry selects base + ((entry << shift) & region-derived mask). */
@@ -1136,6 +1271,13 @@ export function parseMemoryBanks(
   regionPrefix = '',
 ): MemoryBankDef[] {
   const banks: MemoryBankDef[] = [];
+  // Numeric locals the calls are written in (`auto ram_entries = m_ram->size()
+  // / 0x4000;` once the caller has put in the RAM's configured size), then the
+  // loops they configure an array of banks in: the 128K's
+  // `for (auto i = 1; i < 4; i++) m_bank_ram[i]->configure_entries(...)`.
+  const written = body;
+  consts = { ...consts, ...numericLocals(body, consts) };
+  body = unrollLiteralLoops(body, consts);
   const call =
     /(?:\b(m_\w+(?:\s*\[\s*\d+\s*\])?)|membank\(\s*"([^"]+)"\s*\))\s*->\s*(configure_entries|configure_entry|set_base)\s*\(/g;
   let match: RegExpExecArray | null;
@@ -1173,10 +1315,18 @@ export function parseMemoryBanks(
     const owned = /^(m_\w+(?:\s*\[\s*(\d+)\s*\])?)(?:\.get\(\))?$/.exec(
       args[plural ? 2 : 1]!.trim(),
     );
+    // A RAM device's storage: `m_ram->pointer()`, entries over its bytes.
+    const devicePointer = /^(m_\w+)\s*->\s*pointer\s*\(\s*\)\s*(?:\+\s*(.+))?$/.exec(
+      args[plural ? 2 : 1]!.trim(),
+    );
+    const device = devicePointer && memberTags[devicePointer[1]!]
+      ? { tag: memberTags[devicePointer[1]!]!.replace(/^:/, ''), offset: evalExpr(devicePointer[2] ?? '0', consts) }
+      : undefined;
     const startEntry = evalExpr(args[0]!, consts);
     const entries = plural ? evalExpr(args[1]!, consts) : 1;
     const stride = plural ? evalExpr(args[3]!, consts) : 0;
-    if ((!source && !owned) || startEntry === null || entries === null || stride === null) continue;
+    if ((!source && !owned && !device) || startEntry === null || entries === null || stride === null) continue;
+    if (device && device.offset === null) continue;
     const member = match[1]?.replace(/\s+/g, '') ?? match[2]!;
     const tag = match[2] ?? memberTags[member] ?? member.replace(/^m_/, '');
     // A bank that powers on anywhere but its first configured entry says so in
@@ -1185,16 +1335,23 @@ export function parseMemoryBanks(
     const selected = new RegExp(
       String.raw`(?:\b${member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}` +
       String.raw`|membank\(\s*"${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\s*\))` +
-      String.raw`\s*->\s*set_entry\s*\(\s*([^)]+)\s*\)`,
+      String.raw`\s*->\s*set_entry\s*\(`,
     ).exec(body);
-    const initialEntry = selected ? evalExpr(selected[1]!, consts) : null;
+    const selectedOpen = selected ? selected.index + selected[0].length - 1 : -1;
+    const selectedClose = selected ? matchParen(body, selectedOpen) : -1;
+    const initialEntry = selectedClose > 0
+      ? evalExpr(body.slice(selectedOpen + 1, selectedClose), consts)
+      : null;
     banks.push({
       member,
       tag,
       startEntry,
       entries,
       ...(initialEntry === null ? {} : { initialEntry }),
-      ...(source ? { region: source.region, offset: source.offset } : {
+      ...(source ? { region: source.region, offset: source.offset } : device ? {
+        device: device.tag,
+        offset: device.offset!,
+      } : {
         entryMember: owned![1]!.replace(/\s+/g, ''),
         offset: Number(owned![2] ?? 0),
       }),
@@ -1203,7 +1360,7 @@ export function parseMemoryBanks(
     });
     call.lastIndex = close + 1;
   }
-  if (/m_bank_audio_cart\s*\[\s*region\s*\]\s*->\s*configure_entry\s*\(\s*bank\s*,\s*&ROM\s*\[\s*bank_address\s*\]\s*\)/.test(body)) {
+  if (/m_bank_audio_cart\s*\[\s*region\s*\]\s*->\s*configure_entry\s*\(\s*bank\s*,\s*&ROM\s*\[\s*bank_address\s*\]\s*\)/.test(written)) {
     for (const [tag, shift] of [
       ['audio_f000', 11], ['audio_e000', 12], ['audio_c000', 13], ['audio_8000', 14],
     ] as const) {
@@ -1212,7 +1369,7 @@ export function parseMemoryBanks(
         tag,
         startEntry: 0,
         entries: 256,
-        region: pointerRegionAliases(body).ROM ?? 'cslot1:audiocpu',
+        region: pointerRegionAliases(written).ROM ?? 'cslot1:audiocpu',
         offset: 0x10000,
         stride: 0,
         dynamicShift: shift,
@@ -1221,6 +1378,61 @@ export function parseMemoryBanks(
     }
   }
   return banks;
+}
+
+/**
+ * A function's scalar locals whose initializers fold to a number:
+ * `auto ram_entries = 131072 / 0x4000;`. Later ones may use earlier ones.
+ */
+function numericLocals(body: string, consts: Record<string, number>): Record<string, number> {
+  const locals: Record<string, number> = {};
+  const declaration =
+    /\b(?:const\s+)?(?:auto|int|unsigned(?:\s+int)?|u8|u16|u32|uint8_t|uint16_t|uint32_t|size_t|offs_t)\s+(\w+)\s*=\s*([^;{}]+);/g;
+  for (const match of body.matchAll(declaration)) {
+    const value = evalExpr(match[2]!, { ...consts, ...locals });
+    if (value !== null) locals[match[1]!] = value;
+  }
+  return locals;
+}
+
+/**
+ * Unroll `for (auto i = a; i < b; i++) statement` loops whose bounds fold to
+ * numbers, so each iteration's calls read as the literal ones they are.
+ */
+function unrollLiteralLoops(body: string, consts: Record<string, number>): string {
+  const loop =
+    /\bfor\s*\(\s*(?:auto|int|unsigned(?:\s+int)?|u8|u32|size_t)\s+(\w+)\s*=\s*([^;]+);\s*(\w+)\s*(<=|<)\s*([^;]+);\s*(?:\+\+\s*(\w+)|(\w+)\s*\+\+)\s*\)/g;
+  let out = '';
+  let last = 0;
+  for (const match of body.matchAll(loop)) {
+    const variable = match[1]!;
+    if (match[3] !== variable || (match[6] ?? match[7]) !== variable || match.index < last) continue;
+    const from = evalExpr(match[2]!, consts);
+    const bound = evalExpr(match[5]!, consts);
+    if (from === null || bound === null) continue;
+    const to = match[4] === '<=' ? bound + 1 : bound;
+    if (to - from > 64) continue;
+    let start = match.index + match[0].length;
+    while (/\s/.test(body[start] ?? '')) start++;
+    let end: number;
+    let statement: string;
+    if (body[start] === '{') {
+      const inner = braceBody(body, start);
+      if (inner === undefined) continue;
+      statement = inner;
+      end = start + inner.length + 2;
+    } else {
+      end = body.indexOf(';', start);
+      if (end < 0) continue;
+      statement = body.slice(start, ++end);
+    }
+    const name = new RegExp(`\\b${variable}\\b`, 'g');
+    const unrolled = Array.from({ length: Math.max(0, to - from) }, (_, index) =>
+      statement.replace(name, String(from + index))).join('\n');
+    out += body.slice(last, match.index) + unrolled;
+    last = end;
+  }
+  return out + body.slice(last);
 }
 
 /** Local pointers aliasing a region base: `uint8_t *rombase = memregion(...)`. */
@@ -1236,6 +1448,11 @@ function pointerRegionAliases(body: string): Record<string, string> {
     /\b(?:(?:const\s+)?(?:uint8_t|u8|char)\s*\*\s*)?(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)\s*->\s*base\(\)/g;
   let match: RegExpExecArray | null;
   while ((match = re.exec(body)) !== null) aliases[match[1]!] = match[2]!;
+  // A region object rather than its bytes, read through `->base()` (keyed
+  // with the arrow so a bare use of the name never resolves to it).
+  for (const region of body.matchAll(/\bmemory_region\s*\*\s*(\w+)\s*=\s*memregion\(\s*"([^"]+)"\s*\)/g)) {
+    aliases[`${region[1]}->`] = region[2]!;
+  }
   const audio = /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*[^;]*\bget_audio_base\s*\(\s*\)[^;]*;/.exec(body);
   if (audio) aliases[audio[1]!] = 'cslot1:audiocpu';
   const program = /\b(?:uint8_t|u8)\s*\*\s*(\w+)\s*=\s*[^;]*\bget_rom_base\s*\(\s*\)[^;]*;/.exec(body);
@@ -1264,6 +1481,12 @@ function regionPointer(
     return offset === null ? undefined : { region: direct[1]!, offset };
   }
   const member = /^(m_\w+)\s*->\s*base\(\)\s*(?:\+\s*(.+))?$/.exec(text);
+  // `memory_region *rom = memregion("maincpu");` then `rom->base() + 0x10000`.
+  const regionLocal = /^(\w+)\s*->\s*base\(\)\s*(?:\+\s*(.+))?$/.exec(text);
+  if (regionLocal && aliases[`${regionLocal[1]}->`]) {
+    const offset = evalExpr(regionLocal[2] ?? '0', consts);
+    return offset === null ? undefined : { region: aliases[`${regionLocal[1]}->`]!, offset };
+  }
   if (member && memberTags[member[1]!]) {
     const offset = evalExpr(member[2] ?? '0', consts);
     return offset === null
@@ -1397,11 +1620,129 @@ function formatFinderTag(format: string, start: string, index: number): string {
 
 const DEVICE_MACRO_RE = /^(?:[\w]+\s+)?(?:&?\s*(\w+)\s*\(\s*)?([A-Z][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*([^,)]+)\s*(?:,\s*([^;]+?))?\)\s*\)?/;
 
+/** The text between a brace at `open` and its partner, or undefined. */
+function braceBody(text: string, open: number): string | undefined {
+  let depth = 0;
+  for (let index = open; index < text.length; index++) {
+    if (text[index] === '{') depth++;
+    else if (text[index] === '}' && --depth === 0) return text.slice(open + 1, index);
+  }
+  return undefined;
+}
+
+/**
+ * `rectangle cls::fn() { return { l, r, t, b }; }` for `fn` on `cls` or the
+ * nearest base that defines it: a rectangle the driver computes in a member
+ * at configuration time (the Spectrum's `get_screen_area`).
+ */
+function memberRectangle(src: string, cls: string, fn: string): string[] | undefined {
+  for (let owner: string | undefined = cls, depth = 0; owner && depth < 8; depth++) {
+    const definition = new RegExp(`\\brectangle\\s+${owner}::${fn}\\s*\\(\\s*\\)\\s*\\{\\s*return\\s*\\{`).exec(src);
+    if (definition) {
+      const inner = braceBody(src, definition.index + definition[0].length - 1);
+      const parts = inner === undefined ? [] : splitArgs(inner).map(part => part.trim());
+      return parts.length === 4 ? parts : undefined;
+    }
+    owner = new RegExp(`\\bclass\\s+${owner}\\s*(?:final\\s*)?:\\s*public\\s+(\\w+)`).exec(src)?.[1];
+  }
+  return undefined;
+}
+
+/**
+ * A rectangle expression's four edges (min_x, max_x, min_y, max_y), with
+ * `fn().left()`-style reads of a member rectangle folded to its edges.
+ */
+function rectangleEdges(expr: string, body: string, cls: string, src: string): string[] | undefined {
+  const id = expr.trim();
+  let parts: string[] | undefined;
+  const local = /^\w+$/.test(id)
+    ? new RegExp(`\\brectangle\\s+${id}\\s*=?\\s*\\{`).exec(body)
+    : null;
+  if (local) {
+    const inner = braceBody(body, local.index + local[0].length - 1);
+    parts = inner === undefined ? undefined : splitArgs(inner).map(part => part.trim());
+  } else {
+    const call = /^(\w+)\s*\(\s*\)$/.exec(id);
+    parts = call ? memberRectangle(src, cls, call[1]!) : undefined;
+  }
+  if (parts?.length !== 4) return undefined;
+  const edge = { left: 0, right: 1, top: 2, bottom: 3 } as const;
+  return parts.map(part => part.replace(
+    /\b(\w+)\s*\(\s*\)\s*\.\s*(left|right|top|bottom|width|height)\s*\(\s*\)/g,
+    (whole, fn: string, accessor: string) => {
+      const member = memberRectangle(src, cls, fn);
+      if (!member) return whole;
+      if (accessor === 'width') return `((${member[1]}) - (${member[0]}) + 1)`;
+      if (accessor === 'height') return `((${member[3]}) - (${member[2]}) + 1)`;
+      return `(${member[edge[accessor as keyof typeof edge]]})`;
+    }));
+}
+
+/**
+ * A config-time rectangle expression as its four edges (min_x, max_x, min_y,
+ * max_y), evaluated: `get_screen_area()`, or a `rectangle` local of the
+ * config body. Undefined when it is not one.
+ */
+export function evaluateRectangle(
+  expr: string,
+  body: string,
+  cls: string,
+  src: string,
+  consts: Record<string, number>,
+): [number, number, number, number] | undefined {
+  const edges = rectangleEdges(expr, body, cls, src);
+  const values = edges?.map(edge => evalExpr(edge, consts));
+  return values && values.every((value): value is number => value !== null)
+    ? values as [number, number, number, number]
+    : undefined;
+}
+
+/**
+ * MAME's `set_raw(xtal, htotal, vtotal, rectangle visarea)` is
+ * `set_raw(xtal, htotal, visarea.left(), visarea.right() + 1, vtotal,
+ * visarea.top(), visarea.bottom() + 1)`; any other argument list is returned
+ * as it was.
+ */
+function expandRectangleSetRaw(args: string[], body: string, cls: string, src: string): string[] {
+  if (args.length !== 4) return args;
+  const edges = rectangleEdges(args[3]!, body, cls, src);
+  if (!edges) return args;
+  return [args[0]!, args[1]!, edges[0]!, `(${edges[1]}) + 1`, args[2]!, edges[2]!, `(${edges[3]}) + 1`]
+    .map(value => value.trim());
+}
+
+/**
+ * A core's named map setters, read from its header: MAME's Z80 spells
+ * `set_memory_map`, `set_m1_map` and `set_io_map` as one-line forwarders,
+ * `template <typename... T> void set_m1_map(T &&... args) { set_addrmap(AS_OPCODES, std::forward<T>(args)...); }`.
+ */
+export function parseAddrMapForwarders(src: string): Record<string, string> {
+  const forwarders: Record<string, string> = {};
+  for (const match of stripComments(src).matchAll(
+    /template\s*<\s*typename\s*\.\.\.\s*(\w+)\s*>\s*void\s+(\w+)\s*\(\s*\1\s*&&\s*\.\.\.\s*(\w+)\s*\)\s*\{\s*set_addrmap\s*\(\s*(AS_\w+)\s*,\s*std::forward\s*<\s*\1\s*>\s*\(\s*\3\s*\)\s*\.\.\.\s*\)\s*;\s*\}/g,
+  )) forwarders[match[2]!] ??= match[4]!;
+  return forwarders;
+}
+
+/** A forwarder call, spelled as the `set_addrmap` it forwards to. */
+export function expandAddrMapForwarders(
+  statement: string,
+  forwarders: Readonly<Record<string, string>>,
+): string {
+  const names = Object.keys(forwarders);
+  if (!names.length) return statement;
+  return statement.replace(
+    new RegExp(`(->|\\.)\\s*(${names.join('|')})\\s*\\(`, 'g'),
+    (_, access: string, name: string) => `${access}set_addrmap(${forwarders[name]}, `,
+  );
+}
+
 export function parseMachineConfigs(
   src: string,
   memberTags: Record<string, string>,
   consts: Record<string, number>,
   helpers: readonly { className: string; name: string; parameters: string; body: string }[] = [],
+  addrMapForwarders: Readonly<Record<string, string>> = {},
 ): MachineConfigDef[] {
   const tagConstants = parseTextMacros(src).strings;
   const fns = extractFunctionBody(src, /void\s+(\w+)::(\w+)\(machine_config\s*&\s*config\)/g);
@@ -1470,7 +1811,7 @@ export function parseMachineConfigs(
       }
     }
     for (const stmt of statements) {
-      const s = stmt.trim();
+      const s = expandAddrMapForwarders(stmt.trim(), addrMapForwarders);
       if (!s) continue;
 
       // Derived configurations remove inherited devices by tag.  This must be
@@ -1493,16 +1834,32 @@ export function parseMachineConfigs(
       //     config.replace(), m_maincpu, MASTER_CLOCK / 5));
       // It is not a second device; preserve the effective type/clock as an
       // inherited-device patch and let the per-game graph apply it.
-      const replacement = /(?:\b\w+(?:_device)?\s*&\s*(\w+)\s*\(\s*)?\b([A-Z][A-Z0-9_]{1,})\s*\(\s*config\.replace\(\)\s*,\s*([^,]+)\s*,\s*([\s\S]+?)\)\s*\)?$/.exec(s);
-      if (replacement) {
-        const [, localVar, replacementType, refRaw, clockRaw] = replacement;
+      const replacementHead = /^(?:\w+(?:_device)?\s*&\s*(\w+)\s*\(\s*)?\b([A-Z][A-Z0-9_]{1,})\s*\(\s*config\.replace\(\)\s*,/.exec(s);
+      const replacementOpen = replacementHead ? s.indexOf('(', s.indexOf(replacementHead[2]!) + replacementHead[2]!.length - 1) : -1;
+      const replacementArgs = replacementOpen >= 0
+        ? splitArgs(s.slice(replacementOpen + 1, matchParen(s, replacementOpen)))
+        : [];
+      if (replacementHead && replacementArgs.length >= 2) {
+        const [, localVar, replacementType] = replacementHead as unknown as [string, string | undefined, string];
+        const refRaw = replacementArgs[1]!;
         const tag = resolveTag(refRaw);
-        const clock = evalExpr(clockRaw, consts);
+        // `(config.replace(), m_ula)` takes no clock; a slot's options and
+        // default card replace the base's, `nullptr` for an empty slot (the
+        // 128K's expansion port starts with nothing in it).
+        const slotOptions = replacementArgs.findIndex((value, index) => index >= 2 && /_devices$/.test(value.trim()));
+        const clockRaw = slotOptions === 2 ? '' : (replacementArgs[2] ?? '');
+        const clock = clockRaw ? evalExpr(clockRaw, consts) : null;
         const patch = {
           tag,
           config: [s],
           replacementType,
           ...(clock !== null ? { clock } : {}),
+          ...(slotOptions >= 0 ? {
+            slotOptions: replacementArgs[slotOptions]!.trim(),
+            slotDefault: /^"/.test(replacementArgs[slotOptions + 1]?.trim() ?? '')
+              ? unquote(replacementArgs[slotOptions + 1]!)
+              : '',
+          } : {}),
         };
         cfg.devicePatches.push(patch);
         // The local is only used for follow-up setters. They remain useful
@@ -1512,7 +1869,7 @@ export function parseMachineConfigs(
             type: replacementType,
             tag,
             clock,
-            ...(clock === null ? { clockExpr: clockRaw.trim() } : {}),
+            ...(clock === null && clockRaw ? { clockExpr: clockRaw.trim() } : {}),
             addrMaps: {},
             config: patch.config,
             localVar,
@@ -1612,23 +1969,16 @@ export function parseMachineConfigs(
           delete dev.clockExpr;
         }
         for (const chain of parseChain(s.slice(close + 1))) {
-          if (chain.method !== 'add_route') continue;
-          const [output = '', target = '', gain = '', input = ''] = chain.args;
-          const parsedGain = evalExpr(gain, consts);
-          const parsedInput = input ? evalExpr(input, consts) : null;
-          // `*this` routes a sub-device into the device that owns it (the
-          // Williams ADPCM board mixes its YM2151, DAC and OKI into itself,
-          // and is routed to the speaker by the driver); '^' names that owner.
-          const owned = /^\*\s*this$/.test(target.trim());
-          if ((target.trim().startsWith('"') || owned) && parsedGain !== null) {
-            (dev.audioRoutes ??= []).push({
-              output: output.trim(),
-              target: owned ? '^' : unquote(target),
-              gain: parsedGain,
-              ...(parsedInput !== null ? { input: parsedInput } : {}),
-              raw: s,
-            });
+          // `ADDRESS_MAP_BANK(config, m_specmem).set_map(&spectrum_state::spectrum_map)`:
+          // the bank device's one space, named on the constructor's chain.
+          if (chain.method === 'set_map' && type === 'ADDRESS_MAP_BANK') {
+            const map = /&\s*\w+::(\w+)/.exec(chain.args[0] ?? '');
+            if (map) dev.addrMaps.AS_PROGRAM = map[1]!;
+            continue;
           }
+          if (chain.method !== 'add_route') continue;
+          const route = parseAudioRoute(chain.args, consts, s);
+          if (route) (dev.audioRoutes ??= []).push(route);
         }
         cfg.devices.push(dev);
         continue;
@@ -1696,7 +2046,7 @@ export function parseMachineConfigs(
             const clock = evalExpr(args[0] ?? '', consts);
             if (clock !== null) patch.clock = clock;
           } else if (method === 'set_raw') {
-            const values = args.map(value => evalExpr(value, consts));
+            const values = expandRectangleSetRaw(args, body, cls, src).map(value => evalExpr(value, consts));
             if (values.length >= 7 && values.every(value => value !== null)) {
               patch.screenRaw = {
                 pixclock: values[0]!,
@@ -1728,26 +2078,18 @@ export function parseMachineConfigs(
             const mm = /&\s*\w+::(\w+)/.exec(s.slice(open + 1, close));
             if (mm) dev.addrMaps.AS_PROGRAM = mm[1]!;
           } else if (method === 'add_route') {
-            const open = s.indexOf('(', s.indexOf(method));
-            const close = matchParen(s, open);
-            const [output = '', target = '', gain = '', input = ''] =
-              splitArgs(s.slice(open + 1, close));
-            const parsedGain = evalExpr(gain, consts);
-            const parsedInput = input ? evalExpr(input, consts) : null;
-            const owned = /^\*\s*this$/.test(target.trim());
-            if ((target.trim().startsWith('"') || owned) && parsedGain !== null) {
-              (dev.audioRoutes ??= []).push({
-                output: output.trim(),
-                target: owned ? '^' : unquote(target),
-                gain: parsedGain,
-                ...(parsedInput !== null ? { input: parsedInput } : {}),
-                raw: s,
-              });
+            // `m_ay0->add_route(0, ...).add_route(1, ...).add_route(2, ...)`:
+            // every route in the chain, not the first.
+            const at = s.indexOf(method);
+            for (const chain of parseChain(`.${s.slice(at)}`)) {
+              if (chain.method !== 'add_route') continue;
+              const route = parseAudioRoute(chain.args, consts, s);
+              if (route) (dev.audioRoutes ??= []).push(route);
             }
           } else if (method === 'set_raw') {
             const open = s.indexOf('(', s.indexOf(method));
             const close = matchParen(s, open);
-            const raw = splitArgs(s.slice(open + 1, close));
+            const raw = expandRectangleSetRaw(splitArgs(s.slice(open + 1, close)), body, cls, src);
             const a = raw.map(x => evalExpr(x, consts) ?? 0);
             if (a.length >= 7) {
               dev.screenRaw = { pixclock: a[0], htotal: a[1], hbend: a[2], hbstart: a[3], vtotal: a[4], vbend: a[5], vbstart: a[6] };
@@ -2178,6 +2520,10 @@ export function parseIncludes(src: string): string[] {
 export function parseDeviceTypeDecls(src: string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const m of src.matchAll(/DECLARE_DEVICE_TYPE\(\s*(\w+)\s*,\s*(\w+)\s*\)/g)) out[m[1]] = m[2];
+  // A device declared only in its own .cpp names its class there, often
+  // inside a namespace: `DEFINE_DEVICE_TYPE_PRIVATE(AY_SLOT_AY8912,
+  // device_ay_slot_interface, bus::spectrum::ay_slot::ay8912_device, ...)`.
+  for (const m of src.matchAll(/DEFINE_DEVICE_TYPE_PRIVATE\(\s*(\w+)\s*,\s*\w+\s*,\s*(?:\w+::)*(\w+)\s*,/g)) out[m[1]!] = m[2]!;
   return out;
 }
 

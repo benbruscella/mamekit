@@ -21,6 +21,7 @@ export type {
 export {
   applyCombineData,
   applyGeneratedAndAssign,
+  applyGeneratedAnd,
   applyGeneratedDivision,
   applyGeneratedShiftRight,
   applyGeneratedMacro,

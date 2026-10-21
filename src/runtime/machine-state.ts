@@ -156,6 +156,19 @@ function statefulKeys(value: object): readonly string[] | undefined {
   return Array.isArray(keys) ? keys as readonly string[] : undefined;
 }
 
+/**
+ * Containers whose named entries may be a different length after a load: a
+ * device's `std::vector` members, which MAME resizes as it runs (the
+ * cassette's `m_samples` grows to the largest stream update it has served).
+ * A save carries the length it had; a fresh machine has not grown yet.
+ */
+const RESIZABLE = new WeakMap<object, ReadonlySet<string>>();
+
+export function markResizable(holder: object, keys: Iterable<string>): void {
+  const set = new Set(keys);
+  if (set.size) RESIZABLE.set(holder, set);
+}
+
 function hasStateKeys(value: object): value is StatefulKeys {
   return statefulKeys(value) !== undefined;
 }
@@ -381,7 +394,8 @@ class Restore {
     if (!ArrayBuffer.isView(saved) || saved instanceof DataView) return this.report(path, 'expected bytes');
     const bytes = saved as TypedArray;
     if (bytes.length !== live.length) {
-      const resizable = hasStateKeys(holder) && holder.stateResizable?.().includes(String(key));
+      const resizable = (hasStateKeys(holder) && holder.stateResizable?.().includes(String(key))) ||
+        RESIZABLE.get(holder)?.has(String(key)) === true;
       if (resizable && bytes.constructor === live.constructor) return this.assign(holder, key, bytes.slice(), path);
       return this.report(path, `length ${live.length}, saved ${bytes.length}`);
     }

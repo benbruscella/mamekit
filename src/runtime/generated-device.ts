@@ -1,6 +1,7 @@
 import {
   applyCombineData,
   applyGeneratedAndAssign,
+  applyGeneratedAnd,
   applyGeneratedDivision,
   applyGeneratedShiftRight,
   applyGeneratedMacro,
@@ -27,7 +28,7 @@ import {
   resizeGeneratedContainer,
 } from './generated-handler.ts';
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
-import { stateValue } from './machine-state.ts';
+import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
@@ -39,6 +40,7 @@ interface DeviceMember {
   bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
   initial?: number;
+  initialText?: string;
   values?: unknown[];
   memory?: {
     kind: 'shared' | 'owned' | 'growable';
@@ -174,6 +176,8 @@ export interface GeneratedDeviceExecutionContext {
   same(left: unknown, right: unknown): boolean;
   /** C++ `&=`: rectangle intersection when the target is one, else bitwise. */
   andAssign(current: unknown, value: unknown): unknown;
+  /** C++ `&`: a new rectangle when the left side is one, else bitwise. */
+  and(left: unknown, right: unknown): unknown;
   /** A member read the state object has no entry for, as the interpreter resolves it. */
   member(name: string): unknown;
   /** Reference-call overrides; devices have none, boards may (see board IR). */
@@ -193,12 +197,14 @@ export type GeneratedDeviceMethodMap = Record<string, GeneratedDeviceMethodExecu
  * (cbm_tap.cpp); a format with its own identify and load reads the file into
  * the host's cassette image itself (wavfile.cpp).
  */
-export type CassetteImageFormat = { extension: string; definition: GeneratedDeviceDefinition; mountMethod: string } & (
+export type CassetteImageFormat = { extension: string; definition: GeneratedDeviceDefinition; mountMethod: string; list?: string } & (
   | { sizeMethod: string; fillMethod: string; sampleRate: number }
   | { identifyMethod: string; loadMethod: string });
 
 export interface GeneratedDeviceDefinition {
   type: string;
+  /** MAME's own name for the device ("Commodore 1530 Datassette"). */
+  description?: string;
   hierarchy?: string[];
   /** The struct shapes the device declares, by type name. */
   structs?: Record<string, StructField[]>;
@@ -223,7 +229,14 @@ export interface GeneratedDeviceDefinition {
    * Devices this one instantiates in MAME's device_add_mconfig, keyed by the
    * finder member that reaches them.
    */
-  children?: { member: string; type: string; definition: GeneratedDeviceDefinition }[];
+  children?: {
+    member: string;
+    type: string;
+    definition: GeneratedDeviceDefinition;
+    /** Child delegate member -> this device's method that fills it. */
+    delegateTargets?: Record<string, string>;
+    slotOptions?: string;
+  }[];
   slot?: {
     member: string;
     default?: string;
@@ -283,6 +296,12 @@ export interface Device {
    * "quickload", "cartridge", "cassette" -- and undefined for any other device.
    */
   imageTypeName?(): string | undefined;
+  /**
+   * The name of what the device is, as MAME's device type gives it: the card
+   * a slot holds when it holds one ("Commodore 1530 Datassette"), else the
+   * device's own ("Cassette").
+   */
+  deviceName?(): string | undefined;
   /** Whether the device still has a timer armed: a quickload not yet loaded. */
   timerPending?(): boolean;
   /** The last image load the device reported failing, as its osd_printf_error printed it. */
@@ -439,6 +458,11 @@ export interface GeneratedDeviceOptions {
    * the card does not exist until the board has built it.
    */
   deferStart?: boolean;
+  /**
+   * The machine config's setter calls on this device, made between its
+   * construction and device_start, as MAME makes them.
+   */
+  configure?: (device: Device) => void;
 }
 
 export interface GeneratedMemoryBank {
@@ -552,6 +576,21 @@ let timerExpirySeconds: number | undefined;
 
 export function generatedTimerExpiry(): number | undefined {
   return timerExpirySeconds;
+}
+
+/**
+ * Run a board timer's callback with the scheduler standing at its expiry, as
+ * a device timer's does. The Spectrum's interrupt callback reads
+ * `local_time() - machine().time()` to recover the cycle it fell on.
+ */
+export function withGeneratedTimerExpiry<T>(seconds: number, run: () => T): T {
+  const outer = timerExpirySeconds;
+  timerExpirySeconds = seconds;
+  try {
+    return run();
+  } finally {
+    timerExpirySeconds = outer;
+  }
 }
 
 const noTimerCallback = (): void => {};
@@ -824,6 +863,7 @@ class IrDevice implements Device {
         // unwrapped value, and the Battlezone mathbox's signed products came
         // out of range for every projected object.
         : member.arrayLength ? integerArray(member.arrayLength, member.bits, member.signed)
+        : member.initialText !== undefined ? member.initialText
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
@@ -857,6 +897,12 @@ class IrDevice implements Device {
     });
     self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
     this.members.this = self;
+    // Vector members MAME resizes at run time restore at their saved length.
+    const resizable = definition.members
+      .filter(member => member.memory?.kind === 'owned' || member.memory?.kind === 'growable')
+      .map(member => member.name);
+    markResizable(this.members, resizable);
+    markResizable(self, resizable);
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
       // One signal can name two different devcbs, told apart in MAME by how
@@ -954,6 +1000,16 @@ class IrDevice implements Device {
         clock: () => clock,
         'machine().sample_rate': () => 48000,
         'machine().phase': () => DEFAULT_CONSTANTS['machine_phase::RUNNING']!,
+        // `machine().memory().region_alloc(tag, size, width, endian)`: a
+        // region made at load time, as a cartridge's ROM is
+        // (device_generic_cart_interface::rom_alloc). It is a region like any
+        // other afterwards, so memregion(tag) finds it.
+        ...Object.fromEntries(['machine().memory().region_alloc', 'device().machine().memory().region_alloc']
+          .map(name => [name, (tag: unknown, size: unknown) => {
+            const bytes = new Uint8Array(Math.max(0, Number(size) >>> 0));
+            if (options.regions) options.regions[String(tag)] = bytes;
+            return { base: () => bytes, bytes: () => bytes.length };
+          }])),
         // MAME `running_machine::rand`, from its fixed power-on seed. The seed
         // is device state so a save state carries it (VLM5030 draws its
         // unvoiced excitation from it every sample).
@@ -975,7 +1031,13 @@ class IrDevice implements Device {
         // host pumping it knows how many samples elapsed time is worth.
         stream_alloc: (_inputs, _outputs, rate) => {
           if (Number(rate) > 0) this.members.__stream_rate = Number(rate);
-          return { update: () => this.bindings.calls?.['stream.update']?.() ?? 0 };
+          // The host answers how far the stream has rendered (`end_time`):
+          // the speaker places each edge against it.
+          return {
+            update: () => this.bindings.calls?.['stream.update']?.() ?? 0,
+            end_time: () => this.bindings.calls?.['stream.end_time']?.() ?? 0,
+            sample_rate: () => this.bindings.calls?.['stream.sample_rate']?.() ?? Number(rate),
+          };
         },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
           ? 0 : this.runningCycles - Number(this.members.m_icount)),
@@ -1154,6 +1216,7 @@ class IrDevice implements Device {
       shiftRight: applyGeneratedShiftRight,
       same: generatedValuesEqual,
       andAssign: applyGeneratedAndAssign,
+      and: applyGeneratedAnd,
       // Devices declare every member up front, so an absent one is genuinely
       // absent; boards resolve finders and getters here (see execute.ts).
       member: () => 0,
@@ -1196,6 +1259,7 @@ class IrDevice implements Device {
     if (options.image) this.openImage(options.image);
     if (this.readsOwnFile()) this.hostImageFile(this.members.this as Record<string, unknown>);
     if (this.definition.floppyFormats) this.hostFloppyImage();
+    if (this.definition.imageFormats) this.hostCassetteImage();
 
     if (definition.slot) {
       const selected = definition.slot.selector
@@ -1260,24 +1324,53 @@ class IrDevice implements Device {
     // finders are already resolved -- the DPC cartridge hands its display
     // data straight to its coprocessor.
     for (const child of definition.children ?? []) {
+      // The child's delegates this device fills from its machine config
+      // (`m_cart->set_device_load(FUNC(spectrum_intf2_device::cart_load))`).
+      // They are part of the child's configuration, so they are bound before
+      // it starts; and it starts once this device holds it, because the
+      // callback it loads its image through reaches straight back for it
+      // (`m_cart->common_get_size("rom")`).
+      const targets = Object.entries(child.delegateTargets ?? {});
       const instance = new IrDevice(child.definition, clock, {
         ...resourceOptions,
         owner: this.members.this,
         slot: undefined,
+        ...(targets.length ? {
+          calls: {
+            ...resourceOptions.calls,
+            ...Object.fromEntries(targets.map(([delegate, method]) =>
+              [delegate, (...args: GeneratedCallArgument[]) => this.invoke(method, ...args)])),
+          },
+          deferStart: true,
+        } : {}),
       });
       this.children.push(instance);
-      this.members[child.member] = Object.fromEntries(
+      const callable: Record<string, unknown> = Object.fromEntries(
         instance.methodNames().map(name => [
           name,
           (...args: GeneratedCallArgument[]) => instance.invoke(name, ...args),
         ]),
       );
+      // And the image interface the host answers for it: the ZX Interface 2
+      // asks its own GENERIC_CARTSLOT `m_cart->exists()` before every read.
+      for (const [name, value] of Object.entries(instance.instance() as Record<string, unknown>)) {
+        if (typeof value === 'function' && !Object.hasOwn(callable, name)) callable[name] = value;
+      }
+      this.members[child.member] = callable;
+      if (targets.length) instance.startDeferred();
     }
 
+    // `device_delegate::isnull()`: set exactly when something bound it. The
+    // generic cartridge slot loads through its owner's delegate when there is
+    // one and reads the ROM itself when there is not.
+    for (const delegate of this.delegateNames) {
+      this.bindings.calls![`${delegate}.isnull`] ??= () => this.bindings.calls![delegate] ? 0 : 1;
+    }
     // Every binding the constructor installs is in place; resolve the links
     // the emitted methods read before any of them can run.
     this.refreshCallLinks();
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
+    options.configure?.(this);
     const start = (): void => {
       if (definition.start) this.call(definition.start);
       // MAME mounts the images it was started with once every device has
@@ -1656,6 +1749,10 @@ class IrDevice implements Device {
     return Boolean(this.definition.imageInterface && !this.definition.floppyFormats && !this.definition.imageFormats);
   }
 
+  deviceName(): string | undefined {
+    return this.slotChild?.definition.description ?? this.definition.description;
+  }
+
   imageTypeName(): string | undefined {
     if (!this.definition.imageInterface || !this.methods.has('image_type_name')) return undefined;
     const name = this.invoke('image_type_name');
@@ -1758,6 +1855,10 @@ class IrDevice implements Device {
     const surface: Record<string, (...args: unknown[]) => unknown> = {
       exists: () => this.imageFile ? 1 : 0,
       is_open: () => this.imageFile ? 1 : 0,
+      // device_image_interface's own default; only a machine's internal
+      // socket says set_user_loadable(false). The generic cartridge slot
+      // reads a user-loaded ROM, not its region, on this answer.
+      user_loadable: () => 1,
       filename: () => this.imageFile?.name ?? 0,
       basename: () => this.imageFile?.name ?? 0,
       basename_noext: () => this.imageFile?.name.replace(/\.[^.]*$/, '') ?? 0,
@@ -1852,6 +1953,23 @@ class IrDevice implements Device {
   }
 
   /**
+   * What device_image_interface answers a cassette about its tape: that one
+   * is in, and the cassette_image it was mounted as (`get_image()`), which the
+   * cassette's own stream reads so a load is heard.
+   */
+  private hostCassetteImage(): void {
+    const surface: Record<string, (...args: unknown[]) => unknown> = {
+      exists: () => this.members.m_cassette ? 1 : 0,
+      get_image: () => this.members.m_cassette ?? 0,
+    };
+    for (const [name, call] of Object.entries(surface)) {
+      if (this.methods.has(name) || this.bindings.calls![name]) continue;
+      this.bindings.calls![name] = call as (...args: number[]) => number;
+      this.bindings.referenceCalls![name] ??= call;
+    }
+  }
+
+  /**
    * What device_image_interface answers a drive about the disk in it: that
    * one is in, the list part's features, and whether it is read-only. A
    * visitor's disk is theirs, so it opens read-write as a writable file does
@@ -1925,7 +2043,11 @@ class IrDevice implements Device {
       this.loadImage({ name: name ?? `image.${extension}`, bytes });
       return;
     }
-    const format = this.definition.imageFormats?.find(candidate => candidate.extension === extension.toLowerCase());
+    // Only the machine's own format list, when it chose one (`set_formats`).
+    const chosen = this.members.m_formats;
+    const format = this.definition.imageFormats?.find(candidate =>
+      candidate.extension === extension.toLowerCase() &&
+      (!candidate.list || typeof chosen !== 'string' || candidate.list === chosen));
     if (!format) throw new Error(`${this.definition.type}: unsupported image extension ${extension}`);
     const decoder = new IrDevice(format.definition, 0);
     if ('loadMethod' in format) {
@@ -1948,7 +2070,9 @@ class IrDevice implements Device {
     const count = Number(decoder.invoke(format.sizeMethod, bytes, bytes.length));
     if (!Number.isSafeInteger(count) || count <= 0) throw new Error('image decoder returned no valid samples');
     const pcm = new Int16Array(count);
-    const written = decoder.invoke(format.fillMethod, pcm, count, bytes, 0);
+    // MAME's legacy_construct hands fill_wave the image's length with its
+    // bytes (a TAP's filler walks the blocks by it).
+    const written = decoder.invoke(format.fillMethod, pcm, count, bytes, bytes.length);
     if (written !== count) throw new Error('image decoder sample count changed during decoding');
     const image = cassetteImage(bytes);
     image.fromPcm(pcm, format.sampleRate);
@@ -2640,6 +2764,31 @@ function cassetteImage(file?: Uint8Array) {
       let sum = 0;
       for (let at = from; at <= to; at++) sum += store[at]?.[index] ?? 0;
       generatedPointerStore(output, Math.trunc(sum / (to - from + 1)));
+      return 0;
+    },
+    /**
+     * cassette_image::get_samples: `sampleCount` samples spread over the range
+     * compute_manipulation_ranges makes, narrowed as interpolate16/8 narrow
+     * them, `spacing` bytes apart. The cassette's own stream reads a tape
+     * this way, so a load is heard through the speakers it is routed to.
+     */
+    get_samples: (channel: number, time: number, period: number, sampleCount: number,
+      spacing: number, output: unknown, flags: number) => {
+      const first = round(Number(time) * frequency);
+      let last = round((Number(time) + Number(period)) * frequency);
+      if (last > first) last--;
+      const from = channel < 0 ? 0 : channel;
+      const to = channel < 0 ? channels - 1 : channel;
+      const bytesPerSample = 1 << ((Number(flags) & 0x06) / 2);
+      const stride = Math.max(1, Math.round(Number(spacing) / bytesPerSample));
+      for (let index = 0; index < sampleCount; index++) {
+        const at = Math.floor(map(last + 1 - first, 0, sampleCount, index) + first);
+        let sum = 0;
+        for (let source = from; source <= to; source++) sum += store[source]?.[at] ?? 0;
+        sum = Math.trunc(sum / (to - from + 1));
+        const value = bytesPerSample === 1 ? sum >> 24 : bytesPerSample === 2 ? sum >> 16 : sum;
+        generatedPointerStore(generatedAdd(output, index * stride), value);
+      }
       return 0;
     },
     put_sample: () => { throw new Error('mounted sample image is read-only'); },

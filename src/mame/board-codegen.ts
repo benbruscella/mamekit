@@ -330,9 +330,17 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     .filter(device => device.classHierarchy?.includes(ownerClass))
     .flatMap(device => device.cardMembers ?? [])
     .filter(name => !bound.has(name));
+  // A memory bank the board installs (`m_bank_ram[Bank]->base()`) and a space
+  // accessor (`m_program.read_byte(...)`) are host objects the board's calls
+  // answer, as a finder is. Unknown here, the 128K's RAM and opcode-fetch
+  // handlers -- every memory access it makes -- stayed interpreted.
+  const hostMembers = [
+    ...(machine.execution.banks ?? []).map(bank => bank.member.replace(/\[\d+\]$/, '')),
+    ...(machine.execution.spaceAccessors ?? []).map(accessor => accessor.member),
+  ].filter(name => !bound.has(name) && !cardMembers.includes(name));
   const members = [
     ...bound,
-    ...[...new Set([...assignedMemberNames(handlers), ...cardMembers])].map(name => [name, ''] as const),
+    ...[...new Set([...assignedMemberNames(handlers), ...cardMembers, ...hostMembers])].map(name => [name, ''] as const),
   ];
   return {
     hotMethods: wiredHotMethods(machine, ownerClass),

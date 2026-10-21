@@ -24,11 +24,11 @@ export const jumpbug = sourceTarget({
     checkpoints: {
       1: { video: 'b2afb37a', state: '1103d631' },
       60: { video: 'f7e6ac81', state: 'e297193f' },
-      180: { video: '56e8010e', state: 'e57ed450' },
-      300: { video: '2229d565', state: 'b9edfbfa' },
-      600: { video: '58638d02', state: 'c7341c19' },
-      900: { video: '66733679', state: '500b6be2' },
-      1200: { video: '4a1342d9', state: '259e2dc1' },
+      180: { video: '95d2bbba', state: 'e57ed450' },
+      300: { video: 'b1aef322', state: 'b9edfbfa' },
+      600: { video: 'c37d87ae', state: 'c7341c19' },
+      900: { video: '6c17002b', state: '500b6be2' },
+      1200: { video: '690932a5', state: '259e2dc1' },
     },
     audio: {
       writes: 2944,

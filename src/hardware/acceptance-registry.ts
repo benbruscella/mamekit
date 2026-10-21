@@ -19,6 +19,7 @@ import { createNesProbe } from './nes/acceptance.ts';
 import { createGameboyProbe } from './gameboy/acceptance.ts';
 import { createTiaProbe } from './a2600/acceptance.ts';
 import { createSidProbe } from './c64/acceptance.ts';
+import { createStreamProbe } from './speaker/acceptance.ts';
 
 /**
  * Keyed by the sound kind the generator writes into config.json. A target
@@ -41,6 +42,7 @@ export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
   gameboy: createGameboyProbe,
   tia: createTiaProbe,
   sid: createSidProbe,
+  stream: createStreamProbe,
 };
 
 export type { AudioFrameRenderer, AudioProbeContext, ProbeSoundWrite } from './audio-probe.ts';

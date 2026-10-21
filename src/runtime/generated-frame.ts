@@ -469,6 +469,13 @@ export class GeneratedFrameRunner {
         this.onEvent?.(scheduled.event);
       }
     }
-    if (line === this.machine.execution.screen.vbstart) this.video?.vblank();
+    // A screen whose vblank starts at its last line + 1 (the Spectrum's 311 of
+    // 0-310) starts it on line 0 of the next frame, as MAME's raster wraps.
+    const screen = this.machine.execution.screen;
+    const vtotal = Math.max(1, screen.vtotal);
+    if (line === screen.vbstart % vtotal) this.video?.vblank();
+    // MAME's vblank_end timer is first armed from time zero, so a screen whose
+    // vblank ends on line 0 counts its first frame a whole frame later.
+    if (line === (screen.vbend ?? 0) % vtotal && (line > 0 || this.frameCount > 0)) this.video?.vblankEnd?.();
   }
 }

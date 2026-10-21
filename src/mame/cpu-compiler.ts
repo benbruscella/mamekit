@@ -128,6 +128,13 @@ export interface GeneratedCpuDefinition {
   sourceFiles: string[];
   constants: Record<string, number>;
   aliases: Record<string, GeneratedCpuAlias>;
+  /**
+   * MAME's device_state_interface entries, from the core's own `state_add`
+   * calls: what `set_state_int(index, value)` writes, and whether the core's
+   * `state_import` then runs for it (`.callimport()`). A snapshot loader
+   * restores a whole Z80 through these.
+   */
+  stateEntries?: { index: number; name: string; target: GeneratedCpuAlias; import?: true; mask?: number }[];
   members: GeneratedCpuMember[];
   methods: GeneratedCpuMethod[];
   /** Source callback members mapped to their machine-configuration binders. */
@@ -204,18 +211,27 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
       'device_reset',
       'execute_run',
       'execute_set_input',
-      'state_import',
       'state_export',
       'state_string_export',
       'create_disassembler',
       'memory_space_config',
     ].includes(fn.name))
-    .map(fn => ({
-      name: fn.name,
-      parameters: fn.parameters,
-      program: compileMameHandler(normalizeMameExecutionSource(fn.body)),
-      source: sourceRef(fn.span.file, fn.span.line),
-    }));
+    .map(fn => fn.name === 'state_import'
+      // `state_import(const device_state_entry &entry)` switches on
+      // `entry.index()`: the entry is its index here.
+      ? {
+          name: fn.name,
+          parameters: 'int entry',
+          program: compileMameHandler(normalizeMameExecutionSource(
+            fn.body.replace(/\bentry\s*\.\s*index\s*\(\s*\)/g, 'entry'))),
+          source: sourceRef(fn.span.file, fn.span.line),
+        }
+      : {
+          name: fn.name,
+          parameters: fn.parameters,
+          program: compileMameHandler(normalizeMameExecutionSource(fn.body)),
+          source: sourceRef(fn.span.file, fn.span.line),
+        });
 
   const object = extractObject(header, 'm_f');
   const objectFields = object ? declaredFields(object.body) : {};
@@ -281,6 +297,7 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
       INPUT_LINE_NMI: -1,
     }),
     ...extractConstexprConstants(header),
+    ...stateIndexConstants(mameSrc),
     // z80make.py emits these as per-run locals based on whether a devcb is
     // configured. The generated bus safely ignores an unbound signal, so
     // keeping both paths enabled preserves configured refresh/nomreq pins.
@@ -288,6 +305,7 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
     nomreq_en: 1,
   };
   const aliases = extractAliases(aliasesSource, header);
+  const stateEntries = extractStateEntries(startMethod.body, aliases, constants);
   const initializers = extractConstructorInitializers(cpp, 'z80_device');
   const members = extractMembers(header, objectFields).map(member => ({
     ...member,
@@ -311,6 +329,7 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
     sourceFiles: [cppFile, headerFile, aliasesFile, dslFile],
     constants,
     aliases,
+    ...(stateEntries.length ? { stateEntries } : {}),
     members,
     methods,
     start,
@@ -3667,6 +3686,48 @@ function extractNumericArray(source: string, name: string): number[] {
  * 16-bit `m_PC`, where a PAIR16 core exposes it as `m_PC.w.l` -- and without
  * that a register checkpoint would read back a truncated byte.
  */
+/** MAME's generic state indices (emu/distate.h): STATE_GENPC is -1. */
+function stateIndexConstants(mameSrc: string): Record<string, number> {
+  const source = readFileSync(join(mameSrc, 'src/emu/distate.h'), 'utf8');
+  return Object.fromEntries([...source.matchAll(/\b(STATE_GEN\w+)\s*=\s*(-?\d+)/g)]
+    .map(match => [match[1]!, Number(match[2])]));
+}
+
+/**
+ * The core's `state_add(index, "NAME", target)` table. A target is a register
+ * alias (`SP`, `AF`), or a member and its part (`m_pc.w`, `m_af2.w`, the
+ * bare `m_rtemp`); `.callimport()` runs the core's `state_import` after a
+ * write, and `.mask(n)` bounds the value.
+ */
+function extractStateEntries(
+  startBody: string,
+  aliases: Record<string, GeneratedCpuAlias>,
+  constants: Record<string, number>,
+): NonNullable<GeneratedCpuDefinition['stateEntries']> {
+  const entries: NonNullable<GeneratedCpuDefinition['stateEntries']> = [];
+  for (const match of startBody.matchAll(
+    /state_add\(\s*([\w:]+)\s*,\s*"([^"]+)"\s*,\s*([\w.]+)\s*\)((?:\s*\.\s*\w+\s*\([^)]*\))*)\s*;/g,
+  )) {
+    const index = constants[match[1]!];
+    if (index === undefined) continue;
+    const expression = match[3]!;
+    const member = /^(m_\w+)(?:\.(w|d|b\.h|b\.l))?$/.exec(expression);
+    const target: GeneratedCpuAlias | undefined = aliases[expression] ?? (member ? {
+      member: member[1]!,
+      part: member[2] === 'b.h' ? 'high' : member[2] === 'b.l' ? 'low' : member[2] ? 'word' : 'scalar',
+      bits: member[2] === 'w' ? 16 : member[2] === 'd' ? 32 : 8,
+    } : undefined);
+    if (!target) continue;
+    const mask = /\.\s*mask\s*\(\s*(0x[\da-f]+|\d+)\s*\)/i.exec(match[4] ?? '')?.[1];
+    entries.push({
+      index, name: match[2]!, target,
+      ...(/\.\s*callimport\s*\(/.test(match[4] ?? '') ? { import: true as const } : {}),
+      ...(mask ? { mask: Number(mask) } : {}),
+    });
+  }
+  return entries;
+}
+
 function extractStateAliases(
   source: string,
   memberBits: Record<string, 1 | 8 | 16 | 32> = {},

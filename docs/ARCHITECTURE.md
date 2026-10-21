@@ -279,6 +279,16 @@ range rules a CPU's program map uses and carried as `execution.bankDevices`;
 the board builds a bus from it and answers the driver's calls on the device's
 finder. Missile Command's whole CPU map is a trampoline into one.
 
+A `memory_bank` configured in `machine_start` is lowered the same way whatever
+backs it: a ROM region, driver-owned storage, or a RAM device's own bytes
+(`configure_entries(0, 8, m_ram->pointer(), 0x4000)`, the 128K's eight pages,
+counted from the RAM device's configured size and unrolled from the loop that
+configures the bank array). A handler that indexes a bank directly reaches it
+through `base()` and `entry()`. A driver member bound with
+`space(AS_PROGRAM).specific(m_program)` (or `.cache`) is carried as
+`execution.spaceAccessors` and reads and writes through that processor's bus,
+so the 128K's opcode fetch runs the same handlers its data reads do.
+
 ### VALIDATION
 
 `src/ir/validate.ts` cross-references the decoded board before it is written:
@@ -337,6 +347,13 @@ primitives routed through the subclass's own `mi_*` overrides, lowered from its
 source. The fetch is lowered from MAME's `prefetch_start`/`prefetch_end`, so the
 SYNC line (`sync_cb`, `get_sync()`) rises around the opcode read and an
 interrupt is taken only after that read, as MAME takes it.
+
+A core's `state_add` table is part of its IR (`stateEntries`): each state
+index, the register or member it names, and whether `.callimport()` follows a
+write with the core's own `state_import`. That is MAME's
+`set_state_int`/`state_int`, through which a snapshot loader restores a whole
+Z80 -- a new PC restarts the core's instruction pipeline there, as MAME's
+import does.
 
 ### DEVICE
 
@@ -467,6 +484,14 @@ component values, mixer resistances and route gains from MAME. Every such board
 uses the runtime capability `sound.kind = "discrete"`; `sound.worklet` selects
 the generated MAME-device artifact in `dist`. Runtime and QA code must never
 branch on a game or board-family name.
+
+A board whose only sound is MAME's own stream devices -- the Spectrum's
+`SPEAKER_SOUND` beeper and its `CASSETTE`, routed to the speakers -- is
+`sound.kind = "stream"`: each device's `sound_stream_update` renders at 48 kHz
+on the main thread as the processor runs (the speaker forces an update on
+every level change, as in MAME), and the routed mix is played by the shared
+stream worklet. A board with a chip as well (the 128K's AY-3-8912) keeps the
+chip's worklet and adds the streams to its mix (`streamDevices`).
 
 Norton op-amp stages are lowered to stable browser component models; MAMEKIT
 does not yet implement MAME's complete analog discrete solver. The generated
@@ -953,8 +978,18 @@ unchanged for the next generated machine".
    `general_cbm_loadsnap`, the Commodore loader, which sets BASIC's
    end-of-program pointers -- so the policy types `RUN`, and the start waits
    until the device's own delay (three seconds on the C64) has put the file
-   in memory. MAME itself starts nothing; its `-autoboot_command` is the
-   user's to give. Which slots a title leaves
+   in memory. A transport fixed to the board that hands its signal straight
+   to the firmware -- the Spectrum's cassette, which no slot carries and no
+   loader reads -- is keyed by the board device that says which firmware
+   answers, the ULA's contention model (`BOARD_BOOT_POLICY`: the 48K types
+   `j""`, LOAD "" in K mode; the 128K presses ENTER on its menu's Tape
+   Loader). A list may also be a slot card's rather than the machine's: the
+   ZX Interface 2 declares `spectrum_cart` in its own `device_add_mconfig`,
+   beside the `GENERIC_CARTSLOT` that reads it, so that shelf names the card
+   (`card`) and a title from it boots with the card in the slot
+   (`BoardConfig.slotCards`, MAME's `-exp intf2`); a slot's other titles keep
+   its default card. MAME itself starts nothing; its `-autoboot_command` is
+   the user's to give. Which slots a title leaves
    empty, which transport takes which image and the start sequence itself
    live in `src/runtime/title-start.ts`, which the acceptance harness drives
    too, so a contract's software scenario starts its title exactly as Play

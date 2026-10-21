@@ -176,6 +176,9 @@ const JOY_DIRECTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
  * so a panel with two levers gates each one separately. The three names here
  * are that block in order: JOYSTICK, JOYSTICKRIGHT, JOYSTICKLEFT.
  */
+/** Frames of port reads behind each seat decision (`followReads`): half a second. */
+const SEAT_WINDOW = 25;
+
 function joystickAxis(type: string | undefined): { stick: number; dir: number } | undefined {
   const match = /^IPT_JOYSTICK(LEFT|RIGHT)?_(UP|DOWN|LEFT|RIGHT)$/.exec(type ?? '');
   if (!match) return undefined;
@@ -188,6 +191,15 @@ export class KeyboardInput implements InputPorts {
   private init: Record<string, number> = {};
   private byKey = new Map<string, Field[]>();
   private byBinding = new Map<FieldBinding, Field>();
+  /** where each field's presses go while seated as another player (`setSeat`) */
+  private seated: (Field | undefined)[] = [];
+  private seatPlayer = 1;
+  /** while following reads (`followReads`): each watched port, 0 for player one's, 1 for the other seat's */
+  private seatWatch: Record<string, 0 | 1> | undefined;
+  private seatReads = [0, 0];
+  private seatFrames = 0;
+  private seatFollows = 1;
+  private seatListener: ((player: number) => void) | undefined;
   /**
    * The sources physically holding each field, for SOCD restore and analog
    * ramps. A field is held while any source holds it: Space and X both fire
@@ -356,6 +368,7 @@ export class KeyboardInput implements InputPorts {
    * input model filled itself is used.
    */
   advance(events?: readonly InputEvent[]): void {
+    this.followSeat();
     const list = events ?? this.takePending();
     // 1. What the controls did since the last frame, in the order it happened,
     // then MAME's own once-a-frame resolution of every lever on the panel.
@@ -736,7 +749,94 @@ export class KeyboardInput implements InputPorts {
 
   private drive(h: Field, down: boolean, repeat: boolean, source: string): void {
     if (repeat) return; // auto-repeat carries no new information
-    this.post({ kind: 'edge', binding: h.index, down, source });
+    this.post({ kind: 'edge', binding: (this.seated[h.index] ?? h).index, down, source });
+  }
+
+  /**
+   * The player whose stick and buttons the keyboard and the first pad work.
+   *
+   * A host choice, not machine state: one keyboard is one player, and that
+   * is player one -- but a computer's second joystick port is where some
+   * titles read their only joystick (a Sinclair Interface 2 title on keys
+   * 1 to 5), and nothing else in the house can reach it without a second
+   * pad. Seated as player two, each of player one's controls drives player
+   * two's control of the same type on the same device instead. Start, coin
+   * and keys are nobody's seat and stay where they are.
+   */
+  seat(): number { return this.seatPlayer; }
+
+  /** Move the keyboard and the first pad onto `player`'s controls; let go of everything first. */
+  setSeat(player: number): void {
+    this.seatWatch = undefined;
+    this.moveSeat(player);
+  }
+
+  private moveSeat(player: number): void {
+    // A key held across the move would be let go on the other seat's field.
+    if (player !== this.seatPlayer) this.releaseAll();
+    this.seatPlayer = player;
+    this.seated = this.fields.map(field => player === 1 ? undefined : this.counterpart(field, player));
+  }
+
+  /**
+   * Seat the keyboard wherever the running program reads its joystick: at
+   * `player` once it reads that player's port and none of the player-one
+   * ports seated there, back at player one once it reads one of those. A
+   * computer's keyboard scan reads every row, so BASIC and a title that takes
+   * either port stay at player one; a title that reads only the second port
+   * (Gyruss, on an Interface 2's keys 1 to 5 -- MAME's own player 2) gets the
+   * stick there without anybody having to know. `setSeat` pins a choice and
+   * ends this. `onChange` hears every move.
+   */
+  followReads(player: number, onChange?: (player: number) => void): void {
+    const watch: Record<string, 0 | 1> = {};
+    for (const field of this.fields) {
+      const target = this.counterpart(field, player);
+      if (!target) continue;
+      watch[field.port] = 0;
+      watch[target.port] ??= 1;
+    }
+    this.seatWatch = watch;
+    this.seatFollows = player;
+    this.seatListener = onChange;
+    this.seatReads = [0, 0];
+    this.seatFrames = 0;
+  }
+
+  /** Decide, a window of frames at a time, which seat the program's reads ask for. */
+  private followSeat(): void {
+    if (!this.seatWatch || ++this.seatFrames < SEAT_WINDOW) return;
+    const [mine, theirs] = this.seatReads;
+    this.seatReads = [0, 0];
+    this.seatFrames = 0;
+    const wanted = mine! > 0 ? 1 : theirs! > 0 ? this.seatFollows : this.seatPlayer;
+    if (wanted === this.seatPlayer) return;
+    this.moveSeat(wanted);
+    this.seatListener?.(wanted);
+  }
+
+  /** Players other than one whose controls the keyboard could be seated at. */
+  seats(): number[] {
+    const players = new Set<number>();
+    for (const field of this.fields) {
+      const player = bindingPlayer(this.bindings[field.index]!);
+      if (player !== 1 && this.fields.some(candidate => this.counterpart(candidate, player) === field)) {
+        players.add(player);
+      }
+    }
+    return [...players].sort((a, b) => a - b);
+  }
+
+  /** Player `player`'s control of the same type on the same device as player one's `field`. */
+  private counterpart(field: Field, player: number): Field | undefined {
+    const binding = this.bindings[field.index]!;
+    if (bindingPlayer(binding) !== 1 || !/^IPT_(?:JOYSTICK|BUTTON)/.test(binding.type ?? '')) return undefined;
+    const device = (port: string): string => port.slice(0, port.lastIndexOf(':') + 1);
+    return this.fields.find(candidate => {
+      const other = this.bindings[candidate.index]!;
+      return bindingPlayer(other) === player && other.type === binding.type &&
+        device(candidate.port) === device(field.port);
+    });
   }
 
   private applyEdge(h: Field, down: boolean, source: string): void {
@@ -862,7 +962,14 @@ export class KeyboardInput implements InputPorts {
     }
   }
 
+  /** A port's byte as a probe sees it: not the program's read, so the seat does not follow it. */
+  peek(tag: string): number {
+    return this.state[tag] ?? 0xff;
+  }
+
   read(tag: string): number {
+    const watched = this.seatWatch?.[tag];
+    if (watched !== undefined) this.seatReads[watched]++;
     const value = this.state[tag] ?? 0xff;
     if (!this.frameFraction || !this.relativePorts.has(tag)) return value;
     const fraction = this.frameFraction();

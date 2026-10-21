@@ -270,6 +270,24 @@ export function identifySet(
   members: Map<string, Uint8Array>,
   catalogs: Iterable<SoftCatalog>,
 ): IdentifiedSet | null {
+  // A merged set (MAME's own layout) holds the parent's images at its root
+  // and each clone's under a folder of the clone's name: mminer.zip carries
+  // `mminers/manic miner (software projects) - side 1.tzx` beside its own
+  // tape. The root is the set the zip is named for, so it is identified by
+  // that alone when its root holds anything a list names.
+  const catalogList = [...catalogs];
+  const root = new Map([...members].filter(([name]) => !name.includes('/')));
+  if (root.size && root.size < members.size) {
+    const parent = identifyMembers(root, catalogList);
+    if (parent) return parent;
+  }
+  return identifyMembers(members, catalogList);
+}
+
+function identifyMembers(
+  members: Map<string, Uint8Array>,
+  catalogs: readonly SoftCatalog[],
+): IdentifiedSet | null {
   const crcs = new Set([...members.values()].map(bytes => hex8(crc32(bytes))));
   let best: IdentifiedSet | null = null;
   for (const catalog of catalogs) {
@@ -320,7 +338,11 @@ export function mountableImages(
   const order = new Map(entry.prg.roms.map((rom, index) => [rom.file?.toLowerCase(), index]));
   // A list marks a disk write protected as a feature its drive's call_load reads.
   const features = entry.features;
-  return images.map(image => features ? { ...image, features } : image).sort((a, b) =>
+  // The entry's own images, when the zip holds them: a merged set also
+  // carries every clone's, which are other sets and not this one's sides.
+  const own = new Set(entry.prg.roms.map(rom => rom.crc));
+  const mine = images.filter(image => own.has(hex8(crc32(image.bytes))));
+  return (mine.length ? mine : images).map(image => features ? { ...image, features } : image).sort((a, b) =>
     (order.get(a.name.toLowerCase()) ?? 1e9) - (order.get(b.name.toLowerCase()) ?? 1e9));
 }
 
@@ -1185,6 +1207,8 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     let images: MountedImage[] = [];
     // A cartridge goes into its slot before the machine starts (BoardConfig.images).
     let powerOnImages: NonNullable<ShellConfig['board']['images']> | undefined;
+    // And when the list is a card's, that card goes into the slot first.
+    let slotCards: Record<string, string> | undefined;
     let title = machine.title;
     if (rec) {
       const shelf = shelfOf.get(rec.list ?? '')?.get(version.game) ?? shelfFor(rec.list);
@@ -1202,6 +1226,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
         const file = part ? undefined : mountableImages(members, shelf.extensions)[0];
         if (!part && !file) { toast(`${rec.name}: not every chip of the set is inside`); return; }
         powerOnImages = { [shelf.imageDevice]: part ? { name: rec.name, software: part } : { name: file!.name, bytes: file!.bytes } };
+        if (shelf.card) slotCards = { [shelf.imageDevice]: shelf.card };
       } else {
         images = mountableImages(members, shelf.extensions, owned);
         if (!images.length) { toast(`${rec.name}: no image inside to mount`); return; }
@@ -1225,6 +1250,7 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
         board: {
           ...machine.board,
           ...(emptySlots.length ? { emptySlots } : {}),
+          ...(slotCards ? { slotCards } : {}),
           ...(powerOnImages ? { images: powerOnImages } : {}),
         },
       } : {}),

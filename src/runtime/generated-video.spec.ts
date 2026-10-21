@@ -540,8 +540,10 @@ executeGeneratedProgram(
 );
 assert.equal(partialLine, 19, 'generated screen must forward partial raster updates');
 generatedPrimitives.vblank();
+assert.equal(generatedScreen.frame_number(), 0, 'MAME counts a screen frame at vblank end, not its start');
+generatedPrimitives.vblankEnd?.();
 if (generatedScreen.frame_number() !== 1) {
-  throw new Error('generated screen frame counter did not advance at vblank');
+  throw new Error('generated screen frame counter did not advance at vblank end');
 }
 
 const tileMachine: BoardIr = {

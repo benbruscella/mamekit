@@ -62,6 +62,12 @@ import {
 import { extractColeco } from './coleco/extract.ts';
 import { C64_ID, C64_MAME_TYPES, C64_PORTS } from './c64/definition.ts';
 import { extractC64 } from './c64/extract.ts';
+import { SPECTRUM_ID, SPECTRUM_MAME_TYPES, SPECTRUM_PORTS } from './spectrum/definition.ts';
+import { extractSpectrum } from './spectrum/extract.ts';
+import { SPEAKER_ID, SPEAKER_MAME_TYPES, SPEAKER_PORTS } from './speaker/definition.ts';
+import { extractSpeaker } from './speaker/extract.ts';
+import { CASSETTE_ID, CASSETTE_MAME_TYPES, CASSETTE_PORTS } from './cassette/definition.ts';
+import { extractCassette } from './cassette/extract.ts';
 import { FLOPPY_ID, FLOPPY_MAME_TYPES, FLOPPY_PORTS } from './floppy/definition.ts';
 import { extractFloppy } from './floppy/extract.ts';
 import {
@@ -200,6 +206,9 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     extract: extractColeco,
   },
   { id: C64_ID, mameTypes: C64_MAME_TYPES, ports: C64_PORTS, extract: extractC64 },
+  { id: SPECTRUM_ID, mameTypes: SPECTRUM_MAME_TYPES, ports: SPECTRUM_PORTS, extract: extractSpectrum },
+  { id: SPEAKER_ID, mameTypes: SPEAKER_MAME_TYPES, ports: SPEAKER_PORTS, extract: extractSpeaker },
+  { id: CASSETTE_ID, mameTypes: CASSETTE_MAME_TYPES, ports: CASSETTE_PORTS, extract: extractCassette },
   { id: FLOPPY_ID, mameTypes: FLOPPY_MAME_TYPES, ports: FLOPPY_PORTS, extract: extractFloppy },
   {
     id: A2600_ID,

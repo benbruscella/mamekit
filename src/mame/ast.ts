@@ -38,6 +38,12 @@ export interface MameFunction {
   name: string;
   /** Function-template parameters declared immediately before this definition. */
   templateParameters?: string[];
+  /**
+   * The declared return type, storage keywords dropped (`rectangle`), for a
+   * definition written out in full. A braced `return { ... };` is a list
+   * initialisation of this type.
+   */
+  returnType?: string;
   parameters: string;
   body: string;
   statements: MameStatement[];
@@ -156,11 +162,17 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const bodyStart = braceStart + 1;
     const body = source.slice(bodyStart, braceEnd);
     const templateParameters = functionTemplateParameters(masked, fm.index, fm[1]!);
+    // `template <u8 Bank> u8 cls::fn` on one line: the header is not the type.
+    const returnType = masked.slice(start, qualifiedName)
+      .replace(/^\s*template\s*<[^<>]*>/, ' ')
+      .replace(/\b(?:virtual|static|inline|constexpr|ATTR_COLD|ATTR_HOT)\b/g, ' ')
+      .replace(/\s+/g, ' ').trim();
     functions.push({
       kind: 'function',
       className: fm[1],
       name: fm[2],
       ...(templateParameters.length ? { templateParameters } : {}),
+      ...(returnType && returnType !== 'void' ? { returnType } : {}),
       parameters: source.slice(
         masked.indexOf('(', fm.index),
         matchPair(masked, masked.indexOf('(', fm.index), '(', ')') + 1,

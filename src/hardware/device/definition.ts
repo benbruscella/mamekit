@@ -76,8 +76,11 @@ export const DEVICE_MAME_TYPES = [
   'PIA6821',
   'PIT8253',
   // The image device whose load the driver's own callback performs
-  // (snapquik.cpp): the C64's .prg/.p00/.t64 quickload.
+  // (snapquik.cpp): the C64's .prg/.p00/.t64 quickload, and its sibling the
+  // snapshot, which the Spectrum's .sna/.z80 callback loads straight into
+  // memory and registers.
   'QUICKLOAD',
+  'SNAPSHOT',
   'STARFIELD_05XX',
   'MC6845',
   'MIDTUNIT_VIDEO',

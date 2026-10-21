@@ -17,6 +17,11 @@ export interface VideoRenderer {
   renderLine?(frame: Uint32Array, line: number): void;
   /** Called once per vblank to latch per-frame state (starfield scroll, etc). */
   vblank(): void;
+  /**
+   * Called when the vblank ends: MAME's `screen_device::vblank_end`, where
+   * the screen's own frame_number() counts.
+   */
+  vblankEnd?(): void;
 }
 
 /** One mono audio DSP core, pulled by the audio glue at its native rate. */
@@ -78,6 +83,8 @@ export interface BoardSnapshot {
 /** A composed machine: CPUs + devices + video, stepped one frame at a time. */
 export interface CassetteMedia {
   tag: string;
+  /** MAME's name for the deck ("Commodore 1530 Datassette", "Cassette"). */
+  deck?: string;
   extensions: string[];
   mount(extension: string, bytes: Uint8Array): void;
   play(): void;
@@ -122,6 +129,10 @@ export interface DiskMedia {
  */
 export interface QuickloadMedia {
   tag: string;
+  /** MAME's image_type_name: "quickload", or "snapshot" for a machine-state file. */
+  medium?: string;
+  /** MAME's name for the device ("Quickload", "Snapshot"). */
+  deck?: string;
   extensions: string[];
   /** Hand the device a file; `name` is what MAME would call its basename. */
   mount(extension: string, bytes: Uint8Array, name?: string): void;

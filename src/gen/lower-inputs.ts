@@ -471,9 +471,11 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
   {
     let controllers = 0;
     for (const dev of devices) {
-      const slotInputs = g.out(dev.id, 'USES_INPUTS')[0]?.node;
-      if (!slotInputs) continue;
-      for (const { node: port } of g.out(slotInputs.id, 'HAS_PORT')) {
+      // The slot's default card, and any card a title's medium puts there
+      // instead: one slot, one controller, whichever card holds it.
+      const cards = g.out(dev.id, 'USES_INPUTS').map(edge => edge.node);
+      if (!cards.length) continue;
+      for (const { node: port } of cards.flatMap(slotInputs => g.out(slotInputs.id, 'HAS_PORT'))) {
         const tag = `${dev.props.tag}:${port.props.tag}`;
         let init = 0;
         for (const f of g.out(port.id, 'HAS_FIELD').map(x => x.node)) {

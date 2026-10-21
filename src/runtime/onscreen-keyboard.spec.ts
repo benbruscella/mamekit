@@ -37,6 +37,13 @@ const bindings = [
 ];
 
 assert.deepEqual(keyLegend(bindings[1]!), { legend: 'F5' }, 'a function key reads as the key it is');
+// The Spectrum's names lay every mode's legend out in columns: the cap keeps
+// the rest, so 48K BASIC's keywords are on the keys it is typed with.
+assert.deepEqual(
+  keyLegend(key('j    J    -      VAL      VAL$     LOAD', ['KeyJ'], [['j'], ['J'], ['-']])),
+  { legend: 'J', modes: '- VAL VAL$ LOAD' },
+);
+assert.deepEqual(keyLegend(key('ENTER', ['Enter'], [['\r']])), { legend: 'ENTER' });
 assert.deepEqual(keyLegend(bindings[3]!), { legend: 'INST DEL' }, 'a named key keeps its two-word name');
 assert.deepEqual(keyLegend(bindings[6]!), { legend: '1', shifted: '!' });
 assert.deepEqual(keyLegend(bindings[12]!), { legend: ',', shifted: '<' });

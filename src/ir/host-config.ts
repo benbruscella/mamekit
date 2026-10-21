@@ -47,6 +47,12 @@ export interface BoardConfig {
    */
   emptySlots?: string[];
   /**
+   * Slots booted with a card other than their default, as MAME's
+   * `-exp intf2` boots one: a Spectrum cartridge title needs the ZX
+   * Interface 2 in the expansion port, whose own cartridge slot takes it.
+   */
+  slotCards?: Record<string, string>;
+  /**
    * Images held from power-on, by device tag, as MAME's `-cart` mounts one
    * before the machine starts: the device's own call_load reads it between
    * its device_start and the first reset. A C64 cartridge arrives this way,

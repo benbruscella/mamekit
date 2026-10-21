@@ -7,6 +7,7 @@ import {
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
+import { GeneratedRectangle } from './rectangle.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
 import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
 import type { GeneratedDirectScreenShape } from '../ir/video-execution.ts';
@@ -24,6 +25,8 @@ export type DeviceScreenUpdate = (
 ) => number | undefined;
 
 export interface GeneratedVideoPrimitives extends VideoRenderer {
+  /** MAME `screen_device::frame_number()`, counted at each vblank end. */
+  screenFrameNumber?(): number;
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
   generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
   /** Execute a source-matched hot screen-update shape without IR tree walking. */
@@ -150,7 +153,7 @@ export function exidySpriteCollisionMask(
 export class GeneratedVideoRenderer implements VideoRenderer {
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['penBuffer', 'partialNextY'];
+    return ['penBuffer', 'partialNextY', 'partialHpos'];
   }
 
   readonly width: number;
@@ -173,6 +176,12 @@ export class GeneratedVideoRenderer implements VideoRenderer {
    */
   private readonly penBuffer?: Uint32Array;
   private partialNextY: number;
+  /**
+   * MAME's `m_partial_scan_hpos`: how far along line `partialNextY` an
+   * `update_now()` has drawn. A Spectrum border write lands mid-line, and
+   * the rest of that line is drawn with the next colour.
+   */
+  private partialHpos = 0;
 
   constructor(
     machine: BoardIr,
@@ -205,6 +214,10 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     this.primitives.vblank();
   }
 
+  vblankEnd(): void {
+    this.primitives.vblankEnd?.();
+  }
+
   render(frame: Uint32Array): void {
     if (this.machine.video?.bitmap) {
       this.primitives.render(frame);
@@ -213,10 +226,12 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     if (this.machine.execution.screen.updateMode === 'partial') {
       const finalY = yOffset + this.height - 1;
+      this.finishPartialLine(frame);
       if (this.partialNextY <= finalY) {
         this.renderRegion(frame, this.partialNextY, finalY);
       }
       this.partialNextY = yOffset;
+      this.partialHpos = 0;
       return;
     }
     this.renderRegion(frame, yOffset, yOffset + this.height - 1);
@@ -228,12 +243,55 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     // handler, so partial-update notifications are bookkeeping only.
     if (this.machine.video?.bitmap) return;
     if (this.machine.execution.screen.updateMode !== 'partial') return;
+    // MAME finishes a line an update_now() left half drawn first.
+    if (Math.floor(line) >= this.partialNextY) this.finishPartialLine(frame);
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const finalY = yOffset + this.height - 1;
     const updateThrough = Math.min(Math.floor(line), finalY);
     if (updateThrough < this.partialNextY) return;
     this.renderRegion(frame, this.partialNextY, updateThrough);
     this.partialNextY = updateThrough + 1;
+  }
+
+  /**
+   * MAME's `update_partial(vpos, hpos)`, which `update_now()` calls with the
+   * beam: everything from where the last update stopped up to, but not
+   * including, pixel `hpos` of line `vpos`.
+   */
+  updatePartialAt(frame: Uint32Array, vpos: number, hpos: number): void {
+    if (this.machine.video?.bitmap) return;
+    if (this.machine.execution.screen.updateMode !== 'partial') return;
+    const line = Math.floor(vpos);
+    const x = Math.floor(hpos);
+    if (line < this.partialNextY) return;
+    if (line === this.partialNextY && x <= this.partialHpos) return;
+    if (line > this.partialNextY) {
+      this.finishPartialLine(frame);
+      if (line > this.partialNextY) this.updatePartial(frame, line - 1);
+    }
+    if (x > 0) this.renderVisibleLine(frame, line, this.partialHpos, x - 1);
+    this.partialHpos = x;
+    this.partialNextY = line;
+  }
+
+  /** The rest of a line an update_now() stopped part way along. */
+  private finishPartialLine(frame: Uint32Array): void {
+    if (this.partialHpos <= 0) return;
+    const xOffset = this.machine.execution.screen.xOffset ?? 0;
+    this.renderVisibleLine(frame, this.partialNextY, this.partialHpos, xOffset + this.width - 1);
+    this.partialHpos = 0;
+    this.partialNextY++;
+  }
+
+  /** One line, from pixel `minX` to `maxX` in raster coordinates, clipped to the visible area. */
+  private renderVisibleLine(frame: Uint32Array, line: number, minX: number, maxX: number): void {
+    const xOffset = this.machine.execution.screen.xOffset ?? 0;
+    const yOffset = this.machine.execution.screen.yOffset ?? 0;
+    if (line < yOffset || line >= yOffset + this.height) return;
+    const left = Math.max(xOffset, minX);
+    const right = Math.min(xOffset + this.width - 1, maxX);
+    if (left > right) return;
+    this.renderRegion(frame, line, line, left, right);
   }
 
   renderLine(frame: Uint32Array, line: number): void {
@@ -243,14 +301,20 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     this.renderRegion(frame, line, line);
   }
 
-  private renderRegion(frame: Uint32Array, minY: number, maxY: number): void {
+  private renderRegion(
+    frame: Uint32Array,
+    minY: number,
+    maxY: number,
+    minX = this.machine.execution.screen.xOffset ?? 0,
+    maxX = (this.machine.execution.screen.xOffset ?? 0) + this.width - 1,
+  ): void {
     const xOffset = this.machine.execution.screen.xOffset ?? 0;
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const xScale = this.machine.video?.renderScale?.x ?? 1;
     const yScale = this.machine.video?.renderScale?.y ?? 1;
     const cliprect = new GeneratedRectangle(
-      xOffset * xScale,
-      (xOffset + this.width) * xScale - 1,
+      minX * xScale,
+      (maxX + 1) * xScale - 1,
       minY * yScale,
       (maxY + 1) * yScale - 1,
     );
@@ -378,6 +442,9 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         (this.machine.execution.screen.xOffset ?? 0) + this.machine.execution.screen.width),
       height: () => Math.max(1, this.machine.execution.screen.vtotal),
       priority: () => this.primitives.screenPriority?.(),
+      // The screen's own frame count (vblankEnd): the Spectrum's FLASH is
+      // `frame_number() / 16`, read on every line it draws.
+      frame_number: () => this.primitives.screenFrameNumber?.() ?? 0,
     };
     const handlerKey =
       `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
@@ -536,43 +603,6 @@ export function createGeneratedTileInfoTarget(tile: TileInfo): {
       Object.assign(tile, { gfx, code, color, flags });
     },
   };
-}
-
-class GeneratedRectangle {
-  min_x: number;
-  max_x: number;
-  min_y: number;
-  max_y: number;
-
-  constructor(minX: number, maxX: number, minY: number, maxY: number) {
-    this.min_x = minX;
-    this.max_x = maxX;
-    this.min_y = minY;
-    this.max_y = maxY;
-  }
-
-  // emu/rendertypes.h accessors. A screen update's merge loop is written
-  // `for (int y = rect.top(); y <= rect.bottom(); y++)`; unresolved, they
-  // answered 0 and Atari System 1 merged one pixel of its sprites.
-  left(): number { return this.min_x; }
-  right(): number { return this.max_x; }
-  top(): number { return this.min_y; }
-  bottom(): number { return this.max_y; }
-  width(): number { return this.max_x + 1 - this.min_x; }
-  height(): number { return this.max_y + 1 - this.min_y; }
-
-  contains(x: number, y: number): number {
-    return x >= this.min_x && x <= this.max_x && y >= this.min_y && y <= this.max_y ? 1 : 0;
-  }
-
-  intersect(other: unknown): void {
-    if (!other || typeof other !== 'object') return;
-    const rectangle = other as GeneratedRectangle;
-    this.min_x = Math.max(this.min_x, Number(rectangle.min_x));
-    this.max_x = Math.min(this.max_x, Number(rectangle.max_x));
-    this.min_y = Math.max(this.min_y, Number(rectangle.min_y));
-    this.max_y = Math.min(this.max_y, Number(rectangle.max_y));
-  }
 }
 
 /**
@@ -919,6 +949,21 @@ class GeneratedProgramPalette implements GeneratedPaletteDevice {
       members: {},
       calls,
       referenceCalls: {
+        // `set_pen_colors(base, table)` hands over a whole rgb_t table (the
+        // Spectrum's sixteen pens), which a numeric call would flatten.
+        ...Object.fromEntries([plan.deviceParameter, ''].map(owner => [
+          owner ? `${owner}.set_pen_colors` : 'set_pen_colors',
+          (...args: unknown[]) => {
+            const base = Number(generatedArgumentValue(args[0]) ?? 0);
+            const table = generatedArgumentValue(args[1]) as ArrayLike<number> | undefined;
+            const count = args[2] === undefined ? table?.length ?? 0 : Number(generatedArgumentValue(args[2]));
+            for (let index = 0; index < count; index++) {
+              const pen = base + index;
+              if (pen >= 0 && pen < this.colors.length) this.colors[pen] = Number(table?.[index]) >>> 0;
+            }
+            return 0;
+          },
+        ])),
         memregion: (...args: unknown[]) => {
           const tag = String(generatedArgumentValue(args[0]) ?? '');
           const bytes = regions[tag];
@@ -2770,6 +2815,11 @@ class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
       ? colorOrRed >>> 0
       : packRgb(colorOrRed & 0xff, green & 0xff, (blue ?? 0) & 0xff);
     if (pen >= 0 && pen < this.colors.length) this.colors[pen] = color;
+  }
+
+  /** `set_pen_colors(base, colors)`: a whole table of rgb_t from `base` on (the Spectrum's 16 pens). */
+  set_pen_colors(base: number, colors: ArrayLike<number>, count = colors.length): void {
+    for (let index = 0; index < count; index++) this.set_pen_color(base + index, Number(colors[index]));
   }
 
   transpen_mask(): number { return 0; }
@@ -5269,7 +5319,18 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     }
   }
 
-  vblank(): void {
+  vblank(): void {}
+
+  /**
+   * MAME counts a screen's frames at the end of its vblank
+   * (`screen_device::vblank_end`), so the frame drawn next is the one
+   * frame_number() names: the Spectrum's FLASH reads it on every line.
+   */
+  screenFrameNumber(): number {
+    return Number((this.state.m_screen as { __frame?: number } | undefined)?.__frame ?? 0);
+  }
+
+  vblankEnd(): void {
     const screen = this.state.m_screen as { frame_number?: () => number; __frame?: number } | undefined;
     if (screen) {
       screen.__frame = (screen.__frame ?? 0) + 1;

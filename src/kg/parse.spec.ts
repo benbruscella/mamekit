@@ -7,6 +7,8 @@
 
 import {
   evalExpr,
+  parseAddrMapForwarders,
+  resolveLiteralConditionals,
   parseAddressMaps,
   parseDefines,
   parseGames,
@@ -36,6 +38,63 @@ function eq(label: string, actual: unknown, expected: unknown): void {
     totalFail++;
     console.log(`  FAIL ${label}: got ${a}, want ${e}`);
   }
+}
+
+{
+  // The Z80's named map setters forward to set_addrmap; the Spectrum's ULA
+  // contention hangs off its M1 (AS_OPCODES) map.
+  const forwarders = parseAddrMapForwarders(`
+class z80_device {
+  template <typename... T> void set_memory_map(T &&... args) { set_addrmap(AS_PROGRAM, std::forward<T>(args)...); }
+  template <typename... T> void set_m1_map(T &&... args) { set_addrmap(AS_OPCODES, std::forward<T>(args)...); }
+  template <typename... T> void set_io_map(T &&... args) { set_addrmap(AS_IO, std::forward<T>(args)...); }
+};`);
+  eq('map forwarders are read from the core header', forwarders,
+    { set_memory_map: 'AS_PROGRAM', set_m1_map: 'AS_OPCODES', set_io_map: 'AS_IO' });
+  const [config] = parseMachineConfigs(`
+void spectrum_state::spectrum(machine_config &config) {
+  Z80(config, m_maincpu, 3500000);
+  m_maincpu->set_m1_map(&spectrum_state::spectrum_opcodes);
+  m_maincpu->set_memory_map(&spectrum_state::spectrum_data);
+  m_maincpu->set_io_map(&spectrum_state::spectrum_io);
+}`, { m_maincpu: 'maincpu' }, {}, [], forwarders);
+  eq('forwarded map setters bind each space', config?.devices[0]?.addrMaps,
+    { AS_OPCODES: 'spectrum_opcodes', AS_PROGRAM: 'spectrum_data', AS_IO: 'spectrum_io' });
+}
+
+{
+  // The Spectrum's config keeps a perfect-quantum alternative behind #if 1;
+  // the directive glued itself to SCREEN(...) and the screen vanished.
+  const resolved = resolveLiteralConditionals([
+    'a();', '#if 1', 'b();', '#else', 'c();', '#endif', 'd();',
+    '#if 0', 'e();', '#elif 1', 'f();', '#else', 'g();', '#endif',
+    '#ifdef NAME', 'h();', '#endif',
+  ].join('\n'));
+  eq('literal #if blocks keep the live branch only', resolved.split('\n'),
+    ['a();', '', 'b();', '', '', '', 'd();', '', '', '', 'f();', '', '', '', '#ifdef NAME', 'h();', '#endif']);
+  const src = `
+class spectrum_state : public driver_device { };
+class spectrum_128_state : public spectrum_state { };
+rectangle spectrum_state::get_screen_area()
+{
+  return { 48, 48 + 256 - 1, 16 + 48, 16 + 48 + 192 - 1 };
+}
+void spectrum_state::spectrum(machine_config &config)
+{
+  SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+  rectangle visarea = { get_screen_area().left() - 48, get_screen_area().right() + 48,
+    get_screen_area().top() - 48, get_screen_area().bottom() + 56 };
+  m_screen->set_raw(7000000, 448, 312, visarea);
+}
+void spectrum_128_state::spectrum_128(machine_config &config)
+{
+  m_screen->set_raw(7093800, 456, 311, get_screen_area());
+}`;
+  const [spectrum, spec128] = parseMachineConfigs(src, { m_screen: 'screen' }, {});
+  eq('set_raw with a rectangle lowers to the seven-argument form',
+    spectrum?.devices[0]?.screenRaw, { pixclock: 7000000, htotal: 448, hbend: 0, hbstart: 352, vtotal: 312, vbend: 16, vbstart: 312 });
+  eq('a member rectangle resolves through the class hierarchy',
+    spec128?.devicePatches[0]?.screenRaw, { pixclock: 7093800, htotal: 456, hbend: 48, hbstart: 304, vtotal: 311, vbend: 64, vbstart: 256 });
 }
 
 {

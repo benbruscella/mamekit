@@ -19,6 +19,13 @@ export interface SoftlistDeclaration {
   name: string;
   status: string;
   filter?: string;
+  /**
+   * A list a slot's card declares rather than the machine: the slot, the
+   * option that puts the card in it, and the card's image device that reads
+   * the list with the files it takes (the ZX Interface 2's GENERIC_CARTSLOT,
+   * "bin,rom").
+   */
+  card?: { slot: string; option: string; transport: string; extensions: string[] };
 }
 
 /**
@@ -34,7 +41,7 @@ const MEDIA_MOUNT_DEVICES: Record<MediumKind, readonly string[]> = {
   cassette: ['PET_DATASSETTE_PORT', 'CASSETTE'],
   // The C64 expansion port: its call_load reads a title's areas into the card
   // the title names, so a cartridge is a software part, not a file.
-  cartridge: ['C64_EXPANSION_SLOT'],
+  cartridge: ['C64_EXPANSION_SLOT', 'GENERIC_CARTSLOT'],
   // MAME's floppy_connector holds the drive mechanism a disk goes into: the
   // C64's composed 1541 carries one under its gate array.
   floppy: ['FLOPPY_CONNECTOR'],
@@ -98,6 +105,22 @@ const BOOT_POLICY: Record<string, {
   general_cbm_loadsnap: { boot: () => ({ delay: 3, command: 'RUN{ENTER}' }) },
 };
 
+/**
+ * How a title starts from a transport fixed to the board that hands its
+ * signal straight to the firmware: no slot to key on, no loader a callback
+ * calls. The Spectrum's cassette is that -- the ROM reads EAR through the
+ * ULA's port -- so the key is the device that says which firmware answers,
+ * the ULA's contention model, which MAME gives the 48K and 128K generations
+ * apart. 48K BASIC takes keywords by key: LOAD is `j` in K mode and `""` is
+ * SYMBOL SHIFT+P twice, which the natural keyboard types from PORT_CHAR. The
+ * 128K and +2 come up in a menu whose first item is the Tape Loader. Both
+ * then wait for the tape, so PLAY is pressed once the command is typed.
+ */
+const BOARD_BOOT_POLICY: Record<string, ShelfBoot> = {
+  SPECTRUM_ULA_48K: { delay: 3, command: 'j""{ENTER}', play: true },
+  SPECTRUM_ULA_128K: { delay: 3, command: '{ENTER}', play: true },
+};
+
 type ShelfPolicy = { boot: ShelfBoot; fromUsage?: (usage: string) => string | undefined };
 
 /** The policy entry every one of `sources` agrees on, looked up by `key`. */
@@ -122,7 +145,11 @@ function shelfPolicy(slots: readonly string[], devices: readonly ShelfDevice[]):
 
 /** The policy for a medium whose transports sit on the board itself: by what each loads with. */
 function boardTransportPolicy(kind: MediumKind, devices: readonly ShelfDevice[]): ShelfPolicy | undefined {
-  return agreedPolicy(devices.filter(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type)), device => device.loader);
+  const transports = devices.filter(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type));
+  if (transports.some(transport => transport.loader)) return agreedPolicy(transports, device => device.loader);
+  // A transport the firmware reads directly (BOARD_BOOT_POLICY).
+  const keyed = [...new Set(devices.flatMap(device => BOARD_BOOT_POLICY[device.type] ? [device.type] : []))];
+  return kind === 'cassette' && keyed.length === 1 ? { boot: BOARD_BOOT_POLICY[keyed[0]!]! } : undefined;
 }
 
 /**
@@ -307,7 +334,7 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
     // misc disk list holds .img and .d81 sets its 1541 cannot read, and Play
     // used to boot one with no disk in the drive.
     const listed = kind === 'cartridge' ? [] : catalogExtensions(catalog);
-    const readable = options.transportExtensions?.[kind];
+    const readable = list.card?.extensions ?? options.transportExtensions?.[kind];
     const playable = readable ? listed.filter(extension => readable.includes(extension)) : listed;
     // What the shelf takes is what its transport reads, the list's own formats
     // first: a dropped image need not be one the list catalogues, and most
@@ -320,13 +347,21 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       : readable && playable.length
         ? [...playable, ...readable.filter(extension => !playable.includes(extension))]
         : playable;
-    const transport = options.devices.find(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type));
+    // A card's list is read by the card's own image device, in the slot the
+    // card is put in for the title: the slot is the device the part goes to.
+    const transport = list.card
+      ? MEDIA_MOUNT_DEVICES[kind].includes(list.card.transport) ? { type: list.card.transport, tag: list.card.slot } : undefined
+      : options.devices.find(device => MEDIA_MOUNT_DEVICES[kind].includes(device.type));
     const mountable = Boolean(transport) && (byArea || !readable || playable.length > 0);
     // A cartridge is read area by area, so its shelf names the slot that takes
     // the part rather than formats a drive reads.
     const imageDevice = mountable && kind === 'cartridge' ? transport!.tag : undefined;
-    const slots = mountable ? mediaSlotsOf(kind, options.devices) : [];
-    const policy = slots.length ? shelfPolicy(slots, options.devices)
+    // A card's medium leaves no slot empty: a tape title keeps the slot's own
+    // default card (the 48K's Kempston joystick), and a cartridge title swaps
+    // it for the card that reads the list (`card`).
+    const slots = mountable && !list.card ? mediaSlotsOf(kind, options.devices) : [];
+    const policy = list.card ? undefined
+      : slots.length ? shelfPolicy(slots, options.devices)
       : mountable ? boardTransportPolicy(kind, options.devices) : undefined;
     const boot = policy?.boot;
     // A title whose usage note names its own command carries it (`start`).
@@ -364,6 +399,7 @@ export function writeSoftwareShelves(options: SoftwareShelvesOptions): SoftwareS
       ...(list.filter ? { filter: list.filter } : {}),
       ...(slots.length ? { slots } : {}),
       ...(imageDevice ? { imageDevice } : {}),
+      ...(mountable && list.card ? { card: list.card.option } : {}),
       ...(boot ? { boot } : {}),
       ...(Object.keys(titled).length ? { art: titled } : {}),
     });

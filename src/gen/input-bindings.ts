@@ -10,7 +10,9 @@
  */
 export function portLabel(modifiers: string[]): string | undefined {
   for (const modifier of modifiers) {
-    const literal = /PORT_NAME\("(?:%p )?((?:[^"\\]|\\.)+)"\)/.exec(modifier)?.[1];
+    // A UTF-8 literal is spelled `u8"..."`: the Spectrum's X key legend
+    // carries a pound sign.
+    const literal = /PORT_NAME\((?:u8|u|U|L)?"(?:%p )?((?:[^"\\]|\\.)+)"\)/.exec(modifier)?.[1];
     if (literal) return cString(literal);
     const shared = /PORT_NAME\(\s*DEF_STR\(\s*(\w+)\s*\)\s*\)/.exec(modifier)?.[1];
     if (shared) return shared.replace(/_/g, ' ');
@@ -124,7 +126,8 @@ function charArguments(body: string): string[] {
 }
 
 function charCode(argument: string): string | undefined {
-  const literal = /^'((?:[^'\\]|\\.)+)'$/.exec(argument)?.[1];
+  // `U'£'` is a char32_t literal: the character itself.
+  const literal = /^(?:u8|u|U|L)?'((?:[^'\\]|\\.)+)'$/.exec(argument)?.[1];
   if (literal !== undefined) return cString(literal);
   if (/^(?:0x[0-9a-fA-F]+|\d+)$/.test(argument)) return String.fromCodePoint(Number(argument));
   const key = /^UCHAR_MAMEKEY\s*\(\s*(\w+)\s*\)$/.exec(argument)?.[1];

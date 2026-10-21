@@ -503,3 +503,76 @@ console.log('input.spec: a bounce across a frame does not flip a held corner');
   assert.equal(settle(keys).read('KEYS'), idle, 'a release with Cmd held still lets go');
 }
 console.log('input.spec: Cmd and Ctrl shortcuts stay the browser\'s');
+
+{
+  // Seated as player two, the keyboard's stick and fire drive player two's
+  // controls on the same device -- a card's second joystick port -- while
+  // another device's player-one stick, start and keys stay where they were.
+  const seated = new KeyboardInput([
+    { port: 'exp:LINE4', mask: 0x01, keys: ['Space'], label: 'IPT_BUTTON1', type: 'IPT_BUTTON1' },
+    { port: 'exp:LINE4', mask: 0x10, keys: ['ArrowLeft'], label: 'IPT_JOYSTICK_LEFT', type: 'IPT_JOYSTICK_LEFT' },
+    { port: 'exp:LINE3', mask: 0x10, keys: [], label: 'IPT_BUTTON1', type: 'IPT_BUTTON1', player: 2 },
+    { port: 'exp:LINE3', mask: 0x01, keys: [], label: 'IPT_JOYSTICK_LEFT', type: 'IPT_JOYSTICK_LEFT', player: 2 },
+    { port: 'LINE3', mask: 0x10, keys: ['Digit5'], label: '5', type: 'IPT_KEYBOARD' },
+    { port: 'PAD', mask: 0x01, keys: ['KeyX'], label: 'IPT_BUTTON2', type: 'IPT_BUTTON2' },
+  ], [], [
+    { tag: 'exp:LINE4', init: 0x1f },
+    { tag: 'exp:LINE3', init: 0x1f },
+    { tag: 'LINE3', init: 0x1f },
+    { tag: 'PAD', init: 0x01 },
+  ]);
+  const keys = new EventTarget();
+  seated.attach(keys);
+  assert.deepEqual(seated.seats(), [2]);
+  seated.setSeat(2);
+  keys.dispatchEvent(keyEvent('keydown', 'Space'));
+  keys.dispatchEvent(keyEvent('keydown', 'ArrowLeft'));
+  keys.dispatchEvent(keyEvent('keydown', 'KeyX'));
+  settle(seated);
+  assert.equal(seated.read('exp:LINE3'), 0x0e, 'player two fires and leans left');
+  assert.equal(seated.read('exp:LINE4'), 0x1f, 'player one is not pressed');
+  assert.equal(seated.read('PAD'), 0x00, 'a control player two lacks stays player one\'s');
+  // Moving seats lets go of everything held, so nothing sticks on either.
+  seated.setSeat(1);
+  settle(seated);
+  assert.equal(seated.read('exp:LINE3'), 0x1f);
+  keys.dispatchEvent(keyEvent('keyup', 'Space'));
+  keys.dispatchEvent(keyEvent('keyup', 'ArrowLeft'));
+  keys.dispatchEvent(keyEvent('keyup', 'KeyX'));
+  keys.dispatchEvent(keyEvent('keydown', 'Space'));
+  keys.dispatchEvent(keyEvent('keydown', 'Digit5'));
+  settle(seated);
+  assert.equal(seated.read('exp:LINE4'), 0x1e, 'back on player one');
+  assert.equal(seated.read('LINE3'), 0x0f, 'a key is nobody\'s seat');
+}
+
+{
+  // Following reads: a program that reads only the second port's row gets
+  // the stick there; one read of a player-one port brings it back; a pinned
+  // seat stops following.
+  const follow = new KeyboardInput([
+    { port: 'exp:LINE4', mask: 0x01, keys: ['KeyX'], label: 'IPT_BUTTON1', type: 'IPT_BUTTON1' },
+    { port: 'exp:LINE3', mask: 0x10, keys: [], label: 'IPT_BUTTON1', type: 'IPT_BUTTON1', player: 2 },
+  ], [], [
+    { tag: 'exp:LINE4', init: 0x1f },
+    { tag: 'exp:LINE3', init: 0x1f },
+  ]);
+  const moves: number[] = [];
+  follow.followReads(2, player => moves.push(player));
+  const frames = (count: number, read: string[]): void => {
+    for (let frame = 0; frame < count; frame++) {
+      for (const tag of read) follow.read(tag);
+      follow.advance();
+    }
+  };
+  frames(30, []);
+  assert.equal(follow.seat(), 1, 'nothing read, nothing moves');
+  frames(30, ['exp:LINE3']);
+  assert.equal(follow.seat(), 2, 'only the second port is read');
+  frames(30, ['exp:LINE3', 'exp:LINE4']);
+  assert.equal(follow.seat(), 1, 'a keyboard scan reads both');
+  assert.deepEqual(moves, [2, 1]);
+  follow.setSeat(2);
+  frames(30, ['exp:LINE4']);
+  assert.equal(follow.seat(), 2, 'a pinned seat stays');
+}

@@ -13,6 +13,7 @@ import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.t
 
 import { GAMEBOY_APU_TYPE, GAMEBOY_OUTPUT_RATE } from '../hardware/gameboy/definition.ts';
 import { C64_AUDIO_RATE } from '../hardware/c64/definition.ts';
+import { STREAM_AUDIO_RATE, STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
 
 import type { GenerateOptions } from './generate.ts';
 
@@ -106,6 +107,8 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const tiaChip = devices.find(device => device.props.type === 'TIA');
   const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(String(device.props.type)));
   const gameboyApu = devices.find(device => device.props.type === GAMEBOY_APU_TYPE);
+  const speakerDevice = devices.find(device => device.props.type === 'SPEAKER_SOUND' &&
+    STREAM_SOUND_TYPES.includes(String(device.props.type)));
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
         const type = String(device.props.type);
@@ -302,6 +305,10 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
                 ...(routes[0]?.gain !== undefined ? { masterGain: routes[0].gain } : {}),
               };
             })()
+        : speakerDevice
+          // The level-driven speaker and the cassette routed beside it, each
+          // rendering its own stream at machine().sample_rate().
+          ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: String(speakerDevice.props.tag) }
     : { kind: 'none' };
   const nesApu = sound.kind === 'nes' ? compileNesApu(opts.mameSrc) : undefined;
   // The post-mix level belongs to the sound family's capability package, so
@@ -390,6 +397,16 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     Object.assign(sound, {
       speakerFilter: compileMameSpeakerFilter(opts.mameSrc),
     });
+  }
+  // Streams the main thread mixes and posts beside the owning chip (the
+  // Spectrum 128's beeper and cassette beside its AY): their total routed
+  // gain, so the worklet weighs them against its own chips as MAME does.
+  if (sound.kind !== 'none' && sound.kind !== 'stream') {
+    const streamGain = devices
+      .filter(device => STREAM_SOUND_TYPES.includes(String(device.props.type)))
+      .flatMap(device => lowerAudioRoutes(graph, [{ id: device.id, tag: String(device.props.tag) }]).slice(0, 1))
+      .reduce((total, route) => total + route.gain, 0);
+    if (streamGain > 0) Object.assign(sound, { streamGain });
   }
 
   return { clocks, sound, nesApu };

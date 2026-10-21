@@ -103,8 +103,10 @@ async function screenText(page: import('@playwright/test').Page): Promise<string
 }
 
 /** Insert a set through the room's own picker, play it (on `region`, when given), and give the machine its firmware. */
-async function playLocalSet(page: import('@playwright/test').Page, set: string, firmware: string[], region?: string): Promise<void> {
-  await page.goto(`/app/g/${MACHINE}/`);
+async function playLocalSet(
+  page: import('@playwright/test').Page, set: string, firmware: string[], region?: string, machine = MACHINE,
+): Promise<void> {
+  await page.goto(`/app/g/${machine}/`);
   await page.locator('[data-software-room]').waitFor({ state: 'visible' });
   if (region) await page.locator(`[data-region-control] [data-region="${region}"]`).click();
   const chooser = page.waitForEvent('filechooser');
@@ -620,6 +622,77 @@ test.describe('software room', () => {
     expect(layout.scrollHeight).toBeLessThanOrEqual(layout.viewport + 1);
     // The firmware search tries the clone's own set name before the family's,
     // and a computer has no bezel: both are 404s the browser logs as errors.
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+});
+
+// The ZX Spectrum (issue #165): a tape on the machine's own cassette, which
+// no slot carries and no motor line drives, and a cartridge whose list is
+// the ZX Interface 2's, so the title puts that card in the expansion port.
+const SPECTRUM = 'spectrum';
+const spectrumDir = join(repoRoot, 'dist/games/computers', SPECTRUM);
+const spectrumDumps = join(repoRoot, '.data/roms/computers/spectrum');
+
+test.describe('ZX Spectrum room', () => {
+  test.skip(!existsSync(join(spectrumDir, 'config.json')), `generate the computer first: node bin/mamekit.js ${SPECTRUM}`);
+  const firmware = [join(spectrumDumps, 'bios', 'spectrum.zip')];
+
+  // j"" typed in K mode (LOAD ""), then PLAY: the ROM loader reads the tape
+  // with the machine fast-forwarding, and the deck says CASSETTE, MAME's own
+  // name for it, not the C64's DATASSETTE.
+  test('a tape title starts itself with LOAD "" and warps through its load', async ({ page }) => {
+    const set = join(spectrumDumps, 'spectrum_cass', 'mminer.zip');
+    test.skip(!existsSync(set) || !existsSync(firmware[0]!), 'no local Manic Miner set and 48K firmware');
+    const faults = watchFaults(page);
+    await playLocalSet(page, set, firmware, undefined, SPECTRUM);
+    await page.waitForFunction(() =>
+      (window as unknown as { mamekit: { board: { media(): { playing(): boolean }[] } } }).mamekit.board.media()[0]!.playing(),
+    undefined, { timeout: 60_000 });
+    await expect(page.locator('[data-deck] [data-media-bay="tape"]')).toContainText('CASSETTE');
+    await expect(page.getByText(/· loading/).first()).toBeVisible({ timeout: 10_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // The cartridge pages over BASIC's ROM: the first bytes the Z80 sees are
+  // Jet Pac's (F3 3E), not the 48K ROM's (F3 AF).
+  test('a cartridge title boots with the Interface 2 in the expansion port', async ({ page }) => {
+    const set = join(spectrumDumps, 'spectrum_cart', 'jetpac.zip');
+    test.skip(!existsSync(set) || !existsSync(firmware[0]!), 'no local Jet Pac set and 48K firmware');
+    const faults = watchFaults(page);
+    const card = page.waitForEvent('console', { predicate: message => /booting with -exp intf2/.test(message.text()), timeout: 60_000 });
+    await playLocalSet(page, set, firmware, undefined, SPECTRUM);
+    await card;
+    await page.waitForFunction(() => {
+      const board = (window as unknown as { mamekit: { board: { memory(target: { cpu: string; space: string }): { read(address: number): number } } } }).mamekit.board;
+      return board.memory({ cpu: 'maincpu', space: 'program' }).read(1) === 0x3e;
+    }, undefined, { timeout: 60_000 });
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
+
+  // Gyruss reads only the Interface 2's other socket -- keys 1 to 5, MAME's
+  // player 2 -- and under MAME too its title ignores player 1's fire. The
+  // joystick keys follow the port it reads, with nobody touching anything,
+  // and the button pins player 1 back.
+  test('the joystick moves to the second port for a title that reads only that one', async ({ page }) => {
+    const set = join(spectrumDumps, 'spectrum_cart', 'gyruss.zip');
+    test.skip(!existsSync(set) || !existsSync(firmware[0]!), 'no local Gyruss set and 48K firmware');
+    const faults = watchFaults(page);
+    await playLocalSet(page, set, firmware, undefined, SPECTRUM);
+    // peek, not read: a read is the program's, and the joystick follows those.
+    const port = (tag: string): Promise<number> => page.evaluate(name =>
+      (window as unknown as { mamekit: { input: { peek(tag: string): number } } }).mamekit.input.peek(name), tag);
+    const seat = page.locator('[data-joystick-seat]');
+    await expect(seat).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
+    await page.keyboard.down('KeyX');
+    await expect.poll(() => port('exp:LINE3')).toBe(0x0f);
+    expect(await port('exp:LINE4')).toBe(0x1f);
+    await page.keyboard.up('KeyX');
+    await expect.poll(() => port('exp:LINE3')).toBe(0x1f);
+    await seat.click();
+    await expect(seat).toHaveAttribute('aria-pressed', 'false');
+    await page.keyboard.down('KeyX');
+    await expect.poll(() => port('exp:LINE4')).toBe(0x1e);
+    await page.keyboard.up('KeyX');
     expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
   });
 });

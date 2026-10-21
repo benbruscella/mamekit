@@ -730,9 +730,12 @@ function emitOperation(
     // handler narrow its own clip rectangle and hand the mutated one back to
     // its caller — the interpreter copies here for exactly that reason.
     const declared = operation.valueType?.replace(/\bconst\b/g, '').trim();
-    if (context.boardScope && declared === 'rectangle') {
+    // An array of them (`rectangle bsides[4] = {...}`) is built fresh, and
+    // copying it as an object would drop its length. The value is evaluated
+    // once: it may be a call (`get_screen_area()`).
+    if (context.boardScope && declared === 'rectangle' && !allocated) {
       return `${pad}let ${localName(operation.name)}${annotation} = ` +
-        `Object.assign(Object.create(Object.getPrototypeOf(${value})), ${value});`;
+        `((value) => Object.assign(Object.create(Object.getPrototypeOf(value)), value))(${value});`;
     }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
@@ -1173,9 +1176,12 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       const iterator = (value: GeneratedExpression): boolean =>
         value.kind === 'call' && value.callee.kind === 'member' &&
         ['begin', 'end', 'cbegin', 'cend', 'data'].includes(value.callee.property);
+      // MAME's rectangle compares its four edges.
+      const rectangle = leftType === 'rectangle' || rightType === 'rectangle';
       if (
         (expression.operator === '==' || expression.operator === '!=') &&
-        (leftType?.includes('*') || rightType?.includes('*') || iterator(expression.left) || iterator(expression.right))
+        (leftType?.includes('*') || rightType?.includes('*') || iterator(expression.left) || iterator(expression.right) ||
+          rectangle)
       ) {
         const isNull = (value: GeneratedExpression): boolean =>
           (value.kind === 'number' && value.value === 0) ||
@@ -1198,6 +1204,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
     if (expression.operator === '>>') return `runtime.shiftRight(${left}, ${right})`;
+    // `rectangle & rectangle` is an intersection.
+    if (expression.operator === '&' && leftType === 'rectangle') return `runtime.and(${left}, ${right})`;
     if (expression.operator === '/') {
       // C++ integer division truncates. The interpreter applies that whenever
       // both operands are integers at run time, exempting expressions the
@@ -1281,6 +1289,17 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
   return emitCall(expression, context);
 }
 
+/** C math functions with one meaning everywhere, by every spelling MAME uses. */
+const PURE_MATH: Record<string, { call: string; arity: number }> = Object.fromEntries([
+  ['abs', 'Math.abs', 1], ['fabs', 'Math.abs', 1], ['floor', 'Math.floor', 1], ['ceil', 'Math.ceil', 1],
+  ['sqrt', 'Math.sqrt', 1], ['exp', 'Math.exp', 1], ['log', 'Math.log', 1], ['log10', 'Math.log10', 1],
+  ['sin', 'Math.sin', 1], ['cos', 'Math.cos', 1], ['tan', 'Math.tan', 1], ['atan', 'Math.atan', 1],
+  ['atan2', 'Math.atan2', 2], ['pow', 'Math.pow', 2],
+].flatMap(([name, call, arity]) => [
+  [name as string, { call: call as string, arity: arity as number }],
+  [`std::${name as string}`, { call: call as string, arity: arity as number }],
+]));
+
 function expressionValueType(
   expression: GeneratedExpression,
   context: EmitContext,
@@ -1301,6 +1320,10 @@ function expressionValueType(
     }
   }
   if (expression.kind === 'index') {
+    // An element of a local array of rectangles (`rectangle bsides[4]`).
+    if (expression.object.kind === 'identifier' && context.locals.get(expression.object.name) === 'rectangle') {
+      return 'rectangle';
+    }
     const field = expression.object.kind === 'member'
       ? structFieldOf(expression.object, context)
       : undefined;
@@ -1527,6 +1550,13 @@ function emitCall(
         `typeof ${member} === 'function' ? ${member}(${args.join(', ')}) : ` +
         `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
     }
+    // <cmath> answers the same everywhere, so it is spelled directly. The
+    // speaker's filter takes `std::abs` of 64 taps for every one of 48,000
+    // samples a second, and down the macro chain that was a fifth of a frame.
+    const math = PURE_MATH[name];
+    if (math && args.length === math.arity) {
+      return `${math.call}(${args.map(argument => `Number(${argument})`).join(', ')})`;
+    }
     // Board/host bindings first — the interpreter's own precedence — then the
     // shared framework-macro table, so rgb_t/TILE_FLIPYX/assert and friends
     // mean the same thing here as they do interpreted.
@@ -1552,6 +1582,8 @@ function emitCall(
     const args = expression.args.map(argument => emitExpression(argument, context));
     const object = emitCallObject(expression.callee.object, context);
     if (expression.callee.property === 'empty' && !args.length) {
+      // A rectangle answers its own `empty()`: no area left after a clip.
+      if (expressionValueType(expression.callee.object, context) === 'rectangle') return `(${object}).empty()`;
       return `((${object}).length === 0 ? 1 : 0)`;
     }
     // std::vector::resize. A plain array (a vector of vectors or of structs)
@@ -1604,7 +1636,7 @@ function emitCall(
     //
     // The bound branch never evaluates the object, matching the interpreter,
     // which resolves the name before it looks at any value.
-    const boundName = context.boardScope ? memberCallName(expression) : undefined;
+    const boundName = context.boardScope ? memberCallName(expression, context.methodConstants) : undefined;
     const value = emitValueMemberCall(expression, object, args, context);
     const onValue = value.code;
     if (boundName) {
@@ -1730,7 +1762,7 @@ function valueMemberCallCode(
   // table first, as the interpreter resolves the call: emitted directly, the
   // Namco 51xx's chip_select never reached its MB8843 and Dig Dug went silent.
   if (finder) {
-    const chain = memberCallName(expression);
+    const chain = memberCallName(expression, context.methodConstants);
     const direct = `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
     if (!chain) return direct;
     const link = callLink(context, chain);
@@ -1786,21 +1818,33 @@ function valueMemberCallCode(
  */
 function memberCallName(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  constants?: Readonly<Record<string, number>>,
 ): string | undefined {
   if (expression.callee.kind !== 'member') return undefined;
-  const objectName = memberChainName(expression.callee.object);
+  const objectName = memberChainName(expression.callee.object, constants);
   return objectName ? `${objectName}.${expression.callee.property}` : undefined;
 }
 
-function memberChainName(expression: GeneratedExpression): string | undefined {
+function memberChainName(
+  expression: GeneratedExpression,
+  constants?: Readonly<Record<string, number>>,
+): string | undefined {
   if (expression.kind === 'identifier') return expression.name;
   if (expression.kind === 'member') {
-    const object = memberChainName(expression.object);
+    const object = memberChainName(expression.object, constants);
     return object ? `${object}.${expression.property}` : undefined;
   }
-  if (expression.kind === 'index' && expression.index.kind === 'number') {
-    const object = memberChainName(expression.object);
-    return object ? `${object}[${expression.index.value}]` : undefined;
+  // A subscript that is the method's own template constant names one element
+  // as a literal does: the 128K's `m_bank_ram[Bank]->base()` in
+  // spectrum_128_ram_r<1> is the board's `m_bank_ram[1].base`.
+  const index = expression.kind === 'index'
+    ? expression.index.kind === 'number'
+      ? expression.index.value
+      : expression.index.kind === 'identifier' ? constants?.[expression.index.name] : undefined
+    : undefined;
+  if (expression.kind === 'index' && index !== undefined) {
+    const object = memberChainName(expression.object, constants);
+    return object ? `${object}[${index}]` : undefined;
   }
   return undefined;
 }
@@ -2439,8 +2483,8 @@ function wrapType(value: string, valueType?: string): string {
   if (normalized === 's8' || normalized === 'int8_t' || normalized === 'char') {
     return `((${value}) << 24 >> 24)`;
   }
-  if (normalized === 'u16' || normalized === 'uint16_t') return `((${value}) & 0xffff)`;
-  if (normalized === 's16' || normalized === 'int16_t') return `((${value}) << 16 >> 16)`;
+  if (normalized === 'u16' || normalized === 'uint16_t' || normalized === 'unsigned short') return `((${value}) & 0xffff)`;
+  if (normalized === 's16' || normalized === 'int16_t' || normalized === 'short') return `((${value}) << 16 >> 16)`;
   if (normalized === 'u32' || normalized === 'uint32_t') return `((${value}) >>> 0)`;
   if (normalized === 'int' || normalized === 's32' || normalized === 'int32_t') return `((${value}) | 0)`;
   return value;
