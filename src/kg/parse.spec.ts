@@ -72,6 +72,13 @@ void spectrum_state::spectrum(machine_config &config) {
   ].join('\n'));
   eq('literal #if blocks keep the live branch only', resolved.split('\n'),
     ['a();', '', 'b();', '', '', '', 'd();', '', '', '', 'f();', '', '', '', '#ifdef NAME', 'h();', '#endif']);
+  // A name the file defines to a literal is that literal (the Datach's
+  // `#define TEST_EEPROM 0`); one defined only under `#ifdef` is not.
+  eq('a literal-defined name decides its #if', resolveLiteralConditionals([
+    '#define TEST_EEPROM 0', '#if TEST_EEPROM', 'a();', '#endif', 'b();',
+    '#ifdef X', '#define MAYBE 1', '#endif', '#if MAYBE', 'c();', '#endif',
+  ].join('\n')).split('\n'),
+  ['#define TEST_EEPROM 0', '', '', '', 'b();', '#ifdef X', '#define MAYBE 1', '#endif', '#if MAYBE', 'c();', '#endif']);
   const src = `
 class spectrum_state : public driver_device { };
 class spectrum_128_state : public spectrum_state { };

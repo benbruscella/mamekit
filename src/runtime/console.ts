@@ -28,7 +28,6 @@ import {
 } from './nes-ines.ts';
 import { cartImageFromSoftlistSet, resolveFlatCart } from './cart-identify.ts';
 import {
-  MAPPER_SLOTS,
   cartSupport,
   mountCart,
   resolveCartImage,
@@ -223,6 +222,9 @@ const SLOT_PCB: Record<string, string> = {
   pxrom: 'MMC2', fxrom: 'MMC4', gxrom: 'GxROM', axrom: 'AxROM', bnrom: 'BNROM',
 };
 type CartState = 'placeholder' | 'lit' | 'experimental' | 'unsupported';
+
+/** Past this many boards the room counts them rather than naming each one. */
+const MAX_NAMED_BOARDS = 12;
 
 /** games.json manifest entry (the fields the room shows in About) */
 interface MenuEntry {
@@ -632,7 +634,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     document.body.textContent = '';
     const mounted = mountCart(cfg, resolved);
     if (!mounted) return;
-    const { regions, cart } = mounted;
+    const { regions, cart, images } = mounted;
     const cfg2: ShellConfig = {
       ...cfg,
       title: resolved.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''),
@@ -640,6 +642,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       board: {
         ...cfg.board, // CLONE — never mutate the fetched config
         cart,
+        ...(images ? { images: { ...cfg.board.images, ...images } } : {}),
       },
     };
     void runShell(cfg2, regions);
@@ -783,8 +786,17 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
 
   // --- compatibility clarity strip (always visible) ------------------------------
   const testedTitles = support.games.map(name => stripSet(catalog?.entries.find(e => e.name === name)?.description ?? name));
+  // A handful of boards are named; a slot that brings MAME's whole board list
+  // (the NES's 402) is counted instead, with the titles they cover.
   const boardNames = support.slots.map(s => SLOT_PCB[s] ?? s.toUpperCase());
-  const stripText = `Any cart on ${boardNames.join(', ') || 'no'} boards.`;
+  const declaredBoards = cfg.cart?.boards ?? support.slots.length;
+  const entries = catalog?.entries ?? [];
+  const coveredTitles = entries.filter(entry => playsOnBoard(entry.slot)).length;
+  const stripText = support.slots.length > MAX_NAMED_BOARDS
+    ? `Any cart on ${support.slots.length === declaredBoards ? 'every one' : support.slots.length.toLocaleString('en-US')} of the ` +
+      `${declaredBoards.toLocaleString('en-US')} boards MAME's cartridge slot declares · ` +
+      `${coveredTitles.toLocaleString('en-US')} of ${entries.length.toLocaleString('en-US')} catalogued titles.`
+    : `Any cart on ${boardNames.join(', ') || 'no'} boards.`;
   const compat = el('div', `max-width:1280px;box-sizing:border-box;margin:12px auto 0;padding:0 36px;
     color:#8b95cf;font-size:12px;text-align:center;line-height:1.6`);
   compat.setAttribute('data-compat-strip', '');
@@ -854,10 +866,20 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
   boardFilter.setAttribute('data-cart-filter', '');
   boardFilter.style.cssText = `padding:11px 14px;border-radius:8px;border:2px solid #303a78;
     background:#111633;color:#d8dcff;font:inherit;cursor:pointer`;
+  // One option per board the catalogue uses, the most common first: a slot
+  // with hundreds of boards would otherwise list every one it could take.
+  const titlesOnBoard = new Map<string, number>();
+  for (const entry of catalog?.entries ?? []) {
+    if (support.slots.includes(entry.slot)) titlesOnBoard.set(entry.slot, (titlesOnBoard.get(entry.slot) ?? 0) + 1);
+  }
+  const filterBoards = support.slots.length > MAX_NAMED_BOARDS
+    ? [...titlesOnBoard].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+      .map(([slot, count]) => [slot, `${SLOT_PCB[slot] ?? slot.toUpperCase()} (${count})`])
+    : support.slots.map(slot => [slot, SLOT_PCB[slot] ?? slot.toUpperCase()]);
   for (const [value, label] of [
     ['all', `All cartridges (${softlistFile})`],
     ['playable', 'Playable boards'],
-    ...support.slots.map(slot => [slot, SLOT_PCB[slot] ?? slot.toUpperCase()]),
+    ...filterBoards,
   ]) {
     const option = document.createElement('option');
     option.value = value;
@@ -1515,7 +1537,8 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
         row(tech, 'CHR', rec.ines.chrSize
           ? `${(rec.ines.chrSize / 1024).toFixed(0)} KB ROM · crc ${rec.chrCrc}`
           : 'CHR RAM');
-        row(tech, 'Mapper', `${rec.ines.mapper}${resolved?.slot ? ` (${resolved.slot})` : ''}`);
+        row(tech, 'iNES mapper', String(rec.ines.mapper));
+        if (resolved?.slot) row(tech, 'Board', `${boardLabel(resolved.slot)} (${resolved.slot})`);
         row(tech, 'Mirroring (header)', rec.ines.mirroring);
         row(tech, 'Battery', rec.ines.battery ? 'yes' : 'no');
       } else {
@@ -1624,7 +1647,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       const screen = `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`;
       row(hw, 'Screen', screen, browseUrl('screen', screen));
       if (cfg.cart) {
-        row(hw, 'Cartridge slot', `${cfg.cart.interface} · mappers: ${cfg.cart.slots.join(', ') || 'none yet'}`);
+        row(hw, 'Cartridge slot', `${cfg.cart.interface} · ${support.slots.length.toLocaleString('en-US')} boards`);
         row(hw, 'Verified titles', cfg.cart.games.join(', ') || 'none yet');
       }
 
@@ -1774,7 +1797,7 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       if (shelved) return true;
       // No whole .nes inside: this may be a MAME software-list set, whose
       // entries are the cart's individual chips. Rebuild the image from them.
-      const set = inesFromSoftlistSet(zentries, catalog, MAPPER_SLOTS);
+      const set = inesFromSoftlistSet(zentries, catalog);
       if (set) {
         await shelve(`${set.entry.name}.nes`, set.bytes);
         return true;

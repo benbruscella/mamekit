@@ -2,7 +2,7 @@
 // keyboard and gamepad input, audio bring-up, and the fixed-timestep run loop.
 // Pure DOM — no libraries.
 
-import { createBoard } from './generated-board.ts';
+import { createBoard, loadBoardSlotCards } from './generated-board.ts';
 import { loadArtwork, type ArtTint, type ArtWindow } from './artwork.ts';
 import { KeyboardInput, type FieldBinding, type DipDefault, type PortSpec } from './input.ts';
 import { GamepadInput, padName } from './gamepad.ts';
@@ -330,7 +330,7 @@ export interface ShellConfig {
   ports: PortSpec[];
   /** console cart facts from the generator (catalog url, capability lists) */
   cart?: {
-    interface: string; list: string; catalogUrl: string; slots: string[]; games: string[];
+    interface: string; list: string; catalogUrl: string; slots?: string[]; games: string[];
     /**
      * The slot option a cartridge takes when its software-list entry names
      * none, as MAME's own slot device declares it. coleco.xml names a slot on
@@ -340,6 +340,16 @@ export interface ShellConfig {
     defaultSlot?: string;
     /** ROM region a cartridge PCB loads into, as MAME's rom_alloc names it. */
     romRegion?: string;
+    /**
+     * The cartridge slot that mounts a cartridge itself, as MAME's image
+     * device does: the cartridge is handed to it as an image (a software-list
+     * part, or the file), its own get_default_card_software picks the board
+     * and call_load reads it in. What the console plays is then the slot's
+     * own card list, so `slots` is not given.
+     */
+    slotDevice?: { tag: string; type: string };
+    /** How many boards that slot declares, whether or not each compiled. */
+    boards?: number;
     /**
      * What the cartridge slot accepts, from its own
      * `device_image_interface::file_extensions()`: ".bin"/".a26" for the VCS,
@@ -1014,6 +1024,9 @@ export async function runShell(
   // the browser gate — Gyruss shipped with its entire i8039 percussion channel
   // emitting nothing and every other check still passed.
   const soundWrites = { total: 0, nonzero: 0 };
+  // A slot whose cards ship as modules of their own (the NES's 390 boards)
+  // fetches the one this machine holds before it is built.
+  await loadBoardSlotCards({ ...cfg.board, game: cfg.game });
   const board = createBoard({ ...cfg.board, game: cfg.game }, regions, input, {
     soundWrite: (offset, data, frac, method) => {
       soundWrites.total++;

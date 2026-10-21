@@ -666,4 +666,23 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
   assert.equal((members.m_card as { m_roml: unknown }).m_roml, 'bytes');
 }
 
-console.log('handler-ir.spec: 74 passed');
+{
+  // A character literal is an integer, as in C++: the NES slot's call_load
+  // recognises an iNES header by `magic[0] == 'N'`.
+  const program = compileMameHandler(`{ return (m == 'N') + '\\0' + '\\x1b' + '\\n'; }`);
+  assert.deepEqual(program.diagnostics, []);
+  const numbers: number[] = [];
+  const visit = (value: unknown): void => {
+    if (!value || typeof value !== 'object') return;
+    const node = value as { kind?: string; value?: unknown };
+    if (node.kind === 'string') assert.fail(`a character literal lowered to a string: ${JSON.stringify(node)}`);
+    if (node.kind === 'number' && typeof node.value === 'number') numbers.push(node.value);
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(program.operations);
+  assert.deepEqual(numbers.sort((a, b) => a - b), [0, 10, 27, 78]);
+  // A string literal stays a string.
+  assert.ok(JSON.stringify(compileMameHandler('{ logerror("N"); }').operations).includes('"kind":"string"'));
+}
+
+console.log('handler-ir.spec: 75 passed');

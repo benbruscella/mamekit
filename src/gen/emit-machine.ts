@@ -971,6 +971,9 @@ export function lowerGeneratedMachine(
         enableMethods: [],
         controlOffset: -1,
         nesApu,
+        // The APU's own route (`maincpu.add_route(ALL_OUTPUTS, "mono",
+        // 0.90)`): a cartridge's sound chip is mixed relative to it.
+        ...(lowerAudioRoutes(graph, [nesCpu]).length ? { routes: lowerAudioRoutes(graph, [nesCpu]) } : {}),
       }
     : soundDevice
     ? {

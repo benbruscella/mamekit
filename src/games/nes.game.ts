@@ -38,9 +38,10 @@ export const nes = {
     ],
     golden: {
       regions: {
-        chr: 'c2928c49',
         maincpu: 'd7978eeb',
-        prg: 'a0ed7d20',
+        // MAME's own region names: the card's prg_alloc/vrom_alloc in call_load.
+        'nes_slot:cart:chr_rom': 'c2928c49',
+        'nes_slot:cart:prg_rom': 'a0ed7d20',
       },
       checkpoints: {
         1: { video: 'f0e232c6', state: '7e64d27e' },
@@ -74,9 +75,10 @@ export const nes = {
     ],
     golden: {
       regions: {
-        chr: '867b51ad',
         maincpu: 'd7978eeb',
-        prg: '5cf548d3',
+        // MAME's own region names: the card's prg_alloc/vrom_alloc in call_load.
+        'nes_slot:cart:chr_rom': '867b51ad',
+        'nes_slot:cart:prg_rom': '5cf548d3',
       },
       checkpoints: {
         1: { video: 'f0e232c6', state: 'b89b95a5' },

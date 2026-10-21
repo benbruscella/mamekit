@@ -28,7 +28,12 @@ export interface DossierData {
   commitActivity?: DriverCommitActivity;
   historyText: string;
   historyCredit: string;
-  cart?: { list: string; entries: number; slots: string[] };
+  /**
+   * `slots` lists the boards a host-installed console plays; `boards` counts
+   * the options of a slot that mounts its own (the NES), every one of which
+   * that compiles is playable.
+   */
+  cart?: { list: string; entries: number; slots?: string[]; boards?: number };
 }
 
 export interface DossierHtmlOptions {
@@ -114,8 +119,7 @@ export function machineDossierMarkdown(d: DossierData): string {
     md.push('');
     md.push(`The machine itself needs no ROMs — all software comes on cartridges. ` +
       `${d.cart.entries.toLocaleString('en-US')} cartridges are catalogued from the MAME \`${d.cart.list}\` ` +
-      `software list; ${d.cart.slots.length} PCB types are currently supported ` +
-      `(${d.cart.slots.map(slot => `\`${slot}\``).join(', ')}). Drop your own legally-dumped ` +
+      `software list; ${cartBoardsSentence(d.cart)}. Drop your own legally-dumped ` +
       'cart files onto the console page to play.');
     md.push('');
   } else {
@@ -290,7 +294,7 @@ summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-
     </div>
   </div>
   <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody>${cpuRows}</tbody></table></div></section>
-  ${d.cart ? `<section><h2>Cartridges</h2><p>${d.cart.entries.toLocaleString('en-US')} entries from the ${escapeHtml(d.cart.list)} software list; ${d.cart.slots.length} supported PCB types.</p></section>` :
+  ${d.cart ? `<section><h2>Cartridges</h2><p>${d.cart.entries.toLocaleString('en-US')} entries from the ${escapeHtml(d.cart.list)} software list; ${escapeHtml(cartBoardsSentence(d.cart).replace(/`/g, ''))}.</p></section>` :
     `<section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody>${romRows}</tbody></table></div></section>`}
   ${bindingRows ? `<section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody>${bindingRows}</tbody></table></div></section>` : ''}
   <section><h2>The people behind the driver</h2>
@@ -304,4 +308,13 @@ summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-
 </main>
 </body>
 </html>`;
+}
+
+function cartBoardsSentence(cart: NonNullable<DossierData['cart']>): string {
+  if (cart.boards !== undefined) {
+    return `the cartridge slot declares ${cart.boards.toLocaleString('en-US')} boards, and every one ` +
+      'that compiles from MAME source is playable';
+  }
+  const slots = cart.slots ?? [];
+  return `${slots.length} PCB types are currently supported (${slots.map(slot => `\`${slot}\``).join(', ')})`;
 }

@@ -10,6 +10,8 @@ import {
   NesApu,
 } from './apu.ts';
 import type { SoundRuntimeContext, SoundRuntimeHooks } from '../sound-runtime.ts';
+import { createStreamMixer } from '../speaker/runtime.ts';
+import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
 
 const RP2A03_APU_IRQ_LINE = 1;
 
@@ -50,18 +52,31 @@ export function installNesRuntime(context: SoundRuntimeContext): SoundRuntimeHoo
     return value;
   };
 
+  // A cartridge's own sound chip -- MMC5, VRC6, Namco 163 -- routed to the
+  // cartridge's speaker. It renders on the main thread and is mixed into the
+  // worklet beside the APU, each at its route's gain over the APU's own, so
+  // the APU stays at the level it always had.
+  const apuGain = context.sound.routes?.[0]?.gain || 1;
+  const cartridge = context.streamDescendants?.() ?? [];
+  const streams = cartridge.length
+    ? createStreamMixer(context, cartridge.map(source => ({ tag: source.tag, gain: source.gain / apuGain })),
+      (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
+    : undefined;
+
   return {
-    state: { apu },
+    state: { apu, ...(streams ? { streams: streams.state } : {}) },
     tickCpu: (tag, cycles) => {
       if (tag !== cpu.tag || cycles <= 0) return;
       apu.tick(cycles);
       const stalls = apu.consumeDmcStalls();
       if (stalls) context.stallCpu(cpu.tag, stalls);
       updateIrq();
+      streams?.tickCpu?.(tag, cycles);
     },
     reset: () => {
       apu.reset();
       updateIrq();
+      streams?.reset?.();
     },
   };
 }

@@ -1,4 +1,5 @@
 import { boardConfigFromIr } from '../ir/host-config.ts';
+import { generatedMachine } from './generated-machine.ts';
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
@@ -12,7 +13,10 @@ import {
   withGeneratedTimerExpiry,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
+  generatedDeviceDefinition,
   generatedDeviceRole,
+  loadSlotCard,
+  slotCardForImage,
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
@@ -87,6 +91,30 @@ const GENERATED_BOARDS = new Map<string, BoardFactory>();
 
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
+}
+
+/**
+ * Load the cards a machine's slots will hold, before it is built.
+ *
+ * A slot whose cards ship as modules of their own (the NES cartridge slot's
+ * 390 boards) has none in hand until asked. The card is the one the machine
+ * would select: the host's slot card, else the one the slot's own
+ * get_default_card_software picks for the image it is booted with, else the
+ * slot's default. An option whose card did not compile loads nothing, and the
+ * slot is built empty as MAME builds an unknown one.
+ */
+export async function loadBoardSlotCards(config: BoardConfig): Promise<void> {
+  if (!config.game) return;
+  for (const device of generatedMachine(config.game).devices ?? []) {
+    const definition = generatedDeviceDefinition(device.type);
+    if (!definition?.slot?.cards) continue;
+    const image = config.images?.[device.tag];
+    const option = config.slotCards?.[device.tag]
+      ?? (image ? slotCardForImage(device.type, image) : undefined)
+      ?? device.slotDefault
+      ?? definition.slot.default;
+    if (option) await loadSlotCard(definition, option);
+  }
 }
 
 export function createBoard(
@@ -5297,6 +5325,17 @@ class IrBoard implements Board {
     // Each device's method names, read once: the stream pump asks before every
     // render, and methodNames() builds a fresh array of all of them.
     const deviceMethods = new Map<Device, ReadonlySet<string>>();
+    // Sound devices a board device is built out of, the card in its slot
+    // included: they are reached by their MAME tags like any other.
+    const descendants = new Map<string, Device>();
+    const streamDescendants: { tag: string; gain: number }[] = [];
+    for (const device of this.devices.values()) {
+      for (const descendant of device.streamDescendants?.() ?? []) {
+        descendants.set(descendant.tag, descendant.device);
+        streamDescendants.push({ tag: descendant.tag, gain: descendant.gain });
+      }
+    }
+    const deviceFor = (tag: string): Device | undefined => this.devices.get(tag) ?? descendants.get(tag);
     const hooks = installSoundRuntime({
       board: machine,
       regions,
@@ -5309,9 +5348,9 @@ class IrBoard implements Board {
       soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
-      bindDeviceCall: (tag, name, callback) => this.devices.get(tag)?.bindCall(name, callback),
+      bindDeviceCall: (tag, name, callback) => deviceFor(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
-        const device = this.devices.get(tag);
+        const device = deviceFor(tag);
         if (!device) return undefined;
         let methods = deviceMethods.get(device);
         if (!methods) deviceMethods.set(device, methods = new Set(device.methodNames()));
@@ -5320,8 +5359,9 @@ class IrBoard implements Board {
         // MAME's `sound_stream` surface, which is an object, not a number.
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
-      deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
-      deviceStreamRate: tag => this.devices.get(tag)?.streamRate?.(),
+      deviceStream: tag => deviceFor(tag)?.takeStreamSamples?.() ?? [],
+      deviceStreamRate: tag => deviceFor(tag)?.streamRate?.(),
+      streamDescendants: () => streamDescendants,
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>

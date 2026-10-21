@@ -27,10 +27,11 @@ import {
   generatedSubtract,
   resizeGeneratedContainer,
 } from './generated-handler.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
+import { inheritCardInterface, type CardInterface } from '../ir/card-interface.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 import { GeneratedM68705P5Device } from './generated-m68705.ts';
 
@@ -236,6 +237,10 @@ export interface GeneratedDeviceDefinition {
     /** Child delegate member -> this device's method that fills it. */
     delegateTargets?: Record<string, string>;
     slotOptions?: string;
+    /** The child's own clock, where its constructor gives one. */
+    clock?: number;
+    /** Where a sound child's outputs go (`add_route`): output -1 is ALL_OUTPUTS. */
+    routes?: { output: number; target: string; gain: number }[];
   }[];
   slot?: {
     member: string;
@@ -243,7 +248,17 @@ export interface GeneratedDeviceDefinition {
     selector?: string;
     install?: { method: string; space?: string };
     options: Record<string, GeneratedDeviceDefinition>;
+    /** Cards shipped as modules of their own: option -> module (loadSlotCard). */
+    cards?: Record<string, string>;
+    /** The interface every card inherits, kept once here (src/ir/card-interface.ts). */
+    cardInterface?: CardInterface<DeviceMethod>;
+    /** Options MAME declares whose card did not compile, and why. */
+    unsupported?: Record<string, string>;
+    /** Attached by the generated module: module -> its import. */
+    loadCard?: Record<string, () => Promise<{ device: GeneratedDeviceDefinition }>>;
   };
+  /** A card whose interface methods are its slot's `cardInterface`. */
+  inheritsCardInterface?: boolean;
   resources?: {
     members?: Record<string, DeviceResource>;
     calls?: Record<string, DeviceResource>;
@@ -345,6 +360,8 @@ export interface Device {
    * that have no sound interface at all.
    */
   takeStreamSamples?(): readonly number[];
+  /** Stream-rendering sound devices this one and its slot's card are built out of. */
+  streamDescendants?(): { tag: string; device: Device; gain: number }[];
   /** The rate the device passed to `stream_alloc`, once it has started. */
   streamRate?(): number | undefined;
   arity(name: string): number;
@@ -378,6 +395,8 @@ export interface GeneratedDeviceBusRange {
   read?: string;
   write?: string;
   bank?: string;
+  /** Installed only while the slot holds one of these cards. */
+  cards?: string[];
 }
 
 export interface GeneratedDeviceLink {
@@ -404,6 +423,48 @@ export function registerGeneratedDevice(definition: GeneratedDeviceDefinition): 
   DEFINITIONS.set(definition.type.toUpperCase(), definition);
 }
 
+/**
+ * Put a slot's card in its options before a machine is built with it.
+ *
+ * A slot whose cards ship as modules of their own (`slot.cards`) holds none
+ * of them until asked: the module is imported, the interface its methods
+ * inherit is put back from the slot's one copy, and every option naming the
+ * same device type gets the card. False when the slot has no such option.
+ */
+export async function loadSlotCard(definition: GeneratedDeviceDefinition, option: string): Promise<boolean> {
+  const slot = definition.slot;
+  if (!slot) return false;
+  if (slot.options[option]) return true;
+  const module = slot.cards?.[option];
+  const load = module ? slot.loadCard?.[module] : undefined;
+  if (!module || !load) return false;
+  const card = (await load()).device;
+  if (card.inheritsCardInterface && slot.cardInterface) {
+    card.methods = inheritCardInterface<DeviceMethod>(card.methods, slot.cardInterface);
+    card.inheritsCardInterface = false;
+  }
+  for (const [name, path] of Object.entries(slot.cards!)) {
+    if (path === module) slot.options[name] = card;
+  }
+  return true;
+}
+
+/**
+ * The card a slot would choose for an image, answered by the slot's own
+ * get_default_card_software as the machine would run it -- a software
+ * part's `slot` feature, or what MAME reads from an iNES header -- without
+ * building the machine. Undefined when the device takes no image this way.
+ */
+export function slotCardForImage(type: string, image: BoardImage): string | undefined {
+  const definition = DEFINITIONS.get(type.toUpperCase());
+  if (!definition?.slot) return undefined;
+  const probe = new IrDevice({ ...definition, slot: { ...definition.slot, options: {} } }, 0, {
+    image,
+    deferStart: true,
+  });
+  return probe.slotOption;
+}
+
 export function clearGeneratedDevices(): void {
   DEFINITIONS.clear();
 }
@@ -412,9 +473,26 @@ export function hasGeneratedDevice(type: string): boolean {
   return type.toUpperCase() === 'M68705P5' || DEFINITIONS.has(type.toUpperCase());
 }
 
+/** The registered definition of a device type, if any. */
+export function generatedDeviceDefinition(type: string): GeneratedDeviceDefinition | undefined {
+  return DEFINITIONS.get(type.toUpperCase());
+}
+
 /** Composition role declared by the generated device definition. */
 export function generatedDeviceRole(type: string): string | undefined {
   return DEFINITIONS.get(type.toUpperCase())?.role;
+}
+
+/** MAME's device_t::subtag: the full tag `tag` names, seen from the device tagged `own`. */
+export function mameSubtag(own: string, tag: string): string {
+  if (tag.startsWith(':')) return tag.slice(1);
+  let base = own.split(':').filter(Boolean);
+  let rest = tag;
+  while (rest.startsWith('^')) {
+    base = base.slice(0, -1);
+    rest = rest.slice(1);
+  }
+  return [...base, ...rest.split(':').filter(Boolean)].join(':');
 }
 
 export interface GeneratedDeviceOptions {
@@ -423,6 +501,11 @@ export interface GeneratedDeviceOptions {
   clock?: number;
   /** Device tag, resolving MAME's DEVICE_SELF memory share binding. */
   tag?: string;
+  /**
+   * The device's own MAME tag where it differs from `tag`: a slot card is
+   * `<slot>:<option>`, while it reads its slot's inputs and finders.
+   */
+  deviceTag?: string;
   /** Board memory shares available to required/optional_shared_ptr members. */
   shares?: Record<string, Uint8Array>;
   /** Instance member resources resolved by generated composition metadata. */
@@ -781,10 +864,14 @@ class IrDevice implements Device {
   /** Samples published through `sound_stream::put_int` since the last collection. */
   private streamSamples: number[] = [];
   private slotChild?: IrDevice;
+  /** The option the slot selected, whether or not its card is held. */
+  slotOption?: string;
   /** Set for the duration of a mounted card's installer; see installSlotCard. */
   private installSpace?: unknown;
   /** Devices instantiated from this one's device_add_mconfig. */
   private readonly children: IrDevice[] = [];
+  /** The device's own MAME tag (a slot card's is `<slot>:<option>`). */
+  private readonly ownTag: string;
 
   constructor(
     definition: GeneratedDeviceDefinition,
@@ -792,6 +879,7 @@ class IrDevice implements Device {
     options: GeneratedDeviceOptions = {},
   ) {
     this.definition = definition;
+    this.ownTag = options.deviceTag ?? options.tag ?? '';
     if (definition.floppyImage) {
       HELD_INSTANCE_DEFINITIONS.set(heldInstanceName(definition.floppyImage), definition.floppyImage);
     }
@@ -1000,6 +1088,12 @@ class IrDevice implements Device {
         clock: () => clock,
         'machine().sample_rate': () => 48000,
         'machine().phase': () => DEFAULT_CONSTANTS['machine_phase::RUNNING']!,
+        // `device().subtag(tag)`, resolved as MAME's device_t::subtag does:
+        // `^` climbs to the owner, a leading `:` is absolute, anything else
+        // is below this device. An NES card allocates its PRG as
+        // `subtag("^cart:prg_rom")`, which names a region beside it.
+        ...Object.fromEntries(['subtag', 'device().subtag'].map(name =>
+          [name, (tag: unknown) => mameSubtag(options.deviceTag ?? options.tag ?? '', String(tag))])),
         // `machine().memory().region_alloc(tag, size, width, endian)`: a
         // region made at load time, as a cartridge's ROM is
         // (device_generic_cart_interface::rom_alloc). It is a region like any
@@ -1240,6 +1334,20 @@ class IrDevice implements Device {
       resizeGeneratedContainer(generatedVector(vectorElement(String(type), definition.structs)), Number(count) || 0);
     this.bindings.calls!.VECTOR_OF = vectorOf as (...args: number[]) => unknown;
     referenceCalls.VECTOR_OF = vectorOf;
+    // A region is named by a string, which a plain host call would hand over
+    // as a number: `region_alloc(subtag("^cart:prg_rom"), ...)` made every
+    // NES card's PRG and CHR the one region "0".
+    for (const [name, parameters] of [
+      ['subtag', 'std::string_view tag'],
+      ['device().subtag', 'std::string_view tag'],
+      ['machine().memory().region_alloc', 'std::string_view name, u32 length, u8 width, endianness_t endian'],
+      ['device().machine().memory().region_alloc', 'std::string_view name, u32 length, u8 width, endianness_t endian'],
+    ] as const) {
+      const call = this.bindings.calls![name];
+      if (!call) continue;
+      referenceCalls[name] ??= call as (...args: unknown[]) => unknown;
+      callParameters[name] ??= splitParameters(parameters);
+    }
     for (const method of definition.methods) {
       const parameters = splitParameters(method.parameters);
       const names = parameters.map(parameterName);
@@ -1271,12 +1379,16 @@ class IrDevice implements Device {
       // `slot` feature through software_get_default_slot.
       const chosen = selected === undefined && options.image ? this.defaultCardSoftware() : undefined;
       const option = String(selected ?? chosen ?? definition.slot.default ?? '');
+      this.slotOption = option || undefined;
       const childDefinition = definition.slot.options[option];
       if (childDefinition) {
         const cartSpace = definition.slot.install?.space;
         const child = this.slotChild = new IrDevice(childDefinition, clock, {
           ...resourceOptions,
           owner: this.members.this,
+          // The card is the slot's subdevice named by its option, as MAME
+          // tags it (`nes_slot:nrom`); only its subtag() reads this.
+          deviceTag: `${options.deviceTag ?? options.tag ?? ''}:${option}`,
           // A child card may itself be a slot in a future bus; do not pass
           // the parent's selected option through accidentally.
           slot: undefined,
@@ -1331,7 +1443,7 @@ class IrDevice implements Device {
       // callback it loads its image through reaches straight back for it
       // (`m_cart->common_get_size("rom")`).
       const targets = Object.entries(child.delegateTargets ?? {});
-      const instance = new IrDevice(child.definition, clock, {
+      const instance = new IrDevice(child.definition, child.clock ?? clock, {
         ...resourceOptions,
         owner: this.members.this,
         slot: undefined,
@@ -1407,6 +1519,29 @@ class IrDevice implements Device {
 
   instance(): unknown {
     return this.members.this;
+  }
+
+  /**
+   * The sound devices this device and the card in its slot are built out of,
+   * that render a stream MAME routes to a speaker: an NES cartridge's MMC5,
+   * VRC6 or Namco 163, which only exist once a cartridge chose that board.
+   * Each is tagged as MAME tags it (`nes_slot:exrom:sound`), with the gain
+   * its route gives output 0.
+   */
+  streamDescendants(): { tag: string; device: Device; gain: number }[] {
+    const own = this.ownTag;
+    const found: { tag: string; device: Device; gain: number }[] = [];
+    (this.definition.children ?? []).forEach((child, index) => {
+      const instance = this.children[index];
+      if (!instance) return;
+      const route = child.routes?.find(candidate => candidate.output === -1 || candidate.output === 0);
+      if (route && route.gain > 0 && instance.methods.has('sound_stream_update')) {
+        found.push({ tag: `${own}:${child.member.replace(/^m_/, '')}`, device: instance, gain: route.gain });
+      }
+      found.push(...instance.streamDescendants());
+    });
+    if (this.slotChild) found.push(...this.slotChild.streamDescendants());
+    return found;
   }
 
   reset(): void {
@@ -1714,7 +1849,15 @@ class IrDevice implements Device {
   }
 
   bus(): GeneratedDeviceDefinition['bus'] {
-    return this.definition.bus;
+    const bus = this.definition.bus;
+    if (!bus?.ranges.some(range => range.cards)) return bus;
+    // machine_start installs some handlers only for the boards that need
+    // them (the NES's read_h for MMC5, Datach, Aladdin, ...).
+    return {
+      ...bus,
+      ranges: bus.ranges.filter(range =>
+        !range.cards || (this.slotChild !== undefined && range.cards.includes(this.slotOption ?? ''))),
+    };
   }
 
   delegates(): Record<string, string> {
@@ -1790,6 +1933,15 @@ class IrDevice implements Device {
       // util::core_file's own calls, as the CRT reader makes them.
       eof: () => file.position >= file.bytes.length ? 1 : 0,
       tell: () => file.position,
+      // `length(std::uint64_t &result)`, as the NES slot's chooser reads the
+      // file it is handed to see an iNES header.
+      length: (result: unknown) => {
+        if (result && typeof (result as { set?: unknown }).set === 'function') {
+          (result as { set(value: number): void }).set(file.bytes.length);
+        }
+        return 0;
+      },
+      [REFERENCE_PARAMETERS]: { length: [0] },
       seek: (offset: unknown, whence: unknown) => {
         const from = Number(whence) === (this.definition.constants.SEEK_CUR ?? 1) ? file.position
           : Number(whence) === (this.definition.constants.SEEK_END ?? 2) ? file.bytes.length : 0;
@@ -2862,10 +3014,13 @@ function structMember(
     // A field that is itself a struct, and commonly an array of them: the
     // Game Boy PPU keeps ten sprite slots inside its per-line state. Built as
     // a number, the first assignment into one had nothing to assign to.
-    if (field.fields) {
+    // A field of a named struct type is one too: MMC5's `square_t squ[2]` is
+    // a `mmc5_sound_t::square_t`, declared beside the struct that holds it.
+    const nested = field.fields ?? (field.valueType ? structs?.[field.valueType] : undefined);
+    if (nested) {
       value[field.name] = field.length
-        ? Array.from({ length: field.length }, () => structMember(field.fields!))
-        : structMember(field.fields);
+        ? Array.from({ length: field.length }, () => structMember(nested, structs))
+        : structMember(nested, structs);
       continue;
     }
     if (field.length) {

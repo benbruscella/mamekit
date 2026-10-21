@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { extractNes } from './extract.ts';
+import { inheritCardInterface } from '../../ir/card-interface.ts';
 import { indexMameHardware } from '../../mame/hardware.ts';
 import { compileNesApu } from '../../mame/nes-apu-compiler.ts';
 import {
@@ -106,11 +107,12 @@ const slot = extraction.artifacts.find(artifact =>
   artifact.path.endsWith('nes_cart_slot.device.ir.json'));
 assert.ok(slot);
 const slotDefinition = JSON.parse(slot.contents);
-const slotExecutable = extraction.artifacts.find(artifact =>
-  artifact.path.endsWith('nes_cart_slot.ts'));
-assert.ok(slotExecutable);
+const cardArtifact = (key: string) => extraction.artifacts.find(artifact =>
+  artifact.path === `devices/nes_cart_slot/${key}`);
+const txromExecutable = cardArtifact('nes_txrom.ts');
+assert.ok(txromExecutable, 'each card type is a module of its own');
 assert.match(
-  slotExecutable.contents,
+  txromExecutable.contents,
   // The fixed array may be indexed directly (and, as nothing rebinds it, read
   // once into a local), but the resulting nametable address must still retain
   // its pointer base and offset.
@@ -118,24 +120,82 @@ assert.match(
   'runtime MMC3 mirroring changes must retain offset nametable pointers',
 );
 assert.equal(slotDefinition.role, 'cartridge');
-assert.deepEqual(slotDefinition.bus.ranges, [
-  { start: 0x4100, end: 0x5fff, read: 'read_l', write: 'write_l' },
-  { start: 0x6000, end: 0x7fff, read: 'read_m', write: 'write_m' },
-  { start: 0x8000, end: 0x9fff, bank: 'prg0', write: 'write_h' },
-  { start: 0xa000, end: 0xbfff, bank: 'prg1', write: 'write_h' },
-  { start: 0xc000, end: 0xdfff, bank: 'prg2', write: 'write_h' },
-  { start: 0xe000, end: 0xffff, bank: 'prg3', write: 'write_h' },
-]);
-assert.deepEqual(Object.keys(slotDefinition.slot.options), ['0', '1', '2', '3', '4']);
-for (const mapper of Object.values(slotDefinition.slot.options) as { summary: { diagnostics: number } }[]) {
-  assert.equal(mapper.summary.diagnostics, 0);
+const cardsFor = (pcbList: string) => slotDefinition.bus.ranges
+  .find((range: { cards?: string[] }) => range.cards?.includes(pcbList))?.cards as string[] | undefined;
+assert.deepEqual(
+  slotDefinition.bus.ranges.map(({ cards: _cards, ...range }: { cards?: string[] }) => range),
+  [
+    { start: 0x4100, end: 0x5fff, read: 'read_l', write: 'write_l' },
+    { start: 0x6000, end: 0x7fff, read: 'read_m', write: 'write_m' },
+    { start: 0x8000, end: 0x9fff, bank: 'prg0', write: 'write_h' },
+    { start: 0xa000, end: 0xbfff, bank: 'prg1', write: 'write_h' },
+    { start: 0xc000, end: 0xdfff, bank: 'prg2', write: 'write_h' },
+    { start: 0xe000, end: 0xffff, bank: 'prg3', write: 'write_h' },
+    // machine_start's per-board installs, after the banks they override
+    { start: 0x8000, end: 0xffff, read: 'read_h' },
+    { start: 0x4020, end: 0x40ff, write: 'write_ex' },
+    { start: 0x4020, end: 0x40ff, read: 'read_ex', write: 'write_ex' },
+  ],
+);
+assert.ok(cardsFor('exrom'), 'MMC5 reads its own PRG window (read_h)');
+assert.ok(cardsFor('ade'), 'the Aladdin deck enhancer reads its own PRG window (read_h)');
+assert.ok(cardsFor('smb2j'), 'SMB2J decodes $4020-$40ff');
+assert.equal(cardsFor('txrom'), undefined, 'MMC3 keeps the common banked reads');
+
+// Every board MAME's nes_cart lists is a card, or says why it is not.
+const cards = slotDefinition.slot.cards as Record<string, string>;
+const unsupported = (slotDefinition.slot.unsupported ?? {}) as Record<string, string>;
+assert.ok(Object.keys(cards).length > 390, `${Object.keys(cards).length} NES boards compile`);
+for (const option of ['nrom', 'sxrom', 'uxrom', 'cnrom', 'txrom', 'exrom', 'jyc_a', 'vrc6', 'namcot_163', 'sunsoft_fme7']) {
+  assert.ok(cards[option], `${option} is a supported board`);
 }
+for (const [option, reason] of Object.entries(unsupported)) {
+  assert.ok(!cards[option] && reason.length, `${option} is either a card or a reason`);
+}
+assert.deepEqual(slotDefinition.slot.options, {}, 'no card ships inline with the slot');
+const txrom = JSON.parse(cardArtifact('nes_txrom.device.ir.json')!.contents);
+assert.equal(txrom.summary.diagnostics, 0);
+assert.equal(txrom.inheritsCardInterface, true, 'MMC3 inherits the interface the slot carries');
+const txromMethods = inheritCardInterface(txrom.methods, slotDefinition.slot.cardInterface) as
+  { name: string; source: { file: string } }[];
 assert.ok(
-  slotDefinition.slot.options['4'].members.some(
-    (member: { name: string }) => member.name === 'm_prg_mask__nes_txrom_device',
-  ),
+  JSON.stringify(txrom.methods).length < JSON.stringify(txromMethods).length / 3,
+  'a card carries a reference, not a copy, for each interface method it compiled identically',
+);
+assert.ok(
+  txrom.members.some((member: { name: string }) => member.name === 'm_prg_mask__nes_txrom_device'),
   'derived MMC3 mask must not alias the base cartridge PRG mask',
 );
+// The slot's own PCB lookup runs over MAME's file-scope tables: call_load_pcb
+// sets a board's wiring only `if (m_pcb_id == KONAMI_VRC6)` and the like, and
+// with pcb_list unbound every such branch was skipped -- the VRC6 decoded its
+// sound registers on the wrong address lines and played nothing.
+{
+  const tables = Object.fromEntries((slotDefinition.members as { name: string; arrayLength?: number }[])
+    .filter(member => ['pcb_list', 'mmc_list'].includes(member.name))
+    .map(member => [member.name, member.arrayLength]));
+  assert.ok((tables.pcb_list ?? 0) > 390 && (tables.mmc_list ?? 0) > 350, `slot tables lifted: ${JSON.stringify(tables)}`);
+  clearGeneratedDevices();
+  registerGeneratedDevice(slotDefinition);
+  const lookup = createDevice('NES_CART_SLOT') as unknown as { invoke(name: string, ...args: unknown[]): unknown };
+  assert.equal(lookup.invoke('nes_get_pcb_id', 'vrc6'), slotDefinition.constants.KONAMI_VRC6);
+  assert.equal(lookup.invoke('nes_get_pcb_id', 'txrom'), slotDefinition.constants.STD_TXROM);
+  clearGeneratedDevices();
+}
+
+// A cartridge's own sound chip is a child of its card, with the clock and the
+// route MAME's device_add_mconfig gives it: the board mixes it beside the APU.
+for (const [key, type, gain] of [
+  ['nes_exrom', 'MMC5_SOUND', 0.9], ['nes_vrc6', 'VRC6', 1], ['nes_namcot163', 'NAMCO_163', 0.5],
+] as const) {
+  const card = JSON.parse(cardArtifact(`${key}.device.ir.json`)!.contents);
+  const chip = card.children?.find((child: { type: string }) => child.type === type);
+  assert.ok(chip, `${key} carries its ${type}`);
+  assert.equal(Math.round(chip.clock), 1_789_773, `${type} runs at XTAL(21'477'272)/12`);
+  assert.deepEqual(chip.routes, [{ output: -1, target: 'addon', gain }], `${type} is routed to the cartridge's speaker`);
+  assert.equal(chip.definition.summary.diagnostics, 0);
+}
+
 const apuPlan = compileNesApu(mameSource);
 assert.deepEqual(
   apuPlan.internalMap.ranges.map(range => ({
@@ -174,14 +234,15 @@ assert.equal(apu.irqAsserted(), true, 'four-step frame counter must assert the A
 assert.equal(apu.read4015() & 0x40, 0x40);
 assert.equal(apu.irqAsserted(), false, '$4015 status read must acknowledge frame IRQ');
 assert.ok(
-  slotDefinition.slot.options['4'].methods.some(
-    (method: { name: string; source: { file: string } }) =>
-      method.name === 'write_h' && method.source.file.endsWith('/mmc3.h'),
-  ),
+  txromMethods.some(method => method.name === 'write_h' && method.source.file.endsWith('/mmc3.h')),
   'MMC3 inline write_h override must replace the base no-op',
+);
+assert.ok(
+  txromMethods.some(method => method.name === 'device_nes_cart_interface::write_h'),
+  'the overridden base write_h stays reachable under its qualified name',
 );
 assert.ok(
   extraction.artifacts.every(artifact => !artifact.path.endsWith('.txt')),
 );
 
-console.log('nes.spec: PPU, controllers, mappers and RP2A03 APU lower cleanly');
+console.log(`nes.spec: PPU, controllers, ${Object.keys(cards).length} cartridge boards and RP2A03 APU lower cleanly`);

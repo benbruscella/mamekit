@@ -201,7 +201,19 @@ export interface GeneratedDeviceDefinition {
      */
     install?: { method: string; space?: string };
     options: Record<string, GeneratedDeviceDefinition>;
+    /**
+     * Cards shipped as modules of their own, loaded when a machine selects
+     * one (option -> module path beside the slot's). A slot with hundreds of
+     * boards cannot carry every one inline.
+     */
+    cards?: Record<string, string>;
+    /** The interface every card inherits, kept once here (src/ir/card-interface.ts). */
+    cardInterface?: { className: string; methods: GeneratedDeviceDefinition['methods'] };
+    /** Options MAME declares whose card did not compile, and why. */
+    unsupported?: Record<string, string>;
   };
+  /** A card whose interface methods are its slot's `cardInterface`. */
+  inheritsCardInterface?: boolean;
   /** Runtime resources and power-on calls derived by a capability compiler. */
   resources?: {
     members?: Record<string, GeneratedDeviceResource>;
@@ -225,6 +237,8 @@ export interface GeneratedDeviceDefinition {
       read?: string;
       write?: string;
       bank?: string;
+      /** Installed only while the slot holds one of these cards. */
+      cards?: string[];
     }[];
   };
   /** Cross-device address-space calls resolved by a composition role. */
@@ -301,6 +315,13 @@ export interface GeneratedDeviceDefinition {
      * `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, ...)`.
      */
     slotOptions?: string;
+    /** The child's own clock, where its constructor gives one. */
+    clock?: number;
+    /**
+     * Where a sound child's outputs go, as its `add_route` calls say: the
+     * output (-1 for ALL_OUTPUTS), the speaker, and MAME's gain.
+     */
+    routes?: { output: number; target: string; gain: number }[];
   }[];
   summary: {
     methods: number;
@@ -533,10 +554,15 @@ export function compileMameDevice(
       // differ in arity, so neither replaces the other and the qualified name
       // was never registered -- the forward reached nothing, and every MBC5
       // cartridge installed its bank-switch writes over no ROM at all.
+      // Keyed by signature, not name: a base may declare `set_prg()` and
+      // `set_prg(int, int)`, and the first's alias must not stand in for the
+      // second -- VRC4 clones call `nes_konami_vrc4_device::set_prg(m_outer,
+      // 0x1f)`, which reached the no-argument version.
       const qualified = `${specialized.className}::${specialized.name}`;
+      const qualifiedSignature = methodSignature(qualified, specialized.parameters);
       if (
         explicitBaseCalls.has(qualified) &&
-        !methods.some(candidate => candidate.name === qualified)
+        !methods.some(candidate => methodSignature(candidate.name, candidate.parameters) === qualifiedSignature)
       ) {
         methods.push({ ...compiled, name: qualified });
       }
@@ -571,12 +597,19 @@ export function compileMameDevice(
   // mixed four channels of silence however loud the game set the envelopes.
   // Only helpers something already collected actually calls -- a device source
   // shares a translation unit with its neighbours, and the rest are theirs.
-  const collectedBodies = [...methodBodies.values()].join('\n');
-  for (const helper of sourceMethods) {
-    if (helper.className !== '') continue;
-    if (methods.some(candidate => candidate.name === helper.name)) continue;
-    if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(collectedBodies)) continue;
-    replaceOrAppend(helper);
+  // To a fixed point: a helper calls helpers of its own -- the NES slot's
+  // ines_mapr_setup looks its mapper up through nes_mapper_lookup -- and one
+  // pass collected only the first level.
+  for (let added = true; added;) {
+    added = false;
+    const collectedBodies = [...methodBodies.values()].join('\n');
+    for (const helper of sourceMethods) {
+      if (helper.className !== '') continue;
+      if (methods.some(candidate => candidate.name === helper.name)) continue;
+      if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(collectedBodies)) continue;
+      replaceOrAppend(helper);
+      added = true;
+    }
   }
 
   // A static helper of another device class, called by its qualified name:
@@ -659,7 +692,7 @@ export function compileMameDevice(
       }];
     });
   });
-  members.push(...staticStructConstants(sources, structFields, constants, members));
+  members.push(...staticStructConstants(sources, structFields, constants, members, [...methodBodies.values()].join('\n')));
   const regionResources = Object.fromEntries(members.flatMap(member => {
     if (!/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
     const target = constructorBindings[member.name]?.at(-1) ?? '';
@@ -767,10 +800,32 @@ export function compileMameDevice(
       // `TYPE(config, m_member, options_function, ...)`: a slot's card table.
       const call = mconfig.slice(match.index + match[0].length);
       const slotOptions = /^\s*,\s*([a-z_]\w*)\s*[,)]/.exec(call)?.[1];
+      // The rest of the constructor call, and what the statement chains on it:
+      // `VRC6(config, m_vrc6snd, XTAL(21'477'272)/12).add_route(ALL_OUTPUTS,
+      // "addon", 1.0)`. A clock that is not the owner's is the child's own
+      // (VRC7's DS1001 runs at twice its card's), and a route is where a
+      // sound child's stream is mixed, at MAME's own gain.
+      let depth = 1;
+      let close = 0;
+      for (; close < call.length && depth > 0; close++) {
+        if (call[close] === '(') depth++;
+        else if (call[close] === ')') depth--;
+      }
+      const extra = splitMameArgs(call.slice(0, Math.max(0, close - 1)).replace(/^\s*,/, ''));
+      const childClock = !slotOptions && extra[0] ? evalExpr(extra[0], constants) : null;
+      const chained = call.slice(close, Math.max(close, call.indexOf(';', close)));
+      const separate = [...mconfig.matchAll(new RegExp(String.raw`\b${member}\s*->\s*(add_route\s*\([^;]*)\s*;`, 'g'))]
+        .map(route => `.${route[1]}`).join('');
+      const routes = [...`${chained}${separate}`.matchAll(
+        /\.add_route\s*\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*([\d.]+)/g,
+      )].map(route => ({ output: route[1] === 'ALL_OUTPUTS' ? -1 : Number(route[1]), target: route[2]!, gain: Number(route[3]) }))
+        .filter(route => Number.isFinite(route.output));
       const childSlot = slotOptions ? composeChildSlot(mameSrc, child, slotOptions, nested) : undefined;
       if (childSlot) child.slot = childSlot;
       children.push({
         member, type: childType, definition: child,
+        ...(childClock && childClock > 0 ? { clock: childClock } : {}),
+        ...(routes.length ? { routes } : {}),
         ...(Object.keys(delegateTargets).length ? { delegateTargets } : {}),
         ...(slotOptions && /\bget_card_device\s*\(/.test(child.sourceFiles.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'))
           ? { slotOptions } : {}),
@@ -965,7 +1020,9 @@ function resolveArityOverloads(device: GeneratedDeviceDefinition): void {
   // left the Game Boy's flat cartridge never installing its ROM.
   const classes = new Set([device.className, ...device.hierarchy]);
   for (const method of device.methods) {
-    if (method.name.includes('::') || classes.has(method.name)) continue;
+    // A qualified base call is an overload set too (`base::set_prg()` and
+    // `base::set_prg(int, int)`); a qualified constructor is not.
+    if (classes.has(method.name.split('::').pop()!)) continue;
     groups.set(method.name, [...groups.get(method.name) ?? [], method]);
   }
   const renamed = new Map<string, { min: number; max: number; name: string }[]>();
@@ -2502,6 +2559,8 @@ function staticStructConstants(
   structFields: Map<string, GeneratedStructField[]>,
   constants: Record<string, number>,
   existing: readonly GeneratedDeviceMember[],
+  /** The device's own method bodies: a table is lifted only for the device that uses it. */
+  methodCode = '',
 ): GeneratedDeviceMember[] {
   const code = sources.filter(({ file }) => !file.endsWith('.hxx'))
     .map(({ source }) => stripCppComments(source)).join('\n');
@@ -2549,6 +2608,34 @@ function staticStructConstants(
     });
     lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
   }
+  // A file-scope array of structs: the NES slot's `static const nes_pcb
+  // pcb_list[] = { { "nrom", STD_NROM }, ... }`, which nes_pcb_lookup searches
+  // by name. Its users live in the `.hxx` the slot includes, so a use is any
+  // mention of the name beyond its own definition; a quoted element is its
+  // string. Unbound, the lookup answered nothing, m_pcb_id was never a
+  // number, and call_load_pcb skipped every board's own wiring.
+  for (const match of all.matchAll(/(?:^|[;}\s])static\s+const\s+(?:struct\s+)?(\w+)\s+(\w+)\s*\[\s*\w*\s*\]\s*=\s*\{/g)) {
+    const [, type, name] = match;
+    const fields = structFields.get(type!);
+    if (!fields) continue;
+    // Only for a device whose own methods read it: every NES card includes
+    // the slot's source, and 390 copies of its tables ran tsc out of memory.
+    if (!new RegExp(`\\b${name}\\b`).test(methodCode)) continue;
+    if (existing.some(member => member.name === name) || lifted.some(member => member.name === name)) continue;
+    const body = expand(braceBody(all, match.index! + match[0].length - 1, name));
+    const elements = initializerItems(body).filter(item => item.startsWith('{'));
+    const element = (item: string | undefined): unknown => {
+      if (item === undefined) return 0;
+      const quoted = /^"((?:[^"\\]|\\.)*)"$/.exec(item.trim());
+      return quoted ? quoted[1]! : evalExpr(item, constants) ?? 0;
+    };
+    const records = elements.map(item => {
+      const items = initializerItems(item.slice(1, -1));
+      return Object.fromEntries(fields.map((field, index) => [field.name, element(items[index])]));
+    });
+    if (!records.length) continue;
+    lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
+  }
   return lifted;
 }
 
@@ -2567,7 +2654,7 @@ export function structDeclarations(
     // lost every field after the first comment.
     for (const declaration of structBlocks(stripCppComments(source))) {
       if (!declaration.name || structs.has(declaration.name)) continue;
-      const fields = structFieldList(declaration.body, constants);
+      const fields = structFieldList(declaration.body, constants, declaration.name);
       if (fields.length) structs.set(declaration.name, fields);
     }
   }
@@ -2594,11 +2681,18 @@ function structBlocks(
     // The name after the closing brace declares a member of this struct type;
     // `struct SOUND { ... };` declares none.
     const declarator = /^\s*(\w+)\s*(?:\[[^\]]*\])?\s*;/.exec(source.slice(close + 1))?.[1];
-    blocks.push({
-      name: match[1] ?? declarator ?? '',
-      body: source.slice(open + 1, close),
-      ...(declarator ? { declarator } : {}),
-    });
+    const name = match[1] ?? declarator ?? '';
+    const body = source.slice(open + 1, close);
+    blocks.push({ name, body, ...(declarator ? { declarator } : {}) });
+    // A struct declared inside another is a type of its own, named as C++
+    // names it: nes_defs.h declares `square_t` in both `apu_t` and
+    // `mmc5_sound_t`, with different fields, and MMC5's `square_t squ[2]` is
+    // the second.
+    if (name) {
+      for (const nested of structBlocks(body)) {
+        if (nested.name && !nested.declarator) blocks.push({ ...nested, name: `${name}::${nested.name}` });
+      }
+    }
     opener.lastIndex = close + 1;
   }
   return blocks;
@@ -2608,8 +2702,14 @@ function structBlocks(
 function structFieldList(
   body: string,
   constants: Record<string, number>,
+  owner?: string,
 ): GeneratedStructField[] {
   const fields: GeneratedStructField[] = [];
+  // Struct types this body declares itself: a field of one is of the
+  // qualified type (`mmc5_sound_t::square_t`), and the body is not fields.
+  const nestedTypes = new Set([...body.matchAll(/\bstruct\s+(\w+)\s*\{/g)].map(match => match[1]!));
+  const qualified = (type: string): string =>
+    owner && nestedTypes.has(type) ? `${owner}::${type}` : type;
   const bound = (text: string | undefined): number | undefined => {
     if (text === undefined) return undefined;
     const value = evalExpr(text, constants) ?? undefined;
@@ -2617,7 +2717,7 @@ function structFieldList(
   };
   let cursor = 0;
   while (cursor < body.length) {
-    const nested = /\bstruct\s*\{/g;
+    const nested = /\bstruct\s*(?:\w+\s*)?\{/g;
     nested.lastIndex = cursor;
     const start = nested.exec(body);
     const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
@@ -2626,13 +2726,14 @@ function structFieldList(
       // and a table several bounds (`int ktable[MAX_K][MAX_SCALE]`); the LPC
       // coefficient struct uses both, and missing either dropped the field.
       // Several may share a line (`int x; int y;` in the AVG's vgvector), so a
-      // field starts at a line or after the previous one's semicolon. Modern
+      // field starts at a line, after the previous one's semicolon, or after a
+      // constructor's closing brace. Modern
       // MAME also initialises fields in the declaration and groups them --
       // the 64H156's `int state = 0, next_state = 0;` -- and a field the
       // pattern missed was simply absent from the struct. The type and the
       // name are apart by a space or a `*`: without that, `unsigned short
       // energytable[...]` backtracked into a field `e` of type `energytabl`.
-      /(?:^|(?<=;))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
+      /(?:^|(?<=[;}]))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
     )) {
       const valueType = statement[1]!.replace(/\s+/g, ' ');
       if (/^(?:return|using|typedef|friend|enum|struct|class|union)$/.test(valueType)) continue;
@@ -2659,7 +2760,7 @@ function structFieldList(
         fields.push({
           name: field[2]!,
           ...(length !== undefined ? { length } : {}),
-          ...(integral && !pointer ? { bits, ...(signed ? { signed } : {}) } : { valueType: pointer ? `${valueType}*` : valueType }),
+          ...(integral && !pointer ? { bits, ...(signed ? { signed } : {}) } : { valueType: pointer ? `${qualified(valueType)}*` : qualified(valueType) }),
         });
       }
     }
@@ -2668,6 +2769,8 @@ function structFieldList(
     const close = matchingBrace(body, open);
     if (close < 0) break;
     const declarator = /^\s*(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/.exec(body.slice(close + 1));
+    // A named nested struct with no declarator is a type, recorded on its
+    // own by structBlocks; it adds no field here.
     if (declarator) {
       const length = bound(declarator[2]);
       fields.push({

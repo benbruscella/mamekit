@@ -14,6 +14,7 @@ import {
   prepareGeneratedMachinePositional,
   prepareGeneratedMachineRead,
   prepareGeneratedMachineWrite,
+  REFERENCE_PARAMETERS,
 } from './execute.ts';
 import type { BoardIr, GeneratedHandler, GeneratedHandlerProgram } from './board.ts';
 
@@ -731,6 +732,41 @@ check('multibyte loads read through a pointer', () => {
   assert.equal(applyGeneratedMacro('get_u24le', [at(3)]), 0x11001c);
   assert.equal(applyGeneratedMacro('get_u16le', [at(2)]), 0x1c02);
   assert.equal(applyGeneratedMacro('get_u24le', [[1, 2, 3]]), 0x030201);
+});
+
+check('a string is a non-null const char * in a condition', () => {
+  // MAME's slot code tests a software-list feature before reading it:
+  // `if (get_feature("mirroring"))`, then `!strcmp(mirroring, "vertical")`.
+  // Read as Number("vertical") the test was zero and every feature skipped.
+  const program = compileMameHandler(`{
+    if (get_feature("mirroring")) {
+      const char *mirroring = get_feature("mirroring");
+      if (!strcmp(mirroring, "vertical")) hit(1);
+    }
+    if (get_feature("absent")) hit(2);
+    if (get_feature("zero") && !strcmp(get_feature("zero"), "0")) hit(3);
+  }`);
+  const hits: unknown[] = [];
+  const features: Record<string, string> = { mirroring: 'vertical', zero: '0' };
+  executeGeneratedProgram(program, {
+    members: {},
+    referenceCalls: { get_feature: (name: unknown) => features[String(name)] ?? 0 },
+    calls: { hit: (value: unknown) => { hits.push(value); } },
+    callParameters: { get_feature: ['std::string_view feature_name'] },
+  } as never);
+  assert.deepEqual(hits, [1, 3]);
+});
+
+check('a host object writes back through the reference parameters it names', () => {
+  // `hook.image_file()->length(len)`: util::core_file answers through a
+  // std::uint64_t &, and read as a value the NES slot saw an empty file.
+  const file = {
+    length: (result: { set(value: number): void }) => { result.set(40976); return 0; },
+    [REFERENCE_PARAMETERS]: { length: [0] },
+  };
+  const program = compileMameHandler('{ uint64_t len = 0; file.length(len); return len; }');
+  const result = executeGeneratedProgram(program, { members: { file } } as never);
+  assert.equal(result.value, 40976);
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

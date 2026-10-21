@@ -23,7 +23,7 @@ import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } fro
 import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
-import { cartImageFromZip, cartSupport, mountCart, resolveCartImage } from '../runtime/cart-mount.ts';
+import { cartImageFromZip, cartSupport, mountCart, resolveCartImage, type SlotDeviceRegistry } from '../runtime/cart-mount.ts';
 import type { SoftCatalog } from '../runtime/nes-ines.ts';
 import type {
   GameAcceptanceGolden,
@@ -185,8 +185,15 @@ export async function runGameAcceptance(
     }
   }
 
+  const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
+    registerGeneratedMachines(): void;
+  };
+  registry.registerGeneratedMachines();
+  // A console's cartridge is identified against the slot device the registry
+  // just registered, in dist's own runtime -- not a second copy of it.
   const cartridge = contract.cartridge
-    ? await mountContractCartridge(contract, config, root, gameDir)
+    ? await mountContractCartridge(contract, config, root, gameDir, await import(
+      moduleUrl(join(outRoot, 'runtime/core/generated-device.js'))) as SlotDeviceRegistry)
     : undefined;
   const boardConfig: ShellConfig['board'] = {
     ...config.board,
@@ -194,7 +201,9 @@ export async function runGameAcceptance(
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
     ...(software?.slotCards ? { slotCards: software.slotCards } : {}),
-    ...(software?.powerOn ? { images: software.powerOn } : {}),
+    ...(software?.powerOn || cartridge?.images
+      ? { images: { ...software?.powerOn, ...cartridge?.images } }
+      : {}),
   };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const buildRegions = (): Regions => {
@@ -223,14 +232,11 @@ export async function runGameAcceptance(
   assert.deepEqual(romCheck.crcMismatch, []);
   const regions = buildRegions();
 
-  const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
-    registerGeneratedMachines(): void;
-  };
-  registry.registerGeneratedMachines();
   const generatedRuntime = await import(
     moduleUrl(join(outRoot, 'runtime/core/generated-board.js'))
   ) as {
     registerGeneratedBoard(game: string, factory: unknown): void;
+    loadBoardSlotCards(boardConfig: ShellConfig['board']): Promise<void>;
     createBoard(
       boardConfig: ShellConfig['board'],
       regions: Regions,
@@ -259,6 +265,7 @@ export async function runGameAcceptance(
   let replayWrites: SoundWrite[] | undefined;
   const requiredAudioCounts = new Map<number, number>();
   const requiredAudioValues = new Map<number, Set<number>>();
+  await generatedRuntime.loadBoardSlotCards(boardConfig);
   const board = generatedRuntime.createBoard(
     boardConfig,
     regions,
@@ -894,6 +901,7 @@ async function mountContractCartridge(
   config: ShellConfig,
   root: string,
   gameDir: string,
+  devices: SlotDeviceRegistry,
 ): Promise<NonNullable<ReturnType<typeof mountCart>>> {
   const path = join(romsDir(root), contract.category, contract.game, `${contract.cartridge}.zip`);
   assert.ok(existsSync(path), `${contract.game}: acceptance cartridge is missing: ${path}`);
@@ -901,7 +909,7 @@ async function mountContractCartridge(
     join(gameDir, config.cart?.catalogUrl ?? 'softlist.json'),
     'utf8',
   )) as SoftCatalog;
-  const support = cartSupport(config);
+  const support = cartSupport(config, devices);
   const image = cartImageFromZip(await readZip(new Uint8Array(readFileSync(path))), catalog, support);
   assert.ok(image, `${contract.game}: ${contract.cartridge}.zip holds no cartridge this console reads`);
   const resolved = resolveCartImage(image, catalog, support);

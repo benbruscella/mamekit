@@ -5,6 +5,7 @@ import {
   parseINes,
   identify,
   inesFromSoftlistSet,
+  inesSoftwarePart,
   mountedINesPrg,
   type SoftCatalog,
   type SoftEntry,
@@ -139,7 +140,9 @@ function makeINes(opts: {
   const support = {
     slots: ['nrom', 'uxrom', 'cnrom', 'sxrom', 'txrom'],
     games: ['smb'],
-    mapperSlots: { 0: 'nrom', 1: 'sxrom', 2: 'uxrom', 3: 'cnrom', 4: 'txrom' },
+    // Stands in for the slot's own get_default_card_ines.
+    slotForImage: (_name: string, bytes: Uint8Array) =>
+      (['nrom', 'sxrom', 'uxrom', 'cnrom', 'txrom'] as const)[parseINes(bytes)!.mapper],
   };
 
   const r = identify(smbParsed, catalog, support);
@@ -182,14 +185,14 @@ function makeINes(opts: {
   eq('identified + supported mapper -> experimental', r5.tier, 'experimental');
   eq('experimental reason', r5.reason, 'runs on a supported board — not yet verified');
 
-  // unsupported mapper number (66 = gxrom, absent from generated mapper metadata)
+  // a header the slot's code picks no board for
   const m66 = parseINes(makeINes({ prgBanks: 1, chrBanks: 0, flags6: 2 << 4, flags7: 0x40 }))!;
   const r6 = identify(m66, null, support);
   eq('mapper 66 number', r6.mapper, 66);
   eq('no catalog: unknown mapper -> null slot', r6.slot, null);
   eq('mapper 66 unsupported', r6.tier, 'unsupported');
   eq('unsupported not playable', r6.playable, false);
-  eq('mapper reason', r6.reason, 'unrecognized dump — mapper 66 not supported');
+  eq('mapper reason', r6.reason, 'iNES mapper 66 is not a board MAME knows');
 }
 
 console.log(`\nnes-ines.spec: ${totalPass} passed, ${totalFail} failed`);
@@ -227,7 +230,7 @@ if (totalFail > 0) process.exitCode = 1;
     ['hvc-ma-0 chr', chrChip],
     ['hvc-ma-0 prg', prgChip],
   ]);
-  const set = inesFromSoftlistSet(files, catalog, { 0: 'nrom', 1: 'sxrom' });
+  const set = inesFromSoftlistSet(files, catalog);
   eq('chip set recognised', set !== null, true);
   eq('chip set entry', set?.entry.name, 'mario1');
 
@@ -241,27 +244,90 @@ if (totalFail > 0) process.exitCode = 1;
 
   // ...and identifies back to the same entry, exactly
   const resolved = rebuilt
-    ? identify(rebuilt, catalog, { slots: ['nrom'], games: ['mario1'], mapperSlots: { 0: 'nrom' } })
+    ? identify(rebuilt, catalog, { slots: ['nrom'], games: ['mario1'] })
     : null;
   eq('round trip identifies', resolved?.meta?.name, 'mario1');
   eq('round trip is exact', resolved?.approx, false);
   eq('round trip tier', resolved?.tier, 'tested');
 
   eq('incomplete set rejected',
-    inesFromSoftlistSet(new Map([['hvc-ma-0 prg', prgChip]]), catalog, { 0: 'nrom' }), null);
+    inesFromSoftlistSet(new Map([['hvc-ma-0 prg', prgChip]]), catalog), null);
   eq('unknown chips rejected',
-    inesFromSoftlistSet(new Map([['x', new Uint8Array(0x4000).fill(3)]]), catalog, { 0: 'nrom' }), null);
-  eq('no catalog rejected', inesFromSoftlistSet(files, null, { 0: 'nrom' }), null);
+    inesFromSoftlistSet(new Map([['x', new Uint8Array(0x4000).fill(3)]]), catalog), null);
+  eq('no catalog rejected', inesFromSoftlistSet(files, null), null);
 
   // vertical mirroring and a battery survive the round trip
   const batteryCatalog: SoftCatalog = {
     ...catalog,
     entries: [{ ...entry, mirroring: 'vertical', bwram: 0x2000 }],
   };
-  const bset = inesFromSoftlistSet(files, batteryCatalog, { 0: 'nrom' });
+  const bset = inesFromSoftlistSet(files, batteryCatalog);
   const bines = bset ? parseINes(bset.bytes) : null;
   eq('battery cart mirroring', bines?.mirroring, 'vertical');
   eq('battery cart battery flag', bines?.battery, true);
+
+  // A board other than NROM carries the mapper MAME's tables give its slot,
+  // and is named by its slot rather than as "mapper 0" (#167: smw is jyc_a,
+  // mapper 90). A board this build cannot run says why.
+  const jycCatalog: SoftCatalog = {
+    ...catalog,
+    entries: [{ ...entry, name: 'smw', slot: 'jyc_a', mapper: 90 }],
+  };
+  const jset = inesFromSoftlistSet(files, jycCatalog);
+  const jines = jset ? parseINes(jset.bytes) : null;
+  eq('rebuilt mapper from the slot', jines?.mapper, 90);
+  const jyc = jines
+    ? identify(jines, jycCatalog, { slots: ['nrom'], games: [], unsupported: { jyc_a: 'read_m does not lower' } })
+    : null;
+  eq('board named by its slot', jyc?.slot, 'jyc_a');
+  eq('unsupported board says why', jyc?.reason, 'board jyc_a does not build: read_m does not lower');
+  const jycPlays = jines ? identify(jines, jycCatalog, { slots: ['nrom', 'jyc_a'], games: [] }) : null;
+  eq('a board that builds plays', jycPlays?.tier, 'experimental');
+}
+
+// --- sets with holes, odd sizes and reloads -----------------------------------------
+// A software part is each area as MAME loads it. Super Mario Bros. 2's FDS
+// conversions leave a hole between their chips, which concatenated is no
+// whole number of banks; a 16 KB NROM-128 chip is reloaded to fill a 32 KB
+// area, and MAME's call_load_pcb stops on a PRG area under 32 KB.
+{
+  const chip = (size: number, fill: number) => new Uint8Array(size).fill(fill);
+  const [p0, p1, p2] = [chip(0x8000, 1), chip(0x800, 2), chip(0x2000, 3)];
+  const c0 = chip(0x2000, 4);
+  const crc = (bytes: Uint8Array) => hex8(crc32(bytes));
+  const holed: SoftEntry = {
+    name: 'smb2fdsc', description: 'hole', year: '1986', publisher: 'pirate', slot: 'smb2j', mapper: 40,
+    prg: { size: 0xc000, roms: [
+      { size: 0x8000, crc: crc(p0), offset: 0 },
+      { size: 0x800, crc: crc(p1), offset: 0x8000 },
+      { size: 0x2000, crc: crc(p2), offset: 0xa000 },
+    ], fills: [{ offset: 0x8800, size: 0x1800, value: 0xff }] },
+    chr: { size: 0x2000, roms: [{ size: 0x2000, crc: crc(c0), offset: 0 }] },
+  };
+  const nrom128: SoftEntry = {
+    name: 'mario', description: 'reload', year: '1983', publisher: 'Nintendo', slot: 'nrom',
+    prg: { size: 0x8000, roms: [{ size: 0x4000, crc: crc(chip(0x4000, 7)), offset: 0, reloads: [{ offset: 0x4000, size: 0x4000 }] }] },
+    chr: { size: 0x2000, roms: [{ size: 0x2000, crc: crc(c0), offset: 0 }] },
+  };
+  const catalog: SoftCatalog = {
+    list: 'nes', description: 'test', interface: 'nes_cart', entries: [holed, nrom128],
+    crcIndex: { [crc(p0)]: [0], [crc(chip(0x4000, 7))]: [1] },
+  };
+  const set = inesFromSoftlistSet(new Map([['a', p0], ['b', p1], ['c', p2], ['d', c0]]), catalog);
+  eq('a holed set rebuilds', set?.entry.name, 'smb2fdsc');
+  const ines = set ? parseINes(set.bytes) : null;
+  eq('laid out in whole banks', ines?.prgSize, 0xc000);
+  eq('carrying its mapper', ines?.mapper, 40);
+  const resolved = ines ? identify(ines, catalog, { slots: ['smb2j'], games: [] }) : null;
+  eq('and identifies exactly', [resolved?.meta?.name, resolved?.approx], ['smb2fdsc', false]);
+  const part = ines ? inesSoftwarePart(ines, holed) : null;
+  eq('its part puts each chip at its offset', [part?.areas.prg?.[0x8000], part?.areas.prg?.[0x8800], part?.areas.prg?.[0xa000]], [2, 0xff, 3]);
+
+  const marioSet = inesFromSoftlistSet(new Map([['p', chip(0x4000, 7)], ['c', c0]]), catalog);
+  const mario = marioSet ? parseINes(marioSet.bytes) : null;
+  eq('a 16 KB chip stays a 16 KB iNES PRG', mario?.prgSize, 0x4000);
+  const marioPart = mario ? inesSoftwarePart(mario, nrom128) : null;
+  eq('but its part is the 32 KB area, reloaded', [marioPart?.areas.prg?.length, marioPart?.areas.prg?.[0x4000]], [0x8000, 7]);
 }
 
 console.log(`nes-ines.spec: chip-set reassembly checked (${totalPass} passed, ${totalFail} failed)`);

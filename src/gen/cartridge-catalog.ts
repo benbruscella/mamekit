@@ -9,8 +9,9 @@ const projectRoot = resolve(import.meta.dirname, '../..');
 // Cart-slot options (mappers/PCBs) each runtime board family implements —
 // a device-library capability table like CPU_TYPES, not a game fact. The
 // softlist catalog carries every cart's slot; the app greys out the rest.
+// The NES is not here: its slot mounts and selects its own boards, and every
+// one of MAME's that compiles is playable (src/hardware/nes/extract.ts).
 export const CART_SLOT_SUPPORT: Record<string, string[]> = {
-  nes: ['nrom', 'uxrom', 'cnrom', 'sxrom', 'txrom'], // iNES mappers 0, 2, 3, 1, 4
   // Every PCB src/hardware/coleco lowers from MAME's colecovision_cartridges.
   // coleco.spec.ts asserts this same set against that source list, so the two
   // cannot drift apart silently.
