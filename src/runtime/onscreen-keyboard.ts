@@ -163,15 +163,20 @@ export function createOnscreenKeyboard(
   const release = (key: OnscreenKey): void => { press(key.binding, false); paint(key, false); };
   for (const row of onscreenLayout(bindings)) {
     const line = document.createElement('div');
-    line.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;justify-content:center';
+    // A row is the machine's row: it never wraps. Caps share its width and a
+    // cap's mode legends wrap inside it -- a Spectrum key carries five, and
+    // wrapping whole caps instead broke 1 to 0 across two ragged rows.
+    line.style.cssText = 'display:flex;flex-wrap:nowrap;gap:5px;justify-content:center';
     for (const key of row) {
       const cap = document.createElement('button');
       cap.type = 'button';
       cap.tabIndex = -1;
       cap.setAttribute('data-key', key.legend);
       cap.setAttribute('aria-label', key.legend);
-      const wide = key.legend === 'SPACE' ? 240 : key.legend.length > 3 ? 64 : 36;
-      cap.style.cssText = `min-width:${wide}px;height:38px;padding:2px 6px;border-radius:6px;border:1px solid #303a78;
+      const wide = key.legend === 'SPACE' ? 240 : key.modes ? 72 : key.legend.length > 3 ? 64 : 36;
+      // A cap shrinks to its longest word, never through one ("ENTE R").
+      cap.style.cssText = `flex:0 1 ${wide}px;min-height:38px;padding:2px 4px;border-radius:6px;border:1px solid #303a78;
+        overflow:hidden;text-align:center;
         background:#1a1f45;color:#e8eaf6;font:700 12px ui-sans-serif,system-ui,sans-serif;cursor:pointer;
         display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1`;
       if (key.shifted) {
@@ -183,10 +188,10 @@ export function createOnscreenKeyboard(
       cap.append(document.createTextNode(key.legend === 'SPACE' ? '' : key.legend));
       if (key.modes) {
         const modes = document.createElement('span');
-        modes.style.cssText = 'font-size:8px;opacity:.65;font-weight:600;white-space:nowrap';
+        modes.style.cssText = 'font-size:8px;opacity:.65;font-weight:600';
         modes.textContent = key.modes;
         cap.title = binding(key);
-        cap.style.height = '46px';
+        cap.style.minHeight = '46px';
         cap.append(modes);
       }
       caps.set(key, cap);

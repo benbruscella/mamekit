@@ -990,14 +990,14 @@ export async function runShell(
     : undefined;
   // The legend is first drawn before either source exists; redraw it now
   // that both do, and again whenever a pad or the pointer capture changes.
-  ui.controls(controlsHelp(cfg, pads, pointer));
-  pointer.onChange(() => ui.controls(controlsHelp(cfg, pads, pointer)));
+  ui.controls(controlsHelp(cfg, pads, pointer, input.seat()));
+  pointer.onChange(() => ui.controls(controlsHelp(cfg, pads, pointer, input.seat())));
   // A pad arriving or leaving is announced three ways: the badge beside the
   // title while it is here, a toast over the screen the moment it changes,
   // and the legend naming its buttons.
   let knownPads = new Map<number, string>();
   pads.onChange(connected => {
-    ui.controls(controlsHelp(cfg, pads, pointer));
+    ui.controls(controlsHelp(cfg, pads, pointer, input.seat()));
     const label = (pad: { id: string; player: number }): string =>
       `${padName(pad.id)}${connected.length > 1 || pad.player > 1 ? ` (player ${pad.player})` : ''}`;
     ui.pads(connected.map(pad => `${label(pad)} connected`));
@@ -1400,6 +1400,48 @@ export async function runShell(
         try { localStorage.setItem(key, String(value)); } catch { /* not kept */ }
         paint();
         ui.toast(named(value));
+        toggle.blur();
+      };
+      group.append(toggle);
+    }
+    // Which of a computer's joystick ports the keyboard's stick works. One
+    // keyboard is player one, but some titles read only the second port (a
+    // Sinclair Interface 2's left socket, keys 1 to 5), and MAME offers no
+    // switch to swap them. The stick follows the port the program reads
+    // (KeyboardInput.followReads); the button pins the other one, kept for
+    // the title like a machine setting.
+    const otherSeat = cfg.kind === 'computer' ? input.seats()[0] : undefined;
+    if (otherSeat !== undefined) {
+      const key = `mamekit:seat:${cfg.game}:${cfg.titleKey ?? 'power-on'}`;
+      let kept: number | undefined;
+      try { const raw = localStorage.getItem(key); if (raw !== null) kept = Number(raw); } catch { /* not kept */ }
+      let seat = kept ?? 1;
+      const toggle = titleButton(`Joystick ${otherSeat}`, 'Joystick port', '', 'normal', 'joystick');
+      toggle.dataset.joystickSeat = '';
+      const paint = (): void => {
+        const seated = seat !== 1;
+        toggle.setAttribute('aria-pressed', String(seated));
+        toggle.title = `The joystick keys work player ${seat}'s joystick` +
+          (kept === undefined ? ', the port this title reads' : '') +
+          ` (click for player ${seat === 1 ? otherSeat : 1}'s)`;
+        paintTitleButton(toggle, seated);
+        ui.controls(controlsHelp(cfg, pads, pointer, seat));
+      };
+      if (kept === undefined) {
+        input.followReads(otherSeat, player => {
+          seat = player;
+          paint();
+          console.info(`[input] the program reads player ${player}'s joystick port; the joystick keys follow it`);
+        });
+      } else input.setSeat(kept);
+      paint();
+      toggle.onclick = () => {
+        seat = seat === 1 ? otherSeat : 1;
+        kept = seat;
+        try { localStorage.setItem(key, String(seat)); } catch { /* not kept */ }
+        input.setSeat(seat);
+        paint();
+        ui.toast(`Joystick: player ${seat}`);
         toggle.blur();
       };
       group.append(toggle);
@@ -1829,8 +1871,11 @@ function fnLabel(label: string): string {
  * connected, each control also names the pad button that drives it, and the
  * pad itself is announced first.
  */
-export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerInput): string {
+export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: PointerInput, seat = 1): string {
   const parts: string[] = [];
+  // A computer's special keys, by the key's own name -- MAME's first column,
+  // not the whole legend: the Spectrum's S prints RESTORE among its modes.
+  const special: string[] = [];
   // One entry per stick: a twin-stick panel (Battlezone's treads) names each.
   const sticks = new Map<string, { keys: Map<string, number>; pads: Set<string> }>();
   const direction = (label: string): number =>
@@ -1859,6 +1904,8 @@ export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: Po
     if (seen.has(line)) continue;
     seen.add(line);
     parts.push(line);
+    const name = b.label.trim().split(/\s{2,}/)[0]!;
+    if (/run stop|restore|cbm|ctrl|shift lock/i.test(name)) special.push(line);
   }
   const connected = pads?.connected() ?? [];
   const head = connected.map(pad =>
@@ -1885,15 +1932,15 @@ export function controlsHelp(cfg: ShellConfig, pads?: GamepadInput, pointer?: Po
       return label ? [{ name, label }] : [];
     });
   if (cfg.kind === 'computer') {
-    const specialKeys = parts.filter(part => /run stop|restore|cbm|ctrl|shift lock/i.test(part));
+
     // The joystick a computer has plugged in is worked from the same keyboard,
     // and nothing on screen says which keys those are: a title that wants it
     // (Boulder Dash, "press button to play") is otherwise a guess.
     const fire = parts.filter(part => /: fire\b/.test(part)).map(part => part.replace(/: fire\b/, ' fire'));
     const joystick = stickLines.length || fire.length
-      ? [`Joystick: ${[...stickLines.map(stick => stick.label), ...fire].join(', ')}`]
+      ? [`Joystick${seat > 1 ? ` (player ${seat})` : ''}: ${[...stickLines.map(stick => stick.label), ...fire].join(', ')}`]
       : [];
-    return [...head, 'Keyboard: type directly', ...joystick, ...specialKeys, 'Esc: menu'].join(' · ');
+    return [...head, 'Keyboard: type directly', ...joystick, ...special, 'Esc: menu'].join(' · ');
   }
   for (const { name, label } of stickLines) head.push(`${label}: ${name}`);
   return [...head, ...parts, 'F: fast-forward', 'Esc: menu'].join(' · ');

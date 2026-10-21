@@ -668,4 +668,31 @@ test.describe('ZX Spectrum room', () => {
     }, undefined, { timeout: 60_000 });
     expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
   });
+
+  // Gyruss reads only the Interface 2's other socket -- keys 1 to 5, MAME's
+  // player 2 -- and under MAME too its title ignores player 1's fire. The
+  // joystick keys follow the port it reads, with nobody touching anything,
+  // and the button pins player 1 back.
+  test('the joystick moves to the second port for a title that reads only that one', async ({ page }) => {
+    const set = join(spectrumDumps, 'spectrum_cart', 'gyruss.zip');
+    test.skip(!existsSync(set) || !existsSync(firmware[0]!), 'no local Gyruss set and 48K firmware');
+    const faults = watchFaults(page);
+    await playLocalSet(page, set, firmware, undefined, SPECTRUM);
+    // peek, not read: a read is the program's, and the joystick follows those.
+    const port = (tag: string): Promise<number> => page.evaluate(name =>
+      (window as unknown as { mamekit: { input: { peek(tag: string): number } } }).mamekit.input.peek(name), tag);
+    const seat = page.locator('[data-joystick-seat]');
+    await expect(seat).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
+    await page.keyboard.down('KeyX');
+    await expect.poll(() => port('exp:LINE3')).toBe(0x0f);
+    expect(await port('exp:LINE4')).toBe(0x1f);
+    await page.keyboard.up('KeyX');
+    await expect.poll(() => port('exp:LINE3')).toBe(0x1f);
+    await seat.click();
+    await expect(seat).toHaveAttribute('aria-pressed', 'false');
+    await page.keyboard.down('KeyX');
+    await expect.poll(() => port('exp:LINE4')).toBe(0x1e);
+    await page.keyboard.up('KeyX');
+    expect(faults.errors.filter(error => !/404/.test(error))).toEqual([]);
+  });
 });
