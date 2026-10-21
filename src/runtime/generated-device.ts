@@ -28,7 +28,7 @@ import {
   resizeGeneratedContainer,
 } from './generated-handler.ts';
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged } from '../ir/execute.ts';
-import { stateValue } from './machine-state.ts';
+import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
@@ -897,6 +897,12 @@ class IrDevice implements Device {
     });
     self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
     this.members.this = self;
+    // Vector members MAME resizes at run time restore at their saved length.
+    const resizable = definition.members
+      .filter(member => member.memory?.kind === 'owned' || member.memory?.kind === 'growable')
+      .map(member => member.name);
+    markResizable(this.members, resizable);
+    markResizable(self, resizable);
     for (const callback of definition.callbacks) {
       const slots = Array.from({ length: callback.slots }, () => [] as DeviceCallbackListener[]);
       // One signal can name two different devcbs, told apart in MAME by how

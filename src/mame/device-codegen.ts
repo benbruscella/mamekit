@@ -1636,7 +1636,7 @@ function emitCall(
     //
     // The bound branch never evaluates the object, matching the interpreter,
     // which resolves the name before it looks at any value.
-    const boundName = context.boardScope ? memberCallName(expression) : undefined;
+    const boundName = context.boardScope ? memberCallName(expression, context.methodConstants) : undefined;
     const value = emitValueMemberCall(expression, object, args, context);
     const onValue = value.code;
     if (boundName) {
@@ -1762,7 +1762,7 @@ function valueMemberCallCode(
   // table first, as the interpreter resolves the call: emitted directly, the
   // Namco 51xx's chip_select never reached its MB8843 and Dig Dug went silent.
   if (finder) {
-    const chain = memberCallName(expression);
+    const chain = memberCallName(expression, context.methodConstants);
     const direct = `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
     if (!chain) return direct;
     const link = callLink(context, chain);
@@ -1818,21 +1818,33 @@ function valueMemberCallCode(
  */
 function memberCallName(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  constants?: Readonly<Record<string, number>>,
 ): string | undefined {
   if (expression.callee.kind !== 'member') return undefined;
-  const objectName = memberChainName(expression.callee.object);
+  const objectName = memberChainName(expression.callee.object, constants);
   return objectName ? `${objectName}.${expression.callee.property}` : undefined;
 }
 
-function memberChainName(expression: GeneratedExpression): string | undefined {
+function memberChainName(
+  expression: GeneratedExpression,
+  constants?: Readonly<Record<string, number>>,
+): string | undefined {
   if (expression.kind === 'identifier') return expression.name;
   if (expression.kind === 'member') {
-    const object = memberChainName(expression.object);
+    const object = memberChainName(expression.object, constants);
     return object ? `${object}.${expression.property}` : undefined;
   }
-  if (expression.kind === 'index' && expression.index.kind === 'number') {
-    const object = memberChainName(expression.object);
-    return object ? `${object}[${expression.index.value}]` : undefined;
+  // A subscript that is the method's own template constant names one element
+  // as a literal does: the 128K's `m_bank_ram[Bank]->base()` in
+  // spectrum_128_ram_r<1> is the board's `m_bank_ram[1].base`.
+  const index = expression.kind === 'index'
+    ? expression.index.kind === 'number'
+      ? expression.index.value
+      : expression.index.kind === 'identifier' ? constants?.[expression.index.name] : undefined
+    : undefined;
+  if (expression.kind === 'index' && index !== undefined) {
+    const object = memberChainName(expression.object, constants);
+    return object ? `${object}[${index}]` : undefined;
   }
   return undefined;
 }

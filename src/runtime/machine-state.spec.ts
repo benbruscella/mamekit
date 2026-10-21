@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   captureState,
+  markResizable,
   restoreState,
   stateByteLength,
   type StatefulKeys,
@@ -203,6 +204,20 @@ class Keyed implements StatefulKeys {
   assert.deepEqual([...(b.slot as Uint8Array)], [5, 6], 'an unallocated slot takes the saved buffer');
   assert.deepEqual([...b.set], [1]);
   assert.ok(structuredClone(saved), 'a save is structured-clone friendly');
+}
+
+// A device's std::vector grows as it runs (the cassette's m_samples); a fresh
+// machine's is still empty when a resume point loads into it.
+{
+  const grown = { m_samples: new Int16Array(4).fill(7), m_fixed: new Uint8Array(2) };
+  const saved = captureState(grown);
+  const fresh = { m_samples: new Int16Array(0), m_fixed: new Uint8Array(2) };
+  markResizable(fresh, ['m_samples']);
+  assert.deepEqual(restoreState(fresh, saved), []);
+  assert.deepEqual([...fresh.m_samples], [7, 7, 7, 7]);
+  const other = { m_samples: new Int16Array(0), m_fixed: new Uint8Array(1) };
+  markResizable(other, ['m_samples']);
+  assert.deepEqual(restoreState(other, saved).map(d => d.path), ['m_fixed'], 'only a marked vector may change length');
 }
 
 console.log('machine-state.spec: capture and in-place restore round-trip every runtime shape');
