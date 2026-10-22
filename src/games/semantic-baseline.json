@@ -506,7 +506,7 @@
       "palette": "ram:palette:-:native:32768:2"
     },
     "nes": {
-      "sha256": "e47da38ce83131d3c63f1059c957f74f38f24920213a8cec75c97264d97e120d",
+      "sha256": "64e4171d84cf34cf44f22f7a45152efc5852354c69bd824491775d502ec2ba9a",
       "callbacks": 3,
       "frameEvents": 2,
       "devices": 8,
@@ -695,7 +695,7 @@
       "palette": "prom:maincpu"
     },
     "spec128": {
-      "sha256": "fb39e7434331b5e9fae0a3631ce811e130c6d5f8921b5fbbcbd71c26cbc0bbd4",
+      "sha256": "ec10391dd49206c5a250468d74a685c66f4a06c11366f8a88cd3028b2b6ccd8b",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 17,
@@ -704,7 +704,7 @@
       "palette": "none"
     },
     "spectrum": {
-      "sha256": "ae967bd25911e7a4f3fdfc10ccc855e961219277b077e2ef129aeff734115592",
+      "sha256": "cd8a630309ce75ae5cf7b73bfb0f643c4781068796fd9474ebf293af1a7d69a8",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 14,
