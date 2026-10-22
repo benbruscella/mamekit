@@ -943,8 +943,9 @@ Geo I/O, the Taito SJ watchdog and interface start values), compile-time
 method replacements and CPU support layers. Each one is listed in the
 [#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103),
 and nothing may be added to that list. Generating an item and deleting its
-hand-written version is always welcome; the 68705 MCU and the Z80 PIO went
-that way, and both now compile from MAME's own source.
+hand-written version is tracked in
+[#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU and
+the Z80 PIO went that way, and both now compile from MAME's own source.
 
 ## 9. BROWSER BOOT SEQUENCE
 
