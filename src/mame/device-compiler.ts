@@ -27,6 +27,7 @@ import {
 } from './preprocessor.ts';
 import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 import { monomorphizeFunctionTemplate } from './function-template.ts';
+import { renameShadowedLocals } from '../ir/scope.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -95,6 +96,13 @@ export interface GeneratedDeviceMember {
   initialValue?: Record<string, unknown>;
   /** Per-element initial fields of a static array of structs. */
   initialValues?: Record<string, unknown>[];
+  /**
+   * A member held by value whose type is a class the device declares inside
+   * itself -- the Z80 PIO's `pio_port m_port[2]` -- named by the allocation
+   * that builds each one. Its methods and state are its own; left a number,
+   * `m_port[i].data_write(data)` was a call on nothing, silently.
+   */
+  object?: string;
 }
 
 /**
@@ -942,24 +950,51 @@ export function compileMameDevice(
   };
   const constructors = sources.flatMap(({ file, source }) => parseMameConstructors(file, source));
   const allocations: Record<string, GeneratedDeviceDefinition> = {};
-  for (const method of methods) walkExpressions(method.program.operations, expression => {
-    if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
-    const name = expression.callee.name.slice(5);
-    if (allocations[name]) return;
-    const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
-    if (!classes.has(qualified) || compiling.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
+  const compileNestedClass = (name: string, qualified: string): GeneratedDeviceDefinition => {
+    if (compiling.has(qualified)) throw new Error(`cannot resolve nested MAME class ${qualified}`);
     const child = compileMameDevice(mameSrc, { ...definition, className: qualified }, qualified, new Set([...compiling, qualified]));
     const constructor = constructors.find(candidate => candidate.className === qualified);
     if (!constructor) throw new Error(`missing source constructor for ${qualified}`);
     addSourceConstructor(child, constructor, true);
     allocations[name] = child;
     result.summary.diagnostics += child.summary.diagnostics;
+    return child;
+  };
+  // A member held by value whose type is a class this device declares inside
+  // itself is an object with methods and state of its own, built as an
+  // allocation is: one per element of its array.
+  // A plain data struct (the vector generator's `vgvector`) is already
+  // shaped by its fields; only a class with a constructor of its own is an
+  // object to build.
+  for (const member of result.members) {
+    if (member.memory || member.finder || member.fields) continue;
+    const owner = [...hierarchy].reverse().find(className => classes.has(`${className}::${member.valueType}`));
+    if (!owner || !constructors.some(candidate => candidate.className === `${owner}::${member.valueType}`)) continue;
+    if (!allocations[member.valueType]) compileNestedClass(member.valueType, `${owner}::${member.valueType}`);
+    member.object = member.valueType;
+    if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
+    delete member.values;
+  }
+  for (const method of methods) walkExpressions(method.program.operations, expression => {
+    if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
+    const name = expression.callee.name.slice(5);
+    if (allocations[name]) return;
+    const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
+    if (!classes.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
+    compileNestedClass(name, qualified);
   });
   if (Object.keys(allocations).length) result.allocations = allocations;
   lowerStructLocals(result);
+  // C++ block scope: a local that shadows a parameter or an outer local gets a
+  // name of its own (src/ir/scope.ts), before either executor reads the IR.
+  for (const method of result.methods) {
+    renameShadowedLocals(method.program.operations,
+      splitMameArgs(method.parameters).filter(parameter => parameter.trim() && parameter.trim() !== 'void').map(parameterName));
+  }
   markFloatingNames(result);
   return result;
 }
+
 
 /**
  * C++ divides by the operands' declared types, and a member or parameter

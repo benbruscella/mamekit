@@ -49,6 +49,11 @@ try {
   const ramResult = compareRam(dir, ram, [1, 2, 3, 4], [1, 2, 3, 4, 5], [-1, 0, 1], [3]);
   assert.equal(ramResult.offset, -1);
   assert.equal(ramResult.firstDivergence, undefined);
+  assert.equal(ramResult.compared, 3, "our frame 1 has no MAME frame 0 to meet");
+  // No MAME dump at all is nothing compared, never "identical".
+  rmSync(join(dir, 'mame-ram.bin'));
+  assert.equal(compareRam(dir, ram, [1, 2, 3, 4], [1, 2, 3, 4, 5], [0], [4]).compared, 0);
+  writeFileSync(join(dir, 'mame-ram.bin'), new Uint8Array([1, 2, 3, 4, 5].flatMap(state)));
   // MAME's frame 3 is our frame 4.
   assert.deepEqual(ramResult.nearest, { 3: { offset: -1, bytes: 0 } });
   const aligned = compareRam(dir, ram, [1, 2, 3, 4], [1, 2, 3, 4, 5], [0], [4]);

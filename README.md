@@ -117,8 +117,9 @@ recompiles the app shell from the working tree first, which is what you want
 after editing runtime source without a full `gen:all`.
 
 To add a target, start with `npm run game:init -- <shortname>` and follow the
-canonical [adding-a-game workflow](docs/ADDING_A_GAME.md). Candidates generate
-in isolation without being accepted or published.
+[candidate workflow](docs/CONTRIBUTING.md#candidate-workflow). A candidate is
+published labelled EXPERIMENTAL and stays out of real-ROM acceptance until it
+is promoted.
 
 ## REPOSITORY MAP
 
@@ -170,8 +171,9 @@ There is one README and four current engineering documents:
 - [SYSTEM ARCHITECTURE](docs/ARCHITECTURE.md): system design, compiler stages,
   knowledge graph, typed IR, generated runtime, browser execution, provenance,
   and hard boundaries.
-- [CONTRIBUTING](docs/CONTRIBUTING.md): contribution contract, adding a machine,
-  fixing generation gaps, acceptance evidence, and review requirements.
+- [CONTRIBUTING](docs/CONTRIBUTING.md): contribution contract, adding a machine
+  (the candidate workflow from `game:init` to `game:promote`), fixing generation
+  gaps, acceptance evidence, and review requirements.
 - [ENGINEERING GUIDE](docs/ENGINEERING.md): commands, extending a target,
   debugging generation gaps, tests, browser verification, deployment, and
   maintenance rules.

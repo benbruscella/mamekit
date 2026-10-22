@@ -169,10 +169,11 @@ other media slots booted empty, each image in the transport whose formats read
 it, the shelf's start command typed through the natural keyboard and PLAY
 pressed on a tape. A `{ atFrame, text }` action types MAME's coded form
 (`RUN{ENTER}`) the same way. Natural-keyboard presses and PLAY go into the
-input log, so the save-state round trip replays them exactly. `c64p` has four
+input log, so the save-state round trip replays them exactly. `c64p` has six
 scenarios: BASIC (a SID note and the 10 PRINT maze), a tape (Crazy Comets), an
-original disk (Bounty Bob Strikes Back) and a quickload (Broken Limits, the one
-title in MAME's `c64_quik`, PAL only), and `fetch:acceptance-roms` fetches
+original disk (Bounty Bob Strikes Back), a quickload (Broken Limits, the one
+title in MAME's `c64_quik`, PAL only), a banked cartridge (`c64_cart:kungfum`)
+and an Ultimax cartridge (`vic10:jlander`), and `fetch:acceptance-roms` fetches
 each title beside the machine's own sets. The harness's silence check reads the
 signal after the browser's speaker high-pass, not the worklet's output the
 golden's `rms` records: the SID's DC offset alone measures 0.5 with every voice
@@ -278,8 +279,9 @@ checksum) alongside the drive's `m_cyl` and the gate array's `cur_live`.
 
 Matched software belongs in `.data/roms/computers/c64/<software-list>/` and
 firmware in `.data/roms/computers/c64/bios/`, which is where `make -C .data
-roms-import` files it; processing reports and retained source material belong
-under `.data/roms/_processed/c64/`. The generator reads
+roms-import` files it; its reports go to `.data/roms/_new/_reports/`, the
+inputs it used to `.data/roms/_new/_imported/` and what nothing claims to
+`.data/roms/_quarantine/` (see ROM LIBRARY). The generator reads
 the `_manifest.json` in each of those folders to build the shelf's
 availability index, keyed by the driver family so the PAL and NTSC machines
 share one collection. Neither BIOS nor game data belongs in generated output.
@@ -376,7 +378,9 @@ A target is removed from that set by moving its contract module and spec into
 tree with a header note recording what play-testing found, its spec keeps
 running under `test:unit` so the driver still has to compile, and re-enabling a
 fixed game is moving the two files back up. Issue #53 parked the first batch
-there.
+there. No target is parked now: #145 re-enabled or dropped every one, so the
+folder is absent from the tree, but `src/games/discovery.ts` keeps the
+`disabled` lifecycle for the next.
 
 Target generation is already parallel. `gen:all` uses a bounded worker pool
 (memory-aware, capped at 8 — see `src/gen/generator-workers.ts`). Override it
@@ -420,9 +424,10 @@ npm run audit:generated
 `gen:all` already invokes `clean`; the explicit form is useful when running
 individual CLI phases manually.
 
-The app build also recreates `dist/app`, `dist/runtime/core`, and its temporary
-`dist/.build` staging tree. It does not delete canonical per-game or generated
-hardware data because those are emitted by earlier phases.
+The app build also recreates `dist/app`, `dist/runtime/core`, `dist/artwork`
+and its temporary `dist/.build` staging tree. It does not delete canonical
+per-game or generated hardware data because those are emitted by earlier
+phases.
 
 ## 4. GENERATING ONE TARGET
 
@@ -558,9 +563,14 @@ A MAME device family is one package under `src/hardware/<family>/`:
 | `definition.ts` | neutral | id, MAME types, typed ports, browser constants |
 | `extract.ts` | compile time | MAME source to IR plus emitted artifacts |
 | `acceptance.ts` | tooling | probe against the emitted artifact in `dist` |
+| `runtime.ts` | browser | optional: wires the generated IR into the running board (15 packages have one) |
 
 Register it in `src/hardware/registry.ts` (compile time) and, for audio, in
-`src/hardware/acceptance-registry.ts`. `registry.spec.ts` fails if a package
+`src/hardware/acceptance-registry.ts`. An audio family whose registers need
+explicit wiring also adds its `runtime.ts` installer to
+`src/hardware/sound-runtime-registry.ts`, keyed by the sound kind the
+generator emits; that registry ships to the browser and imports only each
+package's `runtime.ts`. `registry.spec.ts` fails if a package
 directory exists but is not registered.
 
 `extract.ts` must return undefined when it cannot lower the family, so the
@@ -668,7 +678,8 @@ golden policy and failure triage are defined in [TESTING](TESTING.md).
 npm run audit:generated
 ```
 
-The audit scans every target currently present under both game categories. It
+The audit scans every target currently present under the three game categories
+(`arcade`, `consoles`, `computers`). It
 checks:
 
 - required config, graph, machine, board and provenance files;
@@ -743,7 +754,7 @@ zeroed — were found this way, not by a golden.
   board maps, or the ranges named (`--ram maincpu:0-7ff`). The report gives
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
-  is the figure the old `mame-ram-oracle` reported (Green Beret: 16, 25 and 19
+  is the figure the earlier RAM-only oracle reported (Green Beret: 16, 25 and 19
   bytes at frames 600, 900 and 1200). It is the measuring stick for a
   scheduler change: a board that moves further from MAME has regressed,
   whatever its hashes say.
@@ -753,8 +764,10 @@ zeroed — were found this way, not by a golden.
   rather than a register.
 
 **Input.** A machine runs with no input by default (attract mode is
-deterministic on both sides) and a title with a Start schedule: Start held for
-six frames every 300, from frame 300. `--input contract --scenario <id>`
+deterministic on both sides), and so does a computer title, which starts the
+way its shelf does (typed command, PLAY). A console title gets the Start
+schedule by default: Start held for six frames every 300, from frame 300.
+`--input none|start` overrides either default. `--input contract --scenario <id>`
 replays a contract's own actions. Key, chord, light-gun aim, typed text and
 reset actions are all given to MAME. A software title's start command is typed
 through MAME's natural keyboard on the frame `title-start.ts` types it, and
@@ -850,7 +863,7 @@ hardware closure resolution, build topology, or app registration.
 For UI/runtime changes, test the final generated distribution with Playwright
 or a real browser. Required checks:
 
-1. menu loads both categories from `games.json`;
+1. menu loads all three categories from `games.json`;
 2. target route imports its canonical generated board;
 3. JSON module imports receive `application/json` MIME;
 4. local ROM file picker accepts and validates the correct set;
@@ -923,13 +936,14 @@ The current documentation set is intentionally minimal:
 - root `README.md`;
 - `docs/ARCHITECTURE.md`;
 - `docs/ENGINEERING.md`;
-- `docs/TESTING.md`.
+- `docs/TESTING.md`;
+- `docs/CONTRIBUTING.md`, which holds the candidate workflow for adding a machine.
 
-Documentation filenames use `UPPERCASE_WITH_UNDERSCORES.md`, except the
-repository-standard root `README.md` and tool-standard `CLAUDE.md`.
+Documentation filenames use `UPPERCASE_WITH_UNDERSCORES.md`, and every file
+in the set, the root `README.md` and `CLAUDE.md` included, follows it.
 
 Do not add another README or a narrow document that duplicates an existing
-section. Extend one of the three engineering references. Generated per-machine
+section. Extend one of the four documents under `docs/`. Generated per-machine
 archival text is named `DOSSIER.md`.
 
 ## 11. DEPLOYMENT
@@ -940,25 +954,37 @@ Production is a static GitHub Pages site at `mamehistory.com`.
 npm run deploy
 ```
 
-The site carries neither ROMs nor artwork. The ~700 MB of cabinet scans lives
-in the artwork bucket and the browser loads it from there
-(`src/runtime/artwork-source.ts`); `make sync-artwork` in `.data/` publishes
-them. A copy inside `dist` was most of GitHub Pages' 1 GB budget spent on
-files that never change.
+The site carries no ROMs, and artwork is split. The 779 MB of archival scans
+and bezel packs stays in the artwork bucket, published by `make sync-artwork`
+in `.data/`, and the browser falls back to it (`src/runtime/artwork-source.ts`);
+a copy inside `dist` was most of GitHub Pages' 1 GB budget spent on files that
+never change. What the app displays ships with the site, because Pages serves
+it far faster than the bucket: on every app build `shipWebArtwork`
+(`src/gen/app-build.ts`) wipes `dist/artwork` and rewrites it with the
+web-sized `.webp` covers, cartridge art, marquees, cabinets and console and
+computer media, and each bezel's `.webp` with its `.json` geometry sidecar.
 
 The deployment script:
 
 1. runs clean `gen:all`;
-2. removes any `dist/artwork` a stale tree left behind;
+2. checks `dist/artwork` without editing it: any file but a `.webp` or `.json`,
+   or a bezel `.webp` without its sidecar, fails the deploy;
 3. writes `.nojekyll` and the configured `CNAME`;
-5. creates an ephemeral Git repository inside `dist`;
-6. force-pushes one static snapshot to `gh-pages`;
-7. removes the ephemeral repository.
+4. creates an ephemeral Git repository inside `dist`;
+5. force-pushes one static snapshot to `gh-pages`;
+6. waits up to five minutes for the Pages build to report `built`, requesting a
+   fresh build once if it is stuck, and fails if it errors or never finishes;
+7. probes the live `games.json` and warns if its game count differs from the
+   one in `dist`;
+8. removes the ephemeral repository on exit.
 
 ROMs are never deployed. Deployment requires the local MAME checkout and any
 opt-in local artwork/history assets, so it is manual by design.
 
-All runtime paths must remain relative. Pretty routes are real
+All runtime paths must remain relative, with one exception: the shipped
+artwork is loaded root-relative (`/artwork/...`, `webArtworkUrl` in
+`src/runtime/artwork-source.ts`), because `dist`'s root is the site root on
+Pages and under `--serve` alike. Pretty routes are real
 `app/g/<target>/index.html` files with `<base href="../../">`. Production audio
 requires HTTPS because AudioWorklet requires a secure context.
 

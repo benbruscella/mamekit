@@ -32,7 +32,6 @@ import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { inheritCardInterface, type CardInterface } from '../ir/card-interface.ts';
-import { GeneratedZ80PioDevice } from './generated-z80pio.ts';
 import { GeneratedM68705P5Device } from './generated-m68705.ts';
 
 interface DeviceMember {
@@ -63,6 +62,8 @@ interface DeviceMember {
   initialValue?: Record<string, unknown>;
   /** Per-element initial fields of a static array of structs. */
   initialValues?: Record<string, unknown>[];
+  /** A class held by value that the device declares inside itself: the allocation building it. */
+  object?: string;
 }
 
 /** One field of a struct-shaped member; `fields` makes it nest. */
@@ -565,9 +566,6 @@ export function createDevice(type: string, options: GeneratedDeviceOptions = {})
   }
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
-  if (definition.type.toUpperCase() === 'Z80PIO') {
-    return new GeneratedZ80PioDevice(definition, options.clock ?? 0);
-  }
   return new IrDevice(definition, options.clock ?? 0, options);
 }
 
@@ -931,6 +929,14 @@ class IrDevice implements Device {
                 : new IrMemoryBank())
           : /^simple_list<[^>]+>$/.test(member.valueType)
             ? new IrSimpleList()
+          // A class the device declares inside itself and holds by value (the
+          // Z80 PIO's two `pio_port`s): each is an object with its own methods
+          // and state, built from its allocation, not a number to call into.
+          : member.object && definition.allocations?.[member.object]
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength },
+                    () => new IrDevice(definition.allocations![member.object!]!, clock, {}).members.this)
+                : new IrDevice(definition.allocations[member.object]!, clock, {}).members.this)
           // A struct the device declares: build the shape its source gives it,
           // so the fields a method writes exist to be written.
           : member.fields
@@ -1031,6 +1037,11 @@ class IrDevice implements Device {
         return emitter;
       });
       this.members[callback.member] = callback.slots === 1 ? emitters[0] : emitters;
+      // An object the device holds calls back through its owner: the PIO
+      // port's `m_device->m_out_pa_cb(0, data)`.
+      Object.defineProperty(self, callback.member, {
+        enumerable: true, configurable: true, get: () => this.members[callback.member],
+      });
     }
     for (const specification of definition.timers ?? []) {
       const timer = new IrTimer(() => Number(this.bindings.calls?.['machine().time']?.() ?? NaN));

@@ -53,7 +53,8 @@ every shard passed.
 ### TYPE AND COLOCATED SPECS
 
 `test:unit` runs strict TypeScript checking followed by every `*.spec.ts` under
-`src`. Tests live beside the implementation they constrain:
+`src` and `tools` (`src/test/run-specs.ts`; `tsconfig.json` includes both).
+Tests live beside the implementation they constrain:
 
 ```
 src/mame/video-compiler.ts
@@ -80,8 +81,10 @@ canvas, audio and interaction behavior remains part of browser QA.
 
 `test:current` invokes `gen:all`, which deletes `dist`, generates every
 auto-discovered supported-game contract from MAME, builds their shared
-hardware closure and app, then runs the generated-output and semantic-baseline
-audits. It detects stale-output masking,
+hardware closure and app, then runs three audits: `audit:generated`,
+`audit:facts` (machine facts against MAME's own `-listxml`; without a
+same-release `MAME_BIN` it skips and passes, as in CI) and `audit:semantics`.
+It detects stale-output masking,
 missing modules, unsupported hardware, duplicate trees, embedded machine JSON,
 imports from `src`, blocked catalog entries, and ROM-free BoardIR drift across
 all supported targets. Source locations are excluded from the semantic digest;
@@ -126,8 +129,9 @@ prints what the walker skipped as opaque.
 
 Each token owns its checkpoint and input schedule because machines reach their
 input-ready attract state at different times. Frame counts range from 600 to
-2,400 so each golden reaches active gameplay; Galaga and Dig Dug use longer
-contracts to cover their three-CPU self-tests before coin and start input.
+6,200 so each golden reaches active gameplay; Galaga (2,600) and Dig Dug
+(2,400) run past their three-CPU self-tests before coin and start input, and
+Venture (6,200) past its long board self-test.
 Every action has deterministic press and release durations. A test failure
 therefore identifies a changed trajectory, not only a final screenshot.
 
@@ -157,7 +161,7 @@ Run the same complete path used by GitHub Actions with:
 npm run test:games:ci
 ```
 
-That command clean-generates first, runs both generated audits, fetches any
+That command clean-generates first, runs the three audits, fetches any
 missing accepted primary/parent/device sets, and runs the non-fail-fast matrix.
 To reproduce exactly what one CI runner did, add the same shard selector:
 
@@ -170,9 +174,11 @@ focused local pass cannot masquerade as the required full-suite check.
 The throughput measurement includes CPU execution, generated video, checkpoint
 hashing and deterministic audio probing. It is not the browser's presentation
 counter, but it catches runtime complexity regressions before they make a game
-miss real time. Tokens currently require 45 fps, except Time Pilot's 40 fps
-floor, which leaves enough host-load tolerance while still detecting its
-original 12 fps rendering regression. These floors leave headroom for shared
+miss real time. Each contract sets its own `minimumFps`, from 10 to 60, and
+one that sets none gets 10 (`src/games/source-contract.ts`). Of the current
+101 contracts, 41 require 10 fps, 21 require 30, 26 require 45 and the other 13
+sit at 20, 25, 40, 50 or 60. Time Pilot's 40 fps floor leaves enough host-load
+tolerance while still detecting its original 12 fps rendering regression. These floors leave headroom for shared
 development and CI machines while rejecting Time Pilot's original uncached
 scanline implementation and Galaga's original interpreted 05XX hot loop.
 
@@ -183,8 +189,10 @@ proven hot loop; absolute real-time acceptance remains in the game token.
 
 ### BROWSER PRESENTATION
 
-`test:e2e` is the Playwright suite in `e2e/`. It plays every accepted machine
-through the real app and is what replaces play-testing each one by hand.
+`test:e2e` is the Playwright suite in `e2e/`. It plays every accepted arcade
+contract through the real app (`e2e/support/contracts.ts`) and is what
+replaces play-testing each one by hand; the console and computer rooms have
+their own specs (`console.spec.ts`, `computer.spec.ts`).
 
 The Node contracts above import generated modules directly, so the app is
 absent from them: no DOM, no canvas, no AudioWorklet, no keyboard. A broken
@@ -225,17 +233,22 @@ handlers and CPUs its machine composes — and prints the matching
 `MAMEKIT_E2E_GAMES=...` command. See
 [ENGINEERING GUIDE](ENGINEERING.md) section 6A.
 
-The suite is local only for the same reason `test:games` is: it needs ROMs. See
+The suite is local only, and not for want of ROMs: CI already fetches the
+accepted closure for the Node contracts. `ci.yml` has no browser job, and this
+suite drives a real browser through every arcade contract, each test allowed
+five minutes (`e2e/playwright.config.ts`). See
 [e2e/README](../e2e/README.md) for layout, snapshot recording, the full list of
 environment switches, and the opt-in `rom-search` spec, which requires the
 public mirror to hand back a bootable set.
 
 ### THE CONSOLE
 
-A console has no romset of its own, so it cannot hold a real-ROM contract the
-way an arcade machine does: its software arrives on cartridges the visitor
-supplies. `e2e/specs/console.spec.ts` is therefore the only end-to-end gate the
-machine has, and it asserts what issue #85 asked for:
+A console has no romset of its own, so its Node contracts are accepted against
+a cartridge: `node src/games/acceptance.ts --list` names `nes:smb3u`,
+`nes:smb1`, `nes:duckhunt`, `nes:arkanoid`, `coleco:dkong`, `a2600:combat` and
+`gameboy:tetris`. The console room is app path those contracts never touch,
+and `e2e/specs/console.spec.ts` covers it for the NES shelf. It asserts what
+issue #85 asked for:
 
 - the boot menu offers a CONSOLES tab and the machine is on that shelf. The tab
   bar is derived from what the manifest holds (`menuTabs`), so its presence is
@@ -256,8 +269,10 @@ machine so the three cannot drift apart.
 
 ## 3. GAME TOKENS
 
-The `src/games` directory is the supported-machine QA inventory. Each machine
-has one deliberately small token:
+The `src/games` directory is the supported-machine QA inventory: 90 accepted
+modules, one deliberately small token per machine (a module may hold several
+scenarios, so `node src/games/acceptance.ts --list` prints more contracts than
+modules and is the full set). For example:
 
 ```
 src/games/pacman.game.ts
@@ -297,7 +312,9 @@ A game whose generated build is known bad moves to `src/games/disabled/`, a
 directory discovery never reads, so it stops being generated, audited and
 shipped. Each parked module carries a header note with the play-test finding
 that disabled it, and its spec keeps running from there, so the driver must
-still compile. Re-enabling one is moving the module and spec back up.
+still compile. Re-enabling one is moving the module and spec back up. No game
+is parked now: #145 re-enabled or dropped every one, so the folder is absent,
+and `src/games/discovery.ts` keeps the `disabled` lifecycle for the next.
 
 It must never contain CPU instructions, address-map behavior, graphics decode,
 palette logic, sprite drawing, sound synthesis, or a board implementation.
@@ -336,7 +353,8 @@ npm run test:current
 npm run test:games:matrix
 ```
 
-The default ROM locations, under the gitignored `.data/` tree, are:
+The default ROM locations are under the gitignored `.data/` tree. An arcade
+set is `.data/roms/arcade/<game>.zip`, for example:
 
 ```text
 .data/roms/arcade/pacman.zip
@@ -352,7 +370,13 @@ The default ROM locations, under the gitignored `.data/` tree, are:
 .data/roms/arcade/gyruss.zip
 ```
 
-Override them without moving files:
+A console's cartridge is `.data/roms/consoles/<console>/<cartridge>.zip`
+(`.data/roms/consoles/nes/smb3u.zip`) and a computer title
+`.data/roms/computers/<machine>/<list>/<name>.zip`
+(`.data/roms/computers/c64/c64_cass/crazycom.zip`), each beside the machine's
+own sets. `node src/games/acceptance.ts --list` names every contract.
+
+Override them without moving files (`MAMEKIT_<GAME>_ROM`, for example):
 
 ```sh
 MAMEKIT_PACMAN_ROM=/path/pacman.zip \
@@ -364,14 +388,17 @@ MAMEKIT_GALAGA_ROM=/path/galaga.zip \
 MAMEKIT_DIGDUG_ROM=/path/digdug.zip \
 MAMEKIT_MPATROL_ROM=/path/mpatrol.zip \
 MAMEKIT_ROCNROPE_ROM=/path/rocnrope.zip \
-MAMEKIT_JUNOFIRST_ROM=/path/junofrst.zip \
+MAMEKIT_JUNOFRST_ROM=/path/junofrst.zip \
 MAMEKIT_GYRUSS_ROM=/path/gyruss.zip \
 npm run test:games:matrix
 ```
 
-ROMs are copyrighted, gitignored, never copied into `dist`, and never placed
-in CI. This is why CI can prove source extraction and generation but cannot
-claim that a real game booted.
+ROMs are copyrighted, gitignored, never copied into `dist`, and never
+committed, served, deployed or stored as Actions artifacts. CI still runs
+every real-ROM contract: each ROM-backed shard fetches the accepted closure
+from the public mirror (`npm run fetch:acceptance-roms`) into its own
+workspace, and the harness verifies each archive against MAME's declared sizes
+and CRCs before it runs.
 
 ## 5. CHANGING A GOLDEN
 
@@ -417,7 +444,7 @@ changes point toward generated synthesis or resampling.
 
 ## 6. ADDING A SUPPORTED GAME
 
-Use the canonical [adding-a-game workflow](ADDING_A_GAME.md). It starts from a
+Use the [candidate workflow](CONTRIBUTING.md#candidate-workflow). It starts from a
 MAME short name, creates a staged candidate, and keeps generation, acceptance,
 and publication readiness separate.
 
@@ -436,7 +463,8 @@ it must not gain game logic.
 3. installs the locked npm dependencies on the repository's Node version;
 4. runs every colocated spec;
 5. deletes `dist`, regenerates every discovered accepted/candidate machine,
-   and audits both generated structure and semantic BoardIR;
+   and runs `test:current`'s three audits: generated structure, machine facts
+   (skipped and passing, since CI has no MAME binary) and semantic BoardIR;
 6. in each ROM-backed shard, downloads the distribution generated in step 5
    and the exact accepted ROM closure from the application's public mirror,
    verifies the ROMs against MAME metadata, runs that shard's contracts, and uploads its report even when one or more fail (one
