@@ -51,9 +51,10 @@ import { gameOutputDir } from '../src/gen/output-layout.ts';
 import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../src/gen/oracle-result.ts';
 import { romsDir } from '../src/paths.ts';
 import type { ShellConfig } from '../src/runtime/shell.ts';
-import { compareIo, comparePictures, compareRam, sideBySide, writePng, type FrameResult, type IoResult, type RamResult } from './oracle/compare.ts';
+import { compareIo, comparePictures, compareRam, sideBySide, writePng } from './oracle/compare.ts';
 import { mameArguments, mameFrames, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './oracle/mame-side.ts';
 import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './oracle/plan.ts';
+import { gradeRun, pickSurveyTitles, surveyGroups, type RunReport, type SurveyEntry } from './oracle/report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
 
@@ -137,34 +138,6 @@ function mamekitIdentity(): { commit: string; dirty: boolean } {
 const identity = mamekitIdentity();
 
 // --- one run ---------------------------------------------------------------
-
-export interface RunReport {
-  title?: string;
-  scenario?: string;
-  input: InputMode;
-  checkedAt: string;
-  mame: string;
-  mamekit: { commit: string; dirty: boolean };
-  /** What MAME was run with, for repeating it by hand. */
-  mameCommand: string;
-  pixels?: {
-    offset: number;
-    /** Every offset that fits as well (a still screen fits several). */
-    tied: number[];
-    frames: FrameResult[];
-    /** Our frames that are pixel-for-pixel MAME's. */
-    exact: number[];
-    /** Our first compared frame that is not. */
-    firstDivergence?: number;
-    images: string[];
-  };
-  ram?: RamResult;
-  io?: IoResult;
-  grade?: { samples: number; drawn: number; changes: number; colours: number };
-  /** How far our side ran; `retried` is a first failure the second run did not repeat. */
-  ours?: { frames: number; error?: string; retried?: string };
-  mameError?: string;
-}
 
 interface RunRequest {
   title?: OracleTitle;
@@ -350,17 +323,6 @@ const access = (entry: { frame: number; kind: string; address: string; data: str
 
 // --- the report file -------------------------------------------------------
 
-interface SurveyEntry {
-  board: string;
-  title: string;
-  cause: string;
-  detail?: string;
-  pixels?: number;
-  offset?: number;
-  image?: string;
-  mamekit: string;
-}
-
 interface OracleReport extends OracleReportFile {
   runs: Record<string, RunReport>;
   survey?: { frame: number; input: InputMode; checkedAt: string; mame: string; titles: Record<string, SurveyEntry> };
@@ -420,27 +382,7 @@ function surveyTitles(): { board: string; title: string }[] {
   if (!existsSync(catalogPath)) throw new Error(`${target} has no cartridge catalogue to survey`);
   const catalog = JSON.parse(readFileSync(catalogPath, 'utf8')) as { entries: { name: string; slot?: string }[] };
   const dumps = join(romsDir(projectRoot), outputDir.category, target!);
-  const byBoard = new Map<string, string>();
-  for (const entry of catalog.entries) {
-    const board = entry.slot ?? 'default';
-    if (!byBoard.has(board) && existsSync(join(dumps, `${entry.name}.zip`))) byBoard.set(board, entry.name);
-  }
-  return [...byBoard].map(([board, title]) => ({ board, title })).sort((a, b) => a.board.localeCompare(b.board));
-}
-
-/** A survey title's verdict: the cause, so failures sort by what went wrong rather than by board. */
-function grade(report: RunReport): Pick<SurveyEntry, 'cause' | 'detail'> {
-  if (report.ours?.error) {
-    return /^timed out or crashed/.test(report.ours.error) ? { cause: 'timeout' }
-      : { cause: 'error', detail: report.ours.error.replace(/0x[0-9a-f]+|\b\d+\b/gi, 'N') };
-  }
-  if (report.grade && report.grade.drawn === 0) return { cause: 'blank' };
-  if (report.grade && report.grade.changes <= 2) return { cause: 'static' };
-  if (report.mameError) return { cause: 'mame-error', detail: report.mameError };
-  const frame = report.pixels?.frames.at(-1);
-  if (frame?.size) return { cause: 'size', detail: frame.size };
-  if (frame?.pixels === undefined) return { cause: 'no-picture' };
-  return frame.pixels === 0 ? { cause: 'exact' } : { cause: 'diverges' };
+  return pickSurveyTitles(catalog.entries, name => existsSync(join(dumps, `${name}.zip`)));
 }
 
 async function survey(): Promise<void> {
@@ -462,7 +404,7 @@ async function survey(): Promise<void> {
     while (next < pending.length) {
       const { board, title } = pending[next++]!;
       const run = await runOne({ title: { cartridge: title }, frames: [frame], input, grade: true }, true);
-      const verdict = grade(run);
+      const verdict = gradeRun(run);
       const entry: SurveyEntry = {
         board, title, ...verdict, mamekit: identity.commit,
         ...(run.pixels?.frames[0]?.pixels !== undefined ? { pixels: run.pixels.frames[0].pixels, offset: run.pixels.offset } : {}),
@@ -480,15 +422,8 @@ async function survey(): Promise<void> {
 
 function printSurvey(result: NonNullable<OracleReport['survey']>): void {
   const entries = Object.values(result.titles);
-  const order = ['exact', 'diverges', 'size', 'static', 'blank', 'no-picture', 'error', 'timeout', 'mame-error'];
-  const groups = new Map<string, SurveyEntry[]>();
-  for (const entry of entries) {
-    const key = entry.detail && (entry.cause === 'error' || entry.cause === 'mame-error') ? `${entry.cause}: ${entry.detail}` : entry.cause;
-    groups.set(key, [...groups.get(key) ?? [], entry]);
-  }
-  const rank = (key: string) => order.indexOf(key.split(':')[0]!);
   console.log(`\n${target} survey at frame ${result.frame}, ${entries.length} boards:`);
-  for (const [key, list] of [...groups].sort((a, b) => rank(a[0]) - rank(b[0]) || b[1].length - a[1].length)) {
+  for (const [key, list] of surveyGroups(entries)) {
     console.log(`  ${String(list.length).padStart(4)}  ${key.slice(0, 160)}`);
     if (key !== 'exact') console.log(`        ${list.slice(0, 12).map(entry => `${entry.board}/${entry.title}`).join(' ')}${list.length > 12 ? ' …' : ''}`);
   }

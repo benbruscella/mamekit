@@ -812,6 +812,21 @@ page says what it found ("pixel-exact against MAME 0.289 at frames 300, 600,
 *Checked against MAME* facet lists machines by it. A machine nobody has checked
 says nothing. Running MAME stays local: CI keeps the goldens.
 
+**What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
+tool with the rest of the tree (`tsconfig.json` includes `tools/mame-oracle.ts`
+and `tools/oracle`), so a harness hook it uses cannot be renamed under it.
+`tools/oracle/*.spec.ts` cover:
+
+- the input timeline against the harness's own frame rules;
+- MAME's command line: slot options before the title, the medium named,
+  cold-boot directories, and the out-of-the-way flags;
+- the pixel, RAM and I/O comparisons, and the PNG writer;
+- survey grading and grouping.
+
+With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
+to one vocabulary: every plan field read is written, every timeline event kind
+is applied, and the pitfalls above stay fixed in the code.
+
 ### ALL-TARGET GENERATION
 
 ```sh

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { FieldBinding } from '../../src/runtime/input.ts';
-import { inputTimeline, parseRanges, ramFrames, startSchedule } from './plan.ts';
+import { inputTimeline, MEDIA_SWITCH, moveBootEvent, parseRanges, ramFrames, startSchedule } from './plan.ts';
 import { mameFrames } from './mame-side.ts';
 
 const bindings: FieldBinding[] = [
@@ -39,6 +39,22 @@ assert.deepEqual(timeline.events, {
   40: [{ kind: 'reset' }],
   181: [{ kind: 'boot', text: 'LOAD{ENTER}', play: true }],
 });
+// A quickload holds the start until it has loaded: the command moves to the
+// frame it was typed on, alone or beside other input, and nothing else moves.
+const moved = inputTimeline([{ atFrame: 151, code: 'Enter', heldFrames: 1, releasedFrames: 0 }], bindings,
+  { frame: 151, text: 'RUN{ENTER}', play: false });
+moveBootEvent(moved, 160);
+assert.deepEqual(moved.events, {
+  151: [{ kind: 'press', input: 0 }],
+  152: [{ kind: 'release', input: 0 }],
+  160: [{ kind: 'boot', text: 'RUN{ENTER}', play: false }],
+});
+moveBootEvent(moved, 160);
+assert.deepEqual(Object.keys(moved.events), ['151', '152', '160'], 'moving to where it already is changes nothing');
+
+// MAME is told the medium for every kind of shelf the software room mounts.
+assert.deepEqual(MEDIA_SWITCH, { cartridge: 'cart', cassette: 'cass', floppy: 'flop', quickload: 'quik' });
+
 assert.throws(() => inputTimeline([{ atFrame: 1, code: 'KeyQ', heldFrames: 1, releasedFrames: 0 }], bindings), /no control is bound to KeyQ/);
 assert.throws(() => inputTimeline([{ atFrame: 1, code: 'KeyP', heldFrames: 1, releasedFrames: 0 }], bindings), /not given yet/);
 

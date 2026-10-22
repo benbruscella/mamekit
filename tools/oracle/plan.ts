@@ -177,6 +177,23 @@ export function inputTimeline(
 }
 
 /**
+ * Move a software title's start to the frame our side actually typed on: it
+ * waits for a quickload to finish loading, which can be after its shelf's
+ * delay, and MAME must type on the same frame.
+ */
+export function moveBootEvent(timeline: Timeline, frame: number): void {
+  const events = timeline.events;
+  for (const [at, list] of Object.entries(events)) {
+    const start = list.find(event => event.kind === 'boot');
+    if (!start || Number(at) === frame) continue;
+    const rest = list.filter(event => event !== start);
+    if (rest.length) events[Number(at)] = rest;
+    else delete events[Number(at)];
+    (events[frame] ??= []).push(start);
+  }
+}
+
+/**
  * The frame title-start.ts types a shelf's command after: it waits `delay`
  * seconds of frames, then posts on the next.
  */

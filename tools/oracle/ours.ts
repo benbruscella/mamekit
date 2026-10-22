@@ -17,7 +17,7 @@ import type { GameInputAction, GameTestContract } from '../../src/games/types.ts
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { Board } from '../../src/runtime/types.ts';
-import { bootFrame, inputTimeline, MEDIA_SWITCH, ramFrames, startSchedule, type OraclePlan, type OursBoot } from './plan.ts';
+import { bootFrame, inputTimeline, MEDIA_SWITCH, moveBootEvent, ramFrames, startSchedule, type OraclePlan, type OursBoot } from './plan.ts';
 import { projectRoot } from './mame-side.ts';
 
 /** The machine's contract to borrow: the scenario named, else one of the title's kind, else its first. */
@@ -126,15 +126,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       // its shelf's delay: MAME is given the frame it actually typed on.
       onTitleStart: (frame, message) => {
         if (!booted || !message.startsWith('typing')) return;
-        const events = booted.timeline.events;
-        for (const [at, list] of Object.entries(events)) {
-          const start = list.find(event => event.kind === 'boot');
-          if (!start || Number(at) === frame) continue;
-          const rest = list.filter(event => event !== start);
-          if (rest.length) events[Number(at)] = rest;
-          else delete events[Number(at)];
-          (events[frame] ??= []).push(start);
-        }
+        moveBootEvent(booted.timeline, frame);
         writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(booted)}\n`);
       },
       inspectFrame: frame => {
