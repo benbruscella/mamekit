@@ -6,8 +6,7 @@ Read these in order before changing the project:
 2. `docs/ARCHITECTURE.md`
 3. `docs/ENGINEERING.md`
 
-Those are the complete current documentation set. Files under `sessions/` are
-historical evidence and may describe deleted architectures.
+Those are the complete current documentation set.
 
 ## HARD RULES
 
@@ -52,6 +51,3 @@ historical evidence and may describe deleted architectures.
   acceptance after changes.
 - Use `npm run test:generation` for broad parser, graph, IR, runtime or output
   topology changes; it clean-generates every required target.
-
-Historical transcripts are listed in `sessions/ARCHIVE_INDEX.md`. Never treat a
-transcript as permission to restore old handwritten runtime code.

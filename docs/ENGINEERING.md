@@ -55,6 +55,20 @@ fetched contributes no credits at all, so a machine updated in the newest MAME
 release will silently under-credit until this is run. Nothing here is committed:
 the notes are MAMEDEV's own prose, cached like roms and artwork.
 
+**Fetch artwork into `.data/artwork/`.** Neither fetcher overwrites a file that
+is already there:
+
+```sh
+node tools/download-artwork.ts [game ...]   # bezels and layouts (archive.org), flyers, cabinets, marquees
+node tools/c64-covers.ts [--apply]          # C64 shelf covers from TOSEC's Cover.zip; reports unless --apply
+```
+
+`download-artwork` with no argument fetches whatever every game contract is
+still missing. `c64-covers` matches every title on the generated C64 shelves
+to a front scan by name and writes a 240 px `<name>.webp` under
+`artwork/carts/<list>/`. Run `npm run audit:game-package -- <target>` to see
+what a machine still lacks.
+
 `src/paths.ts` is the only place that names `.data`; tooling resolves paths
 through `romsDir()`, `artworkDir()` and `releaseNotesDir()` rather than
 hardcoding any of them. ROMs are
@@ -115,6 +129,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:current` | clean-generate and audit the currently supported games |
 | `npm run audit:generated` | audit the games currently present in `dist` |
 | `npm run audit:facts` | diff generated machine facts against MAME's own `-listxml` |
+| `node tools/mame-oracle.ts <target> [<title>]` | run a machine beside MAME and compare pictures, RAM and bus traffic |
 | `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
 | `npm run audit:game-package -- <target>` | validate local artwork, history and dossier completeness |
 | `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
@@ -181,20 +196,10 @@ PAL machines, and a quickload and an Ultimax cartridge on the PAL one.
 `npm run gen:all` and `npm run dev` expose all generated targets in the
 catalogue, including the Computers tab. Candidates are labelled experimental;
 menu visibility does not grant gameplay acceptance.
-For an isolated build and a local tape diagnostic:
-
-```sh
-node bin/mamekit.js dev-game c64p
-MAMEKIT_C64_MACHINE=c64p MAMEKIT_C64_LOAD=nebulus \
-  MAMEKIT_C64_MEDIA_FRAMES=13000 node tools/check-c64-games.ts \
-  .data/roms/_processed/c64/testing/selected-games.json .cache/dev/c64p
-```
-
-The diagnostic verifies the selected software-list checksums and BIOS, boots
-the generated machine, types `LOAD`, and operates the source-derived tape
-transport. It records loading checkpoints and attempts `RUN` after the loader
-prints `READY.`. Its exit status remains unsuccessful until gameplay acceptance
-exists; a matching tape or a BASIC screen is not a gameplay pass.
+For an isolated build, `node bin/mamekit.js dev-game c64p`. A title is checked
+against MAME 0.289 with the oracle (section 7):
+`node tools/mame-oracle.ts c64p c64_cass:<name> --frames <n>` boots it as the
+room's Play does on both sides, types the shelf's command and presses PLAY.
 
 In the app, open the Commodore 64 under **Computers**: the NTSC and PAL
 machines are one box and one room, and the room's **REGION** control (Auto,
@@ -283,9 +288,9 @@ A cartridge title boots with the cartridge already in the expansion port and
 both other slots empty, and starts itself; nothing is typed. The port's 54
 cards are compiled from MAME's own `c64_expansion_cards`, limited to the ones
 `c64_cart` and `vic10` name (`src/hardware/c64/extract.ts`), and a title whose
-list names none takes `standard`. To check one against MAME, run
-`-cart <set> -iec8 "" -tape ""` with the set in `<rompath>/c64_cart/` and
-snapshot a frame: Pac-Man, Kung-Fu Master, Robocop 2, Narco Police, the C64GS
+list names none takes `standard`. To check one against MAME,
+`node tools/mame-oracle.ts c64p c64_cart:<set> --input none` runs MAME with
+`-iec8 "" -tape ""` and the set mounted, and compares the frames: Pac-Man, Kung-Fu Master, Robocop 2, Narco Police, the C64GS
 cartridge and three VIC-10 carts are pixel-identical to MAME 0.289. A bare
 `.crt`, `.80`, `.a0` or `.e0` dropped in the room goes in as a file: the port's
 own `get_default_card_software` reads a `.crt`'s header for its card through
@@ -349,7 +354,8 @@ loader restores the Z80 through MAME's `set_state_int`, which the generated
 core answers from its own `state_add` table and `state_import`. MAME runs
 `-snapshot <file>`; a homemade 48K `.sna` is pixel-identical at frame 100.
 
-**Checking frames against MAME.** MAME's frame notifier fires at the end of a
+**Checking frames against MAME.** `tools/mame-oracle.ts` (section 7) does this
+with the alignment below built in. MAME's frame notifier fires at the end of a
 frame and the harness hook before one, so an input MAME posts on frame N is
 this side's frame N + 1; MAME's snapshot of frame N is this side's frame N.
 With that, the 48K's boot, BASIC typed by keyword (PRINT, then BEEP after the
@@ -708,6 +714,123 @@ one case, MAME's integer horizontal scaling of the Galaxian family.
 Without a matching MAME binary the audit skips with a message and passes, which
 is what CI does; `--require` turns that skip into a failure.
 
+### BEHAVIOUR AGAINST MAME: THE ORACLE
+
+```sh
+MAME_BIN=/path/to/matching/mame node tools/mame-oracle.ts pacman --frames 300,600,900 --ram
+MAME_BIN=... node tools/mame-oracle.ts nes cvania3u --frames 120,300,1500
+MAME_BIN=... node tools/mame-oracle.ts c64p c64_cart:pacman --input none
+MAME_BIN=... node tools/mame-oracle.ts nes --survey
+```
+
+Goldens say a machine still does what it did; the oracle says whether that is
+what MAME does. It runs one machine, or one of its titles, on both sides with
+the same input: ours through the acceptance harness exactly as a contract boots
+it (a title without a contract borrows its machine's), MAME through one Lua
+script, `tools/oracle/oracle.lua`, which every comparison shares. It then
+reports the result as a number: differing pixels per frame, differing RAM bytes
+and the first frame they differ on, the first bus access that differs. Most of
+the silent faults #167 fixed — a character literal compiled as a string, every
+software-list feature skipped, `m_pcb_id` never a number, NES RAM powering on
+zeroed — were found this way, not by a golden.
+
+**What it compares.**
+
+- *Pictures* at `--frames` (default 600). Each side writes a side-by-side PNG
+  (MAME | ours | ours dimmed with every differing pixel red) under
+  `.cache/oracle/<target>/<title>/`.
+- *RAM* with `--ram`, every frame from 1, for every RAM range the generated
+  board maps, or the ranges named (`--ram maincpu:0-7ff`). The report gives
+  the first frame that differs and its addresses (`mame/ours`). It also gives,
+  at each compared frame, MAME's RAM against the nearest of our frames, which
+  is the figure the old `mame-ram-oracle` reported (Green Beret: 16, 25 and 19
+  bytes at frames 600, 900 and 1200). It is the measuring stick for a
+  scheduler change: a board that moves further from MAME has regressed,
+  whatever its hashes say.
+- *Bus traffic* with `--io maincpu:2000-7fff:rw --io-frames 3-9`. Both sides
+  log every read and write in the range, and the report gives the first one
+  that differs. That is how Bio Miracle was narrowed to a game-state byte
+  rather than a register.
+
+**Input.** A machine runs with no input by default (attract mode is
+deterministic on both sides) and a title with a Start schedule: Start held for
+six frames every 300, from frame 300. `--input contract --scenario <id>`
+replays a contract's own actions. Key, chord, light-gun aim, typed text and
+reset actions are all given to MAME. A software title's start command is typed
+through MAME's natural keyboard on the frame `title-start.ts` types it, and
+PLAY is pressed once typing ends.
+
+**Frames.** Both sides count frames as they run them. An input given at frame N
+is read during frame N + 1: the harness's `atFrame`, and a MAME frame
+notifier's frame. Our frame N is set against MAME's N + offset, and the offset
+is searched (`--search 2`, or a fixed `--offset`). One offset is kept for the
+whole run, never the best per frame, because choosing per frame would hide a
+machine running at the wrong speed. Offsets that fit equally well are listed
+(`as good at -1 +0`), since a still screen fits several. MAME's pictures come
+from `video:snapshot_pixels()`, the image a `-snapshot` PNG holds, rotated as
+the driver presents it. Ours is turned to match. `screen:pixels()` in a frame
+notifier returns the frame before.
+
+**MAME the same way every time.** The tool refuses a binary of another release
+(`src/gen/listxml.ts`). Every run gets a fresh `-nvram_directory` and
+`-cfg_directory`, because MAME writes NVRAM back on exit and a reused
+directory boots warm. The title is given as `<list>:<name>`, so no media switch
+is needed, and our boot's slot cards and empty slots are passed on:
+`-ctrl2 zapper`, `-iec8 ""`. The Lua script keeps its taps and files in
+globals, uses `add_machine_stop_notifier`, and does not log its own RAM reads
+as bus traffic.
+
+**Out of the way.** MAME runs `-window -nomaximize -video none -sound none`,
+because without `-window` it takes over a Mac's screen even with no video.
+Both sides run at `nice 10`. `--background` moves them onto the efficiency
+cores (`taskpolicy -b`), which is slower but never felt. `--watch` gives MAME
+a real window. A survey runs one title at a time unless given `--jobs`.
+
+**Survey.** `--survey` runs one title per cartridge board that has a local
+dump, to frame 1500 with the Start schedule, and grades each: it errors, times
+out, stays blank, stays still, or reaches a picture that is exact or differs
+from MAME's. Failures are listed by cause, and errors by message, so a fault
+shared by forty boards reads as one line. The report is saved after every title
+and the next survey resumes, skipping titles already graded on the same commit
+(`--fresh` re-runs them). Our side runs in a child process, and a title that
+fails is run once more and recorded as `retried`, because one or two titles in
+a sweep fail once and pass the next run.
+
+**The report** is `.cache/oracle/<target>.json`: per run, every compared frame
+with the MAME frame it was set against and its differing pixels, the offset
+used, the first RAM divergence, the I/O result, the exact MAME command, the
+date and the mamekit commit (marked `dirty` with local changes). The #167
+comparisons are one command:
+
+```sh
+MAME_BIN=... node tools/mame-oracle.ts nes \
+  --titles gimmick,gemfire,erika,smw,esperdr2,abadox,cvania3u,biomirac --frames 1500
+```
+
+**Shown with the exhibit.** Generation turns each report into the machine's
+`oracle.json` (`src/gen/oracle-result.ts`), keeping only runs from the source
+checkout's MAME release. This happens outside the per-target cache, beside the
+runtime reports, and the tool refreshes the file after every run. The machine's
+page says what it found ("pixel-exact against MAME 0.289 at frames 300, 600,
+900 (no input)", "6 of 8 titles pixel-exact at frame 1500"), and the archive's
+*Checked against MAME* facet lists machines by it. A machine nobody has checked
+says nothing. Running MAME stays local: CI keeps the goldens.
+
+**What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
+tool with the rest of the tree (`tsconfig.json` includes all of `tools/`), so a
+harness hook it uses cannot be renamed under it.
+`tools/oracle/*.spec.ts` cover:
+
+- the input timeline against the harness's own frame rules;
+- MAME's command line: slot options before the title, the medium named,
+  cold-boot directories, and the out-of-the-way flags;
+- the pixel, RAM and I/O comparisons, and the PNG writer;
+- survey grading and grouping.
+
+With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
+to one vocabulary: every plan field read is written, every timeline event kind
+is applied, and the pitfalls above stay fixed in the code.
+
 ### ALL-TARGET GENERATION
 
 ```sh
@@ -800,8 +923,7 @@ The current documentation set is intentionally minimal:
 - root `README.md`;
 - `docs/ARCHITECTURE.md`;
 - `docs/ENGINEERING.md`;
-- `docs/TESTING.md`;
-- `sessions/ARCHIVE_INDEX.md` for historical evidence.
+- `docs/TESTING.md`.
 
 Documentation filenames use `UPPERCASE_WITH_UNDERSCORES.md`, except the
 repository-standard root `README.md` and tool-standard `CLAUDE.md`.
@@ -809,9 +931,6 @@ repository-standard root `README.md` and tool-standard `CLAUDE.md`.
 Do not add another README or a narrow document that duplicates an existing
 section. Extend one of the three engineering references. Generated per-machine
 archival text is named `DOSSIER.md`.
-
-Raw session transcripts are historical. Current code and current engineering
-documents always take precedence.
 
 ## 11. DEPLOYMENT
 

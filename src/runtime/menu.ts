@@ -63,6 +63,8 @@ interface GameEntry {
   driverFile?: string;
   license?: string;
   copyrightHolders?: string;
+  /** The latest frame-for-frame comparison with MAME (oracle.json). */
+  oracle?: OracleCheck;
   /**
    * Who MAMEDEV credits for the driver: header copyright-holders plus their own
    * published release notes. Never commit counts — see src/gen/driver-history.ts.
@@ -93,6 +95,7 @@ interface GameEntry {
 }
 
 import { audioLimitations, SYNTHESIZED_SAMPLES_NOTE } from './audio-fidelity.ts';
+import { oracleFacet, oracleLines, type OracleCheck } from './oracle-check.ts';
 
 export type MenuTab = 'arcade' | 'console' | 'computer';
 
@@ -698,6 +701,11 @@ export async function runMenu(): Promise<void> {
       row(hw, 'Screen', screenFact, browseUrl('screen', screenFact));
       row(hw, 'ROM chips', `${cfg.roms.reduce((n: number, r: { loads: unknown[] }) => n + r.loads.length, 0)} across ${cfg.roms.length} regions`);
     } catch { row(hw, 'Machine', 'config not generated yet'); }
+    if (entry.oracle) {
+      const [first, ...rest] = oracleLines(entry.oracle);
+      row(hw, 'Checked against MAME', first!, browseUrl('mame-check', oracleFacet(entry.oracle)));
+      for (const line of rest) row(hw, '', line);
+    }
 
     // The people — driver credits + git history
     const ppl = section('The MAME driver — the people who reverse-engineered it', colB);

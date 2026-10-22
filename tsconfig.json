@@ -12,8 +12,8 @@
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src", "tools"]
 }

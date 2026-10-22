@@ -1094,6 +1094,16 @@ machine that ships describing itself incorrectly.
 Real differences in what each side models are reported as divergences rather
 than failures, so that they stay visible instead of being tolerated silently.
 
+Behaviour is checked the same way, locally. `tools/mame-oracle.ts` runs a
+generated machine and that same MAME binary side by side, with the same title
+and the same input, and compares pictures, RAM and bus traffic frame by frame
+(ENGINEERING section 7). Its latest result for each machine is local evidence
+under `.cache/oracle/`. Generation summarises it into the exhibit's
+`oracle.json` (`src/gen/oracle-result.ts`) outside the per-target cache, so the
+machine's page and the archive state what was found, for which MAME release,
+on which build. The summary is generated data like any other fact: never
+written by hand, and absent for a machine nobody has checked.
+
 ### ATTRIBUTION IS SOURCED, NOT INFERRED
 
 Credit for a driver is taken from MAME's own `copyright-holders` header and from

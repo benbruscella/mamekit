@@ -115,6 +115,19 @@ export interface GameAcceptanceOptions {
     /** Sound writes emitted during this frame, before the probe consumes them. */
     writes: readonly SoundWrite[];
   }) => void;
+  /**
+   * Diagnostic hook called once, before the first frame, with the booted board
+   * and the configuration it was built from: the slot cards it holds and the
+   * media slots it left empty, which a MAME reference run has to be given too
+   * (tools/mame-oracle.ts).
+   */
+  onBoard?: (booted: { board: Board; boardConfig: ShellConfig['board']; config: ShellConfig }) => void;
+  /**
+   * Called when a software title's start acts, after `frame` frames: the frame
+   * it types its command on can wait for a quickload to finish loading, so a
+   * MAME reference run has to be told when it happened.
+   */
+  onTitleStart?: (frame: number, message: string) => void;
 }
 
 export async function runGameAcceptance(
@@ -294,6 +307,7 @@ export async function runGameAcceptance(
   // that reads its trackball mid-frame -- Missile Command, from its scanline
   // IRQ -- saw one lump per frame here and gradual steps in the browser.
   input.frameFraction = () => board.frameFraction?.() ?? 1;
+  options.onBoard?.({ board, boardConfig, config });
 
   const audio = await createAudioProbe(config, regions, outRoot);
   const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
@@ -339,7 +353,7 @@ export async function runGameAcceptance(
           inputLog.push({ step, type: 'play', transport: title.tape!.tag });
           title.tape!.play();
         },
-      }, () => {}, () => !title?.quickloads.some(quickload => quickload.pending()))
+      }, message => options.onTitleStart?.(step, message), () => !title?.quickloads.some(quickload => quickload.pending()))
     : undefined;
   const stepHashes = new Map<number, GameCheckpointGolden>();
   const stepSnapshots = new Map<number, string>();

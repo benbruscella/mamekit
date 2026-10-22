@@ -324,10 +324,15 @@ async function emitClosureFromGraphs(targets: readonly string[], root = outRoot)
   }
   const { refreshRuntimeReports } = await import('./gen/runtime-report.ts');
   const refreshedReports = refreshRuntimeReports(root);
+  // Outside the per-target cache, like the runtime reports: a tool run since
+  // the last generation must show, and a cached meta.json would hide it.
+  const { refreshOracleResults } = await import('./gen/oracle-result.ts');
+  const { mameSourceVersion } = await import('./gen/listxml.ts');
+  const oracleResults = refreshOracleResults(root, projectRoot, mameSourceVersion(mameSrc));
   console.log(
     `generated hardware closure: ${summary.sourceResolved}/${summary.types} ` +
     `types source-resolved, ${summary.unresolved} unresolved; ` +
-    `${refreshedReports} generation reports refreshed`,
+    `${refreshedReports} generation reports refreshed, ${oracleResults} MAME oracle results`,
   );
 }
 

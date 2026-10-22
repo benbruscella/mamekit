@@ -34,6 +34,7 @@ import {
   type CartSupport,
 } from './cart-mount.ts';
 import { readZip, crc32 } from './zip.ts';
+import { oracleFacet, oracleLines, type OracleCheck } from './oracle-check.ts';
 import { artworkSources } from './artwork-source.ts';
 import { consoleDeckSvg } from './console-art.ts';
 import {
@@ -242,6 +243,8 @@ interface MenuEntry {
   driverFile?: string;
   license?: string;
   copyrightHolders?: string;
+  /** The latest frame-for-frame comparison with MAME (oracle.json). */
+  oracle?: OracleCheck;
   /**
    * Who MAMEDEV credits for the driver: header copyright-holders plus their own
    * published release notes. Never commit counts — see src/gen/driver-history.ts.
@@ -1650,6 +1653,11 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
       if (cfg.cart) {
         row(hw, 'Cartridge slot', `${cfg.cart.interface} · ${support.slots.length.toLocaleString('en-US')} boards`);
         row(hw, 'Verified titles', cfg.cart.games.join(', ') || 'none yet');
+      }
+      if (entry?.oracle) {
+        const [first, ...rest] = oracleLines(entry.oracle);
+        row(hw, 'Checked against MAME', first!, browseUrl('mame-check', oracleFacet(entry.oracle)));
+        for (const line of rest) row(hw, '', line);
       }
 
       const ppl = section(inner, 'The MAME driver — the people who reverse-engineered it');

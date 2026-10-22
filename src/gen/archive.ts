@@ -19,6 +19,12 @@ export const FACETS = [
   { key: 'sound', label: 'Sound hardware', description: 'Machines grouped by their generated audio system.' },
   { key: 'screen', label: 'Screen format', description: 'Resolution, refresh rate, and orientation.' },
   { key: 'license', label: 'License', description: 'Driver source licenses.' },
+  {
+    key: 'mame-check',
+    label: 'Checked against MAME',
+    description: 'Machines run beside MAME of the same release and compared frame for frame '
+      + 'by the MAME oracle: pixel-exact at every frame checked, or differing.',
+  },
   { key: 'manufacturer', label: 'Manufacturer', description: 'The companies named by each game set.' },
   { key: 'year', label: 'Year', description: 'A chronological route through the archive.' },
 ] as const;
@@ -47,6 +53,8 @@ export interface ArchiveGame {
   driverFile?: string;
   copyrightHolders?: string;
   license?: string;
+  /** The latest comparison with MAME, as a facet value: "Pixel-exact against MAME 0.289". */
+  mameCheck?: string;
   cpus: string[];
   sound?: string;
   screen?: string;
@@ -159,11 +167,23 @@ function contributions(meta: MetaShape): CreditedContribution[] {
     }));
 }
 
+/** oracle.json, as far as the archive reads it (src/gen/oracle-result.ts). */
+interface OracleShape {
+  mame?: string;
+  verdict?: 'exact' | 'diverges';
+}
+
+export function mameCheckFacet(oracle: OracleShape | undefined): string | undefined {
+  if (!oracle?.mame || !oracle.verdict) return undefined;
+  return oracle.verdict === 'exact' ? `Pixel-exact against MAME ${oracle.mame}` : `Differs from MAME ${oracle.mame}`;
+}
+
 export function archiveGame(
   category: GameCategory,
   fallbackGame: string,
   meta: MetaShape,
   config: ConfigShape,
+  oracle?: OracleShape,
 ): ArchiveGame {
   return {
     game: meta.game ?? fallbackGame,
@@ -175,6 +195,7 @@ export function archiveGame(
     ...(meta.driverFile ? { driverFile: meta.driverFile } : {}),
     ...(meta.copyrightHolders ? { copyrightHolders: meta.copyrightHolders } : {}),
     ...(meta.license ? { license: meta.license } : {}),
+    ...(mameCheckFacet(oracle) ? { mameCheck: mameCheckFacet(oracle) } : {}),
     cpus: [...new Set((config.board?.cpus ?? [])
       .map(cpu => String(cpu.type ?? '').toUpperCase())
       .filter(Boolean))],
@@ -193,6 +214,7 @@ function valuesFor(game: ArchiveGame, facet: FacetKey): string[] {
     case 'sound': return game.sound ? [game.sound] : [];
     case 'screen': return game.screen ? [game.screen] : [];
     case 'license': return game.license ? [game.license] : [];
+    case 'mame-check': return game.mameCheck ? [game.mameCheck] : [];
     case 'manufacturer': return game.manufacturer ? [game.manufacturer] : [];
     case 'year': return game.year ? [game.year] : [];
   }
@@ -230,7 +252,11 @@ export function readArchive(
     try {
       const meta = JSON.parse(readFileSync(join(output.dir, 'meta.json'), 'utf8')) as MetaShape;
       const config = JSON.parse(readFileSync(join(output.dir, 'config.json'), 'utf8')) as ConfigShape;
-      games.push(archiveGame(output.category, output.game, meta, config));
+      const oraclePath = join(output.dir, 'oracle.json');
+      const oracle = existsSync(oraclePath)
+        ? JSON.parse(readFileSync(oraclePath, 'utf8')) as OracleShape
+        : undefined;
+      games.push(archiveGame(output.category, output.game, meta, config, oracle));
     } catch {
       // A half-generated or legacy directory must not prevent other browse
       // routes from being emitted.
