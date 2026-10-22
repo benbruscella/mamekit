@@ -29,29 +29,53 @@ export function createStreamMixer(
   if (!context.time || !context.bindDeviceCall) throw new Error('stream sound requires scheduler and stream services');
   const time = context.time;
   const driver = context.board.execution.cpus[0]?.tag;
-  const streams = sources.map(source => ({ ...source, rendered: 0, pending: [] as number[] }));
+  const streams = sources.map(source => ({ ...source, rendered: 0, native: 0, pending: [] as number[] }));
   const state = { emitted: 0, streams };
+  // MAME's `sound_stream` surface, one output, over `due` samples at `rate`.
+  const update = (tag: string, due: number, rate: number): Float64Array => {
+    const samples = new Float64Array(due);
+    const put = (index: number, value: number): number => {
+      if (index >= 0 && index < due) samples[index] = value;
+      return 0;
+    };
+    context.callDevice(tag, 'sound_stream_update', {
+      samples: () => due,
+      sample_rate: () => rate,
+      output_count: () => 1,
+      put: (_channel: number, index: number, value: number) => put(Number(index), Number(value)),
+      put_int: (_channel: number, index: number, value: number, max: number) =>
+        put(Number(index), Number(max) ? Number(value) / Number(max) : 0),
+      put_int_clamp: (_channel: number, index: number, value: number, max: number) =>
+        put(Number(index), Number(max) ? Math.max(-Number(max), Math.min(Number(max) - 1, Number(value))) / Number(max) : 0),
+    });
+    return samples;
+  };
   const render = (stream: typeof streams[number], target: number) => {
     if (!Number.isFinite(target)) return;
+    // A chip that allocated its stream at its own rate -- an NES cartridge's
+    // VRC6 at its 1.79 MHz clock, stepping the chip once a sample -- renders
+    // at that rate, and each output sample is the mean of the native ones it
+    // spans. A device at machine().sample_rate() (the speaker) renders as is.
+    const rate = context.deviceStreamRate?.(stream.tag) ?? 0;
+    const native = rate > STREAM_AUDIO_RATE ? rate : 0;
     while (stream.rendered < target) {
       const due = Math.min(MAX_SAMPLES_PER_UPDATE, target - stream.rendered);
-      const samples = new Float64Array(due);
-      // MAME's `sound_stream` surface, one output.
-      const surface = {
-        samples: () => due,
-        sample_rate: () => STREAM_AUDIO_RATE,
-        output_count: () => 1,
-        put: (_channel: number, index: number, value: number) => {
-          if (index >= 0 && index < due) samples[index] = Number(value);
-          return 0;
-        },
-        put_int: (_channel: number, index: number, value: number, max: number) => {
-          if (index >= 0 && index < due) samples[index] = Number(max) ? Number(value) / Number(max) : 0;
-          return 0;
-        },
-      };
-      context.callDevice(stream.tag, 'sound_stream_update', surface);
-      for (const sample of samples) stream.pending.push(sample * stream.gain);
+      if (!native) {
+        for (const sample of update(stream.tag, due, STREAM_AUDIO_RATE)) stream.pending.push(sample * stream.gain);
+        stream.rendered += due;
+        continue;
+      }
+      const end = Math.floor((stream.rendered + due) * native / STREAM_AUDIO_RATE);
+      const samples = update(stream.tag, Math.max(0, end - stream.native), native);
+      let at = 0;
+      for (let index = stream.rendered; index < stream.rendered + due; index++) {
+        const stop = Math.floor((index + 1) * native / STREAM_AUDIO_RATE) - stream.native;
+        let sum = 0;
+        const from = at;
+        for (; at < stop && at < samples.length; at++) sum += samples[at]!;
+        stream.pending.push(at > from ? sum / (at - from) * stream.gain : 0);
+      }
+      stream.native = end;
       stream.rendered += due;
     }
   };
@@ -83,6 +107,7 @@ export function createStreamMixer(
       state.emitted = 0;
       for (const stream of streams) {
         stream.rendered = 0;
+        stream.native = 0;
         stream.pending.length = 0;
       }
     },

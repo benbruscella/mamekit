@@ -14,6 +14,11 @@ import type { FieldBinding, KeyboardInput } from './input.ts';
 /** One relative axis: the half that decrements and the half that increments. */
 interface Axis {
   positive: FieldBinding;
+  /**
+   * An absolute control's travel (a paddle, IPT_PADDLE): the mouse moves the
+   * field itself, between the two ends its keys drive it to.
+   */
+  absolute?: { min: number; max: number };
   /** the sign a positive pixel delta carries into the port (PORT_REVERSE flips it) */
   sign: number;
   /** MAME's sensitivity, percent */
@@ -51,6 +56,34 @@ export class PointerInput {
         });
       }
     }
+    this.addPaddles(bindings);
+  }
+
+  /**
+   * A paddle, as MAME drives one from a mouse: absolute, but moved by the
+   * mouse's travel at PORT_SENSITIVITY rather than placed where it points.
+   * Its two key halves carry the ends of its travel (`activeValue`).
+   */
+  private addPaddles(bindings: FieldBinding[]): void {
+    for (const positive of bindings) {
+      const paddle = /^(IPT_PADDLE(?:_V)?)_(RIGHT|DOWN)$/.exec(positive.type ?? '');
+      if (!paddle || positive.activeValue === undefined || (positive.player ?? 1) !== 1) continue;
+      const negative = bindings.find(candidate =>
+        candidate.type === `${paddle[1]}_${paddle[2] === 'RIGHT' ? 'LEFT' : 'UP'}` &&
+        candidate.port === positive.port && candidate.mask === positive.mask);
+      if (negative?.activeValue === undefined) continue;
+      const toward = Math.sign(positive.activeValue - negative.activeValue) || 1;
+      this.axes[paddle[2] === 'RIGHT' ? 'x' : 'y'].push({
+        positive,
+        sign: toward,
+        sensitivity: positive.sensitivity ?? 100,
+        pending: 0,
+        absolute: {
+          min: Math.min(positive.activeValue, negative.activeValue),
+          max: Math.max(positive.activeValue, negative.activeValue),
+        },
+      });
+    }
   }
 
   /** Whether this machine has any control a pointer can drive. */
@@ -84,6 +117,11 @@ export class PointerInput {
       if (!whole) continue;
       axis.pending -= whole * 100 / axis.sensitivity;
       if (Math.abs(axis.pending) < 1e-9) axis.pending = 0;
+      if (axis.absolute) {
+        const value = this.input.value(axis.positive) + whole * axis.sign;
+        this.input.set(axis.positive, Math.max(axis.absolute.min, Math.min(axis.absolute.max, value)));
+        continue;
+      }
       this.input.nudge(axis.positive, whole * axis.sign);
       if (this.debug) {
         console.log(`[pointer] ${axis.positive.label} ${whole * axis.sign > 0 ? '+' : ''}${whole * axis.sign} | ${this.input.dump()}`);

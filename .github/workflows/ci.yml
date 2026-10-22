@@ -36,6 +36,10 @@ jobs:
           sparse-checkout: |
             src
             hash/nes.xml
+            hash/nes_ade.xml
+            hash/nes_ntbrom.xml
+            hash/nes_kstudio.xml
+            hash/nes_datach.xml
             hash/gameboy.xml
             hash/coleco.xml
             hash/a2600.xml
@@ -88,6 +92,10 @@ jobs:
           sparse-checkout: |
             src
             hash/nes.xml
+            hash/nes_ade.xml
+            hash/nes_ntbrom.xml
+            hash/nes_kstudio.xml
+            hash/nes_datach.xml
             hash/gameboy.xml
             hash/coleco.xml
             hash/a2600.xml

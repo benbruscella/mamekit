@@ -6,7 +6,7 @@ import { gameOutputDir } from '../gen/output-layout.ts';
 import { romsDir } from '../paths.ts';
 import { machineSetDir, machineSetKeys } from '../runtime/rom-source.ts';
 import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
-import { KeyboardInput } from '../runtime/input.ts';
+import { bindingsForCards, KeyboardInput } from '../runtime/input.ts';
 import {
   assembleRegions,
   applyRomTransforms,
@@ -23,7 +23,7 @@ import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } fro
 import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
-import { cartImageFromZip, cartSupport, mountCart, resolveCartImage } from '../runtime/cart-mount.ts';
+import { cartImageFromZip, cartSupport, mountCart, resolveCartImage, type SlotDeviceRegistry } from '../runtime/cart-mount.ts';
 import type { SoftCatalog } from '../runtime/nes-ines.ts';
 import type {
   GameAcceptanceGolden,
@@ -41,6 +41,8 @@ type InputLogEntry = { step: number } & (
   | { type: 'press'; binding: number; down: boolean }
   /** PLAY on a tape transport, by its tag */
   | { type: 'play'; transport: string }
+  /** an absolute control set to a value: a light gun aimed */
+  | { type: 'set'; binding: number; value: number }
 );
 
 export interface SoundWrite {
@@ -185,17 +187,31 @@ export async function runGameAcceptance(
     }
   }
 
+  const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
+    registerGeneratedMachines(): void;
+  };
+  registry.registerGeneratedMachines();
+  // A console's cartridge is identified against the slot device the registry
+  // just registered, in dist's own runtime -- not a second copy of it.
   const cartridge = contract.cartridge
-    ? await mountContractCartridge(contract, config, root, gameDir)
+    ? await mountContractCartridge(contract, config, root, gameDir, await import(
+      moduleUrl(join(outRoot, 'runtime/core/generated-device.js'))) as SlotDeviceRegistry)
     : undefined;
   const boardConfig: ShellConfig['board'] = {
     ...config.board,
     game: config.game,
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
-    ...(software?.slotCards ? { slotCards: software.slotCards } : {}),
-    ...(software?.powerOn ? { images: software.powerOn } : {}),
+    ...(software?.slotCards || cartridge?.slotCards
+      ? { slotCards: { ...software?.slotCards, ...cartridge?.slotCards } }
+      : {}),
+    ...(software?.powerOn || cartridge?.images
+      ? { images: { ...software?.powerOn, ...cartridge?.images } }
+      : {}),
   };
+  // A controller's controls are live only while its card is in the slot, as
+  // the shell has them.
+  config = { ...config, bindings: bindingsForCards(config.bindings, boardConfig.slotCards) };
   const critical = new Set(config.board.cpus.map(cpu => cpu.region));
   const buildRegions = (): Regions => {
     const assembled = assembleRegions(config.roms, files, () => {}, critical);
@@ -223,14 +239,11 @@ export async function runGameAcceptance(
   assert.deepEqual(romCheck.crcMismatch, []);
   const regions = buildRegions();
 
-  const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
-    registerGeneratedMachines(): void;
-  };
-  registry.registerGeneratedMachines();
   const generatedRuntime = await import(
     moduleUrl(join(outRoot, 'runtime/core/generated-board.js'))
   ) as {
     registerGeneratedBoard(game: string, factory: unknown): void;
+    loadBoardSlotCards(boardConfig: ShellConfig['board']): Promise<void>;
     createBoard(
       boardConfig: ShellConfig['board'],
       regions: Regions,
@@ -259,6 +272,7 @@ export async function runGameAcceptance(
   let replayWrites: SoundWrite[] | undefined;
   const requiredAudioCounts = new Map<number, number>();
   const requiredAudioValues = new Map<number, Set<number>>();
+  await generatedRuntime.loadBoardSlotCards(boardConfig);
   const board = generatedRuntime.createBoard(
     boardConfig,
     regions,
@@ -497,6 +511,16 @@ export async function runGameAcceptance(
       typing!.postCoded(action.text);
       continue;
     }
+    if ('aim' in action) {
+      const axes = config.bindings.filter(binding => binding.lightgun);
+      if (!axes.length) throw new Error(`${contract.game}: an aim action needs a light gun`);
+      for (const binding of axes) {
+        const value = action.aim[binding.lightgun!.axis === 'x' ? 0 : 1];
+        inputLog.push({ step, type: 'set', binding: config.bindings.indexOf(binding), value });
+        input.set(binding, value);
+      }
+      continue;
+    }
     if ('analog' in action || 'signal' in action) {
       throw new Error(`${contract.game}: unsupported input action`);
     }
@@ -575,6 +599,7 @@ export async function runGameAcceptance(
           if (entry.type === 'reset') target.reset();
           else if (entry.type === 'press') targetInput.press(config.bindings[entry.binding]!, entry.down, 'natural-keyboard');
           else if (entry.type === 'play') target.media?.().find(media => media.tag === entry.transport)!.play();
+          else if (entry.type === 'set') targetInput.set(config.bindings[entry.binding]!, entry.value);
           else key(replayTarget, entry.type, entry.code);
         }
         targetInput.advance();
@@ -894,6 +919,7 @@ async function mountContractCartridge(
   config: ShellConfig,
   root: string,
   gameDir: string,
+  devices: SlotDeviceRegistry,
 ): Promise<NonNullable<ReturnType<typeof mountCart>>> {
   const path = join(romsDir(root), contract.category, contract.game, `${contract.cartridge}.zip`);
   assert.ok(existsSync(path), `${contract.game}: acceptance cartridge is missing: ${path}`);
@@ -901,7 +927,7 @@ async function mountContractCartridge(
     join(gameDir, config.cart?.catalogUrl ?? 'softlist.json'),
     'utf8',
   )) as SoftCatalog;
-  const support = cartSupport(config);
+  const support = cartSupport(config, devices);
   const image = cartImageFromZip(await readZip(new Uint8Array(readFileSync(path))), catalog, support);
   assert.ok(image, `${contract.game}: ${contract.cartridge}.zip holds no cartridge this console reads`);
   const resolved = resolveCartImage(image, catalog, support);
@@ -1019,9 +1045,10 @@ export function verifyInputBindings(
       key(target, 'keyup', code);
       input.latch();
     }
-    if (binding.relativeDelta !== undefined) {
+    if (binding.relativeDelta !== undefined || binding.centerDelta === 0) {
       // A dial is a persistent hardware counter, not a switch that springs
-      // back on keyup. Restore the preflight probe before the actual replay.
+      // back on keyup, and a paddle with no centre delta (the Vaus) stays
+      // where it was put. Restore the preflight probe before the replay.
       input.setDip(binding.port, binding.mask, released);
     }
     assert.equal(input.read(binding.port), released);

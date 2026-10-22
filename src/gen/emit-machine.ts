@@ -20,7 +20,7 @@ import type {
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
 import { sourceRegionBindings } from '../mame/video-compiler.ts';
-import { lowerRamAllocation, ramPowerOn } from '../mame/ram-compiler.ts';
+import { lowerRamAllocation, ramPowerOn, sharePowerOn } from '../mame/ram-compiler.ts';
 
 /**
  * A processor's clock as MAME holds it. `device_t::m_clock` is a u32, so the
@@ -688,6 +688,7 @@ export function lowerGeneratedMachine(
     }
   }
   const shareBindings = lowerShareBindings(graph);
+
   // Any config in the selected machine's chain may declare it; MAME applies
   // the request to the whole machine however deep it is set.
   const perfectQuantumBoard = graph.nodes.some(node =>
@@ -799,6 +800,8 @@ export function lowerGeneratedMachine(
       space: generatedCpuAddressSpace(device.type, device.tag),
     }];
   });
+  // What the driver's machine_start leaves in a RAM share at power-on.
+  const sharePowerOnBytes = machineStartShares(graph, rootMachineClass, executionCpus, shareBindings);
   const execution: GeneratedExecutionPlan = {
     ...(Object.keys(driverRegionBindings).length
       ? { regionBindings: driverRegionBindings }
@@ -807,7 +810,14 @@ export function lowerGeneratedMachine(
     ...(board.bankDevices?.length ? { bankDevices: board.bankDevices } : {}),
     participants: executionParticipants,
     ...(genericTimers.length ? { genericTimers } : {}),
-    ...(board.initialShares?.length ? { initialShares: board.initialShares } : {}),
+    ...(board.initialShares?.length || sharePowerOnBytes.length
+      ? {
+          initialShares: [
+            ...(board.initialShares ?? []),
+            ...sharePowerOnBytes.filter(entry => !board.initialShares?.some(existing => existing.share === entry.share)),
+          ],
+        }
+      : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
@@ -971,6 +981,9 @@ export function lowerGeneratedMachine(
         enableMethods: [],
         controlOffset: -1,
         nesApu,
+        // The APU's own route (`maincpu.add_route(ALL_OUTPUTS, "mono",
+        // 0.90)`): a cartridge's sound chip is mixed relative to it.
+        ...(lowerAudioRoutes(graph, [nesCpu]).length ? { routes: lowerAudioRoutes(graph, [nesCpu]) } : {}),
       }
     : soundDevice
     ? {
@@ -1265,6 +1278,37 @@ export function resolveInputPortTag(graph: KnowledgeGraph, rawTag: string): stri
  * attached to a shared address range. Most shares use m_<tag>; boards such as
  * Spy Hunter deliberately bind m_spyhunt_alpharam to "spyhunt_alpha".
  */
+/**
+ * The power-on bytes of each RAM share the driver's machine_start writes
+ * (ram-compiler `sharePowerOn`), by MAME's own member for it: the binding a
+ * handler gave it, else `m_<share>`.
+ */
+function machineStartShares(
+  graph: KnowledgeGraph,
+  rootMachineClass: string,
+  cpus: readonly { ranges?: readonly { share?: string; kind?: string; start: number; end: number }[] }[],
+  shareBindings: NonNullable<GeneratedExecutionPlan['shareBindings']>,
+): { share: string; bytes: number[] }[] {
+  if (!graph.meta.mameSrc || !graph.meta.driverFile) return [];
+  const shares = new Map<string, number>();
+  for (const range of cpus.flatMap(cpu => cpu.ranges ?? [])) {
+    if (range.kind !== 'ram' || !range.share || shares.has(range.share)) continue;
+    shares.set(range.share, range.end - range.start + 1);
+  }
+  if (!shares.size) return [];
+  const driverFile = String(graph.meta.driverFile);
+  const path = join(String(graph.meta.mameSrc), driverFile);
+  if (!existsSync(path)) return [];
+  const ast = new MameAstIndex(parseMameAst([{ file: driverFile, source: readFileSync(path, 'utf8') }]));
+  const start = ast.findFunctionInHierarchy(rootMachineClass, 'machine_start');
+  if (!start) return [];
+  return [...shares].flatMap(([share, bytes]) => {
+    const member = shareBindings.find(binding => binding.share === share)?.member ?? `m_${share}`;
+    const contents = sharePowerOn(start.body, member, bytes);
+    return contents ? [{ share, bytes: contents }] : [];
+  });
+}
+
 export function lowerShareBindings(
   graph: KnowledgeGraph,
 ): NonNullable<GeneratedExecutionPlan['shareBindings']> {

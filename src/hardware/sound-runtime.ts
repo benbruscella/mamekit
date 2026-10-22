@@ -50,6 +50,13 @@ export interface SoundRuntimeContext {
   deviceStream(tag: string): readonly number[];
   /** The native rate a main-thread device gave `stream_alloc`, once started. */
   deviceStreamRate?(tag: string): number | undefined;
+  /**
+   * Sound devices a board device is built out of that render a routed stream,
+   * by MAME tag, with their route gain: an NES cartridge's MMC5, VRC6 or Namco
+   * 163, which exist only once a cartridge chose that board. callDevice and
+   * bindDeviceCall reach them by these tags.
+   */
+  streamDescendants?(): readonly { tag: string; gain: number }[];
   /** Run a callback's generated handler, for device ports read back. */
   runCallbackHandler(callbackId: string): number | undefined;
   /** Deliver a device signal through the board's typed effects. */

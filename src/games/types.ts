@@ -23,6 +23,16 @@ export interface GameAnalogAction {
   releasedFrames: number;
 }
 
+/**
+ * A light gun aimed at a point, in the port's own units (the NES Zapper:
+ * 0-255 across, 0-239 down), held there until the next aim. The trigger is a
+ * key action on the gun's own button.
+ */
+export interface GameAimAction {
+  atFrame: number;
+  aim: [number, number];
+}
+
 export interface GameMachineSignalAction {
   atFrame: number;
   signal: 'nmi' | 'reset' | 'break' | 'restore';
@@ -49,6 +59,7 @@ export type GameInputAction =
   | GameKeyAction
   | GameChordAction
   | GameAnalogAction
+  | GameAimAction
   | GameMachineSignalAction
   | GameResetAction
   | GameTextAction;

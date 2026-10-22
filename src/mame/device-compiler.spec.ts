@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { indexMameHardware } from './hardware.ts';
-import { compileMameDevice, constructorInitialValues, memberDeclarations } from './device-compiler.ts';
+import { compileMameDevice, constructorInitialValues, memberDeclarations, structDeclarations } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import {
   clearGeneratedDevices,
@@ -324,5 +324,26 @@ assert.equal(vicDefinition.clockDivider, undefined,
   'MOS6567 must not inherit a clock divider from its MOS8564 sibling');
 assert.equal(compileMameDevice(mameSrc, hardware.get('MOS8564')!, 'MOS8564').clockDivider, 8,
   'MOS8564 retains its own source-declared divider');
+
+// A struct declared inside another is its own type under its C++ name, and
+// its fields do not leak into the outer one. nes_defs.h declares a different
+// `square_t` inside both `apu_t` and `mmc5_sound_t`; MMC5's `squ[2]` is its
+// own, and read as fields of `mmc5_sound_t` the MMC5 could not even reset.
+{
+  const structs = structDeclarations([{ file: 'defs.h', source: `
+    struct apu_t { struct square_t { u8 regs[4]; s32 freq = 0; }; square_t squ[2]; u8 mode; };
+    struct mmc5_sound_t {
+      struct square_t { square_t() { for (auto & elem : regs) elem = 0; } u8 regs[4]; bool enabled = false; };
+      struct pcm_t { u8 regs[2]; };
+      square_t squ[2];
+      pcm_t pcm;
+    };` }], {});
+  const shape = (name: string) => structs.get(name)?.map(field =>
+    `${field.name}${field.length ? `[${field.length}]` : ''}${field.valueType ? `:${field.valueType}` : ''}`);
+  assert.deepEqual(shape('mmc5_sound_t'), ['squ[2]:mmc5_sound_t::square_t', 'pcm:mmc5_sound_t::pcm_t']);
+  assert.deepEqual(shape('mmc5_sound_t::square_t'), ['regs[4]', 'enabled']);
+  assert.deepEqual(shape('apu_t'), ['squ[2]:apu_t::square_t', 'mode']);
+  assert.deepEqual(shape('apu_t::square_t'), ['regs[4]', 'freq']);
+}
 
 console.log('device-compiler.spec: source-derived latch, ER2055, MB8844 and TMS9928A devices passed');

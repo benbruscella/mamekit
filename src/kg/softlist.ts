@@ -37,6 +37,12 @@ export interface SoftRom {
 export interface SoftArea {
   /** total dataarea size in bytes */
   size: number;
+  /**
+   * Bytes the list fills rather than loads (`loadflag="fill"`): the Action 52
+   * leaves a 512 KB hole of 0xff between its chips. Kept for an area that is
+   * assembled from its chips (an NES cartridge's prg and chr).
+   */
+  fills?: { offset: number; size: number; value: number }[];
   /** real dumped chips only: fill/reload directives and nodumps are skipped */
   roms: SoftRom[];
 }
@@ -55,7 +61,13 @@ export interface SoftEntry {
   /** the program area: "prg" on the NES, "rom" on a single-area list */
   prg: SoftArea;
   chr?: SoftArea;
-  /** RAM sizes in bytes, when declared */
+  /**
+   * The iNES mapper number MAME's own tables give this entry's `slot`, which
+   * a cartridge rebuilt from its chips carries in its header. Absent for a
+   * board no iNES mapper selects.
+   */
+  mapper?: number;
+  /** RAM sizes in bytes, when declared (`vram` counts `vram2` too, as call_load_pcb does) */
   vram?: number;
   wram?: number;
   bwram?: number;
@@ -214,9 +226,11 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       else if (fm[1] === 'pcb') entry.pcb = fm[2];
       else entry.mirroring = fm[2];
     }
-    // The rest a C64 cartridge's slot reads with get_feature. Only a list
-    // with cartridge areas needs them, so the others stay as they were.
-    if (/<dataarea\s+name="(?:roml|romh|lorom|uprom)"/.test(block)) {
+    // The rest a cartridge's slot reads with get_feature: a C64 cartridge's
+    // lines, an NES board's wiring (`vrc4-pin3`, `mmc1_type`, `n163-vol`).
+    // Only a list with cartridge areas needs them, so the others stay as
+    // they were.
+    if (/<dataarea\s+name="(?:roml|romh|lorom|uprom|prg)"/.test(block)) {
       for (const fm of block.matchAll(/<feature\s+name="([\w-]+)"\s+value="([^"]*)"/g)) {
         if (['slot', 'pcb', 'mirroring'].includes(fm[1]!)) continue;
         entry.features ??= {};
@@ -247,7 +261,7 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       const aAttrs = attrs(am[0]);
       const size = parseSize(aAttrs.size);
       const areaName = aAttrs.name;
-      if (areaName === 'vram') { entry.vram = size; continue; }
+      if (areaName === 'vram' || areaName === 'vram2') { entry.vram = (entry.vram ?? 0) + size; continue; }
       if (areaName === 'wram') { entry.wram = size; continue; }
       if (areaName === 'bwram') { entry.bwram = size; continue; }
       // Every list names its program area for its own hardware. The NES splits
@@ -259,14 +273,21 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea) continue;
       const area: SoftArea = { size, roms: [] };
       const cartArea = CART_AREAS.has(areaName!);
+      // An NES cartridge's two areas are assembled from their chips as MAME
+      // loads them -- a 16 KB NROM-128 PRG is reloaded to fill its 32 KB area
+      // -- so their reloads and fills are kept too.
+      const assembled = cartArea || areaName === 'prg' || areaName === 'chr';
       if (cartArea) (entry.areas ??= {})[areaName!] = size;
       // The chip a reload repeats: the one just before it, if it was kept.
       let previous: SoftRom | undefined;
       for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
         const rAttrs = attrs(rm[0]);
         if (rAttrs.loadflag === 'reload') {
-          if (cartArea && previous) (previous.reloads ??= []).push({ offset: parseOffset(rAttrs.offset), size: parseSize(rAttrs.size) });
+          if (assembled && previous) (previous.reloads ??= []).push({ offset: parseOffset(rAttrs.offset), size: parseSize(rAttrs.size) });
           continue;
+        }
+        if (rAttrs.loadflag === 'fill' && assembled && rAttrs.value !== undefined) {
+          (area.fills ??= []).push({ offset: parseOffset(rAttrs.offset), size: parseSize(rAttrs.size), value: Number(rAttrs.value) & 0xff });
         }
         // fill/continue are load directives, not chips; nodumps have no crc
         // to match against. baddumps keep their crc — still the bytes a real
@@ -336,4 +357,17 @@ export function buildCatalog(parsed: ParsedSoftwareList, filter?: string): SoftC
     entries: clean,
     crcIndex,
   };
+}
+
+/**
+ * The controllers a software list says its titles need: every value of a
+ * `peripheral` feature (nes.xml: `zapper`, `vaus`, `powerpad`, ...), a
+ * comma-separated value counting once per name.
+ */
+export function softwareListPeripherals(xml: string): Set<string> {
+  const names = new Set<string>();
+  for (const match of xml.matchAll(/<feature\s+name="peripheral"\s+value="([^"]*)"/g)) {
+    for (const name of match[1]!.split(',')) if (name.trim()) names.add(name.trim());
+  }
+  return names;
 }

@@ -11,27 +11,35 @@ import { cartImageFromSoftlistSet, resolveFlatCart } from './cart-identify.ts';
 import {
   identify,
   inesFromSoftlistSet,
+  inesSoftwarePart,
   mountedINesPrg,
   parseINes,
   type ResolvedCart,
   type SoftCatalog,
 } from './nes-ines.ts';
+import { generatedDeviceDefinition, slotCardForImage } from './generated-device.ts';
+import type { BoardImage } from '../ir/host-config.ts';
 import type { ShellConfig } from './shell.ts';
+import { peripheralCards } from './input.ts';
 import type { Regions } from './types.ts';
 
-/** iNES mapper number -> the NES cartridge slot option that implements it. */
-export const MAPPER_SLOTS: Record<number, string> = {
-  0: 'nrom', 1: 'sxrom', 2: 'uxrom', 3: 'cnrom', 4: 'txrom',
-};
+/** The generated device registry a slot device is looked up in. */
+export interface SlotDeviceRegistry {
+  generatedDeviceDefinition: typeof generatedDeviceDefinition;
+  slotCardForImage: typeof slotCardForImage;
+}
 
 /** What this console can play, and how its cartridges are read. */
 export interface CartSupport {
   slots: string[];
   games: string[];
-  mapperSlots?: Record<number, string>;
   /** The NES is the one console whose dumps carry a header and two areas. */
   ines: boolean;
   defaultSlot?: string;
+  /** Boards the slot declares that this build cannot run, and why. */
+  unsupported?: Record<string, string>;
+  /** The board the slot's own code picks for an uncatalogued image. */
+  slotForImage?: (name: string, bytes: Uint8Array) => string | undefined;
 }
 
 /**
@@ -41,14 +49,31 @@ export interface CartSupport {
  * list's cartridge interface. Sniffing the bytes instead lets parseINes accept
  * a ColecoVision dump whose first bytes happen to pass, and the NES matcher
  * then grades it against a catalog that is not the NES's.
+ *
+ * A slot that mounts its own cartridges (`slotDevice`) is asked directly:
+ * the boards it plays are the cards it was generated with, and which board an
+ * uncatalogued dump needs is what its own get_default_card_software answers.
  */
-export function cartSupport(cfg: ShellConfig): CartSupport {
+export function cartSupport(
+  cfg: ShellConfig,
+  /**
+   * Where the generated slot device is registered: this module's own runtime
+   * in the browser; the acceptance harness hands in the copy it loaded from
+   * dist, which is the one its registry filled.
+   */
+  devices: SlotDeviceRegistry = { generatedDeviceDefinition, slotCardForImage },
+): CartSupport {
+  const device = cfg.cart?.slotDevice;
+  const slot = device ? devices.generatedDeviceDefinition(device.type)?.slot : undefined;
   return {
-    slots: cfg.cart?.slots ?? [],
+    slots: cfg.cart?.slots ?? Object.keys(slot?.cards ?? slot?.options ?? {}),
     games: cfg.cart?.games ?? [],
-    mapperSlots: MAPPER_SLOTS,
     ines: (cfg.cart?.interface ?? 'nes_cart') === 'nes_cart',
     ...(cfg.cart?.defaultSlot ? { defaultSlot: cfg.cart.defaultSlot } : {}),
+    ...(slot?.unsupported ? { unsupported: slot.unsupported } : {}),
+    ...(device && slot
+      ? { slotForImage: (name: string, bytes: Uint8Array) => devices.slotCardForImage(device.type, { name, bytes }) }
+      : {}),
   };
 }
 
@@ -75,7 +100,7 @@ export function cartImageFromZip(
 ): Uint8Array | null {
   if (support.ines) {
     for (const bytes of files.values()) if (parseINes(bytes)) return bytes;
-    return inesFromSoftlistSet(files, catalog, support.mapperSlots)?.bytes ?? null;
+    return inesFromSoftlistSet(files, catalog)?.bytes ?? null;
   }
   const set = cartImageFromSoftlistSet(files, catalog);
   if (set) return set.bytes;
@@ -84,16 +109,41 @@ export function cartImageFromZip(
 }
 
 /**
- * The regions a resolved cartridge mounts into, and the board's `cart`
- * selection. An NES cartridge mounts as the two areas its header describes;
- * every other console's mounts as one image into the region its PCB loads
- * from.
+ * What a resolved cartridge mounts as: the regions its PCB loads, and the
+ * board's `cart` selection; or, for a slot that mounts its own cartridges,
+ * the image handed to it.
+ *
+ * A catalogued NES cartridge goes in as its software-list part, which is what
+ * `mame nes <name>` mounts: call_load_pcb reads the board's features from it
+ * (a VRC4's address-line wiring, an MMC1's revision, a Namco 163's volume).
+ * Anything else goes in as the file it is, for call_load_ines to read.
  */
 export function mountCart(
   cfg: ShellConfig,
   resolved: ResolvedCart,
-): { regions: Regions; cart: NonNullable<ShellConfig['board']['cart']> } | null {
+): {
+  regions: Regions;
+  cart: NonNullable<ShellConfig['board']['cart']>;
+  images?: Record<string, BoardImage>;
+  /** Controllers the title needs, by slot (its list's `peripheral` feature). */
+  slotCards?: Record<string, string>;
+} | null {
   const regions: Regions = {};
+  const device = cfg.cart?.slotDevice;
+  if (resolved.ines && device) {
+    const entry = resolved.meta;
+    const image: BoardImage = entry && !resolved.approx
+      ? { name: entry.name, software: inesSoftwarePart(resolved.ines, entry) }
+      : { name: 'cartridge.nes', bytes: resolved.ines.file };
+    // Duck Hunt asks for the Zapper, Arkanoid for the Vaus: the room fits
+    // the controller as MAME's `-ctrl2 zapper` would.
+    const peripherals = entry?.features?.peripheral?.split(',').map(name => name.trim()).filter(Boolean) ?? [];
+    const slotCards = peripheralCards(cfg.bindings ?? [], peripherals);
+    return {
+      regions, cart: {}, images: { [device.tag]: image },
+      ...(Object.keys(slotCards).length ? { slotCards } : {}),
+    };
+  }
   if (resolved.ines) {
     regions.prg = mountedINesPrg(resolved.ines);
     if (resolved.ines.chr) regions.chr = resolved.ines.chr; // omitted => CHR-RAM cart

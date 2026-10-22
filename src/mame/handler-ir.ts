@@ -1397,7 +1397,14 @@ class HandlerParser {
         ...(wide ? { wide } : {}),
       };
     }
-    if (token.kind === 'string') return { kind: 'string', value: unquote(token.text) };
+    if (token.kind === 'string') {
+      // A C++ character literal is an integer: `barcode[i] - '0'`, and
+      // `magic[0] == 'N'` in the NES slot's call_load, which as a string
+      // compared 78 with NaN and never recognised an iNES header.
+      const character = token.text.startsWith("'") ? characterLiteral(token.text) : undefined;
+      if (character !== undefined) return { kind: 'number', value: character };
+      return { kind: 'string', value: unquote(token.text) };
+    }
     if (token.kind === 'identifier') {
       if (token.text === 'true') return { kind: 'number', value: 1 };
       if (token.text === 'false' || token.text === 'nullptr') return { kind: 'number', value: 0 };
@@ -1640,6 +1647,18 @@ function wideNumberLiteral(text: string): string | undefined {
 function isFloatingNumberLiteral(text: string): boolean {
   if (/^0[xX]|^0[bB]/.test(text)) return false;
   return text.includes('.') || /[eEfF]/.test(text);
+}
+
+/** The value of a one-character C++ literal (`'N'`, `'\\0'`, `'\\x1b'`), else undefined. */
+function characterLiteral(text: string): number | undefined {
+  const body = text.slice(1, -1);
+  if (body.length === 1) return body.charCodeAt(0);
+  const escape = /^\\(?:x([0-9a-fA-F]{1,2})|([0-7]{1,3})|(.))$/.exec(body);
+  if (!escape) return undefined;
+  if (escape[1]) return parseInt(escape[1], 16);
+  if (escape[2]) return parseInt(escape[2], 8);
+  const simple: Record<string, number> = { n: 10, t: 9, r: 13, a: 7, b: 8, f: 12, v: 11, '\\': 92, "'": 39, '"': 34, '?': 63 };
+  return simple[escape[3]!];
 }
 
 function unquote(text: string): string {

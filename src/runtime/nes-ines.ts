@@ -9,6 +9,7 @@
 // dataareas at each chip's declared size.
 
 import { crc32 } from './zip.ts';
+import type { SoftwarePart } from '../ir/host-config.ts';
 
 export type Mirroring = 'horizontal' | 'vertical' | 'four' | 'single0' | 'single1';
 
@@ -23,6 +24,8 @@ export interface INesInfo {
   /** subarrays of the input — no copies */
   prg: Uint8Array;
   chr: Uint8Array | null;
+  /** the whole file, header and all, as MAME's call_load_ines reads it */
+  file: Uint8Array;
 }
 
 /**
@@ -42,10 +45,12 @@ export function mountedINesPrg(ines: INesInfo): Uint8Array {
 export function parseINes(bytes: Uint8Array): INesInfo | null {
   if (bytes.length < 16) return null;
   if (bytes[0] !== 0x4e || bytes[1] !== 0x45 || bytes[2] !== 0x53 || bytes[3] !== 0x1a) return null;
-  const prgSize = bytes[4] * 0x4000;
-  const chrSize = bytes[5] * 0x2000;
-  if (prgSize === 0) return null;
   const nes2 = (bytes[7] & 0x0c) === 0x08;
+  // NES 2.0 counts banks with byte 9's nibbles as the high bits (an exponent
+  // form, nibble 0xf, is left unread: no rebuilt set uses it).
+  const prgSize = (bytes[4] | (nes2 && (bytes[9] & 0x0f) !== 0x0f ? (bytes[9] & 0x0f) << 8 : 0)) * 0x4000;
+  const chrSize = (bytes[5] | (nes2 && (bytes[9] >> 4) !== 0x0f ? (bytes[9] >> 4) << 8 : 0)) * 0x2000;
+  if (prgSize === 0) return null;
   // dirty-header guard: pre-NES2.0 dumps often carry "DiskDude!" garbage in
   // bytes 7-15 — when any of bytes 12-15 are nonzero, trust only the low nibble
   const dirty = !nes2 && (bytes[12] | bytes[13] | bytes[14] | bytes[15]) !== 0;
@@ -66,17 +71,30 @@ export function parseINes(bytes: Uint8Array): INesInfo | null {
     nes2,
     prg: bytes.subarray(dataStart, dataStart + prgSize),
     chr: chrSize ? bytes.subarray(dataStart + prgSize, dataStart + prgSize + chrSize) : null,
+    file: bytes,
   };
 }
 
 // --- softlist catalog matching -------------------------------------------------
 
-export interface SoftRom { size: number; crc: string; offset: number }
-export interface SoftArea { size: number; roms: SoftRom[] }
+export interface SoftRom {
+  size: number; crc: string; offset: number;
+  /** where the list loads the chip again (`loadflag="reload"`) */
+  reloads?: { offset: number; size: number }[];
+}
+export interface SoftArea {
+  size: number; roms: SoftRom[];
+  /** bytes the list fills rather than loads (`loadflag="fill"`) */
+  fills?: { offset: number; size: number; value: number }[];
+}
 export interface SoftEntry {
   name: string; description: string; year: string; publisher: string;
   cloneof?: string; slot: string; pcb?: string; mirroring?: string;
+  /** the iNES mapper MAME's tables give `slot`, for a header rebuilt from chips */
+  mapper?: number;
   prg: SoftArea; chr?: SoftArea; vram?: number; wram?: number; bwram?: number;
+  /** the part's other features, as `get_feature` answers them */
+  features?: Record<string, string>;
 }
 export interface SoftCatalog {
   list: string; description: string; interface: string;
@@ -135,16 +153,54 @@ function firstChipSizes(catalog: SoftCatalog): number[] {
   return sizes;
 }
 
-/** CRC an area's chips against a byte slice: each chip at its declared size, in order. */
-function areaMatches(area: SoftArea, bytes: Uint8Array): boolean {
-  if (!area.roms.length) return false;
+/**
+ * An area's chips found in a byte slice, by CRC, or null.
+ *
+ * A dump holds an area in one of two shapes: its chips one after another, as
+ * a `.nes` file carries them, or laid out as MAME loads the area -- each chip
+ * at its declared offset, in an area of the declared size padded to whole
+ * banks -- which is how a set with gaps or an odd size is rebuilt.
+ */
+function areaChips(area: SoftArea, bytes: Uint8Array, bank: number): Uint8Array[] | null {
+  if (!area.roms.length) return null;
+  const inRow: Uint8Array[] = [];
   let off = 0;
   for (const rom of area.roms) {
-    if (off + rom.size > bytes.length) return false;
-    if (hex8(crc32(bytes.subarray(off, off + rom.size))) !== rom.crc) return false;
+    if (off + rom.size > bytes.length) break;
+    const chip = bytes.subarray(off, off + rom.size);
+    if (hex8(crc32(chip)) !== rom.crc) break;
+    inRow.push(chip);
     off += rom.size;
   }
-  return off === bytes.length;
+  if (inRow.length === area.roms.length && off === bytes.length) return inRow;
+  if (bytes.length !== Math.ceil(area.size / bank) * bank) return null;
+  const laidOut: Uint8Array[] = [];
+  for (const rom of area.roms) {
+    const chip = bytes.subarray(rom.offset, rom.offset + rom.size);
+    if (chip.length !== rom.size || hex8(crc32(chip)) !== rom.crc) return null;
+    laidOut.push(chip);
+  }
+  return laidOut;
+}
+
+function areaMatches(area: SoftArea, bytes: Uint8Array, bank: number): boolean {
+  return areaChips(area, bytes, bank) !== null;
+}
+
+/**
+ * An area as MAME's software-list loader builds it: the declared size, every
+ * fill, each chip at its offset and again wherever the list reloads it.
+ */
+function loadArea(area: SoftArea, chips: readonly Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(area.size);
+  for (const fill of area.fills ?? []) out.fill(fill.value, fill.offset, Math.min(area.size, fill.offset + fill.size));
+  area.roms.forEach((rom, index) => {
+    const chip = chips[index]!;
+    for (const { offset, size } of [{ offset: rom.offset, size: rom.size }, ...rom.reloads ?? []]) {
+      out.set(chip.subarray(0, Math.max(0, Math.min(chip.length, size, area.size - offset))), offset);
+    }
+  });
+  return out;
 }
 
 /**
@@ -158,7 +214,8 @@ export function identify(
   support: {
     slots: string[];
     games: string[];
-    mapperSlots?: Record<number, string>;
+    unsupported?: Record<string, string>;
+    slotForImage?: (name: string, bytes: Uint8Array) => string | undefined;
   },
 ): ResolvedCart {
   const prgCrc = hex8(crc32(ines.prg));
@@ -181,9 +238,9 @@ export function identify(
     let best: { entry: SoftEntry; exact: boolean } | undefined;
     for (const idx of candidates) {
       const entry = catalog.entries[idx];
-      if (!areaMatches(entry.prg, ines.prg)) continue;
+      if (!areaMatches(entry.prg, ines.prg, 0x4000)) continue;
       const chrOk = entry.chr && entry.chr.roms.length
-        ? ines.chr !== null && areaMatches(entry.chr, ines.chr)
+        ? ines.chr !== null && areaMatches(entry.chr, ines.chr, 0x2000)
         : ines.chr === null || !entry.chr;
       if (chrOk) { best = { entry, exact: true }; break; }
       best ??= { entry, exact: false }; // prg matches, chr differs — approx
@@ -191,7 +248,13 @@ export function identify(
     if (best) { meta = best.entry; approx = !best.exact; }
   }
 
-  const slot = meta?.slot ?? support.mapperSlots?.[ines.mapper] ?? null;
+  // A catalogued cartridge runs on the board its entry names, as MAME's
+  // software_get_default_slot reads it; anything else on the board the
+  // slot's own code picks from the header (get_default_card_ines).
+  const slot = (meta && !approx ? meta.slot : undefined)
+    ?? support.slotForImage?.('cartridge.nes', ines.file)
+    ?? meta?.slot
+    ?? null;
   const slotOk = slot !== null && support.slots.includes(slot);
   const gameOk = meta !== undefined &&
     (support.games.includes(meta.name) || (meta.cloneof !== undefined && support.games.includes(meta.cloneof)));
@@ -201,12 +264,42 @@ export function identify(
   const supported = tier === 'tested';
   let reason: string | undefined;
   if (tier === 'unsupported') {
-    reason = !meta ? `unrecognized dump — mapper ${ines.mapper} not supported`
-      : `mapper ${ines.mapper}${slot ? ` (${slot})` : ''} not yet supported`;
+    const why = slot ? support.unsupported?.[slot] : undefined;
+    reason = !slot ? `iNES mapper ${ines.mapper} is not a board MAME knows`
+      : why ? `board ${slot} does not build: ${why}`
+        : `board ${slot} not yet supported`;
   } else if (tier === 'experimental') {
     reason = meta ? 'runs on a supported board — not yet verified' : 'unrecognized dump on a supported board — untested';
   }
   return { ines, meta, identified: meta !== undefined, slot, mapper: ines.mapper, approx, tier, playable, supported, reason, prgCrc, chrCrc };
+}
+
+/**
+ * A catalogued NES cartridge as the software-list part `mame nes <name>`
+ * mounts: each dataarea call_load_pcb asks for by name, at the size the list
+ * declares, and the part's features with `slot`, `pcb` and `mirroring` among
+ * them. The RAM areas (`vram`, `wram`, `bwram`) are sizes only.
+ */
+export function inesSoftwarePart(ines: INesInfo, entry: SoftEntry): SoftwarePart {
+  // Each area as MAME loads it, whichever shape the dump held it in: a 16 KB
+  // NROM-128 PRG is reloaded to fill its 32 KB area, and call_load_pcb stops
+  // on a PRG area under 32 KB.
+  const prgChips = areaChips(entry.prg, ines.prg, 0x4000);
+  const areas: Record<string, Uint8Array> = { prg: prgChips ? loadArea(entry.prg, prgChips) : ines.prg };
+  const chrChips = entry.chr && ines.chr ? areaChips(entry.chr, ines.chr, 0x2000) : null;
+  if (ines.chr) areas.chr = chrChips ? loadArea(entry.chr!, chrChips) : ines.chr;
+  if (entry.vram) areas.vram = new Uint8Array(entry.vram);
+  if (entry.wram) areas.wram = new Uint8Array(entry.wram);
+  if (entry.bwram) areas.bwram = new Uint8Array(entry.bwram);
+  return {
+    areas,
+    features: {
+      ...entry.features,
+      slot: entry.slot,
+      ...(entry.pcb ? { pcb: entry.pcb } : {}),
+      ...(entry.mirroring ? { mirroring: entry.mirroring } : {}),
+    },
+  };
 }
 
 // --- MAME software-list cartridge sets -------------------------------------------
@@ -217,35 +310,38 @@ export function identify(
 //
 // Rather than teach every consumer about headerless carts, the set is turned
 // back into a canonical iNES image: the header is rebuilt from the softlist
-// facts (mapper from the slot, mirroring and battery from the entry), and the
-// chips are concatenated in offset order. Everything downstream — parseINes,
-// identify, the cart store, the boot path — stays unchanged.
+// facts (the mapper MAME's tables give the slot, mirroring and battery from
+// the entry), and the chips are concatenated in offset order. Identification
+// and the cart store stay unchanged; a catalogued cartridge is still mounted
+// as its software-list part (inesSoftwarePart), never through this header.
 
-/** Invert a mapper->slot table, keeping the lowest mapper per slot. */
-function slotMappers(mapperSlots: Record<number, string>): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const [mapper, slot] of Object.entries(mapperSlots)) {
-    const n = Number(mapper);
-    if (out[slot] === undefined || n < out[slot]) out[slot] = n;
-  }
-  return out;
-}
-
-/** Assemble one dataarea's chips from a crc-keyed pool, or null if any is absent. */
-function assembleArea(area: SoftArea | undefined, byCrc: Map<string, Uint8Array>): Uint8Array | null {
+/**
+ * One dataarea's chips from a crc-keyed pool as an iNES area: one after
+ * another where that is a whole number of banks, as a `.nes` dump has them,
+ * else laid out as MAME loads them and padded to whole banks -- Super Mario
+ * Bros. 2's FDS conversions leave a hole between their chips. Null if a chip
+ * is absent.
+ */
+function assembleArea(area: SoftArea | undefined, byCrc: Map<string, Uint8Array>, bank: number): Uint8Array | null {
   if (!area?.roms.length) return null;
-  const parts: Uint8Array[] = [];
-  let total = 0;
+  const chips: Uint8Array[] = [];
   for (const rom of area.roms) {
     const bytes = byCrc.get(rom.crc);
     if (!bytes || bytes.length !== rom.size) return null;
-    parts.push(bytes);
-    total += bytes.length;
+    chips.push(bytes);
   }
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const part of parts) { out.set(part, off); off += part.length; }
-  return out;
+  const total = chips.reduce((sum, chip) => sum + chip.length, 0);
+  if (total % bank === 0 && area.roms.every((rom, index) =>
+    rom.offset === area.roms.slice(0, index).reduce((sum, earlier) => sum + earlier.size, 0))) {
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const chip of chips) { out.set(chip, off); off += chip.length; }
+    return out;
+  }
+  const loaded = loadArea(area, chips);
+  const padded = new Uint8Array(Math.ceil(loaded.length / bank) * bank);
+  padded.set(loaded);
+  return padded;
 }
 
 /**
@@ -259,7 +355,6 @@ function assembleArea(area: SoftArea | undefined, byCrc: Map<string, Uint8Array>
 export function inesFromSoftlistSet(
   files: Map<string, Uint8Array>,
   catalog: SoftCatalog | null,
-  mapperSlots: Record<number, string> = {},
 ): { bytes: Uint8Array; entry: SoftEntry } | null {
   if (!catalog) return null;
   const byCrc = new Map<string, Uint8Array>();
@@ -273,26 +368,33 @@ export function inesFromSoftlistSet(
     for (const idx of catalog.crcIndex[crc] ?? []) candidates.add(idx);
   }
 
-  const bySlot = slotMappers(mapperSlots);
   for (const idx of candidates) {
     const entry = catalog.entries[idx];
-    const prg = assembleArea(entry.prg, byCrc);
-    if (!prg || prg.length % 0x4000 !== 0) continue;
-    const chr = assembleArea(entry.chr, byCrc);
+    const prg = assembleArea(entry.prg, byCrc, 0x4000);
+    if (!prg) continue;
+    const chr = assembleArea(entry.chr, byCrc, 0x2000);
     // an entry with a chr dataarea whose chips are missing is an incomplete set
     if (entry.chr?.roms.length && !chr) continue;
-    if (chr && chr.length % 0x2000 !== 0) continue;
+    const prgBanks = prg.length / 0x4000;
+    const chrBanks = chr ? chr.length / 0x2000 : 0;
+    // NES 2.0 carries a bank count past 255 in byte 9 (an 8 MB multicart).
+    if (prgBanks > 0xfff || chrBanks > 0xfff) continue;
+    const nes2 = prgBanks > 0xff || chrBanks > 0xff;
 
-    const mapper = bySlot[entry.slot] ?? 0;
+    const mapper = entry.mapper ?? 0;
     const header = new Uint8Array(16);
     header[0] = 0x4e; header[1] = 0x45; header[2] = 0x53; header[3] = 0x1a;
-    header[4] = prg.length / 0x4000;
-    header[5] = chr ? chr.length / 0x2000 : 0;
+    header[4] = prgBanks & 0xff;
+    header[5] = chrBanks & 0xff;
     header[6] = ((mapper & 0x0f) << 4)
       | (entry.mirroring === 'vertical' ? 0x01 : 0)
       | (entry.bwram ? 0x02 : 0)
       | (entry.mirroring === 'four' || entry.mirroring === '4screen' ? 0x08 : 0);
-    header[7] = mapper & 0xf0;
+    header[7] = (mapper & 0xf0) | (nes2 ? 0x08 : 0);
+    if (nes2) {
+      header[8] = (mapper >> 8) & 0x0f;
+      header[9] = ((chrBanks >> 8) << 4) | (prgBanks >> 8);
+    }
 
     const bytes = new Uint8Array(16 + prg.length + (chr?.length ?? 0));
     bytes.set(header, 0);

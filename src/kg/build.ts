@@ -1,3 +1,4 @@
+import { softwareListPeripherals } from './softlist.ts';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
@@ -2653,7 +2654,12 @@ function resolveSlotInputs(
   g: GraphBuilder,
   mameSrc: string,
   slashIncludes: string[],
-  machineConfigs: { cls: string; name: string; devices: { tag: string; slotOptions?: string; slotDefault?: string }[] }[],
+  machineConfigs: {
+    cls: string;
+    name: string;
+    devices: { tag: string; slotOptions?: string; slotDefault?: string }[];
+    softwareLists?: { name: string }[];
+  }[],
 ): void {
   const busDirs = [...new Set(
     slashIncludes.filter(inc => inc.startsWith('bus/')).map(inc => join(mameSrc, 'src/devices', dirname(inc))),
@@ -2736,14 +2742,52 @@ function resolveSlotInputs(
     }
     return [];
   };
+  // The controllers a title asks for: a software list's `peripheral` feature
+  // names a card in a control port's own option table (nes.xml's `zapper`,
+  // `vaus`, `powerpad`). MAME leaves fitting it to the user (`-ctrl2
+  // zapper`); the host fits it in the last port that offers it, which is the
+  // NES's second, where its light gun and paddle plug in.
+  const peripheralsByList = new Map<string, Set<string>>();
+  const listPeripherals = (name: string): Set<string> => {
+    let found = peripheralsByList.get(name);
+    if (!found) {
+      const xml = join(mameSrc, 'hash', `${name}.xml`);
+      found = existsSync(xml) ? softwareListPeripherals(readFileSync(xml, 'utf8')) : new Set();
+      peripheralsByList.set(name, found);
+    }
+    return found;
+  };
+  const tableOptions = (slotOptions: string): string[] => {
+    for (const dir of busDirs) {
+      for (const f of readdirSync(dir).filter(name => name.endsWith('.cpp'))) {
+        const table = new RegExp(
+          `void\\s+${slotOptions}\\s*\\(\\s*device_slot_interface\\s*&[^)]*\\)\\s*\\{([\\s\\S]*?)\\}`,
+        ).exec(readFileSync(join(dir, f), 'utf8'))?.[1];
+        if (table) return [...table.matchAll(/option_add(?:_internal)?\(\s*"([^"]+)"/g)].map(match => match[1]!);
+      }
+    }
+    return [];
+  };
   for (const cfg of machineConfigs) {
+    const wanted = new Set((cfg.softwareLists ?? []).flatMap(list => [...listPeripherals(list.name)]));
+    const fitted = new Map<string, string>();
+    if (wanted.size) {
+      for (const dev of cfg.devices) {
+        if (!dev.slotOptions) continue;
+        for (const option of tableOptions(dev.slotOptions)) if (wanted.has(option)) fitted.set(option, dev.tag);
+      }
+    }
     for (const dev of cfg.devices) {
       if (!dev.slotOptions) continue;
+      const peripherals = [...fitted].filter(([, tag]) => tag === dev.tag).map(([option]) => option);
       const options = [...new Set([...(dev.slotDefault ? [dev.slotDefault] : []), ...mediumCards(dev.slotOptions)])];
-      for (const option of options) {
+      for (const option of [...options, ...peripherals.filter(option => !options.includes(option))]) {
         const inputsId = resolve(dev.slotOptions, option);
         if (!inputsId) continue;
-        g.edge(`device:${cfg.cls}.${cfg.name}/${dev.tag}`, inputsId, 'USES_INPUTS', { option });
+        g.edge(`device:${cfg.cls}.${cfg.name}/${dev.tag}`, inputsId, 'USES_INPUTS', {
+          option,
+          ...(peripherals.includes(option) && option !== dev.slotDefault ? { peripheral: true } : {}),
+        });
       }
     }
   }

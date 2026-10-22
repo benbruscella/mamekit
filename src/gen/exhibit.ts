@@ -111,7 +111,13 @@ export function writeExhibit(data: Awaited<ReturnType<typeof lowerMachine>>, opt
     cpus, sound, screen, roms, bindings, dipDefaults, credits, commitActivity, historyText,
     historyCredit,
     ...(cart ? {
-      cart: { list: String(cart.list), entries: cartEntries, slots: cart.slots as string[] },
+      cart: {
+        list: String(cart.list),
+        entries: cartEntries,
+        ...(typeof cart.boards === 'number'
+          ? { boards: cart.boards }
+          : { slots: cart.slots as string[] }),
+      },
     } : {}),
     ...(software ? {
       software: software.shelves.map(shelf => ({

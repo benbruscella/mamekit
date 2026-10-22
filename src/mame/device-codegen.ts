@@ -319,13 +319,14 @@ function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
 export function generatedDeviceExecutableSource(
   definition: GeneratedDeviceDefinition,
   dataFile: string,
+  coreModule = '../../core/generated-device.js',
 ): string {
   const assignments = generatedDeviceAssignments(definition, 'definition').join('\n');
   return `// GENERATED from MAME device source; do not edit.
 import type {
   GeneratedDeviceDefinition,
   GeneratedDeviceMethodMap,
-} from '../../core/generated-device.js';
+} from '${coreModule}';
 import deviceData from './${dataFile}' with { type: 'json' };
 
 const definition = deviceData as unknown as GeneratedDeviceDefinition;
@@ -347,6 +348,13 @@ function generatedDeviceAssignments(
   const assignments = [`${target}.compiledMethods = ${compiled};`];
   if (emitted.links.length) {
     assignments.push(`${target}.compiledMethodLinks = ${JSON.stringify(emitted.links)};`);
+  }
+  // A card shipped as its own module is imported when a machine selects it.
+  const cardModules = [...new Set(Object.values(definition.slot?.cards ?? {}))];
+  if (cardModules.length) {
+    assignments.push(`${target}.slot!.loadCard = {\n${cardModules
+      .map(module => `  ${JSON.stringify(module)}: () => import(${JSON.stringify(`./${module}.js`)}),`)
+      .join('\n')}\n};`);
   }
   for (const [option, child] of Object.entries(definition.slot?.options ?? {})) {
     assignments.push(...generatedDeviceAssignments(

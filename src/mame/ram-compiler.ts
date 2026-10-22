@@ -70,3 +70,27 @@ export function ramPowerOn(
   }
   return runs;
 }
+
+/**
+ * What a driver's machine_start leaves in one of its shared RAM blocks at
+ * power-on, run with only that member live as the share's bytes. The NES
+ * fills its 2 KB with alternating 0x00 and 0xff ("for software that depends
+ * on its contents at boot up"), and a zeroed RAM read differently from MAME's
+ * wherever a game never wrote. Undefined when the function never indexes the
+ * member, or leaves it zero.
+ */
+export function sharePowerOn(startBody: string, member: string, bytes: number): number[] | undefined {
+  if (!new RegExp(`\\b${member}\\s*\\[`).test(startBody)) return undefined;
+  const program = compileMameHandler(normalizeMameExecutionSource(startBody));
+  if (program.diagnostics.length) return undefined;
+  const memory = new Uint8Array(bytes);
+  try {
+    executeGeneratedProgram(program, {
+      members: { [member]: memory },
+      calls: new Proxy({}, { get: () => () => 0 }) as never,
+    });
+  } catch {
+    return undefined;
+  }
+  return memory.some(value => value !== 0) ? [...memory] : undefined;
+}

@@ -56,6 +56,23 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
       }
     }
   }
+  // A controller a title asks for (the slot's `peripheral` cards, nes.xml's
+  // Zapper and Vaus) is the player's own control while it is fitted, so its
+  // ports go through everything a driver port does -- an analog paddle, a
+  // light gun, a changed-member callback -- under the slot's tag, and each
+  // binding names the card it belongs to.
+  const cardPorts = new Map<string, { slot: string; option: string; className?: string }>();
+  for (const dev of devices) {
+    for (const { node: cardInputs, edge } of g.out(dev.id, 'USES_INPUTS')) {
+      const props = edge.props;
+      if (!props?.peripheral) continue;
+      for (const { node: port } of g.out(cardInputs.id, 'HAS_PORT')) {
+        const tag = `${dev.props.tag}:${port.props.tag}`;
+        effPorts.set(tag, { tag, fields: g.out(port.id, 'HAS_FIELD').map(field => field.node) });
+        cardPorts.set(tag, { slot: String(dev.props.tag), option: String(props.option) });
+      }
+    }
+  }
   const ports = [...effPorts.values()];
   const portSpecs: { tag: string; init: number }[] = [];
   const bindings: unknown[] = [];
@@ -206,7 +223,16 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
         const changed = mods
           .map(modifier => /PORT_CHANGED_MEMBER\s*\([^,]+,\s*FUNC\s*\(\s*(\w+)::(\w+)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
-        if (changed) {
+        const card = cardPorts.get(tag);
+        if (changed && card && mask > 0 && (mask & (mask - 1)) === 0) {
+          // The card's own method, run on whichever card the slot holds.
+          inputLatches.push({
+            port: tag, mask, activeLow,
+            handler: `${changed[1]}.${changed[2]}`,
+            slot: card.slot,
+            method: changed[2]!,
+          });
+        } else if (changed) {
           const definition = changedHandler(changed[1]!, changed[2]!);
           if (definition && mask > 0 && (mask & (mask - 1)) === 0) {
             if (!inputChangedHandlers.some(handler =>
@@ -313,6 +339,9 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
           .map(modifier => /PORT_SENSITIVITY\s*\(\s*([^\)]+)\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
         const sensitivity = sensitivityMod ? sourceNumber(sensitivityMod[1]!) : 100;
+        const centerDelta = mods
+          .map(modifier => /PORT_CENTERDELTA\s*\(\s*([^\)]+)\)/.exec(modifier))
+          .find((match): match is RegExpExecArray => Boolean(match));
         const named = portLabel(mods);
         if (type === 'IPT_DIAL') {
           if (player !== 1) continue;
@@ -333,6 +362,25 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
         // deflection and release recentres, which is exactly what `activeValue`
         // already does. Sinistar's 49-way stick is one of these, and without
         // it the ship has no controls at all.
+        // A light gun is aimed, not steered: the axis holds where the pointer
+        // is over the screen, across the field's PORT_MINMAX. No key drives
+        // it -- the NES Zapper's player still needs the joypad's own keys.
+        if (type === 'IPT_LIGHTGUN_X' || type === 'IPT_LIGHTGUN_Y') {
+          bindings.push({
+            port: tag,
+            mask,
+            keys: [],
+            label: named ?? (type === 'IPT_LIGHTGUN_X' ? 'Aim (horizontal)' : 'Aim (vertical)'),
+            type,
+            activeLow: false,
+            lightgun: {
+              axis: type === 'IPT_LIGHTGUN_X' ? 'x' : 'y',
+              min: minMax ? sourceNumber(minMax[1]!) : 0,
+              max: minMax ? sourceNumber(minMax[2]!) : mask,
+            },
+          });
+          continue;
+        }
         if (
           type === 'IPT_AD_STICK_X' || type === 'IPT_AD_STICK_Y' ||
           type === 'IPT_PADDLE' || type === 'IPT_PADDLE_V'
@@ -361,6 +409,9 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
               // MAME travels an analog field by PORT_KEYDELTA per frame rather
               // than jumping; a wheel that snapped to full lock is undrivable.
               keyDelta: keyDelta ? sourceNumber(keyDelta[1]!) : 1,
+              // Where it goes when let go, and how far a mouse moves it.
+              ...(centerDelta ? { centerDelta: sourceNumber(centerDelta[1]!) } : {}),
+              ...(sensitivityMod ? { sensitivity } : {}),
             });
           }
           continue;
@@ -463,6 +514,11 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
     portSpecs.push({ tag, init });
   }
 
+  for (const binding of bindings as { port: string; card?: string }[]) {
+    const card = cardPorts.get(binding.port);
+    if (card) binding.card = `${card.slot}:${card.option}`;
+  }
+
   // Control ports may live on a default slot device rather than the driver
   // (NES joypads and Neo Geo's MVS edge connector are concrete examples).
   // Port tags are namespaced `${devTag}:${portTag}`. Only the first physical
@@ -473,7 +529,7 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
     for (const dev of devices) {
       // The slot's default card, and any card a title's medium puts there
       // instead: one slot, one controller, whichever card holds it.
-      const cards = g.out(dev.id, 'USES_INPUTS').map(edge => edge.node);
+      const cards = g.out(dev.id, 'USES_INPUTS').filter(out => !out.edge.props?.peripheral).map(out => out.node);
       if (!cards.length) continue;
       for (const { node: port } of cards.flatMap(slotInputs => g.out(slotInputs.id, 'HAS_PORT'))) {
         const tag = `${dev.props.tag}:${port.props.tag}`;

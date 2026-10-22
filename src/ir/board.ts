@@ -697,6 +697,12 @@ export interface GeneratedExecutionPlan {
     stateMember?: string;
     index?: number;
     handler: string;
+    /**
+     * A slot card's own PORT_CHANGED_MEMBER: the slot whose card answers,
+     * and the card's method (the NES Zapper's `trigger`, on `ctrl2`).
+     */
+    slot?: string;
+    method?: string;
   }[];
   frameEvents: GeneratedFrameEvent[];
   /**

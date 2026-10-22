@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
+  mameSubtag,
   clearGeneratedDevices,
   createDevice,
   generatedInstanceFactories,
@@ -521,7 +522,12 @@ registerGeneratedDevice({
       { name: 'm_exrom', valueType: 'int', bits: 32, initial: 1 },
       { name: 'm_bank', valueType: 'int', bits: 32, initial: 0 },
     ],
-    methods: [method('read_rom', 'int offs', `return m_roml[offs + ${offset}];`), method('device_reset', '', 'm_bank = 0;')],
+    methods: [
+      method('read_rom', 'int offs', `return m_roml[offs + ${offset}];`),
+      method('device_reset', '', 'm_bank = 0;'),
+      // An NES card's prg_alloc names its region from its own tag.
+      method('alloc', '', 'device().machine().memory().region_alloc(device().subtag("^cart:prg_rom"), 4, 1, ENDIANNESS_LITTLE)->base();'),
+    ],
     reset: 'device_reset',
     summary: { diagnostics: 0 },
   });
@@ -549,6 +555,7 @@ registerGeneratedDevice({
       method('exrom', '', 'return m_card->m_exrom;'),
       method('bank_w', 'int data', 'm_card->m_bank = data;'),
       method('bank', '', 'return m_card->m_bank;'),
+      method('alloc', '', 'm_card->alloc();'),
     ],
     summary: { diagnostics: 0 },
   });
@@ -570,12 +577,48 @@ registerGeneratedDevice({
   assert.equal(plain.call('bank'), 1);
   plain.reset();
   assert.equal(plain.call('bank'), 0, 'a reset slot resets its card');
+  // A region a card allocates is named as MAME names it: the card is the
+  // slot's subdevice `<slot>:<option>`, and `^` climbs back to the slot.
+  const regions: Record<string, Uint8Array> = {};
+  createDevice('CART_PORT_FIXTURE', { ...software({ slot: 'other' }), tag: 'port', regions }).call('alloc');
+  assert.deepEqual(Object.keys(regions), ['port:cart:prg_rom']);
   // A bare file picks its card from what it is, through the same chooser.
   const file = createDevice('CART_PORT_FIXTURE', { image: { name: 'game.CRT', bytes: Uint8Array.from([1, 2]) } });
   assert.equal(((file.instance!() as Record<string, unknown>).m_card as { m_roml_size: number }).m_roml_size, 0,
     'the file chose the other card (whose call_load read no software part)');
   assert.ok(((file.instance!() as Record<string, unknown>).m_card as Record<string, unknown>).read_rom, 'and a card is there');
 }
+
+// A struct field of a named struct type is built as that struct: MMC5's
+// `mmc5_sound_t` holds `square_t squ[2]`, a type declared inside it.
+{
+  registerGeneratedDevice({
+    type: 'NESTED_STRUCT_FIXTURE',
+    constants: {},
+    structs: {
+      'outer_t::square_t': [{ name: 'enabled', bits: 8 }, { name: 'regs', length: 4, bits: 8 }],
+      outer_t: [{ name: 'squ', length: 2, valueType: 'outer_t::square_t' }],
+    },
+    members: [{ name: 'm_core', valueType: 'outer_t', fields: [{ name: 'squ', length: 2, valueType: 'outer_t::square_t' }] }],
+    callbacks: [],
+    timers: [],
+    methods: [
+      method('write', 'int data', 'm_core.squ[1].enabled = data; m_core.squ[1].regs[3] = data + 1;'),
+      method('read', '', 'return m_core.squ[1].enabled + m_core.squ[1].regs[3] + m_core.squ[0].enabled;'),
+    ],
+    summary: { diagnostics: 0 },
+  } as unknown as GeneratedDeviceDefinition);
+  const nested = createDevice('NESTED_STRUCT_FIXTURE');
+  nested.call('write', 5);
+  assert.equal(nested.call('read'), 11, 'each element is its own struct, with its own fields');
+}
+
+// device_t::subtag, as an NES card names the region it allocates its PRG in:
+// `subtag("^cart:prg_rom")` from the card `nes_slot:nrom`.
+assert.equal(mameSubtag('nes_slot:nrom', '^cart:prg_rom'), 'nes_slot:cart:prg_rom');
+assert.equal(mameSubtag('nes_slot:nrom', 'eeprom'), 'nes_slot:nrom:eeprom');
+assert.equal(mameSubtag('nes_slot:nrom', ':maincpu'), 'maincpu');
+assert.equal(mameSubtag('a:b:c', '^^x'), 'a:x');
 
 clearGeneratedDevices();
 console.log('generated-device.spec: registration, IR, slots, overloads, callbacks, timers, memory shares and compiled methods passed');

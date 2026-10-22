@@ -1,4 +1,5 @@
 import { boardConfigFromIr } from '../ir/host-config.ts';
+import { generatedMachine } from './generated-machine.ts';
 import { Bus, byteAddress, type HandlerRegistry, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace } from './address-space-install.ts';
 import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
@@ -12,7 +13,10 @@ import {
   withGeneratedTimerExpiry,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
+  generatedDeviceDefinition,
   generatedDeviceRole,
+  loadSlotCard,
+  slotCardForImage,
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
@@ -87,6 +91,30 @@ const GENERATED_BOARDS = new Map<string, BoardFactory>();
 
 export function registerGeneratedBoard(game: string, factory: BoardFactory): void {
   GENERATED_BOARDS.set(game, factory);
+}
+
+/**
+ * Load the cards a machine's slots will hold, before it is built.
+ *
+ * A slot whose cards ship as modules of their own (the NES cartridge slot's
+ * 390 boards) has none in hand until asked. The card is the one the machine
+ * would select: the host's slot card, else the one the slot's own
+ * get_default_card_software picks for the image it is booted with, else the
+ * slot's default. An option whose card did not compile loads nothing, and the
+ * slot is built empty as MAME builds an unknown one.
+ */
+export async function loadBoardSlotCards(config: BoardConfig): Promise<void> {
+  if (!config.game) return;
+  for (const device of generatedMachine(config.game).devices ?? []) {
+    const definition = generatedDeviceDefinition(device.type);
+    if (!definition?.slot?.cards) continue;
+    const image = config.images?.[device.tag];
+    const option = config.slotCards?.[device.tag]
+      ?? (image ? slotCardForImage(device.type, image) : undefined)
+      ?? device.slotDefault
+      ?? definition.slot.default;
+    if (option) await loadSlotCard(definition, option);
+  }
 }
 
 export function createBoard(
@@ -331,6 +359,9 @@ function generatedCallValue(value: unknown): unknown {
 
 class IrBoard implements Board {
   readonly fbWidth: number;
+  /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
+  private screenUpdateNow?: () => void;
+  private screenPixel?: (x: number, y: number) => number;
   readonly fbHeight: number;
 
   private readonly machine: BoardIr;
@@ -646,6 +677,21 @@ class IrBoard implements Board {
             return Math.floor(this.beamPosition()) % vtotal;
           },
           hpos: () => this.beamHpos(),
+          // screen_device::vblank(): the beam is outside the visible lines.
+          vblank: () => {
+            const line = this.beamLine();
+            const screen = machine.execution.screen;
+            return line >= screen.vbstart || line < (screen.vbend ?? 0) ? 1 : 0;
+          },
+          // update_now() and pixel(x, y): the picture composed up to the
+          // beam and read back as an rgb_t, which is how the NES Zapper's
+          // sensor sees the light it is pointed at -- this frame above the
+          // beam, the last one below it, exactly as MAME's screen bitmap.
+          update_now: () => {
+            this.screenUpdateNow?.();
+            return 1;
+          },
+          pixel: (x: number, y: number) => this.screenPixel?.(Number(x), Number(y)) ?? 0,
           // screen_device::clock(): the pixel clock set_raw gave it.
           clock: () => machine.execution.screen.pixelClock ??
             machine.execution.screen.refresh * (machine.execution.screen.htotal ?? machine.execution.screen.width) *
@@ -2570,6 +2616,22 @@ class IrBoard implements Board {
       // effects where they happened.
       const screenDevice = machine.devices?.find(device => device.type === 'SCREEN');
       const screenOwners = [screenDevice?.tag, screenDevice?.member, 'm_screen'].filter(Boolean) as string[];
+      // A device's update_now() (the NES Zapper's sensor) brings the picture
+      // up to the beam whatever the update mode; a driver's own keeps the
+      // partial-mode rule below, since a driver's screen update may have side
+      // effects a mid-frame call would repeat.
+      this.screenUpdateNow = () => {
+        if (activeFramebuffer) video?.updateNow(activeFramebuffer, this.beamLine(), this.beamHpos());
+      };
+      const screen = machine.execution.screen;
+      this.screenPixel = (x, y) => {
+        const column = Math.floor(x) - (screen.xOffset ?? 0);
+        const row = Math.floor(y) - (screen.yOffset ?? 0);
+        if (!activeFramebuffer || column < 0 || row < 0 || column >= this.fbWidth || row >= this.fbHeight) return 0;
+        const canvas = activeFramebuffer[row * this.fbWidth + column]!;
+        // Canvas order is 0xAABBGGRR; an rgb_t is 0xAARRGGBB.
+        return (0xff000000 | ((canvas & 0xff) << 16) | (canvas & 0xff00) | ((canvas >>> 16) & 0xff)) >>> 0;
+      };
       for (const owner of new Set(screenOwners)) {
         calls[`${owner}.hpos`] = () => this.beamHpos();
         calls[`${owner}.update_now`] = () => {
@@ -2976,6 +3038,11 @@ class IrBoard implements Board {
         if (Array.isArray(state) || ArrayBuffer.isView(state)) {
           (state as unknown as { [index: number]: number })[latch.index] = 1;
         }
+      } else if (asserted !== previous && latch.slot && latch.method) {
+        // A slot card's own PORT_CHANGED_MEMBER: the NES Zapper's trigger arms
+        // a timer, and the card reads the timer, not the button.
+        const level = (pressed: boolean): number => Number(latch.activeLow ? !pressed : pressed);
+        this.devices.get(latch.slot)?.invokeSlot(latch.method, 0, Math.log2(latch.mask), level(previous), level(asserted));
       } else if (asserted !== previous && latch.stateMember === undefined) {
         const handler = this.machine.handlers?.find(candidate =>
           `${candidate.ownerClass}.${candidate.method}` === latch.handler);
@@ -5297,6 +5364,17 @@ class IrBoard implements Board {
     // Each device's method names, read once: the stream pump asks before every
     // render, and methodNames() builds a fresh array of all of them.
     const deviceMethods = new Map<Device, ReadonlySet<string>>();
+    // Sound devices a board device is built out of, the card in its slot
+    // included: they are reached by their MAME tags like any other.
+    const descendants = new Map<string, Device>();
+    const streamDescendants: { tag: string; gain: number }[] = [];
+    for (const device of this.devices.values()) {
+      for (const descendant of device.streamDescendants?.() ?? []) {
+        descendants.set(descendant.tag, descendant.device);
+        streamDescendants.push({ tag: descendant.tag, gain: descendant.gain });
+      }
+    }
+    const deviceFor = (tag: string): Device | undefined => this.devices.get(tag) ?? descendants.get(tag);
     const hooks = installSoundRuntime({
       board: machine,
       regions,
@@ -5309,9 +5387,9 @@ class IrBoard implements Board {
       soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
-      bindDeviceCall: (tag, name, callback) => this.devices.get(tag)?.bindCall(name, callback),
+      bindDeviceCall: (tag, name, callback) => deviceFor(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
-        const device = this.devices.get(tag);
+        const device = deviceFor(tag);
         if (!device) return undefined;
         let methods = deviceMethods.get(device);
         if (!methods) deviceMethods.set(device, methods = new Set(device.methodNames()));
@@ -5320,8 +5398,9 @@ class IrBoard implements Board {
         // MAME's `sound_stream` surface, which is an object, not a number.
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
-      deviceStream: tag => this.devices.get(tag)?.takeStreamSamples?.() ?? [],
-      deviceStreamRate: tag => this.devices.get(tag)?.streamRate?.(),
+      deviceStream: tag => deviceFor(tag)?.takeStreamSamples?.() ?? [],
+      deviceStreamRate: tag => deviceFor(tag)?.streamRate?.(),
+      streamDescendants: () => streamDescendants,
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
       dispatch: (ownerTag, signal, value) =>

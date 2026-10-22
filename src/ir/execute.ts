@@ -92,6 +92,13 @@ export function generatedBoundSearch(
 }
 
 /** A struct value from interleaved field names and values. */
+/**
+ * On a host object a generated program calls methods of: method -> the
+ * indices of its parameters that MAME declares as references. The interpreter
+ * passes those as lvalues, with `get()` and `set()`.
+ */
+export const REFERENCE_PARAMETERS = Symbol.for('mamekit.referenceParameters');
+
 function generatedStruct(pairs: readonly unknown[]): Record<string, unknown> {
   const entries: [string, unknown][] = [];
   for (let index = 0; index + 1 < pairs.length; index += 2) entries.push([String(pairs[index]), pairs[index + 1]]);
@@ -2721,7 +2728,11 @@ function evaluateCall(
       return reference(`${key}()`);
     }
     if (object && (typeof object === 'object' || typeof object === 'function')) {
-      const args = expression.args.map(arg => evaluate(arg, context));
+      // A host object names the parameters MAME declares as references, which
+      // the call then writes through: `core_file::length(std::uint64_t &)`.
+      const references = (object as { [REFERENCE_PARAMETERS]?: Record<string, readonly number[]> })[REFERENCE_PARAMETERS]?.[method];
+      const args = expression.args.map((arg, index) =>
+        references?.includes(index) ? lValue(arg, context) : evaluate(arg, context));
       if (Array.isArray(object) && (method === 'insert' || method === 'erase')) {
         return generatedVectorMethod(object, method, ...args);
       }
@@ -3384,6 +3395,11 @@ export function generatedValuesEqual(left: unknown, right: unknown): boolean {
 
 function truthy(value: unknown): boolean {
   if (isReference(value) && value.resolved) return true;
+  // A string is a `const char *` that points somewhere: non-null, so true,
+  // whatever it says. `if (get_feature("mirroring"))` read as Number("vertical")
+  // was zero, and the NES slot's call_load_pcb skipped every feature a
+  // cartridge declares -- its mirroring among them. (The absent feature is 0.)
+  if (typeof value === 'string') return true;
   if (value && typeof value === 'object' && !isReference(value) && !isLValue(value)) {
     return true;
   }

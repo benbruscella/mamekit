@@ -13,6 +13,9 @@ import {
   indexMameHardware,
   type MameHardwareDefinition,
 } from '../../mame/hardware.ts';
+import { shareCardInterface } from '../../ir/card-interface.ts';
+import { nesCartOptions } from './ines-mappers.ts';
+import { softwareListPeripherals } from '../../kg/softlist.ts';
 import type {
   CapabilityArtifact,
   CapabilityExtraction,
@@ -28,17 +31,14 @@ import {
   nesDeviceModuleArtifact,
 } from './definition.ts';
 
-const CART_MAPPERS = new Set([0, 1, 2, 3, 4]);
-const IMAGE_HOST_METHODS = new Set([
-  'call_load',
-  'call_unload',
-  'call_load_pcb',
-  'call_load_unif',
-  'call_load_ines',
-  'get_default_card_software',
-  'get_default_card_unif',
-  'get_default_card_ines',
-]);
+/**
+ * Image-device methods the host has no use for: a battery is kept by the
+ * host's own NVRAM store rather than written back on unload.
+ */
+const IMAGE_HOST_METHODS = new Set(['call_unload']);
+
+/** Every card inherits this interface; its methods ship once, with the slot. */
+const CART_INTERFACE = 'device_nes_cart_interface';
 
 /**
  * Compile the board-visible NES devices and their source-declared slot cards.
@@ -57,6 +57,7 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
   const definitions = indexMameHardware(input.mameSource);
   const machineWiring = nesMachineWiring(input.mameSource);
   const compiled = new Map<string, GeneratedDeviceDefinition>();
+  const artifacts: CapabilityArtifact[] = [];
   for (const entry of present) {
     const definition = entry.definition as MameHardwareDefinition | undefined;
     if (!definition) continue;
@@ -64,34 +65,39 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
     if (entry.type === 'PPU_2C02') {
       device.links = machineWiring.ppuLinks;
     } else if (entry.type === 'NES_CONTROL_PORT') {
-      const joypad = compileRequired(input.mameSource, definitions, 'NES_JOYPAD');
       device.slot = {
         member: slotCardMember(input.mameSource, definition, 'm_device'),
         default: controllerDefaultOption(input.mameSource),
-        options: { joypad },
+        options: controllerOptions(input.mameSource, definitions),
       };
     } else if (entry.type === 'NES_CART_SLOT') {
-      // Image loading and software selection are host concerns: the console
-      // room has already supplied PRG/CHR bytes and mapper metadata. Keep only
-      // the source methods that implement the live slot/card bus.
+      // The slot is an image device: MAME's own get_default_card_software
+      // picks the card from the software part's `slot` feature or the iNES
+      // header, and call_load reads the part's areas and features into it
+      // (call_load_pcb) or parses the file (call_load_ines). A method that
+      // does not lower is left out, and the image path it serves with it.
+      const dropped = device.methods.filter(method =>
+        method.program.diagnostics.length && !IMAGE_HOST_METHODS.has(method.name));
       device.methods = device.methods.filter(method =>
         !method.program.diagnostics.length && !IMAGE_HOST_METHODS.has(method.name));
       device.summary.methods = device.methods.length;
       device.summary.compiledMethods = device.methods.length;
       device.summary.diagnostics = 0;
-      const options = cartridgeOptions(input.mameSource, definitions);
+      if (dropped.length) {
+        console.warn(`  ! NES_CART_SLOT: ${dropped.map(method => method.name).join(', ')} did not lower`);
+      }
       const hotMethods = nesBusMethods(machineWiring);
+      const cards = cartridgeCards(input.mameSource, definitions, hotMethods);
       device.hotMethods = hotMethods.filter(name =>
         device.methods.some(method => method.name === name));
-      for (const child of Object.values(options)) {
-        child.hotMethods = hotMethods.filter(name =>
-          child.methods.some(method => method.name === name));
-      }
       device.slot = {
         member: slotCardMember(input.mameSource, definition, 'm_cart'),
-        selector: 'cart.mapper',
-        options,
+        options: {},
+        cards: cards.modules,
+        cardInterface: cards.cardInterface,
+        ...(Object.keys(cards.unsupported).length ? { unsupported: cards.unsupported } : {}),
       };
+      artifacts.push(...cards.artifacts);
       device.resources = {
         initialize: [
           {
@@ -109,7 +115,6 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
   }
   if (!compiled.size) return undefined;
 
-  const artifacts: CapabilityArtifact[] = [];
   if (hasApu) {
     const apu = compileNesApu(input.mameSource);
     artifacts.push(
@@ -164,18 +169,41 @@ function nesBusMethods(
   return [...methods];
 }
 
-function compileRequired(
+/**
+ * The controllers the NES's own ports can hold that something asks for: each
+ * port's default card (the joypad), and every option a software list the
+ * machine declares names in a title's `peripheral` feature -- nes.xml asks
+ * for `zapper`, `vaus` and `powerpad`, which are MAME's own option names in
+ * the ports' tables. A controller that does not compile is left out.
+ */
+function controllerOptions(
   mameSource: string,
   definitions: Map<string, MameHardwareDefinition>,
-  type: string,
-): GeneratedDeviceDefinition {
-  const definition = definitions.get(type);
-  if (!definition) throw new Error(`NES source closure is missing ${type}`);
-  const device = compileMameDevice(mameSource, definition, type);
-  if (device.summary.diagnostics) {
-    throw new Error(`${type} has ${device.summary.diagnostics} generated-device diagnostics`);
+): Record<string, GeneratedDeviceDefinition> {
+  const driver = readFileSync(join(mameSource, 'src/mame/nintendo/nes.cpp'), 'utf8');
+  const machine = extractFunctionBody(driver, 'void nes_state::nes(machine_config &config)');
+  const ports = [...machine.matchAll(/NES_CONTROL_PORT\s*\(\s*config\s*,\s*\w+\s*,\s*(\w+)\s*,\s*(?:"(\w+)"|nullptr)/g)]
+    .map(match => ({ table: match[1]!, default: match[2] }));
+  const peripherals = new Set<string>();
+  for (const list of machine.matchAll(/SOFTWARE_LIST\s*\([^)]*\)\s*\.set_original\s*\(\s*"(\w+)"/g)) {
+    const xml = join(mameSource, 'hash', `${list[1]}.xml`);
+    for (const name of softwareListPeripherals(readFileSync(xml, 'utf8'))) peripherals.add(name);
   }
-  return device;
+  const tables = readFileSync(join(mameSource, 'src/devices/bus/nes_ctrl/ctrl.cpp'), 'utf8');
+  const options: Record<string, GeneratedDeviceDefinition> = {};
+  for (const port of ports) {
+    const body = extractFunctionBody(tables, `void ${port.table}(device_slot_interface &device)`);
+    for (const match of body.matchAll(/option_add(?:_internal)?\s*\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g)) {
+      const [, option, type] = match;
+      if (options[option!] || (option !== port.default && !peripherals.has(option!))) continue;
+      const controller = definitions.get(type!);
+      if (!controller) continue;
+      const compiled = compileMameDevice(mameSource, controller, type!);
+      if (!compiled.summary.diagnostics) options[option!] = compiled;
+    }
+  }
+  if (!options.joypad) throw new Error('MAME NES controller ports no longer offer the joypad');
+  return options;
 }
 
 /** Resolve the option string MAME assigns to the standard controller card. */
@@ -193,94 +221,86 @@ function controllerDefaultOption(mameSource: string): string {
 }
 
 /**
- * Resolve iNES mapper -> PCB id -> slot option -> MAME device type from the
- * same three tables MAME uses. No mapper table is duplicated in MAMEKIT.
+ * Every cartridge board MAME's `nes_cart` option list declares, compiled.
+ *
+ * A board is supported when it compiles; one that does not stays in the
+ * list with the reason, so the room can say why rather than only that it
+ * cannot. Each device type is its own module, loaded when a cartridge
+ * selects it: 390 cards are 50 MB of IR, and a machine ever runs one.
  */
-function cartridgeOptions(
+function cartridgeCards(
   mameSource: string,
   definitions: Map<string, MameHardwareDefinition>,
-): Record<string, GeneratedDeviceDefinition> {
-  const directory = join(mameSource, 'src/devices/bus/nes');
-  const ines = readFileSync(join(directory, 'nes_ines.hxx'), 'utf8');
-  const pcbs = readFileSync(join(directory, 'nes_pcb.hxx'), 'utf8');
-  const carts = readFileSync(join(directory, 'nes_carts.cpp'), 'utf8');
-  const mirroring = ppuMirroringValues(mameSource);
-  const pcbByMapper = new Map<number, string>();
-  for (const match of ines.matchAll(/\{\s*(\d+)\s*,\s*(\w+)\s*\}/g)) {
-    const mapper = Number(match[1]);
-    if (CART_MAPPERS.has(mapper) && !pcbByMapper.has(mapper)) {
-      pcbByMapper.set(mapper, match[2]!);
-    }
-  }
-  const slotByPcb = new Map<string, string>();
-  for (const match of pcbs.matchAll(/\{\s*"([^"]+)"\s*,\s*(\w+)\s*\}/g)) {
-    slotByPcb.set(match[2]!, match[1]!);
-  }
-  const typeBySlot = new Map<string, string>();
-  for (const match of carts.matchAll(
-    /option_add(?:_internal)?\s*\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g,
-  )) {
-    typeBySlot.set(match[1]!, match[2]!);
-  }
+  hotMethods: readonly string[],
+): {
+  modules: Record<string, string>;
+  unsupported: Record<string, string>;
+  cardInterface: { className: string; methods: GeneratedDeviceDefinition['methods'] };
+  artifacts: CapabilityArtifact[];
+} {
+  const slotSource = definitions.get('NES_CART_SLOT')?.sourceFile;
+  if (!slotSource) throw new Error('NES source closure is missing NES_CART_SLOT');
+  const interfaceFiles = new Set([slotSource, slotSource.replace(/\.cpp$/, '.h')]);
+  const interfaceMethod = (method: GeneratedDeviceDefinition['methods'][number]) =>
+    interfaceFiles.has(method.source.file);
 
-  const result: Record<string, GeneratedDeviceDefinition> = {};
-  for (const mapper of [...CART_MAPPERS].sort((left, right) => left - right)) {
-    const pcb = pcbByMapper.get(mapper);
-    const slot = pcb && slotByPcb.get(pcb);
-    const type = slot && typeBySlot.get(slot);
-    if (!pcb || !slot || !type) {
-      throw new Error(`MAME NES tables do not resolve iNES mapper ${mapper}`);
-    }
-    const device = compileRequired(mameSource, definitions, type);
-    device.resources = {
-      members: {
-        m_prg: { kind: 'region', name: 'prg' },
-        m_vrom: { kind: 'region', name: 'chr' },
-        m_ciram: { kind: 'memory', name: 'ciram', bytes: 0x1000 },
-        m_prg_size: { kind: 'region-length', name: 'prg' },
-        m_vrom_size: { kind: 'region-length', name: 'chr' },
-        m_prg_chunks: { kind: 'region-pages', name: 'prg', bytes: 0x4000 },
-        m_prg_mask: { kind: 'region-page-mask', name: 'prg', bytes: 0x2000 },
-        m_vrom_chunks: { kind: 'region-pages', name: 'chr', bytes: 0x2000 },
-        m_vram: {
-          kind: 'memory',
-          name: 'chr-ram',
-          bytes: 0x2000,
-          onlyWhenRegionMissing: 'chr',
-        },
-        m_vram_chunks: {
-          kind: 'missing-region-number',
-          name: 'chr',
-          missing: 1,
-          present: 0,
-        },
-        m_prgram: { kind: 'memory', name: 'prg-ram', bytes: 0x2000 },
-        m_battery: { kind: 'memory', name: 'battery', bytes: 0 },
-        m_prg_bank_mem: { kind: 'bank-array', name: 'prg', count: 4 },
-        m_mirroring: {
-          kind: 'config-map',
-          path: 'cart.mirroring',
-          values: {
-            vertical: mirroring.PPU_MIRROR_VERT,
-            horizontal: mirroring.PPU_MIRROR_HORZ,
-            single1: mirroring.PPU_MIRROR_HIGH,
-            single0: mirroring.PPU_MIRROR_LOW,
-            four: mirroring.PPU_MIRROR_4SCREEN,
+  const options = nesCartOptions(mameSource);
+  const modules: Record<string, string> = {};
+  const unsupported: Record<string, string> = {};
+  const artifacts: CapabilityArtifact[] = [];
+  let cardInterface: { className: string; methods: GeneratedDeviceDefinition['methods'] } | undefined;
+  const failed = new Map<string, string>();
+  const built = new Map<string, string>();
+  for (const [option, type] of options) {
+    const known = built.get(type) ?? failed.get(type);
+    if (!known) {
+      const definition = definitions.get(type);
+      let reason: string | undefined;
+      let card: GeneratedDeviceDefinition | undefined;
+      if (!definition) reason = `MAME declares no device class for ${type}`;
+      else {
+        card = compileMameDevice(mameSource, definition, type);
+        const broken = card.methods.find(method => method.program.diagnostics.length);
+        if (broken) {
+          reason = `${broken.name} (${broken.source.file}:${broken.source.line}) does not lower: ${String(broken.program.diagnostics[0])}`;
+        }
+      }
+      if (reason || !card) {
+        failed.set(type, reason ?? `${type} did not compile`);
+      } else {
+        card.hotMethods = hotMethods.filter(name =>
+          card!.methods.some(method => method.name === name));
+        // MAME's prg_alloc/vrom_alloc and friends fill the rest from the
+        // image in call_load; the four PRG banks are the driver's own, which
+        // pcb_start asks the root device for.
+        card.resources = { members: { m_prg_bank_mem: { kind: 'bank-array', name: 'prg', count: 4 } } };
+        cardInterface ??= { className: CART_INTERFACE, methods: card.methods.filter(interfaceMethod) };
+        const key = type.toLowerCase();
+        const shared = shareCardInterface(card.methods, cardInterface);
+        const ir = `devices/nes_cart_slot/${key}.device.ir.json`;
+        // Compiled from the whole card: its emitted code resolves the
+        // interface's virtual calls to this card's overrides.
+        const source = generatedDeviceExecutableSource(card, `${key}.device.ir.json`, '../../../core/generated-device.js');
+        artifacts.push(
+          {
+            path: ir,
+            contents: JSON.stringify(shared.shared
+              ? { ...card, methods: shared.methods, inheritsCardInterface: true }
+              : card),
           },
-          fallback: mirroring.PPU_MIRROR_HORZ,
-        },
-        m_four_screen_vram: {
-          kind: 'config-map',
-          path: 'cart.mirroring',
-          values: { four: 1 },
-          fallback: 0,
-        },
-      },
-    };
-    result[String(mapper)] = device;
+          { path: `devices/nes_cart_slot/${key}.ts`, contents: source },
+        );
+        built.set(type, `nes_cart_slot/${key}`);
+      }
+    }
+    const module = built.get(type);
+    if (module) modules[option] = module;
+    else unsupported[option] = failed.get(type)!;
   }
-  return result;
+  if (!cardInterface) throw new Error('no NES cartridge board compiled');
+  return { modules, unsupported, cardInterface, artifacts };
 }
+
 
 /**
  * Recover the dynamic CPU/PPU wiring installed by nes_state::machine_start.
@@ -340,8 +360,11 @@ function nesMachineWiring(mameSource: string): {
   }
   // A single high write handler spans the banked read ranges. It is composed
   // into each bank range, so remove the otherwise overlapping standalone row.
-  const compactRanges = ranges.filter(range =>
+  const compactRanges: NonNullable<GeneratedDeviceDefinition['bus']>['ranges'] = ranges.filter(range =>
     !(range.start === firstStart && range.end === 0xffff && range.write === highWrite));
+  // Installed after the banks, so a card's own read_h takes the window over
+  // from them as MAME's later install does.
+  compactRanges.push(...cardHandlerRanges(mameSource, start));
 
   const ppuRanges: {
     start: number;
@@ -423,15 +446,50 @@ function nesMachineWiring(mameSource: string): {
   };
 }
 
-function ppuMirroringValues(mameSource: string): Record<string, number> {
-  const source = readFileSync(
-    join(mameSource, 'src/devices/video/ppu2c0x.h'),
-    'utf8',
-  );
-  return Object.fromEntries(
-    [...source.matchAll(/^#define\s+(PPU_MIRROR_\w+)\s+(0x[\da-f]+|\d+)/gmi)]
-      .map(match => [match[1]!, Number(match[2])]),
-  );
+/**
+ * The handlers `machine_start` installs only for some boards: after the
+ * common wiring it tests the card's `get_pcb_id()` against three PCB lists
+ * (`r_h_pcbs`, `w_ex_pcbs`, `rw_ex_pcbs`) and installs read_h, read_ex and
+ * write_ex for the boards each names. Each list is read from MAME and its PCB
+ * ids turned back into the slot options that select them (`pcb_list`), so a
+ * range carries the cards it is installed for.
+ */
+function cardHandlerRanges(
+  mameSource: string,
+  start: string,
+): NonNullable<GeneratedDeviceDefinition['bus']>['ranges'] {
+  const extra = start.split('// install additional handlers')[1];
+  if (!extra) throw new Error('MAME NES machine_start no longer installs per-board handlers');
+  const pcbs = readFileSync(join(mameSource, 'src/devices/bus/nes/nes_pcb.hxx'), 'utf8');
+  const optionsByPcb = new Map<string, string[]>();
+  for (const match of pcbs.matchAll(/\{\s*"([^"]+)"\s*,\s*(\w+)\s*\}/g)) {
+    const options = optionsByPcb.get(match[2]!) ?? [];
+    options.push(match[1]!);
+    optionsByPcb.set(match[2]!, options);
+  }
+  const lists = new Map<string, string[]>();
+  for (const match of extra.matchAll(/static\s+const\s+int\s+(\w+)\s*\[\s*\]\s*=\s*\{([^}]*)\}/g)) {
+    lists.set(match[1]!, match[2]!.split(',').map(name => name.trim()).filter(Boolean));
+  }
+  const ranges: NonNullable<GeneratedDeviceDefinition['bus']>['ranges'] = [];
+  for (const block of extra.matchAll(/if\s*\(\s*std::find\s*\(\s*std::begin\s*\(\s*(\w+)\s*\)[^{]*\{([^}]*)\}/g)) {
+    const pcbIds = lists.get(block[1]!);
+    if (!pcbIds) throw new Error(`MAME NES machine_start tests an unknown PCB list ${block[1]}`);
+    const cards = pcbIds.flatMap(id => optionsByPcb.get(id) ?? []);
+    const handlers = new Map<string, { start: number; end: number; read?: string; write?: string }>();
+    for (const install of block[2]!.matchAll(
+      /space\.install_(read|write)_handler\s*\(\s*(0x[\da-f]+)\s*,\s*(0x[\da-f]+)\s*,[^;]*?FUNC\s*\([^:()]+::(\w+)\)\s*\)+\s*;/gi,
+    )) {
+      const key = `${install[2]}:${install[3]}`;
+      const range = handlers.get(key) ?? { start: Number(install[2]), end: Number(install[3]) };
+      range[install[1] === 'read' ? 'read' : 'write'] = install[4]!;
+      handlers.set(key, range);
+    }
+    if (!handlers.size) throw new Error(`MAME NES machine_start installs nothing for ${block[1]}`);
+    for (const range of handlers.values()) ranges.push({ ...range, cards });
+  }
+  if (!ranges.length) throw new Error('MAME NES per-board handlers could not be recovered');
+  return ranges;
 }
 
 function extractFunctionBody(source: string, signature: string): string {

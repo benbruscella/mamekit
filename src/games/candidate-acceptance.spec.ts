@@ -21,6 +21,7 @@ try {
   write(join(outRoot, 'runtime/core/generated-board.js'), `
     const boards = new Map();
     export function registerGeneratedBoard(game, factory) { boards.set(game, factory); }
+    export async function loadBoardSlotCards() {}
     export function createBoard(config, ...args) {
       if (!boards.has(config.game)) throw new Error('not in public registry');
       return boards.get(config.game)(config, ...args);

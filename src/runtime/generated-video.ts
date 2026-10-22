@@ -176,6 +176,8 @@ export class GeneratedVideoRenderer implements VideoRenderer {
    */
   private readonly penBuffer?: Uint32Array;
   private partialNextY: number;
+  /** The first line a frame-mode board's update_now() has not yet rendered this frame. */
+  private nowNextY: number;
   /**
    * MAME's `m_partial_scan_hpos`: how far along line `partialNextY` an
    * `update_now()` has drawn. A Spectrum border write lands mid-line, and
@@ -207,6 +209,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     this.width = primitives.width;
     this.height = primitives.height;
     this.partialNextY = machine.execution.screen.yOffset ?? 0;
+    this.nowNextY = this.partialNextY;
     if (this.indexed) this.penBuffer = new Uint32Array(this.width * this.height);
   }
 
@@ -235,6 +238,27 @@ export class GeneratedVideoRenderer implements VideoRenderer {
       return;
     }
     this.renderRegion(frame, yOffset, yOffset + this.height - 1);
+    this.nowNextY = yOffset;
+  }
+
+  /**
+   * A device's `screen().update_now()`: the picture brought up to the beam
+   * whatever the board's update mode, as MAME's screen bitmap is, so a light
+   * gun's sensor reads this frame above the beam and the last one below it.
+   * On a board that composes once a frame the full render at its end still
+   * draws every line, so what is presented does not change.
+   */
+  updateNow(frame: Uint32Array, vpos: number, hpos: number): void {
+    if (this.machine.video?.bitmap) return;
+    if (this.machine.execution.screen.updateMode === 'partial') {
+      this.updatePartialAt(frame, vpos, hpos);
+      return;
+    }
+    const yOffset = this.machine.execution.screen.yOffset ?? 0;
+    const through = Math.min(Math.floor(vpos) - 1, yOffset + this.height - 1);
+    if (through < this.nowNextY) return;
+    this.renderRegion(frame, this.nowNextY, through);
+    this.nowNextY = through + 1;
   }
 
   updatePartial(frame: Uint32Array, line: number): void {

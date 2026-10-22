@@ -50,6 +50,11 @@ export function stripComments(src: string): string {
  * the Spectrum's) otherwise reads as both branches, and the directive glues
  * itself to the next statement. Dropped lines stay as blank lines so source
  * lines keep their numbers; a condition that is not a literal is left alone.
+ *
+ * A name the file itself `#define`s to an integer literal above the test is
+ * that literal: the Bandai Datach's `#if TEST_EEPROM` blocks, under
+ * `#define TEST_EEPROM 0`, are switched off, and read as live they left two
+ * of its handlers unparseable.
  */
 export function resolveLiteralConditionals(src: string): string {
   const lines = src.split('\n');
@@ -57,11 +62,20 @@ export function resolveLiteralConditionals(src: string): string {
   // current branch is live, and whether some earlier branch already was.
   const stack: { literal: boolean; live: boolean; taken: boolean }[] = [];
   const outerLive = () => stack.every(block => !block.literal || block.live);
+  const defined = new Map<string, string>();
   return lines.map(line => {
+    const define = /^\s*#\s*define\s+(\w+)\s+(\d+)\s*(?:\/\/.*|\/\*.*\*\/\s*)?$/.exec(line);
+    // Only where the preprocessor is sure to see it: under `#ifdef X` a
+    // define is one of two alternatives.
+    const certain = stack.every(block => block.literal && block.live);
+    if (define && certain) defined.set(define[1]!, define[2]!);
+    const undef = /^\s*#\s*undef\s+(\w+)/.exec(line);
+    if (undef) defined.delete(undef[1]!);
     const directive = /^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b\s*(.*)$/.exec(line);
     if (!directive) return outerLive() ? line : '';
-    const [, keyword, rest = ''] = directive;
-    const literal = /^\(?\s*(\d+)\s*\)?\s*$/.exec(rest.trim());
+    const [, keyword, written = ''] = directive;
+    const rest = written.replace(/\/\/.*$/, '').trim();
+    const literal = /^\(?\s*(\d+)\s*\)?\s*$/.exec(defined.get(rest) ?? rest);
     if (keyword === 'if' || keyword === 'ifdef' || keyword === 'ifndef') {
       const isLiteral = keyword === 'if' && Boolean(literal);
       const live = isLiteral ? Number(literal![1]) !== 0 : true;
