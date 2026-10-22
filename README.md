@@ -133,7 +133,6 @@ scripts/        deployment automation
 tools/          engineering diagnostics
 e2e/            browser QA: every accepted machine played through the app
 docs/           current architecture, contribution, engineering and QA references
-sessions/       historical build transcripts; never current instructions
 dist/           disposable generated distribution
 ```
 
@@ -178,10 +177,6 @@ There is one README and four current engineering documents:
   maintenance rules.
 - [TESTING](docs/TESTING.md): QA levels, supported-game tokens, deterministic
   real-ROM contracts, CI, golden review, and failure triage.
-
-Historical transcripts are indexed by
-[ARCHIVE INDEX](sessions/ARCHIVE_INDEX.md). Archive content records how the
-project arrived here; it does not override current documentation or code.
 
 ## NON-NEGOTIABLE INVARIANTS
 

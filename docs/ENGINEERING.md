@@ -923,8 +923,7 @@ The current documentation set is intentionally minimal:
 - root `README.md`;
 - `docs/ARCHITECTURE.md`;
 - `docs/ENGINEERING.md`;
-- `docs/TESTING.md`;
-- `sessions/ARCHIVE_INDEX.md` for historical evidence.
+- `docs/TESTING.md`.
 
 Documentation filenames use `UPPERCASE_WITH_UNDERSCORES.md`, except the
 repository-standard root `README.md` and tool-standard `CLAUDE.md`.
@@ -932,9 +931,6 @@ repository-standard root `README.md` and tool-standard `CLAUDE.md`.
 Do not add another README or a narrow document that duplicates an existing
 section. Extend one of the three engineering references. Generated per-machine
 archival text is named `DOSSIER.md`.
-
-Raw session transcripts are historical. Current code and current engineering
-documents always take precedence.
 
 ## 11. DEPLOYMENT
 
