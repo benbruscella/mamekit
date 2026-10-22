@@ -227,7 +227,7 @@
       "palette": "prom:proms"
     },
     "elevator": {
-      "sha256": "ba80da018ee5beab48227f17ece67da8ce6833cd48fb4868ddd88a3f5336e0be",
+      "sha256": "8239661962afd92ffc853dbd7f5c6c820b07d924d2c8e8044a6cbf6632796834",
       "callbacks": 20,
       "frameEvents": 2,
       "devices": 17,
@@ -353,7 +353,7 @@
       "palette": "prom:proms"
     },
     "invaders": {
-      "sha256": "0dac5d55f97268781ef0858036d63559fb9b6c03c8dafdcaf9daac5e0f8d700b",
+      "sha256": "284082e7ae93829c76befca133c85ff8f235485d5404541e023bbbfbf670536c",
       "callbacks": 4,
       "frameEvents": 2,
       "devices": 8,

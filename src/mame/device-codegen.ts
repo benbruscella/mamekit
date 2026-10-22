@@ -810,7 +810,11 @@ function emitOperation(
       `${pad}} while (${emitExpression(operation.condition, context)});`,
     ].filter(Boolean).join('\n');
   }
-  const lines = [`${pad}switch (${emitExpression(operation.expression, context)}) {`];
+  // A specialised template switches on a constant (`switch (M)` becomes
+  // `switch (1)` for addr_mode::DI), which C++ allows and TypeScript rejects
+  // case by case; the discriminant is a number either way.
+  const discriminant = emitExpression(operation.expression, context);
+  const lines = [`${pad}switch (${context.typescript ? `(${discriminant} as number)` : discriminant}) {`];
   for (const entry of operation.cases) {
     if (entry.values) {
       for (const value of entry.values) {

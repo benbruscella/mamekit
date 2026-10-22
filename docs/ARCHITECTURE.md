@@ -933,6 +933,19 @@ The test for a proposed host feature is therefore not "did this come from
 MAME source" (design test question 1 does not apply) but "would this work
 unchanged for the next generated machine".
 
+### WHAT IS STILL HAND-WRITTEN
+
+The left-hand column above is the rule, not yet the whole state of the code.
+Some MAME-derived behaviour is still written by hand, in `src/runtime`,
+`src/hardware` and inside some compilers: several sound engines, a set of
+game-named screen renderers, a few board devices (the Z80 CTC and DMA, Neo
+Geo I/O, the Taito SJ watchdog and interface start values), compile-time
+method replacements and CPU support layers. Each one is listed in the
+[#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103),
+and nothing may be added to that list. Generating an item and deleting its
+hand-written version is always welcome; the 68705 MCU and the Z80 PIO went
+that way, and both now compile from MAME's own source.
+
 ## 9. BROWSER BOOT SEQUENCE
 
 1. `/app/main.js` imports the generated registry.

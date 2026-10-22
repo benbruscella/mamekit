@@ -22,6 +22,7 @@ import { join } from 'node:path';
 import { evalExpr } from '../kg/parse.ts';
 import { parseMameConstructors, splitMameArgs } from './ast.ts';
 import {
+  addSourceConstructor,
   compileMameDevice,
   type GeneratedDeviceDefinition,
 } from './device-compiler.ts';
@@ -40,6 +41,7 @@ export function compileM6805Device(
     entry: `${DIRECTORY}/m6805.cpp`,
     allow: allow([`${DIRECTORY}/m6805defs.h`, `${DIRECTORY}/6805ops.hxx`]),
     classes: [BASE],
+    enumHeaders: [`${DIRECTORY}/m6805.h`],
   });
   const part = definition.sourceFile === `${DIRECTORY}/m6805.cpp`
     ? undefined
@@ -47,19 +49,47 @@ export function compileM6805Device(
         entry: definition.sourceFile,
         allow: allow([`${DIRECTORY}/m6805defs.h`]),
         classes: [BASE],
+        enumHeaders: [`${DIRECTORY}/m6805.h`],
       });
   const transformSource = (file: string, source: string) =>
     part ? part(file, core(file, source)) : core(file, source);
   const device = compileMameDevice(mameSrc, definition, definition.type, new Set(), { transformSource });
 
   const coreText = core(`${DIRECTORY}/m6805.cpp`, '');
-  const params = configurationParams(mameSrc, definition, device, coreText);
+  const chain = constructorChain(mameSrc, definition, device, coreText);
   const member = device.members.find(candidate => candidate.name === 'm_params');
   if (!member) throw new Error(`${definition.type}: MAME no longer declares m6805_base_device::m_params`);
   delete member.values;
   delete member.initial;
-  member.fields = Object.keys(params).map(name => ({ name }));
-  member.initialValue = params;
+  member.fields = Object.keys(chain.params).map(name => ({ name }));
+  member.initialValue = chain.params;
+  for (const [name, value] of Object.entries(chain.members)) {
+    const target = device.members.find(candidate => candidate.name === name);
+    if (!target) throw new Error(`${definition.type}: no member ${name} for its constructor to set`);
+    target.initial = value;
+  }
+  // The constructor bodies run when the device is built, base first:
+  // m68705p_device's makes port A open drain and port C four bits wide.
+  if (chain.bodies.length) {
+    addSourceConstructor(device, {
+      className: definition.className,
+      name: '__construct',
+      parameters: '',
+      body: chain.bodies.join('\n'),
+      initializers: [],
+      span: { file: definition.sourceFile, line: 1, column: 1 },
+    } as unknown as Parameters<typeof addSourceConstructor>[1]);
+  }
+  // Its program space is the internal map, wired as MAME's base constructor
+  // wires it: `address_map_constructor(FUNC(m6805_hmos_device::map), this)`,
+  // over m_addr_width address lines of 8-bit data.
+  device.spaces = [{
+    index: 0,
+    name: 'program',
+    addressBits: Number(chain.params.m_addr_width),
+    dataBits: 8,
+    map: 'map',
+  }];
   return device;
 }
 
@@ -75,7 +105,15 @@ function staticTables(coreText: string): Map<string, (string | number)[]> {
     const entries = splitMameArgs(match[2]!.replace(/\/\*[\s\S]*?\*\//g, ''))
       .map(entry => entry.trim().replace(/^\((.*)\)$/s, '$1').trim())
       .filter(Boolean)
-      .map(entry => /^"(\w+)"$/.exec(entry)?.[1] ?? Number(evalExpr(entry, {})));
+      .map(entry => {
+        const name = /^"(\w+)"$/.exec(entry)?.[1];
+        if (name) return name;
+        const value = evalExpr(entry, {});
+        if (value === null || value === undefined || !Number.isFinite(value)) {
+          throw new Error(`${match[1]}: table entry ${entry} is neither a lowered handler nor a number`);
+        }
+        return value;
+      });
     tables.set(match[1]!, entries);
   }
   return tables;
@@ -100,12 +138,21 @@ function substitute(text: string, bound: Bound): string {
  * bound, down to the brace initializer that becomes `configuration_params`,
  * whose own constructor (chosen by arity, as C++ chooses it) gives each field.
  */
-function configurationParams(
+interface ConstructorChain {
+  /** m_params, as the brace list and configuration_params' constructor build it. */
+  params: Record<string, unknown>;
+  /** Members a constructor sets from its own parameters (`m_ram_size(ram_size)`). */
+  members: Record<string, number>;
+  /** Constructor bodies with statements, base class first, as C++ runs them. */
+  bodies: string[];
+}
+
+function constructorChain(
   mameSrc: string,
   definition: MameHardwareDefinition,
   device: GeneratedDeviceDefinition,
   coreText: string,
-): Record<string, unknown> {
+): ConstructorChain {
   const sources = device.sourceFiles
     .filter(file => file.endsWith('.cpp'))
     .map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') }));
@@ -114,35 +161,74 @@ function configurationParams(
   const constants = { ...device.constants } as Record<string, number>;
   const evaluate = (text: string): number => {
     const value = evalExpr(text.replace(/\b(\d+)[uU]\b/g, '$1'), constants);
-    if (value === undefined || !Number.isFinite(value)) throw new Error(`${definition.type}: cannot evaluate ${text}`);
+    if (value === undefined || value === null || !Number.isFinite(value)) throw new Error(`${definition.type}: cannot evaluate ${text}`);
     return value;
   };
+
+  // Overloads are chosen as C++ chooses them, by argument type as well as
+  // count: m6805_hmos_device takes seven arguments two ways, an address width
+  // or a whole configuration_params, and only a brace list (or a parameter
+  // already of that type) binds the struct.
+  const structs = new Set([...header.matchAll(/\bstruct\s+(\w+)/g)].map(match => match[1]!));
+  const structOf = (declaration: string) =>
+    [...structs].find(name => new RegExp(`\\b${name}\\b`).test(declaration));
+  const choose = (className: string, args: string[], argTypes: (string | undefined)[]) =>
+    constructors.filter(candidate => candidate.className === className).find(candidate => {
+      const declared = splitMameArgs(candidate.parameters);
+      return declared.length === args.length && declared.every((parameter, index) => {
+        const wanted = structOf(parameter);
+        const brace = /^\(?\s*\{/.test(args[index]!.trim());
+        return wanted ? brace || argTypes[index] === wanted : !brace && !argTypes[index];
+      });
+    });
 
   // Walk down from the concrete class until a constructor hands its base the
   // configuration as a brace list.
   let className = definition.className;
   let bound: Bound = {};
-  let callArity: number | undefined;
+  let types: Record<string, string | undefined> = {};
+  let constructor = constructors.find(candidate => candidate.className === className);
+  let params: Record<string, unknown> | undefined;
+  const members: Record<string, number> = {};
+  const bodies: string[] = [];
+  // Each visited constructor's member initializers that read its own
+  // parameters, and its body, before following its base call.
+  const visit = (visited: NonNullable<typeof constructor>) => {
+    for (const initializer of visited.initializers) {
+      if (!/^m_\w+$/.test(initializer.name) || initializer.name === 'm_params' || initializer.args.length !== 1) continue;
+      const argument = initializer.args[0]!.trim();
+      if (bound[argument] === undefined) continue;
+      members[initializer.name] = evaluate(substitute(argument, bound));
+    }
+    if (visited.body.trim()) bodies.unshift(substitute(visited.body, bound));
+  };
   for (let depth = 0; depth < 16; depth++) {
-    const candidates = constructors.filter(candidate => candidate.className === className);
-    const constructor = callArity === undefined
-      ? candidates[0]
-      : candidates.find(candidate => parameterNames(candidate.parameters).length === callArity);
-    if (!constructor) throw new Error(`${definition.type}: no ${className} constructor taking ${callArity ?? 'its'} arguments`);
+    if (!constructor) throw new Error(`${definition.type}: no ${className} constructor fits its call`);
+    visit(constructor);
     const step = constructor.initializers.find(initializer =>
       initializer.name === className || device.hierarchy?.includes(initializer.name));
-    if (!step) throw new Error(`${definition.type}: ${className} names no base constructor`);
+    if (!step) {
+      if (!params) throw new Error(`${definition.type}: ${className} names no base constructor`);
+      return { params, members, bodies };
+    }
     const args = step.args.map(argument => substitute(argument.trim(), bound));
     const brace = args.find(argument => /^\{[\s\S]*\}$/.test(argument.replace(/^\((.*)\)$/s, '$1').trim()));
-    if (brace) {
-      return configurationFields(brace.replace(/^\((.*)\)$/s, '$1').trim(), header, coreText, evaluate, definition.type);
+    if (brace && !params) {
+      params = configurationFields(brace.replace(/^\((.*)\)$/s, '$1').trim(), header, coreText, evaluate, definition.type);
     }
-    const next = constructors.filter(candidate => candidate.className === step.name);
-    const callee = next.find(candidate => parameterNames(candidate.parameters).length === args.length);
-    if (!callee) throw new Error(`${definition.type}: no ${step.name} constructor taking ${args.length} arguments`);
-    bound = Object.fromEntries(parameterNames(callee.parameters).map((name, index) => [name, args[index]!]));
+    const argTypes = step.args.map(argument => types[argument.trim()]);
+    const callee = choose(step.name, args, argTypes);
+    // Past configuration_params the chain runs into MAME's own cpu_device.
+    if (!callee) {
+      if (params) return { params, members, bodies };
+      throw new Error(`${definition.type}: no ${step.name} constructor fits (${args.join(', ')})`);
+    }
+    const names = parameterNames(callee.parameters);
+    const declared = splitMameArgs(callee.parameters);
+    bound = Object.fromEntries(names.map((name, index) => [name, args[index]!]));
+    types = Object.fromEntries(names.map((name, index) => [name, structOf(declared[index]!) ?? (/^\{/.test(args[index]!.trim()) ? 'brace' : undefined)]));
     className = step.name;
-    callArity = args.length;
+    constructor = callee;
   }
   throw new Error(`${definition.type}: constructor chain does not reach configuration_params`);
 }
@@ -166,8 +252,9 @@ function configurationFields(
   for (const initializer of constructor.initializers.matchAll(/(m_\w+)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) {
     const text = substitute(initializer[2]!.trim(), bound);
     // A table is chosen by name (`addr_width > 13 ? s_hmos_b_ops : s_hmos_s_ops`).
-    const choice = /^\(?\(?(.+?)\)?\s*\?\s*\(?(s_\w+)\)?\s*:\s*\(?(s_\w+)\)?\)?$/.exec(text);
-    const name = choice ? (evaluate(choice[1]!) ? choice[2]! : choice[3]!) : /^\(?(s_\w+)\)?$/.exec(text)?.[1];
+    const choice = ternary(unwrap(text));
+    const picked = choice ? unwrap(evaluate(choice.condition) ? choice.whenTrue : choice.whenFalse) : unwrap(text);
+    const name = /^s_\w+$/.test(picked) ? picked : undefined;
     if (name) {
       const table = tables.get(name);
       if (!table) throw new Error(`${type}: MAME defines no ${name} table`);
@@ -177,4 +264,36 @@ function configurationFields(
     fields[initializer[1]!] = evaluate(text);
   }
   return fields;
+}
+
+/** `((x))` -> `x`, while the outer parentheses enclose the whole text. */
+function unwrap(text: string): string {
+  let value = text.trim();
+  while (value.startsWith('(') && closing(value, 0) === value.length - 1) value = value.slice(1, -1).trim();
+  return value;
+}
+
+function closing(text: string, open: number): number {
+  let depth = 0;
+  for (let index = open; index < text.length; index++) {
+    if (text[index] === '(') depth++;
+    else if (text[index] === ')' && --depth === 0) return index;
+  }
+  return -1;
+}
+
+/** `c ? a : b` split at its top level, or undefined. */
+function ternary(text: string): { condition: string; whenTrue: string; whenFalse: string } | undefined {
+  let depth = 0;
+  let question = -1;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    else if (depth === 0 && char === '?' && question < 0) question = index;
+    else if (depth === 0 && char === ':' && question >= 0 && text[index + 1] !== ':' && text[index - 1] !== ':') {
+      return { condition: text.slice(0, question), whenTrue: text.slice(question + 1, index), whenFalse: text.slice(index + 1) };
+    }
+  }
+  return undefined;
 }

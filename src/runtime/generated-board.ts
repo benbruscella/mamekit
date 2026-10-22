@@ -826,6 +826,15 @@ class IrBoard implements Board {
                 },
               };
             }
+            // A finder's tag is relative to the device declaring it: Taito's
+            // 68705 interface, tagged `mcu`, finds its processor as "mcu",
+            // which is `mcu:mcu`. Read as absolute it named the interface
+            // itself, which is no processor, and fell through to the main
+            // CPU -- so every `m_mcu->pa_w(...)` and IRQ went to the Z80.
+            const childTag = rawTag && !/^[\^:]/.test(rawTag) ? `${specification.tag}:${rawTag}` : undefined;
+            if (childTag && machine.devices?.some(candidate => candidate.tag === childTag)) {
+              return this.deviceHandle(childTag);
+            }
             const inferredTag = member?.replace(/^m_/, '');
             const tag = rawTag.replace(/^[\^:]+/, '') ||
               (inferredTag && (
@@ -1525,6 +1534,18 @@ class IrBoard implements Board {
       const synchronized = machine.execution.perfectQuantum === true &&
         !machine.execution.cpus.some(cpu => cpu.tag === tag) &&
         device.methodNames().includes('execute_run');
+      // device_execute_interface::set_input_line on a generated processor:
+      // Taito's 68705 interface raises its MCU's IRQ and holds its reset
+      // through `m_mcu->set_input_line(...)`. An execution CPU binds its own
+      // below; left unbound here the call answered zero and the MCU never
+      // saw either line.
+      if (device.methodNames().includes('execute_set_input')) {
+        const setInputLine = (line: number, state: number) =>
+          this.deviceInputLine(tag, device, Number(line), Number(state));
+        for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
+          calls[`${name}.set_input_line`] ??= setInputLine;
+        }
+      }
       for (const method of device.methodNames()) {
         const accessed = synchronized && (method === 'read' || method === 'write');
         const synced = <T extends (...args: never[]) => unknown>(call: T): T => accessed
@@ -2305,14 +2326,17 @@ class IrBoard implements Board {
       const firmware = regions[specification.tag] ?? regions[
         Object.keys(regions).find(name => name.endsWith(`:${leaf}`)) ?? ''
       ];
+      // A processor with firmware of its own and no host device: it runs as
+      // MAME runs any CPU, through its own execute_run and m_icount.
       if (
-        device && !host && firmware && specification.type === 'M68705P5' &&
+        device && !host && firmware &&
         device.methodNames().includes('execute_run') &&
         device.methodNames().includes('execute_set_input')
       ) {
         return [{
           tag: specification.tag,
           clock: device.cycleClock(),
+          enabled: () => !this.cpuHeld.get(specification.tag),
           ...processorRunner(device),
         }];
       }
@@ -2327,6 +2351,7 @@ class IrBoard implements Board {
         host,
         firmware,
         sinks,
+        specification.member,
       );
       return [{
         tag: specification.tag,
@@ -2893,12 +2918,64 @@ class IrBoard implements Board {
     return initial;
   }
 
+  /**
+   * Another generated device as a MAME finder hands it to its owner: its own
+   * methods by name, and `set_input_line` delivered to its execute_set_input
+   * when it is a processor. Resolved on use, since the owner is built first.
+   */
+  private deviceHandle(tag: string): object {
+    const target = () => {
+      const device = this.devices.get(tag);
+      if (!device) throw new Error(`device ${tag} is used before it exists`);
+      return device;
+    };
+    return new Proxy({}, {
+      get: (_object, property) => {
+        if (typeof property === 'symbol' || ['valueOf', 'toString', 'toJSON', 'then', 'stateKeys', 'stateRestored'].includes(property)) {
+          return undefined;
+        }
+        const name = String(property);
+        if (name === 'set_input_line') {
+          return (line: unknown, state: unknown) =>
+            this.deviceInputLine(tag, target(), Number(line), Number(state));
+        }
+        if (name === 'tag') return () => tag;
+        const device = target();
+        if (device.methodNames().includes(name)) {
+          return (...args: GeneratedCallArgument[]) => device.invoke(name, ...args);
+        }
+        return device.get(name);
+      },
+    });
+  }
+
+  /**
+   * device_execute_interface::set_input_line on a generated processor. RESET
+   * and HALT belong to the execute interface, not the core: an asserted line
+   * suspends the processor, and the scheduler stops clocking it. As in
+   * diexec.cpp's device_input, clearing RESET after it held the processor
+   * resets the device and resumes it. Every other line is the core's own
+   * execute_set_input. Arkanoid's Z80 holds its 68705 in reset through the
+   * interface's reset_w, and the firmware's handshake depends on the restart.
+   */
+  private deviceInputLine(tag: string, device: Device, line: number, state: number): number {
+    if (line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) {
+      const held = state !== 0;
+      if (!held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag)) device.reset();
+      this.cpuHeld.set(tag, held);
+      return 0;
+    }
+    return Number(device.call('execute_set_input', line, state)) || 0;
+  }
+
   private configureHostedProcessor(
     tag: string,
     device: Device,
     host: Device,
     firmware: Uint8Array,
     sinks: BoardSinks,
+    /** The host's member for this processor: Namco's `m_cpu`, Taito's `m_mcu`. */
+    member = 'm_cpu',
   ): () => boolean {
     const model = this.hostModel(`${tag}.hosted`, {
       resetHeld: false,
@@ -2977,7 +3054,10 @@ class IrBoard implements Board {
         callback.slot,
       );
     }
-    host.bindCall('m_cpu.set_input_line', (line, state) => {
+    // The host raises its processor's lines through its own member for it
+    // (`m_mcu->set_input_line(M68705_IRQ_LINE, ASSERT_LINE)` in Taito's 68705
+    // interface), whatever that member is called.
+    host.bindCall(`${member}.set_input_line`, (line, state) => {
       // A host's source file may name a line constant declared by its child
       // processor (MB88XX_TC_LINE is one example), so it is intentionally not
       // duplicated in the host definition. Resolve reference-shaped line
@@ -2991,7 +3071,7 @@ class IrBoard implements Board {
         : reference
           ? device.constant(reference) ?? 0
           : Number(line) || 0;
-      return device.call('execute_set_input', inputLine, state);
+      return this.deviceInputLine(tag, device, inputLine, Number(state));
     });
     // Normalize the adjacent MAME discrete nodes (NODE_01..NODE_04) to the
     // compact four-channel protocol consumed by the generated audio core. The
@@ -3007,7 +3087,7 @@ class IrBoard implements Board {
         if (model.resetHeld) device.reset();
       });
     }
-    return () => !model.resetHeld;
+    return () => !model.resetHeld && !this.cpuHeld.get(tag);
   }
 
   frame(framebuffer: Uint32Array): void {
@@ -4535,16 +4615,15 @@ class IrBoard implements Board {
       }
       return reset;
     }
-    if (
-      hasDeviceType(machine, 'TAITO_SJ_SECURITY_MCU') &&
-      this.devices.has('mcu:mcu')
-    ) {
-      // The security-interface device is source-compiled while its child
-      // 68705 is a concrete generated CPU.  Initialise the interface exactly
-      // as device_start/device_reset do in MAME and supply the values of its
-      // private enum (the handler IR deliberately retains those symbolic
-      // names).  This lets the unmodified Z80/68705 handshake assert and clear
-      // the real interrupt line through m_mcu.set_input_line.
+    const taitoSjTag = machine.devices?.find(device => device.type === 'TAITO_SJ_SECURITY_MCU')?.tag;
+    if (taitoSjTag && this.devices.has(`${taitoSjTag}:mcu`)) {
+      // The security interface runs as its own compiled handlers (data_r,
+      // data_w, the 68705's port callbacks), and its 68705 is generated. What
+      // is still written here, and on #176's list to generate: a composite
+      // parent's device_start/device_reset and its set_int_mode()
+      // configuration are not run, so their values and the private enum the
+      // handler IR keeps symbolic are supplied here; and the board's
+      // vblank-counting WATCHDOG_TIMER, which has no generic model yet.
       this.bindings.constants = {
         ...this.bindings.constants,
         'int_mode::NONE': 0,
@@ -4568,12 +4647,12 @@ class IrBoard implements Board {
         this.state.m_busak = 0;
         this.state.m_reset = 0;
       };
-      const child = this.devices.get('mcu:mcu')!;
+      const child = this.devices.get(`${taitoSjTag}:mcu`)!;
       const reset = () => {
         this.watchdogFrames = 0;
         this.state.m_zaccept = 1;
         this.state.m_zready = 0;
-        child.call('set_input_line', 0, 0);
+        child.call('execute_set_input', 0, 0);
       };
       // The CPU board's 74LS393 fires after 128 vblanks. Elevator Action uses
       // that real watchdog reset as part of its power-on protection sequence;
@@ -4581,137 +4660,6 @@ class IrBoard implements Board {
       // generated core.
       this.watchdogLimitFrames = 128;
       registry.write['watchdog.reset_w'] = () => { this.watchdogFrames = 0; };
-      const getBusValue = () => {
-        const pb = Number(this.state.m_pb_val ?? 0xff) & 0xff;
-        const pa = Number(this.state.m_pa_val ?? 0xff) & 0xff;
-        const host = Number(this.state.m_host_data ?? 0xff) & 0xff;
-        const read = Number(this.state.m_read_data ?? 0xff) & 0xff;
-        const busak = Boolean(this.state.m_busak);
-        return ((~pb & 0x02) ? host : 0xff) & pa &
-          ((busak && (~pb & 0x20)) ? read : 0xff);
-      };
-      const doMcuRead = () => {
-        this.state.m_zready = 0;
-        // In LATCH mode the rising 68LRD edge acknowledges the external IRQ.
-        // The composite parent has no runtime device instance to forward it.
-        child.call('set_input_line', 0, 0);
-        return 0;
-      };
-      const doMcuWrite = (param: unknown) => {
-        this.state.m_mcu_data = Number(param) & 0xff;
-        if (!this.state.m_reset) this.state.m_zaccept = 0;
-        return 0;
-      };
-      // These small private/timer helpers are invoked indirectly from the
-      // generated port handlers.  Bind their exact source semantics so MAME's
-      // scheduler-delegate spelling does not turn the latch edges into no-ops.
-      Object.assign(this.bindings.referenceCalls ??= {}, {
-        get_bus_val: getBusValue,
-        'taito_sj_security_mcu_device.get_bus_val': getBusValue,
-        do_mcu_read: doMcuRead,
-        'taito_sj_security_mcu_device.do_mcu_read': doMcuRead,
-        do_mcu_write: doMcuWrite,
-        'taito_sj_security_mcu_device.do_mcu_write': doMcuWrite,
-      });
-      const sourceRead = registry.read['mcu.data_r'];
-      const sourceWrite = registry.write['mcu.data_w'];
-      if (sourceRead) {
-        registry.read['mcu.data_r'] = (address, offset) => {
-          const value = sourceRead(address, offset);
-          if (!(offset & 1)) this.state.m_zaccept = 1;
-          return value;
-        };
-      }
-      if (sourceWrite) {
-        registry.write['mcu.data_w'] = (address, offset, data, memMask) => {
-          if (offset & 1) {
-            sourceWrite(address, offset, data, memMask);
-            return;
-          }
-          // The parent interface is source-compiled rather than instantiated,
-          // so perform the synchronized host-latch edge exactly once. Calling
-          // the generated scheduler delegate and then mirroring it asserted a
-          // second IRQ that never acquired a new edge after the first byte.
-          if (!this.state.m_reset) {
-            this.state.m_host_data = data & 0xff;
-            this.state.m_zready = 1;
-            child.call('set_input_line', 0, 1);
-          }
-        };
-      }
-      this.bindings.calls!.m_68read_cb = address =>
-        this.cpuBuses.get('maincpu')?.read(address) ?? 0xff;
-      this.bindings.calls!.m_68write_cb = (address, data) => {
-        this.cpuBuses.get('maincpu')?.write(address, data);
-        return 0;
-      };
-      this.bindings.calls!.m_68intrq_cb = () => 0;
-      // get_bus_val is an inline private helper in taitosjsec.h, so it has no
-      // standalone handler IR.  Bind the source expression used by the port
-      // callbacks rather than allowing an unresolved call to collapse to 0.
-      this.bindings.calls!.get_bus_val = getBusValue;
-      this.bindings.calls!.m_busrq_cb = state => {
-        dispatchGeneratedCallbacks(machine, 'mcu', 'busrq_cb', state, this.effects);
-        return 0;
-      };
-      // The composed parent is source-compiled, while the child CPU is a
-      // concrete runtime device. Bind the child's ports to this same interface
-      // state so the MCU and Z80 do not observe two independent latch copies.
-      child.on('porta_r', getBusValue, 0);
-      child.on('portc_r', () =>
-        Number(Boolean(this.state.m_zready)) |
-        (Number(Boolean(this.state.m_zaccept)) << 1) |
-        (Number(!this.state.m_busak) << 2), 0);
-      child.on('porta_w', data => {
-        this.state.m_pa_val = data & 0xff;
-        if (~Number(this.state.m_pb_val) & 0x40) {
-          this.state.m_addr =
-            (Number(this.state.m_addr) & 0xff00) | getBusValue();
-        }
-      }, 0);
-      child.on('portb_w', data => {
-        data &= 0xff;
-        const previous = Number(this.state.m_pb_val) & 0xff;
-        const difference = previous ^ data;
-        let incrementAddress = false;
-        const busValue = getBusValue();
-        if (difference & 0x01) {
-          this.bindings.calls!.m_68intrq_cb?.(Number(Boolean(data & 1)));
-        }
-        if (difference & data & 0x02) doMcuRead();
-        if (difference & data & 0x04) doMcuWrite(busValue);
-        if (difference & 0x08) {
-          this.bindings.calls!.m_busrq_cb?.(Number(!(data & 0x08)));
-        }
-        if (difference & 0x10) {
-          if (!(data & 0x10)) {
-            this.bindings.calls!.m_68write_cb?.(
-              Number(this.state.m_addr),
-              busValue,
-            );
-          } else if (data & 0x20) incrementAddress = true;
-        }
-        if (difference & 0x20) {
-          if (!(data & 0x20)) {
-            this.state.m_read_data = this.bindings.calls!.m_68read_cb?.(
-              Number(this.state.m_addr),
-            ) ?? 0xff;
-          } else if (data & 0x10) incrementAddress = true;
-        }
-        if (!(data & 0x40)) {
-          this.state.m_addr =
-            (Number(this.state.m_addr) & 0xff00) | busValue;
-        } else if (incrementAddress) {
-          this.state.m_addr =
-            (Number(this.state.m_addr) & 0xff00) |
-            ((Number(this.state.m_addr) + 1) & 0xff);
-        }
-        if (!(data & 0x80)) {
-          this.state.m_addr =
-            (Number(this.state.m_addr) & 0x00ff) | (busValue << 8);
-        }
-        this.state.m_pb_val = data;
-      }, 0);
       initialize();
       return reset;
     }

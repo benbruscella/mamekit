@@ -2086,7 +2086,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     for (const capture of expression.captures ?? []) {
       captured[capture.name] = evaluate(capture.value, context);
     }
-    return (...args: unknown[]): unknown => {
+    const lambda = (...args: unknown[]): unknown => {
       const locals = { ...context.locals, ...captured };
       for (const [index, name] of parameters.entries()) {
         if (name) locals[name] = args[index] ?? 0;
@@ -2094,6 +2094,11 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       const result = executeOperations(body, { ...context, locals });
       return result.control === 'return' ? result.value : undefined;
     };
+    // How many arguments it declares, for a host that must call it the way
+    // MAME would: an address-map write lambda takes `(u8 data)` or
+    // `(offs_t offset, u8 data)`, and the two are not interchangeable.
+    Object.defineProperty(lambda, 'declaredParameters', { value: parameters.length });
+    return lambda;
   }
   return evaluateCall(expression, context);
 }

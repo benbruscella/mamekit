@@ -32,7 +32,6 @@ import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { inheritCardInterface, type CardInterface } from '../ir/card-interface.ts';
-import { GeneratedM68705P5Device } from './generated-m68705.ts';
 
 interface DeviceMember {
   name: string;
@@ -64,6 +63,8 @@ interface DeviceMember {
   initialValues?: Record<string, unknown>[];
   /** A class held by value that the device declares inside itself: the allocation building it. */
   object?: string;
+  /** Its constructor arguments as the owner's initializer writes them (`*this`). */
+  objectArgs?: string[];
 }
 
 /** One field of a struct-shaped member; `fields` makes it nest. */
@@ -81,6 +82,8 @@ interface DeviceCallback {
   member: string;
   slots: number;
   initial?: number;
+  /** Accessors bound to one element of a devcb array: `porta_r` is slot 0. */
+  aliases?: { signal: string; slot: number }[];
 }
 
 interface DeviceTimer {
@@ -288,7 +291,13 @@ export interface GeneratedDeviceDefinition {
     name: string;
     addressBits: number;
     dataBits: number;
-    ram: true;
+    ram?: true;
+    /**
+     * The address-map method that fills the space, for a space MAME maps
+     * rather than backs with plain RAM: the 68705's ports, timer, RAM and
+     * EPROM. The host runs it against a map builder, as MAME does.
+     */
+    map?: string;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
   /** the host call names those methods reach, resolved once into `links` */
@@ -471,7 +480,7 @@ export function clearGeneratedDevices(): void {
 }
 
 export function hasGeneratedDevice(type: string): boolean {
-  return type.toUpperCase() === 'M68705P5' || DEFINITIONS.has(type.toUpperCase());
+  return DEFINITIONS.has(type.toUpperCase());
 }
 
 /** The registered definition of a device type, if any. */
@@ -561,9 +570,6 @@ export interface GeneratedMemoryBank {
 }
 
 export function createDevice(type: string, options: GeneratedDeviceOptions = {}): Device {
-  if (type.toUpperCase() === 'M68705P5') {
-    return new GeneratedM68705P5Device(options);
-  }
   const definition = DEFINITIONS.get(type.toUpperCase());
   if (!definition) throw new Error(`generated device "${type}" was not registered`);
   return new IrDevice(definition, options.clock ?? 0, options);
@@ -855,6 +861,7 @@ class IrDevice implements Device {
   private readonly latch8: boolean;
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
+  private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
   private readonly clock: number;
   private executedCycles = 0;
   private runningCycles: number | undefined;
@@ -890,10 +897,21 @@ class IrDevice implements Device {
     clock = Math.trunc(clock);
     this.clock = clock;
     for (const config of definition.spaces ?? []) {
-      this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
+      // A mapped space is built on first use, once the constructor has run:
+      // its map tests state the constructor sets (the 68705's port masks).
+      if (!config.map) this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
     }
     const resourceCache = options.resourceCache ?? {};
     const resourceOptions = { ...options, resourceCache };
+    // A region an address map names is the device's own: `.region("bootstrap", 0)`
+    // is `<tag>:bootstrap`, and `tag()` is the device's region itself.
+    this.regionLookup = (tag: string) => {
+      const regions = options.regions ?? {};
+      const own = options.tag ?? '';
+      if (tag === own || tag === 'tag()') return regions[own];
+      return regions[`${own}:${tag}`] ??
+        regions[Object.keys(regions).find(name => name.endsWith(`:${tag}`)) ?? ''] ?? regions[tag];
+    };
     const resourceMembers = definition.resources?.members ?? {};
     for (const method of definition.methods) {
       const overloads = this.methods.get(method.name) ?? [];
@@ -929,14 +947,19 @@ class IrDevice implements Device {
                 : new IrMemoryBank())
           : /^simple_list<[^>]+>$/.test(member.valueType)
             ? new IrSimpleList()
+          // MAME's PAIR register union (emucore.h): one 32-bit word read as
+          // .d, .w.l/.w.h or .b.l/.b.h/.b.h2/.b.h3. The 6805 keeps PC, S and
+          // EA in one and writes them by halves (`rm16(vector, m_pc)`).
+          : /^PAIR$/.test(member.valueType.replace(/\bconst\b/g, '').trim())
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength }, () => pairValue())
+                : pairValue())
           // A class the device declares inside itself and holds by value (the
           // Z80 PIO's two `pio_port`s): each is an object with its own methods
           // and state, built from its allocation, not a number to call into.
+          // Built below, once the owner's own handle exists to be passed in.
           : member.object && definition.allocations?.[member.object]
-            ? (member.arrayLength
-                ? Array.from({ length: member.arrayLength },
-                    () => new IrDevice(definition.allocations![member.object!]!, clock, {}).members.this)
-                : new IrDevice(definition.allocations[member.object]!, clock, {}).members.this)
+            ? (member.arrayLength ? new Array(member.arrayLength).fill(0) : 0)
           // A struct the device declares: build the shape its source gives it,
           // so the fields a method writes exist to be written.
           : member.fields
@@ -990,6 +1013,19 @@ class IrDevice implements Device {
       phase: () => Number(this.bindings.calls?.['machine().phase']?.() ?? DEFAULT_CONSTANTS['machine_phase::RUNNING']),
     });
     self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
+    // device_execute_interface::set_input_line, for a device that is a CPU: the
+    // line reaches its own execute_set_input. An object the CPU holds raises
+    // its interrupts this way -- the 6805's timer calls
+    // `m_parent.set_input_line(M6805_INT_TIMER, ASSERT_LINE)`.
+    if (definition.methods.some(method => method.name === 'execute_set_input')) {
+      self.set_input_line = (line: unknown, state: unknown) => this.call('execute_set_input', Number(line), Number(state));
+    }
+    // Framework bookkeeping an owned object asks its device for: the save
+    // state walker and the debugger have their own routes, and a log line is
+    // not behaviour.
+    self.logerror = () => 0;
+    self.save_item = () => 0;
+    self.state_add = () => ({ mask: () => 0, formatstr: () => 0, noshow: () => 0, callimport: () => 0, callexport: () => 0 });
     this.members.this = self;
     // Vector members MAME resizes at run time restore at their saved length.
     const resizable = definition.members
@@ -1037,6 +1073,13 @@ class IrDevice implements Device {
         return emitter;
       });
       this.members[callback.member] = callback.slots === 1 ? emitters[0] : emitters;
+      // An accessor bound to one element (`porta_r()` is m_port_cb_r[0]) shares
+      // that element's listeners, so a binding through it is what fires.
+      for (const alias of callback.aliases ?? []) {
+        const element = slots[alias.slot];
+        if (!element) throw new Error(`${definition.type}: ${alias.signal} names slot ${alias.slot} of ${callback.member}`);
+        this.listeners.set(alias.signal, [[element]]);
+      }
       // An object the device holds calls back through its owner: the PIO
       // port's `m_device->m_out_pa_cb(0, data)`.
       Object.defineProperty(self, callback.member, {
@@ -1055,6 +1098,20 @@ class IrDevice implements Device {
     // making every generated register access a hash lookup. Do this before
     // publishing the state to either execution context.
     this.members = Object.fromEntries(Object.entries(this.members));
+    // A class the device holds by value (the Z80 PIO's `pio_port`s, the 6805's
+    // `m6805_timer`): an object with its own methods and state, constructed
+    // as the owner's initializer list constructs it -- `m_timer(*this)` hands
+    // it the owner.
+    for (const member of definition.members) {
+      const allocated = member.object ? definition.allocations?.[member.object] : undefined;
+      if (!allocated) continue;
+      const args = (member.objectArgs ?? []).map(argument =>
+        /^\*?\s*this$/.test(argument) ? self
+          : Number.isFinite(Number(argument)) ? Number(argument)
+          : this.members[argument] ?? 0);
+      const build = () => new IrDevice(allocated, clock, { constructorArgs: args as GeneratedCallArgument[] }).members.this;
+      this.members[member.name] = member.arrayLength ? Array.from({ length: member.arrayLength }, build) : build();
+    }
 
     const getters: Record<string, () => unknown> = {};
     const setters: Record<string, (value: number) => void> = {};
@@ -1238,7 +1295,11 @@ class IrDevice implements Device {
         // `space(n)`: the device's own address space, as MAME's
         // device_memory_interface hands it out. Every declared space is flat
         // RAM (the extractor records no other shape), so the map is the buffer.
-        space: index => this.spaces.get(Number(index)) ?? 0,
+        space: index => this.deviceSpace(Number(index)) ?? 0,
+        // A source handler named in an address map, `FUNC(cls::method)`,
+        // and a lambda given a name for the debugger, `NAME([this]() {...})`.
+        FUNC: (handler: unknown) => handler,
+        NAME: (value: unknown) => value,
         // Storage a device reaches through an accessor rather than a member:
         // a Game Boy cartridge PCB asks its slot for `cart_rom_region()`.
         ...Object.fromEntries(
@@ -1778,6 +1839,17 @@ class IrDevice implements Device {
     return overloads.length
       ? Math.max(...overloads.map(method => splitParameters(method.parameters).length))
       : 0;
+  }
+
+  /** One of the device's own address spaces, a mapped one built on first use. */
+  private deviceSpace(index: number): GeneratedDeviceSpace | undefined {
+    const existing = this.spaces.get(index);
+    if (existing) return existing;
+    const config = this.definition.spaces?.find(space => space.index === index);
+    if (!config?.map) return undefined;
+    const space = mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup);
+    this.spaces.set(index, space);
+    return space;
   }
 
   parameters(name: string): readonly string[] {
@@ -2956,6 +3028,150 @@ function cassetteImage(file?: Uint8Array) {
     },
     put_sample: () => { throw new Error('mounted sample image is read-only'); },
   };
+}
+
+/**
+ * A space MAME fills from an address map rather than backing with RAM. The
+ * device's own map method is run against a builder that records each
+ * `map(start, end)` entry and what it is wired to -- a handler, a lambda, RAM,
+ * a region -- and the space then decodes every address to the last entry that
+ * covers it, as MAME's later map lines override earlier ones.
+ */
+function mappedDeviceSpace(
+  device: IrDevice,
+  addressBits: number,
+  mapMethod: string,
+  region: (tag: string) => Uint8Array | undefined,
+): GeneratedDeviceSpace {
+  const size = 1 << addressBits;
+  const mask = size - 1;
+  const memory = new Uint8Array(size);
+  type Entry = {
+    start: number;
+    end: number;
+    read?: (offset: number, data?: number) => number;
+    write?: (offset: number, data: number) => void;
+    storage?: Uint8Array;
+    storageOffset?: number;
+  };
+  const entries: Entry[] = [];
+  let unmapped = 0;
+  // A handler reference or a lambda, called with the arguments it declares.
+  const callable = (target: unknown, writing: boolean): ((offset: number, data?: number) => number) | undefined => {
+    if (typeof target === 'function') {
+      const declared = (target as { declaredParameters?: number }).declaredParameters ?? target.length;
+      const fn = target as (...args: number[]) => unknown;
+      return writing
+        ? (offset, data = 0) => Number(declared >= 2 ? fn(offset, data) : fn(data)) || 0
+        : offset => Number(declared >= 1 ? fn(offset) : fn()) || 0;
+    }
+    // A template handler is named by its evaluated arguments (`eprom_r<0x0080>`
+    // is the compiled `eprom_r_128`), however the map spells them.
+    const name = typeof target === 'object' && target && 'reference' in target
+      ? String((target as { reference: unknown }).reference).split('::').at(-1)!
+          .replace(/_(0x[0-9a-f]+|true|false)(?=_|$)/gi, (_all, value: string) =>
+            `_${value === 'true' ? 1 : value === 'false' ? 0 : Number(value)}`)
+      : undefined;
+    if (!name || !device.methodNames().includes(name)) {
+      throw new Error(`address map names ${String(name ?? target)}, which the device does not define`);
+    }
+    const declared = device.parameters(name).filter(parameter => parameter && parameter !== 'void').length;
+    return writing
+      ? (offset, data = 0) => Number(declared >= 2 ? device.call(name, offset, data) : device.call(name, data)) || 0
+      : offset => Number(declared >= 1 ? device.call(name, offset) : device.call(name)) || 0;
+  };
+  const map = Object.assign((start: number, end: number) => {
+    const entry: Entry = { start: Number(start) & mask, end: Number(end) & mask };
+    entries.push(entry);
+    const chain: Record<string, (...args: unknown[]) => unknown> = {
+      r: handler => { entry.read = callable(handler, false); return chain; },
+      w: handler => { entry.write = callable(handler, true); return chain; },
+      rw: (read, write) => { entry.read = callable(read, false); entry.write = callable(write, true); return chain; },
+      lr8: handler => chain.r!(handler),
+      lw8: handler => chain.w!(handler),
+      lrw8: (read, write) => chain.rw!(read, write),
+      ram: () => { entry.storage = memory; entry.storageOffset = undefined; return chain; },
+      rom: () => chain,
+      region: (tag, offset) => {
+        const bytes = region(String(tag));
+        if (!bytes) throw new Error(`address map names region ${String(tag)}, which was not loaded`);
+        entry.storage = bytes;
+        entry.storageOffset = Number(offset) || 0;
+        return chain;
+      },
+      nopr: () => { entry.read = () => unmapped; return chain; },
+      nopw: () => { entry.write = () => 0; return chain; },
+      noprw: () => { chain.nopr!(); return chain.nopw!(); },
+      unmapr: () => chain.nopr!(),
+      unmapw: () => chain.nopw!(),
+      unmaprw: () => chain.noprw!(),
+      mirror: () => chain,
+      mask: () => chain,
+    };
+    return chain;
+  }, {
+    unmap_value_high: () => { unmapped = 0xff; return 0; },
+    unmap_value_low: () => { unmapped = 0; return 0; },
+    global_mask: () => 0,
+  });
+  device.call(mapMethod, map as unknown as number);
+  const readAt = new Int32Array(size).fill(-1);
+  const writeAt = new Int32Array(size).fill(-1);
+  entries.forEach((entry, index) => {
+    for (let address = entry.start; address <= entry.end; address++) {
+      if (entry.read || entry.storage) readAt[address] = index;
+      if (entry.write || entry.storage === memory) writeAt[address] = index;
+    }
+  });
+  return {
+    memory,
+    read_byte: address => {
+      const at = address & mask;
+      const entry = entries[readAt[at]!];
+      if (!entry) return unmapped;
+      if (entry.read) return entry.read(at - entry.start) & 0xff;
+      const storage = entry.storage!;
+      return storage[entry.storageOffset === undefined ? at : entry.storageOffset + at - entry.start] ?? unmapped;
+    },
+    write_byte: (address, data) => {
+      const at = address & mask;
+      const entry = entries[writeAt[at]!];
+      if (!entry) return 0;
+      if (entry.write) entry.write(at - entry.start, data & 0xff);
+      else entry.storage![at] = data & 0xff;
+      return 0;
+    },
+  };
+}
+
+/**
+ * MAME's PAIR union on a little-endian host: `b` the bytes low to high, `w`
+ * the halves, `d` the word, and their signed readings. The word lives in a
+ * typed array, so a save state carries it like any other register.
+ */
+function pairValue(): Record<string, unknown> {
+  const word = new Uint32Array(1);
+  const field = (shift: number, bits: number, signed: boolean) => ({
+    get: () => {
+      const value = (word[0]! >>> shift) & ((1 << bits) - 1);
+      return signed && value & (1 << (bits - 1)) ? value - (1 << bits) : value;
+    },
+    set: (value: number) => {
+      const mask = (((1 << bits) - 1) << shift) >>> 0;
+      word[0] = ((word[0]! & ~mask) | ((Number(value) << shift) & mask)) >>> 0;
+    },
+    enumerable: true,
+  });
+  const lanes = (bits: number, names: string[], signed: boolean) =>
+    Object.defineProperties({}, Object.fromEntries(names.map((name, index) => [name, field(index * bits, bits, signed)])));
+  return Object.defineProperties({ word }, {
+    d: { get: () => word[0]!, set: (value: number) => { word[0] = Number(value) >>> 0; }, enumerable: true },
+    sd: { get: () => word[0]! | 0, set: (value: number) => { word[0] = Number(value) >>> 0; }, enumerable: true },
+    b: { value: lanes(8, ['l', 'h', 'h2', 'h3'], false), enumerable: true },
+    sb: { value: lanes(8, ['l', 'h', 'h2', 'h3'], true), enumerable: true },
+    w: { value: lanes(16, ['l', 'h'], false), enumerable: true },
+    sw: { value: lanes(16, ['l', 'h'], true), enumerable: true },
+  });
 }
 
 function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {

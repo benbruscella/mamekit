@@ -103,6 +103,8 @@ export interface GeneratedDeviceMember {
    * `m_port[i].data_write(data)` was a call on nothing, silently.
    */
   object?: string;
+  /** The owner's constructor arguments for that object, as written: `*this`, `0x7f`. */
+  objectArgs?: string[];
 }
 
 /**
@@ -126,6 +128,8 @@ export interface GeneratedDeviceCallback {
   member: string;
   slots: number;
   initial?: number;
+  /** Accessors bound to one element of the array: `porta_r` is slot 0. */
+  aliases?: { signal: string; slot: number }[];
 }
 
 export interface GeneratedDeviceTimer {
@@ -297,7 +301,13 @@ export interface GeneratedDeviceDefinition {
     name: string;
     addressBits: number;
     dataBits: number;
-    ram: true;
+    ram?: true;
+    /**
+     * The address-map method that fills the space, for a space MAME maps
+     * rather than backs with plain RAM: the 68705's ports, timer, RAM and
+     * EPROM. The host runs it against a map builder, as MAME does.
+     */
+    map?: string;
   }[];
   start?: string;
   reset?: string;
@@ -417,9 +427,17 @@ export function compileMameDevice(
   // spriteram widths). Resolving the concrete arguments keeps the generated
   // device tied to the width the driver actually declares.
   const templateArguments = resolveTemplateArguments(definition.className, classes);
+  // `timer_source(x)` converts to an enum the device declares: a value, not a
+  // call. Left a call, it named no function and answered a reference object,
+  // which no comparison against the enum's values ever matched.
+  const enumTypes = [...new Set(sources.flatMap(({ source }) =>
+    [...source.matchAll(/\benum\s+(?:class\s+|struct\s+)?(\w+)\s*(?::\s*[\w:]+\s*)?\{/g)].map(match => match[1]!)))];
+  const enumCast = enumTypes.length
+    ? new RegExp(`(?<![\\w.>])(?:\\w+::)*(?:${enumTypes.join('|')})\\s*\\(`, 'g')
+    : undefined;
   const specialize = (className: string, text: string): string => {
     const substitutions = templateArguments.get(className);
-    let specialized = text;
+    let specialized = enumCast ? text.replace(enumCast, '(') : text;
     for (const [parameter, argument] of Object.entries(substitutions ?? {})) {
       specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
     }
@@ -451,6 +469,26 @@ export function compileMameDevice(
       numericConstants(stripCppComments(classes.get(className)?.body ?? ''))),
   );
   Object.assign(constants, foreignClassConstants(mameSrc, sources, classes, constants));
+  // A define spelled in another file's constants resolves only once every
+  // file's are known: m68705.h's `M6805_INT_TIMER (M6805_IRQ_LINE + 1)` names
+  // an enumerator of m6805.h. Evaluated per file, it was dropped, and the
+  // 68705's timer raised its interrupt on no line at all.
+  const pendingDefines = new Map<string, string>();
+  for (const { source } of sources) {
+    for (const match of stripCppComments(source).matchAll(/^\s*#define\s+([A-Za-z_]\w*)\s+([^\r\n]+)/gm)) {
+      if (constants[match[1]!] === undefined) pendingDefines.set(match[1]!, match[2]!.trim());
+    }
+  }
+  for (let resolved = true; resolved;) {
+    resolved = false;
+    for (const [name, expression] of pendingDefines) {
+      const value = evalExpr(expression, constants);
+      if (value === null || value === undefined || !Number.isFinite(value)) continue;
+      constants[name] = value;
+      pendingDefines.delete(name);
+      resolved = true;
+    }
+  }
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
   const sourceTables = Object.assign(
@@ -598,6 +636,26 @@ export function compileMameDevice(
     }
   }
 
+  // Template instances named only inside other specialised members, to a
+  // fixed point: a handler specialised for `big = false` calls `rm<0>`, and
+  // `rm<0>` itself calls `rdmem<0>`. The source spells none of them with a
+  // number, so the pass above could not see them.
+  const templateMethods = hierarchy.flatMap(className => [
+    ...sourceMethods.filter(candidate => candidate.className === className),
+    ...(classes.get(className) ? inlineMethods(classes.get(className)!) : []),
+  ]).filter(method => method.templateParameters?.length);
+  for (let added = true, round = 0; added && round < 16; round++) {
+    added = false;
+    const specialisedText = [{ file: '(specialised members)', source: [...methodBodies.values()].join('\n') }];
+    for (const template of templateMethods) {
+      for (const specialized of specializeFunctionTemplate(template, specialisedText, templateDiscoveryMacros, constants)) {
+        if (specialized.name === template.name || methods.some(candidate => candidate.name === specialized.name)) continue;
+        replaceOrAppend(specialized);
+        added = true;
+      }
+    }
+  }
+
   // File-scope helpers the device's own methods call. They belong to no class,
   // so the hierarchy walk above never reaches them, and an unresolved call
   // answers zero rather than failing: `convert_output` in gb.cpp turns a
@@ -667,7 +725,7 @@ export function compileMameDevice(
         callbacks.push({
           signal: member.name.replace(/^m_/, ''),
           member: member.name,
-          slots: callbackSlots(member.valueType),
+          slots: callbackSlots(member.valueType, constants),
           initial: member.valueType.startsWith('devcb_read8') ? 0xff : 0,
         });
         return [];
@@ -710,10 +768,19 @@ export function compileMameDevice(
   for (const className of hierarchy) {
     const body = classes.get(className)?.body ?? '';
     for (const accessor of body.matchAll(
-      /\bauto\s+(\w+)\s*\([^)]*\)\s*\{\s*return\s+(m_\w+)(?:\[[^\]]+\])?\.bind\s*\(\s*\)\s*;\s*\}/g,
+      /\bauto\s+(\w+)\s*\([^)]*\)\s*\{\s*return\s+(m_\w+)(?:\[([^\]]+)\])?\.bind\s*\(\s*\)\s*;\s*\}/g,
     )) {
       const callback = callbacks.find(candidate => candidate.member === accessor[2]);
-      if (callback) callback.signal = accessor[1]!;
+      if (!callback) continue;
+      // One accessor per element of a devcb array (`porta_r()` binds
+      // m_port_cb_r[0], `portb_r()` [1]) names that element; an accessor over
+      // a template index (`portan_r<N>()`) names the whole array.
+      const element = accessor[3] === undefined ? undefined : evalExpr(accessor[3].trim(), constants);
+      if (element !== undefined && element !== null && Number.isInteger(element)) {
+        (callback.aliases ??= []).push({ signal: accessor[1]!, slot: element });
+      } else {
+        callback.signal = accessor[1]!;
+      }
     }
   }
   for (const callback of interruptCallbacks) {
@@ -949,12 +1016,28 @@ export function compileMameDevice(
     },
   };
   const constructors = sources.flatMap(({ file, source }) => parseMameConstructors(file, source));
+  // A helper class declared beside a device often defines its constructor
+  // inline (`m6805_timer(m6805_base_device &parent) : m_parent(parent) ... {}`),
+  // which the out-of-line parser above does not see.
+  const constructorOf = (qualified: string) =>
+    constructors.find(candidate => candidate.className === qualified) ??
+    inlineConstructor(sources, qualified);
   const allocations: Record<string, GeneratedDeviceDefinition> = {};
   const compileNestedClass = (name: string, qualified: string): GeneratedDeviceDefinition => {
     if (compiling.has(qualified)) throw new Error(`cannot resolve nested MAME class ${qualified}`);
     const child = compileMameDevice(mameSrc, { ...definition, className: qualified }, qualified, new Set([...compiling, qualified]));
-    const constructor = constructors.find(candidate => candidate.className === qualified);
+    const constructor = constructorOf(qualified);
     if (!constructor) throw new Error(`missing source constructor for ${qualified}`);
+    // A reference member (`m6805_base_device &m_parent;`) declares like a
+    // function to the member scan; its constructor initializer says it is
+    // state, so it becomes a member the constructor can bind.
+    for (const initializer of constructor.initializers) {
+      if (!/^m_\w+$/.test(initializer.name) || child.members.some(member => member.name === initializer.name)) continue;
+      const leaf = (name: string) => name.split('::').at(-1);
+      if (!child.methods.some(method => leaf(method.name) === initializer.name)) continue;
+      child.methods = child.methods.filter(method => leaf(method.name) !== initializer.name);
+      child.members.push({ name: initializer.name, valueType: 'reference' });
+    }
     addSourceConstructor(child, constructor, true);
     allocations[name] = child;
     result.summary.diagnostics += child.summary.diagnostics;
@@ -966,14 +1049,27 @@ export function compileMameDevice(
   // A plain data struct (the vector generator's `vgvector`) is already
   // shaped by its fields; only a class with a constructor of its own is an
   // object to build.
+  //
+  // The class may also be a helper declared beside the device rather than
+  // inside it -- the 6805's `m6805_timer m_timer`, built `m_timer(*this)` --
+  // so long as it is not a device (those are children, found by tag).
   for (const member of result.members) {
     if (member.memory || member.finder || member.fields) continue;
     const owner = [...hierarchy].reverse().find(className => classes.has(`${className}::${member.valueType}`));
-    if (!owner || !constructors.some(candidate => candidate.className === `${owner}::${member.valueType}`)) continue;
-    if (!allocations[member.valueType]) compileNestedClass(member.valueType, `${owner}::${member.valueType}`);
+    const qualified = owner ? `${owner}::${member.valueType}` : member.valueType;
+    if (!owner && (!classes.has(qualified) || hierarchy.includes(qualified) || /_device$/.test(qualified))) continue;
+    if (!constructorOf(qualified)) continue;
+    if (!allocations[member.valueType]) compileNestedClass(member.valueType, qualified);
     member.object = member.valueType;
+    // Built as the owner's constructor builds it: `m_timer(*this)`.
+    const initializer = constructors
+      .filter(candidate => hierarchy.includes(candidate.className))
+      .flatMap(candidate => candidate.initializers)
+      .find(candidate => candidate.name === member.name);
+    if (initializer?.args.length) member.objectArgs = initializer.args.map(argument => argument.trim());
     if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
     delete member.values;
+    delete member.initial;
   }
   for (const method of methods) walkExpressions(method.program.operations, expression => {
     if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
@@ -1505,8 +1601,15 @@ function specializeFunctionTemplate(
   if (!parameters.length) return [method];
   const className = method.className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const methodName = method.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // A derived class's qualifier names an inherited template too: the
+  // 68705P's map installs `m68705p_device::eprom_r<0x0080>`, a template
+  // m68705_device defines.
+  // And an unqualified call from another member names it too, once that
+  // member's own template arguments are numbers: the 6805's handlers call
+  // `immbyte<big>(t)`, which is `immbyte<0>(t)` in the `big = false` handler.
+  void className;
   const pattern = new RegExp(
-    `\\b${className}::${methodName}\\s*<([^<>]+)>`,
+    `(?:\\b\\w+::|(?<![\\w.>:]))${methodName}\\s*<([^<>]+)>`,
     'g',
   );
   const instances = new Map<string, string[]>();
@@ -1520,7 +1623,10 @@ function specializeFunctionTemplate(
     const expanded = expandFunctionMacros(source, functionMacros);
     for (const match of expanded.matchAll(pattern)) {
       const supplied = splitMameArgs(match[1]!).map(argument => argument.trim());
-      if (supplied.length !== parameters.length) continue;
+      // A call may supply only the leading arguments and let C++ deduce the
+      // rest: `immbyte<0>(t)` for `template <bool big, typename T>`. The
+      // numbers it gives are the instance; the deduced rest stay open.
+      if (!supplied.length || supplied.length > parameters.length) continue;
       const args = supplied.map(argument => {
         const normalized = argument
           .replace(/\btrue\b/g, '1')
@@ -1557,12 +1663,16 @@ function specializeFunctionTemplate(
     // recursion is dead code. Left in place it is a condition the handler
     // parser cannot read, and the whole method is dropped for a diagnostic --
     // which is how Sinistar's sound command reached no PIA at all.
-    const source =
-      `template <${parameters.map(parameter => `int ${parameter}`).join(', ')}>\n` +
-      method.parameters + marker + stripEmptyPackRecursion(method.body);
+    // Parameters the call left to deduction are types to the untyped IR.
+    const bound = parameters.slice(0, args.length);
+    let methodSource = method.parameters + marker + stripEmptyPackRecursion(method.body);
+    for (const open of parameters.slice(args.length)) {
+      methodSource = methodSource.replace(new RegExp(`\\b${open}\\b`, 'g'), 'auto');
+    }
+    const source = `template <${bound.map(parameter => `int ${parameter}`).join(', ')}>\n` + methodSource;
     const [monomorphized] = monomorphizeFunctionTemplate(source, [{
       id: `${method.name}<${args.join(',')}>`,
-      arguments: Object.fromEntries(parameters.map((parameter, index) => [
+      arguments: Object.fromEntries(bound.map((parameter, index) => [
         parameter,
         Number(args[index]),
       ])),
@@ -1727,6 +1837,13 @@ function compileMethod(
     '',
   );
   body = expandStringMacros(body, stringMacros);
+  // `space(AS_PROGRAM).cache(m_cprogram13)` binds the accessor to that space:
+  // every later `m_cprogram13.read_byte(a)` reads through it. The accessor is
+  // the space as far as the generated device is concerned.
+  body = body.replace(
+    /\b(space\s*\([^()]*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+)\s*\)\s*;/g,
+    '$2 = $1;',
+  );
   for (const callback of interruptCallbacks) {
     body = body.replace(
       new RegExp(
@@ -2038,8 +2155,15 @@ function memberConstructorBindings(source: string): Record<string, string[]> {
   return bindings;
 }
 
-function callbackSlots(valueType: string): number {
-  return Number(/::array<(\d+)>/.exec(valueType)?.[1] ?? 1);
+/** A devcb array's size, which MAME often names: `devcb_read8::array<PORT_COUNT>`. */
+function callbackSlots(valueType: string, constants: Record<string, number> = {}): number {
+  const bound = /::array<([^<>]+)>/.exec(valueType)?.[1];
+  if (bound === undefined) return 1;
+  const size = evalExpr(bound.trim(), constants);
+  if (size === null || size === undefined || !Number.isInteger(size)) {
+    throw new Error(`devcb array size ${bound} in ${valueType} does not evaluate`);
+  }
+  return size;
 }
 
 export function integerBits(valueType: string): 1 | 8 | 16 | 32 | undefined {
@@ -2343,7 +2467,8 @@ function numericConstants(
   // meaningless. `static` is required so a local `const int` inside a method
   // body is never hoisted into the device's shared scope.
   for (const match of source.matchAll(
-    /\bstatic\s+const\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
+    // `const` may follow the type too: the 6805's `static unsigned const PORT_COUNT = 4;`.
+    /\bstatic\s+(?:(?!const\b)\w+\s+)*const\s+(?:\w+\s+)*?(\w+)\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
@@ -2817,4 +2942,71 @@ function structFieldList(
     cursor = close + 1 + (declarator?.[0].length ?? 0);
   }
   return fields;
+}
+
+/**
+ * A constructor written inside its class's declaration, in the shape the
+ * out-of-line parser returns. Only the class's own body is searched, and only
+ * a constructor named for the class's leaf name.
+ */
+function inlineConstructor(
+  sources: readonly { file: string; source: string }[],
+  qualified: string,
+): ReturnType<typeof parseMameConstructors>[number] | undefined {
+  const leaf = qualified.split('::').at(-1)!;
+  for (const { file, source } of sources) {
+    const text = stripCppComments(source);
+    const declaration = new RegExp(`\\b(?:class|struct)\\s+${leaf}\\b[^;{]*\\{`).exec(text);
+    if (!declaration) continue;
+    const open = declaration.index + declaration[0].length - 1;
+    const close = matchingBrace(text, open);
+    if (close < 0) continue;
+    const body = text.slice(open + 1, close);
+    const head = new RegExp(`(?:^|[;{}\\s])${leaf}\\s*\\(`, 'g');
+    for (const match of body.matchAll(head)) {
+      const parametersOpen = (match.index ?? 0) + match[0].length - 1;
+      let depth = 0;
+      let parametersClose = parametersOpen;
+      for (; parametersClose < body.length; parametersClose++) {
+        if (body[parametersClose] === '(') depth++;
+        else if (body[parametersClose] === ')' && --depth === 0) break;
+      }
+      let cursor = parametersClose + 1;
+      while (/\s/.test(body[cursor] ?? '')) cursor++;
+      const initializers: { name: string; args: string[] }[] = [];
+      if (body[cursor] === ':') {
+        cursor++;
+        for (;;) {
+          const init = /^\s*([\w:]+)\s*([({])/.exec(body.slice(cursor));
+          if (!init) break;
+          const start = cursor + init[0].length - 1;
+          const closer = init[2] === '(' ? ')' : '}';
+          let level = 0;
+          let end = start;
+          for (; end < body.length; end++) {
+            if (body[end] === init[2]) level++;
+            else if (body[end] === closer && --level === 0) break;
+          }
+          initializers.push({ name: init[1]!, args: splitMameArgs(body.slice(start + 1, end)) });
+          cursor = end + 1;
+          while (/\s/.test(body[cursor] ?? '')) cursor++;
+          if (body[cursor] !== ',') break;
+          cursor++;
+        }
+      }
+      while (/\s/.test(body[cursor] ?? '')) cursor++;
+      if (body[cursor] !== '{') continue;
+      const end = matchingBrace(body, cursor);
+      if (end < 0) continue;
+      return {
+        className: qualified,
+        name: leaf,
+        parameters: body.slice(parametersOpen + 1, parametersClose),
+        body: body.slice(cursor + 1, end),
+        initializers,
+        span: { file, line: 1, column: 1 },
+      } as unknown as ReturnType<typeof parseMameConstructors>[number];
+    }
+  }
+  return undefined;
 }
