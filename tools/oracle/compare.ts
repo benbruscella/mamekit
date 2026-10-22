@@ -195,6 +195,8 @@ export interface RamDifference {
 export interface RamResult {
   offset: number;
   bytesPerFrame: number;
+  /** Frames both sides dumped and were set against each other; 0 means nothing was compared. */
+  compared: number;
   /** Differing bytes at each of our dumped frames, at `offset`. */
   differing: Record<number, number>;
   /**
@@ -273,7 +275,9 @@ export function compareRam(
       if (nearest[frame] === undefined || bytes < nearest[frame].bytes) nearest[frame] = { offset, bytes };
     }
   }
-  const result: RamResult = { offset: best.offset, bytesPerFrame: size, differing: best.differing, nearest };
+  const result: RamResult = {
+    offset: best.offset, bytesPerFrame: size, compared: Object.keys(best.differing).length, differing: best.differing, nearest,
+  };
   const first = oursFrames.find(frame => (best.differing[frame] ?? 0) > 0);
   if (first !== undefined) {
     const left = mame.get(first + best.offset)!;

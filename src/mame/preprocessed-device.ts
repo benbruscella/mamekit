@@ -22,6 +22,12 @@ export interface PreprocessedDeviceOptions {
   allow: (file: string) => boolean;
   /** Classes whose `&cls::method` pointers are lowered to method names. */
   classes: readonly string[];
+  /**
+   * Headers, relative to the checkout, whose enums the template arguments of
+   * those pointers name but which the preprocessor is not allowed to inline
+   * (`addr_mode::IM` is declared inside the 6805's class in m6805.h).
+   */
+  enumHeaders?: readonly string[];
 }
 
 /** A `transformSource` hook for compileMameDevice. */
@@ -48,7 +54,15 @@ export function preprocessedDeviceTransform(
   });
   const entry = join(mameSrc, options.entry);
   const expanded = preprocessor.run(entry, readFileSync(entry, 'utf8'));
-  const constants = parseEnumConstants(expanded, {});
+  const enumSource = [...(options.enumHeaders ?? []).map(header => readFileSync(join(mameSrc, header), 'utf8')), expanded].join('\n');
+  const constants = parseEnumConstants(enumSource, {});
+  // A scoped enumerator is spelled with its enum's name (`addr_mode::DI`).
+  for (const scoped of enumSource.matchAll(/\benum\s+class\s+(\w+)[^{;]*\{([^}]*)\}/g)) {
+    for (const member of scoped[2]!.split(',')) {
+      const name = /^\s*(\w+)/.exec(member)?.[1];
+      if (name && constants[name] !== undefined) constants[`${scoped[1]}::${name}`] = constants[name]!;
+    }
+  }
   const instances = new Set<string>();
   const owners = options.classes.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
   for (const match of expanded.matchAll(new RegExp(`&\\s*((?:${owners})\\s*::\\s*\\w+\\s*<[^<>]*>)`, 'g'))) {

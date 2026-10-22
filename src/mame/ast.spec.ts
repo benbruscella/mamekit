@@ -304,5 +304,14 @@ check('helper structs retain their method ownership',
   helperStruct.functions.map(method => [method.className, method.name]), [['SoundHelper', 'read']]);
 check('helper structs participate in executable class lookup', helperStruct.classes.map(type => type.name), ['SoundHelper']);
 
+const noexceptMethod = parseMameSource('m6805.cpp', `
+uint64_t m6805_base_device::execute_cycles_to_clocks(uint64_t cycles) const noexcept
+{
+	return cycles * 4;
+}`);
+check('out-of-class const noexcept methods are parsed',
+  noexceptMethod.functions.map(method => [method.className, method.name]),
+  [['m6805_base_device', 'execute_cycles_to_clocks']]);
+
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

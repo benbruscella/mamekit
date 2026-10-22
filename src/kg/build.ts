@@ -456,7 +456,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         }
         const edgeProps: Record<string, PropValue> = {};
         if (h.deviceRef) {
-          edgeProps.deviceTag = memberTags[h.deviceRef] ?? h.deviceRef.replace(/^m_/, '');
+          // The map's own class first, as a machine config resolves its
+          // finders: Elevator Action's map and its interface both say m_mcu.
+          edgeProps.deviceTag = memberTags[`${map.cls}::${h.deviceRef}`] ??
+            memberTags[h.deviceRef] ?? h.deviceRef.replace(/^m_/, '');
         }
         g.edge(rangeId, hid, dir === 'read' ? 'READS' : 'WRITES',
           h.deviceRef ? edgeProps : undefined);

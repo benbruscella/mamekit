@@ -23,8 +23,10 @@ TypeScript rewrite of MAME. Contributions must preserve these invariants:
    import `src`, absolute local paths, or another stale build tree.
 5. Unsupported source forms fail visibly through diagnostics and reports.
    They are not silently approximated to make a catalog entry appear playable.
-6. ROMs are supplied locally for testing. They are never fetched, committed,
-   copied into `dist`, or used in CI.
+6. ROMs are supplied locally for testing. They are never committed, copied
+   into `dist`, served, deployed, or stored as CI artifacts. CI downloads the
+   accepted contracts' ROM closure from the public ROM mirror
+   (`npm run fetch:acceptance-roms`) for its real-ROM job.
 
 MAME-specific assumptions are expected. It is reasonable for a compiler to
 understand MAME conventions such as `_AUDIO` device types, `mute_w`, address
@@ -90,6 +92,110 @@ The target outcome is a small QA token plus reusable compiler improvements.
 Adding the next machine should not add a board implementation, CPU port,
 renderer, or sound class under `src`.
 
+### CANDIDATE WORKFLOW
+
+The canonical path. The steps after it are the detailed reference for each
+stage.
+
+Start with only the MAME short name:
+
+```sh
+npm run game:init -- <shortname>
+```
+
+This finds the driver in the configured MAME checkout, extracts the selected
+machine, generates an isolated runnable app, writes a capability-gap dossier,
+and creates a `candidate` pair under `src/games/candidates/`. A candidate is
+included in clean generation, compiler coverage and the published catalog,
+where the menu labels it EXPERIMENTAL, but it is not accepted: the real-ROM
+acceptance sweep skips it until promotion.
+
+#### Bring the candidate up
+
+1. Read `.cache/dev/<shortname>/games/<category>/<shortname>/CAPABILITY_GAP.md`.
+   Implement missing behavior as reusable extraction, typed IR, generated
+   execution, or a capability selected by source shape. Never add a game-name
+   runtime branch.
+2. Rebuild the isolated target with `npm run game:dev -- <shortname>`. Open its
+   app and compare cold boot, controls, video, audio, reset, and active play
+   with the pinned MAME revision.
+3. Edit the scaffolded `.game.ts` machine/media definition and add one or more
+   deterministic scenarios. Computers can stage BIOS, cartridge, quickload,
+   cassette, floppy, and peripheral support independently; a scenario should
+   claim only the media it actually verifies.
+   Keyboard chords are executable now. Analog and machine-signal actions are
+   planned vocabulary: acceptance and promotion reject them until a generated
+   input binding is implemented. Use the existing `reset: true` action for a
+   board reset; a declared `signal: 'reset'` is not a reset implementation.
+4. Keep source-shape assertions in the adjacent `.game.spec.ts`. Put reusable
+   parser, compiler, CPU, device, or renderer assertions beside the owning
+   implementation.
+5. Run `npm run game:check -- <shortname>` frequently. Before promotion, run a
+   clean full generation and audit so the candidate is tested in the same
+   hardware closure as accepted targets.
+
+For ambitious platforms, treat the dossier as a dependency plan. Related
+targets such as Mortal Kombat and NBA Jam should share TMS34010, T-Unit video,
+DMA-template, and sound-board capability work while retaining separate source
+protection, init, input, and acceptance facts. A peripheral such as a 1541 is
+a composed machine with its own CPU, devices, bus, firmware, media, and tests;
+it need not block an earlier C64 cartridge/PRG milestone.
+
+#### Record and promote
+
+Only record a golden after the target is visibly correct and the scenario
+exercises real behavior:
+
+```sh
+node src/games/record-goldens.ts <shortname>
+npm run game:check -- <shortname>
+npm run audit:game-package -- <shortname>
+npm run game:promote -- <shortname>
+```
+
+To record one scenario, use `<shortname>:<scenario-id>`; a bare machine name
+records each scenario into its own golden. Recording also works against the
+isolated tree with `MAMEKIT_OUT_ROOT=.cache/dev/<shortname>`. The full build
+generates and publishes candidates as preview (EXPERIMENTAL) entries; the
+real-ROM acceptance sweep (`npm run test:games` and the CI ROM job) leaves them
+out. Promotion rebases the moved pair's relative imports.
+
+Sample-based effects currently use synthesized approximations in the SAMPLES
+and SN76489/SAMPLES renderers. Their contracts must explicitly acknowledge
+`acceptedAudioLimitations: ['synthesized-samples']` before recording or accepting
+PCM. These goldens check deterministic behavior, not agreement with MAME's
+original sample recordings. The runtime report and game's sound details show
+the same limitation; it does not change machine playability.
+
+Review every golden change. Region changes imply ROM or patch changes; early
+state changes imply execution/lifecycle changes; framebuffer changes imply
+video/timing changes; audio write changes imply routing or scheduling; PCM-only
+changes imply synthesis/resampling. Never update a golden merely to make a
+failure disappear. Promotion requires accepted-level contract validation, a
+playable runtime report, and a complete package audit before moving the pair
+into `src/games/`.
+
+Goldens remain inline for now. They are strongly typed and reviewed beside
+the scenario that produces them; the recorder locates the selected scenario
+using the TypeScript syntax tree. Move them to JSON only if payload size becomes a
+measured maintenance problem; doing so now would add loading/schema indirection
+without reducing onboarding work.
+
+#### Final gates
+
+```sh
+npm run test:unit
+npm run test:current
+npm run test:games
+MAMEKIT_E2E_GAMES=<shortname> npm run test:e2e
+```
+
+The full QA rationale lives in [Testing](TESTING.md); the debugging checklist
+and presentation requirements are the steps below. To compare a candidate's
+pictures, RAM and bus traffic with MAME itself, run `tools/mame-oracle.ts` (it
+loads candidate contracts too); [Engineering](ENGINEERING.md) section 7
+documents it.
+
 ### QUICK PATH
 
 For an already listed target, the normal sequence is:
@@ -104,20 +210,26 @@ npm run audit:game-package -- <target>  # after adding local presentation assets
 npm run serve                            # verify ROM, input, video and audio
 ```
 
-Register bring-up work as an explicit candidate. It joins clean generation
-without joining release acceptance or the public catalog. Discovery adds it
-only when both `src/games/candidates/<target>.game.ts` and its colocated spec
-exist; an orphaned file is an error.
+Register bring-up work as an explicit candidate. It joins clean generation and
+the published catalog, where the menu labels it EXPERIMENTAL, but not the
+real-ROM acceptance sweep. Discovery adds it only when both
+`src/games/candidates/<target>.game.ts` and its colocated spec exist; an
+orphaned file is an error.
 
 The reverse holds for a target that regresses: move the module and its spec
 into `src/games/disabled/` with a header note saying what play-testing found,
 and it stops being generated, audited and shipped while its spec keeps
-compiling the driver under `test:unit`. Issue #53 parked the first batch there.
+compiling the driver under `test:unit`. Issue #53 parked the first batch there;
+#145 re-enabled or dropped every parked target, so the folder does not exist
+today. Discovery (`src/games/discovery.ts`) still honours it.
 
 ### STEP 1: IDENTIFY THE TARGET
 
-Use the MAME short name. There is no central target array or package-script
-list to edit.
+Use the MAME short name. Targets are discovered from contract files; there is
+no package-script list to edit. The one handwritten list is `SYSTEM_TARGETS` in
+`src/gen/targets.ts`, which names the consoles (`nes`, `coleco`, `a2600`,
+`gameboy`) that are generated whether or not a contract accepts them; each also
+has its own contract.
 
 Extract its graph:
 
@@ -142,6 +254,7 @@ Useful output is under:
 ```text
 dist/games/arcade/<target>/
 dist/games/consoles/<target>/
+dist/games/computers/<target>/
 ```
 
 `graph.json` is the target-reachable graph. `graph.full.json` contains the
@@ -150,16 +263,18 @@ before attempting browser debugging.
 
 ### STEP 2: GENERATE THE TARGET IN ISOLATION
 
-Always begin from an empty distribution:
+A target that is not yet registered cannot use the `--targets` runtime/app
+build: `src/cli.ts` refuses any target outside the required set ("invalid
+runtime closure targets"). Generate a new target into its own isolated tree
+under `.cache/dev/<target>` instead, which leaves `dist` untouched:
 
 ```sh
-npm run clean
-node bin/mamekit.js <target> --skip-app
-node bin/mamekit.js --build-runtime --build-app --targets <target>
-npm run audit:generated
+npm run game:init -- <target>   # first run: isolated tree plus a candidate pair
+npm run game:dev -- <target>    # rebuild the isolated tree after a change
+npm run audit:generated -- .cache/dev/<target>
 ```
 
-Inspect at least:
+Inspect at least (under `.cache/dev/<target>/` rather than `dist/`):
 
 ```text
 generated/board.json
@@ -170,9 +285,11 @@ dist/runtime/generated/hardware-report.md
 dist/runtime/generated/hardware-manifest.json
 ```
 
-The generated board module should be a small composition wrapper around JSON
-machine IR and generic runtime construction. Large constants or game logic in
-that module indicate that behavior is being emitted at the wrong layer.
+The generated board module composes JSON machine IR with generic runtime
+construction, and inlines emitted JavaScript for hot handlers
+(`defined.compiledHandlers`, from `src/gen/emit-handler-codegen.ts`), so a
+large generated module is expected. Game-name logic or behavior that did not
+come from MAME source in that module indicates the wrong layer.
 
 ### STEP 3: CLOSE GENERATION GAPS
 
@@ -220,8 +337,8 @@ src/games/candidates/<target>.game.ts
 src/games/candidates/<target>.game.spec.ts
 ```
 
-Create these with `npm run game:init -- <target>` and follow the canonical
-[adding-a-game workflow](ADDING_A_GAME.md). Do not hand-copy a registration.
+Create these with `npm run game:init -- <target>` and follow the
+[candidate workflow](#candidate-workflow). Do not hand-copy a registration.
 
 Use an existing token only as a schema example. The token may declare:
 
@@ -235,19 +352,24 @@ It must not implement emulation behavior. The adjacent spec should assert the
 MAME source facts and generated lowering essential to this machine. Generic
 compiler behavior remains tested beside its compiler.
 
-The candidate pair is auto-discovered and joins clean generation, but remains
-outside the real-ROM sweep and public catalog until `game:promote` verifies its
-golden, runtime report, and package. Extend `acceptance-harness.ts` only for a
-reusable machine capability, never for game logic.
+The candidate pair is auto-discovered and joins clean generation and the
+published catalog (labelled EXPERIMENTAL), but remains outside the real-ROM
+acceptance sweep until `game:promote` verifies its golden, runtime report, and
+package. Extend `acceptance-harness.ts` only for a reusable machine capability,
+never for game logic.
 
 ### STEP 5: VERIFY WITH REAL ROMS
 
 Place the local archive at the token's default path or use its environment
-variable. For example:
+variable. `npm run test:games` iterates accepted contracts only and rejects a
+candidate, so run a candidate's contract through the recorder, which drives the
+same harness and loads accepted and candidate contracts:
 
 ```sh
-MAMEKIT_<TARGET>_ROM=/path/to/<target>.zip npm run test:games
+MAMEKIT_<TARGET>_ROM=/path/to/<target>.zip node src/games/record-goldens.ts <target>[:<scenario>]
 ```
+
+It rewrites the token's `golden`; review that diff as described in step 7.
 
 Validate all of the following before recording a baseline:
 
@@ -303,15 +425,15 @@ UI spinners that guess. The stable user feedback is the board's real output;
 the stable test is an observed title/attract checkpoint followed by accepted
 coin and start inputs.
 
-For a reference timeline, a headless MAME AVI is often more useful than a
-single screenshot:
+For a reference timeline, compare frames against MAME itself with the oracle,
+which boots MAME cold (fresh NVRAM and cfg directories, since MAME writes NVRAM
+back on exit), windowed, from the source checkout's release:
 
 ```sh
-SDL_VIDEODRIVER=dummy mame <target> \
-  -rompath .data/roms/arcade \
-  -video soft -sound none -nothrottle \
-  -seconds_to_run 60 -aviwrite /tmp/mame-<target>.avi -skip_gameinfo
+MAME_BIN=/path/to/matching/mame node tools/mame-oracle.ts <target> --frames 300,600,900 --ram
 ```
+
+[ENGINEERING](ENGINEERING.md) section 7 documents its options.
 
 #### 2. Never test new source against stale or mixed `dist`
 
@@ -319,7 +441,7 @@ SDL_VIDEODRIVER=dummy mame <target> \
 acceptance harness and browser load from `dist`. Rebuild runtime/app output
 after changing runtime, generated hardware, or handler execution.
 
-A target-only hardware build over a 65-game catalog is deliberately refused:
+A target-only hardware build over the full catalog is deliberately refused:
 its registry, closure, reports, and catalog describe different worlds. A
 runtime report from such a mixed tree can both invent blockers and conceal real
 ones. Targeted builds are useful only in an isolated/empty distribution. Before
@@ -415,7 +537,7 @@ repeated pulses often creates an interrupt storm.
 
 Correct clocks alone do not guarantee a working handshake. Preserve CPU clock
 dividers, scanline/periodic events, device timers, and source calls such as
-`config.set_maximum_quantum(...)`. Audio CPU, MCU, and main CPU communication
+`config.set_perfect_quantum(...)`. Audio CPU, MCU, and main CPU communication
 can fail when each processor runs the right total cycles in slices that are too
 coarse or in the wrong line/event phase.
 
@@ -425,7 +547,8 @@ cost is an interpreter hot loop, a timer firing too frequently, duplicated
 work at both scanline phases, or an incorrectly lowered busy-wait. Optimize the
 generic generated path and differential-test it against the interpreter.
 
-An error such as `generated handler loop exceeded 65536 iterations` usually
+An error such as `generated handler while loop exceeded 1048576 iterations`
+usually
 means the compiled control flow, callback, timer, or CPU-visible condition is
 wrong. Raising the guard converts a diagnosable bug into a hang.
 
@@ -534,19 +657,21 @@ Keep the game token declarative and resist emergency game-name branches. A
 branch that appears to fix one of forty games usually documents a missing IR
 fact that will fail again on the forty-first.
 
-For an audio A/B, give the comparison command an actual MAME executable.
-MAMEKIT captures the emitted worklet from a clean power-on, MAME records its
-own run with `-wavwrite`, and the tool writes both WAVs plus a spectrogram:
+For an audio A/B, give the comparison command an actual MAME executable through
+`MAME_BIN` (or `--mame`). MAMEKIT captures the emitted worklet from a clean
+power-on, MAME records its own run with `-wavwrite` (cold, windowed and from the
+source checkout's release, as the oracle runs it), and the tool writes both WAVs
+plus a spectrogram:
 
 ```sh
-npm run audio:compare -- <target> \
-  --mame /path/to/mame \
+MAME_BIN=/path/to/mame npm run audio:compare -- <target> \
   --seconds 30 \
   --out .files/audio/<target>
 ```
 
-This is optional when the machine has no audio. For a sound-capable new game,
-use it before deciding that a write hash or merely audible output is correct.
+This is optional when the machine has no audio. The tool loads accepted
+contracts only, so it works for a game once it is promoted; use it then, before
+deciding that a write hash or merely audible output is correct.
 
 ### STEP 6: ADD THE PRESENTATION PACKAGE
 
@@ -585,21 +710,19 @@ dump zip carries, so `mame nes mario1` and `mario1.jpg` agree:
 When both exist the **sticker** wins: it composites into the drawn shell, so a shelf of mixed art still reads as one set of cartridges. Crop the sticker tight to the
 label edges; it is placed into the label rect and will stretch to fill it.
 
-Which files exist is resolved two ways, so development never needs a rebuild:
-
-- `npm run serve` exposes `/cart-art/<list>.json`, read from disk per request —
-  drop a file in, reload, it is there;
-- generation bakes the same index into `config.json`, which is what a deployed
-  static site uses. `npm run gen -- <target>` reports how many cartridges it
-  found art for.
+Which files exist is resolved once, at generation: it bakes the index into
+`config.json`, and the dev server and the deployed site both read that one
+snapshot. A newly added file appears only after regenerating the target;
+`npm run gen -- <target>` reports how many cartridges it found art for.
 
 The generated snapshot exists because a shelf shows thousands of cartridges:
 letting the browser probe for art it does not have would mean thousands of 404s
-per visit. The live route wins whenever it answers.
+per visit.
 
 These are photographs of copyrighted labels: like every other artwork path they
-are gitignored, and the deploy never carries them — the browser loads them from
-the artwork bucket (`src/runtime/artwork-source.ts`).
+are gitignored. The app build copies their web-sized `.webp` siblings into
+`dist/artwork`, which ships with the site; the archival scans stay on the
+artwork bucket (`src/runtime/artwork-source.ts`).
 
 Good first-stop catalogs are
 [progetto-SNAPS](https://www.progettosnaps.net/) for MAME-named cabinets,
@@ -614,9 +737,11 @@ Generation prefers the optional curated `<target>.txt` when it exists,
 otherwise extracts the target's story from Gaming History. It writes
 `history.txt` and creates
 `DOSSIER.md` from MAME source, git history, ROM/input/hardware facts and the
-presentation paths. Artwork is intentionally not committed or included in CI,
-and the deployed site loads it from the artwork bucket rather than shipping a
-copy — `make sync-artwork` in `.data/` publishes it. Validate the complete local
+presentation paths. Artwork is intentionally not committed or included in CI.
+The app build (`shipWebArtwork` in `src/gen/app-build.ts`) copies web-sized
+`.webp` artwork and derived bezels into `dist/artwork`, which ships; archival
+scans and bezel source packs stay on the artwork bucket, which
+`make sync-artwork` in `.data/` publishes. Validate the complete local
 package after generation:
 
 ```sh
@@ -628,17 +753,15 @@ the generated dossier, and a successfully extracted history entry.
 
 ### STEP 7: RECORD AND REVIEW THE CONTRACT
 
-Only after manual verification:
+Only after manual verification, record the candidate's own golden:
 
 ```sh
-npm run test:games:record
+node src/games/record-goldens.ts <target>[:<scenario>]
 ```
 
-Review the candidate changes, then run the normal test:
-
-```sh
-npm run test:games
-```
+`npm run test:games:record` and `npm run test:games` iterate accepted contracts
+only: the first re-records every accepted game, and neither runs a candidate.
+Use `npm run test:games` once the target is promoted.
 
 The recorder updates the token's `golden` object directly. Review its git diff
 and discard unrelated baseline changes before running the normal test.
@@ -659,8 +782,11 @@ npm test
 
 Run `npm run test:generation` after broad changes to parsing, graph
 reachability, IR schemas, hardware closure, output layout, or app registration.
-It covers the wider required-target inventory and is intentionally more
-expensive than the current-game CI gate.
+It generates the same required-target set as `gen:all`, but with the generation
+cache disabled, and adds assertions over the result (registry, catalog,
+experimental labelling, no blocked accepted machine); see
+`src/gen/test-generation.ts`. It is intentionally more expensive than the
+current-game CI gate.
 
 ### DEFINITION OF DONE
 
@@ -681,7 +807,8 @@ then the complete applicable set:
 npm run build
 npm run test:unit
 npm run test:current
-npm run test:blast-radius       # every game; requires local ROMs
+npm run blast-radius            # which machines the change reaches, vs the PR base
+npm run test:blast-radius       # full ROM matrix (test:games:matrix); requires local ROMs
 git diff --check
 ```
 
@@ -693,20 +820,25 @@ du -sh dist/app dist/runtime dist/games
 rg -n "app/modules|/src/|JSON\.parse\(\"\{" dist
 ```
 
-A pull request that adds or changes a machine should state:
+A pull request follows `.github/pull_request_template.md` and should state:
 
 - MAME target and source revision used;
 - parser, graph, IR, codegen, or runtime capabilities added;
 - why each capability is reusable rather than game-specific;
-- generated audit result;
-- real-ROM contract result and measured fps;
-- browser checks performed, including coin/start/video/audio;
-- intentional golden changes and their cause;
+- `npm run test:unit` and `npm run test:current` (including the semantic
+  BoardIR audit) results;
+- the `npm run blast-radius` result reviewed against the PR base;
+- every affected ROM-backed contract passing, with measured fps;
+- every affected browser contract passing, including coin/start/video/audio;
+- intentional golden or semantic-baseline changes and their cause;
+- no failure called pre-existing without its last proven-green commit;
 - known approximations or unsupported MAME behavior.
 
 CI checks source/compiler specs and clean generation against a pinned MAME
-revision. CI has no ROMs, so a green workflow does not replace local real-ROM
-or browser evidence.
+revision, then fetches the accepted ROM closure from the public mirror
+(`src/games/fetch-acceptance-roms.ts`) and runs every accepted real-ROM
+contract across eight shards. CI runs no browser checks, so a green workflow
+does not replace local browser evidence.
 
 ## 6. SOURCE AND OUTPUT HYGIENE
 

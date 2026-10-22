@@ -18,6 +18,7 @@ import {
   parseInputPorts,
   parseInstalledHandlers,
   parseMachineConfigs,
+  parseClassMemberTags,
   parseMemberTags,
   parseMemoryBanks,
   parseEnumConstants,
@@ -917,6 +918,23 @@ eq('device array finder tags', parseMemberTags(`
   m_ym: 'ym%u',
   'm_ym[0]': 'ym1',
   'm_ym[1]': 'ym2',
+});
+
+// A finder belongs to the class whose constructor binds it, however that
+// constructor spells its machine_config parameter. Elevator Action's driver
+// finds its interface as "bmcu" while the interface finds its 68705 as "mcu".
+eq('class finder tags accept machine_config const &', parseClassMemberTags(`
+	taitosj_state(const machine_config &mconfig, device_type type, const char *tag) :
+		m_mcu(*this, "bmcu")
+	{ }
+taito_sj_security_mcu_device::taito_sj_security_mcu_device(
+		machine_config const &mconfig,
+		char const *tag)
+	: m_mcu(*this, "mcu")
+{ }
+`), {
+  'taitosj_state::m_mcu': 'bmcu',
+  'taito_sj_security_mcu_device::m_mcu': 'mcu',
 });
 
 eq('memory-bank array finder tags', parseMemberTags(`

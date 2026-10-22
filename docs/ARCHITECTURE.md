@@ -182,8 +182,15 @@ The serialized machine contains:
 - source locations for executable elements.
 
 The board is emitted as `generated/board.json`. The adjacent `board.ts` is
-intentionally small: it imports the JSON, decodes it through `decodeBoardIr()`,
-and delegates construction to `createGeneratedBoard()`. Decoding is not a type
+generated code with no handwritten behaviour: it imports the JSON, decodes it
+through `decodeBoardIr()`, attaches emitted JavaScript for the handlers whose IR
+shape qualifies (`defined.compiledHandlers`, from
+`src/gen/emit-handler-codegen.ts`; a couple of hundred lines for Pac-Man,
+about 2,700 for the Spectrum 128), and delegates construction to
+`createGeneratedBoard()`. Behaviour is emitted as source there rather than into
+the JSON. The interpreter stays the semantic reference, and
+`src/mame/board-codegen.spec.ts` checks the emitted handlers against it.
+Decoding is not a type
 assertion — a stale or malformed artifact fails there, naming the JSON field
 path and the MAME source line, instead of crashing deep inside execution.
 
@@ -222,14 +229,24 @@ events is atomic as far as the others are concerned. A board's frame events
 are those timers, so the generated frame schedule hands over at their lines
 rather than at every scanline.
 
-Three things bound that interval. A board that schedules per-line work — a
-periodic event, a scanline-updated screen — keeps the per-line cadence. So
-does a board whose machine configuration calls `set_perfect_quantum`, which is
-MAME's way of saying its processors share state through a handshake nothing
-coarser survives. And every board is bounded by 250 microseconds, because
-MAME's own quantum is bounded by all of its device timers and the timers
-modelled here tick once per scanline: claiming a whole frame of atomicity
-would claim more than the model supports.
+Four things bound that interval. A board that schedules per-line work — a
+periodic event, a scanline-updated screen, a driver's own `emu_timer` (below) —
+keeps the per-line cadence. So does a board whose machine configuration calls
+`set_perfect_quantum`, which is MAME's way of saying its processors share state
+through a handshake nothing coarser survives. A board that declares a scanline
+`TIMER` (`configure_scanline`) is bounded by that timer's increment, and every
+line the timer fires on is a slice boundary whether or not its callback has
+work there, because MAME ends every timeslice on it: MCR's scantimer fires
+every line, Gauntlet's every 32. Every other board is bounded by 250
+microseconds (`MAX_QUANTUM_SECONDS` in `src/runtime/generated-frame.ts`),
+because MAME's own quantum is bounded by all of its device timers and the
+timers modelled here tick once per scanline: claiming a whole frame of
+atomicity would claim more than the model supports.
+
+A processor that calls `scheduler().synchronize()` ends its slice after the
+instruction in progress. The processors after it in the round run only up to
+where it stopped, the posted work runs, and the round resumes, so no processor
+observes the work before the time it was posted.
 
 That bound is squeezed from both sides. Too coarse and a fast processor runs
 thousands of cycles while the one it is handshaking with waits, which is how
@@ -308,12 +325,21 @@ A hardware family is one package under `src/hardware/<family>/`:
 src/hardware/ym2203/
 ├── definition.ts   id, MAME types, ports, browser-facing constants
 ├── extract.ts      MAME source -> IR + emitted artifacts (compile time only)
+├── runtime.ts      browser-side wiring of the generated artifact (optional)
 └── acceptance.ts   probe against the emitted artifact in dist
 ```
 
 `definition.ts` is neutral and shared by both sides. `extract.ts` may reach into
 `src/mame` and never ships to the browser. `acceptance.ts` runs in Node against
-`dist`, so QA validates the artifact that actually ships.
+`dist`, so QA validates the artifact that actually ships. A package that needs
+browser-side wiring (15 of the 31 today, the sound families among them) adds a
+`runtime.ts`; the sound families' installers are selected by sound kind in
+`src/hardware/sound-runtime-registry.ts`, which imports only `runtime.ts`
+files. `buildApp()` copies `src/hardware` into `dist/runtime/hardware` minus
+`extract.ts`, `acceptance.ts`, `registry.ts`, `acceptance-registry.ts` and
+specs, so everything else
+in a package -- `definition.ts`, `runtime.ts` and their helpers -- crosses the
+boundary.
 
 `src/hardware/registry.ts` lists the packages as explicit static imports — the
 supported set is a compile-time fact that type-checks, with no dynamic loading.
@@ -324,6 +350,10 @@ Families whose MAME class is named per driver — a discrete soundboard is
 `GALAXIAN_SOUND` in one driver and `INVADERS_AUDIO` in another — declare no
 `mameTypes` and recognise the board by shape inside `extract()`. Recognition is
 never by game or board name.
+The shared runtime does not branch on a machine's game or family either:
+`src/runtime/architecture.spec.ts` fails on any such conditional, so a special
+case has to become extracted IR or a capability selected by a MAME device type
+or handler shape.
 
 A capability that cannot lower a family returns undefined, leaving the type
 unresolved in the manifest rather than marking it executable with nothing
@@ -477,9 +507,11 @@ audio IR. Worklets live under
 `dist/runtime/generated/audio` and import shared operations from
 `dist/runtime/core` when required.
 
-The current audio profiles include Namco WSG, AY8910 with generated RC routing,
-and MAME `DISCRETE` soundboards, including SN76477 and counter/LFSR topologies.
-Discrete plans emit port wiring, method roles, control nodes, LFSR parameters,
+Generated configs select one of sixteen `sound.kind` values: `ay8910` (with
+generated RC routing), `sn76489`, `ym2203`, `ym2151`, `pokey`, `wsg` (Namco
+WSG), `dac`, `samples`, `sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy`,
+`stream`, and `discrete` for MAME `DISCRETE` soundboards, including SN76477 and
+counter/LFSR topologies. Discrete plans emit port wiring, method roles, control nodes, LFSR parameters,
 component values, mixer resistances and route gains from MAME. Every such board
 uses the runtime capability `sound.kind = "discrete"`; `sound.worklet` selects
 the generated MAME-device artifact in `dist`. Runtime and QA code must never
@@ -577,8 +609,9 @@ every instruction for the cycles it is owed. The fractional remainder lives in
 a plain array during play and is written into the save-state record
 (`hostedCarry`) only when a save is taken, then read back from it on a load.
 
-The frame runner interleaves processors once per scanline and charges each
-one's overrun to a carry, so a frame's cycle count stays exact. Device timers
+The frame runner interleaves processors in rounds that end at the schedule's
+boundaries (see SCHEDULING), so a round may span several scanlines, and charges
+each one's overrun to a carry, so a frame's cycle count stays exact. Device timers
 run on a second clock, advanced by instruction-time deltas so an edge can land
 between instructions, and **settled against the beam at every line boundary**:
 the shortfall a slice did not deliver is paid there and the remainder carries
@@ -749,7 +782,9 @@ gains from booting without it.
 - `pointer.ts`: the third source -- mouse travel over the screen (a spinner
   or arcade trackball is a USB mouse) turns the generated relative pairs
   (dials, trackballs) by MAME's own `PORT_SENSITIVITY`, one pixel per
-  sensitivity/100 units with the fraction carried across frames;
+  sensitivity/100 units with the fraction carried across frames, and moves an
+  absolute paddle (`IPT_PADDLE`, the NES Vaus) by the same travel between the
+  two ends its key halves drive it to (`addPaddles`);
 - `natural-keyboard.ts`: the fourth -- MAME's natural keyboard, text in and
   key presses out. Which key and which shift key make a character comes from
   each key's generated `PORT_CHAR`s, a character no key makes is typed as
@@ -759,6 +794,11 @@ gains from booting without it.
   reaches a computer and how a title the software room booted starts itself;
   ticked only on frames that run, so a room's two machines see the same
   presses;
+- `lightgun.ts`: the light gun -- MAME's `IPT_LIGHTGUN_X`/`Y` hold where the
+  gun points across the visible screen, so the pointer's position over the
+  screen is the aim and its primary button the trigger (the NES Zapper).
+  Which fields are axes and which button is the trigger comes from the
+  generated bindings' `lightgun` facts and the controller they belong to;
 - `audio.ts`: Web Audio startup and generated worklet transport;
 - `machine-state.ts`: save states -- a structural walk that captures every
   container the execution model holds (an emitted core's own fields, a
@@ -847,7 +887,7 @@ machine*:
 | MAME-derived (generated, never handwritten) | MAMEKIT host feature (handwritten, hardware-neutral) |
 |---|---|
 | CPU opcode semantics and cycle charges | run loop, timestep, fast-forward |
-| device registers, timers, callbacks | input sources: keyboard, gamepad, pointer, and any remote player |
+| device registers, timers, callbacks | input sources: keyboard, gamepad, pointer, light gun, natural keyboard, and any remote player |
 | address maps, shares, taps, port polarity | ROM ingestion, validation and the picker |
 | video plans, palettes, tilemaps, sprites | canvas presentation, artwork, box-art snapshots |
 | sound chip DSP and routing | Web Audio transport and worklet hosting |
@@ -893,6 +933,20 @@ The test for a proposed host feature is therefore not "did this come from
 MAME source" (design test question 1 does not apply) but "would this work
 unchanged for the next generated machine".
 
+### WHAT IS STILL HAND-WRITTEN
+
+The left-hand column above is the rule, not yet the whole state of the code.
+Some MAME-derived behaviour is still written by hand, in `src/runtime`,
+`src/hardware` and inside some compilers: several sound engines, a set of
+game-named screen renderers, a few board devices (the Z80 CTC and DMA, Neo
+Geo I/O, the Taito SJ watchdog and interface start values), compile-time
+method replacements and CPU support layers. Each one is listed in the
+[#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103),
+and nothing may be added to that list. Generating an item and deleting its
+hand-written version is tracked in
+[#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU and
+the Z80 PIO went that way, and both now compile from MAME's own source.
+
 ## 9. BROWSER BOOT SEQUENCE
 
 1. `/app/main.js` imports the generated registry.
@@ -907,11 +961,20 @@ unchanged for the next generated machine".
    time. The machine's NVRAM and hiscore.dat bytes go back in before the
    first frame (`machine-memory.ts`).
 6. Console targets open their cartridge room instead: the generated softlist
-   catalog identifies a dropped or fetched dump by chip CRC, and the shell is
-   handed the identified PRG/CHR regions with the cart's mapper, mirroring and
-   battery injected into a clone of the board config. Which cartridge board a
-   dump runs on comes from the software list's own `slot` feature, never from
-   sniffing the bytes, and the room draws that console's own cartridge shell --
+   catalog identifies a dropped or fetched dump by chip CRC, and `mountCart`
+   (`src/runtime/cart-mount.ts`) mounts it. A console whose config names a
+   `cart.slotDevice` -- the NES, `{tag: "nes_slot", type: "NES_CART_SLOT"}` --
+   hands that slot device the image: a catalogued cart as its software-list
+   part, which MAME's `call_load_pcb` reads its board features from, anything
+   else as the raw file for `call_load_ines`; a Zapper or Vaus is fitted
+   through `slotCards` from the list entry's `peripheral` feature, as
+   `-ctrl2 zapper` would. The Atari 2600, ColecoVision and Game Boy load the
+   image into their `cart.romRegion` and select the cartridge board through
+   `slot`. (Injecting PRG/CHR regions with the mapper, mirroring and battery
+   remains only for an iNES console without a slot device; none uses it now.)
+   Which cartridge board a dump runs on comes from the software list's own
+   features (or, for an uncatalogued NES file, its iNES header as MAME's own
+   loader reads it), never from sniffing the bytes, and the room draws that console's own cartridge shell --
    the profile is chosen from MAME's cartridge interface name (`nes_cart`,
    `a2600_cart`, `gameboy_cart`), so the drawing follows the slot rather than a
    hand-kept console list.
@@ -1019,17 +1082,24 @@ source/data under `dist/runtime/generated`.
 3. creates generated app entry and registry source;
 4. compiles the staged tree with TypeScript;
 5. copies compiled `app`, `runtime` and `games` groups into canonical locations;
-6. removes `dist/.build`.
+6. emits the archive's browse routes (`emitArchiveRoutes`, under `dist/app`);
+7. ships web-sized `.webp` artwork, with the bezels' `.json` sidecars, into
+   `dist/artwork` (`shipWebArtwork`);
+8. writes the home page, `dist/index.html` (`emitHomePage`);
+9. removes `dist/.build`.
 
 The final layout is:
 
 ```
 dist/
-├── app/                       only app HTML and compiled entry/registry
+├── index.html                 home page
+├── app/                       app HTML, archive routes, compiled entry/registry
+├── artwork/                   web-sized artwork and bezels
 ├── build-manifest.json        target set, capability closure, versions
 ├── runtime/
 │   ├── core/                  compiled generic runtime
 │   ├── ir/                    compiled neutral board IR
+│   ├── hardware/              compiled runtime-facing hardware package files
 │   └── generated/             shared MAME-derived hardware
 ├── games/
 │   ├── arcade/<game>/
@@ -1041,9 +1111,12 @@ dist/
 Generated game directories contain configuration, graphs, metadata, reports,
 `DOSSIER.md`, and a `generated/` directory with `board.ts`, `board.js`,
 `board.json` and `provenance.json`. A console adds `softlist.json`, its
-cartridge catalogue; a computer adds `software/<list>.json` per software list
-and `software/<list>.available.json` where the local dump audit filed
-verified sets for it.
+cartridge catalogue, and `carts.json`, the shelf index of local cartridge dumps
+(verified or experimental) when the ROM library has them; a computer adds
+`software/<list>.json` per software list and `software/<list>.available.json`
+where the local dump audit filed verified sets for it. A machine that has been
+compared with MAME carries `oracle.json` (`src/gen/oracle-result.ts`), the
+summary of its latest comparison; one never compared has none.
 
 ## 11. DATA AND BEHAVIOR RULE
 

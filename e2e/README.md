@@ -46,8 +46,9 @@ the page is untouched. It then compares:
 The goldens are the ones the Node contract already owns. There is no second
 baseline to keep in step: a browser failure means the app path diverged.
 
-`console.spec.ts` is the only end-to-end gate the console has, because a
-console holds no romset of its own to write a Node contract against. It checks
+`console.spec.ts` covers the NES room; the consoles' gameplay is accepted by
+their own Node contracts, each against a cartridge (`nes:smb1`,
+`coleco:dkong`, `a2600:combat`, `gameboy:tetris`). It checks
 that the boot menu offers a CONSOLES tab with the machine on it, and that every
 title the machine claims support for is on the shelf with a cartridge scan and
 an enabled "⌕ Search" button. With `MAMEKIT_E2E_ROMSEARCH=1` it also fetches a
@@ -88,12 +89,13 @@ boots. It downloads real romsets, so it is off unless
 
 ## RUNNING
 
-ROMs are required and never committed, so this gate is local only — CI cannot
-run it. Generate a clean distribution first.
+This gate is local only: CI has no browser job, and a machine may take minutes
+to replay. (CI does fetch the accepted ROMs and run every Node contract; ROMs
+are never committed.) Generate a clean distribution first.
 
 ```sh
 npm run test:current          # clean dist the suite will drive
-npm run test:e2e              # every accepted machine, headless
+npm run test:e2e              # every accepted arcade machine, headless
 npm run test:e2e:headed       # watch it play in a real browser window
 MAMEKIT_E2E_GAMES=invaders,pacman npm run test:e2e
 MAMEKIT_E2E_ROMSEARCH=1 npm run test:e2e

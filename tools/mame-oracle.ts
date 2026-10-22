@@ -300,7 +300,8 @@ function printRun(key: string, report: RunReport): void {
     console.log(`  RAM (${report.ram.bytesPerFrame} bytes, MAME frame = ours ${signed(report.ram.offset)}): ` +
       (first ? `first differs at frame ${first.frame} (MAME ${first.mame}), ${first.bytes} bytes: ` +
         first.addresses.slice(0, 12).map(entry => `${entry.cpu}:${entry.address} ${hex(entry.mame)}/${hex(entry.ours)}`).join(' ')
-        : 'identical at every dumped frame'));
+        : report.ram.compared === 0 ? 'nothing compared (a side wrote no RAM)'
+        : `identical at all ${report.ram.compared} frames compared`));
     const late = comparedFrames.filter(frame => report.ram!.differing[frame] !== undefined)
       .map(frame => `@${frame}: ${report.ram!.differing[frame]}`).join('  ');
     if (late) console.log(`    differing bytes ${late}`);

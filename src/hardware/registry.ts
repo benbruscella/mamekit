@@ -151,12 +151,6 @@ import {
 } from './address-map-bank/definition.ts';
 import { extractAddressMapBank } from './address-map-bank/extract.ts';
 import { extractVector } from './vector/extract.ts';
-import {
-  M68705_ID,
-  M68705_MAME_TYPES,
-  M68705_PORTS,
-} from './m68705/definition.ts';
-import { extractM68705 } from './m68705/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   { id: SERIAL_EEPROM_ID, mameTypes: SERIAL_EEPROM_MAME_TYPES, ports: SERIAL_EEPROM_PORTS, extract: extractSerialEeprom },
@@ -173,12 +167,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DEVICE_MAME_TYPES,
     ports: DEVICE_PORTS,
     extract: extractDevices,
-  },
-  {
-    id: M68705_ID,
-    mameTypes: M68705_MAME_TYPES,
-    ports: M68705_PORTS,
-    extract: extractM68705,
   },
   {
     id: VECTOR_ID,

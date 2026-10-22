@@ -1560,7 +1560,10 @@ export function parseMemberTags(src: string, strings = parseTextMacros(src).stri
  */
 export function parseClassMemberTags(src: string, strings = parseTextMacros(src).strings): Record<string, string> {
   const out: Record<string, string> = {};
-  const constructors = [...src.matchAll(/\b(\w+)(?:::\1)?\s*\(\s*const\s+machine_config\s*&/g)]
+  // Both spellings of the parameter: Taito's 68705 interfaces write
+  // `machine_config const &mconfig`, and missing them credited the interface's
+  // own `m_mcu(*this, "mcu")` to the driver class, whose `m_mcu` is "bmcu".
+  const constructors = [...src.matchAll(/\b(\w+)(?:::\1)?\s*\(\s*(?:const\s+machine_config|machine_config\s+const)\s*&/g)]
     .map(match => ({ index: match.index!, cls: match[1]! }));
   const re = /m_(\w+)\(\*this,\s*("[^"]+"|\w+\s*"[^"]*"|\w+)(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
   let m: RegExpExecArray | null;

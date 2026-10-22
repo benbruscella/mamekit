@@ -1233,10 +1233,19 @@ class HandlerParser {
       if (expression.kind === 'identifier' && this.atText('<')) {
         const templateArgs = this.consumeTemplateArguments(['(', ')', '::']);
         if (!templateArgs) break;
-        if (templateArgs.every(argument => /^\d+$/.test(argument))) {
+        // Spelled as the device compiler names each instance it generates:
+        // `rm16<false>` is rm16_0 and `eprom_r<0x0080>` eprom_r_128.
+        const numeric = templateArgs.map(argument => {
+          const text = argument.trim().replace(/[uU]$/, '');
+          if (text === 'true') return '1';
+          if (text === 'false') return '0';
+          if (/^0x[\da-f]+$/i.test(text)) return String(Number(text));
+          return /^\d+$/.test(text) ? text : undefined;
+        });
+        if (numeric.every(argument => argument !== undefined)) {
           expression = {
             kind: 'identifier',
-            name: `${expression.name}_${templateArgs.join('_')}`,
+            name: `${expression.name}_${numeric.join('_')}`,
           };
         }
         continue;

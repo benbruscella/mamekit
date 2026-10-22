@@ -272,9 +272,12 @@ export class CPreprocessor {
     parameters.forEach((parameter, index) => {
       if (parameter === '__VA_ARGS__') {
         const rest = args.slice(index);
-        named.set(parameter, rest.flatMap((arg, at) => at ? [{ kind: 'other', text: ',' } as Token, ...arg] : arg));
+        named.set(parameter, rest.flatMap((arg, at) => at ? [{ kind: 'other', text: ',' } as Token, ...trimTokens(arg)] : trimTokens(arg)));
       } else {
-        named.set(parameter, args[index] ?? []);
+        // An argument's leading and trailing white space is not part of it
+        // (C17 6.10.3). Kept, `OP_HANDLER( neg )` declared `m6805_base_device:: neg ()`,
+        // a head the source parser does not read as a function at all.
+        named.set(parameter, trimTokens(args[index] ?? []));
       }
     });
     const body = tokenize(macro.body);

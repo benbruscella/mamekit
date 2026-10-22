@@ -146,8 +146,10 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
 
   const functions: MameFunction[] = [];
   const occupied: [number, number][] = [];
+  // `const noexcept` too: the 6805's `execute_cycles_to_clocks` is defined
+  // that way, and skipping it lost the core's divide-by-four clock.
   const functionRe =
-    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
+    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
   let fm: RegExpExecArray | null;
   while ((fm = functionRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);

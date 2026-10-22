@@ -6,7 +6,9 @@ Read these in order before changing the project:
 2. `docs/ARCHITECTURE.md`
 3. `docs/ENGINEERING.md`
 
-Those are the complete current documentation set.
+With `docs/TESTING.md` and `docs/CONTRIBUTING.md` (which holds the
+candidate workflow for adding a machine), those are the complete current
+documentation set.
 
 ## HARD RULES
 

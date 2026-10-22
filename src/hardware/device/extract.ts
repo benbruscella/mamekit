@@ -20,6 +20,7 @@ import {
 } from './definition.ts';
 
 import { preprocessedDeviceTransform } from '../../mame/preprocessed-device.ts';
+import { compileM6805Device } from '../../mame/m6805-device.ts';
 
 type Compiled = ReturnType<typeof compileMameDevice>;
 
@@ -28,6 +29,7 @@ string,
 (mameSource: string, definition: MameHardwareDefinition) => Compiled
 > = {
   I8257: compileI8257,
+  M68705P5: compileM6805Device,
   INPUT_MERGER_ALL_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_HIGH: compileInputMerger,
   INPUT_MERGER_ANY_LOW: compileInputMerger,

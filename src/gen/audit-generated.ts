@@ -99,6 +99,21 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
   if (existsSync(join(projectRoot, 'src/runtime/capabilities.ts'))) {
     failures.push('handwritten runtime hardware capability table remains');
   }
+  // A `generated-` name does not make a file generated: the 68705 and Z80 PIO
+  // lived here for months as `generated-m68705.ts` and `generated-z80pio.ts`,
+  // written by hand. These are the generic executors; a new one is a design
+  // change that belongs in this list, not a chip that belongs in src/runtime.
+  const genericExecutors = new Set([
+    'generated-board', 'generated-board-shape', 'generated-cpu', 'generated-device',
+    'generated-effects', 'generated-frame', 'generated-handler', 'generated-machine',
+    'generated-source-shape', 'generated-video',
+  ]);
+  for (const file of readdirSync(join(projectRoot, 'src/runtime'))) {
+    const name = /^(generated-[\w-]+?)(?:\.spec)?\.ts$/.exec(file)?.[1];
+    if (name && !genericExecutors.has(name)) {
+      failures.push(`src/runtime/${file} is not a generic executor; generate the hardware it implements`);
+    }
+  }
 
   let executableHardware = 0;
   let hardwareEntries: {

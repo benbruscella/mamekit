@@ -2,7 +2,11 @@
 
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parseRomSets, type RomRegionDef } from '../kg/parse.ts';
 import { mameDeviceRomSet, mameDeviceShortName } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 
 import type { GenerateOptions } from './generate.ts';
 
@@ -186,7 +190,27 @@ export function lowerRoms(opts: GenerateOptions, g: Graph, romset: KGNode, devic
         ? mameDeviceRomSet(opts.mameSrc, sourceFile, className)
         : undefined;
       const deviceRomSet = romSetName && full.node(`romset:${romSetName}`);
-      if (!deviceRomSet) continue;
+      if (!deviceRomSet) {
+        // Or the nested device's own class declares the set: the 68705P5's
+        // bootstrap ROM is m68705p5_device::device_rom_region, in a CPU source
+        // the driver's graph never reads. MAME needs it to run the part.
+        const own = ownDeviceRomSet(opts.mameSrc, String(nested.props.type ?? ''));
+        if (!own) continue;
+        // Composed devices already carry their full tag (`mcu:mcu`).
+        const nestedTag = String(nested.props.tag);
+        const deviceTag = nestedTag.startsWith(`${host.props.tag}:`) ? nestedTag : `${host.props.tag}:${nestedTag}`;
+        for (const region of own.regions) {
+          const regionTag = `${deviceTag}:${region.tag}`;
+          if (roms.some(candidate => candidate.region === regionTag)) continue;
+          roms.push({
+            region: regionTag,
+            size: region.size,
+            romSet: own.romSet,
+            loads: region.loads.map(load => ({ file: load.file, offset: load.offset, size: load.size, crc: load.crc })),
+          });
+        }
+        continue;
+      }
       // MAME loads a device's ROMs from its own set, named by the device short
       // name in DEFINE_DEVICE_TYPE — namco54.zip, not the parent game's zip.
       const romSet = mameDeviceShortName(opts.mameSrc, sourceFile, className);
@@ -210,4 +234,23 @@ export function lowerRoms(opts: GenerateOptions, g: Graph, romset: KGNode, devic
   }
 
   return { roms };
+}
+
+/**
+ * The ROM set a device type declares for itself through device_rom_region, read
+ * from its own source: the set's regions and the zip MAME loads them from (the
+ * device's short name, `m68705p5.zip`).
+ */
+function ownDeviceRomSet(mameSrc: string, type: string): { romSet: string; regions: RomRegionDef[] } | undefined {
+  const definition = type ? indexMameHardware(mameSrc).get(type) : undefined;
+  if (!definition) return undefined;
+  const name = mameDeviceRomSet(mameSrc, definition.sourceFile, definition.className);
+  if (!name) return undefined;
+  const set = parseRomSets(readFileSync(join(mameSrc, definition.sourceFile), 'utf8'))
+    .find(candidate => candidate.name === name);
+  if (!set?.regions.length) return undefined;
+  return {
+    romSet: mameDeviceShortName(mameSrc, definition.sourceFile, definition.className) ?? name,
+    regions: set.regions,
+  };
 }
