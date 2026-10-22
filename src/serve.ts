@@ -148,6 +148,9 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         if (report?.silentGaps?.length) meta.silentGaps = report.silentGaps;
         meta.generationGaps = generationGaps;
         meta.audioLimitations = report?.audioLimitations ?? [];
+        // The machine's latest comparison with MAME (src/gen/oracle-result.ts).
+        const oracle = await readFile(join(dir, 'oracle.json'), 'utf8').then(text => JSON.parse(text) as unknown, () => null);
+        if (oracle) meta.oracle = oracle;
         games.push(meta);
       } catch { /* not a generated game dir */ }
     }

@@ -38,6 +38,10 @@ Looking right counts for nothing here. A machine is graded against MAME itself:
 - **Behavior** — real-ROM acceptance contracts run each machine headless and
   compare recorded goldens, with frame-by-frame pixel diffs and register
   checkpoints against a real MAME build of the same release (`docs/TESTING.md`).
+- **Against MAME** — `tools/mame-oracle.ts` runs a machine beside that same
+  MAME with the same input and reports differing pixels, RAM and bus accesses
+  frame by frame; each machine's latest result ships with it and is shown on
+  its page.
 - **Facts** — `npm run audit:facts` diffs every generated machine's year,
   manufacturer, driver file, screen geometry, CPU clocks and ROM loads against
   that same MAME's own `-listxml` output, and fails on disagreement.
