@@ -55,6 +55,20 @@ fetched contributes no credits at all, so a machine updated in the newest MAME
 release will silently under-credit until this is run. Nothing here is committed:
 the notes are MAMEDEV's own prose, cached like roms and artwork.
 
+**Fetch artwork into `.data/artwork/`.** Neither fetcher overwrites a file that
+is already there:
+
+```sh
+node tools/download-artwork.ts [game ...]   # bezels and layouts (archive.org), flyers, cabinets, marquees
+node tools/c64-covers.ts [--apply]          # C64 shelf covers from TOSEC's Cover.zip; reports unless --apply
+```
+
+`download-artwork` with no argument fetches whatever every game contract is
+still missing. `c64-covers` matches every title on the generated C64 shelves
+to a front scan by name and writes a 240 px `<name>.webp` under
+`artwork/carts/<list>/`. Run `npm run audit:game-package -- <target>` to see
+what a machine still lacks.
+
 `src/paths.ts` is the only place that names `.data`; tooling resolves paths
 through `romsDir()`, `artworkDir()` and `releaseNotesDir()` rather than
 hardcoding any of them. ROMs are
@@ -182,20 +196,10 @@ PAL machines, and a quickload and an Ultimax cartridge on the PAL one.
 `npm run gen:all` and `npm run dev` expose all generated targets in the
 catalogue, including the Computers tab. Candidates are labelled experimental;
 menu visibility does not grant gameplay acceptance.
-For an isolated build and a local tape diagnostic:
-
-```sh
-node bin/mamekit.js dev-game c64p
-MAMEKIT_C64_MACHINE=c64p MAMEKIT_C64_LOAD=nebulus \
-  MAMEKIT_C64_MEDIA_FRAMES=13000 node tools/check-c64-games.ts \
-  .data/roms/_processed/c64/testing/selected-games.json .cache/dev/c64p
-```
-
-The diagnostic verifies the selected software-list checksums and BIOS, boots
-the generated machine, types `LOAD`, and operates the source-derived tape
-transport. It records loading checkpoints and attempts `RUN` after the loader
-prints `READY.`. Its exit status remains unsuccessful until gameplay acceptance
-exists; a matching tape or a BASIC screen is not a gameplay pass.
+For an isolated build, `node bin/mamekit.js dev-game c64p`. A title is checked
+against MAME 0.289 with the oracle (section 7):
+`node tools/mame-oracle.ts c64p c64_cass:<name> --frames <n>` boots it as the
+room's Play does on both sides, types the shelf's command and presses PLAY.
 
 In the app, open the Commodore 64 under **Computers**: the NTSC and PAL
 machines are one box and one room, and the room's **REGION** control (Auto,
@@ -813,8 +817,8 @@ page says what it found ("pixel-exact against MAME 0.289 at frames 300, 600,
 says nothing. Running MAME stays local: CI keeps the goldens.
 
 **What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
-tool with the rest of the tree (`tsconfig.json` includes `tools/mame-oracle.ts`
-and `tools/oracle`), so a harness hook it uses cannot be renamed under it.
+tool with the rest of the tree (`tsconfig.json` includes all of `tools/`), so a
+harness hook it uses cannot be renamed under it.
 `tools/oracle/*.spec.ts` cover:
 
 - the input timeline against the harness's own frame rules;
