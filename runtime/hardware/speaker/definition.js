@@ -1,0 +1,21 @@
+export const SPEAKER_ID = 'speaker';
+/** MAME's level-driven speaker (`spkrdev.cpp`): the Spectrum's beeper. */
+export const SPEAKER_MAME_TYPES = ['SPEAKER_SOUND'];
+export const SPEAKER_PORTS = [
+    { name: 'level', kind: 'registers', note: 'level_w from a driver port write' },
+    { name: 'audio', kind: 'audio-out' },
+];
+/**
+ * The rate a stream allocated at `machine().sample_rate()` renders at. MAME's
+ * default; the device runtime answers the same value to the device itself.
+ */
+export const STREAM_AUDIO_RATE = 48000;
+/**
+ * Devices that render their own `sound_stream_update` beside the processor at
+ * `machine().sample_rate()`, mixed on the main thread by their routed gains
+ * (sound kind `stream`): the speaker, and a cassette routed to the speakers
+ * so a load is heard.
+ */
+export const STREAM_SOUND_TYPES = ['SPEAKER_SOUND', 'CASSETTE'];
+/** The shared stream worklet, which only plays what the mix posts. */
+export const STREAM_AUDIO_WORKLET_ARTIFACT = 'audio/stream-worklet.ts';

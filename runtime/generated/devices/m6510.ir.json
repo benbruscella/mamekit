@@ -1,0 +1,40 @@
+{
+  "type": "M6510",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "u7"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "u7"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M6510",
+    "className": "m6510_device",
+    "shortName": "m6510",
+    "description": "MOS Technology 6510",
+    "sourceFile": "src/devices/cpu/m6502/m6510.cpp",
+    "sourceLine": 18,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M6510, m6510_device, \"m6510\", \"MOS Technology 6510\")"
+  },
+  "methods": [],
+  "dslFiles": [
+    "src/devices/cpu/m6502/dm6510.lst",
+    "src/devices/cpu/m6502/om6510.lst"
+  ],
+  "sourceFiles": [
+    "src/devices/cpu/m6502/dm6510.lst",
+    "src/devices/cpu/m6502/m6510.cpp",
+    "src/devices/cpu/m6502/m6510.h",
+    "src/devices/cpu/m6502/m6510d.h",
+    "src/devices/cpu/m6502/om6510.lst"
+  ]
+}

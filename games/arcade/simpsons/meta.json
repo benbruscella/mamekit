@@ -1,0 +1,69 @@
+{
+  "game": "simpsons",
+  "title": "The Simpsons (4 Players World, set 1) (Konami, 1991)",
+  "fullname": "The Simpsons (4 Players World, set 1)",
+  "year": "1991",
+  "manufacturer": "Konami",
+  "family": "simpsons",
+  "driverFile": "src/mame/konami/simpsons.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Ernesto Corvi",
+  "credits": {
+    "people": [
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 2,
+        "firstRelease": "0.138",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "Alex Jackson",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.155",
+        "lastRelease": "0.155"
+      },
+      {
+        "name": "smf",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.275",
+        "lastRelease": "0.275"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-27",
+    "commits": 209,
+    "authors": 31,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

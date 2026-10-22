@@ -1,0 +1,263 @@
+{
+  "type": "AY_SLOT",
+  "uses": [
+    {
+      "game": "spec128",
+      "tags": [
+        "ay_slot"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "AY_SLOT",
+    "className": "ay_slot_device",
+    "shortName": "ay_slot",
+    "description": "AY Slot",
+    "sourceFile": "src/devices/bus/spectrum/ay/slot.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(AY_SLOT, ay_slot_device, \"ay_slot\", \"AY Slot\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/ay/slot.cpp",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dev"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_r",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/ay/slot.cpp",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_dev"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_dev"
+                  },
+                  "property": "data_r"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/bus/spectrum/ay/slot.cpp",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dev"
+                    },
+                    "property": "data_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "address_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/bus/spectrum/ay/slot.cpp",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dev"
+                    },
+                    "property": "address_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ay_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/spectrum/ay/slot.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ay_slot_device::ay_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/spectrum/ay/slot.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/spectrum/ay/slot.cpp",
+    "src/devices/bus/spectrum/ay/slot.h",
+    "src/devices/sound/ay8910.h",
+    "src/devices/sound/ay8910.cpp"
+  ]
+}

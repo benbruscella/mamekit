@@ -1,0 +1,183 @@
+// GENERATED executable machine composition from src/mame/sanritsu/bankp.cpp; do not edit.
+import { decodeBoardIr } from '../../../../runtime/ir/decode.js';
+import type { BoardConfig, BoardSinks, InputPorts, Regions } from '../../../../runtime/core/types.js';
+import type { GeneratedCompiledHandler } from '../../../../runtime/ir/board.js';
+import { createGeneratedBoard } from '../../../../runtime/core/generated-board.js';
+import boardData from './board.json' with { type: 'json' };
+
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, 'bankp');
+
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = {
+  ...(() => {
+    const methods = (() => {
+
+
+  function method_videoram_w_0(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 0), offset, data);
+    if (0) {
+      (__l["m_bg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    } else {
+      (__l["m_fg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    }
+  }
+
+  function method_colorram_w_0(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), offset, data);
+    if (0) {
+      (__l["m_bg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    } else {
+      (__l["m_fg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    }
+  }
+
+  function method_videoram_w_1(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 1), offset, data);
+    if (1) {
+      (__l["m_bg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    } else {
+      (__l["m_fg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    }
+  }
+
+  function method_colorram_w_1(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    runtime.writeIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), offset, data);
+    if (1) {
+      (__l["m_bg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    } else {
+      (__l["m_fg_tilemap.mark_tile_dirty"] ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __l["mark_tile_dirty"]))(offset);
+    }
+  }
+
+  function method_scroll_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_scroll_x = ((data) & 0xff);
+  }
+
+  function method_get_fg_tile_info(runtime: any, tilemap: any, tileinfo: any, tile_index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let code: any = ((runtime.add(runtime.readIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 0), tile_index), ((256) * (((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), tile_index)) & (3)))))) | 0);
+    let color: any = ((((runtime.shiftRight(runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), tile_index), 3)) | ((((members.m_color_hi ?? runtime.member("m_color_hi"))) << (5))))) | 0);
+    let flags: any = ((((((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), tile_index)) & (4))) ? (1) : (0))) | 0);
+    (__l["tileinfo.set"] ?? runtime.memberCall(tileinfo, "set", 0, __l["set"]))(0, code, color, flags);
+    tileinfo.group = ((color) & (31));
+  }
+
+  function method_get_bg_tile_info(runtime: any, tilemap: any, tileinfo: any, tile_index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let code: any = ((runtime.add(runtime.readIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 1), tile_index), ((256) * (((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), tile_index)) & (7)))))) | 0);
+    let color: any = ((((runtime.shiftRight(runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), tile_index), 4)) | ((((members.m_color_hi ?? runtime.member("m_color_hi"))) << (4))))) | 0);
+    let flags: any = ((((((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), tile_index)) & (8))) ? (1) : (0))) | 0);
+    (__l["tileinfo.set"] ?? runtime.memberCall(tileinfo, "set", 0, __l["set"]))(1, code, color, flags);
+    tileinfo.group = ((color) & (15));
+  }
+
+  function method_vblank_interrupt(runtime: any, device: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    if ((members.m_nmi_mask ?? runtime.member("m_nmi_mask"))) {
+      ((runtime.dereference((__l["device.execute"] ?? runtime.memberCall(device, "execute", 0, __l["execute"]))())).pulse_input_line?.(-1, 0) ?? 0);
+    }
+  }
+
+  function method_screen_update(runtime: any, screen: any, bitmap: any, cliprect: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    if ((((members.m_display_on ?? runtime.member("m_display_on"))) ? 0 : 1)) {
+      (__l["bitmap.fill"] ?? runtime.memberCall(bitmap, "fill", 0, __l["fill"]))((__l["m_palette.black_pen"] ?? runtime.memberCall(members.m_palette, "black_pen", 0, undefined))(), cliprect);
+      return 0;
+    }
+    if ((__l["flip_screen"] ? __l["flip_screen"]() : runtime.macro("flip_screen"))) {
+      (__l["m_fg_tilemap.set_scrollx"] ?? runtime.memberCall(members.m_fg_tilemap, "set_scrollx", 0, __l["set_scrollx"]))(0, ((240) - ((members.m_scroll_x ?? runtime.member("m_scroll_x")))));
+      (__l["m_bg_tilemap.set_scrollx"] ?? runtime.memberCall(members.m_bg_tilemap, "set_scrollx", 0, __l["set_scrollx"]))(0, 240);
+    } else {
+      (__l["m_fg_tilemap.set_scrollx"] ?? runtime.memberCall(members.m_fg_tilemap, "set_scrollx", 0, __l["set_scrollx"]))(0, (members.m_scroll_x ?? runtime.member("m_scroll_x")));
+      (__l["m_bg_tilemap.set_scrollx"] ?? runtime.memberCall(members.m_bg_tilemap, "set_scrollx", 0, __l["set_scrollx"]))(0, 0);
+    }
+    switch ((members.m_priority ?? runtime.member("m_priority"))) {
+      case 0:
+      {
+        (__l["m_bg_tilemap.draw"] ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect, 128);
+        (__l["m_fg_tilemap.draw"] ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect);
+        break;
+      }
+      case 1:
+      {
+        (__l["m_bg_tilemap.draw"] ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect, 128);
+        (__l["m_fg_tilemap.draw"] ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect);
+        break;
+      }
+      case 2:
+      {
+        (__l["m_fg_tilemap.draw"] ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect, 128);
+        (__l["m_bg_tilemap.draw"] ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect);
+        break;
+      }
+      case 3:
+      {
+        (__l["m_fg_tilemap.draw"] ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect, 128);
+        (__l["m_bg_tilemap.draw"] ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __l["draw"]))(screen, bitmap, cliprect);
+        break;
+      }
+    }
+    return 0;
+  }
+  return {
+    "videoram_w_0": method_videoram_w_0,
+    "colorram_w_0": method_colorram_w_0,
+    "videoram_w_1": method_videoram_w_1,
+    "colorram_w_1": method_colorram_w_1,
+    "scroll_w": method_scroll_w,
+    "get_fg_tile_info": method_get_fg_tile_info,
+    "get_bg_tile_info": method_get_bg_tile_info,
+    "vblank_interrupt": method_vblank_interrupt,
+    "screen_update": method_screen_update
+  };
+})();
+    return {
+      "bankp_state.videoram_w_0": methods["videoram_w_0"],
+      "bankp_state.colorram_w_0": methods["colorram_w_0"],
+      "bankp_state.videoram_w_1": methods["videoram_w_1"],
+      "bankp_state.colorram_w_1": methods["colorram_w_1"],
+      "bankp_state.scroll_w": methods["scroll_w"],
+      "bankp_state.get_fg_tile_info": methods["get_fg_tile_info"],
+      "bankp_state.get_bg_tile_info": methods["get_bg_tile_info"],
+      "bankp_state.vblank_interrupt": methods["vblank_interrupt"],
+      "bankp_state.screen_update": methods["screen_update"],
+    };
+  })(),
+} as Record<string, GeneratedCompiledHandler>;
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ["bitmap.fill","device.execute","draw","execute","fill","flip_screen","m_bg_tilemap.draw","m_bg_tilemap.mark_tile_dirty","m_bg_tilemap.set_scrollx","m_fg_tilemap.draw","m_fg_tilemap.mark_tile_dirty","m_fg_tilemap.set_scrollx","m_palette.black_pen","mark_tile_dirty","set","set_scrollx","tileinfo.set"];
+export default {
+  machine: defined,
+  createBoard: (
+    config: BoardConfig,
+    regions: Regions,
+    inputs: InputPorts,
+    sinks: BoardSinks,
+  ) => createGeneratedBoard(defined, config, regions, inputs, sinks),
+};

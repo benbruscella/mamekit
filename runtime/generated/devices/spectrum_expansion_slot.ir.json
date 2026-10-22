@@ -1,0 +1,871 @@
+{
+  "type": "SPECTRUM_EXPANSION_SLOT",
+  "uses": [
+    {
+      "game": "spec128",
+      "tags": [
+        "exp"
+      ]
+    },
+    {
+      "game": "spectrum",
+      "tags": [
+        "exp"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SPECTRUM_EXPANSION_SLOT",
+    "className": "spectrum_expansion_slot_device",
+    "shortName": "spectrum_expansion_slot",
+    "description": "ZX Spectrum Expansion port",
+    "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+    "sourceLine": 17,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SPECTRUM_EXPANSION_SLOT, spectrum_expansion_slot_device, \"spectrum_expansion_slot\", \"ZX Spectrum Expansion port\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "romcs",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "romcs"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pre_opcode_fetch",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "pre_opcode_fetch"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "post_opcode_fetch",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "post_opcode_fetch"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pre_data_fetch",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "pre_data_fetch"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "post_data_fetch",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "post_data_fetch"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iorq_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 107,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "iorq_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "fb_r"
+                    },
+                    "args": []
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 255
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iorq_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "iorq_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mreq_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "mreq_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 255
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mreq_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/spectrum/exp.cpp",
+      "sourceLine": 141,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "mreq_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&slot_options, const char *default_option",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 61,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "slot_options"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "default_option"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_irq_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 74,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_nmi_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fb_r_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_fb_r_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_irq_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_nmi_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_fb_r_handler"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::spectrum_expansion_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&slot_options, const char *default_option",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "slot_options"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "default_option"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::irq_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_irq_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::nmi_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_nmi_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::fb_r_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_fb_r_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::irq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_irq_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::nmi_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_nmi_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spectrum_expansion_slot_device::fb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/exp.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_fb_r_handler"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/spectrum/exp.cpp",
+    "src/devices/bus/spectrum/exp.h"
+  ]
+}

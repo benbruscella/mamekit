@@ -1,0 +1,6007 @@
+{
+  "type": "EEPROM_ER5911_8BIT",
+  "uses": [
+    {
+      "game": "simpsons",
+      "tags": [
+        "eeprom"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "EEPROM_ER5911_8BIT",
+    "className": "eeprom_serial_er5911_8bit_device",
+    "shortName": "er5911_8",
+    "description": "Serial EEPROM ER5911 (128x8)",
+    "sourceFile": "src/devices/machine/eepromser.cpp",
+    "sourceLine": 1128,
+    "sourceColumn": 1,
+    "macro": "DEFINE_SERIAL_EEPROM_DEVICE(er5911, er5911, ER5911, 8, 128, 9)"
+  },
+  "methods": [
+    {
+      "name": "default_value",
+      "parameters": "uint32_t value",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "value"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_value_set"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "timing",
+      "parameters": "timing_type type, const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "type"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::WRITE_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_all_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::WRITE_ALL_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "erase_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::ERASE_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "erase_all_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::ERASE_ALL_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ready",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_completion_time"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "size",
+      "parameters": "int cells, int cellbits",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cells"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "cells"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data_bits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "cellbits"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "cells"
+            },
+            "operator": "-=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address_bits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "cells"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "cells"
+                },
+                "operator": ">>=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_address_bits"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "default_data",
+      "parameters": "const uint8_t *data, uint32_t size",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 73,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data_bits"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_data_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "size"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "default_data",
+      "parameters": "const uint16_t *data, uint32_t size",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data_bits"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_data_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "size"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t address",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "ready"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "internal_read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t address, uint32_t data",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "ready"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "internal_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_completion_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_operation_time"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "WRITE_TIME"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_all",
+      "parameters": "uint32_t data",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "ready"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "address",
+                "valueType": "offs_t",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "address"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_address_bits"
+                }
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "address"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "internal_write"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "internal_read"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "address"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_completion_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_operation_time"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "WRITE_ALL_TIME"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "erase",
+      "parameters": "offs_t address",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 135,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "ready"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "internal_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_completion_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_operation_time"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ERASE_TIME"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "erase_all",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 148,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "ready"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "address",
+                "valueType": "offs_t",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "address"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_address_bits"
+                }
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "address"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "internal_write"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "address"
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_completion_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_operation_time"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "ERASE_ALL_TIME"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_validity_check",
+      "parameters": "validity_checker &valid",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 163,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_cells"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_address_bits"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_error"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Invalid EEPROM size %d specified\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_cells"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_data_bits"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_data_bits"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_error"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Invalid EEPROM data width %d specified\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_data_bits"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 174,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_command_address_bits"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_command_address_bits"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_address_bits"
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cs_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_cs_rising_edge_time"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_oe_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clk_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_di_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bits_accum"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_command_address_accum"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_command"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_address"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shift_register"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "STATE_IN_RESET"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_locked"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bits_accum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_command_address_accum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_command"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "COMMAND_INVALID"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_shift_register"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 179,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "size",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data_bits"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_address_bits"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_completion_time"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "size"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 194,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_completion_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "attotime::zero"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "internal_read",
+      "parameters": "offs_t address",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 279,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_data_bits"
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16le"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_data"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "address"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_data"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "address"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "internal_write",
+      "parameters": "offs_t address, uint32_t data",
+      "sourceFile": "src/devices/machine/eeprom.cpp",
+      "sourceLine": 293,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_data_bits"
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "put_u16le"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_data"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "address"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_data"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "address"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::default_value",
+      "parameters": "uint32_t value",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "value"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_default_value_set"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::timing",
+      "parameters": "timing_type type, const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "type"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::write_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::WRITE_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::write_all_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::WRITE_ALL_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::erase_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::ERASE_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::erase_all_time",
+      "parameters": "const attotime &duration",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_operation_time"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "eeprom_base_device::ERASE_ALL_TIME"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "duration"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_base_device::ready",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eeprom.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_completion_time"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "base_cs_write",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 218,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_cs_state"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "do-while",
+            "condition": {
+              "kind": "number",
+              "value": 0
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "printf"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "  cs_write(%d)\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "state"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cs_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "ASSERT_LINE"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_last_cs_rising_edge_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "handle_event"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_cs_state"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "EVENT_CS_RISING_EDGE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "EVENT_CS_FALLING_EDGE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "base_clk_write",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 241,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_clk_state"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "do-while",
+            "condition": {
+              "kind": "number",
+              "value": 0
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "printf"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "  clk_write(%d)\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "state"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clk_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "handle_event"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_clk_state"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "EVENT_CLK_RISING_EDGE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "EVENT_CLK_FALLING_EDGE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "base_di_write",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 260,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "do-while",
+                "condition": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">=",
+                      "left": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "printf"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "EEPROM: Unexpected data at input 0x%X treated as %d\n"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "state"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "state"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "do-while",
+            "condition": {
+              "kind": "number",
+              "value": 0
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "printf"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "  di_write(%d)\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "state"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_di_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "base_do_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 274,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "int",
+            "value": {
+              "kind": "identifier",
+              "name": "m_do_tristate"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "STATE_READING_DATA"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "result"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shift_register"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2147483648
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "do-while",
+            "condition": {
+              "kind": "number",
+              "value": 0
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "printf"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "  do_read(%d)\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "result"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "result"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "base_ready_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 292,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "result",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "ready"
+                },
+                "args": []
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "ASSERT_LINE"
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "CLEAR_LINE"
+              }
+            }
+          },
+          {
+            "op": "do-while",
+            "condition": {
+              "kind": "number",
+              "value": 0
+            },
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "printf"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "  ready_read(%d)\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "result"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "result"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_state",
+      "parameters": "eeprom_state newstate",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 310,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "newstate"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_do_cb"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "STATE_READING_DATA"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handle_event",
+      "parameters": "eeprom_event event",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 326,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_IN_RESET"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "event"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "EVENT_CS_RISING_EDGE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_WAIT_FOR_START_BIT"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_WAIT_FOR_START_BIT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "event"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "EVENT_CLK_RISING_EDGE"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_di_state"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "ASSERT_LINE"
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "ready"
+                          },
+                          "args": []
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "time"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_last_cs_rising_edge_time"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_command_address_accum"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_bits_accum"
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_WAIT_FOR_COMMAND"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "event"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "EVENT_CS_FALLING_EDGE"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "set_state"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "STATE_IN_RESET"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_WAIT_FOR_COMMAND"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "event"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "EVENT_CLK_RISING_EDGE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_command_address_accum"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_command_address_accum"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_di_state"
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_bits_accum"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_command_address_bits"
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "execute_command"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "event"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "EVENT_CS_FALLING_EDGE"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "set_state"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "STATE_IN_RESET"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_READING_DATA"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "event"
+                      },
+                      "right": {
+                        "kind": "conditional",
+                        "condition": {
+                          "kind": "identifier",
+                          "name": "m_output_on_falling_clock_enabled"
+                        },
+                        "whenTrue": {
+                          "kind": "identifier",
+                          "name": "EVENT_CLK_FALLING_EDGE"
+                        },
+                        "whenFalse": {
+                          "kind": "identifier",
+                          "name": "EVENT_CLK_RISING_EDGE"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "bit_index",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "m_bits_accum"
+                          },
+                          "operator": "+=",
+                          "value": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "postfix": true
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "==",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "%",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "bit_index"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_data_bits"
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "||",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "bit_index"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_streaming_enabled"
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_shift_register"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "read"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "+",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "m_address"
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "/",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_bits_accum"
+                                        },
+                                        "right": {
+                                          "kind": "identifier",
+                                          "name": "m_data_bits"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "-",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": "<<",
+                                        "left": {
+                                          "kind": "number",
+                                          "value": 1
+                                        },
+                                        "right": {
+                                          "kind": "identifier",
+                                          "name": "m_address_bits"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "number",
+                                  "value": 32
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "m_data_bits"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_shift_register"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "|",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_shift_register"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_do_cb"
+                          },
+                          "args": [
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "BIT"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_shift_register"
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 31
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "event"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "EVENT_CS_FALLING_EDGE"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "set_state"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "STATE_IN_RESET"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "identifier",
+                              "name": "m_streaming_enabled"
+                            },
+                            "then": [
+                              {
+                                "op": "do-while",
+                                "condition": {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                "body": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": ">=",
+                                      "left": {
+                                        "kind": "number",
+                                        "value": 0
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "call",
+                                        "expression": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "printf"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "string",
+                                              "value": "  (%d cells read)\n"
+                                            },
+                                            {
+                                              "kind": "binary",
+                                              "operator": "/",
+                                              "left": {
+                                                "kind": "identifier",
+                                                "name": "m_bits_accum"
+                                              },
+                                              "right": {
+                                                "kind": "identifier",
+                                                "name": "m_data_bits"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": ">=",
+                                      "left": {
+                                        "kind": "number",
+                                        "value": 0
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "call",
+                                        "expression": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "TRACE_NOOP"
+                                          },
+                                          "args": []
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "m_streaming_enabled"
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": ">",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_bits_accum"
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_data_bits"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "do-while",
+                                "condition": {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                "body": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": ">=",
+                                      "left": {
+                                        "kind": "number",
+                                        "value": 0
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "call",
+                                        "expression": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "printf"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "string",
+                                              "value": "EEPROM: Overclocked read by %d bits\n"
+                                            },
+                                            {
+                                              "kind": "binary",
+                                              "operator": "-",
+                                              "left": {
+                                                "kind": "identifier",
+                                                "name": "m_bits_accum"
+                                              },
+                                              "right": {
+                                                "kind": "identifier",
+                                                "name": "m_data_bits"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                      },
+                                      "args": []
+                                    }
+                                  }
+                                ]
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "m_streaming_enabled"
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": ">",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "m_bits_accum"
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_data_bits"
+                                        },
+                                        "right": {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": ">",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "%",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "m_bits_accum"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "m_data_bits"
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "do-while",
+                                    "condition": {
+                                      "kind": "number",
+                                      "value": 0
+                                    },
+                                    "body": [
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "binary",
+                                          "operator": ">=",
+                                          "left": {
+                                            "kind": "number",
+                                            "value": 0
+                                          },
+                                          "right": {
+                                            "kind": "number",
+                                            "value": 1
+                                          }
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "call",
+                                            "expression": {
+                                              "kind": "call",
+                                              "callee": {
+                                                "kind": "identifier",
+                                                "name": "printf"
+                                              },
+                                              "args": [
+                                                {
+                                                  "kind": "string",
+                                                  "value": "EEPROM: Overclocked read by %d bits\n"
+                                                },
+                                                {
+                                                  "kind": "binary",
+                                                  "operator": "%",
+                                                  "left": {
+                                                    "kind": "identifier",
+                                                    "name": "m_bits_accum"
+                                                  },
+                                                  "right": {
+                                                    "kind": "identifier",
+                                                    "name": "m_data_bits"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "op": "call",
+                                        "expression": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "TRACE_NOOP"
+                                          },
+                                          "args": []
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "binary",
+                                      "operator": "<",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "m_bits_accum"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "m_data_bits"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "do-while",
+                                        "condition": {
+                                          "kind": "number",
+                                          "value": 0
+                                        },
+                                        "body": [
+                                          {
+                                            "op": "if",
+                                            "condition": {
+                                              "kind": "binary",
+                                              "operator": ">=",
+                                              "left": {
+                                                "kind": "number",
+                                                "value": 0
+                                              },
+                                              "right": {
+                                                "kind": "number",
+                                                "value": 1
+                                              }
+                                            },
+                                            "then": [
+                                              {
+                                                "op": "call",
+                                                "expression": {
+                                                  "kind": "call",
+                                                  "callee": {
+                                                    "kind": "identifier",
+                                                    "name": "printf"
+                                                  },
+                                                  "args": [
+                                                    {
+                                                      "kind": "string",
+                                                      "value": "EEPROM: CS deasserted in READING_DATA after %d bits\n"
+                                                    },
+                                                    {
+                                                      "kind": "identifier",
+                                                      "name": "m_bits_accum"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "op": "call",
+                                            "expression": {
+                                              "kind": "call",
+                                              "callee": {
+                                                "kind": "identifier",
+                                                "name": "TRACE_NOOP"
+                                              },
+                                              "args": []
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_WAIT_FOR_DATA"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "event"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "EVENT_CLK_RISING_EDGE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_shift_register"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_shift_register"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_di_state"
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_bits_accum"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_data_bits"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "execute_write_command"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "event"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "EVENT_CS_FALLING_EDGE"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "set_state"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "STATE_IN_RESET"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "do-while",
+                            "condition": {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            "body": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": ">=",
+                                  "left": {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "printf"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "string",
+                                          "value": "EEPROM: CS deasserted in STATE_WAIT_FOR_DATA after %d bits\n"
+                                        },
+                                        {
+                                          "kind": "identifier",
+                                          "name": "m_bits_accum"
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "TRACE_NOOP"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_WAIT_FOR_COMPLETION"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "event"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "EVENT_CS_FALLING_EDGE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_IN_RESET"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_command",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 423,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "parse_command_and_address"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bits_accum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_command"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_READ"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_shift_register"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_READING_DATA"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_WRITE"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_WRITEALL"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_shift_register"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_WAIT_FOR_DATA"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_ERASE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    },
+                    "then": [
+                      {
+                        "op": "do-while",
+                        "condition": {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">=",
+                              "left": {
+                                "kind": "number",
+                                "value": 0
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "printf"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "EEPROM: Attempt to erase while locked\n"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_IN_RESET"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "erase"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_address"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_WAIT_FOR_COMPLETION"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_LOCK"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_IN_RESET"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_UNLOCK"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_IN_RESET"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_ERASEALL"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    },
+                    "then": [
+                      {
+                        "op": "do-while",
+                        "condition": {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">=",
+                              "left": {
+                                "kind": "number",
+                                "value": 0
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "printf"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "EEPROM: Attempt to erase all while locked\n"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_IN_RESET"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "erase_all"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_WAIT_FOR_COMPLETION"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "__throw"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "emu_fatalerror"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "execute_command called with invalid command %d\n"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_command"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_write_command",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_command"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_WRITE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    },
+                    "then": [
+                      {
+                        "op": "do-while",
+                        "condition": {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">=",
+                              "left": {
+                                "kind": "number",
+                                "value": 0
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "printf"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "EEPROM: Attempt to write to address 0x%X while locked\n"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "m_address"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_IN_RESET"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "write"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_address"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_shift_register"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_WAIT_FOR_COMPLETION"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "COMMAND_WRITEALL"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_locked"
+                    },
+                    "then": [
+                      {
+                        "op": "do-while",
+                        "condition": {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">=",
+                              "left": {
+                                "kind": "number",
+                                "value": 0
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "printf"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "EEPROM: Attempt to write all while locked\n"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_state"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "STATE_IN_RESET"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "write_all"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_shift_register"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_state"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_WAIT_FOR_COMPLETION"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "__throw"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "emu_fatalerror"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "execute_write_command called with invalid command %d\n"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_command"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "enable_streaming",
+      "parameters": "bool enable",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_streaming_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "enable"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "enable_output_on_falling_clock",
+      "parameters": "bool enable",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_output_on_falling_clock_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "enable"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_do_tristate",
+      "parameters": "bool value",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_do_tristate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "value"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 26,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_do_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_address_bits",
+      "parameters": "int addrbits",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_command_address_bits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "addrbits"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_serial_base_device::enable_streaming",
+      "parameters": "bool enable",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_streaming_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "enable"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_serial_base_device::enable_output_on_falling_clock",
+      "parameters": "bool enable",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_output_on_falling_clock_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "enable"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_serial_base_device::set_do_tristate",
+      "parameters": "bool value",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 26,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_do_tristate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "value"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_serial_base_device::do_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_do_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "eeprom_serial_base_device::set_address_bits",
+      "parameters": "int addrbits",
+      "sourceFile": "src/devices/machine/eepromser.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_command_address_bits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "addrbits"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "parse_command_and_address",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 605,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_command"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "COMMAND_INVALID"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_command_address_accum"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "number",
+                    "value": 1
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_command_address_bits"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "m_command_address_accum"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_command_address_bits"
+              }
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "switch",
+                    "expression": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_address"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_command_address_bits"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    },
+                    "cases": [
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_command"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "COMMAND_LOCK"
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_command"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "COMMAND_INVALID"
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_command"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "COMMAND_ERASEALL"
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_command"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "COMMAND_UNLOCK"
+                            }
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_address"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_command"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "COMMAND_WRITE"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_command"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "COMMAND_READ"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_command"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "COMMAND_WRITE"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_address"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_address_bits"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "do-while",
+                "condition": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">=",
+                      "left": {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "printf"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "EEPROM: out-of-range address 0x%X provided (maximum should be 0x%X)\n"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_address"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "m_address_bits"
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 640,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "base_do_read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ready_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 641,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "base_ready_read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cs_write",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 648,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "base_cs_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clk_write",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 649,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "base_clk_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "di_write",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/eepromser.cpp",
+      "sourceLine": 650,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "base_di_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/eepromser.cpp",
+    "src/devices/machine/eepromser.h",
+    "src/devices/machine/eeprom.h",
+    "src/devices/machine/eeprom.cpp"
+  ]
+}

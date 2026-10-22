@@ -1,0 +1,341 @@
+{
+  "generatedFrom": "src/mame/atari/bzone.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 623,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/atari/bzone_a.cpp",
+      "line": 404,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/atari/bzone_a.cpp",
+      "line": 404,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 611,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 619,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/5/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 613,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 623,
+      "column": 2
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 611,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 615,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 618,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 619,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 625,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 630,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/atari/bzone_a.cpp",
+      "line": 401,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/atari/bzone_a.cpp",
+      "line": 403,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/atari/bzone_a.cpp",
+      "line": 408,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 281,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 400,
+      "column": 2
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 401,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 402,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/atari/mathbox.cpp",
+      "line": 292,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/atari/mathbox.cpp",
+      "line": 297,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/atari/mathbox.cpp",
+      "line": 302,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 410,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 410,
+      "column": 2
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/atari/bzone_a.cpp",
+      "line": 391,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/atari/mathbox.cpp",
+      "line": 69,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 261,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 623,
+      "column": 2
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/atari/mathbox.cpp",
+      "line": 51,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 275,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 342,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 343,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 344,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 345,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 346,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 347,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 348,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 349,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 350,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 351,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 352,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 353,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 354,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 355,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/14/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 356,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/15/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 357,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 339,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/atari/bzone.cpp",
+      "line": 633,
+      "column": 1
+    }
+  ]
+}

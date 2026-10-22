@@ -1,0 +1,27 @@
+Computer published 40 years ago:
+
+ZX Spectrum 128 (c) 1986 Sinclair Research, Limited.
+
+New features included 128 KB RAM, three-channel audio via the AY-3-8912 chip, MIDI compatibility, an RS-232 serial port, an RGB monitor port, 32 KB of ROM including an improved BASIC editor, and an external keypad.
+
+- TECHNICAL -
+
+The appearance of the ZX Spectrum 128 was similar to the ZX Spectrum+, with the exception of a large external heatsink for the internal 7805 voltage regulator added to the right hand end of the case, replacing the internal heatsink in previous versions.
+
+The Z80 processor used in the Spectrum has a 16-bit address bus, which means only 64 KB of memory can be directly addressed. To facilitate the extra 80 KB of RAM the designers used bank switching so that the new memory would be available as eight pages of 16 KB at the top of the address space. The same technique was also used to page between the new 16 KB editor ROM and the original 16 KB BASIC ROM at the bottom of the address space.
+
+The new sound chip and MIDI out abilities were exposed to the BASIC programming language with the command PLAY and a new command SPECTRUM was added to switch the machine into 48K mode, keeping the current BASIC program intact (although there is no way to switch back to 128K mode). To enable BASIC programmers to access the additional memory, a RAM disk was created where files could be stored in the additional 80 KB of RAM. The new commands took the place of two existing user-defined-character spaces causing compatibility problems with some BASIC programs.
+
+The ZX Spectrum 128 had no internal speaker like its predecessors. The sound was produced from the television speaker instead
+
+- TRIVIA -
+
+Code-named 'Derby'. Sinclair developed the ZX Spectrum 128 in conjunction with their Spanish distributor Investrónica. Investrónica had helped adapt the ZX Spectrum+ to the Spanish market after the Spanish government introduced a special tax on all computers with 64 KB RAM or less, and a law which obliged all computers sold in Spain to support the Spanish alphabet and show messages in Spanish.
+
+The machine was simultaneously presented for the first time and launched in September 1985 at the SIMO '85 trade show in Spain, with a price of 44,250 pesetas. Because of the large number of unsold Spectrum+ models, Sinclair decided not to start selling in the UK until January 1986 at a price of £179.95.
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/83040/?o=2
+
+— Gaming History (arcade-history.com)

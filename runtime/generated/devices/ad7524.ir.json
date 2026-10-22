@@ -1,0 +1,36 @@
+{
+  "type": "AD7524",
+  "uses": [
+    {
+      "game": "mk",
+      "tags": [
+        "dac"
+      ]
+    },
+    {
+      "game": "nbajam",
+      "tags": [
+        "dac"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "AD7524",
+    "className": "ad7524_device",
+    "description": "AD7524 DAC",
+    "shortName": "ad7524",
+    "sourceFile": "src/devices/sound/dac.h",
+    "sourceLine": 201,
+    "sourceColumn": 1,
+    "macro": "DAC_GENERATOR(AD7524,    ad7524_device,    dac_byte_device_base, dac_mapper_unsigned,  8, dac_gain_r2r, \"AD7524 DAC\",    \"ad7524\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/dac.h"
+  ],
+  "declaredBy": [
+    "williams_adpcm_sound_device"
+  ]
+}

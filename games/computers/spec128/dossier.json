@@ -1,0 +1,1410 @@
+{
+  "game": "spec128",
+  "title": "ZX Spectrum 128 (Sinclair Research Ltd, 1986)",
+  "fullname": "ZX Spectrum 128",
+  "year": "1986",
+  "company": "Sinclair Research Ltd",
+  "family": "spec128",
+  "driverFile": "src/mame/sinclair/spec128.cpp",
+  "license": "GPL-2.0+",
+  "copyrightHolders": "Kevin Thacker",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "z80",
+      "clock": 3546900,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 16383,
+          "kind": "handler",
+          "read": "spectrum_128_state.spectrum_128_rom_r",
+          "write": "spectrum_128_state.spectrum_128_rom_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 16384,
+          "end": 32767,
+          "kind": "handler",
+          "read": "spectrum_128_state.spectrum_128_ram_r_1",
+          "write": "spectrum_128_state.spectrum_128_ram_w_1",
+          "handlerWidth": 8
+        },
+        {
+          "start": 32768,
+          "end": 49151,
+          "kind": "handler",
+          "read": "spectrum_128_state.spectrum_128_ram_r_2",
+          "write": "spectrum_128_state.spectrum_128_ram_w_2",
+          "handlerWidth": 8
+        },
+        {
+          "start": 49152,
+          "end": 65535,
+          "kind": "handler",
+          "read": "spectrum_128_state.spectrum_128_ram_r_3",
+          "write": "spectrum_128_state.spectrum_128_ram_w_3",
+          "handlerWidth": 8
+        }
+      ],
+      "opcode": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 65535,
+            "kind": "handler",
+            "read": "spectrum_128_state.spectrum_128_pre_opcode_fetch_r"
+          }
+        ],
+        "region": "maincpu"
+      },
+      "io": {
+        "ranges": [
+          {
+            "start": 0,
+            "end": 0,
+            "kind": "handler",
+            "select": 65534,
+            "read": "spectrum_128_state.spectrum_ula_r",
+            "write": "spectrum_128_state.spectrum_ula_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 1,
+            "end": 1,
+            "kind": "handler",
+            "select": 65534,
+            "read": "spectrum_128_state.spectrum_port_r",
+            "write": "spectrum_128_state.spectrum_port_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 1,
+            "end": 1,
+            "kind": "handler",
+            "select": 32764,
+            "write": "spectrum_128_state.spectrum_128_port_7ffd_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 32768,
+            "end": 32768,
+            "kind": "handler",
+            "mirror": 16381,
+            "write": "ay_slot.data_w"
+          },
+          {
+            "start": 49152,
+            "end": 49152,
+            "kind": "handler",
+            "mirror": 16381,
+            "read": "ay_slot.data_r",
+            "write": "ay_slot.address_w"
+          }
+        ]
+      }
+    }
+  ],
+  "sound": {
+    "kind": "ay8910",
+    "clock": 1773450,
+    "chips": 1,
+    "deviceTags": [
+      "ay_slot:ay_ay8912:ay0"
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    },
+    "streamGain": 0.55
+  },
+  "screen": {
+    "width": 352,
+    "height": 296,
+    "xOffset": 0,
+    "yOffset": 15,
+    "refresh": 50.02115417160264,
+    "htotal": 456,
+    "vtotal": 311,
+    "vbstart": 311,
+    "vbend": 15,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 98304,
+      "loads": [
+        {
+          "file": "zx128_0.rom",
+          "offset": 65536,
+          "size": 16384,
+          "crc": "e76799d2",
+          "alt": [
+            {
+              "file": "zxp2_0.rom",
+              "crc": "5d2e8c66"
+            }
+          ]
+        },
+        {
+          "file": "zx128_1.rom",
+          "offset": 81920,
+          "size": 16384,
+          "crc": "b96a36be",
+          "alt": [
+            {
+              "file": "zxp2_1.rom",
+              "crc": "98b1320b"
+            },
+            {
+              "file": "hc128.rom",
+              "crc": "0241e960"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "LINE0",
+      "mask": 1,
+      "keys": [
+        "ShiftLeft"
+      ],
+      "label": "CAPS SHIFT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{SHIFT_1}"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "z    Z    :      LN       BEEP   COPY",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "z"
+        ],
+        [
+          "Z"
+        ],
+        [
+          ":"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 4,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "x    X    £      EXP      INK    CLEAR",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "x"
+        ],
+        [
+          "X"
+        ],
+        [
+          "£"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 8,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "c    C    ?      LPRINT   PAPER  CONT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "c"
+        ],
+        [
+          "C"
+        ],
+        [
+          "?"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 16,
+      "keys": [
+        "KeyV"
+      ],
+      "label": "v    V    /      LLIST    FLASH  CLS",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "v"
+        ],
+        [
+          "V"
+        ],
+        [
+          "/"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 1,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "a    A    STOP   READ      ~     NEW",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "a"
+        ],
+        [
+          "A"
+        ],
+        [
+          "~"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 2,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "s    S    NOT    RESTORE   |     SAVE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "s"
+        ],
+        [
+          "S"
+        ],
+        [
+          "|"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 4,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "d    D    STEP   DATA      \\     DIM",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "d"
+        ],
+        [
+          "D"
+        ],
+        [
+          "\\"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 8,
+      "keys": [
+        "KeyF"
+      ],
+      "label": "f    F    TO     SGN       {     FOR",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "f"
+        ],
+        [
+          "F"
+        ],
+        [
+          "{"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 16,
+      "keys": [
+        "KeyG"
+      ],
+      "label": "g    G    THEN   ABS       }     GOTO",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "g"
+        ],
+        [
+          "G"
+        ],
+        [
+          "}"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 1,
+      "keys": [
+        "KeyQ"
+      ],
+      "label": "q    Q    <=     SIN      ASN      PLOT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "q"
+        ],
+        [
+          "Q"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 2,
+      "keys": [
+        "KeyW"
+      ],
+      "label": "w    W    <>     COS      ACS      DRAW",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "w"
+        ],
+        [
+          "W"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 4,
+      "keys": [
+        "KeyE"
+      ],
+      "label": "e    E    >=     TAN      ATN      REM",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "e"
+        ],
+        [
+          "E"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 8,
+      "keys": [
+        "KeyR"
+      ],
+      "label": "r    R    <      INT      VERIFY   RUN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "r"
+        ],
+        [
+          "R"
+        ],
+        [
+          "<"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 16,
+      "keys": [
+        "KeyT"
+      ],
+      "label": "t    T    >      RND      MERGE    RAND",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "t"
+        ],
+        [
+          "T"
+        ],
+        [
+          ">"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 1,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "1   EDIT       !    BLUE     DEF FN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "1"
+        ],
+        [
+          "!"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 2,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "2   CAPS LOCK  @    RED      FN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "2"
+        ],
+        [
+          "@"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 4,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "3   TRUE VID   #    MAGENTA  LINE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "3"
+        ],
+        [
+          "#"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 8,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "4   INV VID    $    GREEN    OPEN#",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "4"
+        ],
+        [
+          "$"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 16,
+      "keys": [
+        "Digit5",
+        "Numpad5"
+      ],
+      "label": "5   Left       %    CYAN     CLOSE#",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "5"
+        ],
+        [
+          "{LEFT}"
+        ],
+        [
+          "%"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 1,
+      "keys": [
+        "Digit0",
+        "Numpad0"
+      ],
+      "label": "0   DEL        _    BLACK    FORMAT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "0"
+        ],
+        [
+          "\b"
+        ],
+        [
+          "_"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 2,
+      "keys": [
+        "Digit9",
+        "Numpad9"
+      ],
+      "label": "9   GRAPH      )             POINT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "9"
+        ],
+        [
+          ")"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 4,
+      "keys": [
+        "Digit8",
+        "Numpad8"
+      ],
+      "label": "8   Right      (             CAT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "8"
+        ],
+        [
+          "{RIGHT}"
+        ],
+        [
+          "("
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 8,
+      "keys": [
+        "Digit7",
+        "Numpad7"
+      ],
+      "label": "7   Up         '    WHITE    ERASE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "7"
+        ],
+        [
+          "{UP}"
+        ],
+        [
+          "'"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 16,
+      "keys": [
+        "Digit6",
+        "Numpad6"
+      ],
+      "label": "6   Down       &    YELLOW   MOVE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "6"
+        ],
+        [
+          "{DOWN}"
+        ],
+        [
+          "&"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 1,
+      "keys": [
+        "KeyP"
+      ],
+      "label": "p    P    \"      TAB      (c)    PRINT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "p"
+        ],
+        [
+          "P"
+        ],
+        [
+          "\""
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 2,
+      "keys": [
+        "KeyO"
+      ],
+      "label": "o    O    ;      PEEK     OUT    POKE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "o"
+        ],
+        [
+          "O"
+        ],
+        [
+          ";"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 4,
+      "keys": [
+        "KeyI"
+      ],
+      "label": "i    I    AT     CODE     IN     INPUT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "i"
+        ],
+        [
+          "I"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 8,
+      "keys": [
+        "KeyU"
+      ],
+      "label": "u    U    OR     CHR$     ]      IF",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "u"
+        ],
+        [
+          "U"
+        ],
+        [
+          "]"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 16,
+      "keys": [
+        "KeyY"
+      ],
+      "label": "y    Y    AND    STR$     [      RETURN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "y"
+        ],
+        [
+          "Y"
+        ],
+        [
+          "["
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 1,
+      "keys": [
+        "Enter"
+      ],
+      "label": "ENTER",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "\r"
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 2,
+      "keys": [
+        "KeyL"
+      ],
+      "label": "l    L    =      USR      ATTR     LET",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "l"
+        ],
+        [
+          "L"
+        ],
+        [
+          "="
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 4,
+      "keys": [
+        "KeyK"
+      ],
+      "label": "k    K    +      LEN      SCREEN$  LIST",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "k"
+        ],
+        [
+          "K"
+        ],
+        [
+          "+"
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 8,
+      "keys": [
+        "KeyJ"
+      ],
+      "label": "j    J    -      VAL      VAL$     LOAD",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "j"
+        ],
+        [
+          "J"
+        ],
+        [
+          "-"
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 16,
+      "keys": [
+        "KeyH"
+      ],
+      "label": "h    H    ^      SQR      CIRCLE   GOSUB",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "h"
+        ],
+        [
+          "H"
+        ],
+        [
+          "^"
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 1,
+      "keys": [
+        "Space"
+      ],
+      "label": "SPACE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          " "
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 2,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "SYMBOL SHIFT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{SHIFT_2}"
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 4,
+      "keys": [
+        "KeyM"
+      ],
+      "label": "m    M    .      PI       INVERSE  PAUSE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "m"
+        ],
+        [
+          "M"
+        ],
+        [
+          "."
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 8,
+      "keys": [
+        "KeyN"
+      ],
+      "label": "n    N    ,      INKEY$   OVER     NEXT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "n"
+        ],
+        [
+          "N"
+        ],
+        [
+          ","
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 16,
+      "keys": [
+        "KeyB"
+      ],
+      "label": "b    B    *      BIN      BRIGHT   BORDER",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "b"
+        ],
+        [
+          "B"
+        ],
+        [
+          "*"
+        ]
+      ]
+    },
+    {
+      "port": "NMI",
+      "mask": 1,
+      "keys": [
+        "F12"
+      ],
+      "label": "NMI",
+      "type": "IPT_KEYBOARD",
+      "activeLow": false
+    },
+    {
+      "port": "PLUS0",
+      "mask": 1,
+      "keys": [
+        "Insert"
+      ],
+      "label": "EDIT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS0",
+      "mask": 2,
+      "keys": [
+        "CapsLock"
+      ],
+      "label": "CAPS LOCK",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS0",
+      "mask": 4,
+      "keys": [
+        "Home"
+      ],
+      "label": "TRUE VID",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS0",
+      "mask": 8,
+      "keys": [
+        "End"
+      ],
+      "label": "INV VID",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS0",
+      "mask": 16,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "Cursor Left",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS1",
+      "mask": 1,
+      "keys": [
+        "Backspace"
+      ],
+      "label": "DEL",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "\b"
+        ]
+      ]
+    },
+    {
+      "port": "PLUS1",
+      "mask": 2,
+      "keys": [
+        "AltLeft"
+      ],
+      "label": "GRAPH",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS1",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "Cursor Right",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS1",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "Cursor Up",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS1",
+      "mask": 16,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "Cursor Down",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS2",
+      "mask": 2,
+      "keys": [
+        "Pause"
+      ],
+      "label": "EXT MODE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS3",
+      "mask": 1,
+      "keys": [
+        "Quote"
+      ],
+      "label": "\"",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS3",
+      "mask": 2,
+      "keys": [
+        "Semicolon"
+      ],
+      "label": ";",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS4",
+      "mask": 4,
+      "keys": [
+        "Period"
+      ],
+      "label": ".",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "PLUS4",
+      "mask": 8,
+      "keys": [
+        "Comma"
+      ],
+      "label": ",",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 2,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 16,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "CONFIG",
+      "mask": 128,
+      "value": 0,
+      "name": "Hardware Version",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "Issue 2"
+        },
+        {
+          "value": 128,
+          "name": "Issue 3"
+        }
+      ]
+    },
+    {
+      "port": "CONFIG",
+      "mask": 1,
+      "value": 0,
+      "name": "Contention",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "Early"
+        },
+        {
+          "value": 1,
+          "name": "Late"
+        }
+      ]
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Kevin Thacker",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "holub",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 13,
+        "firstRelease": "0.243",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "AmatCoder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.208",
+        "lastRelease": "0.208"
+      },
+      {
+        "name": "geecab",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.196",
+        "lastRelease": "0.196"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.199",
+        "lastRelease": "0.199"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-02-05",
+    "commits": 92,
+    "authors": 20,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Computer published 40 years ago:\n\nZX Spectrum 128 (c) 1986 Sinclair Research, Limited.\n\nNew features included 128 KB RAM, three-channel audio via the AY-3-8912 chip, MIDI compatibility, an RS-232 serial port, an RGB monitor port, 32 KB of ROM including an improved BASIC editor, and an external keypad.\n\n- TECHNICAL -\n\nThe appearance of the ZX Spectrum 128 was similar to the ZX Spectrum+, with the exception of a large external heatsink for the internal 7805 voltage regulator added to the right hand end of the case, replacing the internal heatsink in previous versions.\n\nThe Z80 processor used in the Spectrum has a 16-bit address bus, which means only 64 KB of memory can be directly addressed. To facilitate the extra 80 KB of RAM the designers used bank switching so that the new memory would be available as eight pages of 16 KB at the top of the address space. The same technique was also used to page between the new 16 KB editor ROM and the original 16 KB BASIC ROM at the bottom of the address space.\n\nThe new sound chip and MIDI out abilities were exposed to the BASIC programming language with the command PLAY and a new command SPECTRUM was added to switch the machine into 48K mode, keeping the current BASIC program intact (although there is no way to switch back to 128K mode). To enable BASIC programmers to access the additional memory, a RAM disk was created where files could be stored in the additional 80 KB of RAM. The new commands took the place of two existing user-defined-character spaces causing compatibility problems with some BASIC programs.\n\nThe ZX Spectrum 128 had no internal speaker like its predecessors. The sound was produced from the television speaker instead\n\n- TRIVIA -\n\nCode-named 'Derby'. Sinclair developed the ZX Spectrum 128 in conjunction with their Spanish distributor Investrónica. Investrónica had helped adapt the ZX Spectrum+ to the Spanish market after the Spanish government introduced a special tax on all computers with 64 KB RAM or less, and a law which obliged all computers sold in Spain to support the Spanish alphabet and show messages in Spanish.\n\nThe machine was simultaneously presented for the first time and launched in September 1985 at the SIMO '85 trade show in Spain, with a price of 44,250 pesetas. Because of the large number of unsold Spectrum+ models, Sinclair decided not to start selling in the UK until January 1986 at a price of £179.95.\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/83040/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "software": [
+    {
+      "list": "spectrum_cass",
+      "kind": "cassette",
+      "entries": 13942,
+      "mountable": true
+    },
+    {
+      "list": "spectrum_cart",
+      "kind": "cartridge",
+      "entries": 20,
+      "mountable": true
+    }
+  ]
+}

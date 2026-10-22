@@ -1,0 +1,2336 @@
+{
+  "type": "DVG",
+  "uses": [
+    {
+      "game": "asteroid",
+      "tags": [
+        "dvg"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DVG",
+    "className": "dvg_device",
+    "shortName": "dvg",
+    "description": "Atari DVG",
+    "sourceFile": "src/devices/video/avgdvg.cpp",
+    "sourceLine": 1498,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DVG,          dvg_device,          \"dvg\",          \"Atari DVG\")"
+  },
+  "methods": [
+    {
+      "name": "update_databus",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 179,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_memspace"
+                },
+                "property": "read_byte"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_membase"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_pc"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_state_latch"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_addr",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 185,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "addr",
+            "valueType": "u8",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "^",
+                    "left": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_state_latch"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 7
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_state_latch"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 15
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "OP3"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "addr"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_op"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "addr"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 195,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "OP0"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sp"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sp"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_stack"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sp"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_pc"
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 205,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "OP0"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_pc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_stack"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sp"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sp"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sp"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_pc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dvg_draw_to",
+      "parameters": "int x, int y, int intensity",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 220,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "apply_flipping"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "y"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1024
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "vg_add_point_buf"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_xmin"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "x"
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 512
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_ymin"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 512
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "y"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "vector_device::color111"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "intensity"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 232,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "scale",
+            "valueType": "int"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_op"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "scale"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_scale"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "|",
+                        "left": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_dvy"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 2048
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 11
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "^",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_dvx"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 2048
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 2048
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 10
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_dvx"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2048
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 9
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "number",
+                  "value": 3840
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dvx"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "number",
+                  "value": 3840
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "scale"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_scale"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_op"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "fin",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "number",
+                "value": 4095
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "scale"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2047
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4095
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dx",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dvx"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1024
+                }
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "-",
+                "operand": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "whenFalse": {
+                "kind": "unary",
+                "operator": "+",
+                "operand": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dy",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1024
+                }
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "-",
+                "operand": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              "whenFalse": {
+                "kind": "unary",
+                "operator": "+",
+                "operand": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "mx",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dvx"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 4095
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "my",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 4095
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "cycles",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "number",
+                "value": 8
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "fin"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "c",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "fin"
+              },
+              "operator": "-=",
+              "value": {
+                "kind": "number",
+                "value": 1
+              },
+              "postfix": true
+            },
+            "body": [
+              {
+                "op": "declare",
+                "name": "countx",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "declare",
+                "name": "county",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "bit",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bit"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 12
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "c"
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "bit"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "bit"
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "mx"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "number",
+                                "value": 11
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "bit"
+                              }
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "countx"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "my"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "number",
+                                "value": 11
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "bit"
+                              }
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "county"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "c"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "c"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4095
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "countx"
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_ypos"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1024
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_xpos"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_xpos"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "dx"
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1024
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_xpos"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "dx"
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1024
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "dvg_draw_to"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_xpos"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_ypos"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_intensity"
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "dvg_draw_to"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "m_xpos"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "dx"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 4095
+                                  }
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_ypos"
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_xpos"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_xpos"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "dx"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4095
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "county"
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_xpos"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1024
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "^",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_ypos"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_ypos"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "dy"
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1024
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_xpos"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1024
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_ypos"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "dy"
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1024
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "dvg_draw_to"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "m_xpos"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "m_ypos"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "m_intensity"
+                                    }
+                                  ]
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "dvg_draw_to"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "m_xpos"
+                                    },
+                                    {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": "+",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_ypos"
+                                        },
+                                        "right": {
+                                          "kind": "identifier",
+                                          "name": "dy"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 4095
+                                      }
+                                    },
+                                    {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_ypos"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_ypos"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "dy"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4095
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "dvg_draw_to"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_xpos"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_ypos"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_intensity"
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "cycles"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 338,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_halt"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "OP0"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "OP0"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_xpos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_dvx"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4095
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ypos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_dvy"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4095
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "dvg_draw_to"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xpos"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_ypos"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_7",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 351,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvx"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dvx"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 255
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_intensity"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "m_data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_6",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 358,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvx"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 3840
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_op"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dvx"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_dvx"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3840
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_data"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "OP1"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "OP3"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_scale"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_intensity"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pc"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_5",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 371,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 255
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_op"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "m_data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_op"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dvx"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "number",
+                  "value": 3840
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "number",
+                  "value": 3840
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_4",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 385,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 3840
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_op"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "handler_7"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dvy"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_dvy"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3840
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_data"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pc"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vggo",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 397,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_op"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vgrst",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 403,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state_latch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_op"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1330,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "avgdvg_device_base::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "visarea",
+            "valueType": "rectangle&",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    },
+                    "property": "screen"
+                  },
+                  "args": []
+                },
+                "property": "visible_area"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xmin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "min_x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ymin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "min_y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xcenter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 512
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ycenter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 512
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/video/avgdvg.cpp",
+    "src/devices/video/avgdvg.h"
+  ]
+}

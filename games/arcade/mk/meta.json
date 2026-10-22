@@ -1,0 +1,87 @@
+{
+  "game": "mk",
+  "title": "Mortal Kombat (rev 5.0 T-Unit 03/19/93) (Midway, 1992)",
+  "fullname": "Mortal Kombat (rev 5.0 T-Unit 03/19/93)",
+  "year": "1992",
+  "manufacturer": "Midway",
+  "family": "midtunit",
+  "driverFile": "src/mame/williams/midtunit.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Alex Pasadyn, Zsolt Vasvari, Ernesto Corvi, Aaron Giles",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Alex Pasadyn",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.192",
+        "lastRelease": "0.193"
+      },
+      {
+        "name": "cuavas",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.175",
+        "lastRelease": "0.175"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 131,
+    "authors": 30,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

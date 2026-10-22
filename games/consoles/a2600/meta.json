@@ -1,0 +1,92 @@
+{
+  "game": "a2600",
+  "title": "Atari 2600 (NTSC) (Atari, 1977)",
+  "fullname": "Atari 2600 (NTSC)",
+  "year": "1977",
+  "manufacturer": "Atari",
+  "family": "a2600",
+  "kind": "console",
+  "driverFile": "src/mame/atari/a2600.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nathan Woods, Wilbert Pol, David Shah",
+  "credits": {
+    "people": [
+      {
+        "name": "Wilbert Pol",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.246",
+        "lastRelease": "0.247"
+      },
+      {
+        "name": "David Shah",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nathan Woods",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "kmg",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.246",
+        "lastRelease": "0.247"
+      },
+      {
+        "name": "MoochMcGee",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.214",
+        "lastRelease": "0.214"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.269",
+        "lastRelease": "0.269"
+      },
+      {
+        "name": "Taksangs",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.269",
+        "lastRelease": "0.269"
+      },
+      {
+        "name": "Thomas Jentzsch",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.247",
+        "lastRelease": "0.247"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-05-29",
+    "commits": 153,
+    "authors": 27,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

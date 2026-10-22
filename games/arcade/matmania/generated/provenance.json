@@ -1,0 +1,466 @@
+{
+  "generatedFrom": "src/mame/technos/matmania.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 640,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 650,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 659,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 654
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 640,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 659,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 638,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 642,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 648,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/3/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/4/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/5/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/6/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/7/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/8/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/9/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/10/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/11/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/12/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/13/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/14/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/15/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 640,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/16/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/frameEvents/17/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 256,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 638,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 642,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 645,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 648,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 653,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 654,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 657,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 659,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 661,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 662,
+      "column": 2
+    },
+    {
+      "path": "/devices/10/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 664,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 433,
+      "column": 2
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 206,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 454,
+      "column": 2
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 465,
+      "column": 2
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 104,
+      "column": 33
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 466,
+      "column": 2
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 244,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 640,
+      "column": 2
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 399,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 256,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 174,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 424,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 425,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 426,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/3/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 427,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/4/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 428,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/5/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 429,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/6/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 430,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/7/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 431,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/8/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 432,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/9/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 433,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/10/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 434,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/11/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 435,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/12/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 436,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/ranges/13/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 437,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 422,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 452,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 453,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/2/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 454,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/3/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 455,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/4/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 456,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/5/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 457,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/ranges/6/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 458,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 450,
+      "column": 1
+    },
+    {
+      "path": "/video/palette/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 174,
+      "column": 1
+    },
+    {
+      "path": "/video/source",
+      "file": "src/mame/technos/matmania.cpp",
+      "line": 244,
+      "column": 1
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "ffight",
+  "family": "cps1",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 102,
+    "total": 164,
+    "percent": 62.2
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M68000",
+        "status": "executable",
+        "source": "src/devices/cpu/m68000/m68000.cpp:8"
+      },
+      {
+        "name": "audiocpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch1:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "2151:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "oki:OKIM6295",
+        "status": "executable",
+        "source": "src/devices/sound/okim6295.cpp:54"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "2151.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "2151.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "bank.audiobank",
+        "status": "generated"
+      },
+      {
+        "name": "cps_state.cps1_coinctrl_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:316"
+      },
+      {
+        "name": "cps_state.cps1_cps_a_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1_v.cpp:2115"
+      },
+      {
+        "name": "cps_state.cps1_cps_b_r",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1_v.cpp:2136"
+      },
+      {
+        "name": "cps_state.cps1_cps_b_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1_v.cpp:2183"
+      },
+      {
+        "name": "cps_state.cps1_dsw_r",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:257"
+      },
+      {
+        "name": "cps_state.cps1_gfxram_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1_v.cpp:2368"
+      },
+      {
+        "name": "cps_state.cps1_oki_pin7_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:297"
+      },
+      {
+        "name": "cps_state.cps1_snd_bankswitch_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:292"
+      },
+      {
+        "name": "cps_state.cps1_soundlatch2_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:310"
+      },
+      {
+        "name": "cps_state.cps1_soundlatch_w",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:302"
+      },
+      {
+        "name": "oki.read",
+        "status": "executable",
+        "source": "src/devices/sound/okim6295.cpp:54"
+      },
+      {
+        "name": "oki.write",
+        "status": "executable",
+        "source": "src/devices/sound/okim6295.cpp:54"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch1.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch2.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.set_vblank_int -> screen.cps1_interrupt",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:3916"
+      },
+      {
+        "name": "screen.set_screen_update -> cps_state.screen_update_cps1",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:3926"
+      },
+      {
+        "name": "screen.screen_vblank -> cps_state.screen_vblank_cps1",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:3927"
+      },
+      {
+        "name": "screen.screen_vblank -> cps_state.cps1_objram_latch",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:3928"
+      },
+      {
+        "name": "2151.irq_handler -> audiocpu",
+        "status": "generated",
+        "source": "src/mame/capcom/cps1.cpp:3941"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/ffight/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 33,
+    "compiledMethods": 32,
+    "blockedMethods": 1,
+    "usedCompiledHandlers": 10,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 3,
+    "screenUpdate": "cps_state.screen_update_cps1",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 12,
+    "generated": 18,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

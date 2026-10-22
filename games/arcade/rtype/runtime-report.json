@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "rtype",
+  "family": "m72",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 130,
+    "total": 181,
+    "percent": 71.8
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:V30",
+        "status": "executable",
+        "source": "src/devices/cpu/nec/nec.cpp:124"
+      },
+      {
+        "name": "soundcpu:Z80",
+        "status": "executable",
+        "source": "src/devices/cpu/z80/z80.cpp:940"
+      }
+    ],
+    "devices": [
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "soundlatch:GENERIC_LATCH_8",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundirq:RST_NEG_BUFFER",
+        "status": "executable",
+        "source": "src/devices/machine/rstbuf.cpp:63"
+      },
+      {
+        "name": "ymsnd:YM2151",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "upd71059c:PIC8259",
+        "status": "executable",
+        "source": "src/devices/machine/pic8259.cpp:458"
+      },
+      {
+        "name": "spriteram:BUFFERED_SPRITERAM16",
+        "status": "executable",
+        "source": "src/devices/video/bufsprite.cpp:21"
+      },
+      {
+        "name": "gfxdecode:GFXDECODE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "m72_state.dmaon_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72_v.cpp:287"
+      },
+      {
+        "name": "m72_state.irq_line_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72_v.cpp:274"
+      },
+      {
+        "name": "m72_state.palette_r_0",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:544"
+      },
+      {
+        "name": "m72_state.palette_r_1",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:544"
+      },
+      {
+        "name": "m72_state.palette_w_0",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:558"
+      },
+      {
+        "name": "m72_state.palette_w_1",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:558"
+      },
+      {
+        "name": "m72_state.port02_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72_v.cpp:293"
+      },
+      {
+        "name": "m72_state.scrollx_w_0",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:572"
+      },
+      {
+        "name": "m72_state.scrollx_w_1",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:572"
+      },
+      {
+        "name": "m72_state.scrolly_w_0",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:578"
+      },
+      {
+        "name": "m72_state.scrolly_w_1",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:578"
+      },
+      {
+        "name": "m72_state.soundram_r",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:584"
+      },
+      {
+        "name": "m72_state.soundram_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:589"
+      },
+      {
+        "name": "m72_state.videoram1_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72_v.cpp:252"
+      },
+      {
+        "name": "m72_state.videoram2_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72_v.cpp:258"
+      },
+      {
+        "name": "port.DSW",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN0",
+        "status": "generated"
+      },
+      {
+        "name": "port.IN1",
+        "status": "generated"
+      },
+      {
+        "name": "soundlatch.acknowledge_w",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.read",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "soundlatch.write",
+        "status": "executable",
+        "source": "src/devices/machine/gen_latch.cpp:23"
+      },
+      {
+        "name": "upd71059c.read",
+        "status": "executable",
+        "source": "src/devices/machine/pic8259.cpp:458"
+      },
+      {
+        "name": "upd71059c.write",
+        "status": "executable",
+        "source": "src/devices/machine/pic8259.cpp:458"
+      },
+      {
+        "name": "ymsnd.read",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      },
+      {
+        "name": "ymsnd.write",
+        "status": "executable",
+        "source": "src/devices/sound/ymopm.cpp:12"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "scanline_timer.timer -> m72_state.scanline_interrupt",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:256"
+      },
+      {
+        "name": "soundcpu.set_irq_acknowledge_callback -> soundirq.inta_cb",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1671"
+      },
+      {
+        "name": "soundlatch.data_pending_callback -> soundirq.rst18_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1666"
+      },
+      {
+        "name": "soundirq.int_callback -> soundcpu",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1669"
+      },
+      {
+        "name": "ymsnd.irq_handler -> soundirq.rst28_w",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1678"
+      },
+      {
+        "name": "maincpu.set_irq_acknowledge_callback -> upd71059c.inta_cb",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1690"
+      },
+      {
+        "name": "upd71059c.out_int_callback -> maincpu",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1697"
+      },
+      {
+        "name": "screen.set_screen_update -> m72_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/irem/m72.cpp:1707"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/rtype/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 28,
+    "compiledMethods": 28,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 15,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 0,
+    "screenUpdate": "m72_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 14,
+    "generated": 27,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

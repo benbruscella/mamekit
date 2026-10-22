@@ -1,0 +1,1056 @@
+{
+  "type": "QUICKLOAD",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "quickload"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "quickload"
+      ]
+    },
+    {
+      "game": "spec128",
+      "tags": [
+        "quickload"
+      ]
+    },
+    {
+      "game": "spectrum",
+      "tags": [
+        "quickload"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "QUICKLOAD",
+    "className": "quickload_image_device",
+    "shortName": "quickload",
+    "description": "Quickload",
+    "sourceFile": "src/devices/imagedev/snapquik.cpp",
+    "sourceLine": 119,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(QUICKLOAD, quickload_image_device, \"quickload\", \"Quickload\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.cpp",
+      "sourceLine": 82,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_load"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_load",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.cpp",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_delay"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_pair"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::error_condition"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_software_list_loader",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.cpp",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "image_software_list_loader::instance"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "show_message",
+      "parameters": "util::format_argument_pack<char> const &args",
+      "sourceFile": "src/devices/imagedev/snapquik.cpp",
+      "sourceLine": 111,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "ui"
+                  },
+                  "args": []
+                },
+                "property": "popup_time"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "string",
+                  "value": "%s: %s"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "basename"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "util::string_format"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "args"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "process_snapshot_or_quickload",
+      "parameters": "int param",
+      "sourceFile": "src/devices/imagedev/snapquik.cpp",
+      "sourceLine": 52,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "check_for_file"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "__binding_17",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_load"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "err",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "__binding_17"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "message",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "__binding_17"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "err"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_error"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "message"
+                            },
+                            "property": "empty"
+                          },
+                          "args": []
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "string",
+                        "value": "%1$s: Error loading '%2$s': %3$s (%4$s:%5$d %6$s)\n"
+                      },
+                      "whenFalse": {
+                        "kind": "string",
+                        "value": "%1$s: Error loading '%2$s': %6$s (%4$s:%5$d)\n"
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "tag"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "basename"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "message"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "err"
+                            },
+                            "property": "category"
+                          },
+                          "args": []
+                        },
+                        "property": "name"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "err"
+                        },
+                        "property": "value"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "err"
+                        },
+                        "property": "message"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device",
+      "parameters": "mconfig, tag, owner, 0U",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_extensions"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "extensions"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_delay"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "delay"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_interface",
+      "parameters": "const char *interface",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interface"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "interface"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_interface",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_interface"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "file_extensions",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_file_extensions"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "quickload"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "quik"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_extensions",
+      "parameters": "const char *ext",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_file_extensions"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "ext"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_delay",
+      "parameters": "attotime delay",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 52,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_delay"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "delay"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::snapshot_image_device",
+      "parameters": "mconfig, tag, owner, 0U",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_extensions"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "extensions"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_delay"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "delay"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::set_interface",
+      "parameters": "const char *interface",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interface"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "interface"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::image_interface",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_interface"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::file_extensions",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_file_extensions"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "snapshot"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "dump"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::set_extensions",
+      "parameters": "const char *ext",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 51,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_file_extensions"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "ext"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snapshot_image_device::set_delay",
+      "parameters": "attotime delay",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 53,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_delay"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "delay"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "quickload_image_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, const char* extensions, attotime delay = attotime::zero",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_extensions"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "extensions"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_delay"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "delay"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "quickload_image_device::quickload_image_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, const char* extensions, attotime delay = attotime::zero",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_extensions"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "extensions"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_delay"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "delay"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "quickload_image_device::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "quickload"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "quickload_image_device::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/snapquik.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "quik"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/imagedev/snapquik.cpp",
+    "src/devices/imagedev/snapquik.h"
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "game": "c64",
+  "title": "Commodore 64 (NTSC) (Commodore Business Machines, 1982)",
+  "fullname": "Commodore 64 (NTSC)",
+  "year": "1982",
+  "manufacturer": "Commodore Business Machines",
+  "family": "c64",
+  "kind": "computer",
+  "driverFile": "src/mame/commodore/c64.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Curt Coder",
+  "credits": {
+    "people": [
+      {
+        "name": "Curt Coder",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.253",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "geecab",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 6,
+        "firstRelease": "0.163",
+        "lastRelease": "0.163"
+      },
+      {
+        "name": "AmatCoder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.212",
+        "lastRelease": "0.212"
+      },
+      {
+        "name": "Nathan Woods",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.189",
+        "lastRelease": "0.189"
+      },
+      {
+        "name": "Chris Swan",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.242",
+        "lastRelease": "0.242"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.229",
+        "lastRelease": "0.229"
+      },
+      {
+        "name": "Steven Coomber",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.239",
+        "lastRelease": "0.239"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-06-25",
+    "commits": 142,
+    "authors": 24,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 2,
+  "audioLimitations": [],
+  "game": "missile",
+  "family": "missile",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 63,
+    "total": 100,
+    "percent": 63
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:M6502",
+        "status": "executable",
+        "source": "src/devices/cpu/m6502/m6502.cpp:15"
+      }
+    ],
+    "devices": [
+      {
+        "name": "mainmap:ADDRESS_MAP_BANK",
+        "status": "executable",
+        "source": "src/devices/machine/bankdev.cpp:7"
+      },
+      {
+        "name": "watchdog:WATCHDOG_TIMER",
+        "status": "declarative-host",
+        "source": "src/devices/machine/watchdog.cpp:20"
+      },
+      {
+        "name": "palette:PALETTE",
+        "status": "declarative-host"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "mono:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "pokey:POKEY",
+        "status": "executable",
+        "source": "src/devices/sound/pokey.cpp:193"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "missile_state.trampoline_r",
+        "status": "generated",
+        "source": "src/mame/atari/missile.cpp:795"
+      },
+      {
+        "name": "missile_state.trampoline_w",
+        "status": "generated",
+        "source": "src/mame/atari/missile.cpp:786"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "maincpu.sync_cb -> missile_state.sync_w",
+        "status": "generated",
+        "source": "src/mame/atari/missile.cpp:968"
+      },
+      {
+        "name": "screen.set_screen_update -> missile_state.screen_update_missile",
+        "status": "generated",
+        "source": "src/mame/atari/missile.cpp:981"
+      },
+      {
+        "name": "pokey.allpot_r -> R8",
+        "status": "generated",
+        "source": "src/mame/atari/missile.cpp:988"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/arcade/missile/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 23,
+    "compiledMethods": 23,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 2,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 1,
+    "frameCallbacks": 0,
+    "screenUpdate": "missile_state.screen_update_missile",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 3,
+    "generated": 6,
+    "declarative-host": 4,
+    "blocked": 0,
+    "missing": 0
+  }
+}

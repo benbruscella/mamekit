@@ -1,0 +1,1327 @@
+{
+  "type": "TOAPLAN_DSP",
+  "uses": [
+    {
+      "game": "wardner",
+      "tags": [
+        "dsp"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TOAPLAN_DSP",
+    "className": "toaplan_dsp_device",
+    "shortName": "toaplan_dsp",
+    "description": "Toaplan TMS320C10 DSP Interface",
+    "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+    "sourceLine": 13,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TOAPLAN_DSP, toaplan_dsp_device, \"toaplan_dsp\", \"Toaplan TMS320C10 DSP Interface\")"
+  },
+  "methods": [
+    {
+      "name": "program_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 32,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "number",
+                          "value": 2047
+                        }
+                      ]
+                    },
+                    "property": "rom"
+                  },
+                  "args": []
+                },
+                "property": "region"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "dsp"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "io_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "toaplan_dsp_device::dsp_addrsel_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "toaplan_dsp_device::dsp_r"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "toaplan_dsp_device::dsp_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "toaplan_dsp_device::dsp_bio_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 49,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TMS320C10"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_dsp"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "DERIVED_CLOCK"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dsp"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "toaplan_dsp_device::program_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dsp"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_IO"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "toaplan_dsp_device::io_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dsp"
+                    },
+                    "property": "bio"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "toaplan_dsp_device::bio_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 57,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_host_addr_cb"
+                },
+                "property": "resolve_safe"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_host_r_cb"
+                },
+                "property": "resolve_safe"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_host_w_cb"
+                },
+                "property": "resolve_safe"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dsp_on"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dsp_addr_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_main_ram_seg"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dsp_bio"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dsp_execute"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 70,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dsp_addr_w"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_main_ram_seg"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dsp_execute"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dsp_bio"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "CLEAR_LINE"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 78,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "dsp_int_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_dsp_on"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dsp_addrsel_w",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_host_addr_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_main_ram_seg"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_dsp_addr_w"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOGMASKED"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "LOG_DSP"
+                },
+                {
+                  "kind": "string",
+                  "value": "%s: dsp_addrsel_w %04x (%08x)\n"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "describe_context"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_main_ram_seg"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_dsp_addr_w"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dsp_r",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 90,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "input_data",
+            "valueType": "u16",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_host_r_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_main_ram_seg"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_dsp_addr_w"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "LOGMASKED"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "LOG_DSP"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "%s: dsp_r %04x at %08x\n"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "describe_context"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "input_data"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_main_ram_seg"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_dsp_addr_w"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "input_data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dsp_w",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dsp_execute"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_host_w_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_main_ram_seg"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_dsp_addr_w"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOGMASKED"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "LOG_DSP"
+                },
+                {
+                  "kind": "string",
+                  "value": "%s: dsp_w %04x at %08x\n"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "describe_context"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_main_ram_seg"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_dsp_addr_w"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dsp_bio_w",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 108,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "LOGMASKED"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "LOG_DSP"
+                },
+                {
+                  "kind": "string",
+                  "value": "%s: dsp_bio_w %04x\n"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "describe_context"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 15
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dsp_bio"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_dsp_execute"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "LOGMASKED"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "LOG_DSP"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "Turning the host CPU on\n"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_halt_cb"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "CLEAR_LINE"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_dsp_execute"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_dsp_bio"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "ASSERT_LINE"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bio_r",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_dsp_bio"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dsp_int_w",
+      "parameters": "int enable",
+      "sourceFile": "src/mame/toaplan/toaplan_dsp.cpp",
+      "sourceLine": 138,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dsp_on"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "enable"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "LOGMASKED"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "LOG_DSP"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "Turning DSP on and the host CPU off\n"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dsp"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INPUT_LINE_HALT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dsp"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_halt_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "LOGMASKED"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "LOG_DSP"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "Turning DSP off\n"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dsp"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dsp"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INPUT_LINE_HALT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/toaplan/toaplan_dsp.cpp",
+    "src/mame/toaplan/toaplan_dsp.h"
+  ],
+  "composedOf": [
+    "TMS320C10"
+  ]
+}

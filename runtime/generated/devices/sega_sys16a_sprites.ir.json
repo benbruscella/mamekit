@@ -1,0 +1,2416 @@
+{
+  "type": "SEGA_SYS16A_SPRITES",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "sprites"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SEGA_SYS16A_SPRITES",
+    "className": "sega_sys16a_sprite_device",
+    "shortName": "sega_sys16a_sprite",
+    "description": "Sega System 16A Sprites",
+    "sourceFile": "src/mame/sega/sega16sp.cpp",
+    "sourceLine": 23,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SEGA_SYS16A_SPRITES,    sega_sys16a_sprite_device,    \"sega_sys16a_sprite\",    \"Sega System 16A Sprites\")"
+  },
+  "methods": [
+    {
+      "name": "draw",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+      "sourceFile": "src/mame/sega/sega16sp.cpp",
+      "sourceLine": 474,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "spritebase",
+            "valueType": "uint16_t*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sprite_region_ptr"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "numbanks",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_sprite_region_ptr"
+                  },
+                  "property": "bytes"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 65536
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ramend",
+            "valueType": "uint16_t*",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "spriteram"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "spriteram_elements"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "data",
+                "valueType": "uint16_t*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "spriteram"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "ramend"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 8
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "bottom",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bottom"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 240
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "top",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 255
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "xpos",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 511
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "pitch",
+                "valueType": "int",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "int16_t",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "addr",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "colpri",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 63
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "data"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "bank",
+                "valueType": "int",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_bank"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "addr"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "top"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bottom"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "bank"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "continue"
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "numbanks"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bank"
+                    },
+                    "operator": "%=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "numbanks"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "spritedata",
+                "valueType": "uint16_t*",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "spritebase"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bank"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "xdelta",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_flip"
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "temp",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "top"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "top"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "number",
+                        "value": 224
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "bottom"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bottom"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "number",
+                        "value": 224
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "temp"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "xpos"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "number",
+                        "value": 320
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "xpos"
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "xdelta"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_origin"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_xoffs_flipped"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_yoffs_flipped"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_origin"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_xoffs"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_yoffs"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "minx",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "xpos"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "maxx",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "xpos"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "miny",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    "property": "max_y"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "maxy",
+                "valueType": "int",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cliprect"
+                    },
+                    "property": "min_y"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "y",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "top"
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "y"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "bottom"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "addr"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "pitch"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">=",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "y"
+                        },
+                        "right": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cliprect"
+                          },
+                          "property": "min_y"
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "<=",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "y"
+                        },
+                        "right": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cliprect"
+                          },
+                          "property": "max_y"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "dest",
+                        "valueType": "uint16_t*",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "&",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "bitmap"
+                              },
+                              "property": "pix"
+                            },
+                            "args": [
+                              {
+                                "kind": "identifier",
+                                "name": "y"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "op": "declare",
+                        "name": "x",
+                        "valueType": "int"
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "addr"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 7
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "addr"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "for",
+                            "initialize": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xpos"
+                                }
+                              }
+                            ],
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "xpos"
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 511
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "iterate": [],
+                            "body": [
+                              {
+                                "op": "declare",
+                                "name": "pixels",
+                                "valueType": "uint16_t",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "spritedata"
+                                  },
+                                  "index": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "assignment",
+                                      "target": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "data"
+                                        },
+                                        "index": {
+                                          "kind": "number",
+                                          "value": 7
+                                        }
+                                      },
+                                      "operator": "+=",
+                                      "value": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 32767
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "op": "declare",
+                                "name": "pix",
+                                "valueType": "int"
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 12
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 8
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 4
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "pix"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "break"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "data"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 7
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "addr"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "for",
+                            "initialize": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xpos"
+                                }
+                              }
+                            ],
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "xpos"
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "x"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 511
+                                }
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "iterate": [],
+                            "body": [
+                              {
+                                "op": "declare",
+                                "name": "pixels",
+                                "valueType": "uint16_t",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "spritedata"
+                                  },
+                                  "index": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "assignment",
+                                      "target": {
+                                        "kind": "index",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "data"
+                                        },
+                                        "index": {
+                                          "kind": "number",
+                                          "value": 7
+                                        }
+                                      },
+                                      "operator": "-=",
+                                      "value": {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 32767
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "op": "declare",
+                                "name": "pix",
+                                "valueType": "int"
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 0
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 4
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 8
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "pix"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": ">>",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pixels"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 12
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&&",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": ">=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "min_x"
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "binary",
+                                        "operator": "<=",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "x"
+                                        },
+                                        "right": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cliprect"
+                                          },
+                                          "property": "max_x"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "binary",
+                                      "operator": "!=",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 0
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "pix"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "index",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "dest"
+                                      },
+                                      "index": {
+                                        "kind": "identifier",
+                                        "name": "x"
+                                      }
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "colpri"
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "pix"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "x"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "xdelta"
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "pix"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 15
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "break"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "maxx"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "maxx"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "x"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "minx"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "minx"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "x"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "miny"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "miny"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "y"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "maxy"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "y"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "minx"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "maxx"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "miny"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "maxy"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "mark_dirty"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "minx"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "maxx"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "miny"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "maxy"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/sega/sega16sp.cpp",
+    "src/mame/sega/sega16sp.h",
+    "src/mame/sega/segaic16.h"
+  ]
+}

@@ -1,0 +1,360 @@
+# Missile Command (rev 3, A035467-02/04 PCBs)
+
+**Atari · 1980** — transpiled from the MAME driver `src/mame/atari/missile.cpp` by mamekit.
+
+![marquee](/artwork/media/marquees/missile.webp)
+
+| Cover | Cabinet |
+| --- | --- |
+| ![flyer](/artwork/covers/missile.webp) | ![cabinet](/artwork/media/cabinets/missile.webp) |
+
+## The machine
+
+| CPU | Type | Clock | Mapped ranges |
+| --- | --- | --- | --- |
+| `maincpu` | M6502 | 1.250 MHz | 1 |
+
+- **Sound:** pokey × 1 @ 1.250 MHz
+- **Screen:** 256×231 @ 61.04 Hz
+
+### ROM chips
+
+| Region | Chip | Offset | Size | CRC |
+| --- | --- | --- | --- | --- |
+| `maincpu` | `035820-02.h1` | 0x5000 | 0x800 | `7a62ce6a` |
+| `maincpu` | `035821-02.jk1` | 0x5800 | 0x800 | `df3bd57f` |
+| `maincpu` | `035822-03e.kl1` | 0x6000 | 0x800 | `1a2f599a` |
+| `maincpu` | `035823-02.lm1` | 0x6800 | 0x800 | `82e552bb` |
+| `maincpu` | `035824-02.np1` | 0x7000 | 0x800 | `606e42e0` |
+| `maincpu` | `035825-02.r1` | 0x7800 | 0x800 | `f752eaeb` |
+| `proms` | `035826-01.l6` | 0x0 | 0x20 | `86a22140` |
+
+## Controls
+
+| Key | Function | Port | Bit |
+| --- | --- | --- | --- |
+| 2 | start2 | `IN0` | 0x8 |
+| 1 | start1 | `IN0` | 0x10 |
+| 5 | coin1 | `IN0` | 0x20 |
+| 6 | coin2 | `IN0` | 0x40 |
+| C | button3 | `IN1` | 0x1 |
+| Z | button2 | `IN1` | 0x2 |
+| Space / X | button1 | `IN1` | 0x4 |
+| F2 | service | `IN1` | 0x40 |
+| Left | trackball x left | `TRACK0_X` | 0xf |
+| Right | trackball x right | `TRACK0_X` | 0xf |
+| Up | trackball y up | `TRACK0_Y` | 0xf |
+| Down | trackball y down | `TRACK0_Y` | 0xf |
+
+## DIP switches (factory defaults)
+
+| Setting | Port | Mask | Default |
+| --- | --- | --- | --- |
+| Coinage | `R10` | 0x3 | 0x1 |
+| Right Coin | `R10` | 0xc | 0x0 |
+| Center Coin | `R10` | 0x10 | 0x0 |
+| Language | `R10` | 0x60 | 0x0 |
+| Unknown | `R10` | 0x80 | 0x80 |
+| Cities | `R8` | 0x3 | 0x3 |
+| Bonus Credit for 4 Coins | `R8` | 0x4 | 0x0 |
+| Trackball Size | `R8` | 0x8 | 0x0 |
+| Bonus City | `R8` | 0x70 | 0x70 |
+| Cabinet | `R8` | 0x80 | 0x0 |
+
+## The MAME driver — the people who reverse-engineered it
+
+- **Driver source:** `src/mame/atari/missile.cpp`
+- **Written by:** Aaron Giles
+- **License:** BSD-3-Clause
+- **Credited by MAMEDEV:** Aaron Giles (driver header); Tafoid (4 release notes); couriersud (2 release notes); einstein95 (1 release note); Phil Bennett (1 release note)
+- **Credit source:** MAME driver header (copyright-holders) and MAMEDEV release notes, release notes 0.100–0.289
+- **Commit activity:** 194 commits by 26 commit authors, 2007–2026 (git log --follow over the driver file at MAME f34f02505e32; not a statement of authorship)
+
+## The story
+
+Arcade Video game published 46 years ago:
+
+Missile Command (c) 1980 Atari.
+
+Missile Command is a one or two-player game depicting the outbreak of a nuclear war. Players must defend six cities from waves of incoming nuclear missiles by launching their own anti-ballistic missiles (ABMs) from one of three missile batteries. 
+
+The game is played by moving a cross-hair across the sky and pressing one of three buttons to launch an ABM from the corresponding battery (either Alpha Base, Delta Base or Omega Base). Upon reaching the cross-hair the player's ABM explodes, creating a fireball that lasts for several seconds and destroys any enemy missiles that enter it. Each battery is initially armed with ten anti-ballistic missiles and becomes useless when either all of its missiles have been fired or it's been destroyed by enemy missiles. 
+
+New enemy weapons are introduced in later levels that increase the level of difficulty; smart bombs that can evade a less than perfectly targeted missile, and bomber planes and satellites that fly across the screen and launch missiles of their own. Missiles from the player's central battery fly to their targets at much greater speed and are the most effective way of destroying smart bombs from a distance.
+
+Enemy weapons are only able to destroy a maximum of three cities per level. A level ends once all enemy missiles have either been destroyed or have reached their target. At the conclusion of a level, players receive bonus points for any remaining cities and unused missiles. Between levels, missile batteries are rebuilt and replenished, while destroyed cities are only rebuilt at set point thresholds (determined by the game's dip switch settings).
+
+The game ends once all cities have been destroyed.
+
+### Cast of elements
+Anti-Ballistic Missiles (ABM) : The defensive missiles you launch to protect your cities. Each missile base contains 10 ABMs per wave. If any missile base is struck by an attack missile or smart bomb, the remaining stock of ABMs for that wave are destroyed, and the missile base is rendered useless until the next wave. You receive bonus points for every ABM you have remaining at the end of each wave. 
+
+Targeting crosshair : Aim your ABMs quickly but carefully. Use the trackball to move the targeting crosshair to where you want the next ABM to go, then press any Launch Control button to fire the ABM. The ABM will explode where the crosshair was positioned when the Launch Control button was pressed. 
+
+Cities : There are six cities in total on the screen at one time, three on either side of the Delta Base. If one enemy missile or smart bomb manages to strike a city, that city will be wiped out. When all cities are destroyed, the game is over. 
+
+Alpha Base : The missile base on the bottom left corner of the screen. Press the leftmost Launch Control button to launch an ABM from the Alpha base. 
+
+Delta Base : The missile base in the bottom center of the screen. Press the middle Launch Control button to launch an ABM from the Delta base. 
+
+Omega Base : The missile base on the bottom right corner of the screen. Press the rightmost Launch Control button to launch an ABM from the Omega base. 
+
+NOTE: The Alpha and Omega bases launch ABMs at a slower speed than the Delta base, so you must plan further ahead when launching ABMs from those bases. 
+
+Attack Missiles : Their only aim is to destroy your cities and missile bases. Every missile wave starts off with a hailstorm of attack missiles. They never deviate from their path. They may, however, turn into MIRVs. 
+
+Multiple Independently-targeted Re-entry Vehicles (MIRV) : Surprise! There is no warning when an attack missile turns into an MIRV (with multiple warheads). Think fast. Each new missile that the MIRV unleashes is carefully targeted. 
+
+Killer Satellite : A mean-looking satellite that travels across the sky at a mid-level altitude and fires attack missiles. First appears in Wave 2. 
+
+Bomber : A big slow-moving target that flies across the sky at a mid-level altitude, but watch out! It fires attack missiles. First appears in Wave 2. 
+
+WARNING: If you destroy a bomber or killer satellite before they deploy their attack missiles, you may see their attack missiles added to the downpour. An existing attack missile may also turn into an MIRV. 
+
+Smart Bomb : Smart enough to avoid most explosion clouds from your ABMs. Your ABM must explode next to one in order to destroy it. You can also squeen it between two explosions to destroy it. First appears in Wave 5. 
+
+'LOW' Warning : As soon as there are only three ABMs left in a missile base, the game displays the word 'LOW' underneath that base, and a warning signal sounds. Heed the warning.
+
+### Technical
+Missile Command is available in four different cabinet models: upright, cabaret, cocktail, and cockpit.
+The cockpit model only supports 1 player, while all others support up to 2 players. 
+
+After every two attack waves, the color scheme changes. There are ten different color schemes in all. After Waves 19 and 20, the game returns to the first color scheme. Notice that the sky remains black for the first four color schemes, and starts changing its color with the fifth scheme. 
+
+Game ID: 035820-035825 
+
+Main CPU: MOS Technology M6502 (@ 1.25 Mhz) 
+Sound Chips: POKEY (@ 1.25 Mhz) 
+
+(Cockpit model) 
+Players: 1 
+
+(Upright, Cabaret, and Cocktail models) 
+Players: 2 
+
+Control: Trackball ('TARGET CONTROL' for moving and aiming the targeting crosshair) 
+
+(Upright and Cockpit models)
+Diameter of trackball: 4.5 inches (11.43cm)
+
+(Cabaret and Cocktail models)
+Diameter of trackball: 2.5 inches (6.35cm)
+
+Buttons: 3 ('LAUNCH CONTROL') - for firing the ABMs from each base 
+= > [A] (leftmost button) - fires ABMs from Alpha Base 
+= > [B] (middle button) - fires ABMs from Delta Base 
+= > [C] (rightmost button) - fires ABMs from Omega Base
+
+### Trivia
+Missile Command was released on June 15, 1980 (Sunday) in the USA, selling at an MSRP of $1995.
+
+Licensed to Sega & Taito for the Japanese market. 
+
+The Upright and Cockpit versions of Missile Command were the last games to use the large 4.5-inch aluminum trackball that was also used by "Atari Football", "Atari Basketball", "Atari Baseball" and "Atari Soccer". The Cabaret and Cocktail versions used the smaller 2.5-inch trackball that would be used by later Atari titles, especially "Centipede".
+
+Missile Command was an immensely popular arcade game that combined great game play with a rather chilling message about the dangers of war. Approximately 20,000 units were produced (14044 Upright, 3005 Cocktail, ~1500 cabaret)
+
+Originally called 'Armaggedon', Missile Command was designed at a time that the United States and Russia were locked in a fierce 'cold war'. Missile Command was originally going to have a large status panel as part of its marquee which indicated the status of the bases and cities but it was eliminated when the designers learned that players lost track of on-screen gameplay when they looked up at the panel. There is a picture of a prototype cabinet with the status panel on page 60 of the book 'High Score : The Illustrated History of Electronics Games, 2nd Edition'. 
+
+* The Creation of Missile Command : The idea for Missile Command began with a magazine story about satellites that captured the attention of Atari's president, who passed the clipping to Lyle Rains. Rains asked Dave Theurer to lead the effort in creating the classic, action-packed arcade game. 
+
+* Remembrances from the Video Game Masters : Recalling the birth of Missile Command, Dave Theurer said : "The request was for a game where there are missiles attacking the California coast and the player is defending the coast. They said, take it from here and write up a game proposal. In the first proposal it was the California coast." 
+
+Part of creating a great game is knowing what to strip away. Some of the first baggage the developers dropped was geographic identifications because of the frightful scenario of the game. And then they stripped away more. 
+
+Dave Theurer : "The original suggestion was for there to be a scanning radar, but I immediately said, no way! It would be just too hard for the player because he wouldn't be able to see what was going on. We chucked that idea. And when we first developed the game, we added railroads to transport missiles from the cities to the missile bases. That got to be too complicated and people got confused... if you get too complicated, people won't play. We also had submarines for a while but that didn't work out so we ripped them out, too." 
+
+The smart bombs presented the most difficult challenge in writing the code for Missile Command. 
+
+Dave Theurer : "These little diamond-shape guys can evade your explosions. The only way you can kill them is if the explosion starts out right on top of them. Programming that was the hardest part. They had to be intelligent because the little guy had to look around on the screen to see what he had to avoid and he had to figure out the best path to go around what there was to avoid. Of course, if I made it too smart, then the player couldn't kill it and they'd be guaranteed instant death. So it had to be a fine line between smarter than the dumb missiles, yet not totally unkillable." 
+
+Nerves of steel is the way Rich Adam, one of the Missile Command team members, described his co-worker : "Dave Theurer was extremely detail oriented, very thorough, and very disciplined. He had nerves of steel, would never get rattled, and worked tirelessly. You need nerves of steel because if your code doesn't work it's your fault, something inside that code is not correct. There's really nowhere to hide. The real Achilles' heel with a lot of software people, I believe, is that they spin their wheels and they go through this denial phase : 'It can't be my code! How could anything possibly be wrong with it? My code is so straightforward!' Well, it's so straightforward you might not have thought of a nuance. So, that's why it takes nerves of steel, I think. The work requires sort of a cold, methodical approach to the software." 
+
+* Popular from the Start : Even before it shipped, Missile Command had intense fans. 
+
+Speaking of the play, the game got just within the labs of Atari. Ed Rotberg said : "There were guys there that would literally have to worship that game for hours at a time. Their hands were sweating, and it was a definite adrenaline rush." 
+
+Describing some of the dedicated players at Atari, Dave Theurer said : "We were in the same building as the consumer division and there were a couple of guys from that division who would come down and spend all day playing Missile Command. I don't know what they did upstairs, but they would spend the entire day playing the game." 
+
+* The Great 25-Cent Escape : The escape from reality could sometimes have frightful consequences. The horrifying subject matter of Missile Command had an impact on the developers. 
+
+Dave Theurer : "It was pretty scary. During the project and for 6 months after the project, I'd wake up in a cold sweat because I'd have these dreams where I'd see the missile streak coming in and I'd see the impact. I would be up on top of a mountain and I'd see the missiles coming in, and I'd know it would be about 30 seconds until the blast hit and fried me to a crisp." 
+
+Steve Calfee : "Everybody I know who really got into the game had nightmares about nuclear war." 
+
+The game was nearly shipped with a name that carried the message of the end of the world... Armageddon. 
+
+Steve Calfee : "We had this big thing about the name of the game. From the beginning, it was called Armageddon. The management, themselves, didn't know what the word meant and they thought none of the kids would. Then we went through this big thing of naming it. Engineering loved the name Armageddon, and we always wanted to call it that. From the very top came the message, 'We can't use that name, nobody'll know what it means, and nobody can spell it.'" 
+
+Placing the game in the context of the previous decade, Ed Rotberg said : "The thing about Missile Command is that the world was not nearly as stable politically as it is now. There is a little bit of a spooky message in that whole game when you have that final cloud at the end." 
+
+Victor Ali holds the official record for this game on 'Marathon' settings with 80,364,995 points. 
+
+Roy Shildt holds the official record for this game on 'Tournament' settings with 1,695,265 points. 
+
+Hacks of this game are known as "Super Missile Attack" and "Missile Combat". 
+
+A Missile Command unit appears in the 1982 movie 'Fast Times at Ridgemont High', in the 1991 movie 'Terminator 2 - Judgment Day' and in the 1995 movie 'Species'. 
+
+A Missile Command upright cabinet appears in the Judas Priest music video 'Freewheel Burning'. The game's THE END screen appears at the end of the video. 
+
+In 1982, a multi-player sequel was planned but never released. This game would have have been identical to the first except with twice as many cities and batteries and the players cooperating to save each other cities from the onslaught. 
+
+In 1982, Atari released a set of 12 collector pins including : "Missile Command", "Battle Zone", "Tempest", "Asteroids Deluxe", "Space Duel", "Centipede", "Gravitar", "Dig Dug", "Kangaroo", "Xevious", "Millipede" and "Food Fight".
+
+### Scoring
+Points are awarded for destroying attack missiles, ships and planes : 
+Attack Missile : 25 points 
+Killer Satellite : 100 points 
+Bomber : 100 points 
+Smart Bomb : 125 points 
+
+Bonus points are awarded at the end of each missile wave for any cities and ABMs remaining : 
+Unused ABMs : 5 points each 
+Saved Cities : 100 points each 
+
+A scoring multiplier based on the missile wave being played is displayed at the start of each wave : 
+Waves 1 and 2 have 1x scoring. 
+Waves 3 and 4 have 2x scoring. 
+Waves 5 and 6 have 3x scoring. 
+Waves 7 and 8 have 4x scoring. 
+Waves 9 and 10 have 5x scoring. 
+Waves 11 and above have 6x scoring.
+
+### Tips and tricks
+* Anticipate. Place the targeting crosshair ahead of attack missiles so the explosion cloud expands toward the enemy's shots. If the leading edge of an attack missile touches any part of the explosion cloud, it is destroyed. 
+
+* A well-placed ABM can destroy two or more attack missiles converging into the same explosion cloud. 
+
+* Aim just in front of attack missiles, satellites, and bombers, and let them travel into your explosion clouds. As soon as you've launced an ABM and marked the target for destination, move the crosshair to another target. Don't wait for the explosion. 
+
+* Hit bombers and killer satellites before they can drop attack missiles. Also, the sooner you destroy them, the sooner they'll reappear and the more points you can score. You may want to launch "insurance" ABM's at the left and right sides of the screen even before a bomber or killer satellite appears, in the chance that one will travel into the explosion cloud. 
+
+* A sound tactic used by many expert players is the spread. Fire a sweeping barrage of ABMs across the screen just below the attack missiles at the start of a wave, creating a solid line of explosion clouds to trap and destory as many of the first shots fired by the enemy as possible. If possible, create the spread in the path of a bomber or killer satellite. 
+
+* When creating a spread, fire all your ABMs from the same base. Once all 10 ABMs are launched (or the base has been destroyed by the enemy), you no longer need to worry about defending it. 
+
+* When creating a spread, don't use the Delta Base. It is in a strategic position and its missiles fly faster than ABMs from the side bases. Save the Delta Base's ABMs for more precise shots. 
+
+* Destroy attack missiles while they are high on the screen. You don't want them to turn into MIRVs. If you notice that an attack missile has become an MIRV, try to destroy as many of the split missiles with a single explosion cloud as possible. 
+
+* Hit targets before they cross the radar line. The radar line is an invisible line marking the crosshair's lower limit. Since you can't position the crosshair below this line, any attack missile that crosses it is beyond range of your ABMs. 
+
+* There are usually two main attack waves per stage. Just when it looks like things have calmed down, another assault commences. Repeating the strategy above is a good idea. 
+
+* Smart bombs are usually fooled by a couple of quick ABMs being fired on opposite sides of the bomb, but overlapping. Then the smart bomb cannot escape. 
+
+* Don't let smart bombs distract you. Sometimes you can try so hard to hit smart bombs you forget to defend your planet. Remember that a smart bomb can only hit one target. 
+
+* Don't defend depleted missile bases or destroyed cities. Concentrate your efforts defending cities and missile bases that still show signs of life. If all your cities are destroyed or you are on the verge of earning a bonus city, then it is good strategy to go for the high-score targets like smart bombs, even if they are heading for dirt. 
+
+* As waves become more difficult, you may be forced to sacrifice some cities. Choose the left or the right, and give up the cities on the other side. When waves become really tough, you may want to defend only one city and go for as many high score targets as possible.
+
+### Staff
+Designed and programmed by : Dave Theurer (DFT)
+Lead hardware engineer by : Dave Sherman (DLS)
+Chief engineer of software engineering by : Steve Calfee (SRC)
+Junior programmer and sound routines by : Rich Adam (RDA)
+Electrical engineering by : Mary Pepper (MJP)
+Hardware design, head of special projects in engineering and power supply by : Jed Margolin (JED)
+Technician : Dave Webienson (DEW)
+Track ball designed by : Gerry Lichac (GJL)
+
+### Ports
+* CONSOLES: 
+[US] Atari 2600 (1981) "Missile Command [Model CX2638]"
+[EU] Atari 2600 (1981) "Missile Command [Model CX2638P]"
+[US] Atari 5200 (1982) "Missile Command [Model CX5202]"
+[US] Emerson Arcadia (1982) "Missile War [Model 1010]" 
+Atari XEGS 
+[JP] Atari 2600 (1983) 
+[BR] DynaVision (198?) 
+[EU] Sega Master System (1992) "Arcade Smash Hits [Model MK-27032-50]" 
+[US] Sega Genesis (1996) "Arcade Classics [Model MK-1715]" 
+[EU] Sega Mega Drive (1996) "Arcade Classics [Model 1715-50]" 
+[US] Sony PlayStation (dec.31, 1996) "Arcade's Greatest Hits - The Atari Collection 1 [Model SLUS-00339]" 
+[EU] Sega Saturn (1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model T-25413H-50]" 
+[US] Sega Saturn (june.30, 1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model T-9706H]" 
+[US] Nintendo SNES (aug.1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model SNS-AW7E-USA]" 
+[EU] Sony PlayStation (dec.1997) "Arcade's Greatest Hits - The Atari Collection 1 [Model SLES-00466]" 
+[EU] Nintendo SNES (feb.26, 1998) "Arcade's Greatest Hits - The Atari Collection 1 [Model SNSP-AW7P-EUR]" 
+[US] Sony PlayStation (2001) "Atari Anniversary Edition Redux [Model SLUS-01427]" 
+[US] Sega Dreamcast (jul.2, 2001) "Atari Anniversary Edition [Model T-15130N]" 
+[EU] Sony PlayStation (mar.1, 2002) "Atari Anniversary Edition Redux [Model SLES-03808]" 
+[US] Microsoft XBOX (nov.16, 2004) "Atari Anthology [Model 26084]" 
+[US] Sony PS2 (nov.22, 2004) "Atari Anthology [Model SLUS-21076]" 
+[EU] Microsoft XBOX (nov.26, 2004) "Atari Anthology" 
+[EU] Sony PS2 (feb.18, 2005) "Atari Anthology [Model SLES-53061]" 
+[JP] Microsoft XBOX (aug.4, 2005) "Atari Anthology [Model B7X-00001]" 
+[US] [EU] Microsoft XBOX 360 [XBLA] (jul.4, 2007) 
+[US] [EU] Microsoft XBOX One (nov.1, 2016) "Atari Flashback Classics Vol.2" 
+[US] Sony PlayStation 4 (nov.1, 2016) "Atari Flashback Classics Vol.2" 
+
+* HANDHELDS: 
+[EU] Nintendo Game Boy (1992) 
+[US] Nintendo Game Boy (mar.1992) "Missile Command [Model DMG-MW-USA]" 
+[US] Atari Lynx (1994) "Super Asteroids & Missile Command [Model PA2093]" 
+[EU] Nintendo Game Boy (1995) "Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCP-NOE]"
+[US] Nintendo Game Boy (jul.1995) "Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCE-USA]"
+[UK] Nintendo Game Boy (1995) "Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCP-UKV]"
+[US] Sega Game Gear (1996) "Arcade Classics" 
+[EU] Nintendo Game Boy Color (1999) "Missile Command [Model CGB-ALCP-EUR]" 
+[EU] Nintendo Game Boy Color (sept.1999) "Missile Command [Model CGB-VLCE-USA]" 
+[US] Nintendo GBA (mar.25, 2002) "Atari Anniversary Advance [Model AGB-AAVE-USA]" 
+[EU] Nintendo GBA (feb.14, 2003) "Atari Anniversary Advance [Model AGB-AAVP-EUR]" 
+[UK] Nintendo DS (mar.11, 2005) "Retro Atari Classics [Model NTR-ATAE-UKV]" 
+[EU] Nintendo DS (mar.11, 2005) "Retro Atari Classics [Model NTR-ATAE-EUR]" 
+[US] Nintendo DS (mar.16, 2005) "Retro Atari Classics [Model NTR-ATAE-USA]" 
+[JP] Nintendo DS (june.30, 2005) "Atarimix Happy 10 Games [Model NTR-ATAJ-JPN]" 
+[AU] Nintendo DS (nov.2007) "Retro Atari Classics [Model NTR-ATAE-AUS]" 
+[US] Sony PSP (dec.19, 2007) "Atari Classics Evolved [Model ULUS-10325]" 
+[AU] Sony PSP (mar.7, 2008) "Atari Classics Evolved" 
+[US] Nintendo DS (nov.2, 2010) "Atari Greatest Hits Vol.1 [Model NTR-BR6E-USA]" 
+[EU] Nintendo DS (feb.24, 2011) "Atari Greatest Hits Vol.1 [Model NTR-BR6P-EUR]" 
+
+* COMPUTERS: 
+[US] Atari 800 (1981) [Model CXL4012] 
+[US] Tandy Color Computer (1981) "Polaris" 
+[US] Tandy Color Computer (1982) "Defense" 
+[US] Tandy Color Computer (1982) "Missile Attack" 
+[US] [EU] Commodore C64 (1983) 
+[EU] Sinclair ZX-Spectrum (1983) "Missile Defence" by Anirog Software 
+[EU] Acorn Electron (1983) "Missile Control" by Gemini 
+[EU] BBC B (1983) "Missile Control" by Gemini 
+[EU] Sinclair ZX-Spectrum (1983) "Missile Command" by Anirog Software 
+[AU] VTech Laser-VZ "Missile Attack" 
+[EU] BBC B "Missile Strike" by Superior Software
+[EU] Atari ST (1986) 
+[EU] MSX (1988) 
+[JP] Sharp X68000 (1988) 
+[US] PC [MS Windows 3.1x, 3.5"] (1993) "Microsoft Arcade" 
+[US] PC [MS Windows 95, CD-ROM] (1995) "Patriot Command" : Part of "Windows Arcade Pack" 
+[EU] PC [MS Windows, CD-ROM] (1999) "Atari Arcade Hits 1" 
+[US] PC [MS Windows, CD-ROM] (jul.13, 1999) "Atari Arcade Hits 1" 
+[US] PC [MS Windows, CD-ROM] (jul.9, 2001) "Atari Anniversary Edition" 
+[EU] PC [MS Windows, CD-ROM] (dec.14, 2001) "Atari Anniversary Edition" 
+[US] PC [MS Windows, CD-ROM] (nov.11, 2003) "Atari - 80 Classic Games in One! [Model 25069J]" 
+[EU] PC [MS Windows, CD-ROM] (june.10, 2005) "Atari - 80 Classic Games in One! [Replay]" 
+[US] Steam (mar.24, 2016) "Atari Vault [Model 400020]" 
+
+* OTHERS: 
+[US] Mobile phone [Motorola T720] (june.13, 2003) 
+[US] Nokia N-Gage (2005) "Atari Masterpieces Vol. I" 
+[EU] Nokia N-Gage (oct.13, 2005) "Atari Masterpieces Vol. I" 
+[US] Apple iPhone/iPod (sept.16, 2008) [Model 291286162] 
+[US] Apple Store (2011) "Atari Greatest Hits" 
+[US] Google Play (2011) "Atari Greatest Hits"
+
+### Series
+1. Missile Command (1980) 
+2. Missile Command 3D (1995, Atari Jaguar) 
+3. Missile Command (1999, PlayStation/PC CD-ROM)
+
+### Contribute
+Edit this entry: https://www.arcade-history.com/game/1644/?o=2
+
+*Story courtesy of Gaming History (arcade-history.com).*
+
+---
+
+*Generated by [mamekit](https://github.com/benbruscella/mamekit) from the knowledge graph of MAME driver `missile`. Play it at [../../../app/g/missile/](../../../app/g/missile/) or [explore the knowledge graph](viewer.html).*

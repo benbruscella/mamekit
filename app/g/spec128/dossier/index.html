@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZX Spectrum 128 — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to ZX Spectrum 128</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/computers/spec128/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/computers/spec128/spec128-dossier.md" download="spec128-dossier.md">Download spec128-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Sinclair Research Ltd · 1986</div>
+    <h1>ZX Spectrum 128</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/spec128.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>spec128</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/sinclair/spec128.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>spec128</strong></div>
+      <div class="fact"><span>License</span><strong>GPL-2.0+</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ay8910</strong></div>
+      <div class="fact"><span>Screen</span><strong>352×296 @ 50.02 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>Z80</td><td>3.547 MHz</td><td>4</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>zx128_0.rom</td><td>0x10000</td><td>0x4000</td><td>e76799d2</td></tr><tr><td>maincpu</td><td>zx128_1.rom</td><td>0x14000</td><td>0x4000</td><td>b96a36be</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>ShiftLeft</td><td>caps shift</td><td>LINE0</td><td>0x1</td></tr><tr><td>Z</td><td>z    z    :      ln       beep   copy</td><td>LINE0</td><td>0x2</td></tr><tr><td>X</td><td>x    x    £      exp      ink    clear</td><td>LINE0</td><td>0x4</td></tr><tr><td>C</td><td>c    c    ?      lprint   paper  cont</td><td>LINE0</td><td>0x8</td></tr><tr><td>V</td><td>v    v    /      llist    flash  cls</td><td>LINE0</td><td>0x10</td></tr><tr><td>A</td><td>a    a    stop   read      ~     new</td><td>LINE1</td><td>0x1</td></tr><tr><td>S</td><td>s    s    not    restore   |     save</td><td>LINE1</td><td>0x2</td></tr><tr><td>D</td><td>d    d    step   data      \     dim</td><td>LINE1</td><td>0x4</td></tr><tr><td>F</td><td>f    f    to     sgn       {     for</td><td>LINE1</td><td>0x8</td></tr><tr><td>G</td><td>g    g    then   abs       }     goto</td><td>LINE1</td><td>0x10</td></tr><tr><td>Q</td><td>q    q    &lt;=     sin      asn      plot</td><td>LINE2</td><td>0x1</td></tr><tr><td>W</td><td>w    w    &lt;&gt;     cos      acs      draw</td><td>LINE2</td><td>0x2</td></tr><tr><td>E</td><td>e    e    &gt;=     tan      atn      rem</td><td>LINE2</td><td>0x4</td></tr><tr><td>R</td><td>r    r    &lt;      int      verify   run</td><td>LINE2</td><td>0x8</td></tr><tr><td>T</td><td>t    t    &gt;      rnd      merge    rand</td><td>LINE2</td><td>0x10</td></tr><tr><td>1 / Numpad1</td><td>1   edit       !    blue     def fn</td><td>LINE3</td><td>0x1</td></tr><tr><td>2 / Numpad2</td><td>2   caps lock  @    red      fn</td><td>LINE3</td><td>0x2</td></tr><tr><td>3 / Numpad3</td><td>3   true vid   #    magenta  line</td><td>LINE3</td><td>0x4</td></tr><tr><td>4 / Numpad4</td><td>4   inv vid    $    green    open#</td><td>LINE3</td><td>0x8</td></tr><tr><td>5 / Numpad5</td><td>5   left       %    cyan     close#</td><td>LINE3</td><td>0x10</td></tr><tr><td>0 / Numpad0</td><td>0   del             black    format</td><td>LINE4</td><td>0x1</td></tr><tr><td>9 / Numpad9</td><td>9   graph      )             point</td><td>LINE4</td><td>0x2</td></tr><tr><td>8 / Numpad8</td><td>8   right      (             cat</td><td>LINE4</td><td>0x4</td></tr><tr><td>7 / Numpad7</td><td>7   up         '    white    erase</td><td>LINE4</td><td>0x8</td></tr><tr><td>6 / Numpad6</td><td>6   down       &amp;    yellow   move</td><td>LINE4</td><td>0x10</td></tr><tr><td>P</td><td>p    p    &quot;      tab      (c)    print</td><td>LINE5</td><td>0x1</td></tr><tr><td>O</td><td>o    o    ;      peek     out    poke</td><td>LINE5</td><td>0x2</td></tr><tr><td>I</td><td>i    i    at     code     in     input</td><td>LINE5</td><td>0x4</td></tr><tr><td>U</td><td>u    u    or     chr$     ]      if</td><td>LINE5</td><td>0x8</td></tr><tr><td>Y</td><td>y    y    and    str$     [      return</td><td>LINE5</td><td>0x10</td></tr><tr><td>Enter</td><td>enter</td><td>LINE6</td><td>0x1</td></tr><tr><td>L</td><td>l    l    =      usr      attr     let</td><td>LINE6</td><td>0x2</td></tr><tr><td>K</td><td>k    k    +      len      screen$  list</td><td>LINE6</td><td>0x4</td></tr><tr><td>J</td><td>j    j    -      val      val$     load</td><td>LINE6</td><td>0x8</td></tr><tr><td>H</td><td>h    h    ^      sqr      circle   gosub</td><td>LINE6</td><td>0x10</td></tr><tr><td>Space</td><td>space</td><td>LINE7</td><td>0x1</td></tr><tr><td>ShiftRight</td><td>symbol shift</td><td>LINE7</td><td>0x2</td></tr><tr><td>M</td><td>m    m    .      pi       inverse  pause</td><td>LINE7</td><td>0x4</td></tr><tr><td>N</td><td>n    n    ,      inkey$   over     next</td><td>LINE7</td><td>0x8</td></tr><tr><td>B</td><td>b    b    *      bin      bright   border</td><td>LINE7</td><td>0x10</td></tr><tr><td>F12</td><td>nmi</td><td>NMI</td><td>0x1</td></tr><tr><td>Insert</td><td>edit</td><td>PLUS0</td><td>0x1</td></tr><tr><td>CapsLock</td><td>caps lock</td><td>PLUS0</td><td>0x2</td></tr><tr><td>Home</td><td>true vid</td><td>PLUS0</td><td>0x4</td></tr><tr><td>End</td><td>inv vid</td><td>PLUS0</td><td>0x8</td></tr><tr><td>Left</td><td>cursor left</td><td>PLUS0</td><td>0x10</td></tr><tr><td>Backspace</td><td>del</td><td>PLUS1</td><td>0x1</td></tr><tr><td>AltLeft</td><td>graph</td><td>PLUS1</td><td>0x2</td></tr><tr><td>Right</td><td>cursor right</td><td>PLUS1</td><td>0x4</td></tr><tr><td>Up</td><td>cursor up</td><td>PLUS1</td><td>0x8</td></tr><tr><td>Down</td><td>cursor down</td><td>PLUS1</td><td>0x10</td></tr><tr><td>Pause</td><td>ext mode</td><td>PLUS2</td><td>0x2</td></tr><tr><td>Quote</td><td>&quot;</td><td>PLUS3</td><td>0x1</td></tr><tr><td>Semicolon</td><td>;</td><td>PLUS3</td><td>0x2</td></tr><tr><td>Period</td><td>.</td><td>PLUS4</td><td>0x4</td></tr><tr><td>Comma</td><td>,</td><td>PLUS4</td><td>0x8</td></tr><tr><td>Right</td><td>joystick right</td><td>exp:JOY</td><td>0x1</td></tr><tr><td>Left</td><td>joystick left</td><td>exp:JOY</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>exp:JOY</td><td>0x4</td></tr><tr><td>Up</td><td>joystick up</td><td>exp:JOY</td><td>0x8</td></tr><tr><td>Space / X</td><td>button1</td><td>exp:JOY</td><td>0x10</td></tr><tr><td>Space / X</td><td>button1</td><td>exp:LINE4</td><td>0x1</td></tr><tr><td>Up</td><td>joystick up</td><td>exp:LINE4</td><td>0x2</td></tr><tr><td>Down</td><td>joystick down</td><td>exp:LINE4</td><td>0x4</td></tr><tr><td>Right</td><td>joystick right</td><td>exp:LINE4</td><td>0x8</td></tr><tr><td>Left</td><td>joystick left</td><td>exp:LINE4</td><td>0x10</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/sinclair/spec128.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Kevin Thacker</strong></div>
+    <div class="fact"><span>Credited by MAMEDEV</span><strong>Kevin Thacker (driver header); holub (13 release notes); AmatCoder (2 release notes); geecab (2 release notes); AJR (1 release note)</strong></div>
+    <div class="fact"><span>Credit source</span><strong>MAME driver header (copyright-holders) and MAMEDEV release notes</strong></div>
+    <div class="fact"><span>Commit activity</span><strong>92 commits by 20 commit authors, 2012–2026 (git log --follow over the driver file at MAME f34f02505e32; not a statement of authorship)</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Computer published 40 years ago:
+
+ZX Spectrum 128 (c) 1986 Sinclair Research, Limited.
+
+New features included 128 KB RAM, three-channel audio via the AY-3-8912 chip, MIDI compatibility, an RS-232 serial port, an RGB monitor port, 32 KB of ROM including an improved BASIC editor, and an external keypad.</p><details><summary>TECHNICAL</summary><p class="story">The appearance of the ZX Spectrum 128 was similar to the ZX Spectrum+, with the exception of a large external heatsink for the internal 7805 voltage regulator added to the right hand end of the case, replacing the internal heatsink in previous versions.
+
+The Z80 processor used in the Spectrum has a 16-bit address bus, which means only 64 KB of memory can be directly addressed. To facilitate the extra 80 KB of RAM the designers used bank switching so that the new memory would be available as eight pages of 16 KB at the top of the address space. The same technique was also used to page between the new 16 KB editor ROM and the original 16 KB BASIC ROM at the bottom of the address space.
+
+The new sound chip and MIDI out abilities were exposed to the BASIC programming language with the command PLAY and a new command SPECTRUM was added to switch the machine into 48K mode, keeping the current BASIC program intact (although there is no way to switch back to 128K mode). To enable BASIC programmers to access the additional memory, a RAM disk was created where files could be stored in the additional 80 KB of RAM. The new commands took the place of two existing user-defined-character spaces causing compatibility problems with some BASIC programs.
+
+The ZX Spectrum 128 had no internal speaker like its predecessors. The sound was produced from the television speaker instead</p></details><details><summary>TRIVIA</summary><p class="story">Code-named 'Derby'. Sinclair developed the ZX Spectrum 128 in conjunction with their Spanish distributor Investrónica. Investrónica had helped adapt the ZX Spectrum+ to the Spanish market after the Spanish government introduced a special tax on all computers with 64 KB RAM or less, and a law which obliged all computers sold in Spain to support the Spanish alphabet and show messages in Spanish.
+
+The machine was simultaneously presented for the first time and launched in September 1985 at the SIMO '85 trade show in Spain, with a price of 44,250 pesetas. Because of the large number of unsold Spectrum+ models, Sinclair decided not to start selling in the UK until January 1986 at a price of £179.95.</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/83040/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "type": "SN76489",
+  "uses": [
+    {
+      "game": "cavenger",
+      "tags": [
+        "sn1",
+        "sn2"
+      ]
+    },
+    {
+      "game": "ladybug",
+      "tags": [
+        "sn1",
+        "sn2"
+      ]
+    },
+    {
+      "game": "mrdo",
+      "tags": [
+        "sn1",
+        "sn2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SN76489",
+    "className": "sn76489_device",
+    "shortName": "sn76489",
+    "description": "SN76489",
+    "sourceFile": "src/devices/sound/sn76496.cpp",
+    "sourceLine": 473,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SN76489,  sn76489_device,   \"sn76489\",      \"SN76489\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/sn76496.cpp",
+    "src/devices/sound/sn76496.h"
+  ]
+}

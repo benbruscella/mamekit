@@ -1,0 +1,28 @@
+{
+  "type": "DECO_C10707",
+  "uses": [
+    {
+      "game": "bnj",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DECO_C10707",
+    "className": "deco_c10707_device",
+    "shortName": "decoc10707",
+    "description": "DECO C10707",
+    "sourceFile": "src/mame/dataeast/deco222.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DECO_C10707, deco_c10707_device, \"decoc10707\", \"DECO C10707\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/dataeast/deco222.cpp",
+    "src/mame/dataeast/deco222.h"
+  ]
+}

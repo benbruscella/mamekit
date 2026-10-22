@@ -1,0 +1,70 @@
+{
+  "game": "spec128",
+  "title": "ZX Spectrum 128 (Sinclair Research Ltd, 1986)",
+  "fullname": "ZX Spectrum 128",
+  "year": "1986",
+  "manufacturer": "Sinclair Research Ltd",
+  "family": "spec128",
+  "kind": "computer",
+  "driverFile": "src/mame/sinclair/spec128.cpp",
+  "license": "GPL-2.0+",
+  "copyrightHolders": "Kevin Thacker",
+  "credits": {
+    "people": [
+      {
+        "name": "Kevin Thacker",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "holub",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 13,
+        "firstRelease": "0.243",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "AmatCoder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.208",
+        "lastRelease": "0.208"
+      },
+      {
+        "name": "geecab",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.196",
+        "lastRelease": "0.196"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.199",
+        "lastRelease": "0.199"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-02-05",
+    "commits": 92,
+    "authors": 20,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}
