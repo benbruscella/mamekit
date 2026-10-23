@@ -54,7 +54,9 @@ export function stripComments(src: string): string {
  * A name the file itself `#define`s to an integer literal above the test is
  * that literal: the Bandai Datach's `#if TEST_EEPROM` blocks, under
  * `#define TEST_EEPROM 0`, are switched off, and read as live they left two
- * of its handlers unparseable.
+ * of its handlers unparseable. MAME often parenthesises the literal, as the
+ * AY-3-8910's `#define ENABLE_REGISTER_TEST (0)` does around its register
+ * test in `address_w` and `data_w`.
  */
 export function resolveLiteralConditionals(src: string): string {
   const lines = src.split('\n');
@@ -64,7 +66,7 @@ export function resolveLiteralConditionals(src: string): string {
   const outerLive = () => stack.every(block => !block.literal || block.live);
   const defined = new Map<string, string>();
   return lines.map(line => {
-    const define = /^\s*#\s*define\s+(\w+)\s+(\d+)\s*(?:\/\/.*|\/\*.*\*\/\s*)?$/.exec(line);
+    const define = /^\s*#\s*define\s+(\w+)\s+\(?\s*(\d+)\s*\)?\s*(?:\/\/.*|\/\*.*\*\/\s*)?$/.exec(line);
     // Only where the preprocessor is sure to see it: under `#ifdef X` a
     // define is one of two alternatives.
     const certain = stack.every(block => block.literal && block.live);
@@ -245,7 +247,7 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
-  if (!/^[\s0-9a-fA-FxX+\-*/().<>&|^?:=!]*$/.test(s)) return null;
+  if (!/^[\s0-9a-fA-FxX+\-*/().<>&|^?:=!~]*$/.test(s)) return null;
   // recursive-descent evaluation, no eval()
   let pos = 0;
   const peek = () => { while (pos < s.length && /\s/.test(s[pos])) pos++; return s[pos]; };
@@ -259,6 +261,10 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
       return v;
     }
     if (c === '-') { pos++; const v = parsePrimary(); return v === null ? null : -v; }
+    // C's logical and bitwise not: the AY-3-8910's constructor picks its
+    // resistor table with `(!(feature & PSG_HAS_EXPANDED_MODE)) && ...`.
+    if (c === '!' && s[pos + 1] !== '=') { pos++; const v = parsePrimary(); return v === null ? null : Number(!v); }
+    if (c === '~') { pos++; const v = parsePrimary(); return v === null ? null : (~v) >>> 0; }
     const m = /^(0[xX][0-9a-fA-F]+|[0-9]+(?:\.[0-9]+)?)/.exec(s.slice(pos));
     if (!m) return null;
     pos += m[0].length;
@@ -363,8 +369,30 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
     }
     return v;
   }
+  function parseLogicalAnd(): number | null {
+    let v = parseBitOr();
+    if (v === null) return null;
+    while (peek() === '&' && s[pos + 1] === '&') {
+      pos += 2;
+      const r = parseBitOr();
+      if (r === null) return null;
+      v = Number(Boolean(v) && Boolean(r));
+    }
+    return v;
+  }
+  function parseLogicalOr(): number | null {
+    let v = parseLogicalAnd();
+    if (v === null) return null;
+    while (peek() === '|' && s[pos + 1] === '|') {
+      pos += 2;
+      const r = parseLogicalAnd();
+      if (r === null) return null;
+      v = Number(Boolean(v) || Boolean(r));
+    }
+    return v;
+  }
   function parseConditional(): number | null {
-    const condition = parseBitOr();
+    const condition = parseLogicalOr();
     if (condition === null) return null;
     if (peek() !== '?') return condition;
     pos++;

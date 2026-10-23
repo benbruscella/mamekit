@@ -213,6 +213,8 @@ export interface GeneratedDeviceDefinition {
   hierarchy?: string[];
   /** The struct shapes the device declares, by type name. */
   structs?: Record<string, StructField[]>;
+  /** The inline methods those structs declare, by type name (device-compiler structMethods). */
+  structMethods?: Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]>;
   /** MAME `device_rom_interface`: `read_byte` reads the device's own region. */
   romInterface?: { addressBits: number };
   /**
@@ -355,6 +357,8 @@ export interface Device {
   hostedCalls?(): Readonly<Record<string, (...args: never[]) => unknown>>;
   /** Resolve an unambiguous generated method once for a hot bus connection. */
   prepareCall?(name: string): (...args: GeneratedCallArgument[]) => unknown;
+  /** `prepareCall`, made once per method and kept. */
+  preparedCall?(name: string): (...args: GeneratedCallArgument[]) => unknown;
   /** Connect source-typed calls and refresh them when the host overrides a method. */
   connectCall?(name: string, receive: (call: (...args: GeneratedCallArgument[]) => unknown) => void): void;
   get(name: string): number;
@@ -734,6 +738,15 @@ class IrTimer {
     this.adjustmentGeneration++;
   }
 
+  /**
+   * `emu_timer::reset(duration = attotime::never)`: adjust keeping the
+   * parameter and period. The JY Company boards' device_start stops their
+   * IRQ prescaler this way, and unanswered it left the call a silent zero.
+   */
+  reset(delay = Infinity): void {
+    this.adjust(Number(delay), this.parameter, this.period);
+  }
+
   remaining(): IrAttotime {
     // MAME's scheduler stops exactly at a timer's expiry, so a callback asking
     // its own timer how long is left reads zero. Host device time arrives in
@@ -921,6 +934,24 @@ class IrDevice implements Device {
         regions[Object.keys(regions).find(name => name.endsWith(`:${tag}`)) ?? ''] ?? regions[tag];
     };
     const resourceMembers = definition.resources?.members ?? {};
+    // A struct's own methods run with the struct as their members and the
+    // device's calls and constants behind them (structMember attaches them).
+    if (definition.structs && definition.structMethods && !STRUCT_METHODS.has(definition.structs)) {
+      const device = this;
+      STRUCT_METHODS.set(definition.structs, Object.fromEntries(Object.entries(definition.structMethods).map(([type, methods]) =>
+        [type, Object.fromEntries(methods.map(method => {
+          const names = splitParameters(method.parameters).map(parameterName);
+          return [method.name, function (this: Record<string, unknown>, ...args: unknown[]): unknown {
+            const locals: Record<string, unknown> = {};
+            names.forEach((name, index) => { locals[name] = args[index] ?? 0; });
+            // Its own bindings, not the device's: those carry member hooks that
+            // store into the device, and `period = ...` landed there.
+            return executeGeneratedProgram(method.program, {
+              members: this, constants: device.bindings.constants, calls: device.bindings.calls,
+            } as GeneratedHandlerBindings, locals).value;
+          }];
+        }))])));
+    }
     for (const method of definition.methods) {
       const overloads = this.methods.get(method.name) ?? [];
       overloads.push(method);
@@ -973,9 +1004,9 @@ class IrDevice implements Device {
           : member.fields
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, (_, index) =>
-                    Object.assign(structMember(member.fields!, definition.structs), member.initialValues?.[index] ?? {}))
+                    Object.assign(structMember(member.fields!, definition.structs, structTypeName(member.valueType)), member.initialValues?.[index] ?? {}))
                 // A file-scope `static const struct` keeps its initializer.
-                : Object.assign(structMember(member.fields, definition.structs), structuredClone(member.initialValue ?? {})))
+                : Object.assign(structMember(member.fields, definition.structs, structTypeName(member.valueType)), structuredClone(member.initialValue ?? {})))
         : member.memory
         ? memoryMember(member, options, definition.structs)
         : member.values ? [...member.values]
@@ -1206,7 +1237,14 @@ class IrDevice implements Device {
           return {
             update: () => this.bindings.calls?.['stream.update']?.() ?? 0,
             end_time: () => this.bindings.calls?.['stream.end_time']?.() ?? 0,
-            sample_rate: () => this.bindings.calls?.['stream.sample_rate']?.() ?? Number(rate),
+            sample_rate: () => this.bindings.calls?.['stream.sample_rate']?.() ?? Number(this.members.__stream_rate ?? rate),
+            // `sound_stream::set_sample_rate`: the AY-3-8910 allocates at
+            // clock/8 and then halves it for a chip with an internal divider
+            // (the Sunsoft 5B). Ignored, the 5B played an octave high.
+            set_sample_rate: (next: number) => {
+              if (Number(next) > 0) this.members.__stream_rate = Number(next);
+              return 0;
+            },
           };
         },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
@@ -1402,7 +1440,7 @@ class IrDevice implements Device {
     // (device-compiler lowerStructLocals): `cbm_crt_header header;`.
     const structOf = (type: unknown): unknown => {
       const fields = definition.structs?.[String(type)];
-      return fields ? structMember(fields, definition.structs) : 0;
+      return fields ? structMember(fields, definition.structs, String(type)) : 0;
     };
     this.bindings.calls!.STRUCT_OF = structOf as (...args: number[]) => unknown;
     referenceCalls.STRUCT_OF = structOf;
@@ -1540,7 +1578,7 @@ class IrDevice implements Device {
       const callable: Record<string, unknown> = Object.fromEntries(
         instance.methodNames().map(name => [
           name,
-          (...args: GeneratedCallArgument[]) => instance.invoke(name, ...args),
+          (...args: GeneratedCallArgument[]) => instance.preparedCall(name)(...args),
         ]),
       );
       // And the image interface the host answers for it: the ZX Interface 2
@@ -1705,7 +1743,7 @@ class IrDevice implements Device {
 
 
   call(name: string, ...args: number[]): number {
-    return Number(this.invoke(name, ...args)) || 0;
+    return Number(this.preparedCall(name)(...args)) || 0;
   }
 
   runCycles(cycles: number): number {
@@ -1739,6 +1777,20 @@ class IrDevice implements Device {
     const method = this.selectMethod(name, args);
     if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
     return this.executeMethod(method, this.methodParams.get(method)!, args);
+  }
+
+  private readonly preparedCalls = new Map<string, (...args: GeneratedCallArgument[]) => unknown>();
+
+  /**
+   * `prepareCall`, made once per method. A call that arrives by name -- a
+   * slot handing a bus access to its card, a card asking its PPU for the draw
+   * phase -- otherwise searched the overloads and walked `executeMethod` on
+   * every access: the MMC5 makes ninety thousand such calls a frame.
+   */
+  preparedCall(name: string): (...args: GeneratedCallArgument[]) => unknown {
+    let prepared = this.preparedCalls.get(name);
+    if (!prepared) this.preparedCalls.set(name, prepared = this.prepareCall(name));
+    return prepared;
   }
 
   prepareCall(name: string): (...args: GeneratedCallArgument[]) => unknown {
@@ -2129,6 +2181,19 @@ class IrDevice implements Device {
         image.position += count;
         return count;
       },
+      // A battery the host keeps no file for. MAME's battery_load then fills the
+      // buffer from its third argument, a byte or a default image -- the NES
+      // loader's `default_nvram`, the list's `bwram` with zeroed mapper RAM
+      // behind it -- and every MMC5 battery cartridge reaches it from
+      // call_load_pcb before it can boot.
+      battery_load: (buffer, length, fill) => {
+        const count = Math.max(0, Number(length) >>> 0);
+        copyGeneratedBytes(buffer, typeof fill === 'number' ? new Uint8Array(count).fill(fill & 0xff) : fill, count);
+        return 0;
+      },
+      // The machine's write-back on unload: nothing keeps a cartridge's battery
+      // between sessions yet, so what it held lasts while the cartridge is in.
+      battery_save: () => 0,
       // The software-list half of the interface (diimage.h), over the part the
       // host mounted: the C64 expansion port asks for `roml` and `romh` by
       // name, and for its `exrom` and `game` lines as features.
@@ -2335,7 +2400,7 @@ class IrDevice implements Device {
 
   invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown {
     if (!this.slotChild) throw new Error(`${this.definition.type} has no selected slot card`);
-    return this.slotChild.invoke(name, ...args);
+    return this.slotChild.preparedCall(name)(...args);
   }
 
   /**
@@ -3222,7 +3287,7 @@ function vectorElement(
   const inner = /^std::vector<\s*(.+?)\s*>$/.exec(element);
   if (inner) return () => generatedVector(vectorElement(inner[1], structs));
   const fields = structs?.[element.split('::').at(-1)!.trim()];
-  return fields ? () => structMember(fields, structs) : undefined;
+  return fields ? () => structMember(fields, structs, element) : undefined;
 }
 
 /** A plain-old-data struct member, with each declared field present. */
@@ -3235,9 +3300,22 @@ function vectorElement(
  * 0xff, and MAME code that carries on `if (field == 0xff)` silently never
  * carried: the DPC's display-data pointer walked off its 2K window.
  */
+/** The struct type a member's declared type names: `const ay_ym_param*` is `ay_ym_param`. */
+function structTypeName(valueType: string): string {
+  return valueType.replace(/\bconst\b|[*&]/g, '').trim();
+}
+
+/**
+ * Each declaring device's struct methods, keyed by its struct table, so a
+ * struct value built from that table carries its type's methods.
+ */
+const STRUCT_METHODS = new WeakMap<object, Record<string, Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown>>>();
+
 function structMember(
   fields: readonly StructField[],
   structs?: Readonly<Record<string, readonly StructField[]>>,
+  /** The struct's type, whose methods the value carries (STRUCT_METHODS). */
+  typeName?: string,
 ): Record<string, unknown> {
   // Collected, then made an object in one operation. Added one computed key
   // at a time, V8 gives up on a struct past a dozen fields and keeps it as a
@@ -3261,8 +3339,8 @@ function structMember(
     const nested = field.fields ?? (field.valueType ? structs?.[field.valueType] : undefined);
     if (nested) {
       value[field.name] = field.length
-        ? Array.from({ length: field.length }, () => structMember(nested, structs))
-        : structMember(nested, structs);
+        ? Array.from({ length: field.length }, () => structMember(nested, structs, field.valueType))
+        : structMember(nested, structs, field.valueType);
       continue;
     }
     if (field.length) {
@@ -3289,6 +3367,12 @@ function structMember(
       enumerable: false,
       configurable: true,
     });
+  }
+  // Not enumerable: a copy, a comparison or a save state sees the fields only.
+  const table = structs && typeName ? STRUCT_METHODS.get(structs) : undefined;
+  const methods = table?.[typeName!] ?? table?.[typeName!.split('::').at(-1)!.trim()];
+  for (const [name, method] of Object.entries(methods ?? {})) {
+    Object.defineProperty(struct, name, { value: method, enumerable: false, configurable: true, writable: true });
   }
   return struct;
 }

@@ -149,6 +149,11 @@ input-ready attract state at different times. Frame counts range from 600 to
 Venture (6,200) past its long board self-test.
 Every action has deterministic press and release durations. A test failure
 therefore identifies a changed trajectory, not only a final screenshot.
+A light-gun scenario aims as well as presses: `{ atFrame, aim: [x, y] }`
+(`GameAimAction`) sets every `IPT_LIGHTGUN_X`/`Y` field to that point of the
+visible screen, the way the pointer's position does in the browser, and goes
+into the input log so the save-state round trip replays it. `nes:duckhunt`
+aims the Zapper at a duck before pulling the trigger.
 
 The same determinism is what two-player netplay rests on (#128): a machine
 sees input only at a frame boundary, so the same ROM and the same input log

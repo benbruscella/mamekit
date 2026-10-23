@@ -377,6 +377,7 @@ export function lowerGeneratedMachine(
       ...(Array.isArray(node.props.clsHierarchy) && node.props.clsHierarchy.length
         ? { classHierarchy: node.props.clsHierarchy.map(String) }
         : {}),
+      ...(node.props.imageInterface === true ? { imageInterface: true as const } : {}),
       ...(hostTag ? { hostTag } : {}),
       ...(node.props.startHandler
         ? { startHandler: String(node.props.startHandler) }

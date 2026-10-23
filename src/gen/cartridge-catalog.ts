@@ -129,6 +129,10 @@ export const CART_GAME_SUPPORT: Record<string, string[]> = {
     // With the controller their list asks for (#167): Duck Hunt's Zapper is
     // above with NROM; Arkanoid's Vaus is checked by its own contract.
     'arkanoid',
+    // Pixel-exact against MAME 0.289 at frames 120, 300, 600 and 1500 (#171):
+    // MMC5, MMC2, and Gimmick!'s Sunsoft 5B, whose sound matches MAME's band
+    // for band on the Japanese cartridge.
+    'cvania3', 'punchout', 'gimmick',
   ],
   // Booted on the generated board and their framebuffers read back: each
   // reaches its playfield and keeps drawing, at or above the machine's own

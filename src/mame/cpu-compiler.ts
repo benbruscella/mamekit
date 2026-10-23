@@ -3838,6 +3838,13 @@ export function normalizeMameExecutionSource(source: string): string {
       /\bstd::make_unique\s*<\s*(?:u8|uint8_t)\s*\[\s*\]\s*>\s*\(/g,
       'ALLOC(',
     )
+    // A floating-point array keeps fractions: the AY-3-8910 builds its whole
+    // mixer into `std::make_unique<sound_stream::sample_t[]>(8*32*32*32)`,
+    // and in bytes every level under 1.0 was stored as 0.
+    .replace(
+      /\bstd::make_unique\s*<\s*(float|double|sound_stream::sample_t)\s*\[\s*\]\s*>\s*\(/g,
+      'ALLOCF(',
+    )
     // Carry the element width. `make_unique_clear<u16[]>` is a word array,
     // and allocating bytes for it silently truncated every store: wardner's
     // three tile layers are u16 arrays written a byte at a time through
@@ -4867,7 +4874,8 @@ function rewriteMameCall(
  * a diagnostic -- which is what a byte-wide COMBINE_DATA into a word array
  * looks like from the outside.
  */
-function allocIntrinsic(type: string): 'ALLOC' | 'ALLOC16' | 'ALLOC32' {
+function allocIntrinsic(type: string): 'ALLOC' | 'ALLOC16' | 'ALLOC32' | 'ALLOCF' {
+  if (/^(?:float|double|sound_stream::sample_t)$/.test(type)) return 'ALLOCF';
   if (/^(?:u|s|int|uint)16(?:_t)?$/.test(type) || /^u?int16_t$/.test(type)) return 'ALLOC16';
   if (/^(?:u|s|int|uint)32(?:_t)?$/.test(type) || /^u?int32_t$/.test(type)) return 'ALLOC32';
   return 'ALLOC';

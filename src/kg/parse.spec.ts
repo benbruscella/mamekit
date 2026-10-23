@@ -80,6 +80,12 @@ void spectrum_state::spectrum(machine_config &config) {
     '#ifdef X', '#define MAYBE 1', '#endif', '#if MAYBE', 'c();', '#endif',
   ].join('\n')).split('\n'),
   ['#define TEST_EEPROM 0', '', '', '', 'b();', '#ifdef X', '#define MAYBE 1', '#endif', '#if MAYBE', 'c();', '#endif']);
+  // Parenthesised, with a trailing comment: the AY-3-8910's register test.
+  eq('a parenthesised literal define decides its #if', resolveLiteralConditionals([
+    '#define ENABLE_REGISTER_TEST        (0)     // Enable preprogrammed registers',
+    '#if ENABLE_REGISTER_TEST', 'return;', '#else', 'ay8910_write_ym(0, data);', '#endif',
+  ].join('\n')).split('\n'),
+  ['#define ENABLE_REGISTER_TEST        (0)     // Enable preprogrammed registers', '', '', '', 'ay8910_write_ym(0, data);', '']);
   const src = `
 class spectrum_state : public driver_device { };
 class spectrum_128_state : public spectrum_state { };
@@ -319,6 +325,11 @@ void board_state::board(machine_config &config)
 }
 
 eq('expression bitwise precedence', evalExpr('(3 << 4) | (7 & 3) ^ 1'), 48 | (3 ^ 1));
+// C's logical operators and unary not, as a constructor chooses a table:
+// the AY-3-8910's `(!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY)`.
+eq('expression logical and/not', evalExpr('(!(feature & 8)) && (type == 0)', { feature: 2, type: 1 }), 0);
+eq('expression logical or', evalExpr('a || b && 0', { a: 0, b: 1 }), 0);
+eq('expression complement', evalExpr('~0 & 0xff'), 255);
 
 eq('memory-region finder configures a source-derived bank entry', parseMemoryBanks(`
   m_bank1->configure_entry(0, m_maincpu_region->base() + 0x8000);

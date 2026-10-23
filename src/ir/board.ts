@@ -210,6 +210,12 @@ export interface GeneratedDevice {
   className?: string;
   /** That class and its MAME base classes, most derived first. */
   classHierarchy?: string[];
+  /**
+   * The class derives from a `device_*image_interface`. A device composed into
+   * the board this way has no image mounted, so its `is_loaded()` and
+   * `exists()` are false, as MAME's are with nothing on the command line.
+   */
+  imageInterface?: true;
   /** Owning board device for a device_add_mconfig child. */
   hostTag?: string;
   /**

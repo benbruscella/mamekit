@@ -38,7 +38,7 @@ export const coleco = {
         maincpu: '4da89c72',
       },
       checkpoints: {
-        1: { video: '7fdb4700', state: '7960d822' },
+        1: { video: '73d1614e', state: '7960d822' },
         60: { video: '4ade275a', state: '9bb58198' },
         300: { video: '4ade275a', state: '5be91bc4' },
         900: { video: '0fbfe2f7', state: '07654a61' },

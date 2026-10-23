@@ -28,6 +28,12 @@ export const TYPE_WORDS = new Set([
   'short', 'long',
 ]);
 
+/** Type aliases MAME's framework headers declare, by the type each names. */
+const FRAMEWORK_TYPE_ALIASES: Record<string, string> = {
+  // emu/sound.h: `class sound_stream { using sample_t = float; }`
+  'sound_stream::sample_t': 'float',
+};
+
 const BINARY_PRECEDENCE: Record<string, number> = {
   '||': 1,
   '&&': 2,
@@ -464,6 +470,16 @@ class HandlerParser {
       this.unsupportedStatement('if without condition');
       return undefined;
     }
+    // C++17's if with an initializer, `if (u8 enable = m_regs[AY_ENABLE] &
+    // 0x40; enable != ...)`: the declaration is scoped to the statement, so
+    // it lowers as a block holding the declaration and the plain if. The
+    // AY-3-8910 writes its two port enables this way, side by side, each
+    // declaring its own `enable`.
+    const initialize = this.atIfInitializer() ? this.parseDeclaration() : undefined;
+    if (initialize && this.tokens[this.index - 1]?.text !== ';' && !this.consume(';')) {
+      this.unsupportedStatement('invalid if initializer');
+      return undefined;
+    }
     const condition = this.parseExpression();
     if (!condition || !this.consume(')')) {
       this.unsupportedStatement('invalid if condition');
@@ -472,12 +488,33 @@ class HandlerParser {
     const then = this.parseStatementAsBlock();
     let otherwise: GeneratedHandlerOperation[] | undefined;
     if (this.consume('else')) otherwise = this.parseStatementAsBlock();
-    return {
+    const statement: GeneratedHandlerOperation = {
       op: 'if',
       condition,
       then,
       ...(otherwise ? { else: otherwise } : {}),
     };
+    return initialize
+      ? { op: 'if', condition: { kind: 'number', value: 1 }, then: [...initialize, statement] }
+      : statement;
+  }
+
+  /**
+   * An if's control clause holds an initializer only when a `;` stands in it
+   * at the top level; a condition can open with a type word too, as a
+   * functional cast (`if (u8(...) == ...)`).
+   */
+  private atIfInitializer(): boolean {
+    let depth = 0;
+    for (let cursor = this.index; cursor < this.tokens.length; cursor++) {
+      const text = this.tokens[cursor]!.text;
+      if (text === '(' || text === '[' || text === '{') depth++;
+      else if (text === ')' || text === ']' || text === '}') {
+        if (depth === 0) return false;
+        depth--;
+      } else if (text === ';' && depth === 0) return this.isDeclaration();
+    }
+    return false;
   }
 
   private parseStatementAsBlock(): GeneratedHandlerOperation[] {
@@ -1256,9 +1293,14 @@ class HandlerParser {
         // `float(R1)` is a functional cast, not a call. Left as a call it
         // resolved to no builtin, so MAME's resistor arithmetic divided by
         // zero instead of by the resistor value.
-        expression = expression.kind === 'identifier' &&
-            TYPE_WORDS.has(expression.name) && args.length === 1
-          ? { kind: 'cast', valueType: expression.name, operand: args[0]! }
+        // A framework type alias is the same cast spelled through its class:
+        // the MMC5's mixer adds `sound_stream::sample_t(m_core.pcm.output)`,
+        // and as a call it answered nothing.
+        const castType: string | undefined = expression.kind === 'identifier' && args.length === 1
+          ? TYPE_WORDS.has(expression.name) ? expression.name : FRAMEWORK_TYPE_ALIASES[expression.name]
+          : undefined;
+        expression = castType
+          ? { kind: 'cast', valueType: castType, operand: args[0]! }
           : { kind: 'call', callee: expression, args };
       } else if (this.consume('[')) {
         const index = this.parseExpression();

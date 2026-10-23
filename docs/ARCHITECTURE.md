@@ -444,6 +444,20 @@ drive's geometry, and the drive's own load path (`mount_image`, lowered from
 `call_load`'s success branch) takes it from there. Only the bytes are the
 host's.
 
+A device's constructor is not run on the board, but what it sets is part of
+the device. Its initializer list is read as constants; a pointer it aims at a
+file-scope table (the AY-3-8910's `m_par(... ? &ay8910_param :
+&ym2149_param)`) holds a copy of that table, the choice made with the
+constructor's own arguments. Its body is interpreted once at generation, base
+class first, against those values and with the device's own methods
+callable, and what it changes becomes the members' initial values: the AY's
+three resistor loads and the envelope step and mask `set_type()` picks. A
+struct the device holds by value may carry methods of its own (`tone_t::
+set_period`); they are compiled per struct type (`structMethods`) and each
+value of that type carries them, not enumerable, so a copy or a save state
+sees only the fields. The Sunsoft 5B, an AY-3-8910 on an NES cartridge, made
+no sound until all of these held (#171).
+
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
 interpreter and compare writes and complete device state. Unsupported
@@ -462,6 +476,15 @@ memory. Tile categories, groups and `set_transmask` layer masks remain explicit
 IR. Drivers that call `screen.update_partial` select partial raster composition,
 so mid-frame video RAM changes are rendered at the source-declared boundary
 rather than from a torn end-of-frame snapshot.
+
+A device can read the picture back. MAME's NES Zapper asks the screen for
+`update_now()` and then `pixel(x, y)` to see whether its sensor is pointed at
+light. The device-facing screen answers both: `update_now()` composes the
+picture up to the beam whatever the board's update mode
+(`GeneratedVideoRenderer.updateNow`), and `pixel()` reads that picture back
+as an `rgb_t`, so above the beam the gun sees this frame and below it the
+last one, as in MAME's screen bitmap. A board that composes once a frame
+still draws every line at its end, so what is presented does not change.
 
 A sprite engine shared across a hardware family is configured rather than
 written: `atari_motion_objects_device` is one implementation whose behavior on
@@ -524,6 +547,23 @@ on the main thread as the processor runs (the speaker forces an update on
 every level change, as in MAME), and the routed mix is played by the shared
 stream worklet. A board with a chip as well (the 128K's AY-3-8912) keeps the
 chip's worklet and adds the streams to its mix (`streamDevices`).
+
+A cartridge can carry a sound chip of its own: the MMC5's pulse and PCM
+channels, the VRC6, the Namco 163. The card builds it in its own
+`device_add_mconfig` (`VRC6(config, m_vrc6snd, XTAL(21'477'272)/12)
+.add_route(ALL_OUTPUTS, "addon", 1.0)`), and the device compiler records that
+child with its own clock and its routes (`children[].clock`, `.routes`), so a
+chip that is not clocked like its card keeps MAME's clock and MAME's gain.
+The slot reports the stream-rendering devices of the card it holds, tagged
+as MAME tags them (`nes_slot:exrom:sound`), through `streamDescendants()`.
+The NES sound runtime hands them to the same stream mixer the Spectrum
+uses, at each route's gain relative to the APU's own route, and posts the
+mix to the NES worklet as `stream.pcm`, which plays it beside the APU. A chip
+that allocated its stream at its own clock (the MMC5 and VRC6 at 1.79 MHz,
+stepping once a sample) is rendered at that rate and averaged down to the
+speaker's 48 kHz; a stream at `machine().sample_rate()` is rendered as is.
+A chip whose MAME source does not lower is left out of the card rather than
+approximated: the card is still built, and that chip is silent.
 
 Norton op-amp stages are lowered to stable browser component models; MAMEKIT
 does not yet implement MAME's complete analog discrete solver. The generated
@@ -634,6 +674,28 @@ it by whatever its last slice overran, which an NES OAM DMA makes four lines
 networks run on the same clock, and Galaga's 54xx boom moved when it followed
 the processors.
 
+Before the first line boundary the device clock is credited with one line, so
+that boundary owes the devices nothing. That credit is bookkeeping, not the
+beam: the frame runner begins line 0 at time zero, and the screen a generated
+device reads (`time_until_pos`, `vpos`) measures from there. The NES 2C02 arms
+its first scanline tick in `device_start` with `time_until_pos(1)`; measured
+from the credited line it was the line the beam already stood on, so the tick
+came a whole frame late and every NES title ran a frame behind MAME's. MAME
+measures the beam from the start of VBLANK, where its beam stands at time
+zero, so a device's first timer still lands at a different absolute time
+from MAME's (23 lines in for the 2C02, 1 here). On the NES that time is
+usually spent in the boot code's first VBLANK wait, and from the second wait
+on the CPU and the PPU run exactly as MAME's do (#171). A board whose start-up
+code runs past line 241 before it first polls `$2002` finds the flag already
+set, where MAME's is still 22 lines away: Terao no Dosukoi Oozumou (`jf24`)
+parts from MAME there. Starting the machine where MAME's beam starts -- line
+`vbstart` at time zero, the first frame a lead-in from `vbstart` followed by a
+whole frame, presented once -- keeps every NES title compared at offset 0 and
+removes that gap, but it moves every board's phase, so it waits for a change
+of its own. A driver's own beam reads during construction keep the credited
+line: nine arcade boards read it there, and each first timer would move a line
+(#155).
+
 Inside a device timer's callback, `machine().time()` is that timer's expiry,
 recorded when it was armed, as MAME's scheduler sets it before the call.
 Recomputing it from the processor's cycles less the overshoot lands a few
@@ -707,6 +769,14 @@ device's `pointer()` and `size()` live (`ramPowerOn`) and records the result as
 64-byte runs of `$00` and `$FF`, and Cauldron copies its first SID frame from
 memory it never wrote.
 
+A shared RAM block the driver fills in `machine_start` is treated the same
+way. `sharePowerOn` (`src/mame/ram-compiler.ts`) runs the function with only
+that member live, as the share's bytes, and the result becomes one of the
+board's `initialShares`, written into the share before the first frame. The
+NES fills its 2 KB with alternating `$00` and `$FF` "for software that depends
+on its contents at boot up", and zeroed RAM read differently from MAME's
+wherever a game had never written.
+
 A slot card that carries a processor of its own -- the C64's 1541 in `iec8` --
 is composed into the board under the slot's tag (`iec8:c1541`, its devices
 below it), and its handlers run against a card scope whose member aliases name
@@ -730,6 +800,33 @@ stays and selects no card (`slot: ''`). The card's firmware regions sit under
 the same tag, so the shell stops asking for them. With the 1541 gone the C64 is
 one processor again and leaves permanent lockstep, which is what a tape title
 gains from booting without it.
+
+A slot with hundreds of cards does not ship them in one module. The NES
+cartridge slot's 390 compiled boards are one module each under
+`runtime/generated/devices/<slot>/`, and the slot's definition lists them
+(`slot.cards`, option to module; `slot.loadCard`, module to its import).
+Before a machine is built, `loadBoardSlotCards` (`src/runtime/generated-board.ts`)
+imports only the card it will hold: the host's slot card, else the one the
+slot's own `get_default_card_software` picks for the image (`slotCardForImage`
+runs that method on a probe device without building the machine), else the
+slot's default. An option whose card did not compile loads nothing
+(`slot.unsupported` says why), and the slot is built empty, as MAME builds an
+unknown one. Every card inherits the slot's interface class
+(`device_nes_cart_interface`), and compiled separately each repeated it: 92 KB
+of every 108 KB card. The slot carries those methods once (`slot.cardInterface`)
+and a card refers to each one it compiled identically by its index there
+(`src/ir/card-interface.ts`); a card's own override stays in the card. A bus
+range the driver installs only for some cards carries them (`range.cards`):
+the NES's `machine_start` maps `read_h` over `$8000-$ffff` only for the 34
+boards that answer reads there, the MMC5 and the Datach among them, so the
+range exists only while one of them is in the slot.
+
+Calls that arrive by name -- a slot handing a bus access to its card, a card
+asking its PPU for the draw phase -- go through the target's prepared call
+(`preparedCall`, one per method, kept), never an overload search per access,
+and a finder onto a device that is no processor keeps each answer on itself,
+so its Proxy trap runs once per name. The MMC5 makes ninety thousand such
+calls a frame, and Castlevania III ran at 40 ms a frame until both held (#171).
 
 ### BROWSER SERVICES
 
@@ -798,7 +895,16 @@ gains from booting without it.
   gun points across the visible screen, so the pointer's position over the
   screen is the aim and its primary button the trigger (the NES Zapper).
   Which fields are axes and which button is the trigger comes from the
-  generated bindings' `lightgun` facts and the controller they belong to;
+  generated bindings' `lightgun` facts and the controller they belong to.
+  A controller only some titles fit is a slot card, and its bindings carry
+  the card they belong to (`card: "ctrl2:zapper"`). `bindingsForCards`
+  (`input.ts`) keeps them live only while that card is fitted, so the NES's
+  pad and its Zapper never answer the same port at once. Which card a title
+  fits comes from its software list's `peripheral` feature, matched against
+  MAME's control-port option names (`peripheralCards`): Duck Hunt fits the
+  Zapper and Arkanoid the Vaus, as `-ctrl2 zapper` and `-ctrl2 vaus` would. A
+  card's own `PORT_CHANGED_MEMBER` is delivered to the card through its slot
+  (the Zapper's trigger arms a timer, and the card reads the timer);
 - `audio.ts`: Web Audio startup and generated worklet transport;
 - `machine-state.ts`: save states -- a structural walk that captures every
   container the execution model holds (an emitted core's own fields, a

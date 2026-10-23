@@ -93,6 +93,8 @@ export interface SoftEntry {
   /** the iNES mapper MAME's tables give `slot`, for a header rebuilt from chips */
   mapper?: number;
   prg: SoftArea; chr?: SoftArea; vram?: number; wram?: number; bwram?: number;
+  /** a RAM area the list fills with a non-zero value (`loadflag="fill"`) */
+  ramFills?: Partial<Record<'vram' | 'wram' | 'bwram', { offset: number; size: number; value: number }[]>>;
   /** the part's other features, as `get_feature` answers them */
   features?: Record<string, string>;
 }
@@ -278,7 +280,8 @@ export function identify(
  * A catalogued NES cartridge as the software-list part `mame nes <name>`
  * mounts: each dataarea call_load_pcb asks for by name, at the size the list
  * declares, and the part's features with `slot`, `pcb` and `mirroring` among
- * them. The RAM areas (`vram`, `wram`, `bwram`) are sizes only.
+ * them. The RAM areas (`vram`, `wram`, `bwram`) are their sizes, zero but
+ * where the list fills them with a value.
  */
 export function inesSoftwarePart(ines: INesInfo, entry: SoftEntry): SoftwarePart {
   // Each area as MAME loads it, whichever shape the dump held it in: a 16 KB
@@ -288,9 +291,12 @@ export function inesSoftwarePart(ines: INesInfo, entry: SoftEntry): SoftwarePart
   const areas: Record<string, Uint8Array> = { prg: prgChips ? loadArea(entry.prg, prgChips) : ines.prg };
   const chrChips = entry.chr && ines.chr ? areaChips(entry.chr, ines.chr, 0x2000) : null;
   if (ines.chr) areas.chr = chrChips ? loadArea(entry.chr!, chrChips) : ines.chr;
-  if (entry.vram) areas.vram = new Uint8Array(entry.vram);
-  if (entry.wram) areas.wram = new Uint8Array(entry.wram);
-  if (entry.bwram) areas.bwram = new Uint8Array(entry.bwram);
+  for (const ram of ['vram', 'wram', 'bwram'] as const) {
+    if (!entry[ram]) continue;
+    const bytes = new Uint8Array(entry[ram]);
+    for (const fill of entry.ramFills?.[ram] ?? []) bytes.fill(fill.value, fill.offset, Math.min(bytes.length, fill.offset + fill.size));
+    areas[ram] = bytes;
+  }
   return {
     areas,
     features: {

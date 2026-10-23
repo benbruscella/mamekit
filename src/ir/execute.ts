@@ -953,6 +953,15 @@ function preparedMachineCalls(
     callParameters[scoped] = parameters;
     callParameters[candidate.method] = parameters;
   }
+  // device_image_interface on a device the board composes: nothing is ever
+  // mounted on one, so `is_loaded()` and `exists()` answer false, as MAME's do
+  // with no image given. Unanswered, the Neo Geo memory card's `present()`
+  // returned an unresolved reference, which emitted code read as a card in
+  // the slot.
+  if ((machine.devices ?? []).some(device => device.imageInterface && device.classHierarchy?.includes(ownerClass))) {
+    referenceCalls.is_loaded ??= () => 0;
+    referenceCalls.exists ??= () => 0;
+  }
   // A device_delegate the owning device calls by member name. MAME writes the
   // two halves apart -- the driver names the device's setter, the device calls
   // the member that setter assigned -- and the callee's parameter list has to
@@ -1722,7 +1731,7 @@ function declaredArrayLength(
 ): GeneratedExpression | undefined {
   return value?.kind === 'call' &&
     value.callee.kind === 'identifier' &&
-    ['ALLOC', 'ALLOC16', 'ALLOC32'].includes(value.callee.name)
+    ['ALLOC', 'ALLOC16', 'ALLOC32', 'ALLOCF'].includes(value.callee.name)
     ? value.args[0] ?? { kind: 'number', value: 0 }
     : undefined;
 }
@@ -2154,8 +2163,11 @@ export function generatedMacroCall(name: string, args: unknown[]): unknown {
 
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // As the C library and as `std::` spell it: the floppy drive's call_load
-  // compares its `write_protected` feature with `std::strcmp`.
-  if (name === 'strcmp' || name === 'std::strcmp') {
+  // compares its `write_protected` feature with `std::strcmp`, and the NES
+  // loader an `mmc1_type` against the prefix `"MMC1B"` with `strncmp`, which
+  // unanswered was 0 -- equal -- for every MMC1 cartridge.
+  const bounded = name === 'strncmp' || name === 'std::strncmp';
+  if (name === 'strcmp' || name === 'std::strcmp' || bounded) {
     const string = (value: unknown): string => {
       if (typeof value === 'string') return value.split('\0')[0]!;
       if (Array.isArray(value) || ArrayBuffer.isView(value)) {
@@ -2163,11 +2175,48 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
         const end = bytes.indexOf(0);
         return String.fromCharCode(...bytes.slice(0, end < 0 ? undefined : end));
       }
-      throw new Error('strcmp requires a string or byte array');
+      throw new Error(`${name} requires a string or byte array`);
     };
-    const left = string(args[0]);
-    const right = string(args[1]);
+    const length = bounded ? Math.max(0, toNumber(args[2])) : Infinity;
+    const left = string(args[0]).slice(0, length);
+    const right = string(args[1]).slice(0, length);
     return left === right ? 0 : left < right ? -1 : 1;
+  }
+  // `sscanf` over a string, for the integer and character conversions MAME's
+  // loaders use: the NES reads a board's `mmc1_prg_bank`-style feature with
+  // `sscanf(size, "%u%*c", &kbyte) != 1`, and unanswered the count was 0, so
+  // three boards' features were all rejected. Each stored value goes through
+  // its pointer; the answer is how many were stored, or -1 (EOF) for an input
+  // that ended before the first conversion.
+  if (name === 'sscanf' || name === 'std::sscanf') {
+    const text = typeof args[0] === 'string' ? args[0] : '';
+    const format = typeof args[1] === 'string' ? args[1] : '';
+    let at = 0;
+    let assigned = 0;
+    let target = 2;
+    const conversions = [...format.matchAll(/%(\*?)\d*(?:hh|h|ll|l)?([udixc])/g)];
+    if (!text.length) return -1;
+    for (const [, suppressed, kind] of conversions) {
+      let value: number;
+      if (kind === 'c') {
+        if (at >= text.length) break;
+        value = text.charCodeAt(at++);
+      } else {
+        while (at < text.length && /\s/.test(text[at]!)) at++;
+        const pattern = kind === 'x' ? /^[+-]?(?:0[xX])?[\da-fA-F]+/ : kind === 'i' ? /^[+-]?(?:0[xX][\da-fA-F]+|\d+)/ : /^[+-]?\d+/;
+        const match = pattern.exec(text.slice(at));
+        if (!match) break;
+        at += match[0].length;
+        value = kind === 'x' ? Number.parseInt(match[0], 16) : kind === 'i' ? Number(match[0]) : Number.parseInt(match[0], 10);
+        if (kind === 'u') value >>>= 0;
+      }
+      if (suppressed) continue;
+      const destination = args[target++];
+      if (isGeneratedPointer(destination)) setPointerValue(destination, 0, value);
+      else if (isLValue(destination)) destination.set(value);
+      assigned++;
+    }
+    return assigned;
   }
   // What `stripTracingCalls` leaves where a MAME `LOG(...)` stood. It is a
   // placeholder, not hardware, and it is answered first because a renderer
@@ -2284,6 +2333,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // The same allocation at the element width MAME declared.
   if (name === 'ALLOC16') return new Uint16Array(Math.max(0, toNumber(args[0])));
   if (name === 'ALLOC32') return new Uint32Array(Math.max(0, toNumber(args[0])));
+  if (name === 'ALLOCF') return new Float64Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
   // <cmath>'s std:: spellings answer as the C ones: the speaker filter sums
   // `std::abs(m_ampl[c])`, and unbound that sum was 0 and every sample

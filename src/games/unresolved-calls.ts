@@ -24,7 +24,6 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["gfx().set_colorbase", "wardner"],
   ["gfx().set_colors", "simpsons tmnt"],
   ["has_screen", "qix wardner"],
-  ["is_loaded", "mslug"],
   ["konami_sortlayers_3", "simpsons"],
   ["m_adc.found", "marble"],
   ["m_audiocpu.cycles_to_attotime", "simpsons"],

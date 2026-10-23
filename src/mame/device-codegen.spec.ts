@@ -130,6 +130,27 @@ const definition: GeneratedDeviceDefinition = {
 const emitted = generatedDeviceMethodsSource(definition);
 assert.deepEqual(emitted.methods.sort(), ['render', 'step']);
 assert.doesNotMatch(emitted.source, /method_cold_path/);
+// MAME's inline header accessors are emitted although nothing local calls
+// them: another device does, on every access (the MMC5 reads its PPU's
+// get_draw_phase on each CHR fetch). A no-parameter statement that is not a
+// return is no getter, and stays interpreted.
+const accessorEmitted = generatedDeviceMethodsSource({
+  ...definition,
+  methods: [...definition.methods, {
+    name: 'get_total',
+    parameters: '',
+    source: { file: 'src/devices/test.h', line: 4 },
+    program: { diagnostics: [], operations: [{ op: 'return', value: { kind: 'identifier', name: 'm_total' } }] },
+  }, {
+    name: 'set_total',
+    parameters: 'u8 val',
+    source: { file: 'src/devices/test.h', line: 5 },
+    program: { diagnostics: [], operations: [{
+      op: 'assign', target: { kind: 'identifier', name: 'm_total' }, operator: '=', value: { kind: 'identifier', name: 'val' },
+    }] },
+  }],
+} as never);
+assert.deepEqual(accessorEmitted.methods.sort(), ['get_total', 'render', 'set_total', 'step']);
 const timerEmitted = generatedDeviceMethodsSource({
   ...definition,
   timers: [{ member: 'm_timer', callback: 'cold_path' }],

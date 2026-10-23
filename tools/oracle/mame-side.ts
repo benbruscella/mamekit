@@ -47,7 +47,7 @@ export function resolveMame(mameSrc: string, explicit?: string): { binary: strin
 }
 
 /** Where MAME finds a machine's sets and a title's software, for each category. */
-function romPaths(config: ShellConfig, category: string): string[] {
+export function romPaths(config: ShellConfig, category: string): string[] {
   const roms = join(projectRoot, '.data/roms');
   if (category === 'arcade') return [join(roms, 'arcade')];
   // A software list's sets sit in <dumps>/<list>/<name>.zip, which is where

@@ -145,6 +145,7 @@ export function generatedDeviceMethodsSource(
       // port write through the interpreter -- 41% of a frame at 33 fps.
       isBusEntryPoint(method) ||
       isLineEntryPoint(method) ||
+      (!definition.boardScope && isAccessor(method, methodsByName)) ||
       // device_execute_interface entry points run every device clock, even
       // when their loop only calls helpers and has no switch of its own.
       method.name === 'execute_run' ||
@@ -505,6 +506,27 @@ function isLineEntryPoint(method: GeneratedDeviceMethod): boolean {
   return /^int\s+state$/.test(parameters) || (parameters === '' && /_r$/.test(method.name));
 }
 
+/**
+ * An accessor: MAME's inline header getters and setters, a getter being one
+ * `return` with no parameters (`int get_draw_phase() { return m_draw_phase; }`)
+ * and a setter one statement over its single parameter (`void
+ * set_open_bus(uint8_t val) { m_open_bus = val; }`), neither looping or
+ * calling the device's own methods. Another device calls them, so nothing
+ * local marks them hot, and interpreted each one cost an overload search and
+ * a program walk: the MMC5 asks its PPU for the draw phase on every CHR and
+ * nametable fetch, thirty thousand times a frame. A driver's own handlers are
+ * not roots this way: the board selects those by how it wires them.
+ */
+function isAccessor(method: GeneratedDeviceMethod, methodsByName: Map<string, GeneratedDeviceMethod>): boolean {
+  const operations = method.program.operations;
+  if (operations.length !== 1 || maximumLoopDepth(operations) !== 0) return false;
+  if ([...calledIdentifiers(operations)].some(name => methodsByName.has(name))) return false;
+  const parameters = tryParseParameters(method.parameters);
+  if (!parameters) return false;
+  if (parameters.length === 0) return operations[0]!.op === 'return';
+  return parameters.length === 1 && usesIdentifier(operations, parameters[0]!.name);
+}
+
 export function supportsMethod(
   method: GeneratedDeviceMethod,
   definition: CodegenScope,
@@ -732,7 +754,7 @@ function emitOperation(
     // run time (compileValueWrapper); these are the IR's aggregate producers.
     const allocated = operation.value?.kind === 'call' &&
       operation.value.callee.kind === 'identifier' &&
-      ['ALLOC', 'ALLOC16', 'ALLOC32', 'make_unique_clear', 'ARRAY']
+      ['ALLOC', 'ALLOC16', 'ALLOC32', 'ALLOCF', 'make_unique_clear', 'ARRAY']
         .includes(operation.value.callee.name);
     // `rectangle draw = cliprect` is a C++ value copy. Aliasing it lets a
     // handler narrow its own clip rectangle and hand the mutated one back to
@@ -1467,9 +1489,10 @@ function emitCall(
     if (name.startsWith('new::')) return `runtime.invoke(${JSON.stringify(name)}${args.length ? ', ' + args.join(', ') : ''})`;
     if (name === 'bool') return `((${args[0] ?? '0'}) ? 1 : 0)`;
     if (name === 'ALLOC' || name === 'make_unique_clear' ||
-        name === 'ALLOC16' || name === 'ALLOC32') {
+        name === 'ALLOC16' || name === 'ALLOC32' || name === 'ALLOCF') {
       const array = name === 'ALLOC16' ? 'Uint16Array'
         : name === 'ALLOC32' ? 'Uint32Array'
+        : name === 'ALLOCF' ? 'Float64Array'
         : 'Uint8Array';
       return yieldToOverride(
         `new ${array}(Math.max(0, Number(${args[0] ?? '0'})))`,
@@ -2174,6 +2197,14 @@ export function codegenWrappedParameters(method: GeneratedDeviceMethod): string[
 
 function isMutableReference(valueType: string | undefined): boolean {
   return Boolean(valueType?.includes('&') && !/\bconst\b/.test(valueType));
+}
+
+function usesIdentifier(operations: GeneratedHandlerOperation[], name: string): boolean {
+  let used = false;
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'identifier' && expression.name === name) used = true;
+  }));
+  return used;
 }
 
 function assignsIdentifier(
