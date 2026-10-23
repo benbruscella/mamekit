@@ -39,12 +39,11 @@ export const nes = {
     golden: {
       regions: {
         maincpu: 'd7978eeb',
-        // MAME's own region names: the card's prg_alloc/vrom_alloc in call_load.
         'nes_slot:cart:chr_rom': 'c2928c49',
         'nes_slot:cart:prg_rom': 'a0ed7d20',
       },
       checkpoints: {
-        1: { video: 'f0e232c6', state: '7e64d27e' },
+        1: { video: 'f0e232c6', state: 'd4d41a72' },
         60: { video: '046c207d', state: 'f38039da' },
         300: { video: 'ae941fc6', state: 'dc1289ca' },
         600: { video: '9b52f360', state: '0a5a07da' },
@@ -122,7 +121,7 @@ export const nes = {
         'nes_slot:cart:prg_rom': 'f4286d0f',
       },
       checkpoints: {
-        1: { video: 'f0e232c6', state: 'f8ba696b' },
+        1: { video: 'f0e232c6', state: '520aa167' },
         300: { video: '2802be17', state: '1404ab31' },
         620: { video: 'b45aaef8', state: '2c358dc7' },
         629: { video: '07673647', state: 'd8214c72' },
@@ -164,7 +163,7 @@ export const nes = {
         'nes_slot:cart:prg_rom': 'b8bb48d3',
       },
       checkpoints: {
-        1: { video: 'f0e232c6', state: '971fdfe9' },
+        1: { video: 'f0e232c6', state: '3daf17e5' },
         300: { video: 'f600b5c6', state: 'd2a6c74b' },
         600: { video: '14afe57f', state: 'afc6a570' },
         900: { video: '27003867', state: 'd56ad5ff' },

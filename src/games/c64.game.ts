@@ -49,8 +49,8 @@ export const c64 = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '4861246c', state: '53ad9ec8' },
-        60: { video: 'f53f93ca', state: 'b6b03060' },
+        1: { video: '4861246c', state: 'fb15efff' },
+        60: { video: 'f53f93ca', state: '1e084157' },
         180: { video: 'd02f0c00', state: '88791d47' },
         300: { video: '73f81365', state: '5d246034' },
         600: { video: '9d74a0ef', state: '3a181741' },
@@ -119,7 +119,7 @@ export const c64 = {
         u17: '54c89351',
       },
       checkpoints: {
-        1: { video: '4861246c', state: '53ad9ec8' },
+        1: { video: '4861246c', state: 'fb15efff' },
         300: { video: 'cddb3f5f', state: '13883ff8' },
         1200: { video: '606b00d9', state: '080c36a6' },
         2400: { video: 'a6b267c4', state: 'bcac83c6' },

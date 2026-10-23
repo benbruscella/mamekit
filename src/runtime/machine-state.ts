@@ -411,6 +411,13 @@ class Restore {
     try {
       for (let index = 0; index < saved.length; index++) {
         const item = saved[index];
+        // A named function or a value object is resolved as any slot's is; a
+        // bare copy of its reference left a delegate array holding
+        // `{ $function }` records after a load (#178, Spy Hunter's SSIO).
+        if (isFunctionReference(item) || isFactoryNode(item)) {
+          this.into(live[index], item, live, index, child(path, index));
+          continue;
+        }
         if (index < live.length && this.isContainer(live[index]) && this.isContainer(item)) {
           this.into(live[index], item, live, index, child(path, index));
         } else if (item === null && index < live.length && kindOf(live[index], this.options) !== 'scalar') {

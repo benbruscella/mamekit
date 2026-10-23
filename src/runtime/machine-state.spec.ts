@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   captureState,
   markResizable,
+  namedStateFunction,
   restoreState,
   stateByteLength,
   type StatefulKeys,
@@ -235,4 +236,19 @@ console.log('machine-state.spec: capture and in-place restore round-trip every r
   assert.deepEqual(restoreState(b, saved, { factories }), []);
   assert.equal((b.m_time as { as_double(): number }).as_double(), 1.5, 'the factory rebuilt the value with its behavior');
   assert.deepEqual(restoreState(b, saved).map(d => d.path), ['m_time'], 'no factory is a diagnostic');
+}
+
+// A delegate array holds named functions (Midway's SSIO `m_custom_output`): a
+// load puts each slot's own function back, not the record it was saved as.
+{
+  const set = namedStateFunction('m_custom_output[1]', () => 7);
+  const unset = namedStateFunction('m_custom_output[0]', () => 0);
+  const functions = new Map<string, (...args: never[]) => unknown>([
+    ['m_custom_output[0]', unset],
+    ['m_custom_output[1]', set],
+  ]);
+  const saved = captureState({ m_custom_output: [unset, set] }, { functions });
+  const live = { m_custom_output: [unset, set] as unknown[] };
+  assert.deepEqual(restoreState(live, saved, { functions }), []);
+  assert.equal(live.m_custom_output[1], set, 'the slot is its function again');
 }

@@ -87,6 +87,17 @@ export interface GeneratedCallback {
    * lowering it to a board connection.
    */
   delegate?: boolean;
+  /**
+   * A delegate array's element count, when the delegate is one slot of it
+   * (`read8smo_delegate::array<5> m_custom_input`): the unset slots answer
+   * `isnull()` as MAME's do.
+   */
+  slots?: number;
+  /**
+   * Members the delegate's setter assigns besides the delegate, evaluated:
+   * `set_custom_input(1, 0x60, ...)` also sets `m_custom_input_mask[1] = 0x60`.
+   */
+  memberValues?: { member: string; index?: number; value: number; size?: number }[];
   inputLine?: string;
   /** Constant line state supplied by MAME's set_inputline helper. */
   delivery?: CpuLineDelivery;

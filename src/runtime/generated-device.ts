@@ -347,6 +347,12 @@ export interface Device {
   call(name: string, ...args: number[]): number;
   /** Call a method preserving non-numeric results (memory pointers). */
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
+  /**
+   * The framework surface the host answers for this device rather than its
+   * compiled methods: an image's `exists()`, `filename()`, `length()`. Its
+   * owner reaches them through its finder (`m_cartslot->exists()`).
+   */
+  hostedCalls?(): Readonly<Record<string, (...args: never[]) => unknown>>;
   /** Resolve an unambiguous generated method once for a hot bus connection. */
   prepareCall?(name: string): (...args: GeneratedCallArgument[]) => unknown;
   /** Connect source-typed calls and refresh them when the host overrides a method. */
@@ -862,6 +868,8 @@ class IrDevice implements Device {
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
+  /** The image/floppy/cassette surface the host answers (see hostedCalls). */
+  private readonly hostedSurface: Record<string, (...args: never[]) => unknown> = {};
   private readonly clock: number;
   private executedCycles = 0;
   private runningCycles: number | undefined;
@@ -1931,6 +1939,10 @@ class IrDevice implements Device {
     return this.definition.dataAddressBits;
   }
 
+  hostedCalls(): Readonly<Record<string, (...args: never[]) => unknown>> {
+    return this.hostedSurface;
+  }
+
   bus(): GeneratedDeviceDefinition['bus'] {
     const bus = this.definition.bus;
     if (!bus?.ranges.some(range => range.cards)) return bus;
@@ -2174,6 +2186,7 @@ class IrDevice implements Device {
       get_feature: 'std::string_view feature_name',
       software_get_default_slot: 'const char *default_card_slot',
     };
+    Object.assign(this.hostedSurface, surface);
     for (const [name, call] of Object.entries(surface)) {
       if (typeof self[name] !== 'function') self[name] = call;
       // The device's own method, or the host's answer to the name, stays:
@@ -2197,6 +2210,7 @@ class IrDevice implements Device {
       exists: () => this.members.m_cassette ? 1 : 0,
       get_image: () => this.members.m_cassette ?? 0,
     };
+    Object.assign(this.hostedSurface, surface);
     for (const [name, call] of Object.entries(surface)) {
       if (this.methods.has(name) || this.bindings.calls![name]) continue;
       this.bindings.calls![name] = call as (...args: number[]) => number;
@@ -2219,6 +2233,7 @@ class IrDevice implements Device {
       make_readonly: () => { this.imageReadOnly = true; return 0; },
       is_readonly: () => this.imageReadOnly ? 1 : 0,
     };
+    Object.assign(this.hostedSurface, surface);
     for (const [name, call] of Object.entries(surface)) {
       if (this.methods.has(name) || this.bindings.calls![name]) continue;
       this.bindings.calls![name] = call as (...args: number[]) => number;

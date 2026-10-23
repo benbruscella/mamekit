@@ -192,7 +192,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
     reader.string(callback.signal, `${path}.signal`, source);
     reader.string(callback.operation, `${path}.operation`, source);
     reader.optionalNumber(callback.slot, `${path}.slot`, source);
-    for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement', 'quantumSeconds']) {
+    for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement', 'quantumSeconds', 'slots']) {
       reader.optionalNumber(callback[field], `${path}.${field}`, source);
     }
     for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'inputLine']) {
