@@ -263,6 +263,10 @@ export class KeyboardInput implements InputPorts {
   private holds = new Map<string, Set<string>>();
   private toggled = new Map<string, boolean>();
   private fields: Field[] = [];
+  /** Each IPT_COINn field and its coin index (n-1), for the coin lockout. */
+  private coinFields: { field: Field; coin: number }[] = [];
+  /** Locked-out coins, bit n for IPT_COIN(n+1); the board owns and saves it. */
+  private lockedCoins = 0;
   /** opposite joystick direction per field id (LEFT<->RIGHT, UP<->DOWN) */
   private opposite = new Map<string, Field>();
   /** what each lever's last frame decided, by `player:number`; saved state */
@@ -358,6 +362,8 @@ export class KeyboardInput implements InputPorts {
         relativeDelta: b.relativeDelta,
         ways: b.ways,
       };
+      const coin = /^IPT_COIN(\d+)$/.exec(b.type ?? '');
+      if (coin) this.coinFields.push({ field: f, coin: Number(coin[1]) - 1 });
       const axis = joystickAxis(b.type);
       if (axis) {
         f.stick = `${f.player}:${axis.stick}`;
@@ -1057,10 +1063,22 @@ export class KeyboardInput implements InputPorts {
     return this.state[tag] ?? 0xff;
   }
 
+  setCoinLockout(locked: number): void {
+    this.lockedCoins = locked;
+  }
+
   read(tag: string): number {
     const watched = this.seatWatch?.[tag];
     if (watched !== undefined) this.seatReads[watched]++;
-    const value = this.state[tag] ?? 0xff;
+    let value = this.state[tag] ?? 0xff;
+    // A locked-out coin reads as released; the press itself stays held, so it
+    // counts once the game opens the mech again.
+    if (this.lockedCoins) {
+      for (const { field, coin } of this.coinFields) {
+        if (field.port !== tag || !(this.lockedCoins & (1 << coin))) continue;
+        value = field.activeLow ? value | field.mask : value & ~field.mask;
+      }
+    }
     if (!this.frameFraction || !this.relativePorts.has(tag)) return value;
     const fraction = this.frameFraction();
     if (fraction >= 1) return value;

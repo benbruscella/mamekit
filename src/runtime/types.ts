@@ -37,6 +37,11 @@ export interface SoundCore {
 export interface InputPorts {
   /** read the current byte for a port tag ("IN0", "IN1", "DSWA", "DSWB") */
   read(tag: string): number;
+  /**
+   * MAME's coin lockout, bit n for IPT_COIN(n+1): a locked-out coin reads as
+   * released, as ioport.cpp does with -coin_lockout on.
+   */
+  setCoinLockout?(locked: number): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +68,12 @@ export interface BoardSinks {
    * core's register writes refer to.
    */
   soundData?: (id: number, bytes: Uint8Array) => void;
+  /**
+   * MAME's `sound_manager::system_mute`: the machine silences every speaker
+   * (Frogger's and Scramble's "sound disable" bit). `frac` is where in the
+   * frame it took effect, as for `soundWrite`.
+   */
+  mute?: (muted: boolean, frac?: number) => void;
 }
 
 export interface BoardSnapshot {

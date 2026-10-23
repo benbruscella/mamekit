@@ -576,3 +576,23 @@ console.log('input.spec: Cmd and Ctrl shortcuts stay the browser\'s');
   frames(30, ['exp:LINE4']);
   assert.equal(follow.seat(), 2, 'a pinned seat stays');
 }
+
+// MAME's coin lockout (#178): a locked-out coin reads as released whichever
+// way the port is wired, and the press counts again once the mech opens.
+{
+  const coins = new KeyboardInput([
+    { port: 'IN0', mask: 0x04, keys: ['Digit5'], label: 'COIN1', type: 'IPT_COIN1', activeLow: false },
+    { port: 'IN0', mask: 0x08, keys: ['Digit6'], label: 'COIN2', type: 'IPT_COIN2' },
+  ], [], [{ tag: 'IN0', init: 0x08 }]);
+  const slot = new EventTarget();
+  coins.attach(slot);
+  slot.dispatchEvent(keyEvent('keydown', 'Digit5'));
+  slot.dispatchEvent(keyEvent('keydown', 'Digit6'));
+  assert.equal(settle(coins).read('IN0'), 0x04, 'both coins pressed');
+  coins.setCoinLockout(0b10);
+  assert.equal(coins.read('IN0'), 0x0c, 'a locked active-low coin reads released');
+  coins.setCoinLockout(0b11);
+  assert.equal(coins.read('IN0'), 0x08, 'a locked active-high coin reads released');
+  coins.setCoinLockout(0);
+  assert.equal(coins.read('IN0'), 0x04, 'the held press counts once unlocked');
+}

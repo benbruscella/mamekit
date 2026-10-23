@@ -127,6 +127,21 @@ up here as a diverged trajectory rather than surviving as a silent desync.
 the same number of frames before taking the save; `MAMEKIT_STATE_REPORT=1`
 prints what the walker skipped as opaque.
 
+Every contract also fails on a call that resolves to nothing. In a player's
+browser such a call still answers 0, so a gap the contracts never reached
+cannot stop a game. In a contract it must be accounted for, in one of two ways:
+- **A declared no-op:** it has no effect in MAMEKIT's model, and it is listed
+  with its reason in `src/ir/framework-calls.ts`. Save-state and debugger
+  registration are examples.
+- **A known gap:** it is listed in `src/games/unresolved-calls.ts`, which only
+  shrinks (#178).
+
+A new MAME call that answers 0 is therefore a failing contract, not a quiet
+wrong value. `node tools/unresolved-calls.ts [game ...]` runs the contracts
+with a census and lists every unresolved call, the machines that reach it, and
+how often. Run over every contract, it also names known gaps that nothing
+reaches any more, which must be deleted.
+
 Each token owns its checkpoint and input schedule because machines reach their
 input-ready attract state at different times. Frame counts range from 600 to
 6,200 so each golden reaches active gameplay; Galaga (2,600) and Dig Dug
