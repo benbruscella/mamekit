@@ -1373,6 +1373,19 @@ function callLink(context: EmitContext, name: string): string {
   return `__l[${JSON.stringify(name)}]`;
 }
 
+/**
+ * A host call whose absence makes the call answer 0. When the link is bound it
+ * is the link; when it is not, a census tool (tools/unresolved-calls.ts) may
+ * record the miss. The hook is read only on a miss and answers nothing, so the
+ * emitted call behaves the same with or without one (#178).
+ */
+function fallbackLink(context: EmitContext, name: string): string {
+  const missing = context.typescript
+    ? '(globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall'
+    : 'globalThis.mamekitMissingCall';
+  return `(${callLink(context, name)} ?? ${missing}?.(${JSON.stringify(name)}))`;
+}
+
 function emitCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: EmitContext,
@@ -1589,7 +1602,7 @@ function emitCall(
     }
     if (expression.callee.property === 'isnull') {
       const name = `${expressionName(expression.callee.object)}.isnull`;
-      return `(${callLink(context, name)}?.() ?? 0)`;
+      return `(${fallbackLink(context, name)}?.() ?? 0)`;
     }
     const args = expression.args.map(argument => emitExpression(argument, context));
     const object = emitCallObject(expression.callee.object, context);
@@ -1639,7 +1652,7 @@ function emitCall(
         HOST_SERVICE_CALLS.includes(directName)
       )
     ) {
-      return `(${callLink(context, directName)}?.(${args.join(', ')}) ?? 0)`;
+      return `(${fallbackLink(context, directName)}?.(${args.join(', ')}) ?? 0)`;
     }
     // A call through a member is the board's binding when it has one, and a
     // method on the value only otherwise — the interpreter's own precedence.
@@ -1674,7 +1687,7 @@ function emitCall(
       // executable core) has no value at all, so its bare method name is the
       // last thing tried before the call means nothing. Emitting only the
       // first two arms turned such a call into a TypeError instead.
-      const bare = callLink(context, expression.callee.property);
+      const bare = fallbackLink(context, expression.callee.property);
       return `(${lookup} ? ${lookup}(${args.join(', ')}) : ` +
         `(${object}) != null ? ${onValue} : ` +
         `(${bare}?.(${args.join(', ')}) ?? 0))`;

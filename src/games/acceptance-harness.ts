@@ -17,12 +17,14 @@ import {
   type ShellConfig,
   type SoftwareShelf,
 } from '../runtime/shell.ts';
-import type { Board, BoardSnapshot, CassetteMedia, DiskMedia, MachineState, QuickloadMedia, Regions } from '../runtime/types.ts';
+import type { Board, BoardSinks, BoardSnapshot, CassetteMedia, DiskMedia, MachineState, QuickloadMedia, Regions } from '../runtime/types.ts';
 import { NaturalKeyboard } from '../runtime/natural-keyboard.ts';
 import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } from '../runtime/software.ts';
 import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
+import { isDeclaredFrameworkNoOp } from '../ir/framework-calls.ts';
+import { KNOWN_UNRESOLVED_CALLS } from './unresolved-calls.ts';
 import { cartImageFromZip, cartSupport, mountCart, resolveCartImage, type SlotDeviceRegistry } from '../runtime/cart-mount.ts';
 import type { SoftCatalog } from '../runtime/nes-ines.ts';
 import type {
@@ -53,7 +55,8 @@ export interface SoundWrite {
 }
 
 interface AudioProbe {
-  render(writes: readonly SoundWrite[], capture: boolean): void;
+  /** `mutes`: the machine's system-mute changes this frame, in order. */
+  render(writes: readonly SoundWrite[], capture: boolean, mutes?: readonly { muted: boolean; frac: number }[]): void;
   finish(
     writes: SoundWrite[],
     wavPath?: string,
@@ -130,12 +133,29 @@ export interface GameAcceptanceOptions {
   onTitleStart?: (frame: number, message: string) => void;
 }
 
+/**
+ * Fail the contract on a call that resolves to nothing and that no one has
+ * accounted for (#178): not a declared framework no-op, not a known gap.
+ * A census tool that installed its own listener keeps it.
+ */
+function failOnUnaccountedCalls(game: string): void {
+  const hooks = globalThis as { mamekitMissingCall?: (name: string) => undefined };
+  hooks.mamekitMissingCall ??= (name: string): undefined => {
+    if (isDeclaredFrameworkNoOp(name) || KNOWN_UNRESOLVED_CALLS.has(name)) return undefined;
+    throw new Error(
+      `${game}: the call "${name}" resolves to nothing, so it would answer 0. ` +
+      'Generate what MAME does, or declare it in src/ir/framework-calls.ts with its reason.',
+    );
+  };
+}
+
 export async function runGameAcceptance(
   contract: GameTestContract,
   root = projectRoot,
   options: GameAcceptanceOptions = {},
 ): Promise<GameAcceptanceGolden> {
   assertExecutableActions(contract);
+  failOnUnaccountedCalls(contract.game);
   if (process.env.MAMEKIT_PROFILE_HANDLERS === '1') {
     (globalThis as { __mamekitHandlerCounts?: Map<string, number> })
       .__mamekitHandlerCounts = new Map();
@@ -261,7 +281,7 @@ export async function runGameAcceptance(
       boardConfig: ShellConfig['board'],
       regions: Regions,
       inputs: KeyboardInput,
-      sinks: { soundWrite(offset: number, data: number, frac?: number, method?: string): void },
+      sinks: BoardSinks,
     ): Board;
   };
   // Register the selected compiled machine explicitly for offline acceptance.
@@ -283,6 +303,7 @@ export async function runGameAcceptance(
   const allWrites: SoundWrite[] = [];
   /** Set while the save-state round trip replays; its writes go here instead. */
   let replayWrites: SoundWrite[] | undefined;
+  const pendingMutes: { muted: boolean; frac: number }[] = [];
   const requiredAudioCounts = new Map<number, number>();
   const requiredAudioValues = new Map<number, Set<number>>();
   await generatedRuntime.loadBoardSlotCards(boardConfig);
@@ -296,6 +317,9 @@ export async function runGameAcceptance(
         if (replayWrites) { replayWrites.push(write); return; }
         pendingWrites.push(write);
         allWrites.push(write);
+      },
+      mute: (muted, frac = 0) => {
+        if (!replayWrites) pendingMutes.push({ muted, frac });
       },
     },
   );
@@ -456,8 +480,9 @@ export async function runGameAcceptance(
       }
       requiredAudioValues.set(index, values);
     }
-    audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120);
+    audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120, pendingMutes);
     pendingWrites.length = 0;
+    pendingMutes.length = 0;
     // First occurrence wins. A contract may soft-reset mid-replay (Qix's
     // operator flow stores a language in NVRAM, then resets), and reset puts
     // the board's frame counter back to zero — so every checkpoint below the
@@ -1090,9 +1115,22 @@ async function createAudioProbe(
   });
   const chunks: Float32Array[] = [];
   let audible = 0;
+  let muted = false;
   return {
-    render(writes, capture) {
+    render(writes, capture, mutes = []) {
       const samples = renderer.render(writes);
+      // MAME's system mute zeroes the speaker output from where it was set
+      // (sound.cpp); the browser applies it as its output gain.
+      let from = 0;
+      const segment = (to: number) => {
+        if (muted) samples.fill(0, from, Math.max(from, to));
+        from = Math.max(from, to);
+      };
+      for (const change of mutes) {
+        segment(Math.round(Math.min(1, Math.max(0, change.frac)) * samples.length));
+        muted = change.muted;
+      }
+      segment(samples.length);
       if (capture) chunks.push(samples);
     },
     finish(writes, wavPath) {

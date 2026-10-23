@@ -44,8 +44,8 @@ export const bzone = sourceTarget({
       writes: 28889,
       nonzeroWrites: 932,
       writeHash: '1a72a848',
-      pcmHash: '33334c64',
-      rms: 0.011231,
+      pcmHash: '78526136',
+      rms: 0.00931,
     },
   },
 });

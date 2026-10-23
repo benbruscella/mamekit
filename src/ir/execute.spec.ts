@@ -715,6 +715,20 @@ check('std::vector insert and erase work at iterators', () => {
     'anything else keeps its own method');
 });
 
+// The 6805's device_reset clears its IRQ lines with std::fill over
+// std::begin/std::end, and its device_start sizes the cycle range with
+// std::min_element/std::max_element. All four answered 0 (#178).
+check('std::fill and min/max_element over array iterators', () => {
+  const members = { m_irq_state: [1, 1, 0], m_cycles: [5, 2, 9, 2] };
+  executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(`
+    std::fill(std::begin(m_irq_state), std::end(m_irq_state), 0);
+    m_min = *std::min_element(std::begin(m_cycles), std::end(m_cycles));
+    m_max = *std::max_element(std::begin(m_cycles), std::end(m_cycles));`)), { members } as never);
+  assert.deepEqual(members.m_irq_state, [0, 0, 0]);
+  assert.equal((members as Record<string, unknown>).m_min, 2);
+  assert.equal((members as Record<string, unknown>).m_max, 9);
+});
+
 // The floppy drive's call_load spells it `std::strcmp`, and an unknown macro
 // answered 0: equal, so a list's write_protected "false" protected the disk.
 check('std::strcmp compares like strcmp', () => {

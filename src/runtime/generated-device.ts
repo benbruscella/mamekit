@@ -4,7 +4,7 @@ import {
   applyGeneratedAnd,
   applyGeneratedDivision,
   applyGeneratedShiftRight,
-  applyGeneratedMacro,
+  generatedMacroCall,
   dereferenceGeneratedValue,
   generatedPackedView,
   generatedContainerAccessor,
@@ -1376,7 +1376,7 @@ class IrDevice implements Device {
         if (typeof member === 'function') return member(...args);
         return 0;
       },
-      macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
+      macro: (name, ...args) => generatedMacroCall(name, args),
       combineData: applyCombineData,
       divide: applyGeneratedDivision,
       shiftRight: applyGeneratedShiftRight,

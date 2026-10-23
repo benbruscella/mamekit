@@ -74,6 +74,7 @@ export class AudioOutput {
   private filter: BiquadFilterNode | null = null;
   private gain: GainNode | null = null;
   private volume: number = 1;
+  private systemMuted = false;
   /** writes + data pushes, kept in issue order, flushed once per frame */
   private pending: PendingItem[] = [];
   /** Complete frames produced while the async AudioWorklet is starting. */
@@ -99,7 +100,7 @@ export class AudioOutput {
       outputChannelCount: [1],
     });
     const gain = ctx.createGain();
-    gain.gain.value = this.volume;
+    gain.gain.value = this.systemMuted ? 0 : this.volume;
     const filter = core.speakerFilter
       ? ctx.createBiquadFilter()
       : null;
@@ -251,7 +252,16 @@ export class AudioOutput {
   /** Master volume 0..1 via the GainNode. */
   setVolume(v: number): void {
     this.volume = Math.min(1, Math.max(0, v));
-    if (this.gain) this.gain.gain.value = this.volume;
+    if (this.gain) this.gain.gain.value = this.systemMuted ? 0 : this.volume;
+  }
+
+  /**
+   * The machine's own system mute (MAME `sound_manager::system_mute`), apart
+   * from the visitor's volume so neither undoes the other.
+   */
+  setSystemMute(muted: boolean): void {
+    this.systemMuted = muted;
+    if (this.gain) this.gain.gain.value = muted ? 0 : this.volume;
   }
 
   suspend(): void {

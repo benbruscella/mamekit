@@ -3088,10 +3088,15 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
   // tpp2_state::draw_background. OVERRIDDEN_BY carries every candidate; fold
   // the selected implementation onto the handler consumers already reference.
   //
-  // An override that chains to its base (tpp2_state::screen_vblank calls
-  // tnx1_state::screen_vblank) needs both bodies live at once, and qualified
-  // calls are not distinguished from virtual ones downstream, so those keep
-  // the base implementation rather than recursing into themselves.
+  // An override that chains to its base needs both bodies live at once. When
+  // it calls the very handler it replaces (`ngarcade_base_state::io_control_w`
+  // runs `neogeo_base_state::io_control_w(offset, data)` for the cases it does
+  // not handle), the base body is kept as its own handler, `method__base`, and
+  // the override's qualified call is pointed at it. Before #178 the base body
+  // simply won, and Neo Geo never ran the override's coin lockout and coin
+  // counter writes. An override that chains to some other class still keeps
+  // the base implementation, since qualified calls are not otherwise
+  // distinguished from virtual ones downstream.
   const classRank = new Map<string, number>();
   for (const [index, configId] of configOrder.entries()) {
     const cls = String(nodes.find(node => node.id === configId)?.props.cls ?? '');
@@ -3101,24 +3106,45 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
   if (overriddenBy.length) {
     const byId = new Map(nodes.map(node => [node.id, node]));
     const rehomed: typeof edges = [];
+    const kept: typeof nodes = [];
     for (const node of nodes) {
       if (node.label !== 'Handler') continue;
       const baseRank = classRank.get(String(node.props.ownerClass));
       if (baseRank === undefined) continue;
+      const method = String(node.props.method);
+      const ownerClass = String(node.props.ownerClass);
+      const callsOwnBase = new RegExp(`\\b${ownerClass}::${method}\\s*\\(`);
       const [chosen] = overriddenBy
         .filter(edge => edge.from === node.id)
         .map(edge => byId.get(edge.to))
         .filter(candidate => candidate !== undefined)
         .filter(candidate => (classRank.get(String(candidate.props.ownerClass)) ?? baseRank) < baseRank)
-        .filter(candidate => !new RegExp(`\\w+::${node.props.method}\\s*\\(`)
-          .test(String(candidate.props.sourceBody ?? '')))
+        .filter(candidate => {
+          const body = String(candidate.props.sourceBody ?? '');
+          return callsOwnBase.test(body) || !new RegExp(`\\w+::${method}\\s*\\(`).test(body);
+        })
         .sort((left, right) =>
           classRank.get(String(left.props.ownerClass))! -
           classRank.get(String(right.props.ownerClass))!);
       if (!chosen) continue;
+      const chosenBody = String(chosen.props.sourceBody ?? '');
+      if (callsOwnBase.test(chosenBody)) {
+        const baseId = `${node.id}__base`;
+        kept.push({ ...node, id: baseId, props: { ...node.props, method: `${method}__base` } });
+        for (const edge of edges) {
+          if (edge.from === node.id && edge.rel !== 'OVERRIDDEN_BY') rehomed.push({ ...edge, from: baseId });
+        }
+        rehomed.push({ from: node.id, to: baseId, rel: 'CALLS_HANDLER' });
+      }
       for (const prop of VIRTUAL_IMPLEMENTATION_PROPS) {
         if (chosen.props[prop] === undefined) delete node.props[prop];
         else node.props[prop] = chosen.props[prop];
+      }
+      if (callsOwnBase.test(chosenBody)) {
+        node.props.sourceBody = chosenBody.replace(
+          new RegExp(`\\b${ownerClass}::${method}(\\s*\\()`, 'g'),
+          `${ownerClass}::${method}__base$1`,
+        );
       }
       node.props.dispatchedFrom = String(chosen.props.ownerClass);
       // The selected body calls the selected class's helpers, so its closure
@@ -3129,6 +3155,7 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       }
     }
     edges = [...edges, ...rehomed].filter(edge => edge.rel !== 'OVERRIDDEN_BY');
+    nodes.push(...kept);
   }
 
   // Dropping shadowed callbacks and unselected overrides can orphan whole

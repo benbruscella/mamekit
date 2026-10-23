@@ -287,6 +287,9 @@ export function withSlotCards(machine: BoardIr, cards: Readonly<Record<string, s
 const INPUT_LINE_NMI = -1;
 const INPUT_LINE_RESET = -2;
 const INPUT_LINE_HALT = -3;
+const CLEAR_LINE = 0;
+const ASSERT_LINE = 1;
+const HOLD_LINE = 2;
 
 /**
  * Apply MAME's special CPU input lines without confusing RESET with NMI.
@@ -470,6 +473,8 @@ class IrBoard implements Board {
    * closure variable would be invisible.
    */
   private readonly hostState: Record<string, object> = {};
+  /** Each generated processor line's MAME state, `tag:line` -> CLEAR/ASSERT/HOLD. */
+  private readonly deviceLineStates = this.hostModel('deviceLineStates', new Map<string, number>());
   /**
    * Host models whose running values live outside their registered record for
    * speed: each writes its record before a save is captured and reads it back
@@ -1241,6 +1246,41 @@ class IrBoard implements Board {
     // effects such as clearing a sound CPU IRQ.
     calls['machine().side_effects_disabled'] = () => 0;
     calls['machine().phase'] = () => this.machinePhase;
+    // The scheduler's clock, as devices already see it. Carnival's sound timer
+    // is `machine().time().as_ticks(500) & 1`, a 500 Hz square wave the game
+    // polls; unbound it read 0 forever (#178).
+    calls['machine().time'] ??= () => generatedAttotime(this.machineSeconds());
+    // MAME's bookkeeping coin lockout: while a coin is locked out its input
+    // reads as released (ioport.cpp, with -coin_lockout on, MAME's default).
+    // Games close the coin mechs when credits are full or during their tests;
+    // unbound, these answered 0 and every coin went in (#178). The lockout is
+    // machine state, so it is saved and pushed back to the input model.
+    const coinLockout = this.hostModel('coinLockout', { mask: 0 });
+    const setCoinLockout = (mask: number) => {
+      coinLockout.mask = mask & 0xfff;
+      inputs.setCoinLockout?.(coinLockout.mask);
+      return 0;
+    };
+    this.stateSyncs.push({ capture: () => {}, restored: () => void inputs.setCoinLockout?.(coinLockout.mask) });
+    calls['machine().bookkeeping().coin_lockout_w'] = (coin, on) => {
+      const bit = 1 << Number(coin);
+      return setCoinLockout(Number(on) ? coinLockout.mask | bit : coinLockout.mask & ~bit);
+    };
+    calls['machine().bookkeeping().coin_lockout_global_w'] = on => setCoinLockout(Number(on) ? 0xfff : 0);
+    // MAME's system mute zeroes every speaker's output while it is set
+    // (sound.cpp). With no arguments it is the getter. Unbound, the driver's
+    // "sound disable" bit did nothing (#178).
+    const systemMute = this.hostModel('systemMute', { muted: false });
+    this.stateSyncs.push({ capture: () => {}, restored: () => sinks.mute?.(systemMute.muted, 0) });
+    calls['machine().sound().system_mute'] = (...args) => {
+      if (!args.length) return Number(systemMute.muted);
+      const muted = Boolean(Number(args[0]));
+      if (muted !== systemMute.muted) {
+        systemMute.muted = muted;
+        sinks.mute?.(muted, this.soundFraction());
+      }
+      return 0;
+    };
     calls['m68000_base_device::autovector'] = level => 24 + level;
     const generatedInputs: InputPorts = {
       read: port => {
@@ -1545,6 +1585,7 @@ class IrBoard implements Board {
         for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
           calls[`${name}.set_input_line`] ??= setInputLine;
         }
+        device.bindCall('standard_irq_callback', line => this.deviceIrqAcknowledge(tag, device, Number(line)));
       }
       for (const method of device.methodNames()) {
         const accessed = synchronized && (method === 'read' || method === 'write');
@@ -2965,7 +3006,28 @@ class IrBoard implements Board {
       this.cpuHeld.set(tag, held);
       return 0;
     }
-    return Number(device.call('execute_set_input', line, state)) || 0;
+    // device_input (diexec.cpp): HOLD_LINE reaches the core as ASSERT_LINE
+    // and is remembered, so the core's standard_irq_callback clears it when
+    // the interrupt is taken. A raw 2 read as "not asserted" with an
+    // interrupt pending.
+    this.deviceLineStates.set(`${tag}:${line}`, state);
+    return Number(device.call('execute_set_input', line, state === HOLD_LINE ? ASSERT_LINE : state)) || 0;
+  }
+
+  /**
+   * device_execute_interface::standard_irq_callback for a generated
+   * processor: acknowledge a held line and answer the line's vector. Unbound,
+   * the 6805 called it 54,000 times a contract into a silent 0 (#178).
+   */
+  private deviceIrqAcknowledge(tag: string, device: Device, line: number): number {
+    const key = `${tag}:${line}`;
+    if (this.deviceLineStates.get(key) === HOLD_LINE) {
+      device.call('execute_set_input', line, CLEAR_LINE);
+      this.deviceLineStates.set(key, CLEAR_LINE);
+    }
+    return device.methodNames().includes('default_irq_vector')
+      ? Number(device.call('default_irq_vector', line)) || 0
+      : 0;
   }
 
   private configureHostedProcessor(
