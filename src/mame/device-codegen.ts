@@ -1601,8 +1601,15 @@ function emitCall(
       return '0';
     }
     if (expression.callee.property === 'isnull') {
+      // The board's binding for the devcb first, then the value's own answer
+      // (a delegate slot: Midway's SSIO asks `m_custom_input[offset].isnull()`),
+      // as the interpreter resolves it; only then the counted fallback.
       const name = `${expressionName(expression.callee.object)}.isnull`;
-      return `(${fallbackLink(context, name)}?.() ?? 0)`;
+      const link = callLink(context, name);
+      const object = emitExpression(expression.callee.object, context);
+      return `(${link} ? ${link}() : ` +
+        `typeof (${object})?.isnull === 'function' ? (${object}).isnull() : ` +
+        `(${fallbackLink(context, name)}?.() ?? 0))`;
     }
     const args = expression.args.map(argument => emitExpression(argument, context));
     const object = emitCallObject(expression.callee.object, context);

@@ -1587,6 +1587,16 @@ class IrBoard implements Board {
         }
         device.bindCall('standard_irq_callback', line => this.deviceIrqAcknowledge(tag, device, Number(line)));
       }
+      // The framework surface the host answers for the device (an image's
+      // `exists()`), reached through the owner's finder. The NES checks
+      // `m_cartslot->exists()` every vblank for a Disk System cartridge, and
+      // unbound that answered 0 (#178).
+      for (const [method, call] of Object.entries(device.hostedCalls?.() ?? {})) {
+        if (device.methodNames().includes(method)) continue;
+        for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
+          calls[`${name}.${method}`] ??= call as (...args: number[]) => unknown;
+        }
+      }
       for (const method of device.methodNames()) {
         const accessed = synchronized && (method === 'read' || method === 'write');
         const synced = <T extends (...args: never[]) => unknown>(call: T): T => accessed
@@ -2185,6 +2195,13 @@ class IrBoard implements Board {
       // frequently test the finder before raising its interrupt line.
       calls[`${specification.tag}.found`] = () => 1;
       calls[`m_${specification.tag}.found`] = () => 1;
+      // device_t::reset from driver code: the NES's machine_reset resets the
+      // cartridge PCB and then the CPU, so the reset vector is read through
+      // the PCB's banks. Unbound, it answered 0 (#178).
+      calls[`m_${specification.tag}.reset`] ??= () => {
+        cpu.reset();
+        return 0;
+      };
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
         applyGeneratedCpuInputLine(
           cpu,
@@ -2927,6 +2944,9 @@ class IrBoard implements Board {
     this.attachComposedCards();
     this.runDeviceStarts();
     this.runMachineLifecycle('startHandlers');
+    // Configuration a driver init applies (MAME runs it after the devices are
+    // constructed), so it lands on the members the machine has just set up.
+    this.bindDelegateSlots(machine);
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.runMachineReset();
     if (neoGeoInterrupts && Number(this.state.m_irq3_pending ?? 0)) {
@@ -2988,6 +3008,74 @@ class IrBoard implements Board {
         return device.get(name);
       },
     });
+  }
+
+  /**
+   * The slots of a delegate array on a device whose methods are the board's
+   * handlers: Midway's SSIO reads `m_custom_input[offset]()` and writes
+   * `m_custom_output[which](data)` only where `isnull()` is false. Each slot
+   * the machine configured is the callable; every other slot answers
+   * `isnull()` as MAME's unset delegate does, so it is skipped rather than
+   * called into a silent 0. The setter's other members (`m_custom_input_mask`)
+   * take the values it assigned. Spy Hunter's wheel, its sound board's status
+   * and every command to that sound board travel through these (#178).
+   */
+  private bindDelegateSlots(machine: BoardIr): void {
+    // Slots live in machine state, so each is a function the save walker
+    // restores by name (machine-state.ts), set or not.
+    const slot = (name: string, call: (...args: unknown[]) => unknown, isnull: number) => {
+      const fn = namedStateFunction(name, Object.assign((...args: unknown[]) => call(...args), {
+        isnull: () => isnull,
+        isunset: () => isnull,
+      }));
+      this.stateFunctions.set(name, fn);
+      return fn;
+    };
+    for (const callback of machine.callbacks) {
+      if (!callback.delegate || callback.slot === undefined || !callback.member ||
+          this.devices.has(callback.ownerTag)) continue;
+      const target = callback.targetTag ? this.devices.get(callback.targetTag) : undefined;
+      const handler = machine.handlers?.find(candidate =>
+        candidate.ownerClass === callback.targetClass && candidate.method === callback.targetMethod);
+      const call: ((...args: unknown[]) => unknown) | undefined =
+        target && callback.targetMethod && target.methodNames().includes(callback.targetMethod)
+          ? (...args) => target.invoke(callback.targetMethod!, ...args as GeneratedCallArgument[])
+          : handler?.program && !handler.program.diagnostics.length
+            ? (...args) => executeGeneratedMachineDelegate(
+              machine,
+              handler,
+              this.bindings,
+              Object.fromEntries(handlerParameterDescriptors(handler.parameters)
+                .map((parameter, index) => [parameter.name, generatedReferent(args[index] ?? 0)])),
+            ) ?? 0
+            : undefined;
+      if (!call) {
+        throw new Error(
+          `${machine.game}: ${callback.member}[${callback.slot}] is bound to ` +
+          `${callback.targetClass ?? callback.targetTag}::${callback.targetMethod}, which was not compiled`,
+        );
+      }
+      const member = callback.member;
+      const existing = this.state[member];
+      const slots = Array.isArray(existing)
+        ? existing
+        : Array.from({ length: Math.max(callback.slots ?? 0, callback.slot + 1) },
+          (_, index) => slot(`${member}[${index}]`, () => 0, 1));
+      slots[callback.slot] = slot(`${member}[${callback.slot}]`, call, 0);
+      this.state[member] = slots;
+      for (const assigned of callback.memberValues ?? []) {
+        if (assigned.index === undefined) {
+          this.state[assigned.member] = assigned.value;
+          continue;
+        }
+        const current = this.state[assigned.member];
+        const values = Array.isArray(current) || ArrayBuffer.isView(current)
+          ? current as unknown as number[]
+          : new Array<number>(Math.max(assigned.size ?? 0, assigned.index + 1)).fill(0);
+        values[assigned.index] = assigned.value;
+        this.state[assigned.member] = values;
+      }
+    }
   }
 
   /**

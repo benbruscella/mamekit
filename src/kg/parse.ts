@@ -168,7 +168,7 @@ function trailingModifiers(trailing: string): string[] {
   return mods;
 }
 
-function matchParen(src: string, open: number): number {
+export function matchParen(src: string, open: number): number {
   let depth = 0;
   for (let i = open; i < src.length; i++) {
     const c = src[i];

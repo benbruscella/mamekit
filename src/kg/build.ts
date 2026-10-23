@@ -28,7 +28,7 @@ import {
   parseStateClassConstants,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
-  parseEnumConstants, normalizeTemplatedMethod,
+  parseEnumConstants, normalizeTemplatedMethod, matchParen,
   type InputPortsDef,
   type AddressMapDef,
   type AddressRangeDef,
@@ -297,6 +297,24 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     const initTables = initFunction
       ? initStaticTables(ast, effectiveInitBody(ast, gm.cls, initFunction, consts), consts)
       : [];
+    // A driver init may wire a device's delegates itself: Spy Hunter's
+    // init_spyhunt calls `m_ssio->set_custom_input(2, 0xff, *m_adc,
+    // FUNC(adc0804_device::read))`. Those are configuration exactly as a
+    // machine config's lines are, but they belong to this game alone, so the
+    // callbacks hang off its Game node, not the shared device (#178).
+    const initDelegateLines = new Map<string, string[]>();
+    if (initFunction) {
+      const body = effectiveInitBody(ast, gm.cls, initFunction, consts);
+      for (const match of body.matchAll(/\b(m_\w+)\s*->\s*(\w+)\s*\(/g)) {
+        const open = match.index! + match[0].length - 1;
+        const close = matchParen(body, open);
+        const args = body.slice(open + 1, close);
+        if (!/FUNC\s*\(/.test(args) || !forwardingDelegateSetter(ast, match[2]!)) continue;
+        const tag = memberTags[`${gm.cls}::${match[1]}`] ?? memberTags[match[1]!];
+        if (!tag) throw new Error(`${gm.name}: cannot resolve the device ${match[1]} its init configures`);
+        initDelegateLines.set(tag, [...(initDelegateLines.get(tag) ?? []), `${match[1]}->${match[2]}(${args})`]);
+      }
+    }
     g.node('Game', id, {
       ...(initTables.length ? { initTables: initTables.map(table => JSON.stringify(table)) } : {}),
       name: gm.name, year: gm.year, company: gm.company, fullname: gm.fullname,
@@ -325,6 +343,9 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         : {}),
     });
     definedIn(id, source);
+    for (const [tag, lines] of initDelegateLines) {
+      emitCallbacks(g, ast, initFunction, id, tag, lines, memberTags, consts);
+    }
     if (gm.parent !== '0') g.edge(id, `game:${gm.parent}`, 'CLONE_OF');
     g.edge(id, `machine:${gm.cls}.${gm.machine}`, 'USES_MACHINE');
     g.edge(id, `inputs:${gm.input}`, 'USES_INPUTS');
@@ -1801,6 +1822,70 @@ function annotateInputHandlerClosure(
 /** MAME's inline device_delegate setter: set_<name>_callback / set_<name>_cb. */
 const DELEGATE_SETTER_RE = /^set_\w+_(?:callback|cb)$/;
 
+/** A device setter in MAME's forwarding-delegate idiom; see forwardingDelegateSetter. */
+interface ForwardingDelegateSetter {
+  /** The delegate the setter binds, and the expression that indexes it, if any. */
+  member: string;
+  index?: string;
+  /** The setter's named parameters, in order; the forwarded pack follows them. */
+  parameters: string[];
+  /** Other members the setter assigns from its parameters. */
+  assignments: { member: string; index?: string; value: string; size?: number }[];
+  /** A delegate array's element count (`read8smo_delegate::array<5>`). */
+  size?: number;
+}
+
+/**
+ * A device setter written as MAME's forwarding-delegate idiom, from the
+ * declaring class's own inline definition:
+ *
+ *   template <typename... T> void set_custom_input(int which, uint8_t mask, T &&... args)
+ *   { m_custom_input_mask[which] = mask; m_custom_input[which].set(std::forward<T>(args)...); }
+ *
+ * Midway's SSIO wires Spy Hunter's wheel ADC, its sound board's status and
+ * its lamp and sound-command port this way. The naming is free, so the shape
+ * is matched rather than `set_*_callback`; unmatched, the whole call was
+ * dropped and every one of those delegates answered nothing (#178).
+ */
+function forwardingDelegateSetter(ast: MameAstIndex, name: string): ForwardingDelegateSetter | undefined {
+  const definition = new RegExp(
+    `template\\s*<[^>]*>\\s*void\\s+${name}\\s*\\(([^)]*)\\)\\s*\\{([^{}]*)\\}`,
+  );
+  for (const declaration of ast.ast.units.flatMap(unit => unit.classes)) {
+    const match = definition.exec(declaration.body);
+    if (!match) continue;
+    const body = match[2]!;
+    const set = /\b(m_\w+)(?:\s*\[([^\]]+)\])?\s*\.\s*set\s*\(\s*std::forward\s*<\s*\w+\s*>\s*\(\s*\w+\s*\)\s*\.\.\.\s*\)/.exec(body);
+    if (!set) continue;
+    const named = splitMameArgs(match[1]!)
+      .map(parameter => parameter.trim())
+      .filter(parameter => parameter && !parameter.includes('...'));
+    const parameters = named.map(parameter => /(\w+)\s*$/.exec(parameter)?.[1] ?? '');
+    const size = (member: string) => {
+      const declared = new RegExp(
+        `(?:::array\\s*<\\s*(\\d+)\\s*>\\s+${member}\\b|\\b${member}\\s*\\[\\s*(\\d+)\\s*\\])`,
+      ).exec(declaration.body);
+      const count = Number(declared?.[1] ?? declared?.[2]);
+      return Number.isInteger(count) && count > 0 ? count : undefined;
+    };
+    const assignments = [...body.matchAll(/\b(m_\w+)(?:\s*\[([^\]]+)\])?\s*=\s*([^;]+);/g)]
+      .map(assignment => ({
+        member: assignment[1]!,
+        ...(assignment[2] ? { index: assignment[2].trim() } : {}),
+        value: assignment[3]!.trim(),
+        ...(size(assignment[1]!) ? { size: size(assignment[1]!) } : {}),
+      }));
+    return {
+      member: set[1]!,
+      ...(set[2] ? { index: set[2].trim() } : {}),
+      parameters,
+      assignments,
+      ...(size(set[1]!) ? { size: size(set[1]!) } : {}),
+    };
+  }
+  return undefined;
+}
+
 const CALLBACK_OPERATIONS = new Set([
   'set', 'append', 'set_ioport', 'set_inputline', 'append_inputline', 'set_nop',
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
@@ -2081,7 +2166,9 @@ function emitCallbacks(
         // m_sprgen->set_pri_callback(FUNC(tecmo_state::pri_cb)). The naming is
         // a MAME-wide convention, so match the shape, not the device.
         (DELEGATE_SETTER_RE.test(call.name) &&
-          call.args.some(arg => /FUNC\s*\(/.test(arg)))
+          call.args.some(arg => /FUNC\s*\(/.test(arg))) ||
+        (call.args.some(arg => /FUNC\s*\(/.test(arg)) &&
+          forwardingDelegateSetter(ast, call.name) !== undefined)
       ) &&
       (call.name !== 'set' || call.args.some(arg => /FUNC\s*\(|INPUT_LINE_/.test(arg))),
     );
@@ -2141,6 +2228,36 @@ function emitCallbacks(
       props.quantumSeconds = seconds;
     }
     if (signal.templateArgs.length) props.slot = signal.templateArgs.join(',');
+    const forwarding = !CALLBACK_OPERATIONS.has(operation.name) && !DELEGATE_SETTER_RE.test(operation.name)
+      ? forwardingDelegateSetter(ast, operation.name)
+      : undefined;
+    if (forwarding) {
+      // The setter's parameters take the call's leading arguments; whatever
+      // they index or assign is evaluated with those values.
+      const values: Record<string, number> = { ...constants };
+      forwarding.parameters.forEach((parameter, position) => {
+        const value = evalExpr(operation.args[position] ?? '', constants);
+        if (parameter && value !== null) values[parameter] = value;
+      });
+      props.delegate = 1;
+      props.member = forwarding.member;
+      if (forwarding.index !== undefined) {
+        const slot = evalExpr(forwarding.index, values);
+        if (slot === null) throw new Error(`${source?.file ?? 'unknown'}: cannot index ${forwarding.member} in "${raw}"`);
+        props.slot = slot;
+      }
+      if (forwarding.size !== undefined) props.slots = forwarding.size;
+      const memberValues = forwarding.assignments.map(assignment => {
+        const value = evalExpr(assignment.value, values);
+        const index = assignment.index === undefined ? undefined : evalExpr(assignment.index, values);
+        if (value === null || index === null) {
+          throw new Error(`${source?.file ?? 'unknown'}: cannot evaluate ${assignment.member} in "${raw}"`);
+        }
+        return { member: assignment.member, ...(index !== undefined ? { index } : {}), value,
+          ...(assignment.size !== undefined ? { size: assignment.size } : {}) };
+      });
+      if (memberValues.length) props.memberValues = JSON.stringify(memberValues);
+    }
     if (transforms.length) props.transforms = transforms;
     if (operation.name === 'set_periodic_int') {
       const periodArg = operation.args.find(arg => arg.includes('from_'))
@@ -2213,9 +2330,10 @@ function emitCallbacks(
       const target = findConfigDevice(quotedTarget);
       if (target) g.edge(callbackId, target.id, 'TARGETS_DEVICE');
     } else {
+      // A delegate's object is passed by reference: `*m_adc, FUNC(adc0804_device::read)`.
       const targetArg = operation.args.find(arg =>
-        memberTags[arg.trim()] !== undefined);
-      const targetTag = targetArg ? memberTags[targetArg.trim()] : undefined;
+        memberTags[arg.trim().replace(/^\*\s*/, '')] !== undefined);
+      const targetTag = targetArg ? memberTags[targetArg.trim().replace(/^\*\s*/, '')] : undefined;
       if (targetTag) {
         props.targetTag = targetTag;
         const target = findConfigDevice(targetTag);
@@ -2934,7 +3052,7 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       // selects the effective machine and inputs. Pulling the parent machine
       // as well gave Neo Geo one-slot carts six-slot controller devices.
       if (
-        id !== rootGameId && id.startsWith('game:') &&
+        id !== rootGameId && byId.get(id)?.label === 'Game' &&
         !['DEFINED_IN', 'USES_ROMSET', 'CLONE_OF'].includes(e.rel)
       ) continue;
       keepEdges.push(e);

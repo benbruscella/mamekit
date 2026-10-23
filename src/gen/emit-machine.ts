@@ -242,7 +242,8 @@ export function lowerGeneratedMachine(
     .filter(node => graph.edges.some(edge =>
       edge.rel === 'HAS_CALLBACK' &&
       edge.to === node.id &&
-      (emittedTags.has(edge.from) || reachableConfigIds.has(edge.from))))
+      // A driver init's own delegate wiring hangs off its Game node.
+      (emittedTags.has(edge.from) || reachableConfigIds.has(edge.from) || edge.from === `game:${game}`)))
     .map(node => {
       const props = node.props;
       const ownerDevice = graph.edges.find(edge =>
@@ -266,6 +267,10 @@ export function lowerGeneratedMachine(
       };
       if (props.member) callback.member = String(props.member);
       if (props.delegate) callback.delegate = true;
+      if (props.slots !== undefined) callback.slots = Number(props.slots);
+      if (props.memberValues !== undefined) {
+        callback.memberValues = JSON.parse(String(props.memberValues)) as NonNullable<GeneratedCallback['memberValues']>;
+      }
       if (props.slot !== undefined && Number.isFinite(Number(props.slot))) {
         callback.slot = Number(props.slot);
       }

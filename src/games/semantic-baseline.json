@@ -713,11 +713,11 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "47e3d71771b29fe7d24b5243be71d4e2c6203a104b1e8b5e78579c1bed941529",
-      "callbacks": 14,
+      "sha256": "d9539a41efa4e3f58a866d6d770aa4c834e74d7c649d44081ac11be897b6dafa",
+      "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,
-      "handlers": 48,
+      "handlers": 54,
       "maps": 7,
       "palette": "ram:paletteram:-:native:68:1"
     },
