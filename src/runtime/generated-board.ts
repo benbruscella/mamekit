@@ -287,6 +287,9 @@ export function withSlotCards(machine: BoardIr, cards: Readonly<Record<string, s
 const INPUT_LINE_NMI = -1;
 const INPUT_LINE_RESET = -2;
 const INPUT_LINE_HALT = -3;
+const CLEAR_LINE = 0;
+const ASSERT_LINE = 1;
+const HOLD_LINE = 2;
 
 /**
  * Apply MAME's special CPU input lines without confusing RESET with NMI.
@@ -470,6 +473,8 @@ class IrBoard implements Board {
    * closure variable would be invisible.
    */
   private readonly hostState: Record<string, object> = {};
+  /** Each generated processor line's MAME state, `tag:line` -> CLEAR/ASSERT/HOLD. */
+  private readonly deviceLineStates = this.hostModel('deviceLineStates', new Map<string, number>());
   /**
    * Host models whose running values live outside their registered record for
    * speed: each writes its record before a save is captured and reads it back
@@ -1241,6 +1246,41 @@ class IrBoard implements Board {
     // effects such as clearing a sound CPU IRQ.
     calls['machine().side_effects_disabled'] = () => 0;
     calls['machine().phase'] = () => this.machinePhase;
+    // The scheduler's clock, as devices already see it. Carnival's sound timer
+    // is `machine().time().as_ticks(500) & 1`, a 500 Hz square wave the game
+    // polls; unbound it read 0 forever (#178).
+    calls['machine().time'] ??= () => generatedAttotime(this.machineSeconds());
+    // MAME's bookkeeping coin lockout: while a coin is locked out its input
+    // reads as released (ioport.cpp, with -coin_lockout on, MAME's default).
+    // Games close the coin mechs when credits are full or during their tests;
+    // unbound, these answered 0 and every coin went in (#178). The lockout is
+    // machine state, so it is saved and pushed back to the input model.
+    const coinLockout = this.hostModel('coinLockout', { mask: 0 });
+    const setCoinLockout = (mask: number) => {
+      coinLockout.mask = mask & 0xfff;
+      inputs.setCoinLockout?.(coinLockout.mask);
+      return 0;
+    };
+    this.stateSyncs.push({ capture: () => {}, restored: () => void inputs.setCoinLockout?.(coinLockout.mask) });
+    calls['machine().bookkeeping().coin_lockout_w'] = (coin, on) => {
+      const bit = 1 << Number(coin);
+      return setCoinLockout(Number(on) ? coinLockout.mask | bit : coinLockout.mask & ~bit);
+    };
+    calls['machine().bookkeeping().coin_lockout_global_w'] = on => setCoinLockout(Number(on) ? 0xfff : 0);
+    // MAME's system mute zeroes every speaker's output while it is set
+    // (sound.cpp). With no arguments it is the getter. Unbound, the driver's
+    // "sound disable" bit did nothing (#178).
+    const systemMute = this.hostModel('systemMute', { muted: false });
+    this.stateSyncs.push({ capture: () => {}, restored: () => sinks.mute?.(systemMute.muted, 0) });
+    calls['machine().sound().system_mute'] = (...args) => {
+      if (!args.length) return Number(systemMute.muted);
+      const muted = Boolean(Number(args[0]));
+      if (muted !== systemMute.muted) {
+        systemMute.muted = muted;
+        sinks.mute?.(muted, this.soundFraction());
+      }
+      return 0;
+    };
     calls['m68000_base_device::autovector'] = level => 24 + level;
     const generatedInputs: InputPorts = {
       read: port => {
@@ -1544,6 +1584,17 @@ class IrBoard implements Board {
           this.deviceInputLine(tag, device, Number(line), Number(state));
         for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
           calls[`${name}.set_input_line`] ??= setInputLine;
+        }
+        device.bindCall('standard_irq_callback', line => this.deviceIrqAcknowledge(tag, device, Number(line)));
+      }
+      // The framework surface the host answers for the device (an image's
+      // `exists()`), reached through the owner's finder. The NES checks
+      // `m_cartslot->exists()` every vblank for a Disk System cartridge, and
+      // unbound that answered 0 (#178).
+      for (const [method, call] of Object.entries(device.hostedCalls?.() ?? {})) {
+        if (device.methodNames().includes(method)) continue;
+        for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
+          calls[`${name}.${method}`] ??= call as (...args: number[]) => unknown;
         }
       }
       for (const method of device.methodNames()) {
@@ -2144,6 +2195,13 @@ class IrBoard implements Board {
       // frequently test the finder before raising its interrupt line.
       calls[`${specification.tag}.found`] = () => 1;
       calls[`m_${specification.tag}.found`] = () => 1;
+      // device_t::reset from driver code: the NES's machine_reset resets the
+      // cartridge PCB and then the CPU, so the reset vector is read through
+      // the PCB's banks. Unbound, it answered 0 (#178).
+      calls[`m_${specification.tag}.reset`] ??= () => {
+        cpu.reset();
+        return 0;
+      };
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
         applyGeneratedCpuInputLine(
           cpu,
@@ -2886,6 +2944,9 @@ class IrBoard implements Board {
     this.attachComposedCards();
     this.runDeviceStarts();
     this.runMachineLifecycle('startHandlers');
+    // Configuration a driver init applies (MAME runs it after the devices are
+    // constructed), so it lands on the members the machine has just set up.
+    this.bindDelegateSlots(machine);
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.runMachineReset();
     if (neoGeoInterrupts && Number(this.state.m_irq3_pending ?? 0)) {
@@ -2950,6 +3011,74 @@ class IrBoard implements Board {
   }
 
   /**
+   * The slots of a delegate array on a device whose methods are the board's
+   * handlers: Midway's SSIO reads `m_custom_input[offset]()` and writes
+   * `m_custom_output[which](data)` only where `isnull()` is false. Each slot
+   * the machine configured is the callable; every other slot answers
+   * `isnull()` as MAME's unset delegate does, so it is skipped rather than
+   * called into a silent 0. The setter's other members (`m_custom_input_mask`)
+   * take the values it assigned. Spy Hunter's wheel, its sound board's status
+   * and every command to that sound board travel through these (#178).
+   */
+  private bindDelegateSlots(machine: BoardIr): void {
+    // Slots live in machine state, so each is a function the save walker
+    // restores by name (machine-state.ts), set or not.
+    const slot = (name: string, call: (...args: unknown[]) => unknown, isnull: number) => {
+      const fn = namedStateFunction(name, Object.assign((...args: unknown[]) => call(...args), {
+        isnull: () => isnull,
+        isunset: () => isnull,
+      }));
+      this.stateFunctions.set(name, fn);
+      return fn;
+    };
+    for (const callback of machine.callbacks) {
+      if (!callback.delegate || callback.slot === undefined || !callback.member ||
+          this.devices.has(callback.ownerTag)) continue;
+      const target = callback.targetTag ? this.devices.get(callback.targetTag) : undefined;
+      const handler = machine.handlers?.find(candidate =>
+        candidate.ownerClass === callback.targetClass && candidate.method === callback.targetMethod);
+      const call: ((...args: unknown[]) => unknown) | undefined =
+        target && callback.targetMethod && target.methodNames().includes(callback.targetMethod)
+          ? (...args) => target.invoke(callback.targetMethod!, ...args as GeneratedCallArgument[])
+          : handler?.program && !handler.program.diagnostics.length
+            ? (...args) => executeGeneratedMachineDelegate(
+              machine,
+              handler,
+              this.bindings,
+              Object.fromEntries(handlerParameterDescriptors(handler.parameters)
+                .map((parameter, index) => [parameter.name, generatedReferent(args[index] ?? 0)])),
+            ) ?? 0
+            : undefined;
+      if (!call) {
+        throw new Error(
+          `${machine.game}: ${callback.member}[${callback.slot}] is bound to ` +
+          `${callback.targetClass ?? callback.targetTag}::${callback.targetMethod}, which was not compiled`,
+        );
+      }
+      const member = callback.member;
+      const existing = this.state[member];
+      const slots = Array.isArray(existing)
+        ? existing
+        : Array.from({ length: Math.max(callback.slots ?? 0, callback.slot + 1) },
+          (_, index) => slot(`${member}[${index}]`, () => 0, 1));
+      slots[callback.slot] = slot(`${member}[${callback.slot}]`, call, 0);
+      this.state[member] = slots;
+      for (const assigned of callback.memberValues ?? []) {
+        if (assigned.index === undefined) {
+          this.state[assigned.member] = assigned.value;
+          continue;
+        }
+        const current = this.state[assigned.member];
+        const values = Array.isArray(current) || ArrayBuffer.isView(current)
+          ? current as unknown as number[]
+          : new Array<number>(Math.max(assigned.size ?? 0, assigned.index + 1)).fill(0);
+        values[assigned.index] = assigned.value;
+        this.state[assigned.member] = values;
+      }
+    }
+  }
+
+  /**
    * device_execute_interface::set_input_line on a generated processor. RESET
    * and HALT belong to the execute interface, not the core: an asserted line
    * suspends the processor, and the scheduler stops clocking it. As in
@@ -2965,7 +3094,28 @@ class IrBoard implements Board {
       this.cpuHeld.set(tag, held);
       return 0;
     }
-    return Number(device.call('execute_set_input', line, state)) || 0;
+    // device_input (diexec.cpp): HOLD_LINE reaches the core as ASSERT_LINE
+    // and is remembered, so the core's standard_irq_callback clears it when
+    // the interrupt is taken. A raw 2 read as "not asserted" with an
+    // interrupt pending.
+    this.deviceLineStates.set(`${tag}:${line}`, state);
+    return Number(device.call('execute_set_input', line, state === HOLD_LINE ? ASSERT_LINE : state)) || 0;
+  }
+
+  /**
+   * device_execute_interface::standard_irq_callback for a generated
+   * processor: acknowledge a held line and answer the line's vector. Unbound,
+   * the 6805 called it 54,000 times a contract into a silent 0 (#178).
+   */
+  private deviceIrqAcknowledge(tag: string, device: Device, line: number): number {
+    const key = `${tag}:${line}`;
+    if (this.deviceLineStates.get(key) === HOLD_LINE) {
+      device.call('execute_set_input', line, CLEAR_LINE);
+      this.deviceLineStates.set(key, CLEAR_LINE);
+    }
+    return device.methodNames().includes('default_irq_vector')
+      ? Number(device.call('default_irq_vector', line)) || 0
+      : 0;
   }
 
   private configureHostedProcessor(

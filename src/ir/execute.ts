@@ -7,6 +7,7 @@
 // executes the same programs at run time. One interpreter means the two cannot
 // disagree about what a lowered program means.
 
+import { isVideoPlanCall } from './framework-calls.ts';
 import type {
   BoardIr,
   GeneratedCallback,
@@ -422,15 +423,6 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'attotime::zero': 0,
 };
 
-const CACHE_ONLY_METHODS = new Set([
-  'mark_all_dirty',
-  'mark_tile_dirty',
-  'set_flip',
-  'set_scrollx',
-  'set_scrolly',
-  'update_partial',
-]);
-
 export function executeGeneratedHandler(
   program: GeneratedHandlerProgram,
   bindings: GeneratedHandlerBindings,
@@ -545,6 +537,18 @@ export function generatedPeriodicLines(
     Math.floor(index * vtotal / rounded));
 }
 
+
+/**
+ * Report a call that resolved to nothing to whoever is listening: a census
+ * (tools/unresolved-calls.ts) records it, the acceptance harness fails on one
+ * nobody has accounted for. With no listener it is the old silent 0 or
+ * unresolved reference, which a browser keeps so a player's game never stops
+ * on a gap the contracts did not reach (#178). Emitted code reports through
+ * the same hook (src/mame/device-codegen.ts fallbackLink).
+ */
+function noteUnresolvedCall(name: string): void {
+  (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.(name);
+}
 
 /**
  * Resolve the call names emitted code uses into one fast-mode table.
@@ -734,7 +738,7 @@ function preparedHandlerRuntime(
     wide: wideBinary,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
-    macro: (name, ...args) => applyGeneratedMacro(name, args) ?? 0,
+    macro: (name, ...args) => generatedMacroCall(name, args),
     combineData: applyCombineData,
     divide: applyGeneratedDivision,
     shiftRight: applyGeneratedShiftRight,
@@ -2136,6 +2140,18 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
  * interpreter and emitted handler code (`runtime.macro`). Returns undefined
  * for a name it does not know, so callers keep their own fallbacks.
  */
+/**
+ * A framework macro as emitted code calls it (`runtime.macro`): the macro's
+ * value, or 0 for a name the table does not know -- noted for the census like
+ * every other unresolved call.
+ */
+export function generatedMacroCall(name: string, args: unknown[]): unknown {
+  const value = applyGeneratedMacro(name, args);
+  if (value !== undefined) return value;
+  noteUnresolvedCall(name);
+  return 0;
+}
+
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // As the C library and as `std::` spell it: the floppy drive's call_load
   // compares its `write_protected` feature with `std::strcmp`.
@@ -2331,6 +2347,36 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
       return Math.max(0, (container.source as ArrayLike<unknown>).length - container.offset);
     }
     return 0;
+  }
+  // Iterators over an array member, as `std::fill(std::begin(m_irq_state),
+  // std::end(m_irq_state), CLEAR_LINE)` uses them. Unresolved, that line in the
+  // 6805's device_reset left every IRQ line as it was across a reset, and
+  // Galaxian's machine_reset kept its graphics banks (#178).
+  if ((name === 'std::begin' || name === 'std::end') && isIndexableMemory(args[0])) {
+    return {
+      generatedPointer: true,
+      source: args[0],
+      offset: name === 'std::end' ? args[0].length : 0,
+    } satisfies GeneratedPointer;
+  }
+  if (name === 'std::fill' && isGeneratedPointer(args[0]) && isGeneratedPointer(args[1]) &&
+      args[0].source === args[1].source) {
+    for (let offset = args[0].offset; offset < args[1].offset; offset++) {
+      setPointerValue(args[0], offset - args[0].offset, args[2]);
+    }
+    return 0;
+  }
+  if ((name === 'std::min_element' || name === 'std::max_element') &&
+      isGeneratedPointer(args[0]) && isGeneratedPointer(args[1]) && args[0].source === args[1].source) {
+    // The first of equal elements, as the standard specifies; an empty range
+    // answers its end.
+    let best = args[0].offset;
+    for (let offset = args[0].offset + 1; offset < args[1].offset; offset++) {
+      const value = toNumber(pointerValue(args[0], offset - args[0].offset));
+      const current = toNumber(pointerValue(args[0], best - args[0].offset));
+      if (name === 'std::min_element' ? value < current : value > current) best = offset;
+    }
+    return { generatedPointer: true, source: args[0].source, offset: best } satisfies GeneratedPointer;
   }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]), true);
@@ -2592,6 +2638,7 @@ function applyIdentifierCall(
   if (handler) return handler(...args.map(callArgument));
   const member = context.bindings.members?.[name];
   if (typeof member === 'function') return member(...args.map(callArgument));
+  noteUnresolvedCall(name);
   return reference(`${name}()`);
 }
 
@@ -2640,7 +2687,10 @@ function evaluateCall(
       const generatedCallback = callback
         ? context.bindings.referenceCalls?.[callback]
         : undefined;
-      if (!generatedCallback) return 0;
+      if (!generatedCallback) {
+        noteUnresolvedCall(`synchronize(${callback ?? '?'})`);
+        return 0;
+      }
       const parameter = expression.args[1] ? evaluate(expression.args[1], context) : 0;
       // Posted at the current time, as below: it fires once the running
       // processor has yielded and the others have caught up to it.
@@ -2709,7 +2759,10 @@ function evaluateCall(
         const generatedCallback = callback
           ? context.bindings.referenceCalls?.[callback]
           : undefined;
-        if (!generatedCallback) return 0;
+        if (!generatedCallback) {
+          noteUnresolvedCall(`synchronize(${callback ?? '?'})`);
+          return 0;
+        }
         const parameter = expression.args[1]
           ? evaluate(expression.args[1], context)
           : 0;
@@ -2729,7 +2782,15 @@ function evaluateCall(
       if (method === 'suspended') return 0;
       const handler = context.bindings.calls?.[key] ?? context.bindings.calls?.[method];
       if (handler) return handler(...args.map(callArgument));
-      if (CACHE_ONLY_METHODS.has(method)) return 0;
+      if (isVideoPlanCall(method)) return 0;
+      // Still answered without effect, as before #178, but counted: a driver
+      // that asks for a partial update mid-frame (Neo Geo's raster effects)
+      // reaches no screen from here, and that is a gap, not a no-op.
+      if (method === 'update_partial') {
+        noteUnresolvedCall(key);
+        return 0;
+      }
+      noteUnresolvedCall(key);
       return reference(`${key}()`);
     }
     if (object && (typeof object === 'object' || typeof object === 'function')) {
@@ -2775,6 +2836,9 @@ function evaluateCall(
     const args = expression.args.map(arg => evaluate(arg, context));
     if (typeof callable === 'function') return callable(...args.map(callArgument));
   }
+  noteUnresolvedCall(expression.callee.kind === 'member'
+    ? `${generatedExpressionName(expression.callee.object)}.${expression.callee.property}`
+    : `<${expression.callee.kind}>`);
   return 0;
 }
 

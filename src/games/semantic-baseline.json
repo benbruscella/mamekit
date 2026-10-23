@@ -191,11 +191,11 @@
       "palette": "ram:palette:palette_ext:native:512:2"
     },
     "defender": {
-      "sha256": "b58f4956a0a510da7c02a33afdabc07bd617237e3932b43b39411cfddce60477",
+      "sha256": "40c8a0ab3830f9e6d87f5ba0b291555ba4a99352b6ef3226ff0dc8492b5a7e98",
       "callbacks": 15,
       "frameEvents": 11,
       "devices": 15,
-      "handlers": 23,
+      "handlers": 24,
       "maps": 4,
       "palette": "prom:maincpu"
     },
@@ -479,11 +479,11 @@
       "palette": "none"
     },
     "mslug": {
-      "sha256": "84e988c791ba868ac379afe88db37e5a5e20197beb591084b21a02da695eeb99",
+      "sha256": "f0650df43aac1f281bc54158d2ec3c47e4af9262bd3a5c9140a1fb12e9668bcc",
       "callbacks": 12,
       "frameEvents": 0,
       "devices": 19,
-      "handlers": 72,
+      "handlers": 74,
       "maps": 4,
       "palette": "none"
     },
@@ -569,11 +569,11 @@
       "palette": "prom:proms"
     },
     "popeye": {
-      "sha256": "919077669ae2fe2f93f49d46586a30b6b458c6d3ada607629a96fcf393c8e2b8",
+      "sha256": "54067f310dad5d88df8160302c7f8d16492729786bb31efabcffaae55609273a",
       "callbacks": 6,
       "frameEvents": 2,
       "devices": 11,
-      "handlers": 24,
+      "handlers": 26,
       "maps": 4,
       "palette": "prom:proms"
     },
@@ -695,11 +695,11 @@
       "palette": "prom:maincpu"
     },
     "spec128": {
-      "sha256": "ec10391dd49206c5a250468d74a685c66f4a06c11366f8a88cd3028b2b6ccd8b",
+      "sha256": "23f2dd349926dbe1c4dac9d2e97983525df58fb9b09b73d35e7ca2c544782c26",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 17,
-      "handlers": 82,
+      "handlers": 85,
       "maps": 7,
       "palette": "none"
     },
@@ -713,11 +713,11 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "47e3d71771b29fe7d24b5243be71d4e2c6203a104b1e8b5e78579c1bed941529",
-      "callbacks": 14,
+      "sha256": "d9539a41efa4e3f58a866d6d770aa4c834e74d7c649d44081ac11be897b6dafa",
+      "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,
-      "handlers": 48,
+      "handlers": 54,
       "maps": 7,
       "palette": "ram:paletteram:-:native:68:1"
     },

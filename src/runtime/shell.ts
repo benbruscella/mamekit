@@ -1039,6 +1039,7 @@ export async function runShell(
       audio.write(offset, data, frac, method);
     },
     soundData: (id, bytes) => audio.data(id, bytes),
+    mute: muted => audio.setSystemMute(muted),
   });
   // The machine exactly as it booted, before anything was restored into it.
   // Two browsers that construct the same machine from the same ROM construct

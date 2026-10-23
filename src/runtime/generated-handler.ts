@@ -25,6 +25,7 @@ export {
   applyGeneratedDivision,
   applyGeneratedShiftRight,
   applyGeneratedMacro,
+  generatedMacroCall,
   compileGeneratedMachineHandler,
   dereferenceGeneratedValue,
   executeGeneratedCallbackHandler,
