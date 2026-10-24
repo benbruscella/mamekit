@@ -702,7 +702,11 @@ a frame runs lines `vbstart` to the last, then 0 to `vbstart - 1`, and is
 presented at its end, when the beam is back at `vbstart`. A frame's
 boundary is therefore MAME's frame boundary: the frame is presented, its RAM
 can be read and the next frame's input takes effect at the instant MAME's
-`frame_update` does all three (#184). Nothing fires on the origin line in the
+`frame_update` does all three (#184). How far through a frame the machine is
+-- the stamp on every sound write, a trackball's travel handed out within the
+frame -- is measured from the line the frame started on; measured from line 0
+it ran backwards across the wrap, and Gyruss's and Mat Mania's sound CPUs
+played their writes out of order. Nothing fires on the origin line in the
 first frame: MAME arms its first VBLANK and its scanline timers a frame out
 from a position the beam already stands on.
 

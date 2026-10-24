@@ -45,9 +45,9 @@ export const bankp = sourceTarget({
     audio: {
       writes: 1308,
       nonzeroWrites: 1228,
-      writeHash: 'fc23b8f9',
-      pcmHash: 'cb2963a3',
-      rms: 0.082521,
+      writeHash: '938f022e',
+      pcmHash: '9379352c',
+      rms: 0.08249,
     },
   },
 });

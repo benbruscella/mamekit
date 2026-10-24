@@ -30,9 +30,9 @@ export const berzerk = sourceTarget({
     audio: {
       writes: 70224,
       nonzeroWrites: 20095,
-      writeHash: 'e4efe22b',
-      pcmHash: 'b66efcc9',
-      rms: 0.019488,
+      writeHash: 'a6b916f9',
+      pcmHash: '46335692',
+      rms: 0.019485,
     },
   },
 });

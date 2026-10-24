@@ -5746,16 +5746,28 @@ class IrBoard implements Board {
     return this.inFrame ? Math.min(1, this.soundFraction()) : 1;
   }
 
+  /**
+   * Lines the beam has travelled since the frame in progress began, which is
+   * the line the frame runner starts frames on (`originLine`), not line 0: a
+   * frame runs from vbstart round to the line before it. Measured from line
+   * 0 it ran 0.92..1 then back through 0..0.92 within one frame, and every
+   * sound write stamped with it played out of order -- Gyruss's i8039 DAC and
+   * Mat Mania's sound CPU garbled (#184).
+   */
+  private frameLines(): number {
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const origin = this.frameRunner?.originLine ?? 0;
+    return (this.currentLine - origin + vtotal) % vtotal + this.currentLineFraction;
+  }
+
   private soundFraction(): number {
-    return (this.currentLine + this.currentLineFraction) /
-      this.machine.execution.screen.vtotal;
+    return this.frameLines() / this.machine.execution.screen.vtotal;
   }
 
   private neoGeoRtcSeconds(): number {
     return (
       (this.frameRunner?.frameCount ?? 0) +
-      (this.currentLine + this.currentLineFraction) /
-        Math.max(1, this.machine.execution.screen.vtotal)
+      this.frameLines() / Math.max(1, this.machine.execution.screen.vtotal)
     ) / this.machine.execution.screen.refresh;
   }
 

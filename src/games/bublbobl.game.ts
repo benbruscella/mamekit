@@ -40,9 +40,9 @@ export const bublbobl = sourceTarget({
     audio: {
       writes: 52222,
       nonzeroWrites: 50499,
-      writeHash: '28c9e987',
-      pcmHash: '6634ccd4',
-      rms: 0.031978,
+      writeHash: '9f67686d',
+      pcmHash: '55769c25',
+      rms: 0.037716,
     },
   },
 });
