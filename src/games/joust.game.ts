@@ -59,9 +59,9 @@ export const joust = sourceTarget({
     audio: {
       writes: 24424,
       nonzeroWrites: 20002,
-      writeHash: 'c6b4146b',
-      pcmHash: 'b0c71652',
-      rms: 0.850354,
+      writeHash: '89998687',
+      pcmHash: '795ea233',
+      rms: 0.861984,
     },
   },
 });

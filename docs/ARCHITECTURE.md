@@ -476,7 +476,14 @@ own class sees: the Irem G-101 declares a `const u8 m_prg_mask` of its own,
 hiding the cartridge interface's, and sets it to `0x1f` through its delegating
 constructor. Keyed by bare name, the value went to the interface's member and
 the G-101's stayed 0, so every `$A000` bank write mapped bank 0 and Image
-Fight never left its boot code (#184).
+Fight never left its boot code (#184). The input ports a device declares
+itself (`device_input_ports`) are recorded with it as their power-on values
+(`inputDefaults`): a cartridge's DIP switches and jumpers exist only once
+that cartridge is chosen, so the machine's own ports never name them, and a
+`required_ioport` the machine does not declare reads the device's default.
+Read as an unknown port they were all ones, which expired Nintendo Campus
+Challenge 1991's competition timer at power-on, held every one of Karaoke
+Studio's microphone buttons, and set Sachen's jumper to the wrong game.
 
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
@@ -798,7 +805,10 @@ interrupt poll after a fetch on cycle k sees timers due before k + 2: device
 time is delivered two cycles into each instruction before it starts. Without
 both, the 2C02's VBLANK flag set during a `BIT $2002` was read a loop pass
 late, and its NMI, four cycles after the flag, came an instruction late
-whenever it fell due inside a fetch (#184).
+whenever it fell due inside a fetch (#184). Both catch-ups stop short of
+their end for a timer: one due exactly where the access (or the poll) falls
+fires after it, as MAME's does, which matters for counters ticking on whole
+cycles such as a VRC4's IRQ prescaler.
 
 Three rules keep those deliveries honest. A timer that fires inside one reads
 the beam where the delivery stands, not at the instruction's start, or a

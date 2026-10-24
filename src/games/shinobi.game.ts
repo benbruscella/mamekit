@@ -38,9 +38,9 @@ export const shinobi = sourceTarget({
     audio: {
       writes: 50580,
       nonzeroWrites: 46391,
-      writeHash: 'b22491d5',
-      pcmHash: '71e9db00',
-      rms: 0.401434,
+      writeHash: '970f5779',
+      pcmHash: 'fb9188a5',
+      rms: 0.401125,
     },
   },
 });

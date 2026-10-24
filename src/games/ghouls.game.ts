@@ -42,9 +42,9 @@ export const ghouls = {
     audio: {
       writes: 98356,
       nonzeroWrites: 88595,
-      writeHash: '8a8a27eb',
-      pcmHash: 'e3de9ee7',
-      rms: 0.016877,
+      writeHash: 'ba53ce23',
+      pcmHash: '4c946627',
+      rms: 0.017485,
     },
   },
 };

@@ -46,9 +46,9 @@ export const digdug = sourceTarget({
     audio: {
       writes: 78964,
       nonzeroWrites: 10904,
-      writeHash: '256cf44e',
-      pcmHash: '73b0f22f',
-      rms: 0.082046,
+      writeHash: '5d2441e0',
+      pcmHash: '6ba0371d',
+      rms: 0.079463,
     },
   },
 });

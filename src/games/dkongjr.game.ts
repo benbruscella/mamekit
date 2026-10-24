@@ -36,9 +36,9 @@ export const dkongjr = sourceTarget({
     audio: {
       writes: 332998,
       nonzeroWrites: 275047,
-      writeHash: '6afa982d',
-      pcmHash: '558db145',
-      rms: 0.048403,
+      writeHash: '2ce111d6',
+      pcmHash: '466fbdcf',
+      rms: 0.091036,
     },
   },
 });

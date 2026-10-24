@@ -44,9 +44,9 @@ export const upndown = sourceTarget({
     audio: {
       writes: 29016,
       nonzeroWrites: 29016,
-      writeHash: 'a296f5ec',
-      pcmHash: '26a39c48',
-      rms: 0.029723,
+      writeHash: '71f5dbcd',
+      pcmHash: 'e98c741b',
+      rms: 0.031737,
     },
   },
 });

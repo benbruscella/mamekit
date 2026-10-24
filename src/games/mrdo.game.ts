@@ -27,9 +27,9 @@ export const mrdo = sourceTarget({
     audio: {
       writes: 13836,
       nonzeroWrites: 13836,
-      writeHash: 'e52de5cb',
-      pcmHash: '574a8f9d',
-      rms: 0.048037,
+      writeHash: '4d093dfc',
+      pcmHash: '752c6f62',
+      rms: 0.047899,
     },
   },
 });

@@ -207,6 +207,11 @@ export type CassetteImageFormat = { extension: string; definition: GeneratedDevi
   | { identifyMethod: string; loadMethod: string });
 
 export interface GeneratedDeviceDefinition {
+  /**
+   * The power-on value of each input port the device declares itself
+   * (`device_input_ports`), by its own tag (device-compiler).
+   */
+  inputDefaults?: Record<string, number>;
   type: string;
   /** MAME's own name for the device ("Commodore 1530 Datassette"). */
   description?: string;
@@ -533,7 +538,7 @@ export interface GeneratedDeviceOptions {
   /** Host primitives available before device_start executes. */
   calls?: Record<string, (...args: number[]) => unknown>;
   /** Active-low/raw input ports used by required_ioport finders. */
-  inputs?: { read(tag: string): number };
+  inputs?: { read(tag: string): number; has?(tag: string): boolean };
   /** Selected card option for a generated slot definition. */
   slot?: string | number;
   /**
@@ -691,6 +696,24 @@ let timerNowAheadSeconds = 0;
  * it, not time: far under a cycle of any processor here.
  */
 const TIMER_NOW_TOLERANCE_SECONDS = 1e-10;
+
+/**
+ * A catch-up is delivering device time: the processor's access (or the poll
+ * after its fetch) comes at the end of it, and MAME fires only the timers due
+ * strictly before that point; one due exactly there fires after the access.
+ */
+let timerDeliveryExclusive = false;
+
+/** Run `run` as a catch-up's delivery (see timerDeliveryExclusive). */
+export function withExclusiveTimerDelivery<T>(run: () => T): T {
+  const outer = timerDeliveryExclusive;
+  timerDeliveryExclusive = true;
+  try {
+    return run();
+  } finally {
+    timerDeliveryExclusive = outer;
+  }
+}
 
 /** Run `run` with now standing `aheadSeconds` past the delivered device time. */
 export function withGeneratedPresentTime<T>(aheadSeconds: number, run: () => T): T {
@@ -850,7 +873,11 @@ class IrTimer {
     // the processor's slice ends exactly on before the next instruction, and
     // left a hair short here, Green Beret's line-80 NMI came an instruction
     // late (#184).
-    while (this.remainingSeconds <= TIMER_NOW_TOLERANCE_SECONDS) {
+    // A catch-up's delivery ends at the processor's access, and a timer due
+    // exactly there fires after it (City Fighter IV's VRC4 IRQ counter ticks
+    // on whole cycles and was taken an instruction early, #184).
+    const due = timerDeliveryExclusive ? -TIMER_NOW_TOLERANCE_SECONDS : TIMER_NOW_TOLERANCE_SECONDS;
+    while (this.remainingSeconds <= due) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
       const overshoot = -this.remainingSeconds;
       const firedPeriod = this.period;
@@ -1041,7 +1068,7 @@ class IrDevice implements Device {
           ? resolveDeviceResource(resourceMembers[member.name]!, resourceOptions)
           :
         (inputTag
-          ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
+          ? { read: inputFinderRead(options.inputs, inputTag, definition.inputDefaults?.[member.finder?.tag ?? '']) }
           : member.finder?.kind === 'device'
             ? options.finder?.(member.finder.tag, member.name) ?? 0
           : /^(?:required|optional)_address_space$/.test(member.valueType)
@@ -3459,4 +3486,23 @@ function nestedArrayMember(shape: readonly number[]): unknown[] {
     { length: Math.max(0, extent ?? 0) },
     () => inner.length ? nestedArrayMember(inner) : 0,
   );
+}
+
+/**
+ * A device's `required_ioport` read. A port the machine declares is read from
+ * the machine's inputs; one only the device declares -- a cartridge's DIP
+ * switches or jumpers, which exist only once that cartridge is chosen -- reads
+ * the power-on value the device's own INPUT_PORTS give it. Read as an unknown
+ * port it was all ones: Nintendo Campus Challenge 1991's competition timer
+ * had expired at power-on and Karaoke Studio's microphone buttons were all
+ * held (#184).
+ */
+function inputFinderRead(
+  inputs: { read(tag: string): number; has?(tag: string): boolean } | undefined,
+  tag: string,
+  fallback: number | undefined,
+): () => number {
+  return () => fallback !== undefined && inputs?.has?.(tag) === false
+    ? fallback
+    : inputs?.read(tag) ?? fallback ?? 0xff;
 }

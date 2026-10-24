@@ -1067,6 +1067,10 @@ export class KeyboardInput implements InputPorts {
     this.lockedCoins = locked;
   }
 
+  has(tag: string): boolean {
+    return tag in this.state;
+  }
+
   read(tag: string): number {
     const watched = this.seatWatch?.[tag];
     if (watched !== undefined) this.seatReads[watched]++;

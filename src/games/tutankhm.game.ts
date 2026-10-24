@@ -32,9 +32,9 @@ export const tutankhm = sourceTarget({
     audio: {
       writes: 17320,
       nonzeroWrites: 11313,
-      writeHash: 'dae6f3bd',
-      pcmHash: 'd844955f',
-      rms: 0.012356,
+      writeHash: '336a6fce',
+      pcmHash: '49721ea4',
+      rms: 0.009636,
     },
   },
 });

@@ -47,7 +47,7 @@ export const nbajam = sourceTarget({
       1: { video: '864f564c', state: 'f72e1382' },
       120: { video: 'b6fd6f3e', state: '7d61343d' },
       300: { video: 'ba34bb3b', state: 'af3d2a1d' },
-      600: { video: '57f4ebaa', state: '9888f348' },
+      600: { video: '11a72184', state: '9888f348' },
       900: { video: 'f0a4f09b', state: '058dd1d0' },
       1200: { video: '21d608bd', state: '85b9fcc8' },
       1800: { video: '7495a002', state: 'f4d2b39d' },
@@ -56,9 +56,9 @@ export const nbajam = sourceTarget({
     audio: {
       writes: 1963235,
       nonzeroWrites: 1958394,
-      writeHash: 'fe9b120c',
-      pcmHash: '217940af',
-      rms: 0.095198,
+      writeHash: 'a81437ed',
+      pcmHash: '8c4c0f31',
+      rms: 0.095298,
     },
   },
 });

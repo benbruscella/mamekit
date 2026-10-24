@@ -57,9 +57,9 @@ export const mk = sourceTarget({
     audio: {
       writes: 1635065,
       nonzeroWrites: 1609336,
-      writeHash: 'ac58bf1e',
-      pcmHash: '5cd1f62f',
-      rms: 0.089217,
+      writeHash: 'eb8aa86c',
+      pcmHash: '4cf53638',
+      rms: 0.087873,
     },
   },
 });

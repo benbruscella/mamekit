@@ -69,9 +69,9 @@ export const defender = sourceTarget({
     audio: {
       writes: 69622,
       nonzeroWrites: 63646,
-      writeHash: 'e4247cc0',
-      pcmHash: 'dceeaf26',
-      rms: 0.773983,
+      writeHash: '0d0ab4ed',
+      pcmHash: '3f0d5640',
+      rms: 0.769583,
     },
   },
 });

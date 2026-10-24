@@ -63,9 +63,9 @@ export const kungfum = sourceTarget({
     audio: {
       writes: 934596,
       nonzeroWrites: 926011,
-      writeHash: 'cb263979',
-      pcmHash: '5b2c77ea',
-      rms: 0.035219,
+      writeHash: 'b9a91ad2',
+      pcmHash: '9a0e8f9e',
+      rms: 0.034965,
     },
   },
 });

@@ -37,6 +37,8 @@ export interface SoundCore {
 export interface InputPorts {
   /** read the current byte for a port tag ("IN0", "IN1", "DSWA", "DSWB") */
   read(tag: string): number;
+  /** Whether the machine declares this port (a slot card may declare its own). */
+  has?(tag: string): boolean;
   /**
    * MAME's coin lockout, bit n for IPT_COIN(n+1): a locked-out coin reads as
    * released, as ioport.cpp does with -coin_lockout on.

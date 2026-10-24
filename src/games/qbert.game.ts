@@ -50,9 +50,9 @@ export const qbert = sourceTarget({
     audio: {
       writes: 31441,
       nonzeroWrites: 26941,
-      writeHash: 'f556f509',
-      pcmHash: '9eacc024',
-      rms: 0.546458,
+      writeHash: '8230bff6',
+      pcmHash: 'debb2f99',
+      rms: 0.53589,
     },
   },
 });

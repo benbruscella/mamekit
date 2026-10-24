@@ -44,9 +44,9 @@ export const rygar = sourceTarget({
     audio: {
       writes: 334220,
       nonzeroWrites: 327536,
-      writeHash: '26892ecc',
-      pcmHash: '98ab16bf',
-      rms: 0.058259,
+      writeHash: '2ba1f83f',
+      pcmHash: '769447f8',
+      rms: 0.070913,
     },
   },
 });

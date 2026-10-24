@@ -35,9 +35,9 @@ export const junglek = sourceTarget({
     audio: {
       writes: 1580862,
       nonzeroWrites: 1168947,
-      writeHash: '51059cd3',
-      pcmHash: 'bf88dc90',
-      rms: 0.365482,
+      writeHash: 'd8305379',
+      pcmHash: 'ce0a974d',
+      rms: 0.361675,
     },
   },
 });

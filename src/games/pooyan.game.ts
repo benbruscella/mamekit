@@ -32,9 +32,9 @@ export const pooyan = sourceTarget({
     audio: {
       writes: 2295,
       nonzeroWrites: 1976,
-      writeHash: '652ecf2f',
-      pcmHash: '8151d037',
-      rms: 0.020655,
+      writeHash: 'ca9b43f9',
+      pcmHash: '02e18c29',
+      rms: 0.020758,
     },
   },
 });

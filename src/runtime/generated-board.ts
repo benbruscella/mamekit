@@ -19,6 +19,7 @@ import {
   generatedDeviceRole,
   loadSlotCard,
   slotCardForImage,
+  withExclusiveTimerDelivery,
   withGeneratedPresentTime,
   type Device,
   type GeneratedMemoryBank,
@@ -1367,6 +1368,7 @@ class IrBoard implements Board {
     };
     calls['m68000_base_device::autovector'] = level => 24 + level;
     const generatedInputs: InputPorts = {
+      has: port => inputs.has?.(port) ?? true,
       read: port => {
         let value = inputs.read(port);
         for (const custom of machine.execution.customs?.filter(entry =>
@@ -2255,7 +2257,7 @@ class IrBoard implements Board {
           // Only the fetch lookahead (a negative lag) is a scheduled delivery
           // that waits for the frame's presentation (advanceTimedHardware).
           this.accessCatchingUp = lag >= 0;
-          advanceTimedHardware((reach - delivered) / timerClockHz());
+          withExclusiveTimerDelivery(() => advanceTimedHardware((reach - delivered) / timerClockHz()));
           this.accessCatchingUp = false;
           this.deliveredSliceCycles = undefined;
           if (reach <= sliceTarget) {

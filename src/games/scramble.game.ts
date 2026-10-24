@@ -37,9 +37,9 @@ export const scramble = sourceTarget({
     audio: {
       writes: 7005,
       nonzeroWrites: 6121,
-      writeHash: '4b090a59',
-      pcmHash: 'cd02f54c',
-      rms: 0.034744,
+      writeHash: '2e8f389c',
+      pcmHash: '172f6cf6',
+      rms: 0.034677,
     },
   },
 });

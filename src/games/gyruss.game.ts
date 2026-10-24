@@ -37,9 +37,9 @@ export const gyruss = sourceTarget({
     audio: {
       writes: 192376,
       nonzeroWrites: 149821,
-      writeHash: '2a37d5a1',
-      pcmHash: 'd884b9cf',
-      rms: 0.173543,
+      writeHash: '7f1c6040',
+      pcmHash: '66478011',
+      rms: 0.172603,
     },
   },
 });
