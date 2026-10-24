@@ -696,21 +696,30 @@ the processors.
 
 MAME's screen starts at the beginning of VBLANK: `time_until_pos` measures
 from `m_vblank_start_time`, which is zero at power-on, so the beam stands at
-`vbstart` at time zero and the first VBLANK comes a whole frame later. The
-frame runner starts there too (`origin: 'vbstart'`). Its first frame is a
-lead-in from `vbstart` to the last line followed by a whole frame, presented
-once, so every frame is presented at the instant MAME takes its snapshot.
-Nothing fires on the origin line itself: MAME arms its first VBLANK and its
-scanline timers a frame out from a position the beam already stands on.
-Starting at line 0 put the NES's first VBLANK 2491 cycles ahead of MAME's (241
-lines in, not 263). Twenty-two lines is no whole number of passes of any loop,
-so Terao no Dosukoi Oozumou's `inc $47` spin loop was interrupted at a
-different point and seeded the game from a different count. With the origin,
-17 more NES cartridge boards are pixel-exact at frame 1500 (289 of 344), Green
-Beret's RAM is closer to MAME's, and Pac-Man compares at frame offset 0
-(#184). A reset starts at the origin again. A screen whose VBLANK starts at
-its last line + 1 or beyond (the Spectrum's 311 of 0-310, Missile Command's
-256) wraps to line 0, where the frame already starts, and has no lead-in.
+`vbstart` at time zero and the first VBLANK comes a whole frame later. Its
+frames run from one VBLANK to the next, and so do ours (`origin: 'vbstart'`):
+a frame runs lines `vbstart` to the last, then 0 to `vbstart - 1`, and is
+presented at its end, when the beam is back at `vbstart`. A frame's
+boundary is therefore MAME's frame boundary: the frame is presented, its RAM
+can be read and the next frame's input takes effect at the instant MAME's
+`frame_update` does all three (#184). Nothing fires on the origin line in the
+first frame: MAME arms its first VBLANK and its scanline timers a frame out
+from a position the beam already stands on.
+
+Frames running from line 0 put the NES's first VBLANK 2491 cycles ahead of
+MAME's (241 lines in, not 263). Twenty-two lines is no whole number of passes
+of any loop, so Terao no Dosukoi Oozumou's `inc $47` spin loop was interrupted
+at a different point and seeded the game from a different count. A first
+version kept frames running from line 0 behind a lead-in from `vbstart`; that
+presented at the right instant but applied input 22 lines after it, which a
+game reading its pad in the VBLANK NMI then saw a frame late (a 4-in-1
+multicart's TMNT demo drifted two frames). With frames running VBLANK to
+VBLANK, 22 more NES cartridge boards are pixel-exact at frame 1500 (294 of
+344), Green Beret's RAM matches MAME's to the byte at 300 and 600, and Pac-Man
+compares at frame offset 0 (#184). A reset starts at the origin again. A
+screen whose VBLANK starts at its last line + 1 or beyond (the Spectrum's 311
+of 0-310, Missile Command's 256) wraps to line 0, where its frames already
+start and end.
 
 Presenting the frame is an instant in device time as well. MAME takes its
 snapshot in `vblank_begin`, a timer armed a frame earlier, so it runs before
@@ -722,7 +731,10 @@ instant (`withGeneratedPresentTime`), however far short of it the devices'
 clock stands. Only the schedule's own deliveries are held: a processor whose
 last instruction runs past the instant and reads or writes a device finds it
 where the processor stands, held time first. Held there too, the 2600's RIOT
-timer read stale and the game drifted from MAME's RAM after 190 frames. The 2C02's `render` draws the line in progress only while its
+timer read stale and the game drifted from MAME's RAM after 190 frames. Held
+time is device time on its way: the line settle counts it as delivered, or
+each line held the same shortfall again, and a device reading the beam inside
+a slice reads it that far behind the processor. The 2C02's `render` draws the line in progress only while its
 scanline timer has time left; at MAME's snapshot it has none, so MAME's picture
 keeps line 239 from the frame before. Ours drew the current one, which was the
 only difference left on Castlevania III (Europe), Akuma Densetsu, two
@@ -745,7 +757,10 @@ attoseconds off, and source that compares the two exactly -- the 64H156's
 `cur_live.tm > machine().time()` at every syncpoint -- takes the other branch.
 A delay too small to move a double of the clock's size still advances the
 expiry by one unit, as attotime would, so a callback re-arming "a hair later"
-finds time moved. A device holds an attotime as its seconds: every accessor
+finds time moved. A timer due within 10^-10 s of where the clock stands is
+due: MAME fires a timer whose expiry a slice ends exactly on before the next
+instruction, and left a rounding hair short, Green Beret's line-80 NMI came an
+instruction late at frame 388 (#184). A device holds an attotime as its seconds: every accessor
 MAME spells on one is answered for a number, and two readings compare by
 value.
 

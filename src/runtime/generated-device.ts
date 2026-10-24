@@ -846,7 +846,11 @@ class IrTimer {
     if (!Number.isFinite(this.remainingSeconds)) return;
     if (this.creditedDelivery !== timerDelivery) this.remainingSeconds -= seconds;
     let firings = 0;
-    while (this.remainingSeconds <= 0) {
+    // Due within the clocks' rounding is due: MAME fires a timer whose expiry
+    // the processor's slice ends exactly on before the next instruction, and
+    // left a hair short here, Green Beret's line-80 NMI came an instruction
+    // late (#184).
+    while (this.remainingSeconds <= TIMER_NOW_TOLERANCE_SECONDS) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
       const overshoot = -this.remainingSeconds;
       const firedPeriod = this.period;

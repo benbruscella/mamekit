@@ -22,11 +22,11 @@ export const pacman = sourceTarget({
     },
     checkpoints: {
       1: { video: '1556d338', state: '0e2ea5f3' },
-      60: { video: '1556d338', state: '3665b638' },
-      180: { video: '7e928035', state: '1e93e277' },
-      300: { video: '189e0035', state: '201babd2' },
-      420: { video: '06b7df05', state: '70b06825' },
-      600: { video: '1f0c4e15', state: 'd4e273cc' },
+      60: { video: '1556d338', state: '15fd058a' },
+      180: { video: '7e928035', state: 'e6643b36' },
+      300: { video: '189e0035', state: 'c1cac367' },
+      420: { video: '06b7df05', state: 'f8edbade' },
+      600: { video: 'edb2c3f1', state: '09e0bd2b' },
     },
     audio: {
       writes: 5831,

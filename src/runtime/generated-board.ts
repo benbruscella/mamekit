@@ -704,7 +704,11 @@ class IrBoard implements Board {
             // device_start for `time_until_pos(1)`; against the credited line
             // that was the line it stood on, so the tick came a whole frame
             // late and every NES machine ran a frame behind MAME's.
+            // Within one frame, however far the device clock stands from the
+            // beam's line count: MAME adds frame periods until the target is
+            // ahead (`while (targetdelta <= curdelta)`).
             let lines = target - this.deviceBeamPosition();
+            lines -= Math.floor(lines / vtotal) * vtotal;
             if (lines <= 0) lines += vtotal;
             return lines / (machine.execution.screen.refresh * vtotal);
           },
@@ -1235,9 +1239,7 @@ class IrBoard implements Board {
         seconds += this.heldDeviceSeconds;
         this.heldDeviceSeconds = 0;
       } else if (this.frameRunner?.awaitingPresent) {
-        const screen = machine.execution.screen;
-        const allowed = (screen.vbstart - this.currentLine) * this.lineSeconds() - PRESENT_MARGIN_SECONDS
-          - this.timedHardwareDelivered;
+        const allowed = this.secondsToPresent() - PRESENT_MARGIN_SECONDS;
         if (seconds > allowed) {
           const delivered = Math.max(0, allowed);
           this.heldDeviceSeconds += seconds - delivered;
@@ -2888,13 +2890,7 @@ class IrBoard implements Board {
       // MAME presents at the start of VBLANK, where its devices stand; ours
       // may be a little short of it (held, or behind the processors), so the
       // presentation reads its timers from that instant.
-      aroundPresent: render => {
-        const screen = machine.execution.screen;
-        withGeneratedPresentTime(
-          (screen.vbstart - this.currentLine) * this.lineSeconds() - this.timedHardwareDelivered,
-          render,
-        );
-      },
+      aroundPresent: render => withGeneratedPresentTime(this.secondsToPresent(), render),
       onPresented: () => {
         const held = this.heldDeviceSeconds;
         this.heldDeviceSeconds = 0;
@@ -3030,9 +3026,11 @@ class IrBoard implements Board {
           const owed = this.deviceClockFollowsProcessors && timerClockCpu
             ? this.frameRunner.linesBehind(timerClockCpu.tag) * seconds
             : 0;
-          if (this.timedHardwareDelivered < -owed) {
-            advanceTimedHardware(-owed - this.timedHardwareDelivered);
-          }
+          // Time held for the frame's presentation is already on its way, so
+          // a settle asks only for what lies beyond it; measured without it,
+          // each line's settle held the same shortfall again.
+          const reached = this.timedHardwareDelivered + this.heldDeviceSeconds;
+          if (reached < -owed) advanceTimedHardware(-owed - reached);
           // Settled to where the processor stands, its last overrun included:
           // nothing is still carried for a catch-up to pay, and paying it again
           // ran the 2C02 an OAM DMA's overrun ahead of the CPU (#184).
@@ -3505,6 +3503,17 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * Device time from where the devices stand to the instant the frame in
+   * progress is presented: the beam's next arrival at vbstart. A frame runs
+   * from vbstart, so from the line after it the instant is past the wrap.
+   */
+  private secondsToPresent(): number {
+    const { vbstart, vtotal } = this.machine.execution.screen;
+    const lines = this.currentLine >= vbstart ? vtotal - this.currentLine + vbstart : vbstart - this.currentLine;
+    return lines * this.lineSeconds() - this.timedHardwareDelivered;
+  }
+
   /** The beam as a generated device's screen reads it (see powerOnCreditLines). */
   private deviceBeamPosition(): number {
     return this.beamPosition() - this.powerOnCreditLines;
@@ -3514,7 +3523,9 @@ class IrBoard implements Board {
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.deliveredSliceCycles ?? this.runningSliceCycles)
       : undefined;
-    if (running !== undefined) return running - generatedTimerBacklog() / this.lineSeconds();
+    // Inside a slice the beam is the processor's, which the devices' clock
+    // trails by whatever is held for the frame's presentation.
+    if (running !== undefined) return running - (generatedTimerBacklog() + this.heldDeviceSeconds) / this.lineSeconds();
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
   }
@@ -3744,6 +3755,9 @@ class IrBoard implements Board {
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
       'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'watchdogFrames',
+      // A slice's overrun still owed to the device clock: since #184 a 6502
+      // pays it at its next instruction, so a load must find it where it was.
+      'timerCpuCarriedCycles', 'heldDeviceSeconds',
       // Driver-armed one-shots due to fire: Missile Command's CPU-speed timer
       // is what puts the clock back at the top of the frame.
       'pendingTimers',
@@ -3846,9 +3860,9 @@ class IrBoard implements Board {
     const diagnostics = restoreState(this, state.roots, this.walkOptions());
     for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
     for (const sync of this.stateSyncs) sync.restored();
-    // What a catch-up may pay early is not part of a save: a restored machine
-    // owes it nothing, and the line settle pays any overrun as it always has.
-    this.timerCpuCarriedCycles = 0;
+    // Device time ahead of a slice exists only inside one; the overrun a
+    // slice left owed (timerCpuCarriedCycles) is part of the save, since a
+    // 6502 pays it at its next instruction's fetch (#184).
     this.deviceTimeAheadOfSlice = 0;
     return problems;
   }

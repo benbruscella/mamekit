@@ -809,9 +809,13 @@ reset actions are all given to MAME. A software title's start command is typed
 through MAME's natural keyboard on the frame `title-start.ts` types it, and
 PLAY is pressed once typing ends.
 
-**Frames.** Both sides count frames as they run them. An input given at frame N
-is read during frame N + 1: the harness's `atFrame`, and a MAME frame
-notifier's frame. Our frame N is set against MAME's N + offset, and the offset
+**Frames.** Both sides count frames as they run them, from one VBLANK to the
+next, and a frame's input takes effect at its start. An input given at frame N
+is read during frame N + 1: the harness's `atFrame`. A control set from Lua
+takes effect at MAME's next ioport frame update, which is itself a frame
+notifier and runs before the script's, so the oracle gives MAME a control
+event one notifier early (`luaEvents`); typed text, PLAY and resets keep their
+frame. Our frame N is set against MAME's N + offset, and the offset
 is searched (`--search 2`, or a fixed `--offset`). One offset is kept for the
 whole run, never the best per frame, because choosing per frame would hide a
 machine running at the wrong speed. Offsets that fit equally well are listed

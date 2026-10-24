@@ -18,7 +18,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listXmlOracle } from '../../src/gen/listxml.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
-import type { IoPlan, OraclePlan, OursBoot, Timeline } from './plan.ts';
+import type { IoPlan, OraclePlan, OursBoot, Timeline, TimelineEvent } from './plan.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const projectRoot = resolve(here, '../..');
@@ -106,6 +106,27 @@ export function mameFrames(plan: OraclePlan, ramFramesOurs: number[]): { snapsho
   return { snapshots: shift(plan.frames), ram: shift(ramFramesOurs) };
 }
 
+/**
+ * The timeline as oracle.lua applies it. A control's value set from Lua takes
+ * effect at MAME's next ioport frame update, which is itself a frame notifier
+ * that runs before the script's: set in notifier N, it is read from frame
+ * N + 2 on. Ours, and MAME's own host input, take effect at the start of the
+ * frame after the one it is given on, so a control event goes to MAME one
+ * notifier early. Typed text, PLAY and resets keep their frame. Lua tables are
+ * 1-based: an event's input index moves up by one.
+ */
+export function luaEvents(timeline: Timeline): Record<number, TimelineEvent[]> {
+  const events: Record<number, TimelineEvent[]> = {};
+  for (const [frame, list] of Object.entries(timeline.events)) {
+    for (const event of list) {
+      const control = event.kind === 'press' || event.kind === 'release' || event.kind === 'set';
+      const at = control ? Math.max(0, Number(frame) - 1) : Number(frame);
+      (events[at] ??= []).push('input' in event ? { ...event, input: event.input + 1 } : event);
+    }
+  }
+  return events;
+}
+
 export function writeLuaPlan(
   path: string,
   dir: string,
@@ -120,9 +141,7 @@ export function writeLuaPlan(
     out: dir,
     last,
     inputs: timeline.inputs,
-    // Lua tables are 1-based: an event's input index moves up by one.
-    events: Object.fromEntries(Object.entries(timeline.events).map(([frame, list]) => [frame,
-      list.map(event => 'input' in event ? { ...event, input: event.input + 1 } : event)])),
+    events: luaEvents(timeline),
     snapshots: Object.fromEntries(frames.snapshots.map(frame => [frame, true])),
     ram: plan.ram?.cpus ?? [],
     ram_frames: Object.fromEntries(frames.ram.map(frame => [frame, true])),

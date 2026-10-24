@@ -340,22 +340,22 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.equal(deviceCycles, 30, 'non-CPU participant receives its source clock budget');
 }
 
-// MAME's screen starts at the beginning of VBLANK, so the first frame is a
-// lead-in from vbstart (line 2 of 3 here) followed by a whole frame, presented
-// once. Nothing fires on the origin line: MAME arms its first VBLANK a frame
-// out. A reset starts there again (#184).
+// MAME's screen starts at the beginning of VBLANK and its frames run from one
+// VBLANK to the next, presented at the end: here lines 2, 0, 1 of 3, the
+// picture taken when the beam comes back to line 2. Nothing fires on the
+// origin line the first time: MAME arms its first VBLANK a frame out. A reset
+// starts there again (#184).
 {
   let cycles = 0;
-  let renders = 0;
-  let vblanks = 0;
   const lines: number[] = [];
   const events: string[] = [];
   const origins: boolean[] = [];
+  const timeline: string[] = [];
   const runner = new GeneratedFrameRunner({
     machine,
     origin: 'vbstart',
-    processors: [{ tag: 'maincpu', run: budget => { cycles += budget; return budget; } }],
-    video: { width: 1, height: 1, render: () => { renders++; }, vblank: () => { vblanks++; } },
+    processors: [{ tag: 'maincpu', run: budget => { cycles += budget; timeline.push('cpu'); return budget; } }],
+    video: { width: 1, height: 1, render: () => { timeline.push('render'); }, vblank: () => { timeline.push('vblank'); } },
     onLine: (line, phase) => {
       if (phase !== 'before-processors') return;
       lines.push(line);
@@ -365,20 +365,23 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   });
   assert.equal(runner.originLine, 2);
   runner.frame(new Uint32Array(1));
-  assert.deepEqual(lines, [2, 0, 1, 2]);
-  assert.deepEqual(origins, [true, false, false, false]);
-  assert.equal(cycles, 80);
-  assert.deepEqual(events, ['callback:vblank']);
-  assert.equal(vblanks, 1);
-  assert.equal(renders, 1);
+  assert.deepEqual(lines, [2, 0, 1]);
+  assert.deepEqual(origins, [true, false, false]);
+  assert.equal(cycles, 60);
+  assert.deepEqual(events, [], 'no VBLANK at the origin');
+  assert.equal(timeline.at(-1), 'render', 'presented when the beam is back at vbstart');
   assert.equal(runner.frameCount, 1);
   lines.length = 0;
+  timeline.length = 0;
   runner.frame(new Uint32Array(1));
-  assert.deepEqual(lines, [0, 1, 2]);
+  assert.deepEqual(lines, [2, 0, 1]);
+  assert.deepEqual(events, ['callback:vblank']);
+  assert.equal(timeline.filter(entry => entry === 'render').length, 1);
+  assert.equal(timeline.indexOf('vblank') < timeline.indexOf('render'), true);
   runner.reset();
-  lines.length = 0;
+  origins.length = 0;
   runner.frame(new Uint32Array(1));
-  assert.deepEqual(lines, [2, 0, 1, 2]);
+  assert.deepEqual(origins, [true, false, false]);
 }
 
 console.log('generated-frame.spec: 19 passed');
