@@ -5,6 +5,8 @@ import { installedOffset, RecordingAddressSpace } from './address-space-install.
 import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
 import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
 import {
+  beginGeneratedTimerDelivery,
+  endGeneratedTimerDelivery,
   createDevice,
   createGeneratedAttotime,
   generatedInstanceFactories,
@@ -17,6 +19,8 @@ import {
   generatedDeviceRole,
   loadSlotCard,
   slotCardForImage,
+  withExclusiveTimerDelivery,
+  withGeneratedPresentTime,
   type Device,
   type GeneratedMemoryBank,
 } from './generated-device.ts';
@@ -292,6 +296,13 @@ const ASSERT_LINE = 1;
 const HOLD_LINE = 2;
 
 /**
+ * How far short of the presentation instant held device time stops: well
+ * under a cycle of any processor here, well over the rounding in a timer's
+ * expiry measured from the beam.
+ */
+const PRESENT_MARGIN_SECONDS = 1e-9;
+
+/**
  * Apply MAME's special CPU input lines without confusing RESET with NMI.
  *
  * Generated driver handlers call set_input_line directly, so these lines do
@@ -519,6 +530,10 @@ class IrBoard implements Board {
    * still land where the deltas put them and no drift accumulates.
    */
   private timedHardwareDelivered = 0;
+  /** Device time held back until the frame is presented (advanceTimedHardware). */
+  private heldDeviceSeconds = 0;
+  /** A device access or time query is catching device time up (never held). */
+  private accessCatchingUp = false;
   /**
    * The line the device clock is credited with before the first line boundary
    * retires it. It is bookkeeping, so that boundary owes nothing, not where
@@ -558,6 +573,15 @@ class IrBoard implements Board {
    * asking the time then has nothing to catch up.
    */
   private coreExecuting = false;
+  /**
+   * Where in the running slice device time is being delivered to, while it
+   * is: ahead of the instruction's start by the cycles a catch-up or the
+   * fetch-cycle lookahead hands over. A timer firing in that delivery reads
+   * the beam there, as MAME's scheduler stands at the timer's expiry; read
+   * from the instruction's start, the 2C02 re-armed each scanline tick that
+   * many cycles late (#184).
+   */
+  private deliveredSliceCycles?: number;
   /** The processor whose slice is executing. */
   private runningCpu?: string;
   private soundRuntime?: SoundRuntimeHooks;
@@ -681,7 +705,11 @@ class IrBoard implements Board {
             // device_start for `time_until_pos(1)`; against the credited line
             // that was the line it stood on, so the tick came a whole frame
             // late and every NES machine ran a frame behind MAME's.
+            // Within one frame, however far the device clock stands from the
+            // beam's line count: MAME adds frame periods until the target is
+            // ahead (`while (targetdelta <= curdelta)`).
             let lines = target - this.deviceBeamPosition();
+            lines -= Math.floor(lines / vtotal) * vtotal;
             if (lines <= 0) lines += vtotal;
             return lines / (machine.execution.screen.refresh * vtotal);
           },
@@ -1167,11 +1195,21 @@ class IrBoard implements Board {
       const devices = cardClockDevices.get(cpuTag);
       if (!devices) return;
       const seconds = cycles / this.cycleClockOf(cardClocks.get(cpuTag)!);
-      for (let index = 0; index < devices.length; index++) devices[index]!.tick(seconds);
+      const outer = beginGeneratedTimerDelivery();
+      try {
+        for (let index = 0; index < devices.length; index++) devices[index]!.tick(seconds);
+      } finally {
+        endGeneratedTimerDelivery(outer);
+      }
     };
     const tickGeneratedDevices = (seconds: number): void => {
       if (!(seconds > 0)) return;
-      for (const device of timedDevices) device.tick(seconds);
+      const outer = beginGeneratedTimerDelivery();
+      try {
+        for (const device of timedDevices) device.tick(seconds);
+      } finally {
+        endGeneratedTimerDelivery(outer);
+      }
     };
     let tickHostedProcessors = (_seconds: number): void => {};
     let hostsProcessors = false;
@@ -1189,6 +1227,27 @@ class IrBoard implements Board {
     };
     const advanceTimedHardware = (seconds: number): void => {
       if (!(seconds > 0)) return;
+      // Until the frame is presented, device time stops just short of the
+      // start of line vbstart and the rest is held for after it: MAME takes
+      // its snapshot there before any device timer due at that instant. The
+      // 2C02 draws line 239 on such a timer, and MAME's picture shows the
+      // line from the frame before (#184). A processor whose last instruction
+      // runs past the instant and reads a device gets it where it stands:
+      // held there, the 2600's RIOT timer read stale and the game drifted.
+      if (this.frameRunner?.awaitingPresent && this.accessCatchingUp) {
+        // A processor reading or writing a device has run that far: the
+        // device must stand there too, held time first.
+        seconds += this.heldDeviceSeconds;
+        this.heldDeviceSeconds = 0;
+      } else if (this.frameRunner?.awaitingPresent) {
+        const allowed = this.secondsToPresent() - PRESENT_MARGIN_SECONDS;
+        if (seconds > allowed) {
+          const delivered = Math.max(0, allowed);
+          this.heldDeviceSeconds += seconds - delivered;
+          seconds = delivered;
+          if (!(seconds > 0)) return;
+        }
+      }
       deliverTimedHardware(seconds);
       // Precise driver timers come due on the same clock, after the devices
       // have been clocked to it.
@@ -1309,6 +1368,7 @@ class IrBoard implements Board {
     };
     calls['m68000_base_device::autovector'] = level => 24 + level;
     const generatedInputs: InputPorts = {
+      has: port => inputs.has?.(port) ?? true,
       read: port => {
         let value = inputs.read(port);
         for (const custom of machine.execution.customs?.filter(entry =>
@@ -1590,16 +1650,6 @@ class IrBoard implements Board {
       const flatMember = specification?.member &&
         !(specification.hostTag && rootMembers.has(specification.member) && inComposedCard(specification.tag))
         ? specification.member : undefined;
-      // Under MAME's perfect quantum every slice is one processor cycle, the
-      // processor's first: a register access on cycle k finds an executing
-      // device through cycle k-1, and the device runs cycle k after it. So
-      // the VIC-II shows a colour write from the cycle it lands on, and a
-      // CIA's timer reads as it stood. Device time otherwise arrives after
-      // the instruction, which put Batman's raster bars a few cycles early
-      // (222 pixels against MAME 0.289; now none).
-      const synchronized = machine.execution.perfectQuantum === true &&
-        !machine.execution.cpus.some(cpu => cpu.tag === tag) &&
-        device.methodNames().includes('execute_run');
       // device_execute_interface::set_input_line on a generated processor:
       // Taito's 68705 interface raises its MCU's IRQ and holds its reset
       // through `m_mcu->set_input_line(...)`. An execution CPU binds its own
@@ -1623,11 +1673,12 @@ class IrBoard implements Board {
           calls[`${name}.${method}`] ??= call as (...args: number[]) => unknown;
         }
       }
+      const lag = this.deviceAccessLag(device);
       for (const method of device.methodNames()) {
-        const accessed = synchronized && (method === 'read' || method === 'write');
+        const accessed = lag !== undefined && (method === 'read' || method === 'write');
         const synced = <T extends (...args: never[]) => unknown>(call: T): T => accessed
           ? ((...args: Parameters<T>) => {
-            this.catchUpDeviceTime?.(1);
+            this.catchUpDeviceTime?.(lag);
             return call(...args);
           }) as T
           : call;
@@ -1999,6 +2050,9 @@ class IrBoard implements Board {
       // `scanline_ind16_cb` and moves VRAM rows through the shift-register
       // pair, all of them methods of the video device.
       const cpuFacts = generatedCpuFacts(type);
+      // The timer clock runs two cycles into each instruction of a core that
+      // stops between an instruction's cycles (see the timing hook).
+      const lookahead = cpuFacts.suspendsMidInstruction === true;
       const cpuDelegates = new Map<string, { tag: string; method: string }>();
       for (const binding of machine.devices?.find(device => device.tag === specification.tag)?.delegates ?? []) {
         const name = cpuFacts.delegateSetters?.[binding.setter];
@@ -2113,6 +2167,17 @@ class IrBoard implements Board {
             if (current < timing.previousCycles) timing.previousCycles = 0;
             advanceTimedHardware((current - timing.previousCycles) / timerClockHz());
             timing.previousCycles = current === target ? 0 : current;
+            // MAME's 6502 polls its interrupt lines after the opcode fetch,
+            // past the point where a timeslice ending on that fetch stops it
+            // (m6502make.py expands `prefetch()` around the read), so a timer
+            // due before the cycle after the fetch has fired by the poll; the
+            // instruction's next access sees the same timers. Without it the
+            // 2C02's NMI, raised four cycles after the VBLANK flag, landed an
+            // instruction late whenever it fell due inside the fetch (#184).
+            // Under perfect quantum each slice is one cycle already.
+            if (lookahead && current < target && !this.frameRunner.lockstepping) {
+              this.catchUpDeviceTime?.(-2);
+            }
           } else if (cardClockDevices.has(specification.tag)) {
             if (clamped < timing.previousCycles) timing.previousCycles = 0;
             tickCardDevices(specification.tag, clamped - timing.previousCycles);
@@ -2188,7 +2253,13 @@ class IrBoard implements Board {
           const reach = this.runningSliceCycles + cpu.elapsedCycles!() - lag;
           const delivered = timing.previousCycles + this.deviceTimeAheadOfSlice;
           if (!(reach > delivered)) return;
-          advanceTimedHardware((reach - delivered) / timerClockHz());
+          this.deliveredSliceCycles = reach;
+          // Only the fetch lookahead (a negative lag) is a scheduled delivery
+          // that waits for the frame's presentation (advanceTimedHardware).
+          this.accessCatchingUp = lag >= 0;
+          withExclusiveTimerDelivery(() => advanceTimedHardware((reach - delivered) / timerClockHz()));
+          this.accessCatchingUp = false;
+          this.deliveredSliceCycles = undefined;
           if (reach <= sliceTarget) {
             timing.previousCycles = reach;
           } else {
@@ -2751,6 +2822,8 @@ class IrBoard implements Board {
     }
     this.frameRunner = new GeneratedFrameRunner({
       machine,
+      // MAME's screen starts at the beginning of VBLANK (#184).
+      origin: 'vbstart',
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
@@ -2816,6 +2889,15 @@ class IrBoard implements Board {
       // `scheduler().synchronize()` work runs once the processor that posted
       // it has yielded and the ones behind it have caught up.
       onSynchronize: () => this.drainScheduledWork(),
+      // MAME presents at the start of VBLANK, where its devices stand; ours
+      // may be a little short of it (held, or behind the processors), so the
+      // presentation reads its timers from that instant.
+      aroundPresent: render => withGeneratedPresentTime(this.secondsToPresent(), render),
+      onPresented: () => {
+        const held = this.heldDeviceSeconds;
+        this.heldDeviceSeconds = 0;
+        advanceTimedHardware(held);
+      },
       onEvent: event => {
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
@@ -2867,7 +2949,7 @@ class IrBoard implements Board {
           // host has no MAME delegate registry, so deliver both source edges
           // directly to every device that exposes the registered entry point.
           const { vbstart, vbend = 0 } = machine.execution.screen;
-          if (line === vbstart || line === vbend) {
+          if ((line === vbstart || line === vbend) && !this.frameRunner.atOrigin) {
             const state = Number(line === vbstart);
             for (const device of this.devices.values()) {
               if (device.methodNames().includes('vblank_callback')) {
@@ -2891,7 +2973,8 @@ class IrBoard implements Board {
         if (
           neoGeoInterrupts &&
           phase === 'before-processors' &&
-          line === machine.execution.screen.vbstart
+          line === machine.execution.screen.vbstart &&
+          !this.frameRunner.atOrigin
         ) {
           // neogeo_base_state::vblank_interrupt_callback: IRQ1 remains
           // asserted until video register 0x06 acknowledges bit 2.
@@ -2945,9 +3028,15 @@ class IrBoard implements Board {
           const owed = this.deviceClockFollowsProcessors && timerClockCpu
             ? this.frameRunner.linesBehind(timerClockCpu.tag) * seconds
             : 0;
-          if (this.timedHardwareDelivered < -owed) {
-            advanceTimedHardware(-owed - this.timedHardwareDelivered);
-          }
+          // Time held for the frame's presentation is already on its way, so
+          // a settle asks only for what lies beyond it; measured without it,
+          // each line's settle held the same shortfall again.
+          const reached = this.timedHardwareDelivered + this.heldDeviceSeconds;
+          if (reached < -owed) advanceTimedHardware(-owed - reached);
+          // Settled to where the processor stands, its last overrun included:
+          // nothing is still carried for a catch-up to pay, and paying it again
+          // ran the 2C02 an OAM DMA's overrun ahead of the CPU (#184).
+          if (this.deviceClockFollowsProcessors) this.timerCpuCarriedCycles = 0;
           for (const tick of this.peripheralTicks) tick(seconds);
           // Driver-armed one-shots expire at the line boundary at or after
           // their time, which is the finest grain this schedule offers -- the
@@ -2967,6 +3056,8 @@ class IrBoard implements Board {
       },
       video,
     });
+    // The beam starts where the frame runner's first frame does.
+    this.currentLine = this.frameRunner.originLine;
     this.installAccessTaps(machine);
     this.attachComposedCards();
     this.runDeviceStarts();
@@ -3362,9 +3453,10 @@ class IrBoard implements Board {
     this.pendingExidyCollisions.clear();
     this.vicdualCoinPrevious = false;
     this.vicdualCoinFrames = 0;
-    this.currentLine = 0;
+    this.currentLine = this.frameRunner.originLine;
     this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
+    this.heldDeviceSeconds = 0;
     this.powerOnCreditLines = 1;
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
@@ -3413,6 +3505,17 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * Device time from where the devices stand to the instant the frame in
+   * progress is presented: the beam's next arrival at vbstart. A frame runs
+   * from vbstart, so from the line after it the instant is past the wrap.
+   */
+  private secondsToPresent(): number {
+    const { vbstart, vtotal } = this.machine.execution.screen;
+    const lines = this.currentLine >= vbstart ? vtotal - this.currentLine + vbstart : vbstart - this.currentLine;
+    return lines * this.lineSeconds() - this.timedHardwareDelivered;
+  }
+
   /** The beam as a generated device's screen reads it (see powerOnCreditLines). */
   private deviceBeamPosition(): number {
     return this.beamPosition() - this.powerOnCreditLines;
@@ -3420,9 +3523,11 @@ class IrBoard implements Board {
 
   private beamPosition(): number {
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
+      ? this.frameRunner?.runningBeam(this.deliveredSliceCycles ?? this.runningSliceCycles)
       : undefined;
-    if (running !== undefined) return running - generatedTimerBacklog() / this.lineSeconds();
+    // Inside a slice the beam is the processor's, which the devices' clock
+    // trails by whatever is held for the frame's presentation.
+    if (running !== undefined) return running - (generatedTimerBacklog() + this.heldDeviceSeconds) / this.lineSeconds();
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
   }
@@ -3652,6 +3757,9 @@ class IrBoard implements Board {
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
       'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'watchdogFrames',
+      // A slice's overrun still owed to the device clock: since #184 a 6502
+      // pays it at its next instruction, so a load must find it where it was.
+      'timerCpuCarriedCycles', 'heldDeviceSeconds',
       // Driver-armed one-shots due to fire: Missile Command's CPU-speed timer
       // is what puts the clock back at the top of the frame.
       'pendingTimers',
@@ -3754,9 +3862,9 @@ class IrBoard implements Board {
     const diagnostics = restoreState(this, state.roots, this.walkOptions());
     for (const diagnostic of diagnostics) problems.push(`${diagnostic.path}: ${diagnostic.message}`);
     for (const sync of this.stateSyncs) sync.restored();
-    // What a catch-up may pay early is not part of a save: a restored machine
-    // owes it nothing, and the line settle pays any overrun as it always has.
-    this.timerCpuCarriedCycles = 0;
+    // Device time ahead of a slice exists only inside one; the overrun a
+    // slice left owed (timerCpuCarriedCycles) is part of the save, since a
+    // 6502 pays it at its next instruction's fetch (#184).
     this.deviceTimeAheadOfSlice = 0;
     return problems;
   }
@@ -3772,6 +3880,29 @@ class IrBoard implements Board {
   perfectQuantum(seconds: number): void {
     this.frameRunner?.quantumWindow(seconds);
     this.frameRunner?.requestSynchronize();
+  }
+
+  /**
+   * How far short of the accessing processor's cycle a register access brings
+   * the device clock (`catchUpDeviceTime`). MAME's 6502 stops between an
+   * instruction's cycles at a timer's expiry, so an access on cycle k finds
+   * every timer due before cycle k + 1 already fired: the 2C02's VBLANK flag
+   * set during a `BIT $2002` is read by that BIT, not the next one.
+   *
+   * Under MAME's perfect quantum every slice is one processor cycle, the
+   * processor's first: a register access on cycle k finds an executing
+   * device through cycle k-1, and the device runs cycle k after it. So the
+   * VIC-II shows a colour write from the cycle it lands on, and a CIA's timer
+   * reads as it stood. Device time otherwise arrives after the instruction,
+   * which put Batman's raster bars a few cycles early (222 pixels against
+   * MAME 0.289; now none). Undefined where the timer clock's processor
+   * finishes each instruction first, so there is nothing to catch up.
+   */
+  private deviceAccessLag(device: Device): number | undefined {
+    const timerClockCpu = this.machine.execution.cpus[0];
+    if (!timerClockCpu || !generatedCpuFacts(timerClockCpu.type ?? '').suspendsMidInstruction) return undefined;
+    return this.machine.execution.perfectQuantum === true &&
+      device.methodNames().includes('execute_run') ? 1 : 0;
   }
 
   private installDeviceHandlers(
@@ -3885,8 +4016,13 @@ class IrBoard implements Board {
           const parameters = device.parameters(method);
           const arity = device.arity(method);
           const masked = parameters.some(parameter => /\bmem_mask\b/.test(parameter));
-          const invoke = device.prepareCall?.(method) ??
+          const prepared = device.prepareCall?.(method) ??
             ((...args: GeneratedCallArgument[]) => device.invoke(method, ...args));
+          const lag = this.deviceAccessLag(device);
+          const invoke = lag === undefined ? prepared : (...args: GeneratedCallArgument[]) => {
+            this.catchUpDeviceTime?.(lag);
+            return prepared(...args);
+          };
           if (kind === 'read') {
             registry.read[key] = masked
               ? (_address, offset, memMask = 0xffff) => Number(invoke(offset, memMask)) || 0
@@ -5612,16 +5748,28 @@ class IrBoard implements Board {
     return this.inFrame ? Math.min(1, this.soundFraction()) : 1;
   }
 
+  /**
+   * Lines the beam has travelled since the frame in progress began, which is
+   * the line the frame runner starts frames on (`originLine`), not line 0: a
+   * frame runs from vbstart round to the line before it. Measured from line
+   * 0 it ran 0.92..1 then back through 0..0.92 within one frame, and every
+   * sound write stamped with it played out of order -- Gyruss's i8039 DAC and
+   * Mat Mania's sound CPU garbled (#184).
+   */
+  private frameLines(): number {
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const origin = this.frameRunner?.originLine ?? 0;
+    return (this.currentLine - origin + vtotal) % vtotal + this.currentLineFraction;
+  }
+
   private soundFraction(): number {
-    return (this.currentLine + this.currentLineFraction) /
-      this.machine.execution.screen.vtotal;
+    return this.frameLines() / this.machine.execution.screen.vtotal;
   }
 
   private neoGeoRtcSeconds(): number {
     return (
       (this.frameRunner?.frameCount ?? 0) +
-      (this.currentLine + this.currentLineFraction) /
-        Math.max(1, this.machine.execution.screen.vtotal)
+      this.frameLines() / Math.max(1, this.machine.execution.screen.vtotal)
     ) / this.machine.execution.screen.refresh;
   }
 

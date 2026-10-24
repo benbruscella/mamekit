@@ -207,6 +207,11 @@ export type CassetteImageFormat = { extension: string; definition: GeneratedDevi
   | { identifyMethod: string; loadMethod: string });
 
 export interface GeneratedDeviceDefinition {
+  /**
+   * The power-on value of each input port the device declares itself
+   * (`device_input_ports`), by its own tag (device-compiler).
+   */
+  inputDefaults?: Record<string, number>;
   type: string;
   /** MAME's own name for the device ("Commodore 1530 Datassette"). */
   description?: string;
@@ -533,7 +538,7 @@ export interface GeneratedDeviceOptions {
   /** Host primitives available before device_start executes. */
   calls?: Record<string, (...args: number[]) => unknown>;
   /** Active-low/raw input ports used by required_ioport finders. */
-  inputs?: { read(tag: string): number };
+  inputs?: { read(tag: string): number; has?(tag: string): boolean };
   /** Selected card option for a generated slot definition. */
   slot?: string | number;
   /**
@@ -632,6 +637,29 @@ class IrAttotime {
 let timerBacklogSeconds = 0;
 
 /**
+ * The board's delivery of device time in progress, if any: it brackets every
+ * delivery with beginGeneratedTimerDelivery and endGeneratedTimerDelivery. A
+ * timer armed from inside another's callback is credited the backlog when it
+ * is armed, and inside a bracketed delivery takes nothing more from it
+ * (IrTimer.adjust).
+ */
+let timerDelivery = 0;
+let timerDeliveryOpen = false;
+
+/** The board starts handing device time to its devices (see timerDelivery). */
+export function beginGeneratedTimerDelivery(): boolean {
+  const outer = timerDeliveryOpen;
+  if (!outer) timerDelivery++;
+  timerDeliveryOpen = true;
+  return outer;
+}
+
+/** The delivery begun by beginGeneratedTimerDelivery is over; `outer` is what it returned. */
+export function endGeneratedTimerDelivery(outer: boolean): void {
+  timerDeliveryOpen = outer;
+}
+
+/**
  * Runs everything else the board clocks up to a firing timer's expiry before
  * its callback, while the board is delivering device time; told how far past
  * the expiry the delivered lump reaches. MAME's scheduler fires a timer only
@@ -654,6 +682,48 @@ export function setGeneratedTimerPreFire(hook: ((overshoot: number) => void) | u
 /** A device-side attotime value, for a save state's factory (machine-state.ts). */
 export function createGeneratedAttotime(seconds: number): object {
   return new IrAttotime(seconds);
+}
+
+/**
+ * How far now stands ahead of the device time delivered so far: set while
+ * the board presents a frame at an instant its devices have not quite been
+ * clocked to (see IrTimer.remaining).
+ */
+let timerNowAheadSeconds = 0;
+
+/**
+ * Below this a timer's remaining time is rounding in the clocks that measure
+ * it, not time: far under a cycle of any processor here.
+ */
+const TIMER_NOW_TOLERANCE_SECONDS = 1e-10;
+
+/**
+ * A catch-up is delivering device time: the processor's access (or the poll
+ * after its fetch) comes at the end of it, and MAME fires only the timers due
+ * strictly before that point; one due exactly there fires after the access.
+ */
+let timerDeliveryExclusive = false;
+
+/** Run `run` as a catch-up's delivery (see timerDeliveryExclusive). */
+export function withExclusiveTimerDelivery<T>(run: () => T): T {
+  const outer = timerDeliveryExclusive;
+  timerDeliveryExclusive = true;
+  try {
+    return run();
+  } finally {
+    timerDeliveryExclusive = outer;
+  }
+}
+
+/** Run `run` with now standing `aheadSeconds` past the delivered device time. */
+export function withGeneratedPresentTime<T>(aheadSeconds: number, run: () => T): T {
+  const outer = timerNowAheadSeconds;
+  timerNowAheadSeconds = Math.max(0, aheadSeconds);
+  try {
+    return run();
+  } finally {
+    timerNowAheadSeconds = outer;
+  }
 }
 
 /** @see timerBacklogSeconds */
@@ -706,6 +776,8 @@ class IrTimer {
   private adjustmentGeneration = 0;
   /** The absolute expiry, from the clock at arming; NaN when there is none. */
   private expiry = NaN;
+  /** The delivery this timer was armed inside and credited for (see adjust). */
+  private creditedDelivery = -1;
 
   /** The owning device's `machine().time()`, when it has one. */
   private readonly now?: () => number;
@@ -736,6 +808,20 @@ class IrTimer {
     this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
     this.parameter = parameter;
     this.adjustmentGeneration++;
+    // Armed from inside another timer's callback, the delay runs from that
+    // callback's expiry, where MAME's scheduler stands; the delivery in
+    // progress has already carried device time past it by the backlog. So
+    // the backlog is credited now, and the rest of the delivery is not
+    // counted down again. Counted from the delivery's end instead, the
+    // 2C02's NMI -- armed four cycles after the VBLANK flag's scanline tick
+    // -- fired that tick's overshoot late, and a timer whose device is ticked
+    // after the arming one in the same delivery took the whole lump (#184).
+    if (timerBacklogSeconds > 0 && Number.isFinite(this.remainingSeconds)) {
+      this.remainingSeconds -= timerBacklogSeconds;
+      this.creditedDelivery = timerDeliveryOpen ? timerDelivery : -1;
+    } else {
+      this.creditedDelivery = -1;
+    }
   }
 
   /**
@@ -756,7 +842,15 @@ class IrTimer {
     // models gate on. The NES PPU has two: skipping them left every scanline
     // rendering nametable row 0, so a fully drawn title screen came out as one
     // flat colour.
-    return new IrAttotime(Math.max(0, this.remainingSeconds));
+    //
+    // While a frame is presented, now is the presentation instant, which the
+    // devices' clock may stand a little short of (withGeneratedPresentTime).
+    // A timer due at that instant reads zero there, as in MAME: the 2C02's
+    // `render` draws the line in progress only when its scanline timer has
+    // time left, and at the start of VBLANK it has none, so MAME's picture
+    // keeps line 239 from the frame before (#184).
+    const left = this.remainingSeconds - timerNowAheadSeconds;
+    return new IrAttotime(left > TIMER_NOW_TOLERANCE_SECONDS ? left : 0);
   }
 
   elapsed(): IrAttotime {
@@ -773,9 +867,17 @@ class IrTimer {
 
   tick(seconds: number, callback: (parameter: number) => void): void {
     if (!Number.isFinite(this.remainingSeconds)) return;
-    this.remainingSeconds -= seconds;
+    if (this.creditedDelivery !== timerDelivery) this.remainingSeconds -= seconds;
     let firings = 0;
-    while (this.remainingSeconds <= 0) {
+    // Due within the clocks' rounding is due: MAME fires a timer whose expiry
+    // the processor's slice ends exactly on before the next instruction, and
+    // left a hair short here, Green Beret's line-80 NMI came an instruction
+    // late (#184).
+    // A catch-up's delivery ends at the processor's access, and a timer due
+    // exactly there fires after it (City Fighter IV's VRC4 IRQ counter ticks
+    // on whole cycles and was taken an instruction early, #184).
+    const due = timerDeliveryExclusive ? -TIMER_NOW_TOLERANCE_SECONDS : TIMER_NOW_TOLERANCE_SECONDS;
+    while (this.remainingSeconds <= due) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
       const overshoot = -this.remainingSeconds;
       const firedPeriod = this.period;
@@ -797,10 +899,10 @@ class IrTimer {
 
       // MAME callbacks commonly re-arm their own one-shot timer. Honour that
       // new schedule instead of disabling it based on the timer state that
-      // caused the callback (for example, the NES PPU scanline timer).
+      // caused the callback (for example, the NES PPU scanline timer). The
+      // re-arm was credited the overshoot as it was armed (adjust).
       if (this.adjustmentGeneration !== generation) {
         if (!Number.isFinite(this.remainingSeconds)) break;
-        this.remainingSeconds -= overshoot;
         continue;
       }
 
@@ -966,7 +1068,7 @@ class IrDevice implements Device {
           ? resolveDeviceResource(resourceMembers[member.name]!, resourceOptions)
           :
         (inputTag
-          ? { read: () => options.inputs?.read(inputTag) ?? 0xff }
+          ? { read: inputFinderRead(options.inputs, inputTag, definition.inputDefaults?.[member.finder?.tag ?? '']) }
           : member.finder?.kind === 'device'
             ? options.finder?.(member.finder.tag, member.name) ?? 0
           : /^(?:required|optional)_address_space$/.test(member.valueType)
@@ -3384,4 +3486,23 @@ function nestedArrayMember(shape: readonly number[]): unknown[] {
     { length: Math.max(0, extent ?? 0) },
     () => inner.length ? nestedArrayMember(inner) : 0,
   );
+}
+
+/**
+ * A device's `required_ioport` read. A port the machine declares is read from
+ * the machine's inputs; one only the device declares -- a cartridge's DIP
+ * switches or jumpers, which exist only once that cartridge is chosen -- reads
+ * the power-on value the device's own INPUT_PORTS give it. Read as an unknown
+ * port it was all ones: Nintendo Campus Challenge 1991's competition timer
+ * had expired at power-on and Karaoke Studio's microphone buttons were all
+ * held (#184).
+ */
+function inputFinderRead(
+  inputs: { read(tag: string): number; has?(tag: string): boolean } | undefined,
+  tag: string,
+  fallback: number | undefined,
+): () => number {
+  return () => fallback !== undefined && inputs?.has?.(tag) === false
+    ? fallback
+    : inputs?.read(tag) ?? fallback ?? 0xff;
 }

@@ -111,6 +111,8 @@ callbacks?: Record<string, string>;
   accessors?: Record<string, string>;
   start: GeneratedHandlerProgram;
   reset: GeneratedHandlerProgram;
+  /** MAME's STATE_RESET: the reset sequence is the first instruction after a reset. */
+  resetInstruction?: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
   step?: GeneratedHandlerProgram;
   service: GeneratedHandlerProgram;
@@ -260,7 +262,7 @@ class IrCpu implements Cpu {
     return [
       'members', 'irqData', 'irqHold', 'internalRam', 'portData', 'portDirection',
       'portHandshakeControl', 'portHandshakeInputState', 'portHandshakeLatched',
-      'portHandshakePendingClear',
+      'portHandshakePendingClear', 'resetPending',
     ];
   }
 
@@ -347,11 +349,20 @@ class IrCpu implements Cpu {
     this.portHandshakeLatched = false;
     this.portHandshakePendingClear = false;
     this.execute(this.definition.reset);
+    this.resetPending = this.definition.resetInstruction !== undefined;
   }
+
+  private resetPending = false;
 
   step(): number {
     if (this.definition.step) {
       return Number(this.execute(this.definition.step)) || 0;
+    }
+    if (this.resetPending) {
+      this.resetPending = false;
+      this.set('cycles', 0);
+      this.execute(this.definition.resetInstruction!);
+      return this.get('cycles');
     }
     this.set('cycles', 0);
     this.set('m_icount', 1);
@@ -474,7 +485,8 @@ class IrCpu implements Cpu {
     const names = parameters.map(parameterName);
     return this.execute(
       method.program,
-      Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
+      Object.fromEntries(names.map((name, index) =>
+        [name, convertArgument(args[index] ?? 0, parameters[index]!)])),
     );
   }
 
@@ -838,6 +850,20 @@ function splitParameters(parameters: string): string[] {
 
 function parameterName(parameter: string): string {
   return /(\w+)\s*$/.exec(parameter.replace(/\.\.\./g, '').trim())?.[1] ?? parameter;
+}
+
+/** A C++ call converts a value argument to its parameter's integer type (as cpu-codegen emits it). */
+function convertArgument(value: GeneratedCallArgument, parameter: string): GeneratedCallArgument {
+  if (typeof value !== 'number' || /[&*]/.test(parameter)) return value;
+  const type = parameter.slice(0, parameter.lastIndexOf(parameterName(parameter))).replace(/\bconst\b/g, '').trim();
+  if (type === 'u8' || type === 'uint8_t') return value & 0xff;
+  if (type === 's8' || type === 'int8_t' || type === 'char') return (value << 24) >> 24;
+  if (type === 'bool') return value ? 1 : 0;
+  if (type === 'u16' || type === 'uint16_t') return value & 0xffff;
+  if (type === 's16' || type === 'int16_t') return (value << 16) >> 16;
+  if (type === 'u32' || type === 'uint32_t') return value >>> 0;
+  if (type === 's32' || type === 'int32_t' || type === 'int') return value | 0;
+  return value;
 }
 
 function isLValue(value: GeneratedCallArgument): value is GeneratedLValue {

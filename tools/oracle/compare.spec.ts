@@ -65,6 +65,13 @@ try {
   const io = compareIo(dir);
   assert.equal(io.firstDivergence?.index, 1);
   assert.equal(io.firstDivergence?.mame?.kind, 'W');
+  // Each access may carry its emulated time; values alone decide a difference.
+  writeFileSync(join(dir, 'mame-io.txt'), '3 R 0 2002 80 0.0167026860\n3 W 0 2000 10 0.0167100000\n');
+  writeFileSync(join(dir, 'ours-io.txt'), '4 R 0 2002 80 0.0167032450\n4 R 0 2002 0 0.0167200000\n');
+  const timed = compareIo(dir);
+  assert.equal(timed.firstDivergence?.index, 1);
+  assert.equal(timed.firstDivergence?.mame?.time, 0.01671);
+  assert.equal(timed.firstDivergence?.ours?.time, 0.01672);
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

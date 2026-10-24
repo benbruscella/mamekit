@@ -378,6 +378,21 @@ source. The fetch is lowered from MAME's `prefetch_start`/`prefetch_end`, so the
 SYNC line (`sync_cb`, `get_sync()`) rises around the opcode read and an
 interrupt is taken only after that read, as MAME takes it.
 
+The 6502 family's reset is an instruction, not a call. MAME's `device_reset`
+only sets `m_inst_state = STATE_RESET`, and the operation list's `reset`
+sequence -- three stack reads and the vector at `$FFFC` -- runs as the core's
+next instruction, seven cycles on the clock with its reads on the bus. The
+compiler records that as `resetInstruction` when `device_reset` says so, and
+the first step after a reset runs it. Run inside `reset()` instead, the
+sequence cost nothing: every 6502 started seven cycles early, and a bus trace
+was two reads short of MAME's (#184).
+
+A call converts each argument to its parameter's declared integer type, as a
+C++ call does, in the emitted and the interpreted core alike. The 6502's
+`set_l(uint16_t base, uint8_t val)` is handed `m_SP + 1`, and unconverted it
+moved the stack from `$1FF` to `$300` instead of `$100`, and put every
+page-crossing dummy read on the wrong page (#184).
+
 A core's `state_add` table is part of its IR (`stateEntries`): each state
 index, the register or member it names, and whether `.callimport()` follows a
 write with the core's own `state_import`. That is MAME's
@@ -456,7 +471,19 @@ struct the device holds by value may carry methods of its own (`tone_t::
 set_period`); they are compiled per struct type (`structMethods`) and each
 value of that type carries them, not enumerable, so a copy or a save state
 sees only the fields. The Sunsoft 5B, an AY-3-8910 on an NES cartridge, made
-no sound until all of these held (#171).
+no sound until all of these held (#171). An initializer names the member its
+own class sees: the Irem G-101 declares a `const u8 m_prg_mask` of its own,
+hiding the cartridge interface's, and sets it to `0x1f` through its delegating
+constructor. Keyed by bare name, the value went to the interface's member and
+the G-101's stayed 0, so every `$A000` bank write mapped bank 0 and Image
+Fight never left its boot code (#184). The input ports a device declares
+itself (`device_input_ports`) are recorded with it as their power-on values
+(`inputDefaults`): a cartridge's DIP switches and jumpers exist only once
+that cartridge is chosen, so the machine's own ports never name them, and a
+`required_ioport` the machine does not declare reads the device's default.
+Read as an unknown port they were all ones, which expired Nintendo Campus
+Challenge 1991's competition timer at power-on, held every one of Karaoke
+Studio's microphone buttons, and set Sachen's jumper to the wrong game.
 
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
@@ -674,27 +701,65 @@ it by whatever its last slice overran, which an NES OAM DMA makes four lines
 networks run on the same clock, and Galaga's 54xx boom moved when it followed
 the processors.
 
+MAME's screen starts at the beginning of VBLANK: `time_until_pos` measures
+from `m_vblank_start_time`, which is zero at power-on, so the beam stands at
+`vbstart` at time zero and the first VBLANK comes a whole frame later. Its
+frames run from one VBLANK to the next, and so do ours (`origin: 'vbstart'`):
+a frame runs lines `vbstart` to the last, then 0 to `vbstart - 1`, and is
+presented at its end, when the beam is back at `vbstart`. A frame's
+boundary is therefore MAME's frame boundary: the frame is presented, its RAM
+can be read and the next frame's input takes effect at the instant MAME's
+`frame_update` does all three (#184). How far through a frame the machine is
+-- the stamp on every sound write, a trackball's travel handed out within the
+frame -- is measured from the line the frame started on; measured from line 0
+it ran backwards across the wrap, and Gyruss's and Mat Mania's sound CPUs
+played their writes out of order. Nothing fires on the origin line in the
+first frame: MAME arms its first VBLANK and its scanline timers a frame out
+from a position the beam already stands on.
+
+Frames running from line 0 put the NES's first VBLANK 2491 cycles ahead of
+MAME's (241 lines in, not 263). Twenty-two lines is no whole number of passes
+of any loop, so Terao no Dosukoi Oozumou's `inc $47` spin loop was interrupted
+at a different point and seeded the game from a different count. A first
+version kept frames running from line 0 behind a lead-in from `vbstart`; that
+presented at the right instant but applied input 22 lines after it, which a
+game reading its pad in the VBLANK NMI then saw a frame late (a 4-in-1
+multicart's TMNT demo drifted two frames). With frames running VBLANK to
+VBLANK, 22 more NES cartridge boards are pixel-exact at frame 1500 (294 of
+344), Green Beret's RAM matches MAME's to the byte at 300 and 600, and Pac-Man
+compares at frame offset 0 (#184). A reset starts at the origin again. A
+screen whose VBLANK starts at its last line + 1 or beyond (the Spectrum's 311
+of 0-310, Missile Command's 256) wraps to line 0, where its frames already
+start and end.
+
+Presenting the frame is an instant in device time as well. MAME takes its
+snapshot in `vblank_begin`, a timer armed a frame earlier, so it runs before
+any device timer due at that same instant; a renderer that asks one of them
+`remaining()` is told zero. Until the frame is presented, the board holds
+device time just short of the start of line `vbstart` and delivers the rest
+after it (`awaitingPresent`), and the presentation reads every timer from that
+instant (`withGeneratedPresentTime`), however far short of it the devices'
+clock stands. Only the schedule's own deliveries are held: a processor whose
+last instruction runs past the instant and reads or writes a device finds it
+where the processor stands, held time first. Held there too, the 2600's RIOT
+timer read stale and the game drifted from MAME's RAM after 190 frames. Held
+time is device time on its way: the line settle counts it as delivered, or
+each line held the same shortfall again, and a device reading the beam inside
+a slice reads it that far behind the processor. The 2C02's `render` draws the line in progress only while its
+scanline timer has time left; at MAME's snapshot it has none, so MAME's picture
+keeps line 239 from the frame before. Ours drew the current one, which was the
+only difference left on Castlevania III (Europe), Akuma Densetsu, two
+multicarts and Super Mario Bros. run without input (#184).
+
 Before the first line boundary the device clock is credited with one line, so
 that boundary owes the devices nothing. That credit is bookkeeping, not the
-beam: the frame runner begins line 0 at time zero, and the screen a generated
-device reads (`time_until_pos`, `vpos`) measures from there. The NES 2C02 arms
-its first scanline tick in `device_start` with `time_until_pos(1)`; measured
-from the credited line it was the line the beam already stood on, so the tick
-came a whole frame late and every NES title ran a frame behind MAME's. MAME
-measures the beam from the start of VBLANK, where its beam stands at time
-zero, so a device's first timer still lands at a different absolute time
-from MAME's (23 lines in for the 2C02, 1 here). On the NES that time is
-usually spent in the boot code's first VBLANK wait, and from the second wait
-on the CPU and the PPU run exactly as MAME's do (#171). A board whose start-up
-code runs past line 241 before it first polls `$2002` finds the flag already
-set, where MAME's is still 22 lines away: Terao no Dosukoi Oozumou (`jf24`)
-parts from MAME there. Starting the machine where MAME's beam starts -- line
-`vbstart` at time zero, the first frame a lead-in from `vbstart` followed by a
-whole frame, presented once -- keeps every NES title compared at offset 0 and
-removes that gap, but it moves every board's phase, so it waits for a change
-of its own. A driver's own beam reads during construction keep the credited
-line: nine arcade boards read it there, and each first timer would move a line
-(#155).
+beam: the screen a generated device reads (`time_until_pos`, `vpos`) measures
+from the origin. The NES 2C02 arms its first scanline tick in `device_start`
+with `time_until_pos(1)`; measured from the credited line it was the line the
+beam already stood on, so the tick came a whole frame late and every NES title
+ran a frame behind MAME's (#171). A driver's own beam reads during
+construction keep the credited line: nine arcade boards read it there, and
+each first timer would move a line (#155).
 
 Inside a device timer's callback, `machine().time()` is that timer's expiry,
 recorded when it was armed, as MAME's scheduler sets it before the call.
@@ -703,7 +768,10 @@ attoseconds off, and source that compares the two exactly -- the 64H156's
 `cur_live.tm > machine().time()` at every syncpoint -- takes the other branch.
 A delay too small to move a double of the clock's size still advances the
 expiry by one unit, as attotime would, so a callback re-arming "a hair later"
-finds time moved. A device holds an attotime as its seconds: every accessor
+finds time moved. A timer due within 10^-10 s of where the clock stands is
+due: MAME fires a timer whose expiry a slice ends exactly on before the next
+instruction, and left a rounding hair short, Green Beret's line-80 NMI came an
+instruction late at frame 388 (#184). A device holds an attotime as its seconds: every accessor
 MAME spells on one is answered for a number, and two readings compare by
 value.
 
@@ -727,12 +795,39 @@ fired late with an earlier time than the motor write it followed, and MAME's
 cassette refuses a negative position. A core without the fact (MAME's Z80
 finishes its instruction first too) keeps the old order.
 
-A register access does the same for a device that executes on its own under
-`set_perfect_quantum`. There every slice is one processor cycle with the
+On such a processor a register access goes further. MAME's scheduler stops the
+core at a timer's expiry, so an access on cycle k finds every timer due before
+cycle k + 1 already fired; the board catches device time up to the access
+before a generated device's `read` or `write` runs, whether the bus reaches it
+directly or a driver handler calls it. MAME's generator expands `prefetch()`
+around the opcode read with the suspension point between the two, so the
+interrupt poll after a fetch on cycle k sees timers due before k + 2: device
+time is delivered two cycles into each instruction before it starts. Without
+both, the 2C02's VBLANK flag set during a `BIT $2002` was read a loop pass
+late, and its NMI, four cycles after the flag, came an instruction late
+whenever it fell due inside a fetch (#184). Both catch-ups stop short of
+their end for a timer: one due exactly where the access (or the poll) falls
+fires after it, as MAME's does, which matters for counters ticking on whole
+cycles such as a VRC4's IRQ prescaler.
+
+Three rules keep those deliveries honest. A timer that fires inside one reads
+the beam where the delivery stands, not at the instruction's start, or a
+scanline tick re-arms that many cycles late. A timer armed inside another
+timer's callback runs from that callback's expiry, so it is credited the
+delivery's backlog as it is armed and takes nothing more from that delivery
+(`IrTimer.adjust`; the board brackets each delivery): counted from the
+delivery's end, the 2C02's NMI fired the VBLANK tick's overshoot late. And once
+the line settle has paid a slice's overrun, nothing of it is still carried for
+a catch-up to pay: paid twice, an OAM DMA's overrun ran the 2C02 264 cycles
+ahead of the CPU.
+
+A device that executes on its own under `set_perfect_quantum` is caught up one
+cycle short of that. There every slice is one processor cycle with the
 processor first, and MAME's 6502 counts a cycle after its access, so an access
 on cycle k finds a device such as the VIC-II or a CIA through cycle k-1; the
 device runs cycle k after it. The board catches such a device up to that point
-before its `read` or `write` runs. Delivered after the instruction instead, the
+before its `read` or `write` runs, and the two-cycle lookahead does not apply
+in lockstep, where each slice is one cycle already. Delivered after the instruction instead, the
 VIC-II showed a colour write up to an instruction early, and every C64 raster
 bar landed a few cycles ahead of MAME's.
 
@@ -747,20 +842,17 @@ measures each pulse from inside that interrupt, and those few cycles were
 enough to misframe Crazy Comets' program block on one PLAY phase in eight
 (`?LOAD ERROR`) where MAME loads it at every phase (#161).
 
-Two timing differences from MAME's C64 remain, recorded rather than fixed.
-MAME measures screen positions from the start of VBLANK
-(`time_until_pos` adds `height - (visarea.bottom + 1)`), so its VBLANK begins
-at time zero and every frame period after; the frame runner puts line 0 there
-instead and presents at line `vbstart`. A machine whose beam is the screen's
-cannot tell, but the VIC-II keeps its own raster from time zero, so MAME
-captures it at the end of its frame and the frame runner at raster 284, with
-the bottom 16 rows a frame old. And the 6510 keeps the exact XTAL quotient
-(985,248.44 Hz) where MAME's `device_t::clock()` is the u32 every generated
-device already gets, so the VIC-II drifts 0.009 cycles a frame behind the
-processor; after about 36 s it is still finishing raster 283 when the frame
-is presented, which shows as one torn row at the bottom where the background
-colour differs from the border. Both are board-wide changes to every target's
-phase or cycle count, so they wait for a change of their own.
+One timing difference from MAME's C64 remains, recorded rather than fixed. The
+frame is presented at the instant MAME takes its snapshot (see the origin
+above), when MAME's VIC-II, which keeps its own raster from time zero, is at
+the end of its frame. Ours is not quite there: the 6510 keeps the exact XTAL
+quotient (985,248.44 Hz) where MAME's `device_t::clock()` is the u32 every
+generated device already gets, so the VIC-II drifts 0.009 cycles a frame
+behind the processor. Past about 40 s one row near the top of the picture
+(row 11 at frames 2400 and 3000 of the BASIC screen) comes from the other
+frame. Matching it changes every target's cycle count, so it waits for a
+change of its own. Before the origin moved (#184) the frame was presented at
+raster 284, with the bottom 16 rows a frame old.
 
 A driver's `machine_start` is not run on the board, but what it writes into a
 root RAM device is: the generator interprets the function with only that

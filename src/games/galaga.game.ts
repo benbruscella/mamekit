@@ -21,21 +21,22 @@ export const galaga = sourceTarget({
     { atFrame: 1250, code: 'Space', heldFrames: 10, releasedFrames: 10 },
     { atFrame: 1350, code: 'Space', heldFrames: 10, releasedFrames: 10 },
   ],
-  // The 54xx boot boom starts at frame 2456: one frame earlier than first
-  // recorded, from the same maincpu cycle shifts noted on the checkpoint
-  // hashes below.
+  // The 54xx boot boom at the end of the self-test starts at frame 715, the
+  // frame MAME 0.289's own -wavwrite starts it on (#184). It comes before any
+  // input, so it is the same on both sides; the explosion this guarded at
+  // frame 2456 belonged to how the scripted play happened to run.
   audioRequirements: [
     {
       method: 'discrete',
-      fromFrame: 2401,
-      toFrame: 2455,
+      fromFrame: 660,
+      toFrame: 714,
       minimumNonzeroWrites: 0,
       maximumNonzeroWrites: 0,
     },
     {
       method: 'discrete',
-      fromFrame: 2456,
-      toFrame: 2471,
+      fromFrame: 715,
+      toFrame: 730,
       minimumNonzeroWrites: 100,
     },
   ],
@@ -56,23 +57,23 @@ export const galaga = sourceTarget({
       sub2: '6d220ddd',
     },
     checkpoints: {
-      1: { video: '2fd768d3', state: 'a74b01ec' },
+      1: { video: '967206d7', state: 'a74b01ec' },
       300: { video: '8fa90953', state: 'abac4fb5' },
-      720: { video: '972b5194', state: '9214eadb' },
-      760: { video: '21864713', state: '4c859c84' },
-      900: { video: 'd4ed5a0c', state: '0bccffcd' },
-      1050: { video: 'b12321a8', state: '2d80a055' },
-      1300: { video: '7796e201', state: 'bdda9e21' },
-      1600: { video: 'c29772a9', state: 'de671752' },
-      2456: { video: '7f49a527', state: 'c932df02' },
-      2600: { video: '920de88e', state: 'd9a12d49' },
+      720: { video: '972b5194', state: '08438e1b' },
+      760: { video: '21864713', state: 'f41f53b1' },
+      900: { video: 'd4ed5a0c', state: 'ea063e9a' },
+      1050: { video: 'a73831d1', state: '94f24db3' },
+      1300: { video: '58820032', state: '830e672f' },
+      1600: { video: '7b1bb8d0', state: '41da5ac9' },
+      2456: { video: '1873c3d7', state: '0230e769' },
+      2600: { video: '8fdfca32', state: '0e474cc4' },
     },
     audio: {
-      writes: 552025,
-      nonzeroWrites: 32373,
-      writeHash: 'fbb6d6ff',
-      pcmHash: '35b2ee7a',
-      rms: 0.078376,
+      writes: 554857,
+      nonzeroWrites: 26744,
+      writeHash: 'c8a0e946',
+      pcmHash: 'd2166eab',
+      rms: 0.078955,
     },
   },
 });

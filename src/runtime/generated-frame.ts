@@ -35,12 +35,22 @@ export interface GeneratedFrameRunnerOptions {
   onEvent?: (event: GeneratedFrameEvent) => void;
   /** Run the `scheduler().synchronize()` work posted since the last call. */
   onSynchronize?: () => void;
+  /** The frame has just been presented (see `awaitingPresent`). */
+  onPresented?: () => void;
+  /** Present the frame: `render` draws it, at the instant the board sets up. */
+  aroundPresent?: (render: () => void) => void;
 
   onLine?: (
     line: number,
     phase: 'before-processors' | 'after-processors',
     framebuffer: Uint32Array,
   ) => void;
+  /**
+   * Where a frame starts. MAME's screen starts at the beginning of VBLANK
+   * (`vbstart`) and its frames run from one VBLANK to the next, presented at
+   * the end; `line0` runs a frame from its top and presents at `vbstart`.
+   */
+  origin?: 'line0' | 'vbstart';
 }
 
 /**
@@ -61,6 +71,8 @@ export class GeneratedFrameRunner {
   private readonly onEvent?: (event: GeneratedFrameEvent) => void;
   private readonly onLine?: GeneratedFrameRunnerOptions['onLine'];
   private readonly onSynchronize?: () => void;
+  private readonly onPresented?: () => void;
+  private readonly aroundPresent?: (render: () => void) => void;
 
   /** How far into the current round each processor has been credited. */
   private readonly credited: Float64Array;
@@ -116,6 +128,23 @@ export class GeneratedFrameRunner {
   private frames = 0;
   /** Lines the beam has passed that the round in progress has not run yet. */
   private pendingLines = 0;
+  private readonly origin: 'line0' | 'vbstart';
+  /** No frame has run since the machine was built or reset. */
+  private fromOrigin = true;
+  /**
+   * The beam is on the line it stood on at time zero. MAME arms its first
+   * VBLANK and scanline timers against that position, and a timer due exactly
+   * where the beam stands is due a frame later, so nothing fires there.
+   */
+  atOrigin = false;
+  /**
+   * The frame in progress will be presented when the beam next reaches
+   * `vbstart` and has not been yet. MAME takes its snapshot at the start of
+   * VBLANK before any device timer due at that same instant (its
+   * `vblank_begin` timer was armed a frame earlier), so device time must not
+   * reach that instant until the frame is presented.
+   */
+  awaitingPresent = false;
 
   constructor(options: GeneratedFrameRunnerOptions) {
     this.machine = options.machine;
@@ -124,6 +153,9 @@ export class GeneratedFrameRunner {
     this.onEvent = options.onEvent;
     this.onLine = options.onLine;
     this.onSynchronize = options.onSynchronize;
+    this.onPresented = options.onPresented;
+    this.aroundPresent = options.aroundPresent;
+    this.origin = options.origin ?? 'line0';
 
     const clocks = new Map([
       ...options.machine.execution.cpus.map(cpu => [cpu.tag, cpu.cycleClock ?? cpu.clock] as const),
@@ -273,59 +305,118 @@ export class GeneratedFrameRunner {
     for (const event of this.periodicEvents) event.carry = 0;
     this.fineLines = 0;
     this.frames = 0;
+    this.fromOrigin = true;
+    this.awaitingPresent = false;
+  }
+
+  /**
+   * The line the beam stands on at time zero. A screen whose VBLANK starts at
+   * its last line + 1 or beyond (the Spectrum's 311 of 0-310, Missile
+   * Command's 256) wraps to line 0, where the frame already starts.
+   */
+  get originLine(): number {
+    const screen = this.machine.execution.screen;
+    return this.origin === 'vbstart' && screen.vbstart > 0 && screen.vbstart < screen.vtotal ? screen.vbstart : 0;
   }
 
   /** Save-state roots (machine-state.ts): the carries and counters, never the schedule. */
   stateKeys(): readonly string[] {
-    return ['processors', 'periodicEvents', 'fineLines', 'frames'];
+    return ['processors', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin'];
+  }
+
+  /**
+   * Whether this frame is presented at the end of its last line, where the
+   * beam next reaches `vbstart`: every frame-mode screen under MAME's origin,
+   * since its frames run from VBLANK to VBLANK.
+   */
+  get presentsAtEnd(): boolean {
+    return this.origin === 'vbstart' && this.machine.execution.screen.updateMode !== 'scanline' && this.originLine > 0;
   }
 
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
+    const vtotal = Math.max(1, screen.vtotal);
+    const origin = this.originLine;
     let rendered = false;
     this.pendingLines = 0;
-    for (let line = 0; line < screen.vtotal; line++) {
-      this.onLine?.(line, 'before-processors', framebuffer);
-      // A scheduled event ends the quantum, so what the processors owe from
-      // the lines since the last one is paid before the event — and before the
-      // frame this line may present — rather than after it.
-      if (this.pendingLines > 0 && this.boundaryLines.has(line)) {
-        this.runProcessors(this.pendingLines, line - 1);
-        this.pendingLines = 0;
-      }
-      if (this.eventPhase === 'before-processors') this.dispatchLine(line, framebuffer);
-      // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
-      // of the scanline, before CPUs execute the interval leading to the next
-      // line. Drawing afterwards can combine sprite RAM from two states across
-      // one frame; on a rotated screen that appears as vertical sprite tears.
-      if (screen.updateMode === 'scanline') this.video?.renderLine?.(framebuffer, line);
-      // MAME's screen device runs screen_update at the start of VBLANK, not at
-      // the end of the frame. The remaining post-vbstart scanlines still run
-      // their CPU slices afterwards, so a game that erases and redraws sprites
-      // in its VBLANK handler is sampled between the two halves when the
-      // presentation is deferred to the frame boundary (Berzerk's player).
-      if (screen.updateMode !== 'scanline' && screen.present !== 'frame-boundary' && line === screen.vbstart) {
-        this.video?.render(framebuffer);
-        rendered = true;
-      }
-
-      this.pendingLines++;
-      const inQuantumWindow = this.fineLines > 0;
-      if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line) ||
-        this.pendingLines >= this.maximumQuantumLines) {
-        this.runProcessors(this.pendingLines, line);
-        this.pendingLines = 0;
-      }
-
-      this.onLine?.(line, 'after-processors', framebuffer);
-      if (this.eventPhase === 'after-processors') this.dispatchLine(line, framebuffer);
+    this.awaitingPresent = this.presentsAtEnd;
+    for (let index = 0; index < vtotal; index++) {
+      const line = (origin + index) % vtotal;
+      this.atOrigin = this.fromOrigin && index === 0 && this.origin === 'vbstart';
+      if (this.runLine(line, framebuffer)) rendered = true;
     }
+    this.atOrigin = false;
+    this.fromOrigin = false;
+    if (this.presentsAtEnd) {
+      // The beam reaches vbstart again: what the processors still owe is
+      // paid, and the frame is presented, as MAME presents at VBLANK.
+      if (this.pendingLines > 0) {
+        this.runProcessors(this.pendingLines, (origin + vtotal - 1) % vtotal);
+        this.pendingLines = 0;
+      }
+      this.present(framebuffer);
+      rendered = true;
+    }
+    this.presented();
     this.frames++;
     // A board whose vbstart sits outside the emulated line range never hit the
-    // in-loop presentation above; keep the end-of-frame fallback for it. A
-    // screen that presents at the frame boundary (GeneratedScreen.present)
-    // always arrives here, where MAME's VBLANK falls.
+    // in-loop presentation above; keep the end-of-frame fallback for it.
     if (screen.updateMode !== 'scanline' && !rendered) this.video?.render(framebuffer);
+  }
+
+  private present(framebuffer: Uint32Array): void {
+    const video = this.video;
+    if (!video) return;
+    if (this.aroundPresent) this.aroundPresent(() => video.render(framebuffer));
+    else video.render(framebuffer);
+  }
+
+  private presented(): void {
+    if (!this.awaitingPresent) return;
+    this.awaitingPresent = false;
+    this.onPresented?.();
+  }
+
+  /** One scanline of the schedule; answers whether it presented the frame. */
+  private runLine(line: number, framebuffer: Uint32Array): boolean {
+    const screen = this.machine.execution.screen;
+    let rendered = false;
+    this.onLine?.(line, 'before-processors', framebuffer);
+    // A scheduled event ends the quantum, so what the processors owe from
+    // the lines since the last one is paid before the event — and before the
+    // frame this line may present — rather than after it.
+    if (this.pendingLines > 0 && this.boundaryLines.has(line)) {
+      this.runProcessors(this.pendingLines, line - 1);
+      this.pendingLines = 0;
+    }
+    if (this.eventPhase === 'before-processors' && !this.atOrigin) this.dispatchLine(line, framebuffer);
+    // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
+    // of the scanline, before CPUs execute the interval leading to the next
+    // line. Drawing afterwards can combine sprite RAM from two states across
+    // one frame; on a rotated screen that appears as vertical sprite tears.
+    if (screen.updateMode === 'scanline') this.video?.renderLine?.(framebuffer, line);
+    // MAME's screen device runs screen_update at the start of VBLANK, not at
+    // the end of the frame. The remaining post-vbstart scanlines still run
+    // their CPU slices afterwards, so a game that erases and redraws sprites
+    // in its VBLANK handler is sampled between the two halves when the
+    // presentation is deferred to the frame boundary (Berzerk's player).
+    if (this.origin === 'line0' && screen.updateMode !== 'scanline' && line === screen.vbstart) {
+      this.present(framebuffer);
+      rendered = true;
+      this.presented();
+    }
+
+    this.pendingLines++;
+    const inQuantumWindow = this.fineLines > 0;
+    if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line) ||
+      this.pendingLines >= this.maximumQuantumLines) {
+      this.runProcessors(this.pendingLines, line);
+      this.pendingLines = 0;
+    }
+
+    this.onLine?.(line, 'after-processors', framebuffer);
+    if (this.eventPhase === 'after-processors' && !this.atOrigin) this.dispatchLine(line, framebuffer);
+    return rendered;
   }
 
 

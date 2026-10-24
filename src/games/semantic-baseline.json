@@ -11,7 +11,7 @@
       "palette": "prom:palproms"
     },
     "a2600": {
-      "sha256": "c7ead9dbf90e7a8eb2de65dff9d502b87f40577b1489c3364d40ca0ef1aefcd0",
+      "sha256": "df3c657c39ef6e4d795bd7ee7077a05fefa4a5fa3e749c5fd6295c7e16ee53b9",
       "callbacks": 9,
       "frameEvents": 0,
       "devices": 9,
@@ -101,7 +101,7 @@
       "palette": "none"
     },
     "c64": {
-      "sha256": "bd858fbd892abe361f013fc52dade5dffffa3eafdbdac3abdaa7583d4b602540",
+      "sha256": "73f9ca0bfa739729e67c76536a10109e89a485a012773a227fc9ce3d699400cb",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -110,7 +110,7 @@
       "palette": "none"
     },
     "c64p": {
-      "sha256": "5ece77d40c3b35098572e9c1065aac03d50bc91382a3ecc87be8553d46251ed5",
+      "sha256": "c3efd6cad6db5343096d450ca073e68adb4f1e7305af56fbdca3cb874be7b88c",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -281,7 +281,7 @@
       "palette": "prom:proms"
     },
     "gameboy": {
-      "sha256": "91298e24490bd597f0eb8584ea606ed3f10f313e86e649114f3590c9f50c38f1",
+      "sha256": "5664cff5e0045acada4bd424791ef1fb279cb7097a340ba3e62b2b33417d9b54",
       "callbacks": 3,
       "frameEvents": 0,
       "devices": 8,

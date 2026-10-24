@@ -72,8 +72,11 @@ try {
   const written = readFileSync(join(dir, 'plan.lua'), 'utf8');
   assert.ok(written.startsWith('return {'));
   assert.match(written, /\["snapshots"\]=\{\[599\]=true,\[600\]=true\}/);
-  // Lua tables count from one: the first input is input 1.
-  assert.match(written, /\["10"\]=\{\{\["kind"\]="press",\["input"\]=1\}\}|\[10\]=\{\{\["kind"\]="press",\["input"\]=1\}\}/);
+  // Lua tables count from one: the first input is input 1. A control set
+  // from Lua is read a notifier later than ours, so it goes to MAME a frame
+  // early (luaEvents); a reset keeps its frame.
+  assert.match(written, /\[9\]=\{\{\["kind"\]="press",\["input"\]=1\}\}/);
+  assert.match(written, /\[40\]=\{\{\["kind"\]="reset"\}\}/);
   assert.match(written, /\["last"\]=600/);
 
   const script = readFileSync(join(dirname(), 'oracle.lua'), 'utf8');

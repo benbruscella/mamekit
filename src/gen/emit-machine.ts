@@ -61,38 +61,6 @@ export function generatedCpuCycleClock(type: string | undefined, rawClock: numbe
   return clock;
 }
 
-/**
- * Whether a screen presents at MAME's own moment rather than our vbstart.
- * MAME's screen frame starts at VBLANK -- `vpos()` counts from
- * `m_vblank_start_time`, so at t=0 the beam is at vbstart and `screen_update`
- * runs at t = T, 2T, ... -- while this runtime's frame starts at line 0. For a
- * board whose CPUs and devices take their timing from the screen that offset
- * is the whole phase of the machine, and it stays as it is here. But where the
- * picture is a device's own bitmap that the device draws by its own raster and
- * never reads the beam for, and nothing else is timed from the screen, the
- * screen decides one thing only: when that bitmap is copied. Copied at
- * vbstart, the C64's VIC-II had just finished raster 283, and the 0.0088
- * cycles a frame its u32 clock drifts against the fractional refresh (as it
- * does in MAME) tore the bottom row within a minute. Copied when MAME copies
- * it, at the frame boundary, the visible lines are long finished.
- */
-function presentsAtFrameBoundary(
-  mameSrc: string,
-  ownerType: string | undefined,
-  updateMode: 'frame' | 'scanline' | 'partial' | undefined,
-  frameEventCount: number,
-): boolean {
-  if (!mameSrc || !ownerType || frameEventCount || (updateMode ?? 'frame') !== 'frame') return false;
-  const definition = indexMameHardware(mameSrc).get(ownerType);
-  if (!definition) return false;
-  const files = [definition.sourceFile, definition.sourceFile.replace(/\.cpp$/, '.h')]
-    .map(file => join(mameSrc, file))
-    .filter(existsSync);
-  if (!files.length) return false;
-  const beam = /\b(?:screen\(\)|m_screen)\s*(?:\.|->)\s*(?:vpos|hpos|vblank|hblank|frame_number|time_until_pos|time_until_vblank_start|time_until_vblank_end|time_until_update)\s*\(/;
-  return files.every(file => !beam.test(readFileSync(file, 'utf8')));
-}
-
 /** Explicit address-space facts emitted once instead of rediscovered by the runtime. */
 export function generatedCpuAddressSpace(type: string | undefined, ownerTag: string) {
   const normalized = type?.toLowerCase() ?? '';
@@ -135,7 +103,6 @@ import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
 import { STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
-import { indexMameHardware } from '../mame/hardware.ts';
 import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
 export function lowerGeneratedMachine(
@@ -925,12 +892,6 @@ export function lowerGeneratedMachine(
       },
     } : {}),
   };
-  if (presentsAtFrameBoundary(
-    String(graph.meta.mameSrc ?? ''),
-    screenUpdateDeviceTag ? deviceByTag.get(screenUpdateDeviceTag)?.type : undefined,
-    execution.screen.updateMode,
-    execution.frameEvents.length,
-  )) execution.screen = { ...execution.screen, present: 'frame-boundary' };
   const soundDevice = devices.find(device =>
     device.type === 'NAMCO_WSG' || device.type === 'POLEPOS_WSG');
   const nesCpu = nesApu && devices.find(device =>

@@ -538,14 +538,6 @@ export interface GeneratedScreen {
   ownerTag?: string;
   ownerKind?: 'screen' | 'cpu' | 'device';
   pixelClock?: number;
-  /**
-   * When the picture is copied out. Absent: at vbstart, the start of MAME's
-   * VBLANK in this runtime's line-0 frame. `frame-boundary`: at the end of the
-   * frame, which is where MAME's own VBLANK falls for a screen whose picture a
-   * device draws by its own raster and nothing is timed from (emit-machine
-   * presentsAtFrameBoundary): the C64's VIC-II, the 2600's TIA, the Game Boy's LCD.
-   */
-  present?: 'frame-boundary';
   scanlineCallback?: string;
   shiftRegisterCallbacks?: { read?: string; write?: string };
   source?: BoardSourceRef;

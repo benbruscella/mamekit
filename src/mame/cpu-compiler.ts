@@ -141,6 +141,12 @@ export interface GeneratedCpuDefinition {
   callbacks?: Record<string, string>;
   start: GeneratedHandlerProgram;
   reset: GeneratedHandlerProgram;
+  /**
+   * A reset MAME runs as the core's next instruction rather than inside
+   * device_reset (the 6502 family's STATE_RESET): the first step after a
+   * reset executes it and is charged its cycles.
+   */
+  resetInstruction?: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
   /** Source-derived execution of exactly one instruction or interrupt. */
   step?: GeneratedHandlerProgram;
@@ -620,13 +626,23 @@ function compileMameM6502Variant(
     };
   });
   const resetBlock = blocks.get(resetName)!;
-  const reset = compileMameHandler(
+  const resetSequence = compileMameHandler(
     normalize(resetBlock.body)
       .replace(/\bm_inst_state\s*=\s*[^;]+;/g, '')
       .replace(/\bm_PC\s*=\s*ARG\(0xfffc\)\s*;/, 'm_PC = READ(0xfffc);')
       .replace(/\bm_PC\s*=\s*set_h\(m_PC,\s*ARG\(0xfffd\)\)\s*;/,
         'm_PC = set_h(m_PC, READ(0xfffd));'),
   );
+  // MAME's device_reset only sets `m_inst_state = STATE_RESET`; the sequence
+  // itself runs as the core's next instruction, on the clock, its vector
+  // reads on the bus. Run at reset instead, its seven cycles were never
+  // charged and every 6502 started that much early (#184).
+  const deviceReset = sourceMethods.find(method => method.name === 'device_reset');
+  const resetIsInstruction = deviceReset !== undefined
+    && /\bm_inst_state\s*=\s*STATE_RESET\s*;/.test(deviceReset.body);
+  const reset = resetIsInstruction
+    ? compileMameHandler(deviceReset.body.replace(/\bm_inst_(?:state|substate)\s*=\s*[^;]+;/g, ''))
+    : resetSequence;
   // MAME's own execute_set_input, every line it knows: the SO pin (V_LINE)
   // is how a 1541's gate array says a byte is ready, and an input program
   // that only knew IRQ and NMI dropped it, so the drive's DOS could never
@@ -782,6 +798,7 @@ function compileMameM6502Variant(
   const programs = [
     start,
     reset,
+    ...(resetIsInstruction ? [resetSequence] : []),
     input,
     service,
     fetch,
@@ -808,6 +825,7 @@ function compileMameM6502Variant(
     ...(Object.keys(accessors).length ? { accessors } : {}),
     start,
     reset,
+    ...(resetIsInstruction ? { resetInstruction: resetSequence } : {}),
     input,
     service,
     fetch,

@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, parseTextMacros, resolveLiteralConditionals } from '../kg/parse.ts';
+import { evalExpr, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   parseMameAst,
@@ -172,6 +172,12 @@ export interface GeneratedDeviceDefinition {
    * region (by default the one named by its tag) through `read_byte`.
    */
   romInterface?: { addressBits: number };
+  /**
+   * The power-on value of each input port the device declares itself
+   * (`device_input_ports`), by its tag: a cartridge's DIP switches exist only
+   * once that cartridge is chosen, so the machine's own ports never name them.
+   */
+  inputDefaults?: Record<string, number>;
   /**
    * MAME `device_image_interface`: the device reads a file the host mounts,
    * through the interface's own calls (`length`, `fread`, `fseek`,
@@ -832,6 +838,7 @@ export function compileMameDevice(
     constructorStrings,
     constructorPointers,
     constructorBodies,
+    resolvedMemberName,
   );
   for (const member of members) {
     if (constructorValues[member.name] !== undefined) {
@@ -893,6 +900,7 @@ export function compileMameDevice(
   );
   const source = sources.map(candidate => candidate.source).join('\n');
   const clockDivider = executionClockDivider(methodBodies.get('execute_cycles_to_clocks') ?? '');
+  const inputDefaults = deviceInputDefaults(methodBodies.get('device_input_ports'), source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
   const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies);
 
@@ -1032,6 +1040,7 @@ export function compileMameDevice(
     hierarchy,
     sourceFiles,
     ...(romInterfaceBits ? { romInterface: { addressBits: romInterfaceBits } } : {}),
+    ...(inputDefaults ? { inputDefaults } : {}),
     ...(imageInterface ? { imageInterface: true as const } : {}),
     constants,
     members,
@@ -2326,6 +2335,13 @@ export function constructorInitialValues(
   pointers?: Record<string, string>,
   /** Each constructor body that runs, base first, with its arguments' values. */
   bodies?: { body: string; env: Record<string, number> }[],
+  /**
+   * The member a name means in one class's own code, where a derived class
+   * declares a member of a base's name: the Irem G-101's `const u8 m_prg_mask`
+   * hides the cartridge interface's, and its `m_prg_mask(prg_mask)` set the
+   * base's instead, leaving the G-101's own mask 0 (#184).
+   */
+  memberName: (className: string, name: string) => string = (_className, name) => name,
 ): Record<string, number> {
   const constructors = new Map<string, Constructor[]>();
   const pattern = /\b(\w+)::\1\s*\(/g;
@@ -2375,17 +2391,18 @@ export function constructorInitialValues(
         constantValue(arg, { ...constants, ...env }) ?? 0);
       if (constructors.has(initializer.name)) visit(initializer.name, args);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
+        const member = memberName(className, initializer.name);
         const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1];
         const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
-        if (text !== undefined && strings) strings[initializer.name] = text;
-        else if (target) pointers[initializer.name] = target;
-        else result[initializer.name] = args[0]!;
+        if (text !== undefined && strings) strings[member] = text;
+        else if (target) pointers[member] = target;
+        else result[member] = args[0]!;
       }
     }
     bodies?.push({ body: constructor.body, env });
     for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
       const value = constantValue(assignment[2]!, { ...constants, ...env });
-      if (value !== undefined && Number.isFinite(value)) result[assignment[1]!] = value;
+      if (value !== undefined && Number.isFinite(value)) result[memberName(className, assignment[1]!)] = value;
     }
     activeConstructors.delete(activeKey);
   };
@@ -3177,4 +3194,34 @@ function inlineConstructor(
     }
   }
   return undefined;
+}
+
+/**
+ * The power-on value of every port in the block a device's
+ * `device_input_ports` names, as MAME's field_alloc builds it: each field's
+ * default over its own bits, a DIP switch with no default reading off and a
+ * digital input released. The NES-EVENT2 cartridge (Nintendo Campus
+ * Challenge 1991) reads its timer DIP switches from here; read as an unknown
+ * port they were all ones, and its competition timer had expired at power-on
+ * (#184).
+ */
+export function deviceInputDefaults(body: string | undefined, source: string): Record<string, number> | undefined {
+  const name = body && /\bINPUT_PORTS_NAME\s*\(\s*(\w+)\s*\)/.exec(body)?.[1];
+  if (!name) return undefined;
+  const blocks = new Map(parseInputPorts(source, parseTextMacros(source)).map(block => [block.name, block]));
+  const values: Record<string, number> = {};
+  const apply = (block: InputPortsDef | undefined, depth = 0): void => {
+    if (!block || depth > 8) return;
+    for (const include of block.includes ?? []) apply(blocks.get(include), depth + 1);
+    for (const port of block.ports) {
+      let value = port.modify ? values[port.tag] ?? 0 : 0;
+      for (const field of port.fields) {
+        const fallback = field.kind === 'dip' || field.activeLow !== false ? field.mask : 0;
+        value = ((value & ~field.mask) | ((field.defaultValue ?? fallback) & field.mask)) >>> 0;
+      }
+      values[port.tag] = value;
+    }
+  };
+  apply(blocks.get(name));
+  return Object.keys(values).length ? values : undefined;
 }

@@ -27,6 +27,21 @@ assert.deepEqual(
   { m_first: 1, m_second: 2, m_third: 3, m_four: 4 },
   'comments between constructor initializers must not hide following member defaults',
 );
+// A derived class's member of a base member's name is its own: the Irem
+// G-101's `m_prg_mask(prg_mask)`, reached through its delegating constructor,
+// sets the G-101's mask, not the cartridge interface's (#184).
+assert.deepEqual(
+  constructorInitialValues('g101_device', `
+    cart_interface::cart_interface() : m_prg_mask(0xffff) { }
+    g101_device::g101_device(const machine_config &mconfig, device_type type, u8 prg_mask) :
+      cart_interface(), m_prg_mask(prg_mask) { }
+    g101_device::g101_device(const machine_config &mconfig) :
+      g101_device(mconfig, G101, 0x1f) { }
+  `, {}, undefined, undefined, undefined,
+  (className, name) => className === 'g101_device' && name === 'm_prg_mask' ? 'm_prg_mask__g101_device' : name),
+  { m_prg_mask: 0xffff, m_prg_mask__g101_device: 0x1f },
+  'a constructor initializer sets the member its own class declares',
+);
 // An array bound MAME writes as arithmetic is still the member's length. The
 // VIC-II declares `m_border_color_sample[0x400 / 8]`; read with Number() the
 // bound was NaN, the member had no length, and every per-cycle store into it
