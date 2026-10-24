@@ -531,6 +531,8 @@ class IrBoard implements Board {
   private timedHardwareDelivered = 0;
   /** Device time held back until the frame is presented (advanceTimedHardware). */
   private heldDeviceSeconds = 0;
+  /** A device access or time query is catching device time up (never held). */
+  private accessCatchingUp = false;
   /**
    * The line the device clock is credited with before the first line boundary
    * retires it. It is bookkeeping, so that boundary owes nothing, not where
@@ -1224,8 +1226,15 @@ class IrBoard implements Board {
       // start of line vbstart and the rest is held for after it: MAME takes
       // its snapshot there before any device timer due at that instant. The
       // 2C02 draws line 239 on such a timer, and MAME's picture shows the
-      // line from the frame before (#184).
-      if (this.frameRunner?.awaitingPresent) {
+      // line from the frame before (#184). A processor whose last instruction
+      // runs past the instant and reads a device gets it where it stands:
+      // held there, the 2600's RIOT timer read stale and the game drifted.
+      if (this.frameRunner?.awaitingPresent && this.accessCatchingUp) {
+        // A processor reading or writing a device has run that far: the
+        // device must stand there too, held time first.
+        seconds += this.heldDeviceSeconds;
+        this.heldDeviceSeconds = 0;
+      } else if (this.frameRunner?.awaitingPresent) {
         const screen = machine.execution.screen;
         const allowed = (screen.vbstart - this.currentLine) * this.lineSeconds() - PRESENT_MARGIN_SECONDS
           - this.timedHardwareDelivered;
@@ -2241,7 +2250,11 @@ class IrBoard implements Board {
           const delivered = timing.previousCycles + this.deviceTimeAheadOfSlice;
           if (!(reach > delivered)) return;
           this.deliveredSliceCycles = reach;
+          // Only the fetch lookahead (a negative lag) is a scheduled delivery
+          // that waits for the frame's presentation (advanceTimedHardware).
+          this.accessCatchingUp = lag >= 0;
           advanceTimedHardware((reach - delivered) / timerClockHz());
+          this.accessCatchingUp = false;
           this.deliveredSliceCycles = undefined;
           if (reach <= sliceTarget) {
             timing.previousCycles = reach;

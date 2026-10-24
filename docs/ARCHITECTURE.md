@@ -719,7 +719,10 @@ any device timer due at that same instant; a renderer that asks one of them
 device time just short of the start of line `vbstart` and delivers the rest
 after it (`awaitingPresent`), and the presentation reads every timer from that
 instant (`withGeneratedPresentTime`), however far short of it the devices'
-clock stands. The 2C02's `render` draws the line in progress only while its
+clock stands. Only the schedule's own deliveries are held: a processor whose
+last instruction runs past the instant and reads or writes a device finds it
+where the processor stands, held time first. Held there too, the 2600's RIOT
+timer read stale and the game drifted from MAME's RAM after 190 frames. The 2C02's `render` draws the line in progress only while its
 scanline timer has time left; at MAME's snapshot it has none, so MAME's picture
 keeps line 239 from the frame before. Ours drew the current one, which was the
 only difference left on Castlevania III (Europe), Akuma Densetsu, two
