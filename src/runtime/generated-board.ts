@@ -520,6 +520,12 @@ class IrBoard implements Board {
    */
   private timedHardwareDelivered = 0;
   /**
+   * The line the device clock is credited with before the first line boundary
+   * retires it. It is bookkeeping, so that boundary owes nothing, not where
+   * the beam is: the frame runner begins line 0 at time zero.
+   */
+  private powerOnCreditLines = 0;
+  /**
    * The device clock waits for the processors at a line boundary instead of
    * running on with the beam. Set once a generated device arms a timer
    * against the beam; see the line settle in the frame runner's onLine.
@@ -605,6 +611,7 @@ class IrBoard implements Board {
     // The first line boundary is the beam arriving at line 0 with nothing run
     // yet, so it owes the devices nothing.
     this.timedHardwareDelivered = this.lineSeconds();
+    this.powerOnCreditLines = 1;
     // Finder names the machine's own state class gives its devices; a hosted
     // device never takes one over (see cardScope).
     const rootMembers = new Set((machine.devices ?? [])
@@ -667,7 +674,14 @@ class IrBoard implements Board {
             // to lose its VBLANK flag for good. The fractional part is the
             // device time already delivered into this line, so a timer that
             // expired at line N asks from exactly line N.
-            let lines = target - this.beamPosition();
+            //
+            // Measured from where the beam really is, which before the first
+            // line boundary is line 0, not the line the device clock has been
+            // credited with. The NES 2C02 arms its first scanline tick in
+            // device_start for `time_until_pos(1)`; against the credited line
+            // that was the line it stood on, so the tick came a whole frame
+            // late and every NES machine ran a frame behind MAME's.
+            let lines = target - this.deviceBeamPosition();
             if (lines <= 0) lines += vtotal;
             return lines / (machine.execution.screen.refresh * vtotal);
           },
@@ -679,7 +693,7 @@ class IrBoard implements Board {
           // for the line it is already standing on and gets deferred a frame.
           vpos: () => {
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            return Math.floor(this.beamPosition()) % vtotal;
+            return Math.floor(this.deviceBeamPosition()) % vtotal;
           },
           hpos: () => this.beamHpos(),
           // screen_device::vblank(): the beam is outside the visible lines.
@@ -863,7 +877,7 @@ class IrBoard implements Board {
             const cpuSpec = machine.execution.cpus.find(candidate => candidate.tag === tag) ??
               machine.execution.cpus[0];
             if (!cpuSpec) return 0;
-            const resolve = (target: object, property: string | symbol): unknown => {
+            const resolve = (target: object, property: string | symbol, receiver?: object): unknown => {
               // JavaScript's own object protocol, and the save-state
               // walker's (machine-state.ts), are not MAME methods: a handler
               // comparing `m_vlm != nullptr` asks for valueOf and the walker
@@ -946,8 +960,19 @@ class IrBoard implements Board {
               if (cpu?.hasMethod(method)) {
                 return (...args: number[]) => cpu.invoke(method, ...args);
               }
-              return (...args: number[]) =>
-                this.devices.get(tag)?.invoke(method, ...args) ?? 0;
+              const call = (...args: number[]) => {
+                const device = this.devices.get(tag);
+                return (device?.preparedCall?.(method) ?? ((...rest: number[]) =>
+                  device?.invoke(method, ...rest)))(...args) ?? 0;
+              };
+              // A finder onto a device that is no processor answers the same
+              // way for the life of the board, so the answer is kept on the
+              // finder itself and the trap above runs once per name: the MMC5
+              // asks its PPU for the draw phase thirty thousand times a frame.
+              if (receiver && targetDevice && !machine.execution.cpus.some(candidate => candidate.tag === tag)) {
+                Object.defineProperty(receiver, method, { value: call, enumerable: false });
+              }
+              return call;
             };
             // The processor services above do not depend on when they are
             // asked for, so they are resolved once onto a plain object; the
@@ -1095,7 +1120,8 @@ class IrBoard implements Board {
           const endpoint = range.target === 'self' ? source : target;
           return range.target === 'slot'
             ? endpoint.invokeSlot(range.method, normalized, value)
-            : endpoint.invoke(range.method, normalized, value);
+            : (endpoint.preparedCall?.(range.method) ?? ((...args: GeneratedCallArgument[]) =>
+              endpoint.invoke(range.method, ...args)))(normalized, value);
         };
         source.bindCall(link.call, dispatch);
         const chained = /^(\w+)\(\)\.(\w+)$/.exec(link.call);
@@ -2915,6 +2941,7 @@ class IrBoard implements Board {
           // only the lines the processors had run moved Galaga's 54xx boot
           // boom, whose discrete network and hosted MCUs run on this clock.
           this.timedHardwareDelivered -= seconds;
+          this.powerOnCreditLines = 0;
           const owed = this.deviceClockFollowsProcessors && timerClockCpu
             ? this.frameRunner.linesBehind(timerClockCpu.tag) * seconds
             : 0;
@@ -3003,7 +3030,7 @@ class IrBoard implements Board {
         if (name === 'tag') return () => tag;
         const device = target();
         if (device.methodNames().includes(name)) {
-          return (...args: GeneratedCallArgument[]) => device.invoke(name, ...args);
+          return device.preparedCall?.(name) ?? ((...args: GeneratedCallArgument[]) => device.invoke(name, ...args));
         }
         return device.get(name);
       },
@@ -3338,6 +3365,7 @@ class IrBoard implements Board {
     this.currentLine = 0;
     this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
+    this.powerOnCreditLines = 1;
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
@@ -3383,6 +3411,11 @@ class IrBoard implements Board {
     } finally {
       this.drainingScheduledWork = false;
     }
+  }
+
+  /** The beam as a generated device's screen reads it (see powerOnCreditLines). */
+  private deviceBeamPosition(): number {
+    return this.beamPosition() - this.powerOnCreditLines;
   }
 
   private beamPosition(): number {

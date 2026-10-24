@@ -13,7 +13,7 @@ import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
-import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
+import { DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
 import {
   collectFunctionMacros,
   collectDynamicMacros,
@@ -194,6 +194,12 @@ export interface GeneratedDeviceDefinition {
    * field MAME declared rather than leaving that to a runtime accessor.
    */
   structs?: Record<string, GeneratedStructField[]>;
+  /**
+   * The inline methods a struct declares, by struct type: the AY-3-8910's
+   * `tone_t::set_period(fine, coarse)`. Each runs with the struct value as its
+   * members.
+   */
+  structMethods?: Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]>;
   /** Source-derived runtime entry points that must use direct generated code. */
   hotMethods?: string[];
   /** A source-declared card slot with generated child-device definitions. */
@@ -435,9 +441,23 @@ export function compileMameDevice(
   const enumCast = enumTypes.length
     ? new RegExp(`(?<![\\w.>])(?:\\w+::)*(?:${enumTypes.join('|')})\\s*\\(`, 'g')
     : undefined;
+  // A smart pointer's `get()` is the storage it owns, which is all a member
+  // holding one is here: the AY-3-8910 builds its mixer into
+  // `m_vol3d_table.get()`, and as a call on the array it answered nothing,
+  // so the table stayed empty and the Sunsoft 5B played silence.
+  const smartPointers = [...new Set(hierarchy.flatMap(className => {
+    const declaration = classes.get(className);
+    return declaration ? memberDeclarations(declaration)
+      .filter(member => /^std::(?:unique|shared)_ptr\s*</.test(member.valueType))
+      .map(member => member.name) : [];
+  }))];
+  const smartGet = smartPointers.length
+    ? new RegExp(`\\b(${smartPointers.join('|')})\\s*\\.\\s*get\\s*\\(\\s*\\)`, 'g')
+    : undefined;
   const specialize = (className: string, text: string): string => {
     const substitutions = templateArguments.get(className);
     let specialized = enumCast ? text.replace(enumCast, '(') : text;
+    if (smartGet) specialized = specialized.replace(smartGet, '$1');
     for (const [parameter, argument] of Object.entries(substitutions ?? {})) {
       specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
     }
@@ -491,6 +511,7 @@ export function compileMameDevice(
   }
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
+  const structMethods = structMethodDeclarations(sources);
   const sourceTables = Object.assign(
     {},
     // Comments out first: the 1541 formats annotate their zone tables row by
@@ -716,7 +737,10 @@ export function compileMameDevice(
   const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
-    return memberDeclarations(declaration).map(member => ({
+    // The class's constants size its arrays: the AY-3-8910's
+    // `m_vol_table[NUM_CHANNELS][16]` was no array at all without them, and
+    // every sample it rendered read volume zero.
+    return memberDeclarations(declaration, constants).map(member => ({
       ...member,
       name: emittedMemberName(className, member.name),
       valueType: specialize(className, member.valueType),
@@ -732,7 +756,13 @@ export function compileMameDevice(
       }
       const bits = integerBits(member.valueType);
       const signed = integerSigned(member.valueType);
-      const allocated = allocatedArrays.get(member.name) ?? fixedArrays.get(member.name);
+      // A fixed array's length is read from the whole source file, where
+      // another class may declare an array of the same name: multigame.h's
+      // `int m_latch, m_reset;` took a neighbour's `m_latch[2]`, and the 22 Games
+      // multicart's latch became an array. Only a member declared with a
+      // bound is one.
+      const allocated = allocatedArrays.get(member.name) ??
+        (member.arrayLength ? fixedArrays.get(member.name) : undefined);
       const pushed = new RegExp(`\\b${member.name}\\s*\\.\\s*(?:push_back|emplace_back)\\s*\\(`)
         .test(sources.map(candidate => candidate.source).join('\n'));
       const memory = memoryContainer(member.valueType, member.name, constructorBindings, pushed);
@@ -793,17 +823,33 @@ export function compileMameDevice(
     });
   }
   const constructorStrings: Record<string, string> = {};
+  const constructorPointers: Record<string, string> = {};
+  const constructorBodies: { body: string; env: Record<string, number> }[] = [];
   const constructorValues = constructorInitialValues(
     definition.className,
     sources.map(source => source.source).join('\n'),
     constants,
     constructorStrings,
+    constructorPointers,
+    constructorBodies,
   );
   for (const member of members) {
     if (constructorValues[member.name] !== undefined) {
       member.initial = constructorValues[member.name];
     }
     if (constructorStrings[member.name] !== undefined) member.initialText = constructorStrings[member.name];
+  }
+  // A `const` pointer the constructor aims at a file-scope struct reads that
+  // struct and nothing else, so it holds a copy of it: the AY-3-8910's mixer
+  // tables are built from `m_par->res[...]`, and with the pointer left at 0
+  // every level was zero -- the Sunsoft 5B played nothing.
+  for (const member of members) {
+    const target = constructorPointers[member.name];
+    const table = target ? members.find(candidate => candidate.name === target) : undefined;
+    if (!table?.fields || !table.initialValue || !/^const\b/.test(member.valueType)) continue;
+    member.fields = table.fields;
+    member.initialValue = structuredClone(table.initialValue);
+    delete member.initial;
   }
   // A pointer member the constructor points at a file-scope table holds that
   // table: the speaker's `m_levels(default_levels)`, `{ 0.0, 1.0 }`.
@@ -976,6 +1022,7 @@ export function compileMameDevice(
     const width = declaration.baseTemplateArguments?.device_rom_interface?.[0];
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
+  runConstructorBodies(constructorBodies, members, methods, constants);
   const imageInterface = hierarchy.some(className => classes.get(className)?.bases.includes('device_image_interface'));
   const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
@@ -998,6 +1045,7 @@ export function compileMameDevice(
     ...(structFields.size
       ? { structs: Object.fromEntries([...structFields].map(([name, fields]) => [name, fields])) }
       : {}),
+    ...(Object.keys(structMethods).length ? { structMethods } : {}),
     ...(Object.keys(delegates).length ? { delegates } : {}),
     ...(Object.keys(regionResources).length
       ? { resources: { members: regionResources } }
@@ -1302,6 +1350,60 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
       });
     }
     method.program = { ...method.program, operations };
+  }
+}
+
+/**
+ * What the constructors' bodies leave in the members, as their initial values.
+ *
+ * A device's constructor is not run on the board; its initializer list is read
+ * as constants. The body is code, though: the AY-3-8910 sets its three
+ * resistor loads with `m_res_load[0] = m_res_load[1] = m_res_load[2] = 1000;`
+ * and calls `set_type(...)` for its envelope step and mask, and without them
+ * every level it built was zero. Each body is interpreted here, base first,
+ * against the members as the initializers left them and with the device's
+ * own methods callable, and a scalar or array it changed keeps its new value.
+ * A body that does not lower, or fails, changes nothing.
+ */
+function runConstructorBodies(
+  bodies: readonly { body: string; env: Record<string, number> }[],
+  members: GeneratedDeviceMember[],
+  methods: readonly GeneratedDeviceMethod[],
+  constants: Record<string, number>,
+): void {
+  const state: Record<string, unknown> = {};
+  for (const member of members) {
+    if (member.fields || member.memory || member.finder || member.valueType.startsWith('devcb_')) continue;
+    if (member.values) state[member.name] = [...member.values];
+    else if (member.arrayLength) state[member.name] = new Array(member.arrayLength).fill(0);
+    else if (typeof member.initial === 'number' || member.initial === undefined) state[member.name] = member.initial ?? 0;
+  }
+  const before = new Map(Object.entries(state).map(([name, value]) => [name, JSON.stringify(value)]));
+  const calls: Record<string, (...args: unknown[]) => unknown> = {};
+  const bindings = { members: state, constants, calls } as never;
+  for (const method of methods) {
+    if (method.program.diagnostics.length) continue;
+    const parameters = splitMameArgs(method.parameters).map(parameterName).filter(Boolean);
+    calls[method.name] ??= (...args: unknown[]) => executeGeneratedProgram(method.program, bindings,
+      Object.fromEntries(parameters.map((name, index) => [name, args[index] ?? 0]))).value;
+  }
+  for (const { body, env } of bodies) {
+    if (!/\S/.test(body)) continue;
+    const program = compileMameHandler(normalizeMameExecutionSource(body));
+    if (program.diagnostics.length) continue;
+    try {
+      executeGeneratedProgram(program, bindings, { ...env });
+    } catch {
+      continue;
+    }
+  }
+  for (const member of members) {
+    if (!(member.name in state) || before.get(member.name) === JSON.stringify(state[member.name])) continue;
+    const value = state[member.name];
+    if (typeof value === 'number' && Number.isFinite(value)) member.initial = value;
+    else if (Array.isArray(value) && value.every(item => typeof item === 'number' && Number.isFinite(item))) {
+      member.values = value as number[];
+    }
   }
 }
 
@@ -1953,6 +2055,7 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
 
 export function memberDeclarations(
   declaration: MameClass,
+  constants: Record<string, number> = {},
 ): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
   declaration = { ...declaration, body: maskNestedClasses(declaration.body) };
   const members: {
@@ -2045,7 +2148,7 @@ export function memberDeclarations(
       // MBC's ROM windows lost the bank behind them.
       const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1];
       const arrayLength = bound
-        ? arrayBound(bound)
+        ? arrayBound(bound, constants)
         : templateCount ? Number(templateCount) : undefined;
       // `uint8_t m_wave_ram[2][0x10];` -- a C array member may have more than
       // one bound, and only the outermost is the declarator the runtime
@@ -2053,7 +2156,7 @@ export function memberDeclarations(
       // subscript indexes a number: the Game Boy APU's wave channel read its
       // whole waveform out of nothing.
       const shape = [...match[0].matchAll(/\[([^\]]+)\]/g)]
-        .map(extent => Number(evalExpr(extent[1]!.trim(), {}) ?? Number.NaN))
+        .map(extent => arrayBound(extent[1]!, constants))
         .filter(extent => Number.isInteger(extent) && extent > 0);
       members.push({
         valueType,
@@ -2072,8 +2175,8 @@ export function memberDeclarations(
  * NaN, so the member had no length and every store into it went through the
  * emitter's name-addressed slow path on each of the chip's cycles.
  */
-function arrayBound(bound: string): number {
-  return Number(evalExpr(bound.trim(), {}) ?? Number.NaN);
+function arrayBound(bound: string, constants: Record<string, number> = {}): number {
+  return Number(evalExpr(bound.trim(), constants) ?? Number.NaN);
 }
 
 function maskNestedClasses(source: string): string {
@@ -2188,6 +2291,23 @@ interface Constructor {
   body: string;
 }
 
+/**
+ * The object an initializer takes the address of, `&name`, deciding a
+ * conditional between two of them by its constant condition. Undefined for
+ * anything else.
+ */
+function addressedObject(text: string, values: Record<string, number>): string | undefined {
+  const trimmed = text.trim().replace(/^\((.*)\)$/s, '$1').trim();
+  const direct = /^&\s*(\w+)$/.exec(trimmed)?.[1];
+  if (direct) return direct;
+  const question = trimmed.indexOf('?');
+  const colon = trimmed.lastIndexOf(':');
+  if (question < 0 || colon < question) return undefined;
+  const condition = constantValue(trimmed.slice(0, question), values);
+  if (condition === undefined || condition === null) return undefined;
+  return addressedObject(condition ? trimmed.slice(question + 1, colon) : trimmed.slice(colon + 1), values);
+}
+
 export function constructorInitialValues(
   concreteClass: string,
   source: string,
@@ -2198,6 +2318,14 @@ export function constructorInitialValues(
    * cartridge loads into.
    */
   strings?: Record<string, string>,
+  /**
+   * Members a constructor points at a named file-scope object, filled in when
+   * given: the AY-3-8910's `m_par(... ? &ay8910_param : &ym2149_param)`, its
+   * choice made with the constructor's own arguments.
+   */
+  pointers?: Record<string, string>,
+  /** Each constructor body that runs, base first, with its arguments' values. */
+  bodies?: { body: string; env: Record<string, number> }[],
 ): Record<string, number> {
   const constructors = new Map<string, Constructor[]>();
   const pattern = /\b(\w+)::\1\s*\(/g;
@@ -2248,10 +2376,13 @@ export function constructorInitialValues(
       if (constructors.has(initializer.name)) visit(initializer.name, args);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
         const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1];
+        const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
         if (text !== undefined && strings) strings[initializer.name] = text;
+        else if (target) pointers[initializer.name] = target;
         else result[initializer.name] = args[0]!;
       }
     }
+    bodies?.push({ body: constructor.body, env });
     for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
       const value = constantValue(assignment[2]!, { ...constants, ...env });
       if (value !== undefined && Number.isFinite(value)) result[assignment[1]!] = value;
@@ -2456,8 +2587,11 @@ function numericConstants(
     const value = match[2]!.replace(/\/\/.*$|\/\*.*?\*\//g, '').trim();
     if (value) expressions.set(match[1]!, value);
   }
+  // The type may be qualified: the AY-3-8910 scales every level by
+  // `static constexpr sound_stream::sample_t MAX_OUTPUT = 1.0;`, and unread it
+  // was 0, so every level it built was 0.
   for (const match of source.matchAll(
-    /\b(?:static\s+)?constexpr\s+(?:\w+\s+)+(\w+)\s*=\s*([^;]+);/g,
+    /\b(?:static\s+)?constexpr\s+(?:[\w:]+\s+)+(\w+)\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
@@ -2468,7 +2602,7 @@ function numericConstants(
   // body is never hoisted into the device's shared scope.
   for (const match of source.matchAll(
     // `const` may follow the type too: the 6805's `static unsigned const PORT_COUNT = 4;`.
-    /\bstatic\s+(?:(?!const\b)\w+\s+)*const\s+(?:\w+\s+)*?(\w+)\s*=\s*([^;]+);/g,
+    /\bstatic\s+(?:(?!const\b)[\w:]+\s+)*const\s+(?:[\w:]+\s+)*?(\w+)\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
@@ -2730,9 +2864,12 @@ function staticStructConstants(
     : text.replace(/\b[A-Z_][A-Z0-9_]*\b/g, name =>
       macros.has(name) && constants[name] === undefined ? expand(macros.get(name)!, depth + 1) : name);
   const lifted: GeneratedDeviceMember[] = [];
-  for (const match of all.matchAll(/\bstatic\s+const\s+struct\s+(\w+)\s+(\w+)\s*=\s*\{/g)) {
-    const [, type, name] = match;
-    const fields = structFields.get(type!);
+  // `static const struct x name = {...}`, or a class's struct spelled through
+  // the class with no `struct` at all: the AY-3-8910's `static const
+  // ay8910_device::ay_ym_param ym2149_param = {...}`, its resistor network.
+  for (const match of all.matchAll(/\bstatic\s+const\s+(?:struct\s+)?((?:\w+::)*(\w+))\s+(\w+)\s*=\s*\{/g)) {
+    const [, type, bareType, name] = match;
+    const fields = structFields.get(type!) ?? structFields.get(bareType!);
     if (!fields || !new RegExp(`\\b${name}\\b`).test(code)) continue;
     if (existing.some(member => member.name === name) || lifted.some(member => member.name === name)) continue;
     const body = expand(braceBody(all, match.index! + match[0].length - 1, name));
@@ -2745,7 +2882,7 @@ function staticStructConstants(
     if (items.length > fields.length) continue;
     lifted.push({
       name: name!,
-      valueType: type!,
+      valueType: structFields.has(type!) ? type! : bareType!,
       fields,
       initialValue: Object.fromEntries(items.map((item, index) => [fields[index]!.name, value(item)])),
     });
@@ -2819,6 +2956,37 @@ export function structDeclarations(
     }
   }
   return structs;
+}
+
+/**
+ * The methods a struct defines inside its own body, by struct type, each
+ * lowered against the struct's fields. MAME's sound chips keep small value
+ * types with behaviour of their own -- the AY-3-8910's `tone_t` and
+ * `envelope_t` set their periods and shapes through `set_period` and
+ * `set_shape` -- and a call on one answered nothing, so no tone ever had a
+ * period. A method that does not lower is left out.
+ */
+function structMethodDeclarations(
+  sources: readonly { file: string; source: string }[],
+): Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]> {
+  const methods: Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]> = {};
+  for (const { source } of sources) {
+    for (const declaration of structBlocks(stripCppComments(source))) {
+      if (!declaration.name || methods[declaration.name]) continue;
+      const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+      const header = /(?:^|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+(\w+)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g;
+      for (const match of declaration.body.matchAll(header)) {
+        const open = declaration.body.indexOf('{', match.index! + match[0].length - 1);
+        const close = matchingBrace(declaration.body, open);
+        if (close < 0) continue;
+        const program = compileMameHandler(normalizeMameExecutionSource(declaration.body.slice(open + 1, close)));
+        if (program.diagnostics.length) continue;
+        found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
+      }
+      if (found.length) methods[declaration.name] = found;
+    }
+  }
+  return methods;
 }
 
 /**

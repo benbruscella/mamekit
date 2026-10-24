@@ -22,8 +22,9 @@ const NO_EFFECT_ROOTS = new Set([
   // for MAME's debugger, and where its icount lives. The generated cores own
   // their registers and icount.
   'state_add', 'set_icountptr', 'debugger_instruction_hook',
-  // Logging.
-  'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning',
+  // Logging, a device's own `printf` to the console included (the NES
+  // cartridge's prg_alloc warns about an odd PRG size that way).
+  'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning', 'printf',
 ]);
 
 /**

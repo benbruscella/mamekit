@@ -98,13 +98,16 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
         ...(Object.keys(cards.unsupported).length ? { unsupported: cards.unsupported } : {}),
       };
       artifacts.push(...cards.artifacts);
+      // nes_state::machine_start's `m_cartslot->pcb_start(m_ciram)`. The
+      // reset is the driver's own machine_reset, which the board runs; a
+      // second pcb_reset here reset every cartridge twice at power-on, and
+      // a reset-counting multicart (resettxrom) started on the wrong game.
       device.resources = {
         initialize: [
           {
             method: 'pcb_start',
             args: [{ kind: 'memory', name: 'ciram', bytes: machineWiring.ciramBytes }],
           },
-          { method: 'pcb_reset' },
         ],
       };
       device.bus = machineWiring.cartBus;

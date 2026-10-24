@@ -71,6 +71,12 @@ export interface SoftEntry {
   vram?: number;
   wram?: number;
   bwram?: number;
+  /**
+   * A RAM area the list fills with something other than zero (`loadflag="fill"`
+   * with a value): Famicom Jump II's battery RAM starts as `$FF`, and the game
+   * hangs reading it as zero.
+   */
+  ramFills?: Partial<Record<'vram' | 'wram' | 'bwram', { offset: number; size: number; value: number }[]>>;
   /** MAME's own verdict on the set, when it is not plain "yes" */
   supported?: 'no' | 'partial';
   /** how many <part>s the set has: a two-sided tape, a three-disk game */
@@ -261,9 +267,19 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       const aAttrs = attrs(am[0]);
       const size = parseSize(aAttrs.size);
       const areaName = aAttrs.name;
-      if (areaName === 'vram' || areaName === 'vram2') { entry.vram = (entry.vram ?? 0) + size; continue; }
-      if (areaName === 'wram') { entry.wram = size; continue; }
-      if (areaName === 'bwram') { entry.bwram = size; continue; }
+      const ram = areaName === 'vram' || areaName === 'vram2' ? 'vram'
+        : areaName === 'wram' || areaName === 'bwram' ? areaName : undefined;
+      if (ram) {
+        if (ram === 'vram') entry.vram = (entry.vram ?? 0) + size;
+        else entry[ram] = size;
+        for (const rm of areaBlock.matchAll(/<rom\b[^>]*\/>/g)) {
+          const rAttrs = attrs(rm[0]);
+          const value = Number(rAttrs.value) & 0xff;
+          if (rAttrs.loadflag !== 'fill' || rAttrs.value === undefined || !value) continue;
+          ((entry.ramFills ??= {})[ram] ??= []).push({ offset: parseOffset(rAttrs.offset), size: parseSize(rAttrs.size), value });
+        }
+        continue;
+      }
       // Every list names its program area for its own hardware. The NES splits
       // a cartridge into "prg" and "chr"; most consoles -- ColecoVision,
       // SG-1000, Atari 2600 -- have one area called "rom". Both are the

@@ -736,6 +736,33 @@ check('std::strcmp compares like strcmp', () => {
   assert.notEqual(applyGeneratedMacro('std::strcmp', ['false', 'true']), 0);
 });
 
+// A floating-point array keeps fractions: the AY-3-8910's mixer levels are
+// all under 1.0, and as bytes every one of them was 0.
+check('ALLOCF allocates a floating-point array', () => {
+  const table = applyGeneratedMacro('ALLOCF', [4]) as Float64Array;
+  table[1] = 0.25;
+  assert.ok(table instanceof Float64Array);
+  assert.equal(table[1], 0.25);
+});
+
+// The NES loader reads a number from a feature with `sscanf("%u%*c")` and
+// tests that one value was stored.
+check('sscanf stores through its pointers and counts them', () => {
+  let stored = 0;
+  const target = { generatedPointer: true, target: { get: () => stored, set: (value: unknown) => { stored = Number(value); } }, offset: 0 };
+  assert.equal(applyGeneratedMacro('sscanf', ['512K', '%u%*c', target]), 1);
+  assert.equal(stored, 512);
+  assert.equal(applyGeneratedMacro('sscanf', ['K', '%u%*c', target]), 0);
+  assert.equal(applyGeneratedMacro('sscanf', ['', '%u', target]), -1);
+});
+
+// The NES loader matches `mmc1_type` by prefix: "MMC1B3" is an MMC1B.
+check('strncmp compares a prefix', () => {
+  assert.equal(applyGeneratedMacro('strncmp', ['MMC1B3', 'MMC1B', 5]), 0);
+  assert.notEqual(applyGeneratedMacro('strncmp', ['MMC1A', 'MMC1B', 5]), 0);
+  assert.notEqual(applyGeneratedMacro('strncmp', ['MMC1', 'MMC1B', 5]), 0);
+});
+
 // A TZX block reads its 3-byte length through a pointer into the tape
 // (`get_u24le(&cur_block[16])`); read as a bare array it was 0, and Elite's
 // 48K tape stopped after its BASIC loader.

@@ -55,8 +55,12 @@ const XML = `<?xml version="1.0"?>
 			<dataarea name="chr" size="8192">
 				<rom name="nd" size="8192" offset="0" status="nodump" />
 			</dataarea>
-			<dataarea name="vram" size="8192" />
-			<dataarea name="bwram" size="2048" />
+			<dataarea name="vram" size="8192">
+				<rom value="0x00" size="8192" offset="0" loadflag="fill" />
+			</dataarea>
+			<dataarea name="bwram" size="2048">
+				<rom value="0xff" size="2048" offset="0" loadflag="fill" />
+			</dataarea>
 		</part>
 	</software>
 	<software name="expcart">
@@ -104,6 +108,9 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
   eq('nodump chr rom skipped', e.chr?.roms.length, 0);
   eq('vram size', e.vram, 8192);
   eq('bwram size', e.bwram, 2048);
+  // A RAM area keeps a non-zero fill (Famicom Jump II's battery starts $FF);
+  // a zero one is the default and is not recorded.
+  eq('bwram fill', JSON.stringify(e.ramFills), JSON.stringify({ bwram: [{ offset: 0, size: 2048, value: 0xff }] }));
   eq('wram absent', e.wram, undefined);
 }
 

@@ -46,10 +46,14 @@ export function parseINes(bytes: Uint8Array): INesInfo | null {
   if (bytes.length < 16) return null;
   if (bytes[0] !== 0x4e || bytes[1] !== 0x45 || bytes[2] !== 0x53 || bytes[3] !== 0x1a) return null;
   const nes2 = (bytes[7] & 0x0c) === 0x08;
-  // NES 2.0 counts banks with byte 9's nibbles as the high bits (an exponent
-  // form, nibble 0xf, is left unread: no rebuilt set uses it).
-  const prgSize = (bytes[4] | (nes2 && (bytes[9] & 0x0f) !== 0x0f ? (bytes[9] & 0x0f) << 8 : 0)) * 0x4000;
-  const chrSize = (bytes[5] | (nes2 && (bytes[9] >> 4) !== 0x0f ? (bytes[9] >> 4) << 8 : 0)) * 0x2000;
+  // NES 2.0 counts banks with byte 9's nibbles as the high bits, or, where a
+  // nibble is 0xf, gives the size as 2^E * (2M + 1) bytes in the low byte
+  // (E in bits 2-7, M in bits 0-1): the 64 MB "A Winner is You" is 2^26.
+  const area = (low: number, high: number, bank: number): number => nes2 && high === 0x0f
+    ? 2 ** (low >> 2) * ((low & 3) * 2 + 1)
+    : (low | (nes2 ? high << 8 : 0)) * bank;
+  const prgSize = area(bytes[4]!, bytes[9]! & 0x0f, 0x4000);
+  const chrSize = area(bytes[5]!, bytes[9]! >> 4, 0x2000);
   if (prgSize === 0) return null;
   // dirty-header guard: pre-NES2.0 dumps often carry "DiskDude!" garbage in
   // bytes 7-15 — when any of bytes 12-15 are nonzero, trust only the low nibble
@@ -75,6 +79,16 @@ export function parseINes(bytes: Uint8Array): INesInfo | null {
   };
 }
 
+/** A size as NES 2.0's exponent form spells it, 2^E * (2M + 1), or undefined when it cannot. */
+function exponentSize(bytes: number): number | undefined {
+  for (const multiplier of [1, 3, 5, 7]) {
+    if (bytes % multiplier) continue;
+    const exponent = Math.log2(bytes / multiplier);
+    if (Number.isInteger(exponent) && exponent < 64) return (exponent << 2) | ((multiplier - 1) / 2);
+  }
+  return undefined;
+}
+
 // --- softlist catalog matching -------------------------------------------------
 
 export interface SoftRom {
@@ -93,6 +107,8 @@ export interface SoftEntry {
   /** the iNES mapper MAME's tables give `slot`, for a header rebuilt from chips */
   mapper?: number;
   prg: SoftArea; chr?: SoftArea; vram?: number; wram?: number; bwram?: number;
+  /** a RAM area the list fills with a non-zero value (`loadflag="fill"`) */
+  ramFills?: Partial<Record<'vram' | 'wram' | 'bwram', { offset: number; size: number; value: number }[]>>;
   /** the part's other features, as `get_feature` answers them */
   features?: Record<string, string>;
 }
@@ -278,7 +294,8 @@ export function identify(
  * A catalogued NES cartridge as the software-list part `mame nes <name>`
  * mounts: each dataarea call_load_pcb asks for by name, at the size the list
  * declares, and the part's features with `slot`, `pcb` and `mirroring` among
- * them. The RAM areas (`vram`, `wram`, `bwram`) are sizes only.
+ * them. The RAM areas (`vram`, `wram`, `bwram`) are their sizes, zero but
+ * where the list fills them with a value.
  */
 export function inesSoftwarePart(ines: INesInfo, entry: SoftEntry): SoftwarePart {
   // Each area as MAME loads it, whichever shape the dump held it in: a 16 KB
@@ -288,9 +305,12 @@ export function inesSoftwarePart(ines: INesInfo, entry: SoftEntry): SoftwarePart
   const areas: Record<string, Uint8Array> = { prg: prgChips ? loadArea(entry.prg, prgChips) : ines.prg };
   const chrChips = entry.chr && ines.chr ? areaChips(entry.chr, ines.chr, 0x2000) : null;
   if (ines.chr) areas.chr = chrChips ? loadArea(entry.chr!, chrChips) : ines.chr;
-  if (entry.vram) areas.vram = new Uint8Array(entry.vram);
-  if (entry.wram) areas.wram = new Uint8Array(entry.wram);
-  if (entry.bwram) areas.bwram = new Uint8Array(entry.bwram);
+  for (const ram of ['vram', 'wram', 'bwram'] as const) {
+    if (!entry[ram]) continue;
+    const bytes = new Uint8Array(entry[ram]);
+    for (const fill of entry.ramFills?.[ram] ?? []) bytes.fill(fill.value, fill.offset, Math.min(bytes.length, fill.offset + fill.size));
+    areas[ram] = bytes;
+  }
   return {
     areas,
     features: {
@@ -377,15 +397,18 @@ export function inesFromSoftlistSet(
     if (entry.chr?.roms.length && !chr) continue;
     const prgBanks = prg.length / 0x4000;
     const chrBanks = chr ? chr.length / 0x2000 : 0;
-    // NES 2.0 carries a bank count past 255 in byte 9 (an 8 MB multicart).
-    if (prgBanks > 0xfff || chrBanks > 0xfff) continue;
+    // NES 2.0 carries a bank count past 255 in byte 9 (an 8 MB multicart), and
+    // a size past 4,095 banks in its exponent form (parseINes).
+    const prgExponent = prgBanks > 0xfff ? exponentSize(prg.length) : undefined;
+    const chrExponent = chrBanks > 0xfff ? exponentSize(chr!.length) : undefined;
+    if ((prgBanks > 0xfff && prgExponent === undefined) || (chrBanks > 0xfff && chrExponent === undefined)) continue;
     const nes2 = prgBanks > 0xff || chrBanks > 0xff;
 
     const mapper = entry.mapper ?? 0;
     const header = new Uint8Array(16);
     header[0] = 0x4e; header[1] = 0x45; header[2] = 0x53; header[3] = 0x1a;
-    header[4] = prgBanks & 0xff;
-    header[5] = chrBanks & 0xff;
+    header[4] = prgExponent ?? prgBanks & 0xff;
+    header[5] = chrExponent ?? chrBanks & 0xff;
     header[6] = ((mapper & 0x0f) << 4)
       | (entry.mirroring === 'vertical' ? 0x01 : 0)
       | (entry.bwram ? 0x02 : 0)
@@ -393,7 +416,8 @@ export function inesFromSoftlistSet(
     header[7] = (mapper & 0xf0) | (nes2 ? 0x08 : 0);
     if (nes2) {
       header[8] = (mapper >> 8) & 0x0f;
-      header[9] = ((chrBanks >> 8) << 4) | (prgBanks >> 8);
+      header[9] = ((chrExponent !== undefined ? 0x0f : chrBanks >> 8) << 4) |
+        (prgExponent !== undefined ? 0x0f : prgBanks >> 8);
     }
 
     const bytes = new Uint8Array(16 + prg.length + (chr?.length ?? 0));

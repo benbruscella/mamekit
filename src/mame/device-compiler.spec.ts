@@ -346,4 +346,21 @@ assert.equal(compileMameDevice(mameSrc, hardware.get('MOS8564')!, 'MOS8564').clo
   assert.deepEqual(shape('apu_t::square_t'), ['regs[4]', 'freq']);
 }
 
-console.log('device-compiler.spec: source-derived latch, ER2055, MB8844 and TMS9928A devices passed');
+// The Sunsoft 5B is an AY-3-8910 whose levels come from what its constructor
+// does, not only from its initializer list: the body sets three resistor
+// loads and calls set_type(), and the initializer points m_par at a
+// file-scope resistor table. Missing any of these left every level zero.
+{
+  const ay = compileMameDevice(mameSrc, hardware.get('SUNSOFT_5B_SOUND')!, 'SUNSOFT_5B_SOUND');
+  const member = (name: string) => ay.members.find(candidate => candidate.name === name);
+  assert.equal(ay.summary.diagnostics, 0);
+  assert.deepEqual(member('m_res_load')?.values, [1000, 1000, 1000]);
+  assert.equal(member('m_step')?.initial, 1);
+  assert.equal(member('m_env_step_mask')?.initial, 0x1f);
+  assert.equal((member('m_par')?.initialValue as { res_count?: number } | undefined)?.res_count, 16);
+  assert.equal((member('m_par_env')?.initialValue as { res_count?: number } | undefined)?.res_count, 32);
+  assert.deepEqual(member('m_vol3d_table')?.valueType, 'std::unique_ptr<sound_stream::sample_t[]>');
+  assert.deepEqual(member('m_vol_table')?.arrayShape, [3, 16]);
+}
+
+console.log('device-compiler.spec: source-derived latch, ER2055, MB8844, TMS9928A and AY-3-8910 devices passed');

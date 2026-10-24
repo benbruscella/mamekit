@@ -354,6 +354,31 @@ assert.equal(
   Math.round(220 / (220 + 150) * 1000),
 );
 
+// C++17's if with an initializer, twice in one scope as the AY-3-8910's
+// enable register writes it: each `enable` is the statement's own.
+const ifInitializer = compileMameHandler(`
+  int seen = 0;
+  if (u8 enable = m_regs & 0x40; enable != (m_last & 0x40))
+    seen += 1;
+  if (u8 enable = m_regs & 0x80; enable != (m_last & 0x80))
+    seen += 2;
+  return seen;
+`);
+assert.deepEqual(ifInitializer.diagnostics, []);
+assert.equal(executeGeneratedProgram(ifInitializer, { members: { m_regs: 0x40, m_last: 0x80 } }).value, 3);
+assert.equal(executeGeneratedProgram(ifInitializer, { members: { m_regs: 0xc0, m_last: 0xc0 } }).value, 0);
+
+// A framework type alias as a functional cast: the MMC5's mixer adds
+// `sound_stream::sample_t(pcm) / 255.0f`, which as a call answered nothing.
+const aliasCast = compileMameHandler(`
+  sound_stream::sample_t accum = 0.5;
+  accum += sound_stream::sample_t(m_pcm) / 255.0f;
+  return accum * 1000;
+`);
+assert.deepEqual(aliasCast.diagnostics, []);
+assert.equal(JSON.stringify(aliasCast).includes('"call"'), false);
+assert.equal(Math.round(Number(executeGeneratedProgram(aliasCast, { members: { m_pcm: 51 } }).value)), 700);
+
 // A local array takes its element type from the declaration; ALLOC only knows
 // the length, so a float table used to be allocated as bytes and clamped.
 const floatTable = compileMameHandler(`

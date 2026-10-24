@@ -100,6 +100,25 @@ const ref = readWav(refPath);
 const seconds = Math.min(ours.samples.length / ours.rate, ref.samples.length / ref.rate);
 console.log(`ours: ${ours.rate} Hz ${(ours.samples.length / ours.rate).toFixed(1)} s | ref: ${ref.rate} Hz ${(ref.samples.length / ref.rate).toFixed(1)} s | comparing ${seconds.toFixed(1)} s`);
 
+// Overall level, in dBFS: a chip mixed at the wrong gain moves this while its
+// spectrum keeps its shape. Compare it against a title with no extra chip on
+// the same machine, which gives the two outputs' fixed ratio.
+// The mean is taken out first: a chip whose output is unipolar (the NES APU,
+// MAME's sample_t 0..1) carries a DC level a speaker never reproduces, and it
+// would otherwise dominate the comparison.
+const rms = (samples, rate) => {
+  const count = Math.max(1, Math.floor(seconds * rate));
+  let mean = 0;
+  for (let index = 0; index < count; index++) mean += samples[index];
+  mean /= count;
+  let sum = 0;
+  for (let index = 0; index < count; index++) sum += (samples[index] - mean) ** 2;
+  return Math.sqrt(sum / count);
+};
+const rmsOurs = rms(ours.samples, ours.rate), rmsRef = rms(ref.samples, ref.rate);
+const db = value => (20 * Math.log10(value + 1e-12)).toFixed(1);
+console.log(`rms: ours ${rmsOurs.toFixed(4)} (${db(rmsOurs)} dBFS) | ref ${rmsRef.toFixed(4)} (${db(rmsRef)} dBFS) | ours/ref ${db(rmsOurs / (rmsRef || 1e-12))} dB`);
+
 const A = spectroRows(ours.samples, ours.rate, seconds);
 const B = spectroRows(ref.samples, ref.rate, seconds);
 

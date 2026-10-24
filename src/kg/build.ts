@@ -1068,6 +1068,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           ? {
               cls: deviceTypes[dev.type],
               clsHierarchy: sourceClassHierarchy(ast, deviceTypes[dev.type]!),
+              ...(sourceImageInterface(ast, deviceTypes[dev.type]!) ? { imageInterface: true } : {}),
             }
           : {}),
         ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
@@ -2089,6 +2090,19 @@ function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {
   };
   visit(className);
   return result;
+}
+
+/**
+ * Whether a device class is a MAME image device: some class in its hierarchy
+ * derives from one of the `device_*image_interface`s (the Neo Geo memory card's
+ * `device_memcard_image_interface`).
+ */
+function sourceImageInterface(ast: MameAstIndex, className: string): boolean {
+  const classes = new Map(
+    ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
+  );
+  return sourceClassHierarchy(ast, className).some(name =>
+    classes.get(name)?.bases.some(base => /^device_\w*image_interface$/.test(base.split('::').at(-1)!.trim())));
 }
 
 /**

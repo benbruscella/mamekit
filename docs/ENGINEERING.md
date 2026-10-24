@@ -617,6 +617,29 @@ Choose the layer from evidence, not from the visible symptom.
 | A raster effect lands a few cycles early | an executing device's register access ran before the device reached the access's cycle (perfect quantum: catch up to k-1) |
 | Compiled device code and the interpreter disagree | the emitter's operator, not the device: `>>` on a negative value (`runtime.shiftRight`), a bus read repeated inside a macro expansion |
 | A device's integer array holds out-of-range values | its element width; a fixed C++ array is backed by the matching typed array |
+| A comparison against a C++ character always fails | a character literal compiled as a string: `'N'` is the integer 78, and MAME's iNES check `magic[0] == 'N'` compared it with NaN |
+| A `get_feature(...)` or other string test is never true | a string in a condition is a non-null `const char *`, not `Number("vertical")`; every software-list feature was skipped |
+| A struct field reads the wrong shape | a struct nested in another is registered under its qualified name: `nes_defs.h` declares a different `square_t` in `apu_t` and in `mmc5_sound_t` |
+| A lookup over a file-scope table answers nothing | the table was not lifted: file-scope struct arrays are lifted only for the device whose own methods read them (`pcb_list[]` behind `m_pcb_id`) |
+| A host call's out-parameter stays zero | the host object must declare it (`REFERENCE_PARAMETERS`, src/ir/execute.ts): `core_file::length(u64 &)` writes through its argument |
+| A functional cast answers 0 | a framework type alias (`sound_stream::sample_t(x)`) spelled as a cast is a cast, not a call to nothing |
+| A method between `#if NAME` and `#endif` will not parse | `NAME` must be a literal `#define`d in the same file, parenthesised or not (`#define ENABLE_REGISTER_TEST (0)`) |
+| A cross-device call is slow though compiled | it is reached by name; use the device's `preparedCall`, and check that an accessor (`get_draw_phase`) is a codegen root |
+| A console runs a frame behind MAME's | a device's first `time_until_pos` measured from the power-on credit instead of the beam (see ARCHITECTURE, the first line boundary) |
+| A string compared by prefix always matches | `strncmp` is answered beside `strcmp`; unanswered it was 0, equal, so every MMC1 cartridge read as an MMC1B |
+| A battery cartridge cannot boot | `battery_load` on the image surface fills from MAME's default (`fill` or `def_buffer`) when no battery is kept |
+| A device array member has no storage | its bounds are evaluated with the class's own constants (`m_vol_table[NUM_CHANNELS][16]`) |
+| A member the constructor sets reads as zero | the constructor body is interpreted at generation (indexed and chained assignments, calls to the device's own methods); a body that does not lower changes nothing |
+| A pointer member into a file-scope table is null | the table is lifted (`static const T::name x = {...}`, no `struct` needed) and the pointer holds a copy of what its initializer selects |
+| A floating-point table reads as integers | `make_unique<float[]>` (and `sound_stream::sample_t`) allocates `ALLOCF`, a `Float64Array`, not bytes |
+| A call through `m_x.get()` writes nowhere | a `std::unique_ptr`/`shared_ptr` member's `get()` is the member itself |
+| A constant reads as zero | a qualified declared type (`static constexpr sound_stream::sample_t MAX_OUTPUT = 1.0;`) |
+| A call on a struct value does nothing | the struct's inline methods (`tone_t::set_period`) are compiled per type (`structMethods`) and carried on its values |
+| A scalar member behaves as an array | a fixed array's length was taken from another class in the same file (`int m_latch, m_reset;` beside a neighbour's `m_latch[2]`); only a member declared with a bound takes one |
+| A reset-counting cartridge starts on the wrong game | the card was reset twice at power-on; MAME resets it once, from the driver's `machine_reset` |
+| A software-list set will not mount though every chip matches | its rebuilt iNES header could not say its size: past 4,095 banks NES 2.0 uses the exponent form (the 64 MB dpcmcart set) |
+| A device's stream plays at the wrong pitch | `sound_stream::set_sample_rate` after `stream_alloc` retunes it (the AY's internal divider) |
+| Emitted and interpreted code disagree on a call nothing answers | an unresolved reference is falsy to the interpreter and an object to emitted code; answer the call (a composed image device's `is_loaded()` is false) rather than relying on either |
 | A driver's IRQ arrives a line early or late | where its timer was armed against the beam: driver emu_timers fire after the line settles and schedule the board by the line |
 | A device reads its region as empty | a finder's `*this, "name"` is the device's subtag (`avg:prom`) first |
 | A machine diverges after a save-state load | state the walker cannot see: a closure variable (lift it into `hostModel()`), a class without `stateKeys()`, a derived cache not rebuilt in `stateRestored()` |
@@ -755,7 +778,10 @@ zeroed — were found this way, not by a golden.
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
   is the figure the earlier RAM-only oracle reported (Green Beret: 16, 25 and 19
-  bytes at frames 600, 900 and 1200). It is the measuring stick for a
+  bytes at frames 600, 900 and 1200). Our RAM is read when a frame has run
+  all its lines and MAME's at the start of VBLANK, so on a machine whose
+  VBLANK is not its last line the two are that many lines apart (22 on the
+  NES) and a byte the game rewrites in between always differs. It is the measuring stick for a
   scheduler change: a board that moves further from MAME has regressed,
   whatever its hashes say.
 - *Bus traffic* with `--io maincpu:2000-7fff:rw --io-frames 3-9`. Both sides

@@ -84,6 +84,14 @@ function makeINes(opts: {
   eq('four-screen flag wins', p.mirroring, 'four');
 }
 {
+  // NES 2.0's exponent form: PRG nibble 0xf, size 2^E * (2M + 1). 2^15 is two
+  // 16 KB banks; the 64 MB dpcmcart set is 2^26.
+  const bytes = new Uint8Array(16 + 0x8000);
+  bytes.set([0x4e, 0x45, 0x53, 0x1a, 15 << 2, 0, 0, 0x08, 0, 0x0f]);
+  const p = parseINes(bytes)!;
+  eq('nes2 exponent prg size', p.prgSize, 0x8000);
+}
+{
   const withTrainer = makeINes({ prgBanks: 1, chrBanks: 0, trainer: true, prgFill: () => 0xab });
   const p = parseINes(withTrainer)!;
   eq('trainer skipped', p.prg[0], 0xab);
