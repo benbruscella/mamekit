@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   mameSubtag,
+  beginGeneratedTimerDelivery,
+  endGeneratedTimerDelivery,
   clearGeneratedDevices,
   createDevice,
   generatedInstanceFactories,
@@ -155,6 +157,40 @@ setGeneratedTimerPreFire(outerPreFire);
 assert.deepEqual(preFired, [[20, 0, 0], [70, 3, 0], [20, 3, 1]],
   'every firing is announced with its overshoot before its callback runs');
 assert.equal(timed.get('m_reschedule_count'), 2);
+
+// A timer armed inside another's callback runs from that callback's expiry,
+// MAME's time there, not from the end of the lump that carried the clock past
+// it -- whichever of the two the device ticks first (#184). The 2C02 arms its
+// NMI four cycles after the VBLANK flag's scanline tick this way.
+for (const order of [['m_a', 'm_b'], ['m_b', 'm_a']]) {
+  const type = `chain-${order.join('-')}`;
+  registerGeneratedDevice({
+    type,
+    constants: {},
+    members: [{ name: 'm_fired', valueType: 'int', bits: 32, initial: 0 }],
+    callbacks: [],
+    timers: order.map(member => ({ member, callback: member === 'm_a' ? 'a_tick' : 'b_tick' })),
+    methods: [
+      // timer_alloc() with no callback hands timers out in declaration order.
+      method('device_start', '', `${order.map(member => `${member} = timer_alloc();`).join(' ')} m_a.adjust(0.1);`),
+      method('a_tick', 'int param', 'm_b.adjust(0.03);'),
+      method('b_tick', 'int param', 'm_fired += 1;'),
+    ],
+    start: 'device_start',
+    summary: { diagnostics: 0 },
+  } as GeneratedDeviceDefinition);
+  const chained = createDevice(type, { clock: 1 });
+  const deliver = (seconds: number) => {
+    const outer = beginGeneratedTimerDelivery();
+    try { chained.tick(seconds); } finally { endGeneratedTimerDelivery(outer); }
+  };
+  deliver(0.12);
+  assert.equal(chained.get('m_fired'), 0, `${order}: the second timer is not due at 0.12`);
+  deliver(0.009);
+  assert.equal(chained.get('m_fired'), 0, `${order}: nor at 0.129`);
+  deliver(0.002);
+  assert.equal(chained.get('m_fired'), 1, `${order}: it is due at 0.13`);
+}
 
 assert.throws(() => device.call('missing'), /no generated method/);
 assert.throws(() => device.on('missing', () => {}), /no callback signal/);

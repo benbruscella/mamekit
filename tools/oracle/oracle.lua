@@ -14,7 +14,10 @@
 --     `oracle.dumping` and the taps skip what they see meanwhile;
 --   * the screen bitmap read in a notifier is the frame before (MAME swaps
 --     its bitmaps first), so pictures come from video:snapshot_pixels(),
---     the image a -snapshot PNG holds: rotated as presented.
+--     the image a -snapshot PNG holds: rotated as presented;
+--   * machine.time inside a tap is the executing CPU's local time, cycle
+--     exact, so a bus access is stamped with the time it happened at (a
+--     device's clock is not readable from Lua, so seconds, not cycles).
 -- The cold-boot rules (a fresh -nvram_directory and -cfg_directory per run)
 -- are the runner's, which owns the command line.
 
@@ -131,7 +134,8 @@ for index, tap in ipairs(plan.io) do
     return function(offset, data, mask)
       local frame = oracle.count + 1
       if not oracle.dumping and frame >= plan.io_from and frame <= plan.io_to then
-        oracle.files.io:write(string.format("%d %s %d %x %x\n", frame, kind, index - 1, offset, data))
+        oracle.files.io:write(string.format("%d %s %d %x %x %.10f\n", frame, kind, index - 1, offset, data,
+          machine.time:as_double()))
       end
     end
   end

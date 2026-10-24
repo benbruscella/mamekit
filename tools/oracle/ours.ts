@@ -78,16 +78,55 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       const bus = (cpus?.get(tap.tag)?.bus ?? buses?.get(tap.tag)) as
         { read(address: number, ...rest: unknown[]): number; write(address: number, data: number, ...rest: unknown[]): void } | undefined;
       if (!bus) throw new Error(`the board has no CPU bus ${tap.tag}`);
+      // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
+      const generated = board as unknown as { cpuSeconds?(cpu: unknown): number; machine?: { execution: { cpus: { tag: string }[] } } };
+      const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tap.tag);
+      const seconds = () => cpu && generated.cpuSeconds ? generated.cpuSeconds(cpu) : 0;
       const log = (kind: 'R' | 'W', address: number, data: number) => {
         const frame = framesRun + 1;
         if (dumping || address < tap.lo || address > tap.hi || frame < plan.io!.from || frame > plan.io!.to) return;
-        appendFileSync(ioFile, `${frame} ${kind} ${index} ${address.toString(16)} ${(Number(data) >>> 0).toString(16)}\n`);
+        appendFileSync(ioFile, `${frame} ${kind} ${index} ${address.toString(16)} ${(Number(data) >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
       };
       const read = bus.read.bind(bus);
       const write = bus.write.bind(bus);
       if (tap.read) bus.read = (address, ...rest) => { const value = read(address, ...rest); log('R', address, value); return value; };
       if (tap.write) bus.write = (address, data, ...rest) => { log('W', address, data); write(address, data, ...rest); };
     });
+  };
+
+  const readRam = (buses: ReadonlyMap<string, { read(address: number): number }>): Uint8Array => {
+    const chunks: Uint8Array[] = [];
+    dumping = true;
+    try {
+      for (const cpu of plan.ram!.cpus) {
+        const bus = buses.get(cpu.tag);
+        if (!bus) throw new Error(`the board has no CPU bus ${cpu.tag}`);
+        for (const [start, end] of cpu.ranges) {
+          const bytes = new Uint8Array(end - start + 1);
+          for (let address = start; address <= end; address++) bytes[address - start] = Number(bus.read(address)) & 0xff;
+          chunks.push(bytes);
+        }
+      }
+    } finally {
+      dumping = false;
+    }
+    return Buffer.concat(chunks);
+  };
+  // MAME's RAM is read at the start of VBLANK, the instant its frame is
+  // presented, and so is ours: the frame runner presents at that instant. A
+  // screen updated by scanline is never presented whole, so its RAM is read
+  // when the frame has run.
+  let presented: Uint8Array | undefined;
+  const captureAtPresentation = (board: Board) => {
+    const runner = (board as unknown as { frameRunner?: { video?: { render(framebuffer: Uint32Array): void } } }).frameRunner;
+    const video = runner?.video;
+    const buses = (board as unknown as { cpuBuses?: Map<string, { read(address: number): number }> }).cpuBuses;
+    if (!video || !buses) return;
+    const render = video.render.bind(video);
+    video.render = framebuffer => {
+      render(framebuffer);
+      if (dumpFrames.has(framesRun + 1)) presented = readRam(buses);
+    };
   };
 
   let booted: OursBoot | undefined;
@@ -121,6 +160,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         booted = boot;
         writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(boot)}\n`);
         if (plan.io) tapBuses(board);
+        if (plan.ram) captureAtPresentation(board);
       },
       // The start types once a quickload has loaded, which can be later than
       // its shelf's delay: MAME is given the frame it actually typed on.
@@ -135,20 +175,8 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           writeFileSync(join(plan.dir, `ours-${frame.number}.rgba`), new Uint8Array(frame.framebuffer.buffer.slice(0)));
         }
         if (dumpFrames.has(frame.number)) {
-          dumping = true;
-          try {
-            for (const cpu of plan.ram!.cpus) {
-              const bus = frame.buses.get(cpu.tag);
-              if (!bus) throw new Error(`the board has no CPU bus ${cpu.tag}`);
-              for (const [start, end] of cpu.ranges) {
-                const bytes = new Uint8Array(end - start + 1);
-                for (let address = start; address <= end; address++) bytes[address - start] = Number(bus.read(address)) & 0xff;
-                appendFileSync(ramFile, bytes);
-              }
-            }
-          } finally {
-            dumping = false;
-          }
+          appendFileSync(ramFile, presented ?? readRam(frame.buses));
+          presented = undefined;
         }
         if (plan.grade && frame.number % 30 === 0) {
           const pixels = frame.framebuffer;

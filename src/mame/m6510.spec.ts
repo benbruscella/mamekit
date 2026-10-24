@@ -37,6 +37,10 @@ for (const implementation of [definition, emitted.default]) {
       return name === 'read_callback' ? 0x17 : 0;
     },
   });
+  // MAME runs the reset sequence as the core's first instruction
+  // (STATE_RESET): seven cycles, the vector read on the bus.
+  assert.equal(cpu.step(), 7);
+  assert.deepEqual(reads.slice(-2), [0xfffc, 0xfffd]);
   assert.equal(cpu.get('m_PC'), 0x8000);
   assert.equal(cpu.invoke('dir_r'), 0xff);
   assert.equal(cpu.invoke('get_port'), 0xff);
@@ -66,6 +70,9 @@ for (const implementation of [definition, emitted.default]) {
       boundSignals: new Set(bound),
     });
     memory.set([0xea], 0x8000);
+    // device_reset clears SYNC (`m_sync_w(CLEAR_LINE)`); count the fetch's edges.
+    synced.step();
+    edges.length = 0;
     synced.set('m_PC', 0x8000);
     synced.step();
     assert.deepEqual(edges.filter(([name]) => name === 'sync_cb'),
@@ -87,6 +94,7 @@ for (const implementation of [definition, emitted.default]) {
   assert.equal(cpu.get('m_A'), 0xee);
   cpu.reset();
   assert.equal(cpu.invoke('get_port'), 0xff);
+  assert.equal(cpu.step(), 7);
   assert.equal(cpu.get('m_PC'), 0x8000);
 }
 console.log('m6510.spec: emitted and interpreted port, bus, reset and opcode behavior passed');

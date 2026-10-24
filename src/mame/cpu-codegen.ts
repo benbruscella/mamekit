@@ -55,9 +55,17 @@ export function generatedCpuExecutableSource(definition: GeneratedCpuDefinition)
     ].filter(Boolean).join('\n');
   }).join('\n');
 
+  // MAME's STATE_RESET: the reset sequence is the first instruction after a reset.
+  const resetStep = definition.resetInstruction ? `    if (this.resetPending) {
+      this.resetPending = false;
+      this.cycles = 0;
+${emitProgram(definition.resetInstruction, contextFor(definition, [], 'void'), 6)}
+      return this.cycles;
+    }
+` : '';
   const step = definition.step
     ? emitProgram(definition.step, contextFor(definition, [], 'number'), 4)
-    : `    this.cycles = 0;
+    : `${resetStep}    this.cycles = 0;
     this.m_icount = 1;
     this.generatedService();
     if (this.cycles > 0) return this.cycles;
@@ -323,10 +331,14 @@ ${aliases}
     this.generatedStart();
     this.reset();
   }
-
+${definition.resetInstruction ? `
+  /** The reset sequence runs as the next step (MAME's STATE_RESET). */
+  private resetPending = false;
+` : ''}
   reset(): void {
     this.resetInternal();
-${emitProgram(definition.reset, contextFor(definition, [], 'void'), 4)}
+${emitProgram(definition.reset, contextFor(definition, [], 'void'), 4)}${definition.resetInstruction ? `
+    this.resetPending = true;` : ''}
   }
 
   step(): number {
@@ -782,9 +794,19 @@ function emitMethod(
   const parameterType = (valueType: string) =>
     definition.strictCalls && (valueType.includes('*') || !typeOfName(valueType.replace(/\bconst\b/g, '').trim()))
       ? 'any' : 'number';
+  // A C++ call converts each argument to its parameter's type: MAME's
+  // `set_l(uint16_t base, uint8_t val)` is handed `m_SP + 1` and keeps its low
+  // byte, so the stack wraps from $1FF to $100. Unconverted, it went to $300
+  // and every page-crossing dummy read went to the wrong page (#184).
+  const conversions = parameters.flatMap(parameter => {
+    if (parameter.reference || parameter.valueType.includes('*')) return [];
+    const converted = wrapType(parameter.name, parameter.valueType);
+    return converted === parameter.name ? [] : [`    ${parameter.name} = ${converted};`];
+  });
   return [
     `  private method_${emittedMethodName(definition, method)}(${parameters.map(parameter =>
       `${parameter.name}: ${parameterType(parameter.valueType)} = 0`).join(', ')}): number {`,
+    ...conversions,
     body,
     reference ? `    return ${reference.name};` : '    return 0;',
     '  }',

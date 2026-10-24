@@ -299,6 +299,8 @@ export interface IoAccess {
   tap: number;
   address: string;
   data: string;
+  /** The emulated time of the access in seconds, from power-on. */
+  time?: number;
 }
 
 export interface IoResult {
@@ -311,8 +313,9 @@ export interface IoResult {
 function readAccesses(path: string): IoAccess[] {
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf8').split('\n').filter(Boolean).map(line => {
-    const [frame, kind, tap, address, data] = line.split(' ');
-    return { frame: Number(frame), kind: kind as 'R' | 'W', tap: Number(tap), address: address!, data: data! };
+    const [frame, kind, tap, address, data, time] = line.split(' ');
+    return { frame: Number(frame), kind: kind as 'R' | 'W', tap: Number(tap), address: address!, data: data!,
+      ...(time === undefined ? {} : { time: Number(time) }) };
   });
 }
 

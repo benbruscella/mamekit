@@ -319,8 +319,9 @@ function printRun(key: string, report: RunReport): void {
 
 const signed = (value: number) => `${value >= 0 ? '+' : ''}${value}`;
 const hex = (value: number) => value.toString(16).padStart(2, '0');
-const access = (entry: { frame: number; kind: string; address: string; data: string } | undefined) =>
-  entry ? `${entry.kind} ${entry.address}=${entry.data} (frame ${entry.frame})` : 'nothing';
+const access = (entry: { frame: number; kind: string; address: string; data: string; time?: number } | undefined) =>
+  entry ? `${entry.kind} ${entry.address}=${entry.data} (frame ${entry.frame}`
+    + `${entry.time === undefined ? '' : `, ${(entry.time * 1e6).toFixed(3)} us`})` : 'nothing';
 
 // --- the report file -------------------------------------------------------
 

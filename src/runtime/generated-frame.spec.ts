@@ -340,4 +340,45 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.equal(deviceCycles, 30, 'non-CPU participant receives its source clock budget');
 }
 
-console.log('generated-frame.spec: 18 passed');
+// MAME's screen starts at the beginning of VBLANK, so the first frame is a
+// lead-in from vbstart (line 2 of 3 here) followed by a whole frame, presented
+// once. Nothing fires on the origin line: MAME arms its first VBLANK a frame
+// out. A reset starts there again (#184).
+{
+  let cycles = 0;
+  let renders = 0;
+  let vblanks = 0;
+  const lines: number[] = [];
+  const events: string[] = [];
+  const origins: boolean[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine,
+    origin: 'vbstart',
+    processors: [{ tag: 'maincpu', run: budget => { cycles += budget; return budget; } }],
+    video: { width: 1, height: 1, render: () => { renders++; }, vblank: () => { vblanks++; } },
+    onLine: (line, phase) => {
+      if (phase !== 'before-processors') return;
+      lines.push(line);
+      origins.push(runner.atOrigin);
+    },
+    onEvent: event => events.push(event.callbackId),
+  });
+  assert.equal(runner.originLine, 2);
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(lines, [2, 0, 1, 2]);
+  assert.deepEqual(origins, [true, false, false, false]);
+  assert.equal(cycles, 80);
+  assert.deepEqual(events, ['callback:vblank']);
+  assert.equal(vblanks, 1);
+  assert.equal(renders, 1);
+  assert.equal(runner.frameCount, 1);
+  lines.length = 0;
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(lines, [0, 1, 2]);
+  runner.reset();
+  lines.length = 0;
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(lines, [2, 0, 1, 2]);
+}
+
+console.log('generated-frame.spec: 19 passed');

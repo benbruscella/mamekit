@@ -632,6 +632,29 @@ class IrAttotime {
 let timerBacklogSeconds = 0;
 
 /**
+ * The board's delivery of device time in progress, if any: it brackets every
+ * delivery with beginGeneratedTimerDelivery and endGeneratedTimerDelivery. A
+ * timer armed from inside another's callback is credited the backlog when it
+ * is armed, and inside a bracketed delivery takes nothing more from it
+ * (IrTimer.adjust).
+ */
+let timerDelivery = 0;
+let timerDeliveryOpen = false;
+
+/** The board starts handing device time to its devices (see timerDelivery). */
+export function beginGeneratedTimerDelivery(): boolean {
+  const outer = timerDeliveryOpen;
+  if (!outer) timerDelivery++;
+  timerDeliveryOpen = true;
+  return outer;
+}
+
+/** The delivery begun by beginGeneratedTimerDelivery is over; `outer` is what it returned. */
+export function endGeneratedTimerDelivery(outer: boolean): void {
+  timerDeliveryOpen = outer;
+}
+
+/**
  * Runs everything else the board clocks up to a firing timer's expiry before
  * its callback, while the board is delivering device time; told how far past
  * the expiry the delivered lump reaches. MAME's scheduler fires a timer only
@@ -654,6 +677,30 @@ export function setGeneratedTimerPreFire(hook: ((overshoot: number) => void) | u
 /** A device-side attotime value, for a save state's factory (machine-state.ts). */
 export function createGeneratedAttotime(seconds: number): object {
   return new IrAttotime(seconds);
+}
+
+/**
+ * How far now stands ahead of the device time delivered so far: set while
+ * the board presents a frame at an instant its devices have not quite been
+ * clocked to (see IrTimer.remaining).
+ */
+let timerNowAheadSeconds = 0;
+
+/**
+ * Below this a timer's remaining time is rounding in the clocks that measure
+ * it, not time: far under a cycle of any processor here.
+ */
+const TIMER_NOW_TOLERANCE_SECONDS = 1e-10;
+
+/** Run `run` with now standing `aheadSeconds` past the delivered device time. */
+export function withGeneratedPresentTime<T>(aheadSeconds: number, run: () => T): T {
+  const outer = timerNowAheadSeconds;
+  timerNowAheadSeconds = Math.max(0, aheadSeconds);
+  try {
+    return run();
+  } finally {
+    timerNowAheadSeconds = outer;
+  }
 }
 
 /** @see timerBacklogSeconds */
@@ -706,6 +753,8 @@ class IrTimer {
   private adjustmentGeneration = 0;
   /** The absolute expiry, from the clock at arming; NaN when there is none. */
   private expiry = NaN;
+  /** The delivery this timer was armed inside and credited for (see adjust). */
+  private creditedDelivery = -1;
 
   /** The owning device's `machine().time()`, when it has one. */
   private readonly now?: () => number;
@@ -736,6 +785,20 @@ class IrTimer {
     this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
     this.parameter = parameter;
     this.adjustmentGeneration++;
+    // Armed from inside another timer's callback, the delay runs from that
+    // callback's expiry, where MAME's scheduler stands; the delivery in
+    // progress has already carried device time past it by the backlog. So
+    // the backlog is credited now, and the rest of the delivery is not
+    // counted down again. Counted from the delivery's end instead, the
+    // 2C02's NMI -- armed four cycles after the VBLANK flag's scanline tick
+    // -- fired that tick's overshoot late, and a timer whose device is ticked
+    // after the arming one in the same delivery took the whole lump (#184).
+    if (timerBacklogSeconds > 0 && Number.isFinite(this.remainingSeconds)) {
+      this.remainingSeconds -= timerBacklogSeconds;
+      this.creditedDelivery = timerDeliveryOpen ? timerDelivery : -1;
+    } else {
+      this.creditedDelivery = -1;
+    }
   }
 
   /**
@@ -756,7 +819,15 @@ class IrTimer {
     // models gate on. The NES PPU has two: skipping them left every scanline
     // rendering nametable row 0, so a fully drawn title screen came out as one
     // flat colour.
-    return new IrAttotime(Math.max(0, this.remainingSeconds));
+    //
+    // While a frame is presented, now is the presentation instant, which the
+    // devices' clock may stand a little short of (withGeneratedPresentTime).
+    // A timer due at that instant reads zero there, as in MAME: the 2C02's
+    // `render` draws the line in progress only when its scanline timer has
+    // time left, and at the start of VBLANK it has none, so MAME's picture
+    // keeps line 239 from the frame before (#184).
+    const left = this.remainingSeconds - timerNowAheadSeconds;
+    return new IrAttotime(left > TIMER_NOW_TOLERANCE_SECONDS ? left : 0);
   }
 
   elapsed(): IrAttotime {
@@ -773,7 +844,7 @@ class IrTimer {
 
   tick(seconds: number, callback: (parameter: number) => void): void {
     if (!Number.isFinite(this.remainingSeconds)) return;
-    this.remainingSeconds -= seconds;
+    if (this.creditedDelivery !== timerDelivery) this.remainingSeconds -= seconds;
     let firings = 0;
     while (this.remainingSeconds <= 0) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
@@ -797,10 +868,10 @@ class IrTimer {
 
       // MAME callbacks commonly re-arm their own one-shot timer. Honour that
       // new schedule instead of disabling it based on the timer state that
-      // caused the callback (for example, the NES PPU scanline timer).
+      // caused the callback (for example, the NES PPU scanline timer). The
+      // re-arm was credited the overshoot as it was armed (adjust).
       if (this.adjustmentGeneration !== generation) {
         if (!Number.isFinite(this.remainingSeconds)) break;
-        this.remainingSeconds -= overshoot;
         continue;
       }
 

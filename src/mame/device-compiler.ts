@@ -832,6 +832,7 @@ export function compileMameDevice(
     constructorStrings,
     constructorPointers,
     constructorBodies,
+    resolvedMemberName,
   );
   for (const member of members) {
     if (constructorValues[member.name] !== undefined) {
@@ -2326,6 +2327,13 @@ export function constructorInitialValues(
   pointers?: Record<string, string>,
   /** Each constructor body that runs, base first, with its arguments' values. */
   bodies?: { body: string; env: Record<string, number> }[],
+  /**
+   * The member a name means in one class's own code, where a derived class
+   * declares a member of a base's name: the Irem G-101's `const u8 m_prg_mask`
+   * hides the cartridge interface's, and its `m_prg_mask(prg_mask)` set the
+   * base's instead, leaving the G-101's own mask 0 (#184).
+   */
+  memberName: (className: string, name: string) => string = (_className, name) => name,
 ): Record<string, number> {
   const constructors = new Map<string, Constructor[]>();
   const pattern = /\b(\w+)::\1\s*\(/g;
@@ -2375,17 +2383,18 @@ export function constructorInitialValues(
         constantValue(arg, { ...constants, ...env }) ?? 0);
       if (constructors.has(initializer.name)) visit(initializer.name, args);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
+        const member = memberName(className, initializer.name);
         const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1];
         const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
-        if (text !== undefined && strings) strings[initializer.name] = text;
-        else if (target) pointers[initializer.name] = target;
-        else result[initializer.name] = args[0]!;
+        if (text !== undefined && strings) strings[member] = text;
+        else if (target) pointers[member] = target;
+        else result[member] = args[0]!;
       }
     }
     bodies?.push({ body: constructor.body, env });
     for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
       const value = constantValue(assignment[2]!, { ...constants, ...env });
-      if (value !== undefined && Number.isFinite(value)) result[assignment[1]!] = value;
+      if (value !== undefined && Number.isFinite(value)) result[memberName(className, assignment[1]!)] = value;
     }
     activeConstructors.delete(activeKey);
   };

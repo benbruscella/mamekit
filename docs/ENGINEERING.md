@@ -778,16 +778,26 @@ zeroed — were found this way, not by a golden.
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
   is the figure the earlier RAM-only oracle reported (Green Beret: 16, 25 and 19
-  bytes at frames 600, 900 and 1200). Our RAM is read when a frame has run
-  all its lines and MAME's at the start of VBLANK, so on a machine whose
-  VBLANK is not its last line the two are that many lines apart (22 on the
-  NES) and a byte the game rewrites in between always differs. It is the measuring stick for a
-  scheduler change: a board that moves further from MAME has regressed,
+  bytes at frames 600, 900 and 1200; 9, 18 and 6 since #184). Both sides read
+  RAM at the start of VBLANK, ours as the frame is presented, which since the
+  frame runner starts where MAME's beam does (#184) is the same instant. A
+  screen updated by scanline is never presented whole, so its RAM is read when
+  the frame has run all its lines, that many lines after MAME's (until #184 the
+  NES's always were, 22 lines apart, and about 20 bytes of Super Mario Bros.
+  run without input always differed; now none do). It is the measuring stick
+  for a scheduler change: a board that moves further from MAME has regressed,
   whatever its hashes say.
 - *Bus traffic* with `--io maincpu:2000-7fff:rw --io-frames 3-9`. Both sides
   log every read and write in the range, and the report gives the first one
   that differs. That is how Bio Miracle was narrowed to a game-state byte
-  rather than a register.
+  rather than a register. Each access carries its emulated time in seconds
+  (`work/*-io.txt`, last column; MAME's is `machine.time` inside the tap, the
+  CPU's local time), so two traces that agree on values can still be compared
+  cycle for cycle: times the CPU clock gives the cycle, MAME's counting the
+  cycles before the access and ours the access itself, a constant one apart.
+  That is how the NES's first-VBLANK boards were traced to an NMI a few
+  cycles late (#184). MAME's OAM DMA writes `$2004` through the program space
+  and so appears on its tap; ours does not.
 
 **Input.** A machine runs with no input by default (attract mode is
 deterministic on both sides), and so does a computer title, which starts the

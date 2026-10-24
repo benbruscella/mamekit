@@ -402,12 +402,24 @@ const rp2a03 = createCpu('RP2A03', {
   in: () => 0xff,
   out: () => {},
 });
+// MAME's STATE_RESET: the reset sequence is the first instruction, 7 cycles.
+assert.equal(rp2a03.step(), 7);
+assert.equal(rp2a03.get('m_PC'), 0x8000);
 assert.equal(rp2a03.step(), 2);
 assert.equal(rp2a03.get('m_A'), 0x7f);
 assert.equal(rp2a03.step(), 2);
 assert.equal(rp2a03.get('m_A'), 0x80);
 assert.equal(rp2a03.step(), 3);
 assert.equal(rp2a03Memory[0x10], 0x80);
+// LDX #$FF ; TXS ; PLA: MAME's `set_l(uint16_t base, uint8_t val)` keeps the
+// low byte of `m_SP + 1`, so the stack wraps to $0100, not $0300 (#184).
+rp2a03Memory.set([0xa2, 0xff, 0x9a, 0x68], 0x8006);
+rp2a03Memory[0x0100] = 0x42;
+rp2a03Memory[0x0300] = 0x99;
+rp2a03.step();
+rp2a03.step();
+rp2a03.step();
+assert.equal(rp2a03.get('m_A'), 0x42, 'a call converts its arguments to the parameter types');
 assert.ok(generatedCpuExecutableSource(rp2a03Definition).length > 100_000);
 
 const m6502Definition = compileMameM6502(process.env.MAME_SRC ?? '../mame');
@@ -429,6 +441,7 @@ const m6502 = createCpu('M6502', {
   out: () => {},
 });
 m6502.reset();
+assert.equal(m6502.step(), 7);
 m6502.step();
 m6502.step();
 m6502.step();
