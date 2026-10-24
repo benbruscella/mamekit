@@ -756,7 +756,13 @@ export function compileMameDevice(
       }
       const bits = integerBits(member.valueType);
       const signed = integerSigned(member.valueType);
-      const allocated = allocatedArrays.get(member.name) ?? fixedArrays.get(member.name);
+      // A fixed array's length is read from the whole source file, where
+      // another class may declare an array of the same name: multigame.h's
+      // `int m_latch, m_reset;` took a neighbour's `m_latch[2]`, and the 22 Games
+      // multicart's latch became an array. Only a member declared with a
+      // bound is one.
+      const allocated = allocatedArrays.get(member.name) ??
+        (member.arrayLength ? fixedArrays.get(member.name) : undefined);
       const pushed = new RegExp(`\\b${member.name}\\s*\\.\\s*(?:push_back|emplace_back)\\s*\\(`)
         .test(sources.map(candidate => candidate.source).join('\n'));
       const memory = memoryContainer(member.valueType, member.name, constructorBindings, pushed);

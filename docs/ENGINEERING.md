@@ -635,6 +635,9 @@ Choose the layer from evidence, not from the visible symptom.
 | A call through `m_x.get()` writes nowhere | a `std::unique_ptr`/`shared_ptr` member's `get()` is the member itself |
 | A constant reads as zero | a qualified declared type (`static constexpr sound_stream::sample_t MAX_OUTPUT = 1.0;`) |
 | A call on a struct value does nothing | the struct's inline methods (`tone_t::set_period`) are compiled per type (`structMethods`) and carried on its values |
+| A scalar member behaves as an array | a fixed array's length was taken from another class in the same file (`int m_latch, m_reset;` beside a neighbour's `m_latch[2]`); only a member declared with a bound takes one |
+| A reset-counting cartridge starts on the wrong game | the card was reset twice at power-on; MAME resets it once, from the driver's `machine_reset` |
+| A software-list set will not mount though every chip matches | its rebuilt iNES header could not say its size: past 4,095 banks NES 2.0 uses the exponent form (the 64 MB dpcmcart set) |
 | A device's stream plays at the wrong pitch | `sound_stream::set_sample_rate` after `stream_alloc` retunes it (the AY's internal divider) |
 | Emitted and interpreted code disagree on a call nothing answers | an unresolved reference is falsy to the interpreter and an object to emitted code; answer the call (a composed image device's `is_loaded()` is false) rather than relying on either |
 | A driver's IRQ arrives a line early or late | where its timer was armed against the beam: driver emu_timers fire after the line settles and schedule the board by the line |
