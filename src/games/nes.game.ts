@@ -179,5 +179,53 @@ export const nes = {
         rms: 0.094951,
       },
     },
+  }, {
+    // The VRC7: Konami's mapper with a Yamaha DS1001 inside, an OPLL whose FM
+    // is ymfm's, compiled from 3rdparty/ymfm, with its instrument patches
+    // from ds1001.zip (#188). Lagrange Point plays no FM until its intro is
+    // started and stepped through; the music begins near frame 1350, at the
+    // moment MAME's does.
+    id: 'lagrange',
+    kind: 'gameplay',
+    cartridge: 'lagrange',
+    romEnvironment: 'MAMEKIT_NES_ROM',
+    frames: 1800,
+    minimumFps: 30,
+    checkpoints: [1, 300, 600, 900, 1200, 1500, 1800],
+    actions: [
+      { atFrame: 299, code: 'Enter', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 450, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 600, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 750, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 900, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 1050, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 1200, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 1350, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 1500, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+      { atFrame: 1650, code: 'KeyZ', heldFrames: 6, releasedFrames: 0 },
+    ],
+    golden: {
+      regions: {
+        maincpu: 'd7978eeb',
+        'nes_slot:cart:prg_rom': '743387ff',
+        'nes_slot:vrc7:vrc7snd:internal': '9d699efc',
+      },
+      checkpoints: {
+        1: { video: 'c76eba57', state: '72ffb43f' },
+        300: { video: 'a91fc776', state: '818c283b' },
+        600: { video: '99b499d3', state: 'f0229a0b' },
+        900: { video: '508d89c4', state: 'c8037050' },
+        1200: { video: 'd44d279d', state: '0f093cfc' },
+        1500: { video: '87527392', state: '2481941e' },
+        1800: { video: 'ecb6dc90', state: 'ac58d182' },
+      },
+      audio: {
+        writes: 1438273,
+        nonzeroWrites: 355246,
+        writeHash: 'ea758d41',
+        pcmHash: '5cb15f8f',
+        rms: 0.023801,
+      },
+    },
   }],
 } satisfies MachineTargetContract;
