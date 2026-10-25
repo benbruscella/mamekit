@@ -44,3 +44,4 @@ artwork/
 dist.previous/
 
 .claude/worktrees
+.claude/settings.local.json

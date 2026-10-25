@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import * as ts from 'typescript';
 import {
   compilePokey,
   generatedPokeyCoreSource,
@@ -56,4 +57,31 @@ assert.match(worklet, /registerProcessor\('pokey', GeneratedPokeyProcessor\)/);
 assert.match(source, /export class GeneratedPokeyCore/);
 assert.ok(source.includes('"defaultGain": 744'));
 
-console.log('pokey-compiler.spec: registers, bitfields, prescalers and poly taps passed');
+// The chip's clock-rate stream reaches 48 kHz through MAME's LOFI resampler.
+// Channel 1 on the 1.79 MHz clock with AUDF 20 is a 37.3 kHz square, above the
+// output's Nyquist frequency: kept one clock in 37, it folds back to 10.7 kHz
+// at full level, and Gauntlet's POKEY effects ran 6-9 dB bright (#194).
+const pokeyModule = await import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(source, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
+}).outputText).toString('base64')}`) as {
+  GeneratedPokeyCore: new (clock: number, rate: number) => {
+    write(offset: number, data: number): void;
+    sample(): number;
+  };
+};
+const toneRms = (audctl: number, audf: number): number => {
+  const core = new pokeyModule.GeneratedPokeyCore(1_789_772, 48_000);
+  core.write(plan.registers.SKCTL_C!, 0x03);
+  core.write(plan.registers.AUDCTL_C!, audctl);
+  core.write(plan.registers.AUDF1_C!, audf);
+  core.write(plan.registers.AUDC1_C!, plan.audc.NOTPOLY5 | plan.audc.PURE | 0x0f);
+  const samples = Array.from({ length: 9600 }, () => core.sample()).slice(1600);
+  const mean = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+  return Math.sqrt(samples.reduce((sum, value) => sum + (value - mean) ** 2, 0) / samples.length);
+};
+const audible = toneRms(0, 0xff);
+const ultrasonic = toneRms(plan.audctl.CH1_HICLK!, 20);
+assert.ok(audible > 0.1, `a 125 Hz tone plays (${audible})`);
+assert.ok(ultrasonic < audible * 0.3, `a 37 kHz tone is filtered, not folded back (${ultrasonic} vs ${audible})`);
+
+console.log('pokey-compiler.spec: registers, bitfields, prescalers, poly taps and resampling passed');
