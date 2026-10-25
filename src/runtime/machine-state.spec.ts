@@ -252,3 +252,27 @@ console.log('machine-state.spec: capture and in-place restore round-trip every r
   assert.deepEqual(restoreState(live, saved, { functions }), []);
   assert.equal(live.m_custom_output[1], set, 'the slot is its function again');
 }
+
+{
+  // A slot that refuses the write is reported; a setter that fails is not a
+  // refusal and ends the load. A stack overflow inside one once read as
+  // "cannot assign" among the diagnostics (#190).
+  const saved = captureState({ frozen: Object.freeze({ a: 1 }), live: { b: 2 } });
+  const frozenLive = { frozen: Object.freeze({ a: 0 }), live: { b: 0 } };
+  const diagnostics = restoreState(frozenLive, saved);
+  assert.equal(diagnostics.length, 1);
+  assert.match(diagnostics[0]!.message, /^cannot assign: /);
+  assert.equal(frozenLive.live.b, 2, 'the rest of the machine is still written');
+
+  const runaway = { b: 0 };
+  Object.defineProperty(runaway, 'b', {
+    enumerable: true,
+    get: () => 0,
+    set(value: number) { (this as { b: number }).b = value; },
+  });
+  assert.throws(
+    () => restoreState({ live: runaway }, saved),
+    RangeError,
+    'a setter that overflows the stack must end the load, not become a diagnostic',
+  );
+}

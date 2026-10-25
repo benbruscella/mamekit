@@ -417,8 +417,8 @@ export interface Device {
   role(): string | undefined;
   links(): readonly GeneratedDeviceLink[];
   invokeSlot(name: string, ...args: GeneratedCallArgument[]): unknown;
-  /** Run the mounted card's own installer against a recording address space. */
-  installSlotCard(space: unknown): void;
+  /** Run the mounted card's own installer against a recording address space; false when there is none. */
+  installSlotCard(space: unknown): boolean;
   /** device_start (and the reset after it) for a device created with `deferStart`. */
   startDeferred?(): void;
   /** The device's own `this`, as its methods see it (a bus hands it to a card). */
@@ -2636,20 +2636,26 @@ class IrDevice implements Device {
    * while a Game Boy PCB's `load(message)` reaches for it through
    * `cart_space()`. Binding the accessor for the duration covers both without
    * the host needing to know which bus it is holding.
+   *
+   * False when there is nothing to run: no card is mounted, or its PCB has no
+   * installer of its own, so the slot decodes nothing extra -- what an empty
+   * slot does. Anything the installer itself throws is a real failure and
+   * propagates (#190).
    */
-  installSlotCard(space: unknown): void {
+  installSlotCard(space: unknown): boolean {
     const install = this.definition.slot?.install ??
       { method: 'install_memory_handlers' as const, space: undefined };
-    if (!this.slotChild) throw new Error(`${this.definition.type} has no selected slot card`);
+    const card = this.slotChild;
+    if (!card || !(card.bindings.calls?.[install.method] || card.methods.has(install.method))) return false;
     if (!install.space) {
-      this.slotChild.invoke(install.method, space as GeneratedCallArgument);
-      return;
+      card.invoke(install.method, space as GeneratedCallArgument);
+      return true;
     }
-    this.slotChild.installSpace = space;
+    card.installSpace = space;
     try {
-      this.slotChild.invoke(install.method, 0);
+      card.invoke(install.method, 0);
     } finally {
-      this.slotChild.installSpace = undefined;
+      card.installSpace = undefined;
     }
     // MAME resets after mounting an image -- a cartridge slot's
     // `is_reset_on_load()` is true -- and a PCB's power-on bank positions are
@@ -2658,7 +2664,8 @@ class IrDevice implements Device {
     // exist yet: an MBC1 came up with both ROM windows on page 0 instead of
     // pages 0 and 1, so every cartridge larger than 32 KiB read its first page
     // twice.
-    this.slotChild.reset();
+    card.reset();
+    return true;
   }
 
   private executeMethod(

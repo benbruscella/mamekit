@@ -354,6 +354,46 @@ const slotDevice = createDevice('SLOT_TEST', {
   inputs: { read: tag => tag === 'port1:BUTTONS' ? 0x5a : 0 },
 });
 assert.equal(slotDevice.call('read'), 0x5a);
+// A card with no installer of its own decodes nothing extra, as an empty slot
+// does; that is an answer, not an error.
+assert.equal(slotDevice.installSlotCard({}), false, 'a PCB with no installer installs nothing');
+
+// An installer that fails ends the mount, whatever it threw: a host that read
+// "it threw" as "it has no installer" carried on with a half-mounted card, and
+// would have hidden a stack overflow the same way (#190).
+registerGeneratedDevice({
+  type: 'FAILING_SLOT_TEST',
+  constants: {},
+  members: [],
+  callbacks: [],
+  methods: [],
+  slot: {
+    member: 'm_card',
+    selector: 'fixture.option',
+    options: {
+      runaway: {
+        type: 'RUNAWAY_CARD_TEST',
+        constants: {},
+        members: [],
+        callbacks: [],
+        methods: [method('install_memory_handlers', 'address_space &space', 'install_memory_handlers(space);')],
+        summary: { diagnostics: 0 },
+      },
+    },
+  },
+  summary: { diagnostics: 0 },
+});
+const failingSlot = createDevice('FAILING_SLOT_TEST', { tag: 'cart', selectors: { 'fixture.option': 'runaway' } });
+assert.throws(
+  () => failingSlot.installSlotCard({}),
+  (error: Error) => {
+    for (let cause: unknown = error; cause instanceof Error; cause = cause.cause) {
+      if (cause instanceof RangeError) return true;
+    }
+    return false;
+  },
+  'a card installer that overflows the stack must surface as a RangeError',
+);
 
 registerGeneratedDevice({
   type: 'OVERLOAD_TEST',

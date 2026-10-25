@@ -512,7 +512,7 @@ class Restore {
     try {
       delete holder[key];
     } catch (error) {
-      this.report(path, `cannot remove: ${(error as Error).message}`);
+      this.report(path, `cannot remove: ${refusal(error)}`);
     }
   }
 
@@ -520,7 +520,7 @@ class Restore {
     try {
       (holder as Record<string | number, unknown>)[key] = value;
     } catch (error) {
-      this.report(path, `cannot assign: ${(error as Error).message}`);
+      this.report(path, `cannot assign: ${refusal(error)}`);
     }
   }
 
@@ -542,6 +542,18 @@ class Restore {
     const kind = kindOf(value, this.options);
     return kind === 'bytes' || kind === 'array' || kind === 'map' || kind === 'set' || kind === 'object';
   }
+}
+
+/**
+ * What a slot that refused a write said. Only a TypeError is a refusal -- a
+ * frozen object, a read-only or non-configurable property. Anything else came
+ * out of a setter the write ran and is a failure, which propagates rather than
+ * becoming one diagnostic among many: a stack overflow there must end the
+ * load, never read as "cannot assign" (#190).
+ */
+function refusal(error: unknown): string {
+  if (!(error instanceof TypeError)) throw error;
+  return error.message;
 }
 
 /** A saved node is never handed to the machine directly: the save must stay reusable. */
