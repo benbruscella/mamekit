@@ -1158,6 +1158,13 @@ class IrDevice implements Device {
         : member.initialText !== undefined ? member.initialText
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
+      // Scratch storage for an uninitialised C++ local (`__local_...`) carries
+      // nothing between calls, so a save state does not walk it.
+      if (member.name.startsWith('__local_')) {
+        Object.defineProperty(this.members, member.name, {
+          value: this.members[member.name], enumerable: false, writable: true, configurable: true,
+        });
+      }
       if (member.bits) this.memberBits.set(member.name, member.bits);
       if (member.signed) this.memberSigned.add(member.name);
     }
@@ -1215,11 +1222,13 @@ class IrDevice implements Device {
         // map at all (it is emitted for emitted callers only), so every
         // reference a compiled one takes arrives as the object itself.
         if (!compiled || counts.get(method.name) !== 1 || references[method.name]) continue;
+        const [d0, d1, d2] = parameters.map(parameterDefault);
         const device = this;
         self[method.name] = parameters.length === 0 ? () => compiled(device.executionContext)
-          : parameters.length === 1 ? (a: GeneratedCallArgument) => compiled(device.executionContext, a)
-          : parameters.length === 2 ? (a: GeneratedCallArgument, b: GeneratedCallArgument) => compiled(device.executionContext, a, b)
-          : parameters.length === 3 ? (a: GeneratedCallArgument, b: GeneratedCallArgument, c: GeneratedCallArgument) =>
+          : parameters.length === 1 ? (a: GeneratedCallArgument = d0!) => compiled(device.executionContext, a)
+          : parameters.length === 2 ? (a: GeneratedCallArgument = d0!, b: GeneratedCallArgument = d1!) =>
+            compiled(device.executionContext, a, b)
+          : parameters.length === 3 ? (a: GeneratedCallArgument = d0!, b: GeneratedCallArgument = d1!, c: GeneratedCallArgument = d2!) =>
             compiled(device.executionContext, a, b, c)
           : (...args: GeneratedCallArgument[]) => compiled(device.executionContext, ...args);
       }

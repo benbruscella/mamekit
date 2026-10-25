@@ -1687,16 +1687,30 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
         return [declared];
       }
       const member = `__${reused ? 'local' : 'static'}_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
+      const storage: GeneratedExpression = { kind: 'identifier', name: member };
+      // A constant-length scratch struct array is built once with the device's
+      // own struct members, so it carries its struct marker and methods from
+      // construction and needs no per-call initialisation check.
+      if (reused && fields && value.args[0]?.kind === 'number') {
+        const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
+        if (!device.members.some(candidate => candidate.name === member)) {
+          device.members.push({ name: member, valueType: leaf, fields, arrayLength: value.args[0].value });
+        }
+        return [{ op: 'declare', name: operation.name, value: storage }];
+      }
       // A static table (`static const u8 dummy_table[] = {...}`) declares its
       // element type; the member holding it must not be narrowed to that, or
       // the Williams blitter's remap table became one byte.
       const aggregate = value.kind === 'call' && value.callee.kind === 'identifier' &&
         ['ARRAY', 'AGGREGATE', 'STRUCT', 'STRUCT_ARRAY', 'STRUCT_ARRAY_OF', 'ALLOC'].includes(value.callee.name);
       if (!device.members.some(candidate => candidate.name === member)) {
-        device.members.push({ name: member, valueType: aggregate ? 'auto' : operation.valueType ?? 'auto' });
+        const structStatic = fields && value.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'STRUCT';
+        const leaf = operation.valueType?.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1);
+        device.members.push(structStatic && leaf
+          ? { name: member, valueType: leaf, fields }
+          : { name: member, valueType: aggregate ? 'auto' : operation.valueType ?? 'auto' });
         device.members.push({ name: `${member}__initialised`, valueType: 'bool' });
       }
-      const storage: GeneratedExpression = { kind: 'identifier', name: member };
       // Initialised once, as C++ does on first pass -- not again whenever the
       // value happens to be zero.
       const initialised: GeneratedExpression = { kind: 'identifier', name: `${member}__initialised` };

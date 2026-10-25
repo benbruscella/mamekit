@@ -271,7 +271,7 @@ export function slotCardDeviceRoms(
   options: readonly (readonly [option: string, type: string])[],
 ): { region: string; size: number; romSet: string; cards: string[]; loads: { file: string; offset: number; size: number; crc: string }[] }[] {
   const hardware = indexMameHardware(mameSrc);
-  const regions = new Map<string, ReturnType<typeof slotCardDeviceRoms>[number]>();
+  const regions: ReturnType<typeof slotCardDeviceRoms> = [];
   for (const [option, type] of options) {
     const card = hardware.get(type);
     if (!card) continue;
@@ -283,13 +283,7 @@ export function slotCardDeviceRoms(
       const tag = new RegExp(`\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"`).exec(source)?.[1];
       if (!own || !tag) continue;
       for (const region of own.regions) {
-        const key = `${own.romSet}/${tag}/${region.tag}`;
-        const existing = regions.get(key);
-        if (existing) {
-          existing.cards.push(option);
-          continue;
-        }
-        regions.set(key, {
+        regions.push({
           region: `${slotTag}:${option}:${tag}:${region.tag}`,
           size: region.size,
           romSet: own.romSet,
@@ -299,5 +293,5 @@ export function slotCardDeviceRoms(
       }
     }
   }
-  return [...regions.values()];
+  return regions;
 }

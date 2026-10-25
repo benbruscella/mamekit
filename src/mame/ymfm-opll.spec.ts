@@ -4,6 +4,7 @@ import { compileMameDevice, type GeneratedDeviceDefinition } from './device-comp
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import { slotCardDeviceRoms } from '../gen/lower-roms.ts';
 import { clearGeneratedDevices, createDevice, registerGeneratedDevice } from '../runtime/generated-device.ts';
+import { captureState, restoreState } from '../runtime/machine-state.ts';
 
 // The Konami VRC7's DS1001 is a MAME wrapper over ymfm's OPLL, which lives in
 // 3rdparty/ymfm: the device holds a `ymfm::ds1001` (opll_base), which holds an
@@ -89,6 +90,33 @@ const emit = (definition: GeneratedDeviceDefinition, every = false): GeneratedDe
 };
 const compiled = render(emit(ds1001));
 assert.deepEqual(compiled, interpreted, 'emitted OPLL code matches the interpreter');
+
+// Restoring a save state into a freshly constructed DS1001 (before its stream
+// has ever rendered) keeps its local output buffer's struct methods and
+// default parameter values intact.
+{
+  const emitted = emit(ds1001);
+  clearGeneratedDevices();
+  registerGeneratedDevice(emitted);
+  const regions = { internal: new Uint8Array(chip!.members.find(member => member.name === 's_default_instruments')!.values!) };
+  const live = createDevice('DS1001', { clock: 3_579_545, regions });
+  live.call('write', 0, 0x30);
+  live.call('write', 1, 0x10);
+  live.call('write', 0, 0x10);
+  live.call('write', 1, 0xab);
+  live.call('write', 0, 0x20);
+  live.call('write', 1, 0x18);
+  live.call('sound_stream_update');
+  const saved = captureState(live);
+  live.call('sound_stream_update');
+  const expected = live.takeStreamSamples!();
+
+  const fresh = createDevice('DS1001', { clock: 3_579_545, regions });
+  assert.deepEqual(restoreState(fresh, saved), []);
+  fresh.call('sound_stream_update');
+  assert.deepEqual(fresh.takeStreamSamples!(), expected, 'restored fresh DS1001 renders the next stream update');
+  clearGeneratedDevices();
+}
 
 // The VRC7 card builds the DS1001 as a child at MAME's clock and route, and
 // the card's ROM is the machine's only when a VRC7 is in the slot.

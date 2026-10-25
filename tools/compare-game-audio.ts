@@ -63,10 +63,12 @@ const frames = Math.ceil(seconds * 60);
 const config = JSON.parse(readFileSync(join(gameOutputDir(join(projectRoot, 'dist'), machineContract.category, game),
   'config.json'), 'utf8')) as ShellConfig;
 const pressActions = presses.map(press => ({ ...press, heldFrames: 6, releasedFrames: 0 }));
-const contract = cartridge
+const actions = [...(start ? startSchedule(config.bindings, frames) : []), ...pressActions]
+  .sort((left, right) => left.atFrame - right.atFrame);
+const contract = cartridge || start || presses.length
   ? {
-      ...machineContract, cartridge, checkpoints: [], golden: undefined,
-      actions: [...(start ? startSchedule(config.bindings, frames) : []), ...pressActions].sort((left, right) => left.atFrame - right.atFrame),
+      ...machineContract, ...(cartridge ? { cartridge } : {}), checkpoints: [], golden: undefined,
+      actions,
     }
   : machineContract;
 
