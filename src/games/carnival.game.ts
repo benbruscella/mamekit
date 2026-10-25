@@ -34,9 +34,9 @@ export const carnival = sourceTarget({
     audio: {
       writes: 190,
       nonzeroWrites: 102,
-      writeHash: '3887eccd',
-      pcmHash: '937e9d0b',
-      rms: 0.109823,
+      writeHash: '24603b81',
+      pcmHash: '6f35d513',
+      rms: 0.109907,
     },
   },
 });

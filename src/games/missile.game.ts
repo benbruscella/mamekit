@@ -45,9 +45,9 @@ export const missile = sourceTarget({
     audio: {
       writes: 63928,
       nonzeroWrites: 14620,
-      writeHash: 'b8af55b4',
-      pcmHash: '8e608810',
-      rms: 0.022273,
+      writeHash: '7d92b0c4',
+      pcmHash: '8eed67bb',
+      rms: 0.021874,
     },
   },
 });

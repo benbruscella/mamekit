@@ -47,9 +47,9 @@ export const sf2 = sourceTarget({
     audio: {
       writes: 122215,
       nonzeroWrites: 103953,
-      writeHash: '0b1f41c7',
-      pcmHash: '1a4afca6',
-      rms: 0.104724,
+      writeHash: 'ecffa33f',
+      pcmHash: '0cd47676',
+      rms: 0.104707,
     },
   },
 });

@@ -38,9 +38,9 @@ export const travrusa = sourceTarget({
     audio: {
       writes: 421949,
       nonzeroWrites: 416943,
-      writeHash: '7403120d',
-      pcmHash: 'e8b54c0f',
-      rms: 0.169655,
+      writeHash: 'ee252f26',
+      pcmHash: 'b6fe39fc',
+      rms: 0.169657,
     },
   },
 });

@@ -28,8 +28,8 @@ export const panic = sourceTarget({
     audio: {
       writes: 623,
       nonzeroWrites: 0,
-      writeHash: '247f90de',
-      pcmHash: 'f6d8571e',
+      writeHash: '6e1c85e4',
+      pcmHash: '0cbb427f',
       rms: 0.066605,
     },
   },

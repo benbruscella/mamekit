@@ -43,9 +43,9 @@ export const bombjack = sourceTarget({
     audio: {
       writes: 115200,
       nonzeroWrites: 31363,
-      writeHash: '948c7bc6',
-      pcmHash: 'bb10c6c6',
-      rms: 0.063632,
+      writeHash: '7f0a7d12',
+      pcmHash: '7f8fcbdc',
+      rms: 0.063667,
     },
   },
 });

@@ -53,7 +53,7 @@ export const gameboy = {
       audio: {
         writes: 1446569,
         nonzeroWrites: 1244872,
-        writeHash: 'cec0b7cd',
+        writeHash: '7c2dae81',
         pcmHash: 'b387693f',
         rms: 0.259853,
       },

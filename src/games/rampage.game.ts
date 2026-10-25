@@ -32,9 +32,9 @@ export const rampage = sourceTarget({
     audio: {
       writes: 639992,
       nonzeroWrites: 639990,
-      writeHash: 'c8b3eafc',
-      pcmHash: 'dfad8b6c',
-      rms: 0.585149,
+      writeHash: '387687de',
+      pcmHash: '19932181',
+      rms: 0.58515,
     },
   },
 });

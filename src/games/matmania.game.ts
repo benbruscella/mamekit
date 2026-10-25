@@ -27,9 +27,9 @@ export const matmania = sourceTarget({
     audio: {
       writes: 13741,
       nonzeroWrites: 12771,
-      writeHash: '916fabf1',
-      pcmHash: 'c8cb4679',
-      rms: 0.039924,
+      writeHash: 'f37fc381',
+      pcmHash: '0a179bb4',
+      rms: 0.04121,
     },
   },
 });

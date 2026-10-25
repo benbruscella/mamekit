@@ -27,9 +27,9 @@ export const simpsons = sourceTarget({
     audio: {
       writes: 56867,
       nonzeroWrites: 55155,
-      writeHash: '844e1a4e',
-      pcmHash: '1983d914',
-      rms: 0.033765,
+      writeHash: '7d247a50',
+      pcmHash: 'aec343b8',
+      rms: 0.033548,
     },
   },
   actions: [

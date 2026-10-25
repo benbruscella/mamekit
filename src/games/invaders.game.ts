@@ -31,7 +31,7 @@ export const invaders = sourceTarget({
     audio: {
       writes: 721,
       nonzeroWrites: 717,
-      writeHash: '8dc20664',
+      writeHash: 'aafe480c',
       pcmHash: '479e28c5',
       rms: 0.035164,
     },

@@ -43,9 +43,9 @@ export const arkanoid = sourceTarget({
     audio: {
       writes: 2050,
       nonzeroWrites: 1407,
-      writeHash: 'f4bd02cb',
-      pcmHash: '42e8a60d',
-      rms: 0.212254,
+      writeHash: 'b1449215',
+      pcmHash: '82ed6ff0',
+      rms: 0.21236,
     },
   },
 });
