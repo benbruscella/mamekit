@@ -45,7 +45,10 @@ const DEADZONE = 0.5;
  * make the same choice for the CPS boards. The two small buttons follow a
  * cabinet's panel rather than the pad's names: the first (Select) is start
  * and the second (Start) is the coin slot, which is how a fight stick's side
- * buttons read left to right.
+ * buttons read left to right. A console's own pad is the exception: it
+ * already has a Select and a Start in that order, and the NES and Game Boy
+ * name theirs IPT_SELECT and IPT_START, so those land on the buttons of the
+ * same name.
  */
 const STANDARD: Record<string, Control> = {
   IPT_JOYSTICK_LEFT: 'left', IPT_JOYSTICK_RIGHT: 'right',
@@ -63,8 +66,8 @@ const STANDARD: Record<string, Control> = {
   IPT_BUTTON1: 'b2', IPT_BUTTON2: 'b3', IPT_BUTTON3: 'b5',
   IPT_BUTTON4: 'b0', IPT_BUTTON5: 'b1', IPT_BUTTON6: 'b7',
   IPT_BUTTON7: 'b4', IPT_BUTTON8: 'b6',
-  IPT_START: 'b8', IPT_START1: 'b8', IPT_START2: 'b8',
-  IPT_SELECT: 'b9', IPT_COIN1: 'b9', IPT_COIN2: 'b9',
+  IPT_START1: 'b8', IPT_START2: 'b8', IPT_COIN1: 'b9', IPT_COIN2: 'b9',
+  IPT_SELECT: 'b8', IPT_START: 'b9',
   IPT_PEDAL: 'b7', IPT_PEDAL2: 'b6',
 };
 
@@ -111,14 +114,83 @@ const STANDARD_NAMES: Record<string, string> = {
 };
 
 /**
- * The standard-layout button that drives one MAME input type, in the Xbox
- * spelling browsers use, or undefined when the layout has no button for it.
- * The generator's home page reads its controller legend from here so the
- * page and the poll can never disagree.
+ * The same layout as Sony prints it. A DualShock 4 or DualSense is a standard
+ * pad to every browser -- same button indices, same d-pad -- so only the
+ * names on its caps differ, and naming them in Xbox letters sent a PlayStation
+ * player looking for an "X" that is a square on their pad.
  */
-export function standardPadButton(type: string): string | undefined {
+const PLAYSTATION_NAMES: Record<string, string> = {
+  ...STANDARD_NAMES,
+  b0: '✕', b1: '○', b2: '□', b3: '△', b4: 'L1', b5: 'R1', b6: 'L2', b7: 'R2',
+  b8: 'Share', b9: 'Options', b16: 'PS', b17: 'touchpad',
+};
+
+/** Whose names a pad's buttons go by. */
+export type PadFamily = 'standard' | 'playstation';
+
+/** Sony's USB vendor id. */
+const SONY = '054c';
+
+/**
+ * Sony's pads by USB product id. Chrome and Firefox name a DualShock 4 only
+ * "Wireless Controller", which says nothing about what is in the hand.
+ */
+const SONY_PADS: Record<string, string> = {
+  '05c4': 'DualShock 4', '09cc': 'DualShock 4', '0ba0': 'DualShock 4',
+  '0ce6': 'DualSense', '0df2': 'DualSense Edge',
+};
+
+/**
+ * The USB vendor and product ids a browser folds into a pad's id: Chrome and
+ * Safari append "(... Vendor: 054c Product: 09cc)", Firefox prefixes
+ * "54c-9cc-" without the leading zeros.
+ */
+function usbIds(id: string): { vendor: string; product: string } | undefined {
+  const match = /Vendor:\s*([0-9a-f]{1,4})\s+Product:\s*([0-9a-f]{1,4})/i.exec(id) ??
+    /^([0-9a-f]{1,4})-([0-9a-f]{1,4})-/i.exec(id);
+  return match
+    ? { vendor: match[1]!.toLowerCase().padStart(4, '0'), product: match[2]!.toLowerCase().padStart(4, '0') }
+    : undefined;
+}
+
+/** A pad's name as its maker gave it, without what the browser wraps it in. */
+function baseName(id: string): string {
+  return id
+    .replace(/\s*\((?:STANDARD GAMEPAD)?\s*(?:Vendor:.*)?\)\s*$/i, '')
+    .replace(/^[0-9a-f]{1,4}-[0-9a-f]{1,4}-/i, '')
+    .trim();
+}
+
+/**
+ * Sony's pads where a browser gives only a name. Chrome on current macOS
+ * reads pads through Apple's GameController framework and reports its vendor
+ * name with no ids at all -- "Wireless Controller (STANDARD GAMEPAD)" -- and
+ * a DualShock 4's vendor name is that bare "Wireless Controller"; Xbox and
+ * DualSense pads put their own name in front of it.
+ */
+function sonyByName(name: string): string | undefined {
+  if (/^wireless controller$/i.test(name) || /dualshock/i.test(name)) return 'DualShock 4';
+  if (/dualsense edge/i.test(name)) return 'DualSense Edge';
+  if (/dualsense/i.test(name)) return 'DualSense';
+  return undefined;
+}
+
+/** A Sony pad by its vendor id, or by name where a browser gives no ids. */
+export function padFamily(id: string): PadFamily {
+  const ids = usbIds(id);
+  return (ids ? ids.vendor === SONY : sonyByName(baseName(id))) ? 'playstation' : 'standard';
+}
+
+/**
+ * The standard-layout button that drives one MAME input type, in the Xbox
+ * spelling browsers use or as a PlayStation pad prints it, or undefined when
+ * the layout has no button for it. The generator's home page reads its
+ * controller legends from here so the page and the poll can never disagree.
+ */
+export function standardPadButton(type: string, family: PadFamily = 'standard'): string | undefined {
   const control = STANDARD[type];
-  return control ? STANDARD_NAMES[control] ?? control : undefined;
+  const names = family === 'playstation' ? PLAYSTATION_NAMES : STANDARD_NAMES;
+  return control ? names[control] ?? control : undefined;
 }
 
 /**
@@ -130,10 +202,10 @@ const padPlayer = bindingPlayer;
 
 /** The pad's own name without the vendor/product decoration browsers append. */
 export function padName(id: string): string {
-  return id
-    .replace(/\s*\(.*?Vendor:.*\)\s*$/i, '')
-    .replace(/^[0-9a-f]{4}-[0-9a-f]{4}-/i, '')
-    .trim() || 'gamepad';
+  const ids = usbIds(id);
+  if (ids?.vendor === SONY && SONY_PADS[ids.product]) return SONY_PADS[ids.product]!;
+  const name = baseName(id);
+  return (ids ? undefined : sonyByName(name)) ?? (name || 'gamepad');
 }
 
 /**
@@ -313,9 +385,10 @@ export class GamepadInput {
     if (!slot) return [];
     const controls = [...(this.controls.get(binding) ?? [])]
       .sort((left, right) => Number(/^b\d+$/.test(right)) - Number(/^b\d+$/.test(left)));
+    const table = padFamily(slot.id) === 'playstation' ? PLAYSTATION_NAMES : STANDARD_NAMES;
     const names = controls.map(control =>
       slot.mapping === 'standard' || !/^b\d+$/.test(control)
-        ? STANDARD_NAMES[control] ?? control
+        ? table[control] ?? control
         : `button ${Number(control.slice(1)) + 1}`);
     return [...new Set(names)];
   }

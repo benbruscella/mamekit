@@ -1000,7 +1000,11 @@ calls a frame, and Castlevania III ran at 40 ms a frame until both held (#171).
   catch-up used to read the same snapshot several times over and never once in
   between. A pad the browser could not map may put its lever on a POV hat,
   which centres outside an axis's own range -- the only thing separating it
-  from an analog stick resting at zero, and therefore how one is recognised;
+  from an analog stick resting at zero, and therefore how one is recognised.
+  A Sony pad (DualShock 4, DualSense) is the same standard layout, so it
+  drives the same fields; only the legend changes, naming the caps the way
+  Sony prints them (□ △ ✕ ○, L1/R1, Share/Options), found by the USB vendor
+  id the browser folds into the pad's id;
 - `pointer.ts`: the third source -- mouse travel over the screen (a spinner
   or arcade trackball is a USB mouse) turns the generated relative pairs
   (dials, trackballs) by MAME's own `PORT_SENSITIVITY`, one pixel per

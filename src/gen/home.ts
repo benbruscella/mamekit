@@ -211,13 +211,14 @@ h2{font-size:clamp(26px,3.4vw,38px);margin:8px 0 10px;line-height:1.1}
 .pad p{margin:0;color:var(--muted);font-size:14px}
 .legend{margin:0;font-size:12px;color:var(--muted)}.legend .gold{color:var(--gold)}.legend .green{color:#3ccf6a}
 .art{width:100%;height:auto;display:block}
+.pad.wide{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:center;gap:24px}.pad .copy{display:flex;flex-direction:column;gap:14px}
 .partner{display:flex;gap:12px;align-items:center;border:1px solid rgba(242,194,0,.55);background:linear-gradient(90deg,rgba(242,194,0,.12),rgba(242,194,0,.03));border-radius:12px;padding:10px 14px}
 .partner .mark{font-size:22px;line-height:1}.partner b{display:block;color:var(--gold);font-size:14px}.partner em{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:2px}
 .note{font-size:12px;color:var(--dim);margin:0}
 footer{margin-top:80px;border-top:1px solid var(--line);padding-top:24px;color:var(--muted);font-size:13px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
 footer a{text-decoration:none}footer a:hover{color:var(--gold)}footer .rev{margin-left:auto;font:12px ui-monospace,monospace;color:var(--dim)}
 @media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:48px}.pipe,.tenets{grid-template-columns:repeat(2,minmax(0,1fr))}.rooms{grid-template-columns:1fr}}
-@media(max-width:640px){.pads{grid-template-columns:1fr}.pipe,.tenets{grid-template-columns:1fr}nav{gap:14px;flex-wrap:wrap}nav strong{width:100%;margin-bottom:6px}.wrap{padding-inline:18px}.strip{margin-inline:-18px;padding-inline:18px}}
+@media(max-width:640px){.pads,.pad.wide{grid-template-columns:1fr}.pipe,.tenets{grid-template-columns:1fr}nav{gap:14px;flex-wrap:wrap}nav strong{width:100%;margin-bottom:6px}.wrap{padding-inline:18px}.strip{margin-inline:-18px;padding-inline:18px}}
 </style>`;
 
 /**
@@ -265,6 +266,75 @@ function fightBoxSvg(top: string[], bottom: string[], small: [string, string]): 
   parts.push(caption(540, 150, 'SPINNER', 'mouse'));
   const defs = '<defs><radialGradient id="ball" cx="40%" cy="35%" r="65%"><stop offset="0" stop-color="#4f5c9e"/><stop offset="1" stop-color="#0b0e22"/></radialGradient></defs>';
   return `<svg class="art" viewBox="0 0 580 240" role="img" aria-label="Fight box layout with trackball and spinner">${defs}${parts.join('')}</svg>`;
+}
+
+/**
+ * A DualShock 4 with the role each control plays, keyed by the names Sony
+ * prints on it. `role` answers from the same table the poll drives, so a
+ * button the mapping leaves free is drawn dim rather than guessed at.
+ */
+function dualShockSvg(role: (name: string) => string): string {
+  const font = 'ui-sans-serif,system-ui';
+  const text = (x: number, y: number, value: string, anchor = 'middle', size = 10, fill = '#eef0ff'): string =>
+    value ? `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="800" letter-spacing=".08em" fill="${fill}" font-family="${font}">${escapeHtml(value)}</text>` : '';
+  const edge = (name: string): string => (role(name) ? '#f2c200' : '#2b3467');
+  const parts: string[] = [];
+  // the shoulders sit behind the shell: triggers at the back, bumpers in front
+  const shoulder = (x: number, y: number, h: number, name: string, baseline: number): string => {
+    const label = role(name) ? `${name} · ${role(name)}` : name;
+    return `<rect x="${x}" y="${y}" width="96" height="${h}" rx="7" fill="#141a3c" stroke="${edge(name)}" stroke-width="2"/>` +
+      text(x + 48, baseline, label, 'middle', 9, role(name) ? '#eef0ff' : '#5d6699');
+  };
+  parts.push(shoulder(100, 2, 40, 'L2', 19), shoulder(384, 2, 40, 'R2', 19));
+  parts.push(shoulder(104, 28, 30, 'L1', 46), shoulder(380, 28, 30, 'R1', 46));
+  parts.push('<path d="M140,52 H440 C480,52 506,66 516,100 L548,214 C560,258 532,288 500,282 C478,278 460,262 446,244 ' +
+    'C436,236 426,234 414,234 H166 C154,234 144,236 134,244 C120,262 102,278 80,282 C48,288 20,258 32,214 L64,100 ' +
+    'C74,66 100,52 140,52 Z" fill="#0d1129" stroke="#2b3467" stroke-width="2"/>');
+  // the touchpad and the PS button take no part in a cabinet
+  parts.push('<rect x="214" y="64" width="152" height="80" rx="12" fill="#141a3c" stroke="#2b3467" stroke-width="2"/>');
+  parts.push('<circle cx="290" cy="196" r="9" fill="#141a3c" stroke="#2b3467" stroke-width="2"/>');
+  // Share and Options either side of the touchpad
+  for (const [x, name] of [[186, 'Share'], [382, 'Options']] as const) {
+    parts.push(`<rect x="${x}" y="70" width="12" height="26" rx="6" fill="#1b2148" stroke="${edge(name)}" stroke-width="2"/>`);
+    parts.push(text(x + 6, 112, role(name) || name.toUpperCase(), 'middle', 9));
+  }
+  // the d-pad: four arms around a hub
+  const arms: [number, number, string][] = [[0, -1, '↑'], [0, 1, '↓'], [-1, 0, '←'], [1, 0, '→']];
+  for (const [dx, dy, arrow] of arms) {
+    const cx = 130 + dx * 22, cy = 128 + dy * 22;
+    parts.push(`<rect x="${cx - 11}" y="${cy - 11}" width="22" height="22" rx="4" fill="#1b2148" stroke="${edge('D-pad')}" stroke-width="2"/>`);
+    parts.push(text(cx, cy + 4, arrow, 'middle', 11));
+  }
+  parts.push(text(130, 176, role('D-pad')));
+  // the face buttons, each with its own mark in its own colour
+  const face: [string, number, number, string, string][] = [
+    ['△', 0, -1, '#3ccf6a', 'above'], ['○', 1, 0, '#ff6b81', 'right'],
+    ['✕', 0, 1, '#7ab0ff', 'below'], ['□', -1, 0, '#ff8ad8', 'left'],
+  ];
+  for (const [name, dx, dy, colour, side] of face) {
+    const cx = 450 + dx * 34, cy = 128 + dy * 34;
+    parts.push(`<circle cx="${cx}" cy="${cy}" r="17" fill="#1b2148" stroke="${edge(name)}" stroke-width="2"/>`);
+    const mark = {
+      '△': `<polygon points="${cx},${cy - 8} ${cx + 8},${cy + 6} ${cx - 8},${cy + 6}" fill="none" stroke="${colour}" stroke-width="2"/>`,
+      '○': `<circle cx="${cx}" cy="${cy}" r="7" fill="none" stroke="${colour}" stroke-width="2"/>`,
+      '✕': `<path d="M${cx - 6},${cy - 6} L${cx + 6},${cy + 6} M${cx + 6},${cy - 6} L${cx - 6},${cy + 6}" stroke="${colour}" stroke-width="2.2" stroke-linecap="round"/>`,
+      '□': `<rect x="${cx - 6}" y="${cy - 6}" width="12" height="12" fill="none" stroke="${colour}" stroke-width="2"/>`,
+    }[name];
+    parts.push(mark!);
+    const label = role(name);
+    if (side === 'above') parts.push(text(cx, cy - 24, label));
+    if (side === 'below') parts.push(text(cx, cy + 32, label));
+    if (side === 'right') parts.push(text(cx + 24, cy + 4, label, 'start'));
+    if (side === 'left') parts.push(text(cx - 24, cy + 4, label, 'end'));
+  }
+  // the two sticks
+  for (const [x, name] of [[210, 'left stick'], [370, 'right stick']] as const) {
+    parts.push(`<circle cx="${x}" cy="196" r="28" fill="#141a3c" stroke="${edge(name)}" stroke-width="2"/>`);
+    parts.push(`<circle cx="${x}" cy="196" r="18" fill="url(#stick)"/>`);
+    parts.push(text(x, 252, role(name)));
+  }
+  const defs = '<defs><radialGradient id="stick" cx="40%" cy="35%" r="65%"><stop offset="0" stop-color="#4f5c9e"/><stop offset="1" stop-color="#0b0e22"/></radialGradient></defs>';
+  return `<svg class="art" viewBox="0 0 580 296" role="img" aria-label="DualShock 4 layout">${defs}${parts.join('')}</svg>`;
 }
 
 /** What a key does: its role on every cabinet, and its role on a six-button fighter. */
@@ -427,6 +497,22 @@ export function homePageHtml(data: HomeData): string {
     [`LK|${pad('IPT_BUTTON4')}`, `MK|${pad('IPT_BUTTON5')}`, `HK|${pad('IPT_BUTTON6')}`],
     ['START', 'COIN'],
   );
+  // The same roles on a PlayStation pad, named the way Sony prints the caps.
+  const sony = new Map<string, string>();
+  const padRoles: [string, string][] = [
+    ['IPT_JOYSTICK_UP', 'MOVE'], ['IPT_JOYSTICKRIGHT_UP', '2ND STICK'],
+    ['IPT_BUTTON1', 'LP'], ['IPT_BUTTON2', 'MP'], ['IPT_BUTTON3', 'HP'],
+    ['IPT_BUTTON4', 'LK'], ['IPT_BUTTON5', 'MK'], ['IPT_BUTTON6', 'HK'],
+    ['IPT_START1', 'START'], ['IPT_COIN1', 'COIN'],
+  ];
+  for (const [type, caption] of padRoles) {
+    const name = standardPadButton(type, 'playstation');
+    if (name && !sony.has(name)) sony.set(name, caption);
+  }
+  // a pad's lever is both its d-pad and its left stick
+  if (sony.has('D-pad')) sony.set('left stick', sony.get('D-pad')!);
+  const ds4 = dualShockSvg(name => sony.get(name) ?? '');
+  const fire = [standardPadButton('IPT_BUTTON1', 'playstation'), standardPadButton('IPT_BUTTON4', 'playstation')].join(' and ');
 
   // What the machines on this build actually remember. A section with
   // nothing behind it is left out, the way a room with nothing in it is.
@@ -478,7 +564,7 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
 <section id="controllers">
   <div class="eyebrow">Controllers</div>
   <h2>Keyboard, or the real thing.</h2>
-  <p class="lede">Every machine takes the keyboard out of the box. Plug in a USB pad or fight stick and it takes that too, with the controls legend on the game naming whichever you are holding.</p>
+  <p class="lede">Every machine takes the keyboard out of the box. Plug in a USB pad or fight stick, or pair a Bluetooth pad, and it takes that too, with the controls legend on the game naming whichever you are holding.</p>
   <div class="pads">
     <div class="pad">
       <h3><small>Always on</small>Keyboard</h3>
@@ -493,6 +579,14 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}
       <p>Any pad the browser recognises as a Standard Gamepad works: the top row is the punches (light, medium, heavy), the bottom row the kicks, the first small button starts and the second inserts a coin. A second pad is player two. The spinner and trackball reach the browser as a mouse, and every dial and trackball machine takes them at MAME's own sensitivity, smoothed across the frame the way MAME does it.</p>
       ${art}
       <p class="note">Press any button after the game opens: browsers keep a pad hidden until it is touched. Games with fewer buttons fold the bottom row onto the top. On a spinner or trackball game, click the screen to capture the pointer so the cursor stays put; Esc lets go.</p>
+    </div>
+    <div class="pad wide">
+      <div class="copy">
+        <h3><small>Wireless</small>PlayStation, Xbox &amp; Bluetooth pads</h3>
+        <p>A DualShock 4 or DualSense paired over Bluetooth is a Standard Gamepad to Chrome, Safari and Firefox, and so is an Xbox pad. It drives the same panel as the fight stick, and the legend on the game names each control the way your pad prints it: ${escapeHtml(standardPadButton('IPT_BUTTON1', 'playstation') ?? '')} and ${escapeHtml(standardPadButton('IPT_BUTTON2', 'playstation') ?? '')} on a PlayStation pad, X and Y on an Xbox one. Either stick or the d-pad steers.</p>
+        <p class="note">To pair a DualShock 4, hold <b>Share</b> and <b>PS</b> together until the light bar flashes in pairs, then choose <b>DUALSHOCK 4 Wireless Controller</b> in your computer's Bluetooth settings. A USB cable works too. On a game with one or two buttons, ${escapeHtml(fire)} both fire.</p>
+      </div>
+      ${ds4}
     </div>
   </div>
 </section>
