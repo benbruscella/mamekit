@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { GamepadInput, padName, type PadState } from './gamepad.ts';
+import { GamepadInput, padFamily, padName, standardPadButton, type PadState } from './gamepad.ts';
 import { KeyboardInput, type FieldBinding } from './input.ts';
 
 /**
@@ -391,4 +391,57 @@ assert.equal(padName('1209-0001-FightBox R10-Pro'), 'FightBox R10-Pro');
 assert.equal(padName('Xbox Wireless Controller Extended Gamepad'), 'Xbox Wireless Controller Extended Gamepad');
 assert.equal(padName(''), 'gamepad');
 
-console.log('gamepad.spec: standard layout, fold aliases, two players, hot-plug and unmapped pads passed');
+// A DualShock 4 over Bluetooth is a standard pad to every browser: the same
+// indices drive the same fields, and only the legend speaks Sony.
+{
+  const ds4 = 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)';
+  let pads: (PadState | null)[] = [];
+  const input = new KeyboardInput(bindings, [], ports);
+  const source = new GamepadInput(input, bindings, () => pads);
+  pads = [pad(0, { id: ds4, buttons: Array.from({ length: 18 }, (_, i) => ({ pressed: i === 2, value: i === 2 ? 1 : 0 })) })];
+  source.poll();
+  assert.equal(settle(input).read('IN1'), 0xffff & ~0x10, 'square is the jab, as X is on an Xbox pad');
+  assert.deepEqual(source.controlNames(bindings[8]!), ['□']);
+  assert.deepEqual(source.controlNames(bindings[11]!), ['✕']);
+  assert.deepEqual(source.controlNames(bindings[10]!), ['R1']);
+  assert.deepEqual(source.controlNames(bindings[2]!), ['Share']);
+  assert.deepEqual(source.controlNames(bindings[0]!), ['Options']);
+  assert.deepEqual(source.controlNames(bindings[4]!), ['D-pad']);
+}
+
+assert.equal(padName('Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)'), 'DualShock 4', 'Chrome');
+assert.equal(padName('54c-5c4-Wireless Controller'), 'DualShock 4', 'Firefox drops the leading zeros');
+assert.equal(padName('DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'), 'DualSense');
+assert.equal(padName('45e-b13-Xbox Wireless Controller'), 'Xbox Wireless Controller');
+assert.equal(padFamily('54c-9cc-Wireless Controller'), 'playstation');
+// A console pad keeps its own Select and Start; only a cabinet's start and
+// coin follow the fight-stick order.
+{
+  const joypad: FieldBinding[] = [
+    { port: 'P1', mask: 0x01, keys: ['KeyX'], label: 'B', type: 'IPT_BUTTON1' },
+    { port: 'P1', mask: 0x02, keys: ['KeyZ'], label: 'A', type: 'IPT_BUTTON2' },
+    { port: 'P1', mask: 0x04, keys: ['ShiftRight'], label: 'IPT_SELECT', type: 'IPT_SELECT' },
+    { port: 'P1', mask: 0x08, keys: ['Enter'], label: 'IPT_START', type: 'IPT_START' },
+  ];
+  const input = new KeyboardInput(joypad, [], [{ tag: 'P1', init: 0xff }]);
+  const source = new GamepadInput(input, joypad, () => [pad(0, { id: 'Wireless Controller (STANDARD GAMEPAD)' })]);
+  source.poll();
+  assert.deepEqual(source.controlNames(joypad[2]!), ['Share']);
+  assert.deepEqual(source.controlNames(joypad[3]!), ['Options']);
+  assert.deepEqual(source.controlNames(joypad[0]!), ['□', '✕'], 'B is under the thumb, as on a Nintendo pad');
+  assert.deepEqual(source.controlNames(joypad[1]!), ['△', '○']);
+}
+
+// Chrome on macOS 26 reads pads through GameController and gives no ids at all.
+assert.equal(padName('Wireless Controller (STANDARD GAMEPAD)'), 'DualShock 4');
+assert.equal(padFamily('Wireless Controller (STANDARD GAMEPAD)'), 'playstation');
+assert.equal(padName('Xbox Wireless Controller (STANDARD GAMEPAD)'), 'Xbox Wireless Controller');
+assert.equal(padFamily('Xbox Wireless Controller (STANDARD GAMEPAD)'), 'standard');
+assert.equal(padFamily('Wireless Controller (STANDARD GAMEPAD Vendor: 1234 Product: 0001)'), 'standard',
+  'a third-party pad with its own ids is not taken for Sony by name');
+assert.equal(padFamily('DUALSHOCK 4 Wireless Controller'), 'playstation', 'a name alone, where no ids are given');
+assert.equal(padFamily('FightBox R10-Pro (Vendor: 1209 Product: 0001)'), 'standard');
+assert.equal(standardPadButton('IPT_BUTTON1', 'playstation'), '□');
+assert.equal(standardPadButton('IPT_BUTTON1'), 'X');
+
+console.log('gamepad.spec: standard layout, fold aliases, two players, hot-plug, unmapped and PlayStation pads passed');
