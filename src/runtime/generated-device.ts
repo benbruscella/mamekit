@@ -28,6 +28,7 @@ import {
   resizeGeneratedContainer,
 } from './generated-handler.ts';
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
+import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
@@ -65,6 +66,10 @@ interface DeviceMember {
   object?: string;
   /** Its constructor arguments as the owner's initializer writes them (`*this`). */
   objectArgs?: string[];
+  /** Built by the owner's own source constructor, from that constructor's arguments. */
+  objectConstructed?: boolean;
+  /** Holds, refers or points to an object of this plain C++ class. */
+  objectType?: string;
 }
 
 /** One field of a struct-shaped member; `fields` makes it nest. */
@@ -90,6 +95,8 @@ interface DeviceTimer {
   member: string;
   /** Absent for a timer nothing calls back; the device only asks `enabled()`. */
   callback?: string;
+  /** A member array of this many timers (`emu_timer *m_timer[2]`). */
+  count?: number;
 }
 
 interface DeviceMethod {
@@ -244,6 +251,8 @@ export interface GeneratedDeviceDefinition {
   children?: {
     member: string;
     type: string;
+    /** Its tag below this device, as its finder names it. */
+    tag?: string;
     definition: GeneratedDeviceDefinition;
     /** Child delegate member -> this device's method that fills it. */
     delegateTargets?: Record<string, string>;
@@ -770,6 +779,8 @@ function unitInLastPlace(value: number): number {
 
 class IrTimer {
   private remainingSeconds = Infinity;
+  /** What was left when `enable(false)` stopped the timer. */
+  private disabledSeconds = Infinity;
   private intervalSeconds = Infinity;
   private period = Infinity;
   private parameter = 0;
@@ -788,7 +799,7 @@ class IrTimer {
 
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['remainingSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry'];
+    return ['remainingSeconds', 'disabledSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry'];
   }
 
   adjust(delay: number, parameter = 0, period = Infinity): void {
@@ -862,6 +873,23 @@ class IrTimer {
 
   enabled(): boolean {
     return Number.isFinite(this.remainingSeconds);
+  }
+
+  /**
+   * MAME's `emu_timer::enable`: a disabled timer keeps its expiry and does
+   * not fire; enabling it again resumes it. The FM chips stop a timer this
+   * way when its duration is negative (`ymfm_set_timer`).
+   */
+  enable(enable: unknown = true): boolean {
+    const was = this.enabled();
+    if (!enable && was) {
+      this.disabledSeconds = this.remainingSeconds;
+      this.remainingSeconds = Infinity;
+    } else if (enable && !was && Number.isFinite(this.disabledSeconds)) {
+      this.remainingSeconds = this.disabledSeconds;
+      this.disabledSeconds = Infinity;
+    }
+    return was;
   }
 
 
@@ -1044,13 +1072,19 @@ class IrDevice implements Device {
         [type, Object.fromEntries(methods.map(method => {
           const names = splitParameters(method.parameters).map(parameterName);
           return [method.name, function (this: Record<string, unknown>, ...args: unknown[]): unknown {
-            const locals: Record<string, unknown> = {};
+            // `this` is the struct: ymfm's `ymfm_output::clear()` ends `return *this;`.
+            const locals: Record<string, unknown> = { this: this };
             names.forEach((name, index) => { locals[name] = args[index] ?? 0; });
             // Its own bindings, not the device's: those carry member hooks that
             // store into the device, and `period = ...` landed there.
-            return executeGeneratedProgram(method.program, {
+            // One bindings object per struct, kept: the compiled program is
+            // cached by bindings, and a fresh one per call recompiled ymfm's
+            // `output->clear()` fifty thousand times a second.
+            let bindings = STRUCT_BINDINGS.get(this);
+            if (!bindings) STRUCT_BINDINGS.set(this, bindings = {
               members: this, constants: device.bindings.constants, calls: device.bindings.calls,
-            } as GeneratedHandlerBindings, locals).value;
+            } as GeneratedHandlerBindings);
+            return executeGeneratedProgram(method.program, bindings, locals, false).value;
           }];
         }))])));
     }
@@ -1147,6 +1181,49 @@ class IrDevice implements Device {
       enumerable: true, configurable: true, get: () => this.members[member.name],
       set: value => { this.members[member.name] = wrap(value, member.bits, member.signed); },
     });
+    // The parameters each method takes by non-const reference, so a caller
+    // holding this object passes storage it writes back to: ymfm's engine
+    // learns which channel a register write keyed on through
+    // `m_regs.write(regnum, data, keyon_channel, keyon_opmask)`.
+    // Only those it assigns: a struct it writes fields of is the object itself.
+    const references = Object.fromEntries(definition.methods.flatMap(method => {
+      const assigned = new Set<string>();
+      walkExpressions(method.program.operations, expression => {
+        if (expression.kind === 'assignment' && expression.target.kind === 'identifier') assigned.add(expression.target.name);
+      });
+      walkOperations(method.program.operations, operation => {
+        if (operation.op === 'assign' && operation.target.kind === 'identifier') assigned.add(operation.target.name);
+      });
+      const indices = splitParameters(method.parameters).flatMap((parameter, index) =>
+        /&(?!&)/.test(parameter.replace(/=.*$/, '')) && !/\bconst\b/.test(parameter) &&
+        assigned.has(parameterName(parameter)) ? [index] : []);
+      return indices.length ? [[method.name, indices]] : [];
+    }));
+    if (Object.keys(references).length) Object.defineProperty(self, REFERENCE_PARAMETERS, { value: references });
+    // A plain C++ object (built from its source constructor) answers to no
+    // host override, so a compiled method with no reference parameter is
+    // called as it stands, its arity fixed: ymfm's operators and channels are
+    // called this way four million times a second, and the rest-argument
+    // wrapper above was the largest single cost of the OPLL.
+    if (definition.construct) {
+      const counts = new Map<string, number>();
+      for (const method of definition.methods) counts.set(method.name, (counts.get(method.name) ?? 0) + 1);
+      for (const method of definition.methods) {
+        const compiled = definition.compiledMethods?.[method.name];
+        const parameters = splitParameters(method.parameters);
+        // A method that assigns a reference parameter is not in the compiled
+        // map at all (it is emitted for emitted callers only), so every
+        // reference a compiled one takes arrives as the object itself.
+        if (!compiled || counts.get(method.name) !== 1 || references[method.name]) continue;
+        const device = this;
+        self[method.name] = parameters.length === 0 ? () => compiled(device.executionContext)
+          : parameters.length === 1 ? (a: GeneratedCallArgument) => compiled(device.executionContext, a)
+          : parameters.length === 2 ? (a: GeneratedCallArgument, b: GeneratedCallArgument) => compiled(device.executionContext, a, b)
+          : parameters.length === 3 ? (a: GeneratedCallArgument, b: GeneratedCallArgument, c: GeneratedCallArgument) =>
+            compiled(device.executionContext, a, b, c)
+          : (...args: GeneratedCallArgument[]) => compiled(device.executionContext, ...args);
+      }
+    }
     self.tag = () => options.tag ?? '';
     self.machine = () => ({
       sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000),
@@ -1228,10 +1305,15 @@ class IrDevice implements Device {
       });
     }
     for (const specification of definition.timers ?? []) {
-      const timer = new IrTimer(() => Number(this.bindings.calls?.['machine().time']?.() ?? NaN));
-      this.timers.set(specification.member, { timer, callback: specification.callback });
-      this.timerEntries.push({ name: specification.member, timer, callback: specification.callback });
-      this.members[specification.member] = timer;
+      const build = (name: string): IrTimer => {
+        const timer = new IrTimer(() => Number(this.bindings.calls?.['machine().time']?.() ?? NaN));
+        this.timers.set(name, { timer, callback: specification.callback });
+        this.timerEntries.push({ name, timer, callback: specification.callback });
+        return timer;
+      };
+      this.members[specification.member] = specification.count
+        ? Array.from({ length: specification.count }, (_, index) => build(`${specification.member}[${index}]`))
+        : build(specification.member);
     }
 
     // Materialise the completed source-declared state in one operation. Adding
@@ -1245,7 +1327,7 @@ class IrDevice implements Device {
     // it the owner.
     for (const member of definition.members) {
       const allocated = member.object ? definition.allocations?.[member.object] : undefined;
-      if (!allocated) continue;
+      if (!allocated || member.objectConstructed) continue;
       const args = (member.objectArgs ?? []).map(argument =>
         /^\*?\s*this$/.test(argument) ? self
           : Number.isFinite(Number(argument)) ? Number(argument)
@@ -1294,6 +1376,12 @@ class IrDevice implements Device {
         CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>
           this.invoke(String(name), ...args),
         logerror: () => 0,
+        // A device method runs in its caller's time, and the synchronize MAME
+        // would post from inside a processor's slice runs at once here (see
+        // the scheduler call in execute.ts), so the two branches MAME picks
+        // between on this answer -- ymfm's `ymfm_sync_check_interrupts` --
+        // do the same thing.
+        'machine().scheduler().currently_executing': () => 0,
         clock: () => clock,
         'machine().sample_rate': () => 48000,
         'machine().phase': () => DEFAULT_CONSTANTS['machine_phase::RUNNING']!,
@@ -1461,6 +1549,15 @@ class IrDevice implements Device {
       referenceCalls,
       callParameters,
     };
+    // An object built from a source constructor is a plain C++ class, not a
+    // device: its own method named like a device_t service is that method.
+    // ymfm's engine steps itself with `clock(chanmask)`, which answered the
+    // device's clock rate and never ran.
+    if (definition.construct) {
+      for (const method of definition.methods) {
+        if (!options.calls?.[method.name]) delete this.bindings.calls![method.name];
+      }
+    }
     this.executionContext = {
       members: this.members,
       calls: this.bindings.calls!,
@@ -1546,6 +1643,13 @@ class IrDevice implements Device {
     };
     this.bindings.calls!.STRUCT_OF = structOf as (...args: number[]) => unknown;
     referenceCalls.STRUCT_OF = structOf;
+    // `T items[n]` of a struct T the device declares: n of them, each built
+    // from the declaration, array fields and methods included -- ymfm renders
+    // into `output_data output[256]`, each a `ymfm_output<2>`.
+    const structArrayOf = (count: unknown, type: unknown): unknown =>
+      Array.from({ length: Math.max(0, Number(count) || 0) }, () => structOf(type));
+    this.bindings.calls!.STRUCT_ARRAY_OF = structArrayOf as (...args: number[]) => unknown;
+    referenceCalls.STRUCT_ARRAY_OF = structArrayOf;
     // A vector local constructed with a size (normalizeMameExecutionSource):
     // that many value-initialized elements of its declared kind, and growing
     // by more of them. The floppy drive's write_flux starts from
@@ -1666,6 +1770,10 @@ class IrDevice implements Device {
       const instance = new IrDevice(child.definition, child.clock ?? clock, {
         ...resourceOptions,
         owner: this.members.this,
+        // Tagged below this device, as MAME tags it: the VRC7's DS1001 is
+        // `nes_slot:vrc7:vrc7snd`, and its instrument ROM region
+        // `nes_slot:vrc7:vrc7snd:internal`.
+        deviceTag: `${this.ownTag}:${child.tag ?? child.member.replace(/^m_/, '')}`,
         slot: undefined,
         ...(targets.length ? {
           calls: {
@@ -1756,7 +1864,7 @@ class IrDevice implements Device {
       if (!instance) return;
       const route = child.routes?.find(candidate => candidate.output === -1 || candidate.output === 0);
       if (route && route.gain > 0 && instance.methods.has('sound_stream_update')) {
-        found.push({ tag: `${own}:${child.member.replace(/^m_/, '')}`, device: instance, gain: route.gain });
+        found.push({ tag: `${own}:${child.tag ?? child.member.replace(/^m_/, '')}`, device: instance, gain: route.gain });
       }
       found.push(...instance.streamDescendants());
     });
@@ -2707,7 +2815,9 @@ function resolveDeviceResource(
   const resourceName = 'name' in resource ? resource.name : '';
   // A finder resolves `*this, "prom"` as the device's own subtag first
   // (Battlezone's AVG state PROM is region "avg:prom"), as MAME does.
-  const subtag = options.tag && resourceName !== 'self' ? `${options.tag}:${resourceName}` : undefined;
+  // A device built inside another carries its full tag as deviceTag.
+  const own = options.deviceTag && regions[`${options.deviceTag}:${resourceName}`] ? options.deviceTag : options.tag;
+  const subtag = own && resourceName !== 'self' ? `${own}:${resourceName}` : undefined;
   const regionName = resourceName === 'self'
     ? options.tag ?? ''
     : subtag && regions[subtag] ? subtag : resourceName;
@@ -3411,6 +3521,8 @@ function structTypeName(valueType: string): string {
  * Each declaring device's struct methods, keyed by its struct table, so a
  * struct value built from that table carries its type's methods.
  */
+/** The bindings a struct's own methods run against, one per struct value. */
+const STRUCT_BINDINGS = new WeakMap<object, GeneratedHandlerBindings>();
 const STRUCT_METHODS = new WeakMap<object, Record<string, Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown>>>();
 
 function structMember(

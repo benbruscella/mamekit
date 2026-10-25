@@ -254,3 +254,50 @@ function ownDeviceRomSet(mameSrc: string, type: string): { romSet: string; regio
     regions: set.regions,
   };
 }
+
+/**
+ * The ROM sets a slot's cards build in through their own children, each
+ * region tagged with the cards that need it.
+ *
+ * A cartridge board can carry a chip with firmware of its own: the VRC7's
+ * `DS1001(config, m_vrc7snd, ...)` holds its instrument patches in
+ * `ds1001.zip`. MAME loads that set only when a VRC7 cartridge is in the slot,
+ * so the region is the machine's only for those cards (`cards`), and is
+ * tagged as MAME tags it, `<slot>:<card>:<child>:<region>`.
+ */
+export function slotCardDeviceRoms(
+  mameSrc: string,
+  slotTag: string,
+  options: readonly (readonly [option: string, type: string])[],
+): { region: string; size: number; romSet: string; cards: string[]; loads: { file: string; offset: number; size: number; crc: string }[] }[] {
+  const hardware = indexMameHardware(mameSrc);
+  const regions = new Map<string, ReturnType<typeof slotCardDeviceRoms>[number]>();
+  for (const [option, type] of options) {
+    const card = hardware.get(type);
+    if (!card) continue;
+    const source = readFileSync(join(mameSrc, card.sourceFile), 'utf8');
+    const config = new RegExp(`\\b${card.className}::device_add_mconfig\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`).exec(source)?.[1] ?? '';
+    for (const child of config.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)/g)) {
+      const [, childType, member] = child;
+      const own = ownDeviceRomSet(mameSrc, childType!);
+      const tag = new RegExp(`\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"`).exec(source)?.[1];
+      if (!own || !tag) continue;
+      for (const region of own.regions) {
+        const key = `${own.romSet}/${tag}/${region.tag}`;
+        const existing = regions.get(key);
+        if (existing) {
+          existing.cards.push(option);
+          continue;
+        }
+        regions.set(key, {
+          region: `${slotTag}:${option}:${tag}:${region.tag}`,
+          size: region.size,
+          romSet: own.romSet,
+          cards: [option],
+          loads: region.loads.map(load => ({ file: load.file, offset: load.offset, size: load.size, crc: load.crc })),
+        });
+      }
+    }
+  }
+  return [...regions.values()];
+}

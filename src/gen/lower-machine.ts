@@ -2,7 +2,8 @@ import { naturalKeyboardAlternates } from './natural-keyboard.ts';
 import { lowerTopology } from './lower-topology.ts';
 import { lowerScreen } from './lower-screen.ts';
 import { lowerSound } from './lower-sound.ts';
-import { lowerRoms } from './lower-roms.ts';
+import { lowerRoms, slotCardDeviceRoms } from './lower-roms.ts';
+import { nesCartOptions } from '../hardware/nes/ines-mappers.ts';
 import { lowerInputs } from './lower-inputs.ts';
 import { lowerMedia } from './lower-media.ts';
 
@@ -64,6 +65,10 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   const alternates = naturalKeyboardAlternates(opts.mameSrc, bindings);
 
   const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family, g, dipDefaults as ShelfSwitch[]);
+  // A slot that mounts its own cards also needs the firmware their chips
+  // carry (the VRC7's DS1001), loaded only when one of those cards is in it.
+  const slotDevice = (cart as { slotDevice?: { tag: string } } | undefined)?.slotDevice;
+  if (slotDevice) roms.push(...slotCardDeviceRoms(opts.mameSrc, slotDevice.tag, nesCartOptions(opts.mameSrc)));
 
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly

@@ -100,7 +100,9 @@ under the list's own names, and recorded in the shelf's `_manifest.json`.
 A uniform-byte bank is never evidence of anything (a blank C64 cartridge bank
 "matched" ColecoVision chips), but once real chips name a set, the blank banks
 MAME lists beside them are supplied. Nothing is deleted: tidying moves a
-console BIOS set into `<system>/bios/`, renames a computer list folder to its
+console BIOS set into `<system>/bios/` (a cartridge board's firmware, the
+VRC7's `ds1001.zip`, goes there under its own name, never as `nes.zip`),
+renames a computer list folder to its
 list, and quarantines whatever no supported list or machine claims,
 MAME-unsupported sets included; inputs park in `_new/_imported/` and its
 siblings, and every run writes `_new/_reports/`.
@@ -639,6 +641,13 @@ Choose the layer from evidence, not from the visible symptom.
 | A reset-counting cartridge starts on the wrong game | the card was reset twice at power-on; MAME resets it once, from the driver's `machine_reset` |
 | A software-list set will not mount though every chip matches | its rebuilt iNES header could not say its size: past 4,095 banks NES 2.0 uses the exponent form (the 64 MB dpcmcart set) |
 | A device's stream plays at the wrong pitch | `sound_stream::set_sample_rate` after `stream_alloc` retunes it (the AY's internal divider) |
+| A device's child is silent and nothing says why | the child did not lower: it is left out with a warning and listed in `omittedChildren` |
+| A device's member of a library class is a number | the library's header is reached through MAME's `3rdparty` include root, and the class is built as a held object (`m_chip`, a `ymfm::ds1001`) |
+| A class template's constant reads another class's value | it is the instance's: `RegisterType::CHANNELS` is resolved with the template argument, and a class's own constant shadows the file's |
+| A callee's write through a `T &` parameter never comes back | across objects the call needs `references` (the receiver's class is the member's declared type); a reference bound to a call's result is evaluated once |
+| A struct method writes a field and nothing changes | a handler-parameter default (`data`, `offset`) shadowed the field; struct methods run without them |
+| A card's chip reads its ROM region as empty | the child carries its MAME tag (`nes_slot:vrc7:vrc7snd`), and the region is found as `<tag>:<name>`; card firmware is tagged with its `cards` in `roms` |
+| A method named like a device service never runs | a plain class's `clock(...)` is its own method, not `device_t::clock()` |
 | Emitted and interpreted code disagree on a call nothing answers | an unresolved reference is falsy to the interpreter and an object to emitted code; answer the call (a composed image device's `is_loaded()` is false) rather than relying on either |
 | A driver's IRQ arrives a line early or late | where its timer was armed against the beam: driver emu_timers fire after the line settles and schedule the board by the line |
 | A device reads its region as empty | a finder's `*this, "name"` is the device's subtag (`avg:prom`) first |

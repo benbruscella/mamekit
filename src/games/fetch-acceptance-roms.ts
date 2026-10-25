@@ -126,8 +126,10 @@ export async function fetchAcceptanceRoms(): Promise<void> {
   }
   // A console with nothing on board but its cartridge slot (the NES, the
   // 2600) has no set of its own; its cartridges sit in a folder named after it.
+  // Firmware a cartridge board carries (a VRC7's ds1001.zip) is the
+  // machine's only for a cartridge on that board; it is fetched below.
   const withSet = machines.filter(machine =>
-    configs.get(machine.game)!.roms.some(rom => rom.loads?.length));
+    configs.get(machine.game)!.roms.some(rom => !rom.cards && rom.loads?.length));
   const system = (game: string) => romSystemKey(configs.get(game)!);
   const primary = withSet.map(machine => machineSet(machine.category, system(machine.game), machine.game));
   const cartridges = [...new Map(contracts.flatMap(contract => contract.cartridge
@@ -154,8 +156,23 @@ export async function fetchAcceptanceRoms(): Promise<void> {
     const config = configs.get(machine.game)!;
     const bytes = archives.get(key(machineSet(machine.category, system(machine.game), machine.game)))!;
     const files = await readZip(bytes);
-    for (const set of unresolvedDependencyRomSets(config.roms, machine.game, files)) {
+    for (const set of unresolvedDependencyRomSets(config.roms.filter(rom => !rom.cards), machine.game, files)) {
       dependencies.push(dependencySet(machine.category, system(machine.game), set));
+    }
+  }
+  // A contract's cartridge needs the firmware of the board its software-list
+  // entry names (the `slot` feature): Lagrange Point's VRC7 needs ds1001.zip.
+  for (const contract of contracts) {
+    const config = configs.get(contract.game)!;
+    const cardRoms = config.roms.filter(rom => rom.cards);
+    if (!contract.cartridge || !cardRoms.length) continue;
+    const catalog = JSON.parse(readFileSync(join(gameOutputDir(join(projectRoot, 'dist'), contract.category, contract.game),
+      config.cart?.catalogUrl ?? 'softlist.json'), 'utf8')) as { entries?: { name: string; slot?: string }[] };
+    const slot = catalog.entries?.find(entry => entry.name === contract.cartridge)?.slot;
+    for (const rom of cardRoms) {
+      if (slot && rom.cards!.includes(slot) && rom.romSet) {
+        dependencies.push(dependencySet(contract.category, system(contract.game), rom.romSet));
+      }
     }
   }
   await downloadMissing(dependencies);

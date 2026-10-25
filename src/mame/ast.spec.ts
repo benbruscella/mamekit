@@ -2,6 +2,7 @@ import {
   MameAstIndex,
   maskComments,
   parseMameAst,
+  parseMameConstructors,
   parseMameSource,
   splitMameArgs,
 } from './ast.ts';
@@ -312,6 +313,20 @@ uint64_t m6805_base_device::execute_cycles_to_clocks(uint64_t cycles) const noex
 check('out-of-class const noexcept methods are parsed',
   noexceptMethod.functions.map(method => [method.className, method.name]),
   [['m6805_base_device', 'execute_cycles_to_clocks']]);
+
+// A class template's out-of-line constructor names its parameters before
+// the scope: ymfm's `fm_operator<RegisterType>::fm_operator(...) : ...`.
+{
+  const [constructor] = parseMameConstructors('ymfm_fm.ipp', `
+template<class RegisterType>
+fm_operator<RegisterType>::fm_operator(fm_engine_base<RegisterType> &owner, uint32_t opoffs) :
+  m_opoffs(opoffs),
+  m_regs(owner.regs())
+{
+}`);
+  check('template constructor class', constructor?.className, 'fm_operator');
+  check('template constructor initializers', constructor?.initializers.map(initializer => initializer.name), ['m_opoffs', 'm_regs']);
+}
 
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

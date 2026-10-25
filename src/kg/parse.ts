@@ -57,14 +57,22 @@ export function stripComments(src: string): string {
  * of its handlers unparseable. MAME often parenthesises the literal, as the
  * AY-3-8910's `#define ENABLE_REGISTER_TEST (0)` does around its register
  * test in `address_w` and `data_w`.
+ *
+ * A header's include guard (`#ifndef X` then `#define X`) is always entered,
+ * so a define inside it is certain too, and `defined` carries the names on to
+ * the files read after it: ymfm switches its wave-file logging off as
+ * `#define YMFM_DEBUG_LOG_WAVFILES (0)` in ymfm_fm.h and tests it, as
+ * `#if (YMFM_DEBUG_LOG_WAVFILES)`, in ymfm_fm.ipp as well.
  */
-export function resolveLiteralConditionals(src: string): string {
+export function resolveLiteralConditionals(src: string, defined = new Map<string, string>()): string {
   const lines = src.split('\n');
   // Each open block: whether it is a literal one we resolve, whether its
   // current branch is live, and whether some earlier branch already was.
-  const stack: { literal: boolean; live: boolean; taken: boolean }[] = [];
+  const stack: { literal: boolean; live: boolean; taken: boolean; guard?: boolean }[] = [];
   const outerLive = () => stack.every(block => !block.literal || block.live);
-  const defined = new Map<string, string>();
+  const guard = /^\s*#\s*ifndef\s+(\w+)\s*$/m.exec(src);
+  const guarded = guard && new RegExp(`^\\s*#\\s*ifndef\\s+${guard[1]}\\s*\\n\\s*#\\s*define\\s+${guard[1]}\\s*$`, 'm').test(src)
+    ? guard[1] : undefined;
   return lines.map(line => {
     const define = /^\s*#\s*define\s+(\w+)\s+\(?\s*(\d+)\s*\)?\s*(?:\/\/.*|\/\*.*\*\/\s*)?$/.exec(line);
     // Only where the preprocessor is sure to see it: under `#ifdef X` a
@@ -77,8 +85,14 @@ export function resolveLiteralConditionals(src: string): string {
     if (!directive) return outerLive() ? line : '';
     const [, keyword, written = ''] = directive;
     const rest = written.replace(/\/\/.*$/, '').trim();
-    const literal = /^\(?\s*(\d+)\s*\)?\s*$/.exec(defined.get(rest) ?? rest);
+    const name = /^\(?\s*(\w+)\s*\)?$/.exec(rest)?.[1] ?? rest;
+    const literal = /^\(?\s*(\d+)\s*\)?\s*$/.exec(defined.get(name) ?? rest);
     if (keyword === 'if' || keyword === 'ifdef' || keyword === 'ifndef') {
+      // The guard is resolved like a literal, but its line stays.
+      if (keyword === 'ifndef' && rest === guarded && !stack.length) {
+        stack.push({ literal: true, live: true, taken: true, guard: true });
+        return line;
+      }
       const isLiteral = keyword === 'if' && Boolean(literal);
       const live = isLiteral ? Number(literal![1]) !== 0 : true;
       const printed = outerLive();
@@ -91,8 +105,7 @@ export function resolveLiteralConditionals(src: string): string {
       return outerLive() ? line : '';
     }
     if (keyword === 'endif') {
-      stack.pop();
-      return '';
+      return stack.pop()!.guard ? line : '';
     }
     if (keyword === 'else') {
       block.live = !block.taken;

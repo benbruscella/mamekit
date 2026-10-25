@@ -637,9 +637,10 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     document.body.textContent = '';
     const mounted = mountCart(cfg, resolved);
     if (!mounted) return;
-    const { regions, cart, images, slotCards } = mounted;
+    const { regions, cart, images, slotCards, roms } = mounted;
     const cfg2: ShellConfig = {
       ...cfg,
+      roms,
       title: resolved.meta?.description ?? rec.name.replace(/\.[a-z0-9]+$/i, ''),
       menuUrl: `g/${encodeURIComponent(cfg.game)}/`, // Esc: back to this room
       board: {

@@ -9,6 +9,7 @@ import {
   executeGeneratedMachineDelegate,
   executeGeneratedMachineProgram,
   executeGeneratedProgram,
+  GENERATED_STRUCT,
   generatedVectorMethod,
   noteCallLinksChanged,
   prepareGeneratedMachinePositional,
@@ -808,6 +809,37 @@ check('a host object writes back through the reference parameters it names', () 
   const program = compileMameHandler('{ uint64_t len = 0; file.length(len); return len; }');
   const result = executeGeneratedProgram(program, { members: { file } } as never);
   assert.equal(result.value, 40976);
+});
+
+// A reference parameter bound to a call's result is that one result: ymfm
+// calls `m_fm.output(output->clear(), ...)`, and passed as an l-value that
+// re-ran clear() on every read of the parameter, only the last channel was
+// heard. Storage the source names still writes back.
+check('a reference bound to a call evaluates the call once', () => {
+  let clears = 0;
+  const target = { data: 0, [REFERENCE_PARAMETERS]: { add: [0] },
+    add(output: { data: number }) { output.data += 1; output.data += 1; } };
+  const cleared = { data: 5 };
+  const result = executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(
+    'm_target.add(clear_it()); return 0;')), {
+    members: { m_target: target },
+    calls: { clear_it: () => { clears++; cleared.data = 0; return cleared; } },
+  } as never);
+  assert.equal(result.value, 0);
+  assert.equal(clears, 1);
+  assert.equal(cleared.data, 2);
+});
+
+// `->` on a struct array reaches its first struct, as C decays the array to a
+// pointer; a property the array has itself (a range-for's `length`) is still
+// the array's.
+check('member access decays a struct array to its first struct', () => {
+  const items = [{ value: 0 }, { value: 0 }];
+  Object.defineProperty(items[0], GENERATED_STRUCT, { value: true });
+  const result = executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(
+    'items->value = 7; return items.length;')), { members: { items } } as never);
+  assert.equal(items[0]!.value, 7);
+  assert.equal(result.value, 2);
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

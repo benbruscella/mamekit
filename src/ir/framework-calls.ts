@@ -18,6 +18,10 @@ const NO_EFFECT_ROOTS = new Set([
   // definition's declared members (src/runtime/machine-state.ts), so nothing
   // has to be registered.
   'save_item', 'save_pointer', 'NAME', 'STRUCT_MEMBER', 'save_prepost_delegate',
+  // ymfm serializes its chips into a blob MAME registers with save_item: the
+  // FM devices' device_start sizes it with `ymfm_saved_state state(m_save_blob,
+  // true); m_chip.save_restore(state);`. The same walk covers the chip.
+  'ymfm_saved_state',
   // Debugger and state-view registration: register names, masks and formats
   // for MAME's debugger, and where its icount lives. The generated cores own
   // their registers and icount.
@@ -25,6 +29,9 @@ const NO_EFFECT_ROOTS = new Set([
   // Logging, a device's own `printf` to the console included (the NES
   // cartridge's prg_alloc warns about an odd PRG size that way).
   'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning', 'printf',
+  // ymfm's own logging, each switched off by a constexpr LOG_* flag of its
+  // `debug` class.
+  'debug::log_fm_write', 'debug::log_keyon', 'debug::log_unconditional',
 ]);
 
 /**
@@ -35,6 +42,9 @@ const NO_EFFECT_METHODS = new Set([
   // devcb and delegate resolution. MAMEKIT binds every callback when the
   // board is composed, so there is nothing left to resolve at start.
   'resolve', 'resolve_safe', 'resolve_all', 'resolve_all_safe',
+  // A ymfm object writing itself into that save blob (see ymfm_saved_state
+  // above); MAME uses the name for nothing else.
+  'save_restore',
   // Cabinet coin meters: an electromechanical counter, not machine state.
   'coin_counter_w',
 ]);

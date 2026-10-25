@@ -78,6 +78,12 @@ export interface RomRegionSpec {
    * `<romSet>.zip` — namco54.zip, not galaga.zip.
    */
   romSet?: string;
+  /**
+   * The slot cards this region belongs to, when only they need it: the VRC7
+   * cartridge's DS1001 instrument ROM is loaded when a VRC7 board is in the
+   * NES's slot, and for no other cartridge (mountCart keeps it or drops it).
+   */
+  cards?: string[];
   loads: RomLoad[];
 }
 
@@ -956,13 +962,18 @@ export async function runShell(
       // A page opened from an invite still needs its own dump, and the drop
       // screen used to say nothing about why they were here (issue #140).
       const zone = ui.dropZone(cfg.game, inviteCode() !== undefined);
-      const companionText = dependencies.length
-        ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
+      // A console whose own set holds nothing (the NES) asks only for the
+      // device sets its cartridge needs (a VRC7's ds1001.zip), not for an
+      // nes.zip that does not exist.
+      const ownSet = cfg.roms.some(spec => !spec.romSet && spec.loads.some(load => !load.romSet && isDumpedRom(load)));
+      const wanted = [...(ownSet || !dependencies.length ? [cfg.game] : []), ...dependencies];
+      const companionText = wanted.slice(1).length
+        ? ` plus ${wanted.slice(1).map(set => `${set}.zip`).join(', ')}`
         : '';
       const short = kept ? missingRomSets(cfg.roms, kept.files, critical, cfg.game) : [];
       ui.status(short.length
         ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
-        : `ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
+        : `ROMs are not distributed with mamekit — drop your own ${wanted[0]}.zip${companionText} (kept only in this browser).`);
       const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined);
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
       keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast);
