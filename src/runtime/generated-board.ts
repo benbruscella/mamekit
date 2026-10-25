@@ -5008,17 +5008,11 @@ class IrBoard implements Board {
     for (const [tag, device] of this.devices) {
       if (device.role() !== 'cartridge') continue;
       const space = new RecordingAddressSpace();
-      let installed = false;
-      try {
-        // Which method mounts a card, and whether it is handed the space or
-        // reaches for it, is the bus's own fact and travels in the slot IR.
-        device.installSlotCard(space);
-        installed = true;
-      } catch {
-        // A PCB with no installer of its own is not an error: the slot simply
-        // decodes nothing extra, which is what an empty slot does.
-      }
-      if (!installed || !space.entries.length) continue;
+      // Which method mounts a card, and whether it is handed the space or
+      // reaches for it, is the bus's own fact and travels in the slot IR. A
+      // PCB with no installer of its own decodes nothing extra, as an empty
+      // slot does; an installer that throws is a failure, never swallowed.
+      if (!device.installSlotCard(space) || !space.entries.length) continue;
       const cpu = machine.execution.cpus[0];
       if (!cpu) continue;
       const ranges = cpu.ranges ??= [];
