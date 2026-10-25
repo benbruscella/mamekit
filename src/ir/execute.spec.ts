@@ -842,4 +842,19 @@ check('member access decays a struct array to its first struct', () => {
   assert.equal(result.value, 2);
 });
 
+// A struct assignment copies into the struct the target holds; a pointer on
+// the right rebinds it. The VLM5030 aims `m_coeff = &vlm5030_coeff;` at its
+// table, and read as a copy from a pointer the table stayed zero.
+check('a struct copies from a struct and rebinds to a pointer', () => {
+  const struct = (fields: Record<string, number>) => Object.defineProperty(fields, GENERATED_STRUCT, { value: true });
+  const table = struct({ bits: 5 });
+  const members = { m_coeff: struct({ bits: 0 }), m_copy: struct({ bits: 0 }), table };
+  executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(
+    'm_copy = table; m_coeff = &table; return 0;')), { members } as never);
+  assert.equal((members.m_copy as { bits: number }).bits, 5, 'a struct value is copied in');
+  assert.notEqual(members.m_copy, table, 'and stays a struct of its own');
+  assert.equal(executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(
+    'return m_coeff->bits;')), { members } as never).value, 5, 'a pointer is rebound, and reads its target');
+});
+
 console.log(`execute.spec: ${passed} passed, 0 failed`);

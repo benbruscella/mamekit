@@ -148,6 +148,19 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
   return target;
 }
 
+/**
+ * Whether `target = value` is a C++ struct assignment, which copies into the
+ * struct the target holds. A pointer on the right means the target is a
+ * pointer that happens to hold a struct, and the store rebinds it: the
+ * VLM5030 aims `m_coeff = &vlm5030_coeff;` at its coefficient table, and
+ * copied from a pointer the table stayed zero and Hyper Sports lost its speech.
+ */
+function copiesStruct(target: unknown, value: unknown): boolean {
+  if (!isGeneratedStruct(target)) return false;
+  const source = isLValue(value) ? value.get() : value;
+  return Boolean(source) && typeof source === 'object' && !isGeneratedPointer(source);
+}
+
 /** Each struct's field names, read once (see copyGeneratedStruct). */
 const STRUCT_FIELDS = new WeakMap<object, string[]>();
 
@@ -1442,7 +1455,7 @@ function compileFastAssign(
         // C++ struct assignment copies into the struct, as the interpreter's
         // own store does: ymfm hands its operator map back through
         // `operator_mapping &dest` as `dest = s_fixed_map`.
-        if (operator === '=' && isGeneratedStruct(current)) {
+        if (operator === '=' && copiesStruct(current, value)) {
           copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
           return;
         }
@@ -1452,7 +1465,7 @@ function compileFastAssign(
         return;
       }
       const current = context.bindings.getters?.[name]?.() ?? context.bindings.members?.[name];
-      if (operator === '=' && isGeneratedStruct(current)) {
+      if (operator === '=' && copiesStruct(current, value)) {
         copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
         return;
       }
@@ -2925,7 +2938,7 @@ function assign(
     const current = Object.hasOwn(context.locals, target.name)
       ? localReference?.get() ?? local
       : context.bindings.getters?.[target.name]?.() ?? context.bindings.members?.[target.name];
-    if (operator === '=' && isGeneratedStruct(current)) {
+    if (operator === '=' && copiesStruct(current, value)) {
       copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
       return;
     }
