@@ -495,6 +495,20 @@ export class GeneratedFrameRunner {
   }
 
   /**
+   * `runningBeam` as lines since the frame began at `originLine`. A round
+   * never spans the origin, so its first line places it in the frame and the
+   * processor's progress through it is added unwrapped: a slice that overruns
+   * the frame's last line comes out past `vtotal`, never back at 0.
+   */
+  runningFrameLines(elapsedCycles: number): number | undefined {
+    const beam = this.runningBeam(elapsedCycles);
+    if (beam === undefined) return undefined;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const first = ((this.roundFirstLine - this.originLine) % vtotal + vtotal) % vtotal;
+    return first + beam - this.roundFirstLine;
+  }
+
+  /**
    * The `perfect_quantum` window: from `done` to the window's end (or the
    * round's), the processor furthest behind in emulated time executes one
    * instruction, then any work that instruction synchronized runs.

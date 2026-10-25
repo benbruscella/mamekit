@@ -365,6 +365,10 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   ASSERT_LINE: 1,
   CLEAR_LINE: 0,
   HOLD_LINE: 2,
+  // emu/disound.h: a sound device's every output at once. Gauntlet's mixer_w
+  // sets each chip's gain with it; unresolved it read 0, so only a YM2151's
+  // first output was ever turned down (#194).
+  ALL_OUTPUTS: 65535,
   'filter_rc_device::LOWPASS_3R': 0,
   'filter_rc_device::LOWPASS': 2,
   'filter_rc_device::HIGHPASS': 3,

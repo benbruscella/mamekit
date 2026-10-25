@@ -384,4 +384,42 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.deepEqual(origins, [true, false, false]);
 }
 
-console.log('generated-frame.spec: 19 passed');
+// Inside a round of several lines, the running processor's place in the frame
+// is its own position, measured from the origin: a write every 2 cycles lands
+// every 0.2 lines, across rounds and across the wrap from line 399 to 0, and
+// never runs backwards. Stamped with the round's progress instead, Mat Mania's
+// DAC writes bunched into a round's last line and then jumped (#194).
+{
+  const fixture: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      cpus: [{ tag: 'soundcpu', type: 'm6502', clock: 400_000, region: 'soundcpu' }],
+      screen: { width: 1, height: 1, refresh: 100, vtotal: 400, vbstart: 300, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const stamps: { at?: number; budget: number }[] = [];
+  const runner: GeneratedFrameRunner = new GeneratedFrameRunner({
+    machine: fixture,
+    origin: 'vbstart',
+    processors: [{ tag: 'soundcpu', run: budget => {
+      for (let elapsed = 0; elapsed < budget; elapsed += 2) {
+        stamps.push({ at: runner.runningFrameLines(elapsed), budget });
+      }
+      return budget;
+    } }],
+  });
+  runner.frame(new Uint32Array(1));
+  assert.equal(stamps.length, 2000);
+  assert.ok(stamps.some(stamp => stamp.budget === 100), 'rounds of 10 lines');
+  stamps.forEach(({ at, budget }, index) => {
+    // A one-line round (the boundary lines 300 and 399) is left to the
+    // board, which resolves it within the line by its instruction-time clock.
+    if (budget === 10) assert.equal(at, undefined);
+    else assert.ok(at !== undefined && Math.abs(at - index * 0.2) < 1e-9, `write ${index} at ${at}`);
+  });
+  assert.equal(runner.runningFrameLines(0), undefined, 'outside a slice');
+}
+
+console.log('generated-frame.spec: 20 passed');
