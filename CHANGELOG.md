@@ -30,6 +30,12 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Sound writes timed by the processor that makes them, and Gauntlet's mixer, speech and POKEY as MAME has them ([#196](https://github.com/benbruscella/mamekit/pull/196))
+
+**For players:** Mat Mania's sampled bell and count and Gyruss's drums and voices are clean again, where they had been a noisy smear. Gauntlet's speech is no longer harsh: it matches MAME's brightness while it speaks. The click when Gauntlet's sound board leaves reset is gone, and the game's own volume settings for its music, effects and speech now apply. POKEY sound effects in Gauntlet, Marble Madness, Missile Command, Centipede and Battlezone no longer fold ultrasonic tones back into the audible range.
+
+**Under the hood:** A sound write was stamped with the progress through the whole scheduler round, so a round of several lines squeezed its writes into its last line, and some ran backwards (37 games). `GeneratedFrameRunner.runningFrameLines` now gives the running processor's own position from the frame's origin, including where a slice overran to, and `frameLines()` adds the cycles of the current instruction, as MAME's `machine().time()` does. No DAC writes run backwards any more in Mat Mania (4.4% before) or Gyruss (0.22%). `ALL_OUTPUTS` resolved to nothing and read as 0; it is now 65535, from `emu/disound.h`. The OPM worklet, which had no `set_output_gain` handling at all, scales a YM2151's outputs and an auxiliary device's route gain. MAME's default stream resampler, `audio_resampler_lofi` from `src/emu/resampler.cpp`, is now emitted once as a shared piece (`src/mame/lofi-resampler.ts`). The POKEY's 1.79 MHz stream and the TMS5220's 8.1 kHz speech both go through it, instead of keeping one sample in 37 and holding each sample. The OPM worklet's other sample-and-hold devices (OKI, K007232 and others) still hold, and are next.
+
 ## 2026-10-25 23:13 AEDT · `8ae66b11` · [#193](https://github.com/benbruscella/mamekit/pull/193)
 ### Node 26.12.1, and no catch on the emulation path hides an error
 

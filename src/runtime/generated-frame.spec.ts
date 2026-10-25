@@ -384,11 +384,14 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.deepEqual(origins, [true, false, false]);
 }
 
-// Inside a round of several lines, the running processor's place in the frame
-// is its own position, measured from the origin: a write every 2 cycles lands
-// every 0.2 lines, across rounds and across the wrap from line 399 to 0, and
-// never runs backwards. Stamped with the round's progress instead, Mat Mania's
-// DAC writes bunched into a round's last line and then jumped (#194).
+// The running processor's place in the frame is its own position, measured
+// from the origin. 4-cycle instructions against 10-cycle lines overrun every
+// round, and the next slice starts where that one stopped, so each instruction
+// lands 0.4 lines after the last: across rounds of 10 lines, the one-line
+// boundary rounds (lines 300 and 399) and the wrap from 399 to 0, never
+// backwards. Stamped with the round's progress instead, Mat Mania's DAC writes
+// bunched into a round's last line and jumped, and Gyruss's i8039 stepped back
+// at every seam into a one-line round (#194).
 {
   const fixture: BoardIr = {
     ...machine,
@@ -399,25 +402,24 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
       frameEvents: [],
     },
   };
-  const stamps: { at?: number; budget: number }[] = [];
+  const stamps: (number | undefined)[] = [];
+  const budgets: number[] = [];
   const runner: GeneratedFrameRunner = new GeneratedFrameRunner({
     machine: fixture,
     origin: 'vbstart',
     processors: [{ tag: 'soundcpu', run: budget => {
-      for (let elapsed = 0; elapsed < budget; elapsed += 2) {
-        stamps.push({ at: runner.runningFrameLines(elapsed), budget });
-      }
-      return budget;
+      budgets.push(budget);
+      let elapsed = 0;
+      for (; elapsed < budget; elapsed += 4) stamps.push(runner.runningFrameLines(elapsed));
+      return elapsed;
     } }],
   });
   runner.frame(new Uint32Array(1));
-  assert.equal(stamps.length, 2000);
-  assert.ok(stamps.some(stamp => stamp.budget === 100), 'rounds of 10 lines');
-  stamps.forEach(({ at, budget }, index) => {
-    // A one-line round (the boundary lines 300 and 399) is left to the
-    // board, which resolves it within the line by its instruction-time clock.
-    if (budget === 10) assert.equal(at, undefined);
-    else assert.ok(at !== undefined && Math.abs(at - index * 0.2) < 1e-9, `write ${index} at ${at}`);
+  assert.ok(budgets.some(budget => budget >= 96), 'rounds of 10 lines');
+  assert.ok(budgets.some(budget => budget <= 10), 'one-line rounds');
+  assert.equal(stamps.length, 1000);
+  stamps.forEach((at, index) => {
+    assert.ok(at !== undefined && Math.abs(at - index * 0.4) < 1e-9, `instruction ${index} at ${at}`);
   });
   assert.equal(runner.runningFrameLines(0), undefined, 'outside a slice');
 }

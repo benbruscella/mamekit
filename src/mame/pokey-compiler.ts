@@ -164,7 +164,8 @@ export function compilePokey(
  * produces is the polynomial bit standing at the moment its divider borrows,
  * so sampling the chip any more coarsely than its own clock changes the sound.
  * Its clock-rate stream reaches the output rate through MAME's own LOFI
- * resampler (lofi-resampler.ts), as MAME's sound manager takes it there.
+ * resampler, as MAME's sound manager takes it there. The module that hosts
+ * this core emits LOFI_RESAMPLER_SOURCE (lofi-resampler.ts) once beside it.
  *
  * Scope: the audio path. POKEY's serial port, keyboard scanner, potentiometer
  * counters and IRQ line are not driven — no board that reaches this worklet
@@ -178,8 +179,6 @@ export function generatedPokeyCoreSource(plan: GeneratedPokeyPlan): string {
 // Register map, prescaler divisors, polynomial taps and output gain are all
 // read out of MAME's pokey.cpp by src/mame/pokey-compiler.ts.
 const pokeyPlan = ${JSON.stringify(plan, null, 2)};
-
-${LOFI_RESAMPLER_SOURCE}
 
 /** MAME poly_init_4_5: a left-shifting LFSR with an inverted feedback bit. */
 function pokeyPoly45(size: number, taps: readonly number[]): Uint8Array {
@@ -419,7 +418,8 @@ export class GeneratedPokeyCore {
 
 /** Emit a standalone POKEY AudioWorklet for boards where it is the primary sound chip. */
 export function generatedPokeyWorkletSource(plan: GeneratedPokeyPlan): string {
-  return `${generatedPokeyCoreSource(plan)}
+  return `${LOFI_RESAMPLER_SOURCE}
+${generatedPokeyCoreSource(plan)}
 
 export interface GeneratedPokeyWrite {
   offset: number;

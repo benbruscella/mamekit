@@ -5750,12 +5750,12 @@ class IrBoard implements Board {
    * sound write stamped with it played out of order -- Gyruss's i8039 DAC and
    * Mat Mania's sound CPU garbled (#184).
    *
-   * Inside a round of several lines it is where the running processor
-   * stands, counting the cycles its current instruction has already paid for,
-   * as MAME's machine().time() does. `currentLineFraction` is the progress
-   * through the whole round, so every write of a round was squeezed into its
-   * last line and the next round jumped ahead: Mat Mania's DAC ran 2 cycles
-   * a sample and 4% of its writes went backwards (#194).
+   * Inside a slice it is where the running processor stands, counting the
+   * cycles its current instruction has already paid for, as MAME's
+   * machine().time() does. `currentLineFraction` is the progress through the
+   * whole round, so every write of a round was squeezed into its last line
+   * and the next round jumped ahead: Mat Mania's DAC ran 2 cycles a sample
+   * and 4% of its writes went backwards (#194).
    */
   private frameLines(): number {
     const tag = this.runningCpu;

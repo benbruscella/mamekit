@@ -6,6 +6,7 @@ import {
   generatedPokeyWorkletSource,
 } from './pokey-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
+import { LOFI_RESAMPLER_SOURCE } from './lofi-resampler.ts';
 
 const mameSrc = process.env.MAME_SRC ?? '../mame';
 const plan = compilePokey(mameSrc, {
@@ -61,7 +62,7 @@ assert.ok(source.includes('"defaultGain": 744'));
 // Channel 1 on the 1.79 MHz clock with AUDF 20 is a 37.3 kHz square, above the
 // output's Nyquist frequency: kept one clock in 37, it folds back to 10.7 kHz
 // at full level, and Gauntlet's POKEY effects ran 6-9 dB bright (#194).
-const pokeyModule = await import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(source, {
+const pokeyModule = await import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(LOFI_RESAMPLER_SOURCE + source, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText).toString('base64')}`) as {
   GeneratedPokeyCore: new (clock: number, rate: number) => {
