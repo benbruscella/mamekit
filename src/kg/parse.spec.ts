@@ -86,6 +86,18 @@ void spectrum_state::spectrum(machine_config &config) {
     '#if ENABLE_REGISTER_TEST', 'return;', '#else', 'ay8910_write_ym(0, data);', '#endif',
   ].join('\n')).split('\n'),
   ['#define ENABLE_REGISTER_TEST        (0)     // Enable preprogrammed registers', '', '', '', 'ay8910_write_ym(0, data);', '']);
+  // A header's include guard is always entered, so a define inside it is
+  // certain, and the names carry to the next file read: ymfm defines
+  // YMFM_DEBUG_LOG_WAVFILES (0) in ymfm_fm.h and tests `#if (NAME)` in
+  // ymfm_fm.ipp.
+  const defines = new Map<string, string>();
+  eq('a guarded header keeps its guard and records its defines', resolveLiteralConditionals([
+    '#ifndef YMFM_FM_H', '#define YMFM_FM_H', '#define YMFM_DEBUG_LOG_WAVFILES (0)', 'int a;', '#endif',
+  ].join('\n'), defines).split('\n'),
+  ['#ifndef YMFM_FM_H', '#define YMFM_FM_H', '#define YMFM_DEBUG_LOG_WAVFILES (0)', 'int a;', '#endif']);
+  eq('a define from an earlier file decides a parenthesised #if', resolveLiteralConditionals([
+    'x();', '#if (YMFM_DEBUG_LOG_WAVFILES)', 'log();', '#endif', 'y();',
+  ].join('\n'), defines).split('\n'), ['x();', '', '', '', 'y();']);
   const src = `
 class spectrum_state : public driver_device { };
 class spectrum_128_state : public spectrum_state { };

@@ -163,7 +163,10 @@ export class Library {
     const outcomes: Outcome[] = [];
     for (const ref of machines.values()) {
       const game = ref.machine.game;
-      const whole = machineSets(ref.machine).flatMap(set => setLoads(ref.machine, set));
+      // The board's own chips: a VRC7 cartridge's ds1001.zip is filed under
+      // its own name below, and is no NES's nes.zip.
+      const whole = machineSets(ref.machine).flatMap(set => setLoads(ref.machine, set, true));
+      if (!whole.length) continue;
       const outcome = this.fileSet(ref, game, whole, byCrc, chips, pool, `every chip ${game} loads`);
       // Short of the whole board, its own chips alone are still its split set.
       const own = setLoads(ref.machine, game);

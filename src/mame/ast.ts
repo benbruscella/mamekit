@@ -625,7 +625,9 @@ export function parseMameConstructors(file: string, source: string): (MameFuncti
   const masked = maskComments(source);
   const lineStarts = buildLineStarts(source);
   const result: (MameFunction & { initializers: { name: string; args: string[] }[] })[] = [];
-  const pattern = /\b(\w+(?:::\w+)*)::(\w+)\s*\(/g;
+  // A class template's constructor is spelled with its parameters:
+  // `fm_operator<RegisterType>::fm_operator(...)`.
+  const pattern = /\b(\w+(?:::\w+)*)(?:<[\w\s,]*>)?::(\w+)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(masked))) {
     if (match[1]!.split('::').at(-1) !== match[2]) continue;

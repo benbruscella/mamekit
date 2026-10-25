@@ -188,6 +188,10 @@ export async function runGameAcceptance(
   if (software?.emptySlots.length) {
     config = { ...config, roms: withoutSlotFirmware(config.roms, software.emptySlots) };
   }
+  // Firmware a cartridge board carries (a VRC7's ds1001.zip) belongs to the
+  // machine only once that board is mounted, below.
+  const cardRoms = config.roms.filter(rom => rom.cards);
+  config = { ...config, roms: config.roms.filter(rom => !rom.cards) };
   // A console's own set holds only what the machine carries without a
   // cartridge -- the Game Boy's boot ROM, the ColecoVision's BIOS -- and the
   // NES and the 2600 carry nothing at all.
@@ -206,6 +210,18 @@ export async function runGameAcceptance(
   const files = systemSet
     ? await readZip(new Uint8Array(readFileSync(romPath)))
     : new Map<string, Uint8Array>();
+  const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
+    registerGeneratedMachines(): void;
+  };
+  registry.registerGeneratedMachines();
+  // A console's cartridge is identified against the slot device the registry
+  // just registered, in dist's own runtime -- not a second copy of it.
+  const cartridge = contract.cartridge
+    ? await mountContractCartridge(contract, { ...config, roms: [...config.roms, ...cardRoms] }, root, gameDir,
+      await import(moduleUrl(join(outRoot, 'runtime/core/generated-device.js'))) as SlotDeviceRegistry)
+    : undefined;
+  if (cartridge) config = { ...config, roms: cartridge.roms };
+
   // MAME commonised device ROMs into their own sets, so a board's parts come
   // from several zips: galaga.zip plus namco51.zip and namco54.zip. The set
   // names are the MAME device short names carried in the generated manifest.
@@ -219,17 +235,6 @@ export async function runGameAcceptance(
       files.set(name, bytes);
     }
   }
-
-  const registry = await import(moduleUrl(join(outRoot, 'app/registry.js'))) as {
-    registerGeneratedMachines(): void;
-  };
-  registry.registerGeneratedMachines();
-  // A console's cartridge is identified against the slot device the registry
-  // just registered, in dist's own runtime -- not a second copy of it.
-  const cartridge = contract.cartridge
-    ? await mountContractCartridge(contract, config, root, gameDir, await import(
-      moduleUrl(join(outRoot, 'runtime/core/generated-device.js'))) as SlotDeviceRegistry)
-    : undefined;
   const boardConfig: ShellConfig['board'] = {
     ...config.board,
     game: config.game,

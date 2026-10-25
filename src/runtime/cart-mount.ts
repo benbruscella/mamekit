@@ -127,8 +127,18 @@ export function mountCart(
   images?: Record<string, BoardImage>;
   /** Controllers the title needs, by slot (its list's `peripheral` feature). */
   slotCards?: Record<string, string>;
+  /**
+   * The machine's ROM regions for this cartridge: the console's own, and the
+   * device firmware its board carries (a VRC7's ds1001.zip), not another's.
+   */
+  roms: ShellConfig['roms'];
 } | null {
   const regions: Regions = {};
+  // The board identify() settled on -- the software part's `slot` feature, or
+  // what the slot's own code picks for the file -- decides which board
+  // firmware the machine needs.
+  const card = resolved.slot;
+  const roms = (cfg.roms ?? []).filter(spec => !spec.cards || (card !== null && spec.cards.includes(card)));
   const device = cfg.cart?.slotDevice;
   if (resolved.ines && device) {
     const entry = resolved.meta;
@@ -142,6 +152,7 @@ export function mountCart(
     return {
       regions, cart: {}, images: { [device.tag]: image },
       ...(Object.keys(slotCards).length ? { slotCards } : {}),
+      roms,
     };
   }
   if (resolved.ines) {
@@ -154,10 +165,11 @@ export function mountCart(
         mirroring: resolved.ines.mirroring,
         battery: resolved.ines.battery,
       },
+      roms,
     };
   }
   const region = cfg.cart?.romRegion;
   if (!region || !resolved.image) return null;
   regions[region] = resolved.image.bytes;
-  return { regions, cart: { ...(resolved.slot ? { slot: resolved.slot } : {}) } };
+  return { regions, cart: { ...(resolved.slot ? { slot: resolved.slot } : {}) }, roms };
 }

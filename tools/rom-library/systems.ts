@@ -103,8 +103,13 @@ export function criticalRegions(config: ShellConfig): Set<string> {
  * device or parent set), the chips attributed to it inside the machine's own
  * regions, or -- for the machine's own set -- everything else.
  */
-export function setLoads(machine: Machine, set: string): RomLoad[] {
-  const roms = machine.config?.roms ?? [];
+export function setLoads(
+  machine: Machine,
+  set: string,
+  /** Leave out firmware a slot card carries (`cards`): it is no part of the board itself. */
+  boardOnly = false,
+): RomLoad[] {
+  const roms = (machine.config?.roms ?? []).filter(spec => !boardOnly || !spec.cards);
   return roms.flatMap(spec => spec.loads.filter(load => {
     if (!isDumpedRom(load)) return false;
     const owner = load.romSet ?? spec.romSet ?? machine.game;

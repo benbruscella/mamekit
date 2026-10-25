@@ -394,7 +394,13 @@ export type GeneratedExpression =
   | { kind: 'conditional'; condition: GeneratedExpression; whenTrue: GeneratedExpression; whenFalse: GeneratedExpression }
   | { kind: 'member'; object: GeneratedExpression; property: string }
   | { kind: 'index'; object: GeneratedExpression; index: GeneratedExpression }
-  | { kind: 'call'; callee: GeneratedExpression; args: GeneratedExpression[] }
+  /**
+   * `references` lists the arguments the callee takes by non-const C++
+   * reference, when the compiler knows the class of the object a member call
+   * reaches: ymfm's engine reads the keyed channel back through
+   * `m_regs.write(regnum, data, keyon_channel, keyon_opmask)`.
+   */
+  | { kind: 'call'; callee: GeneratedExpression; args: GeneratedExpression[]; references?: number[] }
   /**
    * A C++ lambda, as a value.
    *

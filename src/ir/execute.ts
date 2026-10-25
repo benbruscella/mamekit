@@ -148,6 +148,19 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
   return target;
 }
 
+/**
+ * Whether `target = value` is a C++ struct assignment, which copies into the
+ * struct the target holds. A pointer on the right means the target is a
+ * pointer that happens to hold a struct, and the store rebinds it: the
+ * VLM5030 aims `m_coeff = &vlm5030_coeff;` at its coefficient table, and
+ * copied from a pointer the table stayed zero and Hyper Sports lost its speech.
+ */
+function copiesStruct(target: unknown, value: unknown): boolean {
+  if (!isGeneratedStruct(target)) return false;
+  const source = isLValue(value) ? value.get() : value;
+  return Boolean(source) && typeof source === 'object' && !isGeneratedPointer(source);
+}
+
 /** Each struct's field names, read once (see copyGeneratedStruct). */
 const STRUCT_FIELDS = new WeakMap<object, string[]>();
 
@@ -436,19 +449,25 @@ export function executeGeneratedProgram(
   program: GeneratedHandlerProgram,
   bindings: GeneratedHandlerBindings,
   args: Record<string, unknown> = {},
+  /**
+   * Whether the MAME handler parameters (`offset`, `data`, ...) default to 0.
+   * A struct's own method has none: ymfm's `ymfm_output::clear()` writes its
+   * field `data`, which a defaulted local of the same name hid.
+   */
+  handlerDefaults = true,
 ): { returned: boolean; value?: unknown } {
   if (program.diagnostics.length) {
     throw new Error(`cannot execute handler with compiler diagnostics: ${program.diagnostics.join('; ')}`);
   }
   const context: ExecutionContext = {
     bindings,
-    locals: {
+    locals: handlerDefaults ? {
       ...args,
       addr: args.addr ?? 0,
       offset: args.offset ?? 0,
       data: args.data ?? 0,
       state: args.state ?? args.data ?? 0,
-    },
+    } : { ...args },
     localTypes: {},
   };
   // Only the absence of a compiled form falls back: a compiled program that
@@ -1432,18 +1451,25 @@ function compileFastAssign(
         // A reference parameter holds an l-value standing in for the caller's
         // storage; its current value is read and written through that.
         const reference = isLValue(local) ? local : undefined;
-        const wrapped = wrapValue(
-          context.localTypes[name],
-          combine(reference ? reference.get() ?? local : local, value),
-        );
+        const current = reference ? reference.get() ?? local : local;
+        // C++ struct assignment copies into the struct, as the interpreter's
+        // own store does: ymfm hands its operator map back through
+        // `operator_mapping &dest` as `dest = s_fixed_map`.
+        if (operator === '=' && copiesStruct(current, value)) {
+          copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
+          return;
+        }
+        const wrapped = wrapValue(context.localTypes[name], combine(current, value));
         if (reference) reference.set(wrapped);
         else context.locals[name] = wrapped;
         return;
       }
-      const next = combine(
-        context.bindings.getters?.[name]?.() ?? context.bindings.members?.[name],
-        value,
-      );
+      const current = context.bindings.getters?.[name]?.() ?? context.bindings.members?.[name];
+      if (operator === '=' && copiesStruct(current, value)) {
+        copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
+        return;
+      }
+      const next = combine(current, value);
       // Setters exist to apply a member's declared bit width, which is
       // meaningless for a memory container; those store by reference.
       const setter = typeof next === 'number' || typeof next === 'boolean'
@@ -1648,7 +1674,7 @@ function compileFastExpression(
     const objectExpression = compileFastExpression(expression.object, bindings, locals);
     return context => {
       const raw = objectExpression(context);
-      const object = isGeneratedPointer(raw) ? pointerValue(raw, 0) : raw;
+      const object = memberObject(raw, expression.property);
       if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
       if (object && (typeof object === 'object' || typeof object === 'function') &&
           expression.property in object) {
@@ -2070,7 +2096,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
   }
   if (expression.kind === 'member') {
     const rawObject = evaluate(expression.object, context);
-    const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
+    const object = memberObject(rawObject, expression.property);
     if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
     if (
       object &&
@@ -2432,6 +2458,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]), true);
     return args[0];
   }
+  // std::fill_n(first, count, value), returning the end of the range:
+  // OPLL's register reset is `std::fill_n(&m_regdata[0], REGISTERS, 0)`.
+  if (name === 'std::fill_n') {
+    const count = toNumber(args[1]);
+    fillGeneratedMemory(args[0], toNumber(args[2]), count);
+    return generatedAdd(args[0], count);
+  }
   if (name === 'std::copy_n') {
     const count = toNumber(args[1]);
     copyGeneratedMemory(args[2], args[0], count);
@@ -2759,7 +2792,7 @@ function evaluateCall(
       return direct(...args.map(callArgument));
     }
     const rawObject = evaluate(expression.callee.object, context);
-    const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
+    const object = memberObject(rawObject, expression.callee.property);
     const method = expression.callee.property;
     if (typeof object === 'number') {
       const answered = attotimeSecondsMethod(object, method,
@@ -2846,9 +2879,10 @@ function evaluateCall(
     if (object && (typeof object === 'object' || typeof object === 'function')) {
       // A host object names the parameters MAME declares as references, which
       // the call then writes through: `core_file::length(std::uint64_t &)`.
-      const references = (object as { [REFERENCE_PARAMETERS]?: Record<string, readonly number[]> })[REFERENCE_PARAMETERS]?.[method];
+      const references = expression.references ??
+        (object as { [REFERENCE_PARAMETERS]?: Record<string, readonly number[]> })[REFERENCE_PARAMETERS]?.[method];
       const args = expression.args.map((arg, index) =>
-        references?.includes(index) ? lValue(arg, context) : evaluate(arg, context));
+        references?.includes(index) ? referenceArgument(arg, context) : evaluate(arg, context));
       if (Array.isArray(object) && (method === 'insert' || method === 'erase')) {
         return generatedVectorMethod(object, method, ...args);
       }
@@ -2904,7 +2938,7 @@ function assign(
     const current = Object.hasOwn(context.locals, target.name)
       ? localReference?.get() ?? local
       : context.bindings.getters?.[target.name]?.() ?? context.bindings.members?.[target.name];
-    if (operator === '=' && isGeneratedStruct(current)) {
+    if (operator === '=' && copiesStruct(current, value)) {
       copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
       return;
     }
@@ -2963,7 +2997,7 @@ function assign(
   }
   if (target.kind === 'member') {
     const rawObject = evaluate(target.object, context);
-    const object = isGeneratedPointer(rawObject) ? pointerValue(rawObject, 0) : rawObject;
+    const object = memberObject(rawObject, target.property);
     if (!object || typeof object !== 'object' || isReference(object)) {
       throw new Error(`generated member assignment has no object for "${target.property}"`);
     }
@@ -4000,6 +4034,19 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
  * method that does NOT reassign its references, so an emitted callee must be
  * handed what the reference points at instead.
  */
+/**
+ * The object a member access reaches: a pointer's target, and -- as C decays
+ * an array to a pointer to its first element -- a struct array's first
+ * struct. ymfm renders `output->clear()` with `output` still the caller's
+ * `output_data output[256]`.
+ */
+function memberObject(value: unknown, property: string): unknown {
+  if (isGeneratedPointer(value)) return pointerValue(value, 0);
+  // Not a property the array has itself: a range-for reads `__range.length`.
+  if (Array.isArray(value) && isGeneratedStruct(value[0]) && !(property in value)) return value[0];
+  return value;
+}
+
 export function generatedReferent(value: unknown): unknown {
   return isLValue(value) ? value.get() : value;
 }
@@ -4031,7 +4078,7 @@ function generatedCallArguments(
   const parameters = context.bindings.callParameters?.[name] ?? [];
   return expressions.map((expression, index) =>
     isReferenceParameter(parameters[index], expression)
-      ? lValue(expression, context)
+      ? referenceArgument(expression, context)
       : evaluate(expression, context));
 }
 
@@ -4075,11 +4122,25 @@ function compileGeneratedCallArguments(
     const values = new Array<GeneratedCallArgument>(compiled.length);
     for (let index = 0; index < compiled.length; index++) {
       values[index] = isReferenceParameter(parameters?.[index], expressions[index]!)
-        ? lValue(expressions[index]!, context)
+        ? referenceArgument(expressions[index]!, context)
         : compiled[index]!(context);
     }
     return values;
   };
+}
+
+/**
+ * An argument bound to a C++ reference parameter. Storage the source names
+ * (a local, a member, an element, a dereference) is passed as an l-value the
+ * callee writes back through. Anything else is evaluated once, as C++ binds
+ * the reference to that one result: ymfm calls `m_fm.output(output->clear(),
+ * ...)`, and as an l-value every read of the parameter cleared the output
+ * again, so only the last channel was ever heard.
+ */
+function referenceArgument(expression: GeneratedExpression, context: ExecutionContext): unknown {
+  const storage = expression.kind === 'identifier' || expression.kind === 'member' || expression.kind === 'index' ||
+    (expression.kind === 'unary' && expression.operator === '*');
+  return storage ? lValue(expression, context) : evaluate(expression, context);
 }
 
 function lValue(expression: GeneratedExpression, context: ExecutionContext): GeneratedLValue {

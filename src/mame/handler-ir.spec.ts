@@ -710,4 +710,17 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
   assert.ok(JSON.stringify(compileMameHandler('{ logerror("N"); }').operations).includes('"kind":"string"'));
 }
 
-console.log('handler-ir.spec: 75 passed');
+// A braced aggregate initialises a declared struct: ymfm's OPLL hands back
+// `static const operator_mapping s_fixed_map = { { ... } };`. It lowers to
+// AGGREGATE, which the device compiler shapes from the struct's fields.
+{
+  const program = compileMameHandler(normalizeMameExecutionSource(
+    'static const operator_mapping s_fixed_map = { { operator_list(0, 1), operator_list(2, 3) } }; dest = s_fixed_map;'));
+  assert.deepEqual(program.diagnostics, []);
+  const declared = program.operations[0] as { op: string; value?: GeneratedExpression };
+  assert.equal(declared.op, 'declare');
+  assert.ok(declared.value?.kind === 'call' && declared.value.callee.kind === 'identifier' &&
+    declared.value.callee.name === 'AGGREGATE', 'a braced initializer is an aggregate');
+}
+
+console.log('handler-ir.spec: 76 passed');

@@ -485,6 +485,32 @@ Read as an unknown port they were all ones, which expired Nintendo Campus
 Challenge 1991's competition timer at power-on, held every one of Karaoke
 Studio's microphone buttons, and set Sachen's jumper to the wrong game.
 
+A device may be a wrapper over a library MAME bundles. Every Yamaha FM chip
+is one over ymfm in `3rdparty/ymfm`, which source discovery follows like
+`src/devices`. The Konami VRC7's DS1001 holds a `ymfm::ds1001` (an
+`opll_base`), which holds an `fm_engine_base<opll_registers>`, which builds
+nine `fm_channel`s and eighteen `fm_operator`s with `std::make_unique`
+(#188). Each of those is a plain C++ class, compiled as a held object (the
+6805's timer is another): its own hierarchy, members and methods, built by
+its source constructor when its owner is. A constructor chains to its bases
+through their initializers (`ds1001(...) : opll_base(intf, data ?: defaults)`)
+and builds a held object from its own arguments (`m_fm(intf)`). A class
+template is compiled once per instance, its parameter replaced by the
+argument everywhere, constants included (`RegisterType::OUTPUTS` is
+`opll_registers`'s). A type spelled through `using` aliases resolves across
+classes: the device's `ChipClass::output_data` is `ymfm_output<2>`, a struct
+template instance with its own fields and methods. A class's own constants
+shadow what the files around it declare: OPLL's register file is `0x40` bytes
+where an OPL3 header in the same sources says `0x100`. A static method of
+another class (`RegisterType::channel_offset(chnum)`) is lowered where it is
+called. A method that takes an argument by non-const reference marks it on the
+call (`references`), so a caller passes storage it writes back to:
+`m_regs.write(regnum, data, keyon_channel, keyon_opmask)` hands back the
+channel a register write keyed on. Emitted code calls a held object's methods
+directly. The DS1001's output is sample for sample what native ymfm gives for
+the same writes, and its emitted code renders it four times faster than real
+time.
+
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
 interpreter and compare writes and complete device state. Unsupported
@@ -590,7 +616,14 @@ that allocated its stream at its own clock (the MMC5 and VRC6 at 1.79 MHz,
 stepping once a sample) is rendered at that rate and averaged down to the
 speaker's 48 kHz; a stream at `machine().sample_rate()` is rendered as is.
 A chip whose MAME source does not lower is left out of the card rather than
-approximated: the card is still built, and that chip is silent.
+approximated: the card is still built, that chip is silent, and the
+definition says so (`omittedChildren`, with a warning at generation). A
+chip with firmware of its own (the VRC7's DS1001, its instrument patches in
+`ds1001.zip`) puts that ROM in the machine's `roms` tagged with the cards
+that need it (`cards: ["vrc7"]`), at the tag MAME gives it
+(`nes_slot:vrc7:vrc7snd:internal`). `mountCart` keeps it only for a
+cartridge on one of those boards, so a VRC7 cartridge asks for `ds1001.zip`
+the way the ColecoVision asks for its BIOS, and no other cartridge does.
 
 Norton op-amp stages are lowered to stable browser component models; MAMEKIT
 does not yet implement MAME's complete analog discrete solver. The generated

@@ -105,6 +105,24 @@ export interface GeneratedDeviceMember {
   object?: string;
   /** The owner's constructor arguments for that object, as written: `*this`, `0x7f`. */
   objectArgs?: string[];
+  /**
+   * The object is built by the owner's own constructor (`m_fm(intf)` hands
+   * it a constructor parameter), so it is not built before that runs.
+   */
+  objectConstructed?: boolean;
+  /**
+   * The member holds, refers or points to an object of this plain C++ class
+   * (one built from its source constructor, not a device): ymfm's `m_regs`
+   * (`opll_registers &`), `m_channel[i]`, `m_op[i]`. Emitted code calls its
+   * methods directly.
+   */
+  objectType?: string;
+  /**
+   * Storage for an uninitialised C++ local kept from call to call
+   * (lowerStructLocals): it carries nothing between calls, so a save state
+   * does not hold it.
+   */
+  scratch?: boolean;
 }
 
 /**
@@ -136,6 +154,11 @@ export interface GeneratedDeviceTimer {
   member: string;
   /** Absent for `timer_alloc(timer_expired_delegate())`: nothing calls back. */
   callback?: string;
+  /**
+   * A member array of timers, one allocated per element in a loop: the FM
+   * chips' `m_timer[tnum] = timer_alloc(FUNC(...), this)` over `m_timer[2]`.
+   */
+  count?: number;
 }
 
 export interface GeneratedDeviceMethod {
@@ -333,6 +356,8 @@ export interface GeneratedDeviceDefinition {
   children?: {
     member: string;
     type: string;
+    /** Its tag below this device, as its finder names it (`vrc7snd`). */
+    tag?: string;
     definition: GeneratedDeviceDefinition;
     /**
      * The child's device_delegates this device's own methods fill, by
@@ -353,6 +378,8 @@ export interface GeneratedDeviceDefinition {
      */
     routes?: { output: number; target: string; gain: number }[];
   }[];
+  /** Children its machine config builds that did not lower, so are not built. */
+  omittedChildren?: { member: string; type: string; diagnostics: number }[];
   summary: {
     methods: number;
     compiledMethods: number;
@@ -393,14 +420,27 @@ export function compileMameDevice(
      * exists after the C preprocessor has run (see preprocessed-device.ts).
      */
     transformSource?: (file: string, source: string) => string;
+    /**
+     * A class the owner holds or allocates rather than a device: its source
+     * constructor is lowered and run when it is built.
+     */
+    nestedClass?: boolean;
   } = {},
 ): GeneratedDeviceDefinition {
+  // A class template held by value is compiled once per instance: ymfm's
+  // OPLL holds an `fm_engine_base<opll_registers>`, and every
+  // `RegisterType` in the template's members and methods is that argument.
+  const instance = /^([\w:]+)\s*<([\s\S]+)>$/.exec(definition.className);
+  if (instance) definition = { ...definition, className: instance[1]! };
   const sourceFiles = localSourceFiles(mameSrc, definition.sourceFile);
+  // Defines carry from file to file in include order, as the preprocessor
+  // sees them.
+  const defines = new Map<string, string>();
   const sources = sourceFiles.map(file => {
     // `#if 1 ... #else ... #endif` keeps the branch the preprocessor keeps:
     // the speaker's device_start builds its sinc kernel under `#if 1` and a
     // flat one under `#else`, and both used to run, the second winning.
-    const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'));
+    const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'), defines);
     return { file, source: options.transformSource ? options.transformSource(file, source) : source };
   });
   for (const library of formatLibrarySources(mameSrc, sources)) {
@@ -439,6 +479,12 @@ export function compileMameDevice(
   // spriteram widths). Resolving the concrete arguments keeps the generated
   // device tied to the width the driver actually declares.
   const templateArguments = resolveTemplateArguments(definition.className, classes);
+  const instanceParameters = classes.get(definition.className)?.templateParameters;
+  if (instance && instanceParameters?.length) {
+    const args = splitMameArgs(instance[2]!).map(argument => argument.trim());
+    templateArguments.set(definition.className, Object.fromEntries(
+      instanceParameters.map((parameter, index) => [parameter, args[index] ?? parameter])));
+  }
   // `timer_source(x)` converts to an enum the device declares: a value, not a
   // call. Left a call, it named no function and answered a reference object,
   // which no comparison against the enum's values ever matched.
@@ -458,15 +504,50 @@ export function compileMameDevice(
       .map(member => member.name) : [];
   }))];
   const smartGet = smartPointers.length
-    ? new RegExp(`\\b(${smartPointers.join('|')})\\s*\\.\\s*get\\s*\\(\\s*\\)`, 'g')
+    ? new RegExp(`\\b(${smartPointers.join('|')})(\\s*\\[[^\\]]*\\])?\\s*\\.\\s*get\\s*\\(\\s*\\)`, 'g')
     : undefined;
+  // A namespace the device's own sources open names nothing a qualifier
+  // needs: ymfm declares every class, helper and enumerator inside
+  // `namespace ymfm`, and the DS1001 holds its chip as `ymfm::ds1001`.
+  const namespaces = [...new Set(sources.flatMap(({ source }) =>
+    [...source.matchAll(/\bnamespace\s+(\w+)\s*\{/g)].map(match => match[1]!)))]
+    .filter(name => !classes.has(name));
+  const namespaceQualifier = namespaces.length
+    ? new RegExp(`(?<![\\w:])(?:${namespaces.join('|')})::(?=\\w)`, 'g')
+    : undefined;
+  // Allocation names of the class-template instances the bodies build.
+  const instanceNames = new Map<string, string>();
+  // Type aliases, resolved once the constants they may need are known.
+  let resolveTypes: ((className: string, text: string) => string) | undefined;
   const specialize = (className: string, text: string): string => {
     const substitutions = templateArguments.get(className);
     let specialized = enumCast ? text.replace(enumCast, '(') : text;
-    if (smartGet) specialized = specialized.replace(smartGet, '$1');
+    if (smartGet) specialized = specialized.replace(smartGet, '$1$2');
     for (const [parameter, argument] of Object.entries(substitutions ?? {})) {
       specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
     }
+    if (namespaceQualifier) specialized = specialized.replace(namespaceQualifier, '');
+    // `typename` only tells a C++ parser that a dependent name is a type.
+    specialized = specialized.replace(/\btypename\s+(?=[\w:])/g, '');
+    // A MAME framework base named to pick its overload is the framework call
+    // the host answers: `device_sound_interface::stream_alloc(...)`,
+    // `device_t::clock()`. ymfm's wrapper spells both, beside an
+    // `ymfm_interface` that declares no clock of its own.
+    specialized = specialized.replace(/(?<![\w:])(?:device_t|device_\w+_interface)::(?=\w+\s*\()/g, prefix =>
+      hierarchy.includes(prefix.slice(0, -2)) ? prefix : '');
+    // `std::make_unique<T>(args)` builds a T as `new T(args)` does, and a
+    // class template's instance is named as an allocation can be: ymfm's
+    // engine builds `std::make_unique<fm_channel<RegisterType>>(*this, ...)`.
+    specialized = specialized.replace(
+      /\b(?:std::make_unique\s*<\s*([\w:]+(?:\s*<[^<>;()]*>)?)\s*>|new\s+([\w:]+\s*<[^<>;()]*>))\s*\(/g,
+      (text, made: string | undefined, allocated: string | undefined) => {
+        const allocatedType = (made ?? allocated)!;
+        if (!classes.has(allocatedType.replace(/\s*<[\s\S]*>$/, ''))) return text;
+        const name = templateInstanceName(allocatedType);
+        if (name !== allocatedType) instanceNames.set(name, allocatedType);
+        return `new ${name}(`;
+      });
+    if (resolveTypes) specialized = resolveTypes(className, specialized);
     for (const name of memberOwners.keys()) {
       const resolved = resolvedMemberName(className, name);
       if (resolved !== name) {
@@ -483,18 +564,25 @@ export function compileMameDevice(
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
     ...sources.map(({ source }) => numericConstants(stripCppComments(source))),
-    // A class-scoped constant belongs to its class, not to the file. MAME
-    // declares `PAGE_ROM_SIZE` five times in one cartridge header -- 0x4000
-    // for the paged MBCs, 0x2000 and 0x8000 for others -- and flattening them
-    // left every board using whichever came last: an MBC1 banked in 32 KiB
-    // steps and read the wrong half of its own ROM. Layered base-first, so a
-    // derived class still overrides what it inherits.
-    // Comments out, as for foreign classes: flopimg.h documents each opcode
-    // of its track description language with a comma-bearing comment.
-    ...hierarchy.map(className =>
-      numericConstants(stripCppComments(classes.get(className)?.body ?? ''))),
   );
-  Object.assign(constants, foreignClassConstants(mameSrc, sources, classes, constants));
+  // A class template's members name their argument's constants
+  // (`RegisterType::OUTPUTS`), which are read as the instance spells them.
+  const specializedSources = hierarchy.filter(className => templateArguments.has(className))
+    .flatMap(className => sources.map(({ file, source }) => ({ file, source: specialize(className, source) })));
+  Object.assign(constants, foreignClassConstants(mameSrc, [...sources, ...specializedSources], classes, constants));
+  // A class-scoped constant belongs to its class, not to the file. MAME
+  // declares `PAGE_ROM_SIZE` five times in one cartridge header -- 0x4000
+  // for the paged MBCs, 0x2000 and 0x8000 for others -- and flattening them
+  // left every board using whichever came last: an MBC1 banked in 32 KiB
+  // steps and read the wrong half of its own ROM. Layered base-first, so a
+  // derived class still overrides what it inherits, and read after the
+  // foreign ones, so `CHANNELS = RegisterType::CHANNELS` is the instance's.
+  // Comments out, as for foreign classes: flopimg.h documents each opcode
+  // of its track description language with a comma-bearing comment.
+  for (const className of hierarchy) {
+    Object.assign(constants, numericConstants(
+      stripCppComments(specialize(className, classes.get(className)?.body ?? '')), constants));
+  }
   // A define spelled in another file's constants resolves only once every
   // file's are known: m68705.h's `M6805_INT_TIMER (M6805_IRQ_LINE + 1)` names
   // an enumerator of m6805.h. Evaluated per file, it was dropped, and the
@@ -518,6 +606,120 @@ export function compileMameDevice(
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
   const structMethods = structMethodDeclarations(sources);
+
+  // What a class names by alias, and the constants it sees, so a type
+  // spelled through one resolves: the DS1001's `ChipClass::output_data` is
+  // `ds1001::output_data`, which opll_base declares as
+  // `fm_engine::output_data`, which is `fm_engine_base<opll_registers>`'s
+  // `ymfm_output<OUTPUTS>` -- `ymfm_output<2>`. A struct template's instance
+  // is a struct of its own (`ymfm_output__2`), sized and given methods with
+  // its arguments.
+  type ClassScope = { root: string; aliases: Map<string, string>; constants: Record<string, number> };
+  const scopes = new Map<string, ClassScope | undefined>();
+  const classScope = (instance: string): ClassScope | undefined => {
+    const key = instance.replace(/\s+/g, '');
+    if (scopes.has(key)) return scopes.get(key);
+    scopes.set(key, undefined);
+    const parsed = /^(\w+)(?:<([\s\S]*)>)?$/.exec(key);
+    const root = parsed?.[1];
+    const declaration = root ? classes.get(root) : undefined;
+    if (!root || !declaration) return undefined;
+    const substitutions = new Map(resolveTemplateArguments(root, classes));
+    if (parsed![2] !== undefined && declaration.templateParameters?.length) {
+      const args = splitMameArgs(parsed![2]).map(argument => argument.trim());
+      substitutions.set(root, Object.fromEntries(
+        declaration.templateParameters.map((parameter, index) => [parameter, args[index] ?? parameter])));
+    }
+    const scope: ClassScope = { root, aliases: new Map(), constants: { ...constants } };
+    for (const className of classHierarchy(root, classes)) {
+      let body = stripCppComments(classes.get(className)?.body ?? '');
+      if (namespaceQualifier) body = body.replace(namespaceQualifier, '');
+      for (const [parameter, argument] of Object.entries(substitutions.get(className) ?? {})) {
+        body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
+      }
+      // Another class's constant, by the qualified name this one uses.
+      const qualified = body.replace(/\b(\w+(?:<[^<>;]*>)?)::([A-Z]\w*)\b/g, (whole, owner: string, name: string) => {
+        const value = owner === root ? undefined : classScope(owner)?.constants[name];
+        return value === undefined ? whole : String(value);
+      });
+      scope.constants = numericConstants(qualified, scope.constants);
+      for (const alias of body.matchAll(/\busing\s+(\w+)\s*=\s*([^;]+);/g)) scope.aliases.set(alias[1]!, alias[2]!.trim());
+    }
+    scopes.set(key, scope);
+    return scope;
+  };
+  const structTemplate = (name: string) =>
+    classes.get(name)?.templateParameters?.length ? structBlocks(stripCppComments(sources.map(({ source }) => source).join('\n')))
+      .find(block => block.name === name) : undefined;
+  const resolveType = (scope: ClassScope | undefined, type: string, depth = 0): string => {
+    if (depth > 8) return type;
+    // `alias::name`, the alias this scope's: opll_base's `fm_engine::output_data`.
+    let resolved = scope ? type.replace(/(?<![\w:])(\w+)::(\w+)\b/g, (whole, alias: string, name: string) => {
+      const target = scope.aliases.get(alias);
+      return target ? `${resolveType(scope, target, depth + 1)}::${name}` : whole;
+    }) : type;
+    resolved = resolved.replace(/(?<![\w:])(\w+(?:<[^<>;]*>)?)::(\w+)\b/g, (whole, owner: string, name: string) => {
+      const other = classScope(owner);
+      const target = other?.aliases.get(name);
+      return target ? resolveType(other, target, depth + 1) : whole;
+    });
+    if (scope) {
+      resolved = resolved.replace(/(?<![\w:.>])(\w+)(?![\w:(])/g, (name: string) => {
+        const target = scope.aliases.get(name);
+        return target ? resolveType(scope, target, depth + 1) : name;
+      });
+    }
+    // A template's numeric arguments are values: `ymfm_output<OUTPUTS>`.
+    return resolved.replace(/\b(\w+)\s*<([^<>]+)>/g, (whole, name: string, args: string) => {
+      if (!classes.has(name)) return whole;
+      const values = splitMameArgs(args).map(argument => {
+        const value = evalExpr(argument.trim(), scope?.constants ?? constants);
+        return value === null || !Number.isFinite(value) ? argument.trim() : String(value);
+      });
+      const instance = `${name}<${values.join(', ')}>`;
+      const block = structTemplate(name);
+      if (!block || !values.every(value => /^\d+$/.test(value))) return instance;
+      // A struct template's instance: its own fields and methods.
+      const mangled = templateInstanceName(instance);
+      if (!structFields.has(mangled)) {
+        const parameters = classes.get(name)!.templateParameters!;
+        const bound = Object.fromEntries(parameters.map((parameter, index) => [parameter, Number(values[index])]));
+        structFields.set(mangled, structFieldList(block.body, { ...constants, ...bound }, mangled));
+        let body = block.body;
+        for (const [parameter, value] of Object.entries(bound)) body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), String(value));
+        const methods = structMethodsOf(body);
+        if (methods.length) structMethods[mangled] = methods;
+      }
+      return mangled;
+    });
+  };
+  const scopeOf = (className: string): ClassScope | undefined => {
+    const parameters = classes.get(className)?.templateParameters;
+    const args = templateArguments.get(className);
+    return classScope(parameters?.length && args ? `${className}<${parameters.map(parameter => args[parameter] ?? parameter).join(',')}>` : className);
+  };
+  resolveTypes = (className: string, text: string): string => {
+    const scope = scopeOf(className);
+    if (!scope?.aliases.size && !/::/.test(text)) return text;
+    // `alias::NAME`: a constant of the aliased class is its value, and an
+    // alias of a base class (`using parent = ymfm_device_base<...>`) is that
+    // base's name, as an explicit base call spells it.
+    let resolved = text.replace(/(?<![\w:.>])(\w+)::(\w+)\b/g, (whole, alias: string, name: string) => {
+      const target = scope?.aliases.get(alias);
+      if (!target) return whole;
+      const type = resolveType(scope, target);
+      const value = classScope(type)?.constants[name];
+      if (value !== undefined && /^[A-Z]/.test(name)) return String(value);
+      const base = type.replace(/\s*<[\s\S]*>$/, '');
+      return `${hierarchy.includes(base) ? base : type}::${name}`;
+    });
+    // `Owner::alias`, Owner any class: the type it names.
+    resolved = resolved.replace(/(?<![\w:])(\w+)::(\w+)\b(?!\s*\()/g, (whole, owner: string, name: string) =>
+      classScope(owner)?.aliases.has(name) ? resolveType(undefined, whole) : whole);
+    if (!scope?.aliases.size) return resolved;
+    return resolved.replace(/(?<![\w:.>])(\w+)(?![\w:(])/g, (name: string) =>
+      scope.aliases.has(name) ? resolveType(scope, name) : name);
+  };
   const sourceTables = Object.assign(
     {},
     // Comments out first: the 1541 formats annotate their zone tables row by
@@ -593,7 +795,7 @@ export function compileMameDevice(
   const allMethodBodies: string[] = [];
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
-    specialized.body = expandDynamicMacros(specialized.body, dynamicMacros);
+    specialized.body = expandDynamicMacros(expandLocalMacros(specialized.body), dynamicMacros);
     // Recorded even for an ignored method: `memory_space_config` is not
     // executable device behaviour, but it is where the space indices are said.
     methodBodies.set(specialized.name, specialized.body);
@@ -693,18 +895,48 @@ export function compileMameDevice(
   // To a fixed point: a helper calls helpers of its own -- the NES slot's
   // ines_mapr_setup looks its mapper up through nes_mapper_lookup -- and one
   // pass collected only the first level.
+  // (Collected below, with the static methods of other classes.)
+
+  const constructors = sources.flatMap(({ file, source }) => parseMameConstructors(file, source));
+  // A helper class declared beside a device often defines its constructor
+  // inline (`m6805_timer(m6805_base_device &parent) : m_parent(parent) ... {}`),
+  // which the out-of-line parser above does not see.
+  // A class template's constructor is the template's, whatever the instance.
+  const constructorOf = (qualified: string) =>
+    constructors.find(candidate => candidate.className === qualified.replace(/\s*<[\s\S]*>$/, '')) ??
+    inlineConstructor(sources, qualified);
+  // A static method of another class these sources declare, called by its
+  // qualified name: ymfm's engine numbers its channels and operators with
+  // `RegisterType::channel_offset(chnum)`, a static of the register class it
+  // is instantiated over. Read from the constructors too, which are lowered
+  // later but call it.
+  const constructorText = options.nestedClass
+    ? hierarchy.map(className => specialize(className, constructorOf(className)?.body ?? '')).join('\n')
+    : '';
+  const staticCalls = new Set<string>();
   for (let added = true; added;) {
     added = false;
-    const collectedBodies = [...methodBodies.values()].join('\n');
+    const called = [...methodBodies.values(), constructorText].join('\n');
     for (const helper of sourceMethods) {
       if (helper.className !== '') continue;
       if (methods.some(candidate => candidate.name === helper.name)) continue;
-      if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(collectedBodies)) continue;
+      if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(called)) continue;
       replaceOrAppend(helper);
       added = true;
     }
+    for (const call of new Set([...called.matchAll(/(?<![\w:])(\w+)::(\w+)\s*\(/g)].map(match => `${match[1]}::${match[2]}`))) {
+      const [className, name] = call.split('::') as [string, string];
+      const declaration = classes.get(className);
+      if (!declaration || hierarchy.includes(className) || staticCalls.has(call)) continue;
+      staticCalls.add(call);
+      if (!new RegExp(`\\bstatic\\b[^;{}]*\\b${name}\\s*\\(`).test(declaration.body)) continue;
+      const helper = inlineMethods(declaration).find(method => method.name === name) ??
+        sourceMethods.find(method => method.className === className && method.name === name);
+      if (!helper) continue;
+      replaceOrAppend({ ...helper, name: call, className: '' });
+      added = true;
+    }
   }
-
   // A static helper of another device class, called by its qualified name:
   // the Battlezone AVG colours each beam with `vector_device::color111(7)`,
   // declared inline in vector.h. That header is reached through MAME's global
@@ -795,6 +1027,25 @@ export function compileMameDevice(
     });
   });
   members.push(...staticStructConstants(sources, structFields, constants, members, [...methodBodies.values()].join('\n')));
+  // A static array of one of the device's own classes, defined out of line
+  // and qualified by that class: `uint8_t const ds1001::s_default_instruments[]
+  // = {...}`. It is that class's, not the file's -- ymfm defines one of the
+  // same name for each of its four OPLL variants -- and a method may use it
+  // whole, as a pointer (the DS1001's default patch set).
+  for (const className of hierarchy) {
+    for (const { source } of sources) {
+      for (const match of stripCppComments(source).matchAll(new RegExp(
+        String.raw`(?:^|[;}\s])(?:const\s+)?[\w:]+(?:\s+const)?\s+${className}::(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]*)\}\s*;`, 'g'))) {
+        const values = splitMameArgs(match[2]!).map(value => value.trim()).filter(Boolean)
+          .map(value => evalExpr(value, constants));
+        if (!values.length || values.some(value => value === null || !Number.isFinite(value))) continue;
+        const name = emittedMemberName(className, match[1]!);
+        const existing = members.find(member => member.name === name);
+        if (existing) Object.assign(existing, { values: values as number[], arrayLength: values.length });
+        else members.push({ name, valueType: 'auto', values: values as number[], arrayLength: values.length });
+      }
+    }
+  }
   const regionResources = Object.fromEntries(members.flatMap(member => {
     if (!/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
     const target = constructorBindings[member.name]?.at(-1) ?? '';
@@ -889,11 +1140,16 @@ export function compileMameDevice(
   // is a list the member parser does not split (`emu_timer *m_vg_run_timer,
   // *m_vg_halt_timer;`); anything else must be a declared member.
   const timers = [...new Map(allMethodBodies.flatMap(body => [...body.matchAll(
-    /(?<![\w.>])(\w+)\s*=\s*(?:machine\(\)\s*\.\s*scheduler\(\)\s*\.\s*)?timer_alloc\s*\(\s*(?:FUNC\(\s*\w+::(\w+)\s*\))?/g,
-  )].filter(match => match[1]!.startsWith('m_') || memberOwners.has(match[1]!)).map(match => [match[1]!, {
-    member: match[1]!,
-    ...(match[2] ? { callback: match[2] } : {}),
-  }] as const))).values()];
+    /(?<![\w.>])(\w+)(\s*\[[^\]]*\])?\s*=\s*(?:machine\(\)\s*\.\s*scheduler\(\)\s*\.\s*)?timer_alloc\s*\(\s*(?:FUNC\(\s*\w+::(\w+)\s*\))?/g,
+  )].filter(match => match[1]!.startsWith('m_') || memberOwners.has(match[1]!)).map(match => {
+    // An element of a timer array names the array, and the array its count.
+    const count = match[2] ? members.find(member => member.name === match[1])?.arrayLength : undefined;
+    return [match[1]!, {
+      member: match[1]!,
+      ...(match[3] ? { callback: match[3] } : {}),
+      ...(count ? { count } : {}),
+    }] as const;
+  }))).values()];
   const diagnostics = methods.reduce(
     (count, method) => count + method.program.diagnostics.length,
     0,
@@ -909,6 +1165,7 @@ export function compileMameDevice(
   // executable behaviour, which is why it is ignored for lowering, but it is
   // where the device says what it is made of.
   const children: NonNullable<GeneratedDeviceDefinition['children']> = [];
+  const omittedChildren: NonNullable<GeneratedDeviceDefinition['omittedChildren']> = [];
   const mconfig = methodBodies.get('device_add_mconfig');
   if (mconfig) {
     const nested = new Set([...compiling, type]);
@@ -919,7 +1176,14 @@ export function compileMameDevice(
       const childDefinition = known.get(childType);
       if (!childDefinition) continue;
       const child = compileMameDevice(mameSrc, childDefinition, childType, nested);
-      if (child.summary.diagnostics) continue;
+      // A child that does not lower is left out of the device rather than
+      // approximated -- and said so, here and in the definition: the VRC7's
+      // DS1001 was dropped this way for years with nothing to show for it.
+      if (child.summary.diagnostics) {
+        omittedChildren.push({ member, type: childType, diagnostics: child.summary.diagnostics });
+        console.warn(`  ! ${type}: child ${childType} (${member}) left out, ${child.summary.diagnostics} compiler diagnostics`);
+        continue;
+      }
       const delegateTargets: Record<string, string> = {};
       for (const setter of mconfig.matchAll(new RegExp(
         String.raw`\b${member}\s*->\s*(\w+)\s*\(\s*FUNC\s*\(\s*\w+::(\w+)\s*\)\s*\)`, 'g'))) {
@@ -951,8 +1215,11 @@ export function compileMameDevice(
         .filter(route => Number.isFinite(route.output));
       const childSlot = slotOptions ? composeChildSlot(mameSrc, child, slotOptions, nested) : undefined;
       if (childSlot) child.slot = childSlot;
+      // The child's tag, as its finder names it: `m_vrc7snd(*this, "vrc7snd")`.
+      const childTag = unquoteToken(constructorBindings[member]?.at(-1) ?? '');
       children.push({
         member, type: childType, definition: child,
+        ...(childTag ? { tag: childTag } : {}),
         ...(childClock && childClock > 0 ? { clock: childClock } : {}),
         ...(routes.length ? { routes } : {}),
         ...(Object.keys(delegateTargets).length ? { delegateTargets } : {}),
@@ -1066,38 +1333,20 @@ export function compileMameDevice(
     ...(methods.some(method => method.name === 'device_start') ? { start: 'device_start' } : {}),
     ...(methods.some(method => method.name === 'device_reset') ? { reset: 'device_reset' } : {}),
     ...(children.length ? { children } : {}),
+    ...(omittedChildren.length ? { omittedChildren } : {}),
     summary: {
       methods: methods.length,
       compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
       diagnostics,
     },
   };
-  const constructors = sources.flatMap(({ file, source }) => parseMameConstructors(file, source));
-  // A helper class declared beside a device often defines its constructor
-  // inline (`m6805_timer(m6805_base_device &parent) : m_parent(parent) ... {}`),
-  // which the out-of-line parser above does not see.
-  const constructorOf = (qualified: string) =>
-    constructors.find(candidate => candidate.className === qualified) ??
-    inlineConstructor(sources, qualified);
   const allocations: Record<string, GeneratedDeviceDefinition> = {};
   const compileNestedClass = (name: string, qualified: string): GeneratedDeviceDefinition => {
     if (compiling.has(qualified)) throw new Error(`cannot resolve nested MAME class ${qualified}`);
-    const child = compileMameDevice(mameSrc, { ...definition, className: qualified }, qualified, new Set([...compiling, qualified]));
-    const constructor = constructorOf(qualified);
-    if (!constructor) throw new Error(`missing source constructor for ${qualified}`);
-    // A reference member (`m6805_base_device &m_parent;`) declares like a
-    // function to the member scan; its constructor initializer says it is
-    // state, so it becomes a member the constructor can bind.
-    for (const initializer of constructor.initializers) {
-      if (!/^m_\w+$/.test(initializer.name) || child.members.some(member => member.name === initializer.name)) continue;
-      const leaf = (name: string) => name.split('::').at(-1);
-      if (!child.methods.some(method => leaf(method.name) === initializer.name)) continue;
-      child.methods = child.methods.filter(method => leaf(method.name) !== initializer.name);
-      child.members.push({ name: initializer.name, valueType: 'reference' });
-    }
-    addSourceConstructor(child, constructor, true);
+    if (!constructorOf(qualified)) throw new Error(`missing source constructor for ${qualified}`);
+    const child = compileMameDevice(mameSrc, { ...definition, className: qualified }, qualified,
+      new Set([...compiling, qualified]), { ...options, nestedClass: true });
     allocations[name] = child;
-    result.summary.diagnostics += child.summary.diagnostics;
     return child;
   };
   // A member held by value whose type is a class this device declares inside
@@ -1114,29 +1363,69 @@ export function compileMameDevice(
     if (member.memory || member.finder || member.fields) continue;
     const owner = [...hierarchy].reverse().find(className => classes.has(`${className}::${member.valueType}`));
     const qualified = owner ? `${owner}::${member.valueType}` : member.valueType;
-    if (!owner && (!classes.has(qualified) || hierarchy.includes(qualified) || /_device$/.test(qualified))) continue;
+    const template = qualified.replace(/\s*<[\s\S]*>$/, '');
+    if (!owner && (!classes.has(template) || hierarchy.includes(qualified) || /_device$/.test(template))) continue;
     if (!constructorOf(qualified)) continue;
-    if (!allocations[member.valueType]) compileNestedClass(member.valueType, qualified);
-    member.object = member.valueType;
-    // Built as the owner's constructor builds it: `m_timer(*this)`.
-    const initializer = constructors
-      .filter(candidate => hierarchy.includes(candidate.className))
-      .flatMap(candidate => candidate.initializers)
+    const allocation = templateInstanceName(member.valueType);
+    if (!allocations[allocation]) compileNestedClass(allocation, qualified);
+    member.object = allocation;
+    // Built as the owner's constructor builds it: `m_timer(*this)`, which
+    // may be written inside the class (`ymfm_device_base`'s `m_chip(*this)`).
+    const initializer = [
+      ...constructors.filter(candidate => hierarchy.includes(candidate.className)),
+      ...hierarchy.flatMap(className => inlineConstructor(sources, className) ?? []),
+    ].flatMap(candidate => candidate.initializers)
       .find(candidate => candidate.name === member.name);
     if (initializer?.args.length) member.objectArgs = initializer.args.map(argument => argument.trim());
     if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
     delete member.values;
     delete member.initial;
   }
+  if (options.nestedClass) {
+    const constructor = constructorOf(definition.className)!;
+    // A reference member (`m6805_base_device &m_parent;`) declares like a
+    // function to the member scan; its constructor initializer says it is
+    // state, so it becomes a member the constructor can bind.
+    for (const initializer of constructor.initializers) {
+      if (!/^m_\w+$/.test(initializer.name) || result.members.some(member => member.name === initializer.name)) continue;
+      const leaf = (name: string) => name.split('::').at(-1);
+      if (!result.methods.some(method => leaf(method.name) === initializer.name)) continue;
+      result.methods = result.methods.filter(method => leaf(method.name) !== initializer.name);
+      result.members.push({ name: initializer.name, valueType: 'reference' });
+    }
+    addSourceConstructor(result, constructor, true, base => hierarchy.includes(base) ? constructorOf(base) : undefined,
+      text => specialize(definition.className, text));
+    methods.splice(0, methods.length, ...result.methods);
+  }
   for (const method of methods) walkExpressions(method.program.operations, expression => {
     if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
-    const name = expression.callee.name.slice(5);
-    if (allocations[name]) return;
+    const allocated = expression.callee.name.slice(5);
+    if (allocations[allocated]) return;
+    const name = instanceNames.get(allocated) ?? allocated;
     const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
+    if (instanceNames.has(allocated)) {
+      compileNestedClass(allocated, qualified);
+      return;
+    }
     if (!classes.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
     compileNestedClass(name, qualified);
   });
   if (Object.keys(allocations).length) result.allocations = allocations;
+  annotateMemberCallReferences(result, classes, sourceMethods, hierarchy);
+  for (const member of result.members) {
+    const held = member.valueType.replace(/\bconst\b/g, '')
+      .replace(/^\s*std::(?:unique_ptr|shared_ptr|array)\s*<\s*([\s\S]+?)\s*(?:,\s*\d+\s*)?>\s*$/, '$1')
+      .replace(/[*&]/g, '').trim().replace(/\s*<[\s\S]*>$/, '');
+    if (member.fields || member.memory || member.finder || !classes.has(held) || hierarchy.includes(held)) continue;
+    if (/_device$/.test(held) || structFields.has(held) || !constructorOf(held)) continue;
+    member.objectType = held;
+  }
+  result.summary = {
+    methods: result.methods.length,
+    compiledMethods: result.methods.filter(method => !method.program.diagnostics.length).length,
+    diagnostics: result.methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0)
+      + Object.values(allocations).reduce((sum, child) => sum + child.summary.diagnostics, 0),
+  };
   lowerStructLocals(result);
   // C++ block scope: a local that shadows a parameter or an outer local gets a
   // name of its own (src/ir/scope.ts), before either executor reads the IR.
@@ -1148,6 +1437,65 @@ export function compileMameDevice(
   return result;
 }
 
+
+/**
+ * Mark the arguments of a call on a held or referenced object that its class
+ * takes by non-const reference (`references` on the call), so a caller --
+ * emitted or interpreted -- passes storage the callee writes back to. The
+ * receiver's class is the member's declared type: `m_regs` is an
+ * `opll_registers &`, `m_channel[i]` a `std::unique_ptr<fm_channel<...>>`.
+ */
+function annotateMemberCallReferences(
+  device: GeneratedDeviceDefinition,
+  classes: Map<string, MameClass>,
+  sourceMethods: readonly MameFunction[],
+  hierarchy: readonly string[],
+): void {
+  const classOf = (valueType: string): string | undefined => {
+    const held = valueType.replace(/\bconst\b/g, '')
+      .replace(/^\s*std::(?:unique_ptr|shared_ptr|array)\s*<\s*([\s\S]+?)\s*(?:,\s*\d+\s*)?>\s*$/, '$1')
+      .replace(/[*&]/g, '').trim().replace(/\s*<[\s\S]*>$/, '');
+    return classes.has(held) && !hierarchy.includes(held) ? held : undefined;
+  };
+  const cache = new Map<string, number[] | undefined>();
+  const positions = (className: string, method: string, arity: number): number[] | undefined => {
+    const key = `${className}::${method}/${arity}`;
+    if (cache.has(key)) return cache.get(key);
+    let found: number[] | undefined;
+    for (const owner of [...classHierarchy(className, classes)].reverse()) {
+      const candidates = [...sourceMethods.filter(candidate => candidate.className === owner), ...inlineMethods(classes.get(owner)!)]
+        .filter(candidate => candidate.name === method);
+      for (const candidate of candidates) {
+        const parameters = splitMameArgs(candidate.parameters).map(parameter => parameter.trim()).filter(Boolean);
+        if (arity > parameters.length || arity < parameters.filter(parameter => !parameter.includes('=')).length) continue;
+        // Only a reference the callee assigns needs storage to write back to;
+        // a struct it only writes fields of (`output_data &output`) is the
+        // object itself, and boxing it cost a closure per call.
+        const references = parameters.flatMap((parameter, index) => {
+          if (!/&(?!&)/.test(parameter.replace(/=.*$/, '')) || /\bconst\b/.test(parameter)) return [];
+          const name = parameterName(parameter);
+          return new RegExp(`(?<![\\w.>])${name}\\s*(?:[-+*/%&|^]|<<|>>)?=(?!=)|(?<![\\w.>])${name}\\s*(?:\\+\\+|--)|(?:\\+\\+|--)\\s*${name}\\b`)
+            .test(stripCppComments(candidate.body)) ? [index] : [];
+        });
+        found = references.length ? references : undefined;
+        break;
+      }
+      if (candidates.length) break;
+    }
+    cache.set(key, found);
+    return found;
+  };
+  const members = new Map(device.members.map(member => [member.name, member.valueType]));
+  for (const method of device.methods) walkExpressions(method.program.operations, expression => {
+    if (expression.kind !== 'call' || expression.callee.kind !== 'member') return;
+    const receiver = expression.callee.object.kind === 'index' ? expression.callee.object.object : expression.callee.object;
+    if (receiver.kind !== 'identifier') return;
+    const valueType = members.get(receiver.name);
+    const className = valueType ? classOf(valueType) : undefined;
+    const references = className ? positions(className, expression.callee.property, expression.args.length) : undefined;
+    if (references) (expression as { references?: number[] }).references = references;
+  });
+}
 
 /**
  * C++ divides by the operands' declared types, and a member or parameter
@@ -1275,15 +1623,41 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
     return leaf ? structs[leaf] : undefined;
   };
   const string = (value: string): GeneratedExpression => ({ kind: 'string', value });
+  // A braced value for an array field is that array's elements, and one for
+  // a struct field is that struct's.
   const structValue = (fields: GeneratedStructField[], values: GeneratedExpression[]): GeneratedExpression => ({
     kind: 'call',
     callee: { kind: 'identifier', name: 'STRUCT' },
-    args: fields.flatMap((field, index) => [string(field.name), values[index] ?? { kind: 'number', value: 0 }]),
+    args: fields.flatMap((field, index) => {
+      const value = values[index];
+      const braced = value?.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'AGGREGATE';
+      return [string(field.name), !braced ? value ?? { kind: 'number', value: 0 }
+        : field.fields && !field.length ? structValue(field.fields, value.args)
+        : { ...value, callee: { kind: 'identifier', name: 'ARRAY' } }];
+    }),
   });
   for (const method of device.methods) {
     // A scalar static is one storage for every call, so its uses name the
     // member itself; a local copy would take `counter++` and lose it.
     const scalarStatics = new Map<string, string>();
+    // Locals that only ever hold the literal they are declared with, as a
+    // `constexpr int MAX_SAMPLES = 256;` does: an array's length may be one.
+    const assigned = new Set<string>();
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'assignment' && expression.target.kind === 'identifier') assigned.add(expression.target.name);
+    });
+    walkOperations(method.program.operations, operation => {
+      if (operation.op === 'assign' && operation.target.kind === 'identifier') assigned.add(operation.target.name);
+    });
+    const literals = new Map<string, number>();
+    walkOperations(method.program.operations, operation => {
+      if (operation.op === 'declare' && operation.value?.kind === 'number' && !assigned.has(operation.name)) {
+        literals.set(operation.name, operation.value.value);
+      }
+    });
+    const constantLength = (length: GeneratedExpression | undefined): number | undefined =>
+      length?.kind === 'number' ? length.value
+        : length?.kind === 'identifier' ? literals.get(length.name) : undefined;
     const rewrite = (operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] => operations.flatMap((operation): GeneratedHandlerOperation[] => {
       for (const key of ['then', 'else', 'body'] as const) {
         const nested = (operation as Record<string, unknown>)[key];
@@ -1300,11 +1674,16 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
           value = { ...value, args: value.args.map(element =>
             element.kind === 'call' && element.callee.kind === 'identifier' && element.callee.name === 'AGGREGATE'
               ? structValue(fields, element.args) : element) };
+        } else if (value.callee.name === 'AGGREGATE' && !operation.valueType?.includes('[')) {
+          value = structValue(fields, value.args);
         } else if (value.callee.name === 'ALLOC') {
+          // Each element built from the declaration (STRUCT_ARRAY_OF), so an
+          // array field is an array and the struct's methods come with it.
+          const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
           value = {
             kind: 'call',
-            callee: { kind: 'identifier', name: 'STRUCT_ARRAY' },
-            args: [value.args[0] ?? { kind: 'number', value: 0 }, ...fields.map(field => string(field.name))],
+            callee: { kind: 'identifier', name: 'STRUCT_ARRAY_OF' },
+            args: [value.args[0] ?? { kind: 'number', value: 0 }, string(leaf)],
           };
         }
       }
@@ -1320,21 +1699,44 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
         }
       }
       const declared: GeneratedHandlerOperation = { ...operation, ...(value ? { value } : {}) };
+      // An array of structs declared with no initializer holds indeterminate
+      // values in C++ until written, so one storage kept from call to call is
+      // a faithful one: ymfm renders into a local `output_data output[256]`
+      // on every stream update, and building 256 structs each time was half
+      // of an NES frame with a VRC7 in the slot. The storage is a member
+      // built with the device, from the struct's own declaration (so it
+      // carries its marker and methods from the start), and kept out of save
+      // states: it holds nothing from one call to the next. Only a constant
+      // length qualifies; any other array is built per call.
+      const scratchLength = !operation.static && fields && value?.kind === 'call' && value.callee.kind === 'identifier' &&
+        value.callee.name === 'STRUCT_ARRAY_OF' ? constantLength(value.args[0]) : undefined;
+      if (scratchLength !== undefined) {
+        const member = `__local_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
+        const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
+        if (!device.members.some(candidate => candidate.name === member)) {
+          device.members.push({ name: member, valueType: leaf, fields, arrayLength: scratchLength, scratch: true });
+        }
+        return [{ op: 'declare', name: operation.name, value: { kind: 'identifier', name: member } }];
+      }
       if (!operation.static || !value) {
         delete (declared as { static?: true }).static;
         return [declared];
       }
       const member = `__static_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
+      const storage: GeneratedExpression = { kind: 'identifier', name: member };
       // A static table (`static const u8 dummy_table[] = {...}`) declares its
       // element type; the member holding it must not be narrowed to that, or
       // the Williams blitter's remap table became one byte.
       const aggregate = value.kind === 'call' && value.callee.kind === 'identifier' &&
-        ['ARRAY', 'AGGREGATE', 'STRUCT', 'STRUCT_ARRAY', 'ALLOC'].includes(value.callee.name);
+        ['ARRAY', 'AGGREGATE', 'STRUCT', 'STRUCT_ARRAY', 'STRUCT_ARRAY_OF', 'ALLOC'].includes(value.callee.name);
       if (!device.members.some(candidate => candidate.name === member)) {
-        device.members.push({ name: member, valueType: aggregate ? 'auto' : operation.valueType ?? 'auto' });
+        const structStatic = fields && value.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'STRUCT';
+        const leaf = operation.valueType?.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1);
+        device.members.push(structStatic && leaf
+          ? { name: member, valueType: leaf, fields }
+          : { name: member, valueType: aggregate ? 'auto' : operation.valueType ?? 'auto' });
         device.members.push({ name: `${member}__initialised`, valueType: 'bool' });
       }
-      const storage: GeneratedExpression = { kind: 'identifier', name: member };
       // Initialised once, as C++ does on first pass -- not again whenever the
       // value happens to be zero.
       const initialised: GeneratedExpression = { kind: 'identifier', name: `${member}__initialised` };
@@ -1421,27 +1823,65 @@ export function addSourceConstructor(
   device: GeneratedDeviceDefinition,
   constructor: ReturnType<typeof parseMameConstructors>[number],
   includeInitializers = false,
+  /**
+   * A base class's own constructor, so a derived initializer list can chain
+   * to it: ymfm's `ds1001(intf, data) : opll_base(intf, data ?: defaults)`
+   * builds the engine in `opll_base`'s.
+   */
+  baseConstructor: (className: string) => ReturnType<typeof parseMameConstructors>[number] | undefined = () => undefined,
+  specialize: (text: string) => string = text => text,
 ): void {
-  let body = constructor.body;
-  // device_t::interface(T *&) is an RTTI lookup with an output reference.
-  // The host proxy exposes the same lookup by the source-declared type name.
-  body = body.replace(/\b(\w+)->interface\s*\(\s*(m_\w+)\s*\)/g, (call, receiver: string, field: string) => {
-    const type = device.members.find(member => member.name === field)?.valueType.replace(/\*$/, '').trim();
-    return type ? `${field} = ${receiver}->interface("${type}")` : call;
-  });
-  if (includeInitializers) body = constructor.initializers
-    .filter(initializer => device.members.some(member => member.name === initializer.name))
-    .map(initializer => {
-      if (initializer.args.length !== 1) throw new Error(`unsupported constructor initializer ${initializer.name}`);
-      return `${initializer.name} = ${initializer.args[0]};`;
-    }).join('\n') + '\n' + body;
-  const method = compileMethod({ ...constructor, name: '__construct', body });
-  device.methods.push(method);
-  device.construct = method.name;
+  const lower = (source: ReturnType<typeof parseMameConstructors>[number], name: string): void => {
+    let body = specialize(source.body);
+    // device_t::interface(T *&) is an RTTI lookup with an output reference.
+    // The host proxy exposes the same lookup by the source-declared type name.
+    body = body.replace(/\b(\w+)->interface\s*\(\s*(m_\w+)\s*\)/g, (call, receiver: string, field: string) => {
+      const type = device.members.find(member => member.name === field)?.valueType.replace(/\*$/, '').trim();
+      return type ? `${field} = ${receiver}->interface("${type}")` : call;
+    });
+    if (includeInitializers) {
+      // C++ builds the bases first, then the members, then runs the body.
+      const bases: string[] = [];
+      const fields: string[] = [];
+      for (const initializer of source.initializers) {
+        const args = initializer.args.map(argument => specialize(argument.trim()));
+        const member = device.members.find(candidate => candidate.name === initializer.name);
+        if (!member) {
+          const base = initializer.name.replace(/\s*<[\s\S]*>$/, '');
+          const chained = device.hierarchy?.includes(base) ? baseConstructor(base) : undefined;
+          if (!chained) continue;
+          lower(chained, `${base}::__construct`);
+          bases.push(`${base}::__construct(${args.join(', ')});`);
+        } else if (member.object && args.length) {
+          // A held object built from the constructor's own arguments:
+          // `m_fm(intf)`. It is built here, not before the owner exists.
+          member.objectConstructed = true;
+          fields.push(`${member.name} = new ${member.object}(${args.join(', ')});`);
+        } else if (args.length === 1) {
+          fields.push(`${member.name} = ${args[0]};`);
+        } else if (args.length > 1 && (member.arrayLength || /^std::array\s*</.test(member.valueType))) {
+          // A braced array initializer: `m_timer_running{0,0}`.
+          fields.push(...args.map((argument, index) => `${member.name}[${index}] = ${argument};`));
+        } else if (args.length) {
+          throw new Error(`unsupported constructor initializer ${initializer.name}`);
+        }
+      }
+      body = [...bases, ...fields].join('\n') + '\n' + body;
+    }
+    const method = compileMethod({ ...source, name, body });
+    device.methods = [...device.methods.filter(candidate => candidate.name !== name), method];
+  };
+  lower(constructor, '__construct');
+  device.construct = '__construct';
   device.summary = { methods: device.methods.length,
     compiledMethods: device.methods.filter(method => !method.program.diagnostics.length).length,
     diagnostics: device.methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0)
       + Object.values(device.allocations ?? {}).reduce((sum, child) => sum + child.summary.diagnostics, 0) };
+}
+
+/** An allocation's name for a class-template instance: `fm_channel<opll_registers>` is `fm_channel__opll_registers`. */
+function templateInstanceName(type: string): string {
+  return type.includes('<') ? type.replace(/\s+/g, '').replace(/</g, '__').replace(/>/g, '').replace(/\W/g, '_') : type;
 }
 
 function methodSignature(name: string, parameters: string): string {
@@ -1616,9 +2056,14 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
       // them: every Game Boy cartridge decodes its own ROM through
       // `device_generic_cart_interface::install_non_power_of_two`, included as
       // "bus/generic/slot.h" and reachable no other way.
+      //
+      // `3rdparty` is the other: MAME's FM chips are wrappers over the bundled
+      // ymfm library (`#include "ymfm/src/ymfm_opl.h"`), and the chip a
+      // DS1001 holds as `m_chip` is declared nowhere else.
       const included = [
         join(dirname(absolute), match[1]!),
         join(mameSrc, 'src/devices', match[1]!),
+        join(mameSrc, '3rdparty', match[1]!),
       ].find(candidate => existsSync(candidate));
       if (!included) continue;
       visit(included);
@@ -1923,6 +2368,29 @@ function expandStringMacros(body: string, macros: Readonly<Record<string, string
     name ? `"${macros[name]}"` : match);
 }
 
+/**
+ * A function-like macro a method defines inside its own body is expanded
+ * there, whatever it expands to, and its `#define`/`#undef` lines go: ymfm
+ * spells its power table `X(0x3fa), X(0x3f5), ...` under a `#define X(a)`
+ * that lives and dies inside `attenuation_to_volume`. The file-wide macro
+ * rule (statement macros only) is about names other code also routes on; a
+ * macro scoped to one body has no such reader.
+ */
+function expandLocalMacros(body: string): string {
+  if (!/^[ \t]*#[ \t]*define\b/m.test(body)) return body;
+  const joined = body.replace(/\\[ \t]*\r?\n/g, ' ');
+  const macros = [...joined.matchAll(/^[ \t]*#[ \t]*define[ \t]+(\w+)\(([^)]*)\)[ \t]*(.*)$/gm)]
+    .map(match => ({
+      name: match[1]!,
+      parameters: match[2]!.split(',').map(parameter => parameter.trim()).filter(Boolean),
+      body: match[3]!.replace(/\/\/.*$/, '').trim(),
+    }));
+  if (!macros.length) return body;
+  const names = new Set(macros.map(macro => macro.name));
+  return expandFunctionMacros(joined.replace(/^[ \t]*#[ \t]*(?:define|undef)[ \t]+(\w+).*$/gm,
+    (line, name: string) => names.has(name) ? '' : line), macros);
+}
+
 function compileMethod(
   method: MameFunction,
   interruptCallbacks: { member: string; line: string; signal: string }[] = [],
@@ -1932,7 +2400,7 @@ function compileMethod(
   stringMacros: Readonly<Record<string, string>> = {},
 ): GeneratedDeviceMethod {
   let body = expandMemberAliasMacros(
-    expandFunctionMacros(method.body, functionMacros),
+    expandFunctionMacros(expandLocalMacros(method.body), functionMacros),
     memberAliases,
   ).replace(
     // The device's own allocations, which the runtime makes from the member's
@@ -1943,10 +2411,16 @@ function compileMethod(
     '',
   ).replace(
     // The runtime builds every member timer and binds it to its member
-    // before any method runs (see the timers list in compileMameDevice).
-    /(?<![\w.>])\w+\s*=\s*(?:machine\(\)\s*\.\s*scheduler\(\)\s*\.\s*)?timer_alloc\s*\([^;]*\)\s*;\s*/g,
+    // before any method runs (see the timers list in compileMameDevice),
+    // an array's elements included.
+    /(?<![\w.>])\w+(?:\s*\[[^\]]*\])?\s*=\s*(?:machine\(\)\s*\.\s*scheduler\(\)\s*\.\s*)?timer_alloc\s*\([^;]*\)\s*;\s*/g,
     '',
   );
+  // A reference local bound to a framework accessor chain is that chain:
+  // `auto &scheduler = machine().scheduler(); if (scheduler.currently_executing())`.
+  for (const alias of [...body.matchAll(/\bauto\s*&\s*(\w+)\s*=\s*(machine\(\)(?:\s*\.\s*\w+\(\))+)\s*;/g)]) {
+    body = body.replace(alias[0], '').replace(new RegExp(`(?<![\\w.>])${alias[1]}\\s*\\.`, 'g'), `${alias[2]}.`);
+  }
   body = expandStringMacros(body, stringMacros);
   // `space(AS_PROGRAM).cache(m_cprogram13)` binds the accessor to that space:
   // every later `m_cprogram13.read_byte(a)` reads through it. The accessor is
@@ -2066,7 +2540,9 @@ export function memberDeclarations(
   declaration: MameClass,
   constants: Record<string, number> = {},
 ): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
-  declaration = { ...declaration, body: maskNestedClasses(declaration.body) };
+  // `mutable` lets a const method write the member; it is still a member
+  // (ymfm's channel keeps its next feedback input as `mutable int16_t`).
+  declaration = { ...declaration, body: maskNestedClasses(declaration.body).replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1') };
   const members: {
     name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
   }[] = [];
@@ -2119,7 +2595,9 @@ export function memberDeclarations(
     // compositor unemittable and every 2600 frame in the interpreter.
     /^\s*(?:struct|union|enum)\s+([\w:]+)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*((?:const\s+)?[\w:]+(?:\s+const)?(?:::\w+<\d+>)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
-    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    // With an array bound too: ymfm's engine holds
+    // `std::unique_ptr<fm_channel<RegisterType>> m_channel[CHANNELS];`.
+    /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     // `char const *m_default_card;` -- east const, as generic_slot_device
     // spells all three of its strings.
     /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?(?:\s+const)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
@@ -2130,6 +2608,10 @@ export function memberDeclarations(
     // did not exist and every store into them went nowhere.
     /^\s*((?:const\s+)?(?:(?:unsigned|signed|long|short)\s+)+(?:int|char|long|short)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*(?:const\s+)?(?:struct|union)\s+([\w:]+)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
+    // A reference member, bound by the constructor: ymfm's operator reaches
+    // its registers and its engine as `RegisterType &m_regs;` and
+    // `fm_engine_base<RegisterType> &m_owner;`.
+    /^\s*((?:const\s+)?[\w:]+(?:\s*<[^;\r\n]+>)?(?:\s+const)?)\s*(&)\s*(m_\w+)\s*;/gm,
   ];
   for (const pattern of patterns) {
     for (const match of declaration.body.matchAll(pattern)) {
@@ -2142,7 +2624,7 @@ export function memberDeclarations(
       // Super Mario Bros. 3 ran at 9 fps because of it.
       // The pointer pattern captures the `*` in group 2, so its name and array
       // bound each sit one group further along.
-      const pointer = match[2] === '*';
+      const pointer = match[2] === '*' || match[2] === '&';
       const star = pointer ? match[2] : undefined;
       const name = (pointer ? match[3] : match[2])!;
       const bound = pointer ? match[4] : match[3];
@@ -2155,7 +2637,9 @@ export function memberDeclarations(
       // than a declarator bound: `memory_bank_array_creator<2> m_bank_rom`.
       // Read as one object, `m_bank_rom[0]` indexed nothing -- and both of an
       // MBC's ROM windows lost the bank behind them.
-      const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1];
+      // So does `std::array<T, N>`, ymfm's channel's four operator pointers.
+      const templateCount = /_array_creator\s*<\s*(\d+)\s*>/.exec(valueType)?.[1] ??
+        /^std::array\s*<[\s\S]*,\s*(\d+)\s*>$/.exec(valueType)?.[1];
       const arrayLength = bound
         ? arrayBound(bound, constants)
         : templateCount ? Number(templateCount) : undefined;
@@ -2541,7 +3025,12 @@ function foreignClassConstants(
   for (const [owner, names] of wanted) {
     const declaration = classes.get(owner) as { body?: string } | undefined;
     if (!declaration?.body) continue;
-    const values = numericConstants(stripCppComments(declaration.body), known);
+    // With what the class inherits: OPLL's registers take `EG_HAS_REVERB`
+    // from `fm_registers_base`.
+    let values = known;
+    for (const className of classHierarchy(owner, classes as Map<string, MameClass>)) {
+      values = numericConstants(stripCppComments((classes.get(className) as { body?: string } | undefined)?.body ?? ''), values);
+    }
     for (const name of names) {
       if (values[name] !== undefined) found[`${owner}::${name}`] = values[name]!;
     }
@@ -2651,13 +3140,20 @@ function numericConstants(
       previous = match[1]!;
     }
   }
+  // What the source declares shadows what it was seeded with, as an inner
+  // scope does: OPLL's registers declare `REGISTERS = 0x40` over the 0x100
+  // an OPL3 header left in the seed.
   const constants: Record<string, number> = { ...seed };
+  for (const name of expressions.keys()) delete constants[name];
   for (let pass = 0; pass <= expressions.size; pass++) {
     for (const [name, expression] of expressions) {
       if (constants[name] !== undefined) continue;
+      // A leaf inside a qualified name (`opll_registers::CHANNELS`) is that
+      // class's, not this scope's; evalExpr answers the qualified spelling.
       const substituted = expression.replace(
-        /\b[A-Za-z_]\w*\b/g,
-        token => constants[token] !== undefined ? String(constants[token]) : token,
+        /(?<![\w:])[A-Za-z_]\w*(?![\w:])/g,
+        token => token === 'true' ? '1' : token === 'false' ? '0'
+          : constants[token] !== undefined ? String(constants[token]) : token,
       );
       const value = evalExpr(substituted, constants);
       if (value !== null && Number.isFinite(value)) constants[name] = value;
@@ -2990,20 +3486,27 @@ function structMethodDeclarations(
   for (const { source } of sources) {
     for (const declaration of structBlocks(stripCppComments(source))) {
       if (!declaration.name || methods[declaration.name]) continue;
-      const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
-      const header = /(?:^|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+(\w+)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g;
-      for (const match of declaration.body.matchAll(header)) {
-        const open = declaration.body.indexOf('{', match.index! + match[0].length - 1);
-        const close = matchingBrace(declaration.body, open);
-        if (close < 0) continue;
-        const program = compileMameHandler(normalizeMameExecutionSource(declaration.body.slice(open + 1, close)));
-        if (program.diagnostics.length) continue;
-        found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
-      }
+      const found = structMethodsOf(declaration.body);
       if (found.length) methods[declaration.name] = found;
     }
   }
   return methods;
+}
+
+/** The inline methods one struct body defines. */
+function structMethodsOf(body: string): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+  const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  // The first method may open the body: `ymfm_output &clear()`.
+  const header = /(?:^\s*|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+(\w+)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g;
+  for (const match of body.matchAll(header)) {
+    const open = body.indexOf('{', match.index! + match[0].length - 1);
+    const close = matchingBrace(body, open);
+    if (close < 0) continue;
+    const program = compileMameHandler(normalizeMameExecutionSource(body.slice(open + 1, close)));
+    if (program.diagnostics.length) continue;
+    found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
+  }
+  return found;
 }
 
 /**

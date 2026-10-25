@@ -39,6 +39,17 @@ const nesMount = mountCart(nesConfig, nes!);
 assert.equal(nesMount?.regions.prg?.length, 0x8000, 'NROM-128 mounts mirrored into the 32 KiB window');
 assert.deepEqual(nesMount?.regions.chr, chr);
 assert.deepEqual(nesMount?.cart, { mapper: 0, mirroring: 'vertical', battery: false });
+// Firmware a board carries is the machine's only for a cartridge on that
+// board: the VRC7's DS1001 instrument ROM, and for an NROM cartridge nothing.
+{
+  const ds1001 = { region: 'nes_slot:vrc7:vrc7snd:internal', size: 0x90, romSet: 'ds1001', cards: ['vrc7'],
+    loads: [{ file: 'ds1001_instruments.bin', offset: 0, size: 0x90, crc: '9d699efc' }] };
+  const withCards = { ...nesConfig, roms: [{ region: 'maincpu', size: 0x10000, loads: [] }, ds1001] } as ShellConfig;
+  assert.deepEqual(mountCart(withCards, nes!)?.roms.map(spec => spec.region), ['maincpu'],
+    'an NROM cartridge needs no card firmware');
+  assert.deepEqual(mountCart(withCards, { ...nes!, slot: 'vrc7' })?.roms.map(spec => spec.region),
+    ['maincpu', 'nes_slot:vrc7:vrc7snd:internal'], 'a VRC7 cartridge needs ds1001.zip');
+}
 // A zip holding a whole .nes is that image, whatever the catalog says.
 assert.equal(cartImageFromZip(new Map([['game.nes', nesImage]]), null, nesSupport), nesImage);
 
@@ -67,6 +78,7 @@ assert.equal(flat?.slot, 'standard', 'an entry naming no slot takes the slot def
 assert.deepEqual(mountCart(flatConfig, flat!), {
   regions: { 'coleco_cart:rom': rom },
   cart: { slot: 'standard' },
+  roms: [],
 });
 // An uncatalogued zip of one image is that image; of two, nothing.
 assert.equal(cartImageFromZip(new Map([['game.col', rom]]), null, flatSupport), rom);

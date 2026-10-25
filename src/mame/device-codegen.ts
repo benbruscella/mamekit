@@ -995,6 +995,13 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
  * The object of a member call. The call ladder tests this for materialisation,
  * so it must stay undefined when the board never bound the member.
  */
+/** A member, or an element of one, that holds a plain class object (`objectType`). */
+function isObjectReceiver(expression: GeneratedExpression, context: EmitContext): boolean {
+  const holder = expression.kind === 'index' ? expression.object : expression;
+  return holder.kind === 'identifier' && !context.locals.has(holder.name) &&
+    Boolean(context.definition.members.find(member => member.name === holder.name)?.objectType);
+}
+
 function emitCallObject(
   expression: GeneratedExpression,
   context: EmitContext,
@@ -1237,6 +1244,13 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         expression.operator === '!=' ? '!==' : expression.operator;
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
+    // An operand declared unsigned shifts logically in C++ whatever its sign
+    // in JavaScript, which is `>>>`; only an undeclared one needs the value
+    // to decide. ymfm's `bitfield(uint32_t value, ...)` is called millions
+    // of times a second.
+    if (expression.operator === '>>' && /^(?:const\s+)?(?:uint(?:8|16|32)_t|u(?:8|16|32)|unsigned(?:\s+int)?|offs_t)$/.test(leftType ?? '')) {
+      return `((${left}) >>> (${right}))`;
+    }
     if (expression.operator === '>>') return `runtime.shiftRight(${left}, ${right})`;
     // `rectangle & rectangle` is an intersection.
     if (expression.operator === '&' && leftType === 'rectangle') return `runtime.and(${left}, ${right})`;
@@ -1260,8 +1274,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       context,
     );
     if (!expression.postfix) return `(${assignment})`;
-    const target = targetInfo(expression.target, context);
-    return `(() => { const previous = ${target.code}; ${assignment}; return previous; })()`;
+    // The value before the store, read as any read of the target is: through
+    // a reference parameter's get() (ymfm's `lfo_am_counter++` on a
+    // `uint16_t &` captured the wrapper, and the AM LFO never moved).
+    return `(() => { const previous = ${emitExpression(expression.target, context)}; ${assignment}; return previous; })()`;
   }
   if (expression.kind === 'conditional') {
     return `((${emitExpression(expression.condition, context)}) ? ` +
@@ -1454,6 +1470,12 @@ function emitCall(
       const memMask = context.locals.has('mem_mask') ? localName('mem_mask') : '0xffff';
       return `runtime.combineData(${args[0] ?? '0'}, ${data}, ${memMask})`;
     }
+    // As the interpreter answers them (Math over numbers), inline rather than
+    // through runtime.macro: ymfm clamps every envelope and rate this way.
+    if ((name === 'std::min' || name === 'std::max') && args.length === 2 &&
+        !context.definition.methods.some(method => method.name === name)) {
+      return `Math.${name.slice(5)}(+(${args[0]}), +(${args[1]}))`;
+    }
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;
@@ -1634,7 +1656,12 @@ function emitCall(
         `typeof (${object})?.isnull === 'function' ? (${object}).isnull() : ` +
         `(${fallbackLink(context, name)}?.() ?? 0))`;
     }
-    const args = expression.args.map(argument => emitExpression(argument, context));
+    // An argument the receiver's class takes by non-const reference is passed
+    // as storage it writes back to (`m_regs.write(..., keyon_channel, ...)`).
+    const args = expression.args.map((argument, index) =>
+      expression.references?.includes(index) && isAssignableArgument(argument)
+        ? emitReferenceArgument(argument, context)
+        : emitExpression(argument, context));
     const object = emitCallObject(expression.callee.object, context);
     if (expression.callee.property === 'empty' && !args.length) {
       // A rectangle answers its own `empty()`: no area left after a clip.
@@ -1673,6 +1700,13 @@ function emitCall(
       // took half its table and lost sprites.
       if (expression.callee.property === 'bytes') return `runtime.container(${object}, "bytes")`;
       return `(${object}).length`;
+    }
+    // A member the compiler knows holds an object of a plain C++ class (ymfm's
+    // `m_regs`, `m_channel[i]`, `m_op[i]`) is that object's method, called
+    // without probing what the value is: the OPLL makes some four million
+    // such calls a second.
+    if (!context.boardScope && isObjectReceiver(expression.callee.object, context)) {
+      return `(${object}.${expression.callee.property}?.(${args.join(', ')}) ?? 0)`;
     }
     const directName = linkedMemberCallName(expression);
     if (
@@ -2059,8 +2093,10 @@ function pointerAssignment(
     valueType?.includes('*') &&
     (operator === '+=' || operator === '-=')
   ) {
-    const sign = operator === '+=' ? '+' : '-';
-    return `({ ...(${current}), offset: ((${current}).offset ${sign} (${right})) })`;
+    // Through the runtime's pointer arithmetic, which also takes an array:
+    // C passes `output_data output[256]` to `output_data *output`, and ymfm
+    // steps it with `output++` from the array itself.
+    return `runtime.${operator === '+=' ? 'add' : 'subtract'}(${current}, ${right})`;
   }
   // `&=` is an intersection when the target is a rectangle and a bitwise AND
   // otherwise, and only the value knows which. The interpreter decides it by
@@ -2112,6 +2148,12 @@ function emitAddressOf(
     return `({ generatedPointer: true, target: ${emitReferenceArgument(expression, context)}, offset: 0 })`;
   }
   throw new Error(`device codegen has unsupported address-of operand ${JSON.stringify(expression)}`);
+}
+
+/** Storage the source names, which a reference parameter can write back to. */
+function isAssignableArgument(expression: GeneratedExpression): boolean {
+  return expression.kind === 'identifier' || expression.kind === 'member' || expression.kind === 'index' ||
+    (expression.kind === 'unary' && expression.operator === '*');
 }
 
 function emitReferenceArgument(

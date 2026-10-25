@@ -78,6 +78,12 @@ export interface RomRegionSpec {
    * `<romSet>.zip` — namco54.zip, not galaga.zip.
    */
   romSet?: string;
+  /**
+   * The slot cards this region belongs to, when only they need it: the VRC7
+   * cartridge's DS1001 instrument ROM is loaded when a VRC7 board is in the
+   * NES's slot, and for no other cartridge (mountCart keeps it or drops it).
+   */
+  cards?: string[];
   loads: RomLoad[];
 }
 
@@ -947,25 +953,30 @@ export async function runShell(
     // stores it in a separate split-set zip.
     const critical = requiredRomRegions(cfg.roms, cfg.board.cpus.map(c => c.region));
     const dependencies = dependencyRomSets(cfg.roms, cfg.game);
+    // A console whose own set holds nothing (the NES) asks only for the
+    // device sets its cartridge needs (a VRC7's ds1001.zip), not for an
+    // nes.zip that does not exist.
+    const ownSet = cfg.roms.some(spec => !spec.romSet && spec.loads.some(load => !load.romSet && isDumpedRom(load)));
+    const wanted = [...(ownSet || !dependencies.length ? [cfg.game] : []), ...dependencies];
     const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical, cfg.firmwareFrom);
     if (kept?.complete) {
-      ui.status(`Booting ${cfg.title} from the ${cfg.game}.zip kept in this browser…`);
+      ui.status(`Booting ${cfg.title} from the ${wanted[0]}.zip kept in this browser…`);
       regions = assembleRegions(cfg.roms, kept.files, ui.status, critical);
       keptRom = true;
     } else {
+      const short = kept ? missingRomSets(cfg.roms, kept.files, critical, cfg.game) : [];
       // A page opened from an invite still needs its own dump, and the drop
       // screen used to say nothing about why they were here (issue #140).
-      const zone = ui.dropZone(cfg.game, inviteCode() !== undefined);
-      const companionText = dependencies.length
-        ? ` plus ${dependencies.map(set => `${set}.zip`).join(', ')}`
+      const zone = ui.dropZone(short[0] ?? wanted[0]!, inviteCode() !== undefined);
+      const companionText = wanted.slice(1).length
+        ? ` plus ${wanted.slice(1).map(set => `${set}.zip`).join(', ')}`
         : '';
-      const short = kept ? missingRomSets(cfg.roms, kept.files, critical, cfg.game) : [];
       ui.status(short.length
         ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
-        : `ROMs are not distributed with mamekit — drop your own ${cfg.game}.zip${companionText} (kept only in this browser).`);
-      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, cfg.game, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined);
+        : `ROMs are not distributed with mamekit — drop your own ${wanted[0]}.zip${companionText} (kept only in this browser).`);
+      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, wanted, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined);
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
-      keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast);
+      keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast, wanted[0]);
     }
     // The cartridge the console room already resolved wins over anything of
     // the same name in the machine set.
@@ -2796,11 +2807,12 @@ function waitForZip(
   zone: DropZone,
   specs: RomRegionSpec[],
   critical: Set<string>,
-  game: string,
+  wanted: readonly string[],
   category: string,
   systemKey?: string,
   kept?: KeptRomSet,
 ): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[] }> {
+  const primary = wanted[0]!;
   return new Promise(resolve => {
     const pick = document.createElement('input');
     pick.type = 'file';
@@ -2857,7 +2869,7 @@ function waitForZip(
       const ticker = setInterval(() => {
         frac = Math.min(0.92, frac + (0.92 - frac) * 0.045);
         zone.search.progress(frac,
-          frac < 0.35 ? `Searching the web for ${game}.zip…`
+          frac < 0.35 ? `Searching the web for ${primary}.zip…`
           : frac < 0.65 ? 'Checking archive mirrors…'
           : 'Downloading a candidate set…');
       }, 100);
@@ -2867,13 +2879,13 @@ function waitForZip(
         searching = false;
         fn();
       }, Math.max(0, 2400 - (performance.now() - started)));
-      const sets = [game, ...dependencyRomSets(specs, game)];
+      const sets = wanted;
       Promise.allSettled(sets.map(async set => ({ set, raw: await fetchRomSet(set, category, systemKey) }))).then(
         results => finish(() => {
           const found = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
           if (!found.length) {
             zone.search.reset();
-            zone.error(`Couldn’t find ${game}.zip on the web — drop your own dump.`);
+            zone.error(`Couldn’t find ${primary}.zip on the web — drop your own dump.`);
             return;
           }
           zone.search.progress(1, `Found ${found.length} of ${sets.length} required ROM set${sets.length > 1 ? 's' : ''}!`);
@@ -2888,7 +2900,7 @@ function waitForZip(
         }),
         () => finish(() => {
           zone.search.reset();
-          zone.error(`Couldn’t find ${game}.zip on the web — drop your own dump.`);
+          zone.error(`Couldn’t find ${primary}.zip on the web — drop your own dump.`);
         }),
       );
     });
@@ -2982,18 +2994,18 @@ export function missingRomSets(
 }
 
 /** Keep an accepted set for next time; says so, or says why it could not. */
-async function keepRomSet(store: RomStore, game: string, zips: StoredZip[], toast: (text: string) => void): Promise<boolean> {
+async function keepRomSet(store: RomStore, game: string, zips: StoredZip[], toast: (text: string) => void, label = game): Promise<boolean> {
   try {
     await store.put({ game, zips, addedAt: Date.now() });
   } catch (error) {
-    toast(`This browser could not keep ${game}.zip: ${(error as Error).message}`);
+    toast(`This browser could not keep ${label}.zip: ${(error as Error).message}`);
     return false;
   }
   if (!store.persistent) {
-    toast(`${game}.zip is kept for this visit only: browser storage is unavailable`);
+    toast(`${label}.zip is kept for this visit only: browser storage is unavailable`);
     return false;
   }
-  toast(`${game}.zip is kept in this browser — next time boots straight in`);
+  toast(`${label}.zip is kept in this browser — next time boots straight in`);
   return true;
 }
 

@@ -1062,8 +1062,19 @@ class HandlerParser {
             args: [length ?? { kind: 'number', value: 0 }],
           };
         }
-      } else if (this.consume('=')) value = this.parseExpression();
-      else if (this.consume('(')) {
+      } else if (this.consume('=')) {
+        // A braced aggregate initialises a struct field by field:
+        // `static const operator_mapping s_fixed_map = { { ... } };` in ymfm.
+        // The device compiler names the fields from the struct's shape.
+        if (this.consume('{')) {
+          const fields = this.parseDelimitedExpressions('}');
+          if (!fields) {
+            this.unsupportedStatement(`invalid aggregate initializer of "${name.text}"`);
+            return declarations;
+          }
+          value = { kind: 'call', callee: { kind: 'identifier', name: 'AGGREGATE' }, args: fields };
+        } else value = this.parseExpression();
+      } else if (this.consume('(')) {
         const args = this.parseArguments();
         if (!args) {
           this.unsupportedStatement(`invalid constructor declaration of "${name.text}"`);
