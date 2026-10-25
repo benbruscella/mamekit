@@ -91,30 +91,41 @@ const emit = (definition: GeneratedDeviceDefinition, every = false): GeneratedDe
 const compiled = render(emit(ds1001));
 assert.deepEqual(compiled, interpreted, 'emitted OPLL code matches the interpreter');
 
-// Restoring a save state into a freshly constructed DS1001 (before its stream
-// has ever rendered) keeps its local output buffer's struct methods and
-// default parameter values intact.
+// A save state restored into a DS1001 that has just started -- the shell
+// resumes a machine before its first frame -- renders as the saved one does.
+// The local output buffer `update_internal` renders into is storage built with
+// the device and kept out of the save; restored as a plain copy, it lost the
+// struct methods `output->clear()` needs.
 {
   const emitted = emit(ds1001);
+  const buffer = emitted.members.find(member => member.name === '__local_update_internal_output');
+  assert.equal(buffer?.scratch, true, 'the local output buffer is scratch storage');
+  assert.equal(buffer?.arrayLength, 256, 'its constexpr length is folded');
   clearGeneratedDevices();
   registerGeneratedDevice(emitted);
-  const regions = { internal: new Uint8Array(chip!.members.find(member => member.name === 's_default_instruments')!.values!) };
-  const live = createDevice('DS1001', { clock: 3_579_545, regions });
-  live.call('write', 0, 0x30);
-  live.call('write', 1, 0x10);
-  live.call('write', 0, 0x10);
-  live.call('write', 1, 0xab);
-  live.call('write', 0, 0x20);
-  live.call('write', 1, 0x18);
-  live.call('sound_stream_update');
+  const patches = chip!.members.find(member => member.name === 's_default_instruments')!.values as number[];
+  const regions = { internal: Uint8Array.from(patches) };
+  type Streaming = { invoke(name: string, ...args: unknown[]): unknown };
+  const render = (device: Streaming, samples: number): number[] => {
+    const out = new Array<number>(samples).fill(0);
+    device.invoke('sound_stream_update', {
+      samples: () => samples, output_count: () => 1,
+      put_int: (_channel: number, index: number, value: number, max: number) => { out[index] = value / max; return 0; },
+    });
+    return out;
+  };
+  const live = createDevice('DS1001', { clock: 3_579_545, regions }) as unknown as Streaming;
+  for (const [address, data] of [[0x30, 0x13], [0x10, 0xab], [0x20, 0x18]]) {
+    live.invoke('address_w', address);
+    live.invoke('data_w', data);
+  }
   const saved = captureState(live);
-  live.call('sound_stream_update');
-  const expected = live.takeStreamSamples!();
-
-  const fresh = createDevice('DS1001', { clock: 3_579_545, regions });
+  assert.ok(!JSON.stringify(saved).includes('__local_'), 'the scratch buffer is not in the save');
+  const expected = render(live, 600);
+  assert.ok(expected.some(sample => sample !== 0), 'the live chip is audible after its key-on');
+  const fresh = createDevice('DS1001', { clock: 3_579_545, regions }) as unknown as Streaming;
   assert.deepEqual(restoreState(fresh, saved), []);
-  fresh.call('sound_stream_update');
-  assert.deepEqual(fresh.takeStreamSamples!(), expected, 'restored fresh DS1001 renders the next stream update');
+  assert.deepEqual(render(fresh, 600), expected, 'a fresh DS1001 restored before it ever rendered renders the same samples');
   clearGeneratedDevices();
 }
 

@@ -70,6 +70,8 @@ interface DeviceMember {
   objectConstructed?: boolean;
   /** Holds, refers or points to an object of this plain C++ class. */
   objectType?: string;
+  /** Storage for an uninitialised C++ local, kept between calls and out of save states. */
+  scratch?: boolean;
 }
 
 /** One field of a struct-shaped member; `fields` makes it nest. */
@@ -1158,13 +1160,6 @@ class IrDevice implements Device {
         : member.initialText !== undefined ? member.initialText
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
-      // Scratch storage for an uninitialised C++ local (`__local_...`) carries
-      // nothing between calls, so a save state does not walk it.
-      if (member.name.startsWith('__local_')) {
-        Object.defineProperty(this.members, member.name, {
-          value: this.members[member.name], enumerable: false, writable: true, configurable: true,
-        });
-      }
       if (member.bits) this.memberBits.set(member.name, member.bits);
       if (member.signed) this.memberSigned.add(member.name);
     }
@@ -1185,7 +1180,8 @@ class IrDevice implements Device {
     for (const member of definition.members) Object.defineProperty(self, member.name, {
       // A later lowered declaration may refine a member into a struct array.
       // Match the member store's last-declaration-wins initialization.
-      enumerable: true, configurable: true, get: () => this.members[member.name],
+      // Scratch storage stays out of a save state here too.
+      enumerable: !member.scratch, configurable: true, get: () => this.members[member.name],
       set: value => { this.members[member.name] = wrap(value, member.bits, member.signed); },
     });
     // The parameters each method takes by non-const reference, so a caller
@@ -1330,6 +1326,16 @@ class IrDevice implements Device {
     // making every generated register access a hash lookup. Do this before
     // publishing the state to either execution context.
     this.members = Object.fromEntries(Object.entries(this.members));
+    // Storage for an uninitialised C++ local kept between calls (`scratch`)
+    // carries nothing from one call to the next, so a save state does not
+    // walk it: built from its declaration here, it is the same on a machine
+    // that has just started as on one restored from a save.
+    for (const member of definition.members) {
+      if (!member.scratch) continue;
+      Object.defineProperty(this.members, member.name, {
+        value: this.members[member.name], enumerable: false, writable: true, configurable: true,
+      });
+    }
     // A class the device holds by value (the Z80 PIO's `pio_port`s, the 6805's
     // `m6805_timer`): an object with its own methods and state, constructed
     // as the owner's initializer list constructs it -- `m_timer(*this)` hands

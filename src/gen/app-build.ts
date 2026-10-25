@@ -200,11 +200,23 @@ if (game) {
 }
 `);
 
+  // The generated IR JSON is data each module casts to its IR type
+  // (`deviceData as unknown as GeneratedDeviceDefinition`), so nothing is
+  // checked against the literal types tsc would otherwise infer for every
+  // object in it. Inferred, those were 2.4 million types and 8.8 GB, past the
+  // heap below once the VRC7's ymfm chip compiled (#188); declared opaque, the
+  // program checks in 2.2 GB. tsc then emits no JSON, which it never had to:
+  // the generated JSON is already in place in dist (see the restore below).
+  writeFileSync(join(srcDir, 'json-modules.d.ts'), `declare module '*.json' {
+  const value: unknown;
+  export default value;
+}
+`);
   writeFileSync(join(buildDir, 'tsconfig.json'), JSON.stringify({
     compilerOptions: {
       target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler',
       lib: ['ES2022', 'DOM', 'DOM.Iterable'], strict: true,
-      resolveJsonModule: true,
+      resolveJsonModule: false,
       allowImportingTsExtensions: true, rewriteRelativeImportExtensions: true,
       erasableSyntaxOnly: true, verbatimModuleSyntax: true, skipLibCheck: true,
       outDir: 'out', rootDir: 'src',

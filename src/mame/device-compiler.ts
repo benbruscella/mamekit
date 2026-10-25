@@ -117,6 +117,12 @@ export interface GeneratedDeviceMember {
    * methods directly.
    */
   objectType?: string;
+  /**
+   * Storage for an uninitialised C++ local kept from call to call
+   * (lowerStructLocals): it carries nothing between calls, so a save state
+   * does not hold it.
+   */
+  scratch?: boolean;
 }
 
 /**
@@ -1634,6 +1640,24 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
     // A scalar static is one storage for every call, so its uses name the
     // member itself; a local copy would take `counter++` and lose it.
     const scalarStatics = new Map<string, string>();
+    // Locals that only ever hold the literal they are declared with, as a
+    // `constexpr int MAX_SAMPLES = 256;` does: an array's length may be one.
+    const assigned = new Set<string>();
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'assignment' && expression.target.kind === 'identifier') assigned.add(expression.target.name);
+    });
+    walkOperations(method.program.operations, operation => {
+      if (operation.op === 'assign' && operation.target.kind === 'identifier') assigned.add(operation.target.name);
+    });
+    const literals = new Map<string, number>();
+    walkOperations(method.program.operations, operation => {
+      if (operation.op === 'declare' && operation.value?.kind === 'number' && !assigned.has(operation.name)) {
+        literals.set(operation.name, operation.value.value);
+      }
+    });
+    const constantLength = (length: GeneratedExpression | undefined): number | undefined =>
+      length?.kind === 'number' ? length.value
+        : length?.kind === 'identifier' ? literals.get(length.name) : undefined;
     const rewrite = (operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] => operations.flatMap((operation): GeneratedHandlerOperation[] => {
       for (const key of ['then', 'else', 'body'] as const) {
         const nested = (operation as Record<string, unknown>)[key];
@@ -1679,25 +1703,27 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
       // values in C++ until written, so one storage kept from call to call is
       // a faithful one: ymfm renders into a local `output_data output[256]`
       // on every stream update, and building 256 structs each time was half
-      // of an NES frame with a VRC7 in the slot.
-      const reused = !operation.static && value?.kind === 'call' && value.callee.kind === 'identifier' &&
-        value.callee.name === 'STRUCT_ARRAY_OF';
-      if ((!operation.static && !reused) || !value) {
+      // of an NES frame with a VRC7 in the slot. The storage is a member
+      // built with the device, from the struct's own declaration (so it
+      // carries its marker and methods from the start), and kept out of save
+      // states: it holds nothing from one call to the next. Only a constant
+      // length qualifies; any other array is built per call.
+      const scratchLength = !operation.static && fields && value?.kind === 'call' && value.callee.kind === 'identifier' &&
+        value.callee.name === 'STRUCT_ARRAY_OF' ? constantLength(value.args[0]) : undefined;
+      if (scratchLength !== undefined) {
+        const member = `__local_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
+        const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
+        if (!device.members.some(candidate => candidate.name === member)) {
+          device.members.push({ name: member, valueType: leaf, fields, arrayLength: scratchLength, scratch: true });
+        }
+        return [{ op: 'declare', name: operation.name, value: { kind: 'identifier', name: member } }];
+      }
+      if (!operation.static || !value) {
         delete (declared as { static?: true }).static;
         return [declared];
       }
-      const member = `__${reused ? 'local' : 'static'}_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
+      const member = `__static_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
       const storage: GeneratedExpression = { kind: 'identifier', name: member };
-      // A constant-length scratch struct array is built once with the device's
-      // own struct members, so it carries its struct marker and methods from
-      // construction and needs no per-call initialisation check.
-      if (reused && fields && value.args[0]?.kind === 'number') {
-        const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
-        if (!device.members.some(candidate => candidate.name === member)) {
-          device.members.push({ name: member, valueType: leaf, fields, arrayLength: value.args[0].value });
-        }
-        return [{ op: 'declare', name: operation.name, value: storage }];
-      }
       // A static table (`static const u8 dummy_table[] = {...}`) declares its
       // element type; the member holding it must not be narrowed to that, or
       // the Williams blitter's remap table became one byte.
