@@ -1,0 +1,30 @@
+{
+  "type": "M6802",
+  "uses": [
+    {
+      "game": "qix",
+      "tags": [
+        "audiocpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "M6802",
+    "className": "m6802_cpu_device",
+    "shortName": "m6802",
+    "description": "Motorola MC6802",
+    "sourceFile": "src/devices/cpu/m6800/m6800.cpp",
+    "sourceLine": 370,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(M6802, m6802_cpu_device, \"m6802\", \"Motorola MC6802\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/m6800/6800dasm.h",
+    "src/devices/cpu/m6800/6800ops.hxx",
+    "src/devices/cpu/m6800/m6800.cpp",
+    "src/devices/cpu/m6800/m6800.h"
+  ]
+}

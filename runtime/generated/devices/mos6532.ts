@@ -1,0 +1,414 @@
+// GENERATED from MAME device source; do not edit.
+import type {
+  GeneratedDeviceDefinition,
+  GeneratedDeviceMethodMap,
+} from '../../core/generated-device.js';
+import deviceData from './mos6532.device.ir.json' with { type: 'json' };
+
+const definition = deviceData as unknown as GeneratedDeviceDefinition;
+definition.compiledMethods = (() => {
+
+
+  function method_pa_w(runtime: any, offset: any, data: any, mem_mask: any = 255): any {
+    const members = runtime.members;
+
+    0;
+    members.m_pa_in = (((((((members.m_pa_in ?? 0)) & ((~mem_mask)))) | (((data) & (mem_mask))))) & 0xff);
+    method_edge_detect(runtime);
+  }
+
+  function method_edge_detect(runtime: any): any {
+    const members = runtime.members;
+
+    let data: any = (((((((members.m_pa_out ?? 0)) & ((members.m_pa_ddr ?? 0)))) | ((((members.m_pa_in ?? 0)) & ((~(members.m_pa_ddr ?? 0))))))) & 0xff);
+    let state: any = (((((data) >>> (7)) & 1)) | 0);
+    if ((((((((((members.m_pa7 ?? 0)) ^ (state))) && ((((((members.m_pa7_dir ?? 0)) ^ (state))) ? 0 : 1))) ? 1 : 0)) && ((((members.m_irq_edge ?? 0)) ? 0 : 1))) ? 1 : 0)) {
+      0;
+      members.m_irq_edge = ((1) ? 1 : 0);
+      method_update_irq(runtime);
+    }
+    members.m_pa7 = ((state) | 0);
+  }
+
+  function method_update_irq(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let state: any = ((0) | 0);
+    if (((((members.m_ie_timer ?? 0)) && ((members.m_irq_timer ?? 0))) ? 1 : 0)) {
+      state = ((1) | 0);
+    }
+    if (((((members.m_ie_edge ?? 0)) && ((members.m_irq_edge ?? 0))) ? 1 : 0)) {
+      state = ((1) | 0);
+    }
+    (__l["m_irq_cb"] ? __l["m_irq_cb"](Number(state)) : typeof members.m_irq_cb === 'function' ? members.m_irq_cb(state) : runtime.invoke("m_irq_cb", state));
+  }
+
+  function method_pb_w(runtime: any, offset: any, data: any, mem_mask: any = 255): any {
+    const members = runtime.members;
+
+    0;
+    members.m_pb_in = (((((((members.m_pb_in ?? 0)) & ((~mem_mask)))) | (((data) & (mem_mask))))) & 0xff);
+  }
+
+  function method_pa_data_r(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let $in: any = ((0) & 0xff);
+    if ((typeof (runtime.dereference(members.m_in8_pa_cb)).isunset === 'function' ? (runtime.dereference(members.m_in8_pa_cb)).isunset() : typeof (runtime.dereference(members.m_in8_pa_cb)).isunset === 'number' || typeof (runtime.dereference(members.m_in8_pa_cb)).isunset === 'boolean' ? (runtime.dereference(members.m_in8_pa_cb)).isunset : runtime.container(members.m_in8_pa_cb, "isunset"))) {
+      for (let i: any = ((0) | 0); ((Number(i) < Number(8)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        $in = (((($in) | (((((((runtime.dereference(runtime.readIndex((members.m_in_pa_cb ?? 0), i))).isunset?.() ?? runtime.container(runtime.readIndex((members.m_in_pa_cb ?? 0), i), "isunset"))) ? (((((members.m_pa_in ?? 0)) >>> (i)) & 1)) : (runtime.readIndex((members.m_in_pa_cb ?? 0), i)()))) << (i))))) & 0xff);
+      }
+    } else {
+      $in = (((__l["m_in8_pa_cb"] ? __l["m_in8_pa_cb"]() : typeof members.m_in8_pa_cb === 'function' ? members.m_in8_pa_cb() : runtime.invoke("m_in8_pa_cb"))) & 0xff);
+    }
+    let data: any = (((((((members.m_pa_out ?? 0)) & ((members.m_pa_ddr ?? 0)))) | ((($in) & ((~(members.m_pa_ddr ?? 0))))))) & 0xff);
+    0;
+    return ((data) & 0xff);
+  }
+
+  function method_pa_data_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_pa_out = ((data) & 0xff);
+    0;
+    method_update_pa(runtime);
+    method_edge_detect(runtime);
+  }
+
+  function method_update_pa(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let data: any = (((((((members.m_pa_out ?? 0)) & ((members.m_pa_ddr ?? 0)))) | ((((members.m_pa_ddr ?? 0)) ^ (255))))) & 0xff);
+    if ((typeof (runtime.dereference(members.m_out8_pa_cb)).isunset === 'function' ? (runtime.dereference(members.m_out8_pa_cb)).isunset() : typeof (runtime.dereference(members.m_out8_pa_cb)).isunset === 'number' || typeof (runtime.dereference(members.m_out8_pa_cb)).isunset === 'boolean' ? (runtime.dereference(members.m_out8_pa_cb)).isunset : runtime.container(members.m_out8_pa_cb, "isunset"))) {
+      for (let i: any = ((0) | 0); ((Number(i) < Number(8)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        runtime.readIndex((members.m_out_pa_cb ?? 0), i)((((data) >>> (i)) & 1));
+      }
+    } else {
+      (__l["m_out8_pa_cb"] ? __l["m_out8_pa_cb"](Number(data)) : typeof members.m_out8_pa_cb === 'function' ? members.m_out8_pa_cb(data) : runtime.invoke("m_out8_pa_cb", data));
+    }
+  }
+
+  function method_pa_ddr_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_pa_ddr = ((data) & 0xff);
+    0;
+    method_update_pa(runtime);
+    method_edge_detect(runtime);
+  }
+
+  function method_pb_data_r(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let $in: any = ((0) & 0xff);
+    if ((typeof (runtime.dereference(members.m_in8_pb_cb)).isunset === 'function' ? (runtime.dereference(members.m_in8_pb_cb)).isunset() : typeof (runtime.dereference(members.m_in8_pb_cb)).isunset === 'number' || typeof (runtime.dereference(members.m_in8_pb_cb)).isunset === 'boolean' ? (runtime.dereference(members.m_in8_pb_cb)).isunset : runtime.container(members.m_in8_pb_cb, "isunset"))) {
+      for (let i: any = ((0) | 0); ((Number(i) < Number(8)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        $in = (((($in) | (((((((runtime.dereference(runtime.readIndex((members.m_in_pb_cb ?? 0), i))).isunset?.() ?? runtime.container(runtime.readIndex((members.m_in_pb_cb ?? 0), i), "isunset"))) ? (((((members.m_pb_in ?? 0)) >>> (i)) & 1)) : (runtime.readIndex((members.m_in_pb_cb ?? 0), i)()))) << (i))))) & 0xff);
+      }
+    } else {
+      $in = (((__l["m_in8_pb_cb"] ? __l["m_in8_pb_cb"]() : typeof members.m_in8_pb_cb === 'function' ? members.m_in8_pb_cb() : runtime.invoke("m_in8_pb_cb"))) & 0xff);
+    }
+    let data: any = (((((((members.m_pb_out ?? 0)) & ((members.m_pb_ddr ?? 0)))) | ((($in) & ((~(members.m_pb_ddr ?? 0))))))) & 0xff);
+    0;
+    return ((data) & 0xff);
+  }
+
+  function method_pb_data_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_pb_out = ((data) & 0xff);
+    0;
+    method_update_pb(runtime);
+  }
+
+  function method_update_pb(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let data: any = (((((((members.m_pb_out ?? 0)) & ((members.m_pb_ddr ?? 0)))) | ((((members.m_pb_ddr ?? 0)) ^ (255))))) & 0xff);
+    if ((typeof (runtime.dereference(members.m_out8_pb_cb)).isunset === 'function' ? (runtime.dereference(members.m_out8_pb_cb)).isunset() : typeof (runtime.dereference(members.m_out8_pb_cb)).isunset === 'number' || typeof (runtime.dereference(members.m_out8_pb_cb)).isunset === 'boolean' ? (runtime.dereference(members.m_out8_pb_cb)).isunset : runtime.container(members.m_out8_pb_cb, "isunset"))) {
+      for (let i: any = ((0) | 0); ((Number(i) < Number(8)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        runtime.readIndex((members.m_out_pb_cb ?? 0), i)((((data) >>> (i)) & 1));
+      }
+    } else {
+      (__l["m_out8_pb_cb"] ? __l["m_out8_pb_cb"](Number(data)) : typeof members.m_out8_pb_cb === 'function' ? members.m_out8_pb_cb(data) : runtime.invoke("m_out8_pb_cb", data));
+    }
+  }
+
+  function method_pb_ddr_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_pb_ddr = ((data) & 0xff);
+    0;
+    method_update_pb(runtime);
+  }
+
+  function method_timer_off_r(runtime: any): any {
+    const members = runtime.members;
+
+    return ((method_timer_r(runtime, 0)) & 0xff);
+  }
+
+  function method_timer_r(runtime: any, ie: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let data: any = ((method_get_timer(runtime)) & 0xff);
+    if (((((__l["machine().side_effects_disabled"] ?? (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.("machine().side_effects_disabled"))?.() ?? 0)) ? 0 : 1)) {
+      if (((Number((members.m_timeout ?? 0)) < Number(runtime.subtract(((__l["machine().time"] ?? (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.("machine().time"))?.() ?? 0), (__l["attotime::from_hz"] ? __l["attotime::from_hz"](((2) * ((__l["clock"] ? __l["clock"]() : runtime.macro("clock"))))) : runtime.macro("attotime::from_hz", ((2) * ((__l["clock"] ? __l["clock"]() : runtime.macro("clock"))))))))) ? 1 : 0)) {
+        members.m_irq_timer = ((0) ? 1 : 0);
+        if (((Number((members.m_timerstate ?? 0)) === Number(1)) ? 1 : 0)) {
+          method_timer_start(runtime, data);
+        }
+      }
+      members.m_ie_timer = ((ie) ? 1 : 0);
+      method_update_irq(runtime);
+      0;
+    }
+    return ((data) & 0xff);
+  }
+
+  function method_get_timer(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let shift: any = ((((((Number((members.m_timerstate ?? 0)) === Number(0)) ? 1 : 0)) ? ((members.m_timershift ?? 0)) : (0))) & 0xff);
+    let remain: any = (typeof (typeof (runtime.dereference(members.m_timer)).remaining === 'function' ? (runtime.dereference(members.m_timer)).remaining() : typeof (runtime.dereference(members.m_timer)).remaining === 'number' || typeof (runtime.dereference(members.m_timer)).remaining === 'boolean' ? (runtime.dereference(members.m_timer)).remaining : runtime.container(members.m_timer, "remaining")) === 'number' ? runtime.attotime((typeof (runtime.dereference(members.m_timer)).remaining === 'function' ? (runtime.dereference(members.m_timer)).remaining() : typeof (runtime.dereference(members.m_timer)).remaining === 'number' || typeof (runtime.dereference(members.m_timer)).remaining === 'boolean' ? (runtime.dereference(members.m_timer)).remaining : runtime.container(members.m_timer, "remaining")), "as_ticks", (__l["clock"] ? __l["clock"]() : runtime.macro("clock"))) : ((runtime.dereference((typeof (runtime.dereference(members.m_timer)).remaining === 'function' ? (runtime.dereference(members.m_timer)).remaining() : typeof (runtime.dereference(members.m_timer)).remaining === 'number' || typeof (runtime.dereference(members.m_timer)).remaining === 'boolean' ? (runtime.dereference(members.m_timer)).remaining : runtime.container(members.m_timer, "remaining")))).as_ticks?.((__l["clock"] ? __l["clock"]() : runtime.macro("clock"))) ?? 0));
+    let val: any = ((runtime.shiftRight(remain, shift)) & 0xff);
+    return ((((((remain) & (((((1) << (shift))) - (1))))) ? (val) : (((val) - (1))))) & 0xff);
+  }
+
+  function method_timer_start(runtime: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    members.m_timerstate = ((0) & 0xff);
+    let curtime: any = ((__l["machine().time"] ?? (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.("machine().time"))?.() ?? 0);
+    let target: any = runtime.add(runtime.add((typeof curtime === 'number' ? runtime.attotime(curtime, "as_ticks", (__l["clock"] ? __l["clock"]() : runtime.macro("clock"))) : ((runtime.dereference(curtime)).as_ticks?.((__l["clock"] ? __l["clock"]() : runtime.macro("clock"))) ?? 0)), 1), ((data) << ((members.m_timershift ?? 0))));
+    ((runtime.dereference(members.m_timer)).adjust?.((((__l["attotime::from_ticks"] ? __l["attotime::from_ticks"](target, (__l["clock"] ? __l["clock"]() : runtime.macro("clock"))) : runtime.macro("attotime::from_ticks", target, (__l["clock"] ? __l["clock"]() : runtime.macro("clock"))))) - (curtime))) ?? 0);
+  }
+
+  function method_timer_on_r(runtime: any): any {
+    const members = runtime.members;
+
+    return ((method_timer_r(runtime, 1)) & 0xff);
+  }
+
+  function method_irq_r(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let data: any = ((method_get_irq_flags(runtime)) & 0xff);
+    if ((((((((__l["machine().side_effects_disabled"] ?? (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.("machine().side_effects_disabled"))?.() ?? 0)) ? 0 : 1)) && ((members.m_irq_edge ?? 0))) ? 1 : 0)) {
+      members.m_irq_edge = ((0) ? 1 : 0);
+      method_update_irq(runtime);
+    }
+    return ((data) & 0xff);
+  }
+
+  function method_get_irq_flags(runtime: any): any {
+    const members = runtime.members;
+
+    let data: any = ((0) & 0xff);
+    if ((members.m_irq_timer ?? 0)) {
+      data = ((((data) | (128))) & 0xff);
+    }
+    if ((members.m_irq_edge ?? 0)) {
+      data = ((((data) | (64))) & 0xff);
+    }
+    return ((data) & 0xff);
+  }
+
+  function method_timer_off_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    method_timer_w(runtime, offset, data, 0);
+  }
+
+  function method_timer_w(runtime: any, offset: any, data: any, ie: any): any {
+    const members = runtime.members;
+
+    let select: any = ((((offset) & (3))) | 0);
+    members.m_timershift = ((((((Number(select) === Number(0)) ? 1 : 0)) ? (0) : (((((Number(select) === Number(1)) ? 1 : 0)) ? (3) : (((((Number(select) === Number(2)) ? 1 : 0)) ? (6) : (10))))))) & 0xff);
+    method_timer_start(runtime, data);
+    members.m_irq_timer = ((0) ? 1 : 0);
+    members.m_ie_timer = ((ie) ? 1 : 0);
+    method_update_irq(runtime);
+  }
+
+  function method_timer_on_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    method_timer_w(runtime, offset, data, 1);
+  }
+
+  function method_edge_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_pa7_dir = (((((offset) >>> (0)) & 1)) | 0);
+    members.m_ie_edge = (((((((offset) >>> (1)) & 1)) ? 1 : 0)) ? 1 : 0);
+    method_update_irq(runtime);
+    0;
+  }
+
+  function method_timer_end(runtime: any, param: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    if (((Number((members.m_timerstate ?? 0)) === Number(0)) ? 1 : 0)) {
+      members.m_timeout = ((__l["machine().time"] ?? (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.("machine().time"))?.() ?? 0);
+      members.m_irq_timer = ((1) ? 1 : 0);
+      method_update_irq(runtime);
+    }
+    members.m_timerstate = ((1) & 0xff);
+    ((runtime.dereference(members.m_timer)).adjust?.((__l["attotime::from_ticks"] ? __l["attotime::from_ticks"](256, (__l["clock"] ? __l["clock"]() : runtime.macro("clock"))) : runtime.macro("attotime::from_ticks", 256, (__l["clock"] ? __l["clock"]() : runtime.macro("clock"))))) ?? 0);
+  }
+
+  function method_mos6530_device_base__pa_rd_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_in8_pa_cb)).bind === 'function' ? (runtime.dereference(members.m_in8_pa_cb)).bind() : typeof (runtime.dereference(members.m_in8_pa_cb)).bind === 'number' || typeof (runtime.dereference(members.m_in8_pa_cb)).bind === 'boolean' ? (runtime.dereference(members.m_in8_pa_cb)).bind : runtime.container(members.m_in8_pa_cb, "bind"));
+  }
+
+  function method_mos6530_device_base__pa_wr_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_out8_pa_cb)).bind === 'function' ? (runtime.dereference(members.m_out8_pa_cb)).bind() : typeof (runtime.dereference(members.m_out8_pa_cb)).bind === 'number' || typeof (runtime.dereference(members.m_out8_pa_cb)).bind === 'boolean' ? (runtime.dereference(members.m_out8_pa_cb)).bind : runtime.container(members.m_out8_pa_cb, "bind"));
+  }
+
+  function method_mos6530_device_base__pb_rd_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_in8_pb_cb)).bind === 'function' ? (runtime.dereference(members.m_in8_pb_cb)).bind() : typeof (runtime.dereference(members.m_in8_pb_cb)).bind === 'number' || typeof (runtime.dereference(members.m_in8_pb_cb)).bind === 'boolean' ? (runtime.dereference(members.m_in8_pb_cb)).bind : runtime.container(members.m_in8_pb_cb, "bind"));
+  }
+
+  function method_mos6530_device_base__pb_wr_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_out8_pb_cb)).bind === 'function' ? (runtime.dereference(members.m_out8_pb_cb)).bind() : typeof (runtime.dereference(members.m_out8_pb_cb)).bind === 'number' || typeof (runtime.dereference(members.m_out8_pb_cb)).bind === 'boolean' ? (runtime.dereference(members.m_out8_pb_cb)).bind : runtime.container(members.m_out8_pb_cb, "bind"));
+  }
+
+  function method_irq_wr_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_irq_cb)).bind === 'function' ? (runtime.dereference(members.m_irq_cb)).bind() : typeof (runtime.dereference(members.m_irq_cb)).bind === 'number' || typeof (runtime.dereference(members.m_irq_cb)).bind === 'boolean' ? (runtime.dereference(members.m_irq_cb)).bind : runtime.container(members.m_irq_cb, "bind"));
+  }
+
+  function method_rom_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_rom = members.m_rom ?? 0;
+    return ((runtime.readIndex(h_m_rom, offset)) & 0xff);
+  }
+
+  function method_ram_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    return ((runtime.readIndex((members.m_ram ?? 0), offset)) & 0xff);
+  }
+
+  function method_ram_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    runtime.writeIndex(runtime.writableMember("m_ram"), offset, data);
+  }
+
+  function method_pa_ddr_r(runtime: any): any {
+    const members = runtime.members;
+
+    return (((members.m_pa_ddr ?? 0)) & 0xff);
+  }
+
+  function method_pb_ddr_r(runtime: any): any {
+    const members = runtime.members;
+
+    return (((members.m_pb_ddr ?? 0)) & 0xff);
+  }
+
+  function method_mos6530_device_base__irq_wr_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_irq_cb)).bind === 'function' ? (runtime.dereference(members.m_irq_cb)).bind() : typeof (runtime.dereference(members.m_irq_cb)).bind === 'number' || typeof (runtime.dereference(members.m_irq_cb)).bind === 'boolean' ? (runtime.dereference(members.m_irq_cb)).bind : runtime.container(members.m_irq_cb, "bind"));
+  }
+
+  function method_mos6530_device_base__rom_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_rom = members.m_rom ?? 0;
+    return ((runtime.readIndex(h_m_rom, offset)) & 0xff);
+  }
+
+  function method_mos6530_device_base__ram_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    return ((runtime.readIndex((members.m_ram ?? 0), offset)) & 0xff);
+  }
+
+  function method_mos6530_device_base__ram_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    runtime.writeIndex(runtime.writableMember("m_ram"), offset, data);
+  }
+
+  function method_mos6530_device_base__pa_ddr_r(runtime: any): any {
+    const members = runtime.members;
+
+    return (((members.m_pa_ddr ?? 0)) & 0xff);
+  }
+
+  function method_mos6530_device_base__pb_ddr_r(runtime: any): any {
+    const members = runtime.members;
+
+    return (((members.m_pb_ddr ?? 0)) & 0xff);
+  }
+  return {
+    "pa_w": method_pa_w,
+    "edge_detect": method_edge_detect,
+    "update_irq": method_update_irq,
+    "pb_w": method_pb_w,
+    "pa_data_r": method_pa_data_r,
+    "pa_data_w": method_pa_data_w,
+    "update_pa": method_update_pa,
+    "pa_ddr_w": method_pa_ddr_w,
+    "pb_data_r": method_pb_data_r,
+    "pb_data_w": method_pb_data_w,
+    "update_pb": method_update_pb,
+    "pb_ddr_w": method_pb_ddr_w,
+    "timer_off_r": method_timer_off_r,
+    "timer_r": method_timer_r,
+    "get_timer": method_get_timer,
+    "timer_start": method_timer_start,
+    "timer_on_r": method_timer_on_r,
+    "irq_r": method_irq_r,
+    "get_irq_flags": method_get_irq_flags,
+    "timer_off_w": method_timer_off_w,
+    "timer_w": method_timer_w,
+    "timer_on_w": method_timer_on_w,
+    "edge_w": method_edge_w,
+    "timer_end": method_timer_end,
+    "mos6530_device_base::pa_rd_callback": method_mos6530_device_base__pa_rd_callback,
+    "mos6530_device_base::pa_wr_callback": method_mos6530_device_base__pa_wr_callback,
+    "mos6530_device_base::pb_rd_callback": method_mos6530_device_base__pb_rd_callback,
+    "mos6530_device_base::pb_wr_callback": method_mos6530_device_base__pb_wr_callback,
+    "irq_wr_callback": method_irq_wr_callback,
+    "rom_r": method_rom_r,
+    "ram_r": method_ram_r,
+    "ram_w": method_ram_w,
+    "pa_ddr_r": method_pa_ddr_r,
+    "pb_ddr_r": method_pb_ddr_r,
+    "mos6530_device_base::irq_wr_callback": method_mos6530_device_base__irq_wr_callback,
+    "mos6530_device_base::rom_r": method_mos6530_device_base__rom_r,
+    "mos6530_device_base::ram_r": method_mos6530_device_base__ram_r,
+    "mos6530_device_base::ram_w": method_mos6530_device_base__ram_w,
+    "mos6530_device_base::pa_ddr_r": method_mos6530_device_base__pa_ddr_r,
+    "mos6530_device_base::pb_ddr_r": method_mos6530_device_base__pb_ddr_r
+  };
+})() as GeneratedDeviceMethodMap;
+definition.compiledMethodLinks = ["attotime::from_hz","attotime::from_ticks","clock","m_in8_pa_cb","m_in8_pb_cb","m_irq_cb","m_out8_pa_cb","m_out8_pb_cb","machine","machine().side_effects_disabled","machine().time"];
+
+export const device = definition;
+export default device;

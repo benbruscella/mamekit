@@ -1,0 +1,1584 @@
+{
+  "game": "spectrum",
+  "title": "ZX Spectrum (Sinclair Research Ltd, 1982)",
+  "family": "spectrum",
+  "kind": "computer",
+  "dataPath": "games/computers/spectrum",
+  "board": {
+    "family": "spectrum",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 3500000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 65535,
+            "kind": "handler",
+            "read": "spectrum_state.spectrum_data_r",
+            "write": "spectrum_state.spectrum_data_w",
+            "handlerWidth": 8
+          }
+        ],
+        "opcode": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 65535,
+              "kind": "handler",
+              "read": "spectrum_state.pre_opcode_fetch_r"
+            }
+          ],
+          "region": "maincpu"
+        },
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "select": 65534,
+              "read": "spectrum_state.spectrum_ula_r",
+              "write": "spectrum_state.spectrum_ula_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "select": 65534,
+              "read": "spectrum_state.spectrum_port_r",
+              "write": "spectrum_state.spectrum_port_w",
+              "handlerWidth": 8
+            }
+          ]
+        }
+      }
+    ],
+    "bankDevices": [
+      {
+        "tag": "specmem",
+        "member": "m_specmem",
+        "dataWidth": 8,
+        "addrWidth": 16,
+        "stride": 65536,
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "handler",
+            "read": "spectrum_state.spectrum_rom_r",
+            "write": "spectrum_state.spectrum_rom_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 16384,
+            "end": 23295,
+            "kind": "ram",
+            "share": "video_ram"
+          },
+          {
+            "start": 23296,
+            "end": 65535,
+            "kind": "ram"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 65535,
+        "kind": "handler",
+        "read": "spectrum_state.spectrum_data_r",
+        "write": "spectrum_state.spectrum_data_w",
+        "handlerWidth": 8
+      }
+    ],
+    "io": {
+      "ranges": [
+        {
+          "start": 0,
+          "end": 0,
+          "kind": "handler",
+          "select": 65534,
+          "read": "spectrum_state.spectrum_ula_r",
+          "write": "spectrum_state.spectrum_ula_w",
+          "handlerWidth": 8
+        },
+        {
+          "start": 1,
+          "end": 1,
+          "kind": "handler",
+          "select": 65534,
+          "read": "spectrum_state.spectrum_port_r",
+          "write": "spectrum_state.spectrum_port_w",
+          "handlerWidth": 8
+        }
+      ]
+    },
+    "screen": {
+      "width": 352,
+      "height": 296,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 50.080128205128204,
+      "htotal": 448,
+      "vtotal": 312,
+      "vbstart": 312,
+      "vbend": 16,
+      "updateMode": "partial",
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "stream",
+    "clock": 48000,
+    "deviceTag": "speaker",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "spectrum.rom",
+          "offset": 0,
+          "size": 16384,
+          "crc": "ddee531f",
+          "alt": [
+            {
+              "file": "80-lec.rom",
+              "crc": "5b5c92b1"
+            },
+            {
+              "file": "zxide.rom",
+              "crc": "bd48db54"
+            },
+            {
+              "file": "inves.rom",
+              "crc": "8ff7a4d1"
+            },
+            {
+              "file": "tk90x.rom",
+              "crc": "3e785f6f"
+            },
+            {
+              "file": "tk95.rom",
+              "crc": "17368e07"
+            },
+            {
+              "file": "hc85.rom",
+              "crc": "3ab60fb5"
+            },
+            {
+              "file": "hc90.rom",
+              "crc": "78c14d9a"
+            },
+            {
+              "file": "hc91.rom",
+              "crc": "8bf53761"
+            },
+            {
+              "file": "hc2000.v1",
+              "crc": "453c1a5a"
+            },
+            {
+              "file": "cip01.rom",
+              "crc": "0516a329"
+            },
+            {
+              "file": "cip03.rom",
+              "crc": "c7d0cd3c"
+            },
+            {
+              "file": "jet.rom",
+              "crc": "e56a7d11"
+            },
+            {
+              "file": "dgama87.rom",
+              "crc": "43104909"
+            },
+            {
+              "file": "dgama88.rom",
+              "crc": "4ec7e078"
+            },
+            {
+              "file": "dgama89.rom",
+              "crc": "45c29401"
+            },
+            {
+              "file": "didakt90.rom",
+              "crc": "76f2db1e"
+            },
+            {
+              "file": "didakm91.rom",
+              "crc": "beab69b8"
+            },
+            {
+              "file": "didakm92.bin",
+              "crc": "57264d4f"
+            },
+            {
+              "file": "didaktk.rom",
+              "crc": "8ec8a625"
+            },
+            {
+              "file": "didakm93.rom",
+              "crc": "ec274b1b"
+            },
+            {
+              "file": "mistrum.rom",
+              "crc": "d496103e"
+            },
+            {
+              "file": "blitz.rom",
+              "crc": "91e535a8"
+            },
+            {
+              "file": "orizon.rom",
+              "crc": "ed4d9787"
+            },
+            {
+              "file": "quorum48.rom",
+              "crc": "48085b0e"
+            },
+            {
+              "file": "magic6.rom",
+              "crc": "cb63ae06"
+            },
+            {
+              "file": "compani1.rom",
+              "crc": "bcfa6068"
+            },
+            {
+              "file": "spektr-bk001.rom",
+              "crc": "c011eecc"
+            },
+            {
+              "file": "sntez2.bin",
+              "crc": "490ded3a"
+            },
+            {
+              "file": "tc2048.rom",
+              "crc": "f1b5fa67"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": {
+    "dumpsKey": "computers/spectrum",
+    "shelves": [
+      {
+        "list": "spectrum_cass",
+        "description": "Sinclair ZX Spectrum cassettes",
+        "interface": "spectrum_cass",
+        "kind": "cassette",
+        "catalogUrl": "software/spectrum_cass.json",
+        "availableUrl": "software/spectrum_cass.available.json",
+        "extensions": [
+          "tzx",
+          "tap",
+          "wav",
+          "blk"
+        ],
+        "entries": 13942,
+        "mountable": true,
+        "boot": {
+          "delay": 3,
+          "command": "j\"\"{ENTER}",
+          "play": true
+        }
+      },
+      {
+        "list": "spectrum_cart",
+        "description": "Sinclair ZX Spectrum cartridges",
+        "interface": "spectrum_cart",
+        "kind": "cartridge",
+        "catalogUrl": "software/spectrum_cart.json",
+        "availableUrl": "software/spectrum_cart.available.json",
+        "extensions": [
+          "bin",
+          "rom"
+        ],
+        "entries": 20,
+        "mountable": true,
+        "imageDevice": "exp",
+        "card": "intf2"
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "port": "LINE0",
+      "mask": 1,
+      "keys": [
+        "ShiftLeft"
+      ],
+      "label": "CAPS SHIFT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{SHIFT_1}"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "z    Z    :      LN       BEEP   COPY",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "z"
+        ],
+        [
+          "Z"
+        ],
+        [
+          ":"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 4,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "x    X    £      EXP      INK    CLEAR",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "x"
+        ],
+        [
+          "X"
+        ],
+        [
+          "£"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 8,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "c    C    ?      LPRINT   PAPER  CONT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "c"
+        ],
+        [
+          "C"
+        ],
+        [
+          "?"
+        ]
+      ]
+    },
+    {
+      "port": "LINE0",
+      "mask": 16,
+      "keys": [
+        "KeyV"
+      ],
+      "label": "v    V    /      LLIST    FLASH  CLS",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "v"
+        ],
+        [
+          "V"
+        ],
+        [
+          "/"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 1,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "a    A    STOP   READ      ~     NEW",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "a"
+        ],
+        [
+          "A"
+        ],
+        [
+          "~"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 2,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "s    S    NOT    RESTORE   |     SAVE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "s"
+        ],
+        [
+          "S"
+        ],
+        [
+          "|"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 4,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "d    D    STEP   DATA      \\     DIM",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "d"
+        ],
+        [
+          "D"
+        ],
+        [
+          "\\"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 8,
+      "keys": [
+        "KeyF"
+      ],
+      "label": "f    F    TO     SGN       {     FOR",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "f"
+        ],
+        [
+          "F"
+        ],
+        [
+          "{"
+        ]
+      ]
+    },
+    {
+      "port": "LINE1",
+      "mask": 16,
+      "keys": [
+        "KeyG"
+      ],
+      "label": "g    G    THEN   ABS       }     GOTO",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "g"
+        ],
+        [
+          "G"
+        ],
+        [
+          "}"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 1,
+      "keys": [
+        "KeyQ"
+      ],
+      "label": "q    Q    <=     SIN      ASN      PLOT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "q"
+        ],
+        [
+          "Q"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 2,
+      "keys": [
+        "KeyW"
+      ],
+      "label": "w    W    <>     COS      ACS      DRAW",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "w"
+        ],
+        [
+          "W"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 4,
+      "keys": [
+        "KeyE"
+      ],
+      "label": "e    E    >=     TAN      ATN      REM",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "e"
+        ],
+        [
+          "E"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 8,
+      "keys": [
+        "KeyR"
+      ],
+      "label": "r    R    <      INT      VERIFY   RUN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "r"
+        ],
+        [
+          "R"
+        ],
+        [
+          "<"
+        ]
+      ]
+    },
+    {
+      "port": "LINE2",
+      "mask": 16,
+      "keys": [
+        "KeyT"
+      ],
+      "label": "t    T    >      RND      MERGE    RAND",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "t"
+        ],
+        [
+          "T"
+        ],
+        [
+          ">"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 1,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "1   EDIT       !    BLUE     DEF FN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "1"
+        ],
+        [
+          "!"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 2,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "2   CAPS LOCK  @    RED      FN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "2"
+        ],
+        [
+          "@"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 4,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "3   TRUE VID   #    MAGENTA  LINE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "3"
+        ],
+        [
+          "#"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 8,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "4   INV VID    $    GREEN    OPEN#",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "4"
+        ],
+        [
+          "$"
+        ]
+      ]
+    },
+    {
+      "port": "LINE3",
+      "mask": 16,
+      "keys": [
+        "Digit5",
+        "Numpad5"
+      ],
+      "label": "5   Left       %    CYAN     CLOSE#",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "5"
+        ],
+        [
+          "{LEFT}"
+        ],
+        [
+          "%"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 1,
+      "keys": [
+        "Digit0",
+        "Numpad0"
+      ],
+      "label": "0   DEL        _    BLACK    FORMAT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "0"
+        ],
+        [
+          "\b"
+        ],
+        [
+          "_"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 2,
+      "keys": [
+        "Digit9",
+        "Numpad9"
+      ],
+      "label": "9   GRAPH      )             POINT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "9"
+        ],
+        [
+          ")"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 4,
+      "keys": [
+        "Digit8",
+        "Numpad8"
+      ],
+      "label": "8   Right      (             CAT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "8"
+        ],
+        [
+          "{RIGHT}"
+        ],
+        [
+          "("
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 8,
+      "keys": [
+        "Digit7",
+        "Numpad7"
+      ],
+      "label": "7   Up         '    WHITE    ERASE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "7"
+        ],
+        [
+          "{UP}"
+        ],
+        [
+          "'"
+        ]
+      ]
+    },
+    {
+      "port": "LINE4",
+      "mask": 16,
+      "keys": [
+        "Digit6",
+        "Numpad6"
+      ],
+      "label": "6   Down       &    YELLOW   MOVE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "6"
+        ],
+        [
+          "{DOWN}"
+        ],
+        [
+          "&"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 1,
+      "keys": [
+        "KeyP"
+      ],
+      "label": "p    P    \"      TAB      (c)    PRINT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "p"
+        ],
+        [
+          "P"
+        ],
+        [
+          "\""
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 2,
+      "keys": [
+        "KeyO"
+      ],
+      "label": "o    O    ;      PEEK     OUT    POKE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "o"
+        ],
+        [
+          "O"
+        ],
+        [
+          ";"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 4,
+      "keys": [
+        "KeyI"
+      ],
+      "label": "i    I    AT     CODE     IN     INPUT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "i"
+        ],
+        [
+          "I"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 8,
+      "keys": [
+        "KeyU"
+      ],
+      "label": "u    U    OR     CHR$     ]      IF",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "u"
+        ],
+        [
+          "U"
+        ],
+        [
+          "]"
+        ]
+      ]
+    },
+    {
+      "port": "LINE5",
+      "mask": 16,
+      "keys": [
+        "KeyY"
+      ],
+      "label": "y    Y    AND    STR$     [      RETURN",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "y"
+        ],
+        [
+          "Y"
+        ],
+        [
+          "["
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 1,
+      "keys": [
+        "Enter"
+      ],
+      "label": "ENTER",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "\r"
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 2,
+      "keys": [
+        "KeyL"
+      ],
+      "label": "l    L    =      USR      ATTR     LET",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "l"
+        ],
+        [
+          "L"
+        ],
+        [
+          "="
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 4,
+      "keys": [
+        "KeyK"
+      ],
+      "label": "k    K    +      LEN      SCREEN$  LIST",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "k"
+        ],
+        [
+          "K"
+        ],
+        [
+          "+"
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 8,
+      "keys": [
+        "KeyJ"
+      ],
+      "label": "j    J    -      VAL      VAL$     LOAD",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "j"
+        ],
+        [
+          "J"
+        ],
+        [
+          "-"
+        ]
+      ]
+    },
+    {
+      "port": "LINE6",
+      "mask": 16,
+      "keys": [
+        "KeyH"
+      ],
+      "label": "h    H    ^      SQR      CIRCLE   GOSUB",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "h"
+        ],
+        [
+          "H"
+        ],
+        [
+          "^"
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 1,
+      "keys": [
+        "Space"
+      ],
+      "label": "SPACE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          " "
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 2,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "SYMBOL SHIFT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{SHIFT_2}"
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 4,
+      "keys": [
+        "KeyM"
+      ],
+      "label": "m    M    .      PI       INVERSE  PAUSE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "m"
+        ],
+        [
+          "M"
+        ],
+        [
+          "."
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 8,
+      "keys": [
+        "KeyN"
+      ],
+      "label": "n    N    ,      INKEY$   OVER     NEXT",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "n"
+        ],
+        [
+          "N"
+        ],
+        [
+          ","
+        ]
+      ]
+    },
+    {
+      "port": "LINE7",
+      "mask": 16,
+      "keys": [
+        "KeyB"
+      ],
+      "label": "b    B    *      BIN      BRIGHT   BORDER",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "b"
+        ],
+        [
+          "B"
+        ],
+        [
+          "*"
+        ]
+      ]
+    },
+    {
+      "port": "NMI",
+      "mask": 1,
+      "keys": [
+        "F12"
+      ],
+      "label": "NMI",
+      "type": "IPT_KEYBOARD",
+      "activeLow": false
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 1,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 2,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": false,
+      "ways": 8
+    },
+    {
+      "port": "exp:JOY",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE3",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 1,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 2,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "exp:LINE4",
+      "mask": 16,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    }
+  ],
+  "naturalKeyboard": {
+    "alternates": {
+      "\t": "    ",
+      " ": " ",
+      "¡": "!",
+      "¦": "|",
+      "©": "(c)",
+      "«": "<<",
+      "®": "(r)",
+      "»": ">>",
+      "¼": "1/4",
+      "½": "1/2",
+      "¾": "3/4",
+      "¿": "?",
+      "À": "A",
+      "Á": "A",
+      "Â": "A",
+      "Ã": "A",
+      "Ä": "A",
+      "Å": "A",
+      "Æ": "AE",
+      "Ç": "C",
+      "È": "E",
+      "É": "E",
+      "Ê": "E",
+      "Ë": "E",
+      "Ì": "I",
+      "Í": "I",
+      "Î": "I",
+      "Ï": "I",
+      "Ð": "D",
+      "Ñ": "N",
+      "Ò": "O",
+      "Ó": "O",
+      "Ô": "O",
+      "Õ": "O",
+      "Ö": "O",
+      "×": "X",
+      "Ø": "O",
+      "Ù": "U",
+      "Ú": "U",
+      "Û": "U",
+      "Ü": "U",
+      "Ý": "Y",
+      "ß": "SS",
+      "à": "a",
+      "á": "a",
+      "â": "a",
+      "ã": "a",
+      "ä": "a",
+      "å": "a",
+      "æ": "ae",
+      "ç": "c",
+      "è": "e",
+      "é": "e",
+      "ê": "e",
+      "ë": "e",
+      "ì": "i",
+      "í": "i",
+      "î": "i",
+      "ï": "i",
+      "ð": "d",
+      "ñ": "n",
+      "ò": "o",
+      "ó": "o",
+      "ô": "o",
+      "õ": "o",
+      "ö": "o",
+      "ø": "o",
+      "ù": "u",
+      "ú": "u",
+      "û": "u",
+      "ü": "u",
+      "ý": "y",
+      "ÿ": "y",
+      "‐": "-",
+      "‑": "-",
+      "‒": "-",
+      "–": "-",
+      "—": "-",
+      "―": "-",
+      "‘": "'",
+      "’": "'",
+      "‚": "'",
+      "‛": "'",
+      "“": "\"",
+      "”": "\"",
+      "„": "\"",
+      "‟": "\"",
+      "․": ".",
+      "‥": "..",
+      "…": "...",
+      "⁇": "??",
+      "⁈": "?!",
+      "⁉": "!?",
+      "！": "!",
+      "＂": "\"",
+      "＃": "#",
+      "＄": "$",
+      "％": "%",
+      "＆": "&",
+      "＇": "'",
+      "（": "(",
+      "）": ")",
+      "＊": "*",
+      "＋": "+",
+      "，": ",",
+      "－": "-",
+      "．": ".",
+      "／": "/",
+      "０": "0",
+      "１": "1",
+      "２": "2",
+      "３": "3",
+      "４": "4",
+      "５": "5",
+      "６": "6",
+      "７": "7",
+      "８": "8",
+      "９": "9",
+      "：": ":",
+      "；": ";",
+      "＜": "<",
+      "＝": "=",
+      "＞": ">",
+      "？": "?",
+      "＠": "@",
+      "Ａ": "A",
+      "Ｂ": "B",
+      "Ｃ": "C",
+      "Ｄ": "D",
+      "Ｅ": "E",
+      "Ｆ": "F",
+      "Ｇ": "G",
+      "Ｈ": "H",
+      "Ｉ": "I",
+      "Ｊ": "J",
+      "Ｋ": "K",
+      "Ｌ": "L",
+      "Ｍ": "M",
+      "Ｎ": "N",
+      "Ｏ": "O",
+      "Ｐ": "P",
+      "Ｑ": "Q",
+      "Ｒ": "R",
+      "Ｓ": "S",
+      "Ｔ": "T",
+      "Ｕ": "U",
+      "Ｖ": "V",
+      "Ｗ": "W",
+      "Ｘ": "X",
+      "Ｙ": "Y",
+      "Ｚ": "Z",
+      "［": "[",
+      "＼": "\\",
+      "］": "]",
+      "＾": "^",
+      "＿": "_",
+      "ａ": "a",
+      "ｂ": "b",
+      "ｃ": "c",
+      "ｄ": "d",
+      "ｅ": "e",
+      "ｆ": "f",
+      "ｇ": "g",
+      "ｈ": "h",
+      "ｉ": "i",
+      "ｊ": "j",
+      "ｋ": "k",
+      "ｌ": "l",
+      "ｍ": "m",
+      "ｎ": "n",
+      "ｏ": "o",
+      "ｐ": "p",
+      "ｑ": "q",
+      "ｒ": "r",
+      "ｓ": "s",
+      "ｔ": "t",
+      "ｕ": "u",
+      "ｖ": "v",
+      "ｗ": "w",
+      "ｘ": "x",
+      "ｙ": "y",
+      "ｚ": "z",
+      "｛": "{",
+      "｜": "|",
+      "｝": "}",
+      "～": "~",
+      "｟": "((",
+      "｠": "))",
+      "￡": "£"
+    }
+  },
+  "dipDefaults": [
+    {
+      "port": "CONFIG",
+      "mask": 128,
+      "value": 0,
+      "name": "Hardware Version",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "Issue 2"
+        },
+        {
+          "value": 128,
+          "name": "Issue 3"
+        }
+      ]
+    },
+    {
+      "port": "CONFIG",
+      "mask": 1,
+      "value": 0,
+      "name": "Contention",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "Early"
+        },
+        {
+          "value": 1,
+          "name": "Late"
+        }
+      ]
+    }
+  ],
+  "ports": [
+    {
+      "tag": "LINE0",
+      "init": 31
+    },
+    {
+      "tag": "LINE1",
+      "init": 31
+    },
+    {
+      "tag": "LINE2",
+      "init": 31
+    },
+    {
+      "tag": "LINE3",
+      "init": 31
+    },
+    {
+      "tag": "LINE4",
+      "init": 31
+    },
+    {
+      "tag": "LINE5",
+      "init": 31
+    },
+    {
+      "tag": "LINE6",
+      "init": 31
+    },
+    {
+      "tag": "LINE7",
+      "init": 31
+    },
+    {
+      "tag": "NMI",
+      "init": 0
+    },
+    {
+      "tag": "CONFIG",
+      "init": 126
+    },
+    {
+      "tag": "exp:JOY",
+      "init": 0
+    },
+    {
+      "tag": "exp:LINE3",
+      "init": 31
+    },
+    {
+      "tag": "exp:LINE4",
+      "init": 31
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

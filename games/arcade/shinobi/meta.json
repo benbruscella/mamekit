@@ -1,0 +1,77 @@
+{
+  "game": "shinobi",
+  "title": "Shinobi (set 6, System 16A) (unprotected) (Sega, 1987)",
+  "fullname": "Shinobi (set 6, System 16A) (unprotected)",
+  "year": "1987",
+  "manufacturer": "Sega",
+  "family": "segas16a",
+  "driverFile": "src/mame/sega/segas16a.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.227",
+        "lastRelease": "0.231"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      },
+      {
+        "name": "Steven Coomber",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.233",
+        "lastRelease": "0.233"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.256",
+        "lastRelease": "0.256"
+      },
+      {
+        "name": "TheLostNinja",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.286",
+        "lastRelease": "0.286"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 297,
+    "authors": 37,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

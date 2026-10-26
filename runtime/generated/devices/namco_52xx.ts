@@ -1,0 +1,1248 @@
+// GENERATED from MAME device source; do not edit.
+import type {
+  GeneratedDeviceDefinition,
+  GeneratedDeviceMethodMap,
+} from '../../core/generated-device.js';
+import deviceData from './namco_52xx.device.ir.json' with { type: 'json' };
+
+const definition = deviceData as unknown as GeneratedDeviceDefinition;
+definition.compiledMethods = (() => {
+
+
+  function method_reset(runtime: any, state: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_reset"] ? __l["m_reset"](Number(((state) ? (0) : (1)))) : typeof members.m_reset === 'function' ? members.m_reset(((state) ? (0) : (1))) : runtime.invoke("m_reset", ((state) ? (0) : (1))));
+  }
+
+  function method_K_r(runtime: any): any {
+    const members = runtime.members;
+
+    return (((((members.m_latched_cmd ?? 0)) & (15))) & 0xff);
+  }
+
+  function method_SI_r(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    return (((__l["m_si"] ? __l["m_si"](Number(0)) : typeof members.m_si === 'function' ? members.m_si(0) : runtime.invoke("m_si", 0))) ? (1) : (0));
+  }
+
+  function method_R0_r(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    return (((((__l["m_romread"] ? __l["m_romread"](Number((members.m_address ?? 0))) : typeof members.m_romread === 'function' ? members.m_romread((members.m_address ?? 0)) : runtime.invoke("m_romread", (members.m_address ?? 0)))) & (15))) & 0xff);
+  }
+
+  function method_R1_r(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    return ((runtime.shiftRight((__l["m_romread"] ? __l["m_romread"](Number((members.m_address ?? 0))) : typeof members.m_romread === 'function' ? members.m_romread((members.m_address ?? 0)) : runtime.invoke("m_romread", (members.m_address ?? 0))), 4)) & 0xff);
+  }
+
+  function method_P_w(runtime: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_discrete.write"] ? __l["m_discrete.write"]((__l["NAMCO_52XX_P_DATA"] ? __l["NAMCO_52XX_P_DATA"]((members.m_basenode ?? 0)) : runtime.macro("NAMCO_52XX_P_DATA", (members.m_basenode ?? 0))), ((data) & (15))) : ((members.m_discrete)?.write?.((__l["NAMCO_52XX_P_DATA"] ? __l["NAMCO_52XX_P_DATA"]((members.m_basenode ?? 0)) : runtime.macro("NAMCO_52XX_P_DATA", (members.m_basenode ?? 0))), ((data) & (15))) ?? 0));
+  }
+
+  function method_R2_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_address = (((((((members.m_address ?? 0)) & (65520))) | (((((data) & (15))) << (0))))) >>> 0);
+  }
+
+  function method_R3_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_address = (((((((members.m_address ?? 0)) & (65295))) | (((((data) & (15))) << (4))))) >>> 0);
+  }
+
+  function method_O_w(runtime: any, data: any): any {
+    const members = runtime.members;
+
+    members.m_address = (((((((members.m_address ?? 0)) & (255))) | (((data) << (8))))) >>> 0);
+  }
+
+  function method_chip_select(runtime: any, state: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_cpu.set_input_line"] ? __l["m_cpu.set_input_line"](0, ((state) ? (1) : (0))) : ((members.m_cpu)?.set_input_line?.(0, ((state) ? (1) : (0))) ?? 0));
+  }
+
+  function method_write_sync(runtime: any, param: any): any {
+    const members = runtime.members;
+
+    members.m_latched_cmd = ((param) & 0xff);
+  }
+
+  function method_external_clock_pulse(runtime: any, param: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_cpu.pulse_input_line"] ? __l["m_cpu.pulse_input_line"](1, 0) : ((members.m_cpu)?.pulse_input_line?.(1, 0) ?? 0));
+  }
+
+  function method_set_discrete(runtime: any, tag: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_discrete.set_tag"] ? __l["m_discrete.set_tag"]((__l["std::forward"] ? __l["std::forward"](tag) : runtime.macro("std::forward", tag))) : ((members.m_discrete)?.set_tag?.((__l["std::forward"] ? __l["std::forward"](tag) : runtime.macro("std::forward", tag))) ?? 0));
+  }
+
+  function method_set_basenote(runtime: any, node: any): any {
+    const members = runtime.members;
+
+    members.m_basenode = ((node) | 0);
+  }
+
+  function method_set_extclock(runtime: any, clk: any): any {
+    const members = runtime.members;
+
+    members.m_extclock = clk;
+  }
+
+  function method_romread_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_romread)).bind === 'function' ? (runtime.dereference(members.m_romread)).bind() : typeof (runtime.dereference(members.m_romread)).bind === 'number' || typeof (runtime.dereference(members.m_romread)).bind === 'boolean' ? (runtime.dereference(members.m_romread)).bind : runtime.container(members.m_romread, "bind"));
+  }
+
+  function method_si_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_si)).bind === 'function' ? (runtime.dereference(members.m_si)).bind() : typeof (runtime.dereference(members.m_si)).bind === 'number' || typeof (runtime.dereference(members.m_si)).bind === 'boolean' ? (runtime.dereference(members.m_si)).bind : runtime.container(members.m_si, "bind"));
+  }
+
+  function method_namco_52xx_device__set_discrete(runtime: any, tag: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    (__l["m_discrete.set_tag"] ? __l["m_discrete.set_tag"]((__l["std::forward"] ? __l["std::forward"](tag) : runtime.macro("std::forward", tag))) : ((members.m_discrete)?.set_tag?.((__l["std::forward"] ? __l["std::forward"](tag) : runtime.macro("std::forward", tag))) ?? 0));
+  }
+
+  function method_namco_52xx_device__set_basenote(runtime: any, node: any): any {
+    const members = runtime.members;
+
+    members.m_basenode = ((node) | 0);
+  }
+
+  function method_namco_52xx_device__set_extclock(runtime: any, clk: any): any {
+    const members = runtime.members;
+
+    members.m_extclock = clk;
+  }
+
+  function method_namco_52xx_device__romread_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_romread)).bind === 'function' ? (runtime.dereference(members.m_romread)).bind() : typeof (runtime.dereference(members.m_romread)).bind === 'number' || typeof (runtime.dereference(members.m_romread)).bind === 'boolean' ? (runtime.dereference(members.m_romread)).bind : runtime.container(members.m_romread, "bind"));
+  }
+
+  function method_namco_52xx_device__si_callback(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_si)).bind === 'function' ? (runtime.dereference(members.m_si)).bind() : typeof (runtime.dereference(members.m_si)).bind === 'number' || typeof (runtime.dereference(members.m_si)).bind === 'boolean' ? (runtime.dereference(members.m_si)).bind : runtime.container(members.m_si, "bind"));
+  }
+  return {
+    "reset": method_reset,
+    "K_r": method_K_r,
+    "SI_r": method_SI_r,
+    "R0_r": method_R0_r,
+    "R1_r": method_R1_r,
+    "P_w": method_P_w,
+    "R2_w": method_R2_w,
+    "R3_w": method_R3_w,
+    "O_w": method_O_w,
+    "chip_select": method_chip_select,
+    "write_sync": method_write_sync,
+    "external_clock_pulse": method_external_clock_pulse,
+    "set_discrete": method_set_discrete,
+    "set_basenote": method_set_basenote,
+    "set_extclock": method_set_extclock,
+    "romread_callback": method_romread_callback,
+    "si_callback": method_si_callback,
+    "namco_52xx_device::set_discrete": method_namco_52xx_device__set_discrete,
+    "namco_52xx_device::set_basenote": method_namco_52xx_device__set_basenote,
+    "namco_52xx_device::set_extclock": method_namco_52xx_device__set_extclock,
+    "namco_52xx_device::romread_callback": method_namco_52xx_device__romread_callback,
+    "namco_52xx_device::si_callback": method_namco_52xx_device__si_callback
+  };
+})() as GeneratedDeviceMethodMap;
+definition.compiledMethodLinks = ["NAMCO_52XX_P_DATA","m_cpu.pulse_input_line","m_cpu.set_input_line","m_discrete.set_tag","m_discrete.write","m_reset","m_romread","m_si","std::forward"];
+definition.children![0]!.definition.compiledMethods = (() => {
+
+
+  function method_state_import(runtime: any, entry: any): any {
+    const members = runtime.members;
+
+    switch (((typeof (runtime.dereference(entry)).index === 'function' ? (runtime.dereference(entry)).index() : typeof (runtime.dereference(entry)).index === 'number' || typeof (runtime.dereference(entry)).index === 'boolean' ? (runtime.dereference(entry)).index : runtime.container(entry, "index")) as number)) {
+      case (members.STATE_GENFLAGS ?? 0):
+      {
+        members.m_st = (((((((members.m_debugger_flags ?? 0)) & (1))) ? (1) : (0))) & 0xff);
+        members.m_zf = (((((((members.m_debugger_flags ?? 0)) & (2))) ? (1) : (0))) & 0xff);
+        members.m_cf = (((((((members.m_debugger_flags ?? 0)) & (4))) ? (1) : (0))) & 0xff);
+        members.m_vf = (((((((members.m_debugger_flags ?? 0)) & (8))) ? (1) : (0))) & 0xff);
+        members.m_sf = (((((((members.m_debugger_flags ?? 0)) & (16))) ? (1) : (0))) & 0xff);
+        members.m_if = (((((((members.m_debugger_flags ?? 0)) & (32))) ? (1) : (0))) & 0xff);
+        break;
+      }
+      case (members.STATE_GENPC ?? 0):
+      case (members.STATE_GENPCBASE ?? 0):
+      {
+        members.m_PC = (((((members.m_debugger_pc ?? 0)) & (63))) & 0xff);
+        members.m_PA = (((((((members.m_debugger_pc ?? 0)) >>> (6))) & (31))) & 0xff);
+        break;
+      }
+    }
+  }
+
+  function method_state_export(runtime: any, entry: any): any {
+    const members = runtime.members;
+
+    switch (((typeof (runtime.dereference(entry)).index === 'function' ? (runtime.dereference(entry)).index() : typeof (runtime.dereference(entry)).index === 'number' || typeof (runtime.dereference(entry)).index === 'boolean' ? (runtime.dereference(entry)).index : runtime.container(entry, "index")) as number)) {
+      case (members.STATE_GENFLAGS ?? 0):
+      {
+        members.m_debugger_flags = ((0) & 0xff);
+        if ((((members.m_st ?? 0)) & (1))) {
+          members.m_debugger_flags = ((((members.m_debugger_flags) | (1))) & 0xff);
+        }
+        if ((((members.m_zf ?? 0)) & (1))) {
+          members.m_debugger_flags = ((((members.m_debugger_flags) | (2))) & 0xff);
+        }
+        if ((((members.m_cf ?? 0)) & (1))) {
+          members.m_debugger_flags = ((((members.m_debugger_flags) | (4))) & 0xff);
+        }
+        if ((((members.m_vf ?? 0)) & (1))) {
+          members.m_debugger_flags = ((((members.m_debugger_flags) | (8))) & 0xff);
+        }
+        if ((((members.m_sf ?? 0)) & (1))) {
+          members.m_debugger_flags = ((((members.m_debugger_flags) | (16))) & 0xff);
+        }
+        if ((((members.m_if ?? 0)) & (1))) {
+          members.m_debugger_flags = ((((members.m_debugger_flags) | (32))) & 0xff);
+        }
+        break;
+      }
+      case (members.STATE_GENPC ?? 0):
+      case (members.STATE_GENPCBASE ?? 0):
+      {
+        members.m_debugger_pc = (((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) & 0xffff);
+        break;
+      }
+    }
+  }
+
+  function method_burn_cycles(runtime: any, cycles: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    const h_m_SP = members.m_SP ?? 0;
+    members.m_icount = ((((members.m_icount) - (cycles))) | 0);
+    if ((((members.m_pio ?? 0)) & (128))) {
+      members.m_TP = ((((members.m_TP) + (cycles))) & 0xff);
+      while (((Number((members.m_TP ?? 0)) >= Number(32)) ? 1 : 0)) {
+        members.m_TP = ((((members.m_TP) - (32))) & 0xff);
+        method_increment_timer(runtime);
+      }
+    }
+    if (((((((members.m_in_irq ?? 0)) ? 0 : 1)) && ((((members.m_pending_irq ?? 0)) & ((members.m_pio ?? 0))))) ? 1 : 0)) {
+      members.m_in_irq = ((1) ? 1 : 0);
+      let intpc: any = (((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) & 0xffff);
+      h_m_SP[(members.m_SI ?? 0)] = intpc;
+      h_m_SP[(members.m_SI ?? 0)] = ((h_m_SP[(members.m_SI ?? 0)]) | ((((((members.m_cf ?? 0)) & (1))) << (15))));
+      h_m_SP[(members.m_SI ?? 0)] = ((h_m_SP[(members.m_SI ?? 0)]) | ((((((members.m_zf ?? 0)) & (1))) << (14))));
+      h_m_SP[(members.m_SI ?? 0)] = ((h_m_SP[(members.m_SI ?? 0)]) | ((((((members.m_st ?? 0)) & (1))) << (13))));
+      members.m_SI = (((((((members.m_SI ?? 0)) + (1))) & (3))) & 0xff);
+      if ((((((members.m_pending_irq ?? 0)) & ((members.m_pio ?? 0)))) & (4))) {
+        (__l["standard_irq_callback"] ? __l["standard_irq_callback"](0, intpc) : runtime.macro("standard_irq_callback", 0, intpc));
+        members.m_PC = ((2) & 0xff);
+      } else {
+        if ((((((members.m_pending_irq ?? 0)) & ((members.m_pio ?? 0)))) & (2))) {
+          (__l["standard_irq_callback"] ? __l["standard_irq_callback"](1, intpc) : runtime.macro("standard_irq_callback", 1, intpc));
+          members.m_PC = ((4) & 0xff);
+        } else {
+          if ((((((members.m_pending_irq ?? 0)) & ((members.m_pio ?? 0)))) & (1))) {
+            (__l["standard_irq_callback"] ? __l["standard_irq_callback"](2, intpc) : runtime.macro("standard_irq_callback", 2, intpc));
+            members.m_PC = ((6) & 0xff);
+          }
+        }
+      }
+      members.m_PA = ((0) & 0xff);
+      members.m_st = ((1) & 0xff);
+      members.m_pending_irq = ((0) & 0xff);
+      method_burn_cycles(runtime, 3);
+    }
+  }
+
+  function method_increment_timer(runtime: any): any {
+    const members = runtime.members;
+
+    members.m_TL = (((((((members.m_TL ?? 0)) + (1))) & (15))) & 0xff);
+    if (((Number((members.m_TL ?? 0)) === Number(0)) ? 1 : 0)) {
+      members.m_TH = (((((((members.m_TH ?? 0)) + (1))) & (15))) & 0xff);
+      if (((Number((members.m_TH ?? 0)) === Number(0)) ? 1 : 0)) {
+        members.m_vf = ((1) & 0xff);
+        members.m_pending_irq = ((((members.m_pending_irq) | (2))) & 0xff);
+      }
+    }
+  }
+
+  function method_execute_run(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    const h_m_SP = members.m_SP ?? 0;
+    while (((Number((members.m_icount ?? 0)) > Number(0)) ? 1 : 0)) {
+      let opcode: any = ((0) & 0xff);
+      let arg: any = ((0) & 0xff);
+      let oc: any = ((0) & 0xff);
+      (__l["debugger_instruction_hook"] ? __l["debugger_instruction_hook"]((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) : runtime.macro("debugger_instruction_hook", (((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))));
+      opcode = ((((runtime.dereference(members.m_cache)).read_byte?.((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) ?? 0)) & 0xff);
+      do {
+        members.m_PC = ((((members.m_PC) + (1))) & 0xff);
+        if (((Number((members.m_PC ?? 0)) >= Number(64)) ? 1 : 0)) {
+          members.m_PC = ((0) & 0xff);
+          members.m_PA = ((((members.m_PA) + (1))) & 0xff);
+        }
+      } while (0);
+      oc = ((1) & 0xff);
+      switch ((opcode as number)) {
+        case 0:
+        {
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 1:
+        {
+          method_write_pla(runtime, (((((((members.m_cf ?? 0)) & (1))) << (4))) | ((members.m_A ?? 0))));
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 2:
+        {
+          (__l["m_write_p"] ? __l["m_write_p"](Number((members.m_A ?? 0))) : typeof members.m_write_p === 'function' ? members.m_write_p((members.m_A ?? 0)) : runtime.invoke("m_write_p", (members.m_A ?? 0)));
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 3:
+        {
+          arg = (((members.m_Y ?? 0)) & 0xff);
+          runtime.readIndex((members.m_write_r ?? 0), ((arg) & (3)))((members.m_A ?? 0));
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 4:
+        {
+          members.m_Y = (((members.m_A ?? 0)) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 5:
+        {
+          members.m_TH = (((members.m_A ?? 0)) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 6:
+        {
+          members.m_TL = (((members.m_A ?? 0)) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 7:
+        {
+          members.m_SB = (((members.m_A ?? 0)) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 8:
+        {
+          members.m_Y = ((((members.m_Y) + (1))) & 0xff);
+          members.m_st = (((((((members.m_Y ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_Y = ((((members.m_Y) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_Y ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 9:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          arg = ((((arg) + (1))) & 0xff);
+          members.m_st = ((((((arg) & (16))) ? (0) : (1))) & 0xff);
+          arg = ((((arg) & (15))) & 0xff);
+          members.m_zf = ((((((Number(arg) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), ((arg) & (15))) ?? 0);
+          break;
+        }
+        case 10:
+        {
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), (((members.m_A ?? 0)) & (15))) ?? 0);
+          members.m_Y = ((((members.m_Y) + (1))) & 0xff);
+          members.m_st = (((((((members.m_Y ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_Y = ((((members.m_Y) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_Y ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 11:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), (((members.m_A ?? 0)) & (15))) ?? 0);
+          members.m_A = ((arg) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 12:
+        {
+          members.m_A = ((((members.m_A) << (1))) & 0xff);
+          members.m_A = ((((members.m_A) | ((((members.m_cf ?? 0)) & (1))))) & 0xff);
+          members.m_st = (((((((members.m_A ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((((members.m_A) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 13:
+        {
+          members.m_A = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 14:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          arg = ((((arg) + ((members.m_A ?? 0)))) & 0xff);
+          arg = ((((arg) + ((((members.m_cf ?? 0)) & (1))))) & 0xff);
+          members.m_st = ((((((arg) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((((arg) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 15:
+        {
+          members.m_A = ((((members.m_A) & (((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = (((((members.m_zf ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 16:
+        {
+          if (((((((members.m_cf ?? 0)) & (1))) || (((Number((members.m_A ?? 0)) > Number(9)) ? 1 : 0))) ? 1 : 0)) {
+            members.m_A = ((((members.m_A) + (6))) & 0xff);
+          }
+          members.m_st = (((((((members.m_A ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((((members.m_A) & (15))) & 0xff);
+          break;
+        }
+        case 17:
+        {
+          if (((((((members.m_cf ?? 0)) & (1))) || (((Number((members.m_A ?? 0)) > Number(9)) ? 1 : 0))) ? 1 : 0)) {
+            members.m_A = ((((members.m_A) + (10))) & 0xff);
+          }
+          members.m_st = (((((((members.m_A ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((((members.m_A) & (15))) & 0xff);
+          break;
+        }
+        case 18:
+        {
+          members.m_A = (((((__l["m_read_k"] ? __l["m_read_k"]() : typeof members.m_read_k === 'function' ? members.m_read_k() : runtime.invoke("m_read_k"))) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 19:
+        {
+          arg = (((members.m_Y ?? 0)) & 0xff);
+          members.m_A = ((((runtime.readIndex((members.m_read_r ?? 0), ((arg) & (3)))()) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 20:
+        {
+          members.m_A = (((members.m_Y ?? 0)) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 21:
+        {
+          members.m_A = (((members.m_TH ?? 0)) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 22:
+        {
+          members.m_A = (((members.m_TL ?? 0)) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 23:
+        {
+          members.m_A = (((members.m_SB ?? 0)) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 24:
+        {
+          members.m_Y = ((((members.m_Y) - (1))) & 0xff);
+          members.m_st = (((((((members.m_Y ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_Y = ((((members.m_Y) & (15))) & 0xff);
+          break;
+        }
+        case 25:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          arg = ((((arg) - (1))) & 0xff);
+          members.m_st = ((((((arg) & (16))) ? (0) : (1))) & 0xff);
+          arg = ((((arg) & (15))) & 0xff);
+          members.m_zf = ((((((Number(arg) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), ((arg) & (15))) ?? 0);
+          break;
+        }
+        case 26:
+        {
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), (((members.m_A ?? 0)) & (15))) ?? 0);
+          members.m_Y = ((((members.m_Y) - (1))) & 0xff);
+          members.m_st = (((((((members.m_Y ?? 0)) & (16))) ? (0) : (1))) & 0xff);
+          members.m_Y = ((((members.m_Y) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_Y ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 27:
+        {
+          arg = (((members.m_X ?? 0)) & 0xff);
+          members.m_X = (((members.m_A ?? 0)) & 0xff);
+          members.m_A = ((arg) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 28:
+        {
+          members.m_A = ((((members.m_A) | ((((((members.m_cf ?? 0)) & (1))) << (4))))) & 0xff);
+          members.m_st = (((((((((members.m_A ?? 0)) << (4))) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((runtime.shiftRight(members.m_A, 1)) & 0xff);
+          members.m_A = ((((members.m_A) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 29:
+        {
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), (((members.m_A ?? 0)) & (15))) ?? 0);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 30:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          arg = ((((arg) - ((members.m_A ?? 0)))) & 0xff);
+          arg = ((((arg) - ((((members.m_cf ?? 0)) & (1))))) & 0xff);
+          members.m_st = ((((((arg) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((((arg) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 31:
+        {
+          members.m_A = ((((members.m_A) | (((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = (((((members.m_zf ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 32:
+        {
+          arg = ((((runtime.readIndex((members.m_read_r ?? 0), (((members.m_Y ?? 0)) >>> (2)))()) & (15))) & 0xff);
+          runtime.readIndex((members.m_write_r ?? 0), (((members.m_Y ?? 0)) >>> (2)))(((arg) | (((1) << ((((members.m_Y ?? 0)) & (3)))))));
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 33:
+        {
+          members.m_cf = ((1) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 34:
+        {
+          arg = ((((runtime.readIndex((members.m_read_r ?? 0), (((members.m_Y ?? 0)) >>> (2)))()) & (15))) & 0xff);
+          runtime.readIndex((members.m_write_r ?? 0), (((members.m_Y ?? 0)) >>> (2)))(((arg) & ((~((1) << ((((members.m_Y ?? 0)) & (3))))))));
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 35:
+        {
+          members.m_cf = ((0) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 36:
+        {
+          arg = ((((runtime.readIndex((members.m_read_r ?? 0), (((members.m_Y ?? 0)) >>> (2)))()) & (15))) & 0xff);
+          members.m_st = ((((((arg) & (((1) << ((((members.m_Y ?? 0)) & (3))))))) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 37:
+        {
+          members.m_st = (((((members.m_if ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 38:
+        {
+          members.m_st = (((((members.m_vf ?? 0)) ^ (1))) & 0xff);
+          members.m_vf = ((0) & 0xff);
+          break;
+        }
+        case 39:
+        {
+          members.m_st = (((((members.m_sf ?? 0)) ^ (1))) & 0xff);
+          if ((members.m_sf ?? 0)) {
+            if (((Number((members.m_SBcount ?? 0)) >= Number(1000)) ? 1 : 0)) {
+              ((runtime.dereference(members.m_serial)).adjust?.((__l["attotime::from_hz"] ? __l["attotime::from_hz"](runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6)) : runtime.macro("attotime::from_hz", runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6))), 0, (__l["attotime::from_hz"] ? __l["attotime::from_hz"](runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6)) : runtime.macro("attotime::from_hz", runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6)))) ?? 0);
+            }
+            members.m_SBcount = ((0) & 0xffff);
+          }
+          members.m_sf = ((0) & 0xff);
+          break;
+        }
+        case 40:
+        {
+          members.m_st = (((((members.m_cf ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 41:
+        {
+          members.m_st = (((((members.m_zf ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 42:
+        {
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), (((members.m_SB ?? 0)) & (15))) ?? 0);
+          members.m_zf = ((((((Number((members.m_SB ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 43:
+        {
+          members.m_SB = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_SB ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 44:
+        {
+          members.m_SI = (((((((members.m_SI ?? 0)) - (1))) & (3))) & 0xff);
+          members.m_PC = ((((h_m_SP[(members.m_SI ?? 0)]) & (63))) & 0xff);
+          members.m_PA = ((((((h_m_SP[(members.m_SI ?? 0)]) >>> (6))) & (31))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 45:
+        {
+          members.m_A = ((runtime.add((~(members.m_A ?? 0)), 1)) & 0xff);
+          members.m_A = ((((members.m_A) & (15))) & 0xff);
+          members.m_st = ((((((Number((members.m_A ?? 0)) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 46:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          arg = ((((arg) - ((members.m_A ?? 0)))) & 0xff);
+          members.m_cf = ((((((Number(((arg) & (16))) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          arg = ((((arg) & (15))) & 0xff);
+          members.m_st = ((((((Number(arg) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_zf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 47:
+        {
+          members.m_A = ((((members.m_A) ^ (((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))))) & 0xff);
+          members.m_st = ((((((Number((members.m_A ?? 0)) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_zf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 48:
+        case 49:
+        case 50:
+        case 51:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), ((((arg) | (((1) << (((opcode) & (3))))))) & (15))) ?? 0);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 52:
+        case 53:
+        case 54:
+        case 55:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0))), ((((arg) & ((~((1) << (((opcode) & (3)))))))) & (15))) ?? 0);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 56:
+        case 57:
+        case 58:
+        case 59:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.((((((members.m_X ?? 0)) << (4))) + ((members.m_Y ?? 0)))) ?? 0)) & (15))) & 0xff);
+          members.m_st = ((((((arg) & (((1) << (((opcode) & (3))))))) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 60:
+        {
+          members.m_in_irq = ((0) ? 1 : 0);
+          members.m_SI = (((((((members.m_SI ?? 0)) - (1))) & (3))) & 0xff);
+          members.m_PC = ((((h_m_SP[(members.m_SI ?? 0)]) & (63))) & 0xff);
+          members.m_PA = ((((((h_m_SP[(members.m_SI ?? 0)]) >>> (6))) & (31))) & 0xff);
+          members.m_st = ((((((h_m_SP[(members.m_SI ?? 0)]) >>> (13))) & (1))) & 0xff);
+          members.m_zf = ((((((h_m_SP[(members.m_SI ?? 0)]) >>> (14))) & (1))) & 0xff);
+          members.m_cf = ((((((h_m_SP[(members.m_SI ?? 0)]) >>> (15))) & (1))) & 0xff);
+          break;
+        }
+        case 61:
+        {
+          members.m_PA = ((((((runtime.dereference(members.m_cache)).read_byte?.((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) ?? 0)) & (31))) & 0xff);
+          members.m_PC = (((((members.m_A ?? 0)) * (4))) & 0xff);
+          oc = ((((oc) + (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 62:
+        {
+          method_pio_enable(runtime, (((members.m_pio ?? 0)) | (((runtime.dereference(members.m_cache)).read_byte?.((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) ?? 0))));
+          do {
+            members.m_PC = ((((members.m_PC) + (1))) & 0xff);
+            if (((Number((members.m_PC ?? 0)) >= Number(64)) ? 1 : 0)) {
+              members.m_PC = ((0) & 0xff);
+              members.m_PA = ((((members.m_PA) + (1))) & 0xff);
+            }
+          } while (0);
+          oc = ((((oc) + (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 63:
+        {
+          method_pio_enable(runtime, (((members.m_pio ?? 0)) & ((~((runtime.dereference(members.m_cache)).read_byte?.((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) ?? 0)))));
+          do {
+            members.m_PC = ((((members.m_PC) + (1))) & 0xff);
+            if (((Number((members.m_PC ?? 0)) >= Number(64)) ? 1 : 0)) {
+              members.m_PC = ((0) & 0xff);
+              members.m_PA = ((((members.m_PA) + (1))) & 0xff);
+            }
+          } while (0);
+          oc = ((((oc) + (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 64:
+        case 65:
+        case 66:
+        case 67:
+        {
+          arg = ((((runtime.readIndex((members.m_read_r ?? 0), 0)()) & (15))) & 0xff);
+          arg = ((((arg) | (((1) << (((opcode) & (3))))))) & 0xff);
+          runtime.readIndex((members.m_write_r ?? 0), 0)(arg);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 68:
+        case 69:
+        case 70:
+        case 71:
+        {
+          arg = ((((runtime.readIndex((members.m_read_r ?? 0), 0)()) & (15))) & 0xff);
+          arg = ((((arg) & ((~((1) << (((opcode) & (3)))))))) & 0xff);
+          runtime.readIndex((members.m_write_r ?? 0), 0)(arg);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 72:
+        case 73:
+        case 74:
+        case 75:
+        {
+          arg = ((((runtime.readIndex((members.m_read_r ?? 0), 2)()) & (15))) & 0xff);
+          members.m_st = ((((((arg) & (((1) << (((opcode) & (3))))))) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 76:
+        case 77:
+        case 78:
+        case 79:
+        {
+          members.m_st = (((((((members.m_A ?? 0)) & (((1) << (((opcode) & (3))))))) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 80:
+        case 81:
+        case 82:
+        case 83:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.(((opcode) & (3))) ?? 0)) & (15))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.(((opcode) & (3)), (((members.m_A ?? 0)) & (15))) ?? 0);
+          members.m_A = ((arg) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 84:
+        case 85:
+        case 86:
+        case 87:
+        {
+          arg = ((((((runtime.dereference(members.m_data)).read_byte?.(runtime.add(((opcode) & (3)), 4)) ?? 0)) & (15))) & 0xff);
+          ((runtime.dereference(members.m_data)).write_byte?.(runtime.add(((opcode) & (3)), 4), (((members.m_Y ?? 0)) & (15))) ?? 0);
+          members.m_Y = ((arg) & 0xff);
+          members.m_zf = ((((((Number((members.m_Y ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 88:
+        case 89:
+        case 90:
+        case 91:
+        case 92:
+        case 93:
+        case 94:
+        case 95:
+        {
+          members.m_X = ((((opcode) & (7))) & 0xff);
+          members.m_zf = ((((((Number((members.m_X ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 96:
+        case 97:
+        case 98:
+        case 99:
+        case 100:
+        case 101:
+        case 102:
+        case 103:
+        {
+          arg = ((((runtime.dereference(members.m_cache)).read_byte?.((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) ?? 0)) & 0xff);
+          do {
+            members.m_PC = ((((members.m_PC) + (1))) & 0xff);
+            if (((Number((members.m_PC ?? 0)) >= Number(64)) ? 1 : 0)) {
+              members.m_PC = ((0) & 0xff);
+              members.m_PA = ((((members.m_PA) + (1))) & 0xff);
+            }
+          } while (0);
+          oc = ((((oc) + (1))) & 0xff);
+          if ((((members.m_st ?? 0)) & (1))) {
+            h_m_SP[(members.m_SI ?? 0)] = (((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)));
+            members.m_SI = (((((((members.m_SI ?? 0)) + (1))) & (3))) & 0xff);
+            members.m_PC = ((((arg) & (63))) & 0xff);
+            members.m_PA = ((((((((opcode) & (7))) << (2))) | (((arg) >>> (6))))) & 0xff);
+          }
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 104:
+        case 105:
+        case 106:
+        case 107:
+        case 108:
+        case 109:
+        case 110:
+        case 111:
+        {
+          arg = ((((runtime.dereference(members.m_cache)).read_byte?.((((((((members.m_PA ?? 0)) | 0)) << (6))) + ((members.m_PC ?? 0)))) ?? 0)) & 0xff);
+          do {
+            members.m_PC = ((((members.m_PC) + (1))) & 0xff);
+            if (((Number((members.m_PC ?? 0)) >= Number(64)) ? 1 : 0)) {
+              members.m_PC = ((0) & 0xff);
+              members.m_PA = ((((members.m_PA) + (1))) & 0xff);
+            }
+          } while (0);
+          oc = ((((oc) + (1))) & 0xff);
+          if ((((members.m_st ?? 0)) & (1))) {
+            members.m_PC = ((((arg) & (63))) & 0xff);
+            members.m_PA = ((((((((opcode) & (7))) << (2))) | (((arg) >>> (6))))) & 0xff);
+          }
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 112:
+        case 113:
+        case 114:
+        case 115:
+        case 116:
+        case 117:
+        case 118:
+        case 119:
+        case 120:
+        case 121:
+        case 122:
+        case 123:
+        case 124:
+        case 125:
+        case 126:
+        case 127:
+        {
+          arg = ((((opcode) & (15))) & 0xff);
+          arg = ((((arg) + ((members.m_A ?? 0)))) & 0xff);
+          members.m_st = ((((((arg) & (16))) ? (0) : (1))) & 0xff);
+          members.m_cf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          members.m_A = ((((arg) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          break;
+        }
+        case 128:
+        case 129:
+        case 130:
+        case 131:
+        case 132:
+        case 133:
+        case 134:
+        case 135:
+        case 136:
+        case 137:
+        case 138:
+        case 139:
+        case 140:
+        case 141:
+        case 142:
+        case 143:
+        {
+          members.m_Y = ((((opcode) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_Y ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 144:
+        case 145:
+        case 146:
+        case 147:
+        case 148:
+        case 149:
+        case 150:
+        case 151:
+        case 152:
+        case 153:
+        case 154:
+        case 155:
+        case 156:
+        case 157:
+        case 158:
+        case 159:
+        {
+          members.m_A = ((((opcode) & (15))) & 0xff);
+          members.m_zf = ((((((Number((members.m_A ?? 0)) !== Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+        case 160:
+        case 161:
+        case 162:
+        case 163:
+        case 164:
+        case 165:
+        case 166:
+        case 167:
+        case 168:
+        case 169:
+        case 170:
+        case 171:
+        case 172:
+        case 173:
+        case 174:
+        case 175:
+        {
+          arg = ((((((opcode) & (15))) - ((members.m_Y ?? 0)))) & 0xff);
+          members.m_cf = ((((((Number(((arg) & (16))) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          arg = ((((arg) & (15))) & 0xff);
+          members.m_st = ((((((Number(arg) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_zf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        case 176:
+        case 177:
+        case 178:
+        case 179:
+        case 180:
+        case 181:
+        case 182:
+        case 183:
+        case 184:
+        case 185:
+        case 186:
+        case 187:
+        case 188:
+        case 189:
+        case 190:
+        case 191:
+        {
+          arg = ((((((opcode) & (15))) - ((members.m_A ?? 0)))) & 0xff);
+          members.m_cf = ((((((Number(((arg) & (16))) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          arg = ((((arg) & (15))) & 0xff);
+          members.m_st = ((((((Number(arg) === Number(0)) ? 1 : 0)) ? (0) : (1))) & 0xff);
+          members.m_zf = (((((members.m_st ?? 0)) ^ (1))) & 0xff);
+          break;
+        }
+        default:
+        {
+          if ((((members.m_st ?? 0)) & (1))) {
+            members.m_PC = ((((opcode) & (63))) & 0xff);
+          }
+          members.m_st = ((1) & 0xff);
+          break;
+        }
+      }
+      method_burn_cycles(runtime, oc);
+    }
+  }
+
+  function method_write_pla(runtime: any, index: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    let mask: any = ((255) & 0xff);
+    if (((Number((members.m_pla_bits ?? 0)) === Number(8)) ? 1 : 0)) {
+      let shift: any = ((((((index) & (16))) ? (4) : (0))) & 0xff);
+      mask = ((((15) << (shift))) & 0xff);
+      members.m_o_output = (((((((members.m_o_output ?? 0)) & ((~mask)))) | (((((index) << (shift))) & (mask))))) & 0xff);
+    } else {
+      if ((members.m_pla_data ?? 0)) {
+        members.m_o_output = ((runtime.readIndex((members.m_pla_data ?? 0), index)) & 0xff);
+      } else {
+        members.m_o_output = ((index) & 0xff);
+      }
+    }
+    (__l["m_write_o"] ? __l["m_write_o"](Number(0), Number((members.m_o_output ?? 0)), Number(mask)) : typeof members.m_write_o === 'function' ? members.m_write_o(0, (members.m_o_output ?? 0), mask) : runtime.invoke("m_write_o", 0, (members.m_o_output ?? 0), mask));
+  }
+
+  function method_pio_enable(runtime: any, newpio: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    if ((((((members.m_pio ?? 0)) ^ (newpio))) & (48))) {
+      if (((Number(((newpio) & (48))) === Number(0)) ? 1 : 0)) {
+        ((runtime.dereference(members.m_serial)).adjust?.(Infinity) ?? 0);
+      } else {
+        if (((Number(((newpio) & (48))) === Number(32)) ? 1 : 0)) {
+          ((runtime.dereference(members.m_serial)).adjust?.((__l["attotime::from_hz"] ? __l["attotime::from_hz"](runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6)) : runtime.macro("attotime::from_hz", runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6))), 0, (__l["attotime::from_hz"] ? __l["attotime::from_hz"](runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6)) : runtime.macro("attotime::from_hz", runtime.divide((__l["clock"] ? __l["clock"]() : runtime.macro("clock")), 6)))) ?? 0);
+        } else {
+          (__l["fatalerror"] ? __l["fatalerror"]("mb88xx: pio_enable set serial enable to unsupported value %02X\n", ((newpio) & (48))) : runtime.macro("fatalerror", "mb88xx: pio_enable set serial enable to unsupported value %02X\n", ((newpio) & (48))));
+        }
+      }
+    }
+    members.m_pio = ((newpio) & 0xff);
+  }
+
+  function method_serial_timer(runtime: any, param: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    members.m_SBcount = ((((members.m_SBcount) + (1))) & 0xffff);
+    if (((Number((members.m_SBcount ?? 0)) >= Number(1000)) ? 1 : 0)) {
+      ((runtime.dereference(members.m_serial)).adjust?.(Infinity) ?? 0);
+    }
+    if ((((members.m_sf ?? 0)) ? 0 : 1)) {
+      members.m_SB = (((((((members.m_SB ?? 0)) >>> (1))) | ((((__l["m_read_si"] ? __l["m_read_si"]() : typeof members.m_read_si === 'function' ? members.m_read_si() : runtime.invoke("m_read_si"))) ? (8) : (0))))) & 0xff);
+      if (((Number((members.m_SBcount ?? 0)) >= Number(4)) ? 1 : 0)) {
+        members.m_sf = ((1) & 0xff);
+        members.m_pending_irq = ((((members.m_pending_irq) | (1))) & 0xff);
+      }
+    }
+  }
+
+  function method_read_k(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_read_k)).bind === 'function' ? (runtime.dereference(members.m_read_k)).bind() : typeof (runtime.dereference(members.m_read_k)).bind === 'number' || typeof (runtime.dereference(members.m_read_k)).bind === 'boolean' ? (runtime.dereference(members.m_read_k)).bind : runtime.container(members.m_read_k, "bind"));
+  }
+
+  function method_write_o(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_write_o)).bind === 'function' ? (runtime.dereference(members.m_write_o)).bind() : typeof (runtime.dereference(members.m_write_o)).bind === 'number' || typeof (runtime.dereference(members.m_write_o)).bind === 'boolean' ? (runtime.dereference(members.m_write_o)).bind : runtime.container(members.m_write_o, "bind"));
+  }
+
+  function method_write_p(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_write_p)).bind === 'function' ? (runtime.dereference(members.m_write_p)).bind() : typeof (runtime.dereference(members.m_write_p)).bind === 'number' || typeof (runtime.dereference(members.m_write_p)).bind === 'boolean' ? (runtime.dereference(members.m_write_p)).bind : runtime.container(members.m_write_p, "bind"));
+  }
+
+  function method_read_si(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_read_si)).bind === 'function' ? (runtime.dereference(members.m_read_si)).bind() : typeof (runtime.dereference(members.m_read_si)).bind === 'number' || typeof (runtime.dereference(members.m_read_si)).bind === 'boolean' ? (runtime.dereference(members.m_read_si)).bind : runtime.container(members.m_read_si, "bind"));
+  }
+
+  function method_write_so(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_write_so)).bind === 'function' ? (runtime.dereference(members.m_write_so)).bind() : typeof (runtime.dereference(members.m_write_so)).bind === 'number' || typeof (runtime.dereference(members.m_write_so)).bind === 'boolean' ? (runtime.dereference(members.m_write_so)).bind : runtime.container(members.m_write_so, "bind"));
+  }
+
+  function method_set_pla_bits(runtime: any, bits: any): any {
+    const members = runtime.members;
+
+    members.m_pla_bits = ((bits) & 0xff);
+  }
+
+  function method_set_pla_data(runtime: any, pla: any): any {
+    const members = runtime.members;
+
+    members.m_pla_data = pla;
+  }
+
+  function method_execute_min_cycles(runtime: any): any {
+    const members = runtime.members;
+
+    return 1;
+  }
+
+  function method_execute_max_cycles(runtime: any): any {
+    const members = runtime.members;
+
+    return 5;
+  }
+
+  function method_execute_input_edge_triggered(runtime: any, inputnum: any): any {
+    const members = runtime.members;
+
+    return (((((Number(inputnum) === Number(0)) ? 1 : 0)) || (((Number(inputnum) === Number(1)) ? 1 : 0))) ? 1 : 0);
+  }
+
+  function method_execute_clocks_to_cycles(runtime: any, clocks: any): any {
+    const members = runtime.members;
+
+    return runtime.divide(((((clocks) + (6))) - (1)), 6);
+  }
+
+  function method_execute_cycles_to_clocks(runtime: any, cycles: any): any {
+    const members = runtime.members;
+
+    return ((cycles) * (6));
+  }
+
+  function method_mb88_cpu_device__read_k(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_read_k)).bind === 'function' ? (runtime.dereference(members.m_read_k)).bind() : typeof (runtime.dereference(members.m_read_k)).bind === 'number' || typeof (runtime.dereference(members.m_read_k)).bind === 'boolean' ? (runtime.dereference(members.m_read_k)).bind : runtime.container(members.m_read_k, "bind"));
+  }
+
+  function method_mb88_cpu_device__write_o(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_write_o)).bind === 'function' ? (runtime.dereference(members.m_write_o)).bind() : typeof (runtime.dereference(members.m_write_o)).bind === 'number' || typeof (runtime.dereference(members.m_write_o)).bind === 'boolean' ? (runtime.dereference(members.m_write_o)).bind : runtime.container(members.m_write_o, "bind"));
+  }
+
+  function method_mb88_cpu_device__write_p(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_write_p)).bind === 'function' ? (runtime.dereference(members.m_write_p)).bind() : typeof (runtime.dereference(members.m_write_p)).bind === 'number' || typeof (runtime.dereference(members.m_write_p)).bind === 'boolean' ? (runtime.dereference(members.m_write_p)).bind : runtime.container(members.m_write_p, "bind"));
+  }
+
+  function method_mb88_cpu_device__read_si(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_read_si)).bind === 'function' ? (runtime.dereference(members.m_read_si)).bind() : typeof (runtime.dereference(members.m_read_si)).bind === 'number' || typeof (runtime.dereference(members.m_read_si)).bind === 'boolean' ? (runtime.dereference(members.m_read_si)).bind : runtime.container(members.m_read_si, "bind"));
+  }
+
+  function method_mb88_cpu_device__write_so(runtime: any): any {
+    const members = runtime.members;
+
+    return (typeof (runtime.dereference(members.m_write_so)).bind === 'function' ? (runtime.dereference(members.m_write_so)).bind() : typeof (runtime.dereference(members.m_write_so)).bind === 'number' || typeof (runtime.dereference(members.m_write_so)).bind === 'boolean' ? (runtime.dereference(members.m_write_so)).bind : runtime.container(members.m_write_so, "bind"));
+  }
+
+  function method_mb88_cpu_device__set_pla_bits(runtime: any, bits: any): any {
+    const members = runtime.members;
+
+    members.m_pla_bits = ((bits) & 0xff);
+  }
+
+  function method_mb88_cpu_device__set_pla_data(runtime: any, pla: any): any {
+    const members = runtime.members;
+
+    members.m_pla_data = pla;
+  }
+
+  function method_mb88_cpu_device__execute_min_cycles(runtime: any): any {
+    const members = runtime.members;
+
+    return 1;
+  }
+
+  function method_mb88_cpu_device__execute_max_cycles(runtime: any): any {
+    const members = runtime.members;
+
+    return 5;
+  }
+
+  function method_mb88_cpu_device__execute_input_edge_triggered(runtime: any, inputnum: any): any {
+    const members = runtime.members;
+
+    return (((((Number(inputnum) === Number(0)) ? 1 : 0)) || (((Number(inputnum) === Number(1)) ? 1 : 0))) ? 1 : 0);
+  }
+
+  function method_mb88_cpu_device__execute_clocks_to_cycles(runtime: any, clocks: any): any {
+    const members = runtime.members;
+
+    return runtime.divide(((((clocks) + (6))) - (1)), 6);
+  }
+
+  function method_mb88_cpu_device__execute_cycles_to_clocks(runtime: any, cycles: any): any {
+    const members = runtime.members;
+
+    return ((cycles) * (6));
+  }
+  return {
+    "state_import": method_state_import,
+    "state_export": method_state_export,
+    "burn_cycles": method_burn_cycles,
+    "increment_timer": method_increment_timer,
+    "execute_run": method_execute_run,
+    "write_pla": method_write_pla,
+    "pio_enable": method_pio_enable,
+    "serial_timer": method_serial_timer,
+    "read_k": method_read_k,
+    "write_o": method_write_o,
+    "write_p": method_write_p,
+    "read_si": method_read_si,
+    "write_so": method_write_so,
+    "set_pla_bits": method_set_pla_bits,
+    "set_pla_data": method_set_pla_data,
+    "execute_min_cycles": method_execute_min_cycles,
+    "execute_max_cycles": method_execute_max_cycles,
+    "execute_input_edge_triggered": method_execute_input_edge_triggered,
+    "execute_clocks_to_cycles": method_execute_clocks_to_cycles,
+    "execute_cycles_to_clocks": method_execute_cycles_to_clocks,
+    "mb88_cpu_device::read_k": method_mb88_cpu_device__read_k,
+    "mb88_cpu_device::write_o": method_mb88_cpu_device__write_o,
+    "mb88_cpu_device::write_p": method_mb88_cpu_device__write_p,
+    "mb88_cpu_device::read_si": method_mb88_cpu_device__read_si,
+    "mb88_cpu_device::write_so": method_mb88_cpu_device__write_so,
+    "mb88_cpu_device::set_pla_bits": method_mb88_cpu_device__set_pla_bits,
+    "mb88_cpu_device::set_pla_data": method_mb88_cpu_device__set_pla_data,
+    "mb88_cpu_device::execute_min_cycles": method_mb88_cpu_device__execute_min_cycles,
+    "mb88_cpu_device::execute_max_cycles": method_mb88_cpu_device__execute_max_cycles,
+    "mb88_cpu_device::execute_input_edge_triggered": method_mb88_cpu_device__execute_input_edge_triggered,
+    "mb88_cpu_device::execute_clocks_to_cycles": method_mb88_cpu_device__execute_clocks_to_cycles,
+    "mb88_cpu_device::execute_cycles_to_clocks": method_mb88_cpu_device__execute_cycles_to_clocks
+  };
+})() as GeneratedDeviceMethodMap;
+definition.children![0]!.definition.compiledMethodLinks = ["attotime::from_hz","clock","debugger_instruction_hook","fatalerror","m_read_k","m_read_si","m_write_o","m_write_p","standard_irq_callback"];
+
+export const device = definition;
+export default device;

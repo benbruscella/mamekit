@@ -1,0 +1,69 @@
+{
+  "game": "tutankhm",
+  "title": "Tutankham (Konami, 1982)",
+  "fullname": "Tutankham",
+  "year": "1982",
+  "manufacturer": "Konami",
+  "family": "tutankhm",
+  "driverFile": "src/mame/konami/tutankhm.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mirko Buffoni",
+  "credits": {
+    "people": [
+      {
+        "name": "Mirko Buffoni",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Couriersud",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.210",
+        "lastRelease": "0.210"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.275",
+        "lastRelease": "0.275"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.280",
+        "lastRelease": "0.280"
+      },
+      {
+        "name": "Jordi Tuells",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.280",
+        "lastRelease": "0.280"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-08-05",
+    "commits": 125,
+    "authors": 25,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,1327 @@
+{
+  "type": "HC55516",
+  "uses": [
+    {
+      "game": "sinistar",
+      "tags": [
+        "cvsd"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "HC55516",
+    "className": "hc55516_device",
+    "shortName": "hc55516",
+    "description": "HC-55516",
+    "sourceFile": "src/devices/sound/hc55516.cpp",
+    "sourceLine": 212,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(HC55516, hc55516_device, \"hc55516\", \"HC-55516\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/hc55516.cpp",
+      "sourceLine": 240,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "cvsd_device_base::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sylfilter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_intfilter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_next_sample"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_agc"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffered_fzq"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/hc55516.cpp",
+      "sourceLine": 255,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "cvsd_device_base::device_reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sylfilter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 63
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_intfilter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_agc"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_buffered_fzq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fzq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/sound/hc55516.cpp",
+      "sourceLine": 268,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_buffered_fzq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "agc_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/hc55516.cpp",
+      "sourceLine": 273,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_agc"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "process_bit",
+      "parameters": "bool bit, bool clock_state",
+      "sourceFile": "src/devices/sound/hc55516.cpp",
+      "sourceLine": 281,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "frozen",
+            "valueType": "bool",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_intfilter"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 384
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "bit"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_intfilter"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "-",
+                    "operand": {
+                      "kind": "number",
+                      "value": 384
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bit"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sum",
+            "valueType": "int32_t"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_active_clock_transition"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock_state"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "fzq_state",
+                "valueType": "bool",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_fzq_pull_cb"
+                      },
+                      "property": "isunset"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "fzq_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_fzq_pull_cb"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "fzq_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_buffered_fzq"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "fzq_state"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_shiftreg"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_shiftreg"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_shiftreg"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    },
+                    "whenTrue": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "whenFalse": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg_mask"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg_mask"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_shiftreg_mask"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "frozen"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_sylfilter"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "unary",
+                              "operator": "~",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "m_sylfilter"
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_sylmask"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_sylshift"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "frozen"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_sylfilter"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "m_sylfilter"
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_sylmask"
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_sylshift"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_syladd"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sylfilter"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "number",
+                  "value": 4095
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sum"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "util::sext"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "unary",
+                          "operator": "~",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "m_intfilter"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_intshift"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_shiftreg"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sum"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "util::sext"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "unary",
+                            "operator": "~",
+                            "operand": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "std::max"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 2
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": ">>",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_sylfilter"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 6
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sum"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "util::sext"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "std::max"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": ">>",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_sylfilter"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 6
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "frozen"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "util::sext"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_intfilter"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "sum"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_sample"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 6
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_intfilter"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 512
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": ">=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_agc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_agc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_agc_push_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_agc"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/hc55516.cpp",
+      "sourceLine": 356,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_external_oscillator"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "put_int"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "i"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_next_sample"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 32768
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_samples_generated"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "clock_state",
+                    "valueType": "uint8_t",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "current_clock_state"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_clock_changed"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "clock_state"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "process_bit"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_buffered_bit"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "clock_state"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_clock_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "clock_state"
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "put_int"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "i"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_next_sample"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 32768
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/hc55516.cpp",
+    "src/devices/sound/hc55516.h"
+  ]
+}

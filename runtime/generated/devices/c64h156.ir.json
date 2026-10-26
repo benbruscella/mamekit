@@ -1,0 +1,5648 @@
+{
+  "type": "C64H156",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "uc4"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "uc4"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "C64H156",
+    "className": "c64h156_device",
+    "shortName": "c64h156",
+    "description": "Commodore 64H156",
+    "sourceFile": "src/devices/machine/64h156.cpp",
+    "sourceLine": 46,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(C64H156, c64h156_device, \"c64h156\", \"Commodore 64H156\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_mtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_accl"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_stp"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ds"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_soe"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_oe"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ted"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_yb"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_atni"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_atna"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_period"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "attotime::from_hz"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "live_abort"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 136,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "tm"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "machine"
+                  },
+                  "args": []
+                },
+                "property": "time"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "RUNNING"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "next_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "shift_reg"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "shift_reg_write"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "cycle_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "cell_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "bit_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "ds"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_ds"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "oe"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_oe"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "soe"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_soe"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "accl"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_accl"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "zero_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "cycles_until_random_flux"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "%",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "rand"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 31
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 289
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "checkpoint_live"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "cur_live"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "live_run"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "checkpoint",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_next_edge"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "checkpoint_live"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "cur_live"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rollback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 165,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "cur_live"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "checkpoint_live"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_next_edge"
+              },
+              "args": [
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "tm"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_writing",
+      "parameters": "const attotime &tm",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 171,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_start_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "tm"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_position"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stop_writing",
+      "parameters": "const attotime &tm",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 177,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "commit"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "tm"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_start_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "attotime::never"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_next_bit",
+      "parameters": "bool bit, const attotime &limit",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_start_time"
+                },
+                "property": "is_never"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_start_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "tm"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_position"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "etime",
+            "valueType": "attotime",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cur_live"
+                },
+                "property": "tm"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_period"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "etime"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "limit"
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "bit"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_position"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::size"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "write_buffer"
+                    }
+                  ]
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "write_buffer"
+                  },
+                  "index": {
+                    "kind": "assignment",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "write_position"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "postfix": true
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "tm"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_period"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "commit",
+      "parameters": "const attotime &tm, bool force = false",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 202,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "||",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "write_start_time"
+                    },
+                    "property": "is_never"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "tm"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "write_start_time"
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_position"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "force"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_position"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::size"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "write_buffer"
+                    }
+                  ]
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_floppy"
+                },
+                "property": "write_flux"
+              },
+              "args": [
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_start_time"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "tm"
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_position"
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "write_buffer"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_start_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "tm"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_position"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_delay",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 218,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "next_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cur_live"
+                },
+                "property": "tm"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "t_gen"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "cur_live"
+                        },
+                        "property": "tm"
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "time"
+                        },
+                        "args": []
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_sync",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 227,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "tm"
+                  },
+                  "property": "is_never"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "tm"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "time"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "rollback"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "live_run"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "time"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "commit"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "tm"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "commit"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "tm"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "cur_live"
+                        },
+                        "property": "next_state"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "-",
+                        "operand": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "next_state"
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "next_state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "cur_live"
+                        },
+                        "property": "state"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "IDLE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "stop_writing"
+                          },
+                          "args": [
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "tm"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "tm"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "attotime::never"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "next_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_abort",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 250,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "tm"
+                    },
+                    "property": "is_never"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "tm"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "rollback"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "time"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stop_writing"
+              },
+              "args": [
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "tm"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "tm"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "attotime::never"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "IDLE"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "next_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_position"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "write_start_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "attotime::never"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "sync"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "byte"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_run",
+      "parameters": "const attotime &limit = attotime::never",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 269,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "IDLE"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "next_state"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [],
+            "condition": {
+              "kind": "number",
+              "value": 1
+            },
+            "iterate": [],
+            "body": [
+              {
+                "op": "switch",
+                "expression": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "state"
+                },
+                "cases": [
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "RUNNING"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "declare",
+                        "name": "syncpoint",
+                        "valueType": "bool",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "cur_live"
+                            },
+                            "property": "tm"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "limit"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "return"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "declare",
+                        "name": "bit",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_next_bit"
+                          },
+                          "args": [
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "tm"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "limit"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "bit"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "return"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "declare",
+                        "name": "cell_counter",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "cell_counter"
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "identifier",
+                          "name": "bit"
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "cycle_counter"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "ds"
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "cell_counter"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "cycle_counter"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "cur_live"
+                                },
+                                "property": "cycle_counter"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 16
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "cycle_counter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "ds"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "cell_counter"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "cell_counter"
+                                },
+                                "operator": "&=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 15
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "cell_counter"
+                                    },
+                                    {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  ]
+                                }
+                              },
+                              "right": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "BIT"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cur_live"
+                                    },
+                                    "property": "cell_counter"
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                ]
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "shift_reg"
+                                },
+                                "operator": "<<=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "shift_reg"
+                                },
+                                "operator": "|=",
+                                "value": {
+                                  "kind": "unary",
+                                  "operator": "!",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "||",
+                                    "left": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cur_live"
+                                          },
+                                          "property": "cell_counter"
+                                        },
+                                        {
+                                          "kind": "number",
+                                          "value": 3
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cur_live"
+                                          },
+                                          "property": "cell_counter"
+                                        },
+                                        {
+                                          "kind": "number",
+                                          "value": 2
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "shift_reg"
+                                },
+                                "operator": "&=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1023
+                                }
+                              },
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "TRACE_NOOP"
+                                  },
+                                  "args": []
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "syncpoint"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "BIT"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "cell_counter"
+                                    },
+                                    {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "unary",
+                                  "operator": "!",
+                                  "operand": {
+                                    "kind": "call",
+                                    "callee": {
+                                      "kind": "identifier",
+                                      "name": "BIT"
+                                    },
+                                    "args": [
+                                      {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "cur_live"
+                                        },
+                                        "property": "cell_counter"
+                                      },
+                                      {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "oe"
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "write_next_bit"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cur_live"
+                                          },
+                                          "property": "shift_reg_write"
+                                        },
+                                        {
+                                          "kind": "number",
+                                          "value": 7
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "limit"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "declare",
+                            "name": "sync",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cur_live"
+                                    },
+                                    "property": "shift_reg"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1023
+                                  }
+                                },
+                                "right": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "oe"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "sync"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "bit_counter"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 8
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&&",
+                                    "left": {
+                                      "kind": "unary",
+                                      "operator": "!",
+                                      "operand": {
+                                        "kind": "call",
+                                        "callee": {
+                                          "kind": "identifier",
+                                          "name": "BIT"
+                                        },
+                                        "args": [
+                                          {
+                                            "kind": "identifier",
+                                            "name": "cell_counter"
+                                          },
+                                          {
+                                            "kind": "number",
+                                            "value": 1
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "cur_live"
+                                          },
+                                          "property": "cell_counter"
+                                        },
+                                        {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cur_live"
+                                    },
+                                    "property": "sync"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "bit_counter"
+                                    },
+                                    "operator": "+=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "bit_counter"
+                                    },
+                                    "operator": "&=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 15
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "declare",
+                            "name": "byte",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "==",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "cur_live"
+                                        },
+                                        "property": "bit_counter"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 7
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 7
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "member",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "cur_live"
+                                    },
+                                    "property": "soe"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "unary",
+                                  "operator": "!",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "cell_counter"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "load",
+                            "valueType": "int",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "&&",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "bit_counter"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 7
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 7
+                                  }
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "cell_counter"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 3
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "load"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "oe"
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "shift_reg_write"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "shift_reg"
+                                    }
+                                  },
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                      },
+                                      "args": []
+                                    }
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "shift_reg_write"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "yb"
+                                    }
+                                  },
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                      },
+                                      "args": []
+                                    }
+                                  }
+                                ]
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "BIT"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "cell_counter"
+                                        },
+                                        {
+                                          "kind": "number",
+                                          "value": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "call",
+                                    "callee": {
+                                      "kind": "identifier",
+                                      "name": "BIT"
+                                    },
+                                    "args": [
+                                      {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "cur_live"
+                                        },
+                                        "property": "cell_counter"
+                                      },
+                                      {
+                                        "kind": "number",
+                                        "value": 1
+                                      }
+                                    ]
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "shift_reg_write"
+                                    },
+                                    "operator": "<<=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "shift_reg_write"
+                                    },
+                                    "operator": "&=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 255
+                                    }
+                                  },
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                      },
+                                      "args": []
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "byte"
+                              },
+                              "right": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "cur_live"
+                                },
+                                "property": "byte"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "||",
+                                  "left": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                      "kind": "identifier",
+                                      "name": "byte"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "accl"
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "call",
+                                    "expression": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "TRACE_NOOP"
+                                      },
+                                      "args": []
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "byte"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "byte"
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "syncpoint"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "unary",
+                                  "operator": "!",
+                                  "operand": {
+                                    "kind": "identifier",
+                                    "name": "byte"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "cur_live"
+                                      },
+                                      "property": "accl_yb"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "&",
+                                      "left": {
+                                        "kind": "member",
+                                        "object": {
+                                          "kind": "identifier",
+                                          "name": "cur_live"
+                                        },
+                                        "property": "shift_reg"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 255
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "sync"
+                              },
+                              "right": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "cur_live"
+                                },
+                                "property": "sync"
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "call",
+                                "expression": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "TRACE_NOOP"
+                                  },
+                                  "args": []
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "sync"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "sync"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "syncpoint"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "identifier",
+                          "name": "syncpoint"
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "commit"
+                              },
+                              "args": [
+                                {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "cur_live"
+                                  },
+                                  "property": "tm"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "tm"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "m_period"
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "live_delay"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "RUNNING_SYNCPOINT"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "return"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "tm"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "m_period"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "RUNNING_SYNCPOINT"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_sync"
+                          },
+                          "args": [
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "sync"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_write_byte"
+                          },
+                          "args": [
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "cur_live"
+                              },
+                              "property": "byte"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "state"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "RUNNING"
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "checkpoint"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_next_edge",
+      "parameters": "const attotime &when",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 386,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "cur_live"
+              },
+              "property": "edge"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_floppy"
+                },
+                "property": "get_next_transition"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "when"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_next_bit",
+      "parameters": "attotime &tm, const attotime &limit",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 391,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "bit",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "edge"
+                  },
+                  "property": "is_never"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "next",
+                "valueType": "attotime",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "tm"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_period"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "edge"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "next"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "zero_counter"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "cycles_until_random_flux"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "%",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "rand"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 31
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 289
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_next_edge"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "next"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cur_live"
+                },
+                "property": "zero_counter"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cur_live"
+                },
+                "property": "cycles_until_random_flux"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "zero_counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "cur_live"
+                  },
+                  "property": "cycles_until_random_flux"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "%",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "rand"
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 367
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 33
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "bit"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "bit"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "cur_live"
+                },
+                "property": "oe"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 423,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "checkpoint_live"
+              },
+              "property": "accl"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "checkpoint_live"
+                  },
+                  "property": "accl_yb"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "checkpoint_live"
+                  },
+                  "property": "shift_reg"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 437,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_yb"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_yb"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "yb"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "data"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "test_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 455,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "accl_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 464,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_accl"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_accl"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "accl"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ted_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 481,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_ted"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_ted"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "state"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "accl"
+                    }
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "byte"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "cur_live"
+                      },
+                      "property": "byte"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_write_byte"
+                      },
+                      "args": [
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "cur_live"
+                          },
+                          "property": "byte"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ted"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mtr_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 502,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_mtr"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_mtr"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_floppy"
+                    },
+                    "property": "mon_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "state"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_mtr"
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "cur_live"
+                        },
+                        "property": "state"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "IDLE"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "live_start"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "live_abort"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "oe_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 529,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_oe"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_oe"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "oe"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_oe"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "stop_writing"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "time"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "start_writing"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "machine"
+                              },
+                              "args": []
+                            },
+                            "property": "time"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "soe_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 551,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_soe"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_soe"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "soe"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "state"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atni_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 568,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_atni"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_atn"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_atni"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_atna"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atna_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 582,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_atna"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_atn"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_atni"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_atna"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_floppy",
+      "parameters": "floppy_image_device *floppy",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 596,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_floppy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "floppy"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stp_w",
+      "parameters": "int stp",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 606,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_stp"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "stp"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_mtr"
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "tracks",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "switch",
+                    "expression": {
+                      "kind": "identifier",
+                      "name": "m_stp"
+                    },
+                    "cases": [
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 2
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "tracks"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "-",
+                        "operand": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_floppy"
+                            },
+                            "property": "dir_w"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_floppy"
+                            },
+                            "property": "stp_w"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_floppy"
+                            },
+                            "property": "stp_w"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "tracks"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_floppy"
+                                },
+                                "property": "dir_w"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_floppy"
+                                },
+                                "property": "stp_w"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_floppy"
+                                },
+                                "property": "stp_w"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_stp"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "stp"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ds_w",
+      "parameters": "int ds",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 650,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_ds"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "ds"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ds"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "ds"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "ds"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 130,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "live_sync"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "live_run"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atn_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_atn"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 78,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_sync"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "byte_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_byte"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "checkpoint_live"
+              },
+              "property": "sync"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "byte_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "checkpoint_live"
+              },
+              "property": "byte"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atn_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "identifier",
+                "name": "m_atni"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_atna"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::atn_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_atn"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::sync_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_sync"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::byte_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_byte"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::sync_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "checkpoint_live"
+              },
+              "property": "sync"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::byte_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "checkpoint_live"
+              },
+              "property": "byte"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::atn_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "identifier",
+                "name": "m_atni"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_atna"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/64h156.cpp",
+    "src/devices/machine/64h156.h",
+    "src/devices/imagedev/floppy.h",
+    "src/devices/sound/samples.h",
+    "src/devices/sound/samples.cpp",
+    "src/devices/imagedev/floppy.cpp",
+    "src/lib/formats/imageutl.h",
+    "src/lib/formats/imageutl.cpp"
+  ],
+  "declaredBy": [
+    "c1541_device_base"
+  ]
+}

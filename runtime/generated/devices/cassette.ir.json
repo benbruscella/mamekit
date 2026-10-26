@@ -1,0 +1,2352 @@
+{
+  "type": "CASSETTE",
+  "uses": [
+    {
+      "game": "spec128",
+      "tags": [
+        "cassette"
+      ]
+    },
+    {
+      "game": "spectrum",
+      "tags": [
+        "cassette"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "CASSETTE",
+    "className": "cassette_image_device",
+    "shortName": "cassette_image",
+    "description": "Cassette",
+    "sourceFile": "src/devices/imagedev/cassette.cpp",
+    "sourceLine": 32,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(CASSETTE, cassette_image_device, \"cassette_image\", \"Cassette\")"
+  },
+  "methods": [
+    {
+      "name": "update",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "cur_time",
+            "valueType": "double",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                },
+                "property": "as_double"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "is_stopped"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "motor_on"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "new_position",
+                "valueType": "double",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_position",
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "cur_time",
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_position_time",
+                          "floating": true
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_speed",
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_direction"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "switch",
+                "expression": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_MASK_UISTATE"
+                  }
+                },
+                "cases": [
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "CASSETTE_RECORD"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cassette"
+                            },
+                            "property": "put_sample"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_channel"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_position",
+                              "floating": true
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "new_position",
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_position",
+                                "floating": true
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_value"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "identifier",
+                        "name": "CASSETTE_PLAY"
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "identifier",
+                          "name": "m_cassette"
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_cassette"
+                                },
+                                "property": "get_sample"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_channel"
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "new_position",
+                                  "floating": true
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0,
+                                  "floating": true
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "&",
+                                  "operand": {
+                                    "kind": "identifier",
+                                    "name": "m_value"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "length",
+                            "valueType": "double",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_length"
+                              },
+                              "args": []
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": ">",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "new_position",
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "length",
+                                "floating": true
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_state"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "binary",
+                                  "operator": "|",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "right": {
+                                      "kind": "unary",
+                                      "operator": "~",
+                                      "operand": {
+                                        "kind": "identifier",
+                                        "name": "CASSETTE_MASK_UISTATE"
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "CASSETTE_STOPPED"
+                                  }
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "new_position",
+                                  "floating": true
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "length",
+                                  "floating": true
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "<",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "new_position",
+                                    "floating": true
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 0,
+                                    "floating": true
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "m_state"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "binary",
+                                      "operator": "|",
+                                      "left": {
+                                        "kind": "binary",
+                                        "operator": "&",
+                                        "left": {
+                                          "kind": "identifier",
+                                          "name": "m_state"
+                                        },
+                                        "right": {
+                                          "kind": "unary",
+                                          "operator": "~",
+                                          "operand": {
+                                            "kind": "identifier",
+                                            "name": "CASSETTE_MASK_UISTATE"
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "identifier",
+                                        "name": "CASSETTE_STOPPED"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "new_position",
+                                      "floating": true
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 0,
+                                      "floating": true
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "body": [
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_position",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "new_position",
+                  "floating": true
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_position_time",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "cur_time",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "change_state",
+      "parameters": "cassette_state state, cassette_state mask",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 125,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "new_state",
+            "valueType": "cassette_state"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "new_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_state"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "new_state"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "unary",
+              "operator": "~",
+              "operand": {
+                "kind": "identifier",
+                "name": "mask"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "new_state"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "mask"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "new_state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "new_state"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 142,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "value",
+            "valueType": "double",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "m_value"
+              },
+              "right": {
+                "kind": "cast",
+                "valueType": "double",
+                "operand": {
+                  "kind": "number",
+                  "value": 2147483647
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "value",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output",
+      "parameters": "double value",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 154,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_MASK_UISTATE"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_RECORD"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "value",
+                  "floating": true
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "value",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::clamp"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "value",
+                      "floating": true
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1,
+                        "floating": true
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1,
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_value"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "cast",
+                  "valueType": "int32_t",
+                  "operand": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "value",
+                      "floating": true
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2147483647
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_position",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 166,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "position",
+            "valueType": "double",
+            "value": {
+              "kind": "identifier",
+              "name": "m_position",
+              "floating": true
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "is_stopped"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "motor_on"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "position",
+                  "floating": true
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "machine"
+                                },
+                                "args": []
+                              },
+                              "property": "time"
+                            },
+                            "args": []
+                          },
+                          "property": "as_double"
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_position_time",
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_speed",
+                      "floating": true
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_direction"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "position",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_length",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 177,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "cassette_image::Info",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cassette"
+                },
+                "property": "get_info"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "cast",
+                "valueType": "double",
+                "operand": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "sample_count"
+                }
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "sample_frequency"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_channel",
+      "parameters": "int channel",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "channel"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_speed",
+      "parameters": "double speed",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 188,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_speed",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "speed",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_forward",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 193,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_direction"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_reverse",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 198,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_direction"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "seek",
+      "parameters": "double time, int origin",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 204,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "length",
+            "valueType": "double",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_length"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "origin"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "SEEK_SET"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "SEEK_END"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "time",
+                      "floating": true
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "length",
+                      "floating": true
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "SEEK_CUR"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "time",
+                      "floating": true
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_position"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_position",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::clamp"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "time",
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0,
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "length",
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 237,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cassette"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_default_state"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_value"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_stereo"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sample_rate"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_position",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_position_time",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_value"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_speed",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_direction"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_state",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_stopped",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_UISTATE"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CASSETTE_STOPPED"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_playing",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_UISTATE"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CASSETTE_PLAY"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_recording",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_UISTATE"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CASSETTE_RECORD"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_motor",
+      "parameters": "bool state",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_state"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_MOTOR_ENABLED"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_MOTOR_DISABLED"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_MOTOR"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "motor_on",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_MOTOR"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CASSETTE_MOTOR_ENABLED"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_speaker",
+      "parameters": "bool state",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_state"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "state"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_SPEAKER_ENABLED"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_SPEAKER_MUTED"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_SPEAKER"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "speaker_on",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cassette.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_SPEAKER"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "CASSETTE_SPEAKER_ENABLED"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mount_image",
+      "parameters": "image_handle *image",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 281,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "image"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cassette"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "image"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_default_state"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_UISTATE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_position"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0,
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_position_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                },
+                "property": "as_double"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_speed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_direction"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/imagedev/cassette.cpp",
+      "sourceLine": 459,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "cassette_state",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_state"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_MASK_UISTATE"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_MASK_MOTOR"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "CASSETTE_MASK_SPEAKER"
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "exists"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "CASSETTE_PLAY"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "CASSETTE_MOTOR_ENABLED"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "CASSETTE_SPEAKER_ENABLED"
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "samples",
+                "valueType": "int",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "samples"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "cassette",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_image"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "time_index",
+                "valueType": "double",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_position"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "duration",
+                "valueType": "double",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "cast",
+                    "valueType": "double",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "samples"
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "sample_rate"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_samples"
+                      },
+                      "property": "size"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "samples"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_samples"
+                        },
+                        "property": "resize"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "samples"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "info",
+                "valueType": "cassette_image::Info",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cassette"
+                    },
+                    "property": "get_info"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "ch",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "ch"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "output_count"
+                    },
+                    "args": []
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "ch"
+                      },
+                      "right": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "channels"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "cassette"
+                            },
+                            "property": "get_samples"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "time_index",
+                              "floating": true
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "duration",
+                              "floating": true
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "samples"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "unary",
+                              "operator": "&",
+                              "operand": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_samples"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "cassette_image::WAVEFORM_16BIT"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "cassette"
+                            },
+                            "property": "get_samples"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "time_index",
+                              "floating": true
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "duration",
+                              "floating": true
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "samples"
+                            },
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "unary",
+                              "operator": "&",
+                              "operand": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_samples"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "cassette_image::WAVEFORM_16BIT"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "sampindex",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "samples"
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put_int"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "sampindex"
+                            },
+                            {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_samples"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "sampindex"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/imagedev/cassette.cpp",
+    "src/devices/imagedev/cassette.h",
+    "src/lib/formats/imageutl.h",
+    "src/lib/formats/imageutl.cpp"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "game": "gunsmoke",
+  "title": "Gun.Smoke (World, 1985-11-15) (Capcom, 1985)",
+  "fullname": "Gun.Smoke (World, 1985-11-15)",
+  "year": "1985",
+  "manufacturer": "Capcom",
+  "family": "gunsmoke",
+  "driverFile": "src/mame/capcom/gunsmoke.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman",
+  "credits": {
+    "people": [
+      {
+        "name": "Paul Leaman",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.251",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "Jordi Beltrán",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.251",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "jotego",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.261",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "Victor Fernandez (City Game)",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.251",
+        "lastRelease": "0.251"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-02-02",
+    "commits": 120,
+    "authors": 26,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,1346 @@
+// GENERATED from MAME device source; do not edit.
+import type {
+  GeneratedDeviceDefinition,
+  GeneratedDeviceMethodMap,
+} from '../../../core/generated-device.js';
+import deviceData from './nes_datach.device.ir.json' with { type: 'json' };
+
+const definition = deviceData as unknown as GeneratedDeviceDefinition;
+definition.compiledMethods = (() => {
+
+
+  function method_read_h(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_subslot = members.m_subslot ?? 0;
+    0;
+    if (h_m_subslot.m_cart) {
+      return ((((runtime.dereference(h_m_subslot.m_cart)).read?.(offset) ?? 0)) & 0xff);
+    } else {
+      return ((method_hi_access_rom(runtime, offset)) & 0xff);
+    }
+  }
+
+  function method_hi_access_rom(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_prg_bank = members.m_prg_bank ?? 0;
+    let bank: any = (((((offset) >>> (13)) & ((1 << (2)) - 1))) | 0);
+    return ((runtime.readIndex((members.m_prg ?? 0), runtime.add(((h_m_prg_bank[bank]) * (8192)), ((offset) & (8191))))) & 0xff);
+  }
+
+  function method_read_ex(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    return ((255) & 0xff);
+  }
+
+  function method_write_ex(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_get_mirroring(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_mirroring ?? 0);
+  }
+
+  function method_set_mirroring(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_mirroring = ((val) | 0);
+  }
+
+  function method_get_pcb_ctrl_mirror(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_pcb_ctrl_mirror ?? 0);
+  }
+
+  function method_set_pcb_ctrl_mirror(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_pcb_ctrl_mirror = ((val) ? 1 : 0);
+  }
+
+  function method_get_four_screen_vram(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_four_screen_vram ?? 0);
+  }
+
+  function method_set_four_screen_vram(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_four_screen_vram = ((val) ? 1 : 0);
+  }
+
+  function method_get_trainer(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_has_trainer ?? 0);
+  }
+
+  function method_set_trainer(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_has_trainer = ((val) ? 1 : 0);
+  }
+
+  function method_set_mmc1_type(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_mmc1_type = val;
+  }
+
+  function method_set_n163_vol(runtime: any, vol: any): any {
+    const members = runtime.members;
+
+    members.m_n163_vol = ((vol) | 0);
+  }
+
+  function method_set_outer_prg_size(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_outer_prg_size = ((val) >>> 0);
+  }
+
+  function method_set_outer_chr_size(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_outer_chr_size = ((val) >>> 0);
+  }
+
+  function method_set_smd133_addr(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_smd133_addr = ((val) | 0);
+  }
+
+  function method_set_x1_005_alt(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_x1_005_alt_mirroring = ((val) ? 1 : 0);
+  }
+
+  function method_set_bus_conflict(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_bus_conflict = ((val) ? 1 : 0);
+  }
+
+  function method_get_open_bus(runtime: any): any {
+    const members = runtime.members;
+
+    return (((members.m_open_bus ?? 0)) & 0xff);
+  }
+
+  function method_set_open_bus(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_open_bus = ((val) & 0xff);
+  }
+
+  function method_get_prg_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_prg ?? 0);
+  }
+
+  function method_get_prgram_base(runtime: any): any {
+    const members = runtime.members;
+
+    return runtime.addressOf((members.m_prgram ?? 0), 0);
+  }
+
+  function method_get_vrom_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_vrom ?? 0);
+  }
+
+  function method_get_vram_base(runtime: any): any {
+    const members = runtime.members;
+
+    return runtime.addressOf((members.m_vram ?? 0), 0);
+  }
+
+  function method_get_ciram_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_ciram ?? 0);
+  }
+
+  function method_get_battery_base(runtime: any): any {
+    const members = runtime.members;
+
+    return runtime.addressOf((members.m_battery ?? 0), 0);
+  }
+
+  function method_get_mapper_sram_base(runtime: any): any {
+    const members = runtime.members;
+
+    const h_m_mapper_sram = members.m_mapper_sram ?? 0;
+    return h_m_mapper_sram;
+  }
+
+  function method_get_misc_rom_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_misc_rom ?? 0);
+  }
+
+  function method_get_prg_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_prg_size ?? 0);
+  }
+
+  function method_get_prgram_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_prgram).length;
+  }
+
+  function method_get_vrom_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_vrom_size ?? 0);
+  }
+
+  function method_get_vram_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_vram).length;
+  }
+
+  function method_get_battery_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_battery).length;
+  }
+
+  function method_get_mapper_sram_size(runtime: any): any {
+    const members = runtime.members;
+
+    const h_m_mapper_sram_size = members.m_mapper_sram_size ?? 0;
+    return h_m_mapper_sram_size;
+  }
+
+  function method_get_misc_rom_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_misc_rom_size ?? 0);
+  }
+
+  function method_ppu_latch(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_hblank_irq(runtime: any, scanline: any, vblank: any, blanked: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_scanline_irq(runtime: any, scanline: any, vblank: any, blanked: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_prgram_alloc(runtime: any, size: any): any {
+    const members = runtime.members;
+
+    (members.m_prgram = runtime.resize(members.m_prgram, size));
+  }
+
+  function method_battery_alloc(runtime: any, size: any): any {
+    const members = runtime.members;
+
+    (members.m_battery = runtime.resize(members.m_battery, size));
+  }
+
+  function method_set_irq_line(runtime: any, state: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    0;
+    (__l["m_maincpu.set_input_line"] ? __l["m_maincpu.set_input_line"](0, state) : ((members.m_maincpu)?.set_input_line?.(0, state) ?? 0));
+  }
+
+  function method_chr_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    const h_m_chr_src = members.m_chr_src ?? 0;
+    const h_m_chr_access = members.m_chr_access ?? 0;
+    let bank: any = (((((offset) >>> (10)) & ((1 << (3)) - 1))) | 0);
+    if (((Number(h_m_chr_src[bank]) === Number(1)) ? 1 : 0)) {
+      runtime.writeIndex(h_m_chr_access[bank], ((offset) & (1023)), data);
+    }
+  }
+
+  function method_chr_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_chr_access = members.m_chr_access ?? 0;
+    let bank: any = (((((offset) >>> (10)) & ((1 << (3)) - 1))) | 0);
+    return ((runtime.readIndex(h_m_chr_access[bank], ((offset) & (1023)))) & 0xff);
+  }
+
+  function method_device_nes_cart_interface__chr_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_chr_access = members.m_chr_access ?? 0;
+    let bank: any = (((((offset) >>> (10)) & ((1 << (3)) - 1))) | 0);
+    return ((runtime.readIndex(h_m_chr_access[bank], ((offset) & (1023)))) & 0xff);
+  }
+
+  function method_nt_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    const h_m_nt_writable = members.m_nt_writable ?? 0;
+    const h_m_nt_access = members.m_nt_access ?? 0;
+    let page: any = (((((offset) >>> (10)) & ((1 << (2)) - 1))) | 0);
+    if (h_m_nt_writable[page]) {
+      runtime.writeIndex(h_m_nt_access[page], ((offset) & (1023)), data);
+    }
+  }
+
+  function method_device_nes_cart_interface__nt_w(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    const h_m_nt_writable = members.m_nt_writable ?? 0;
+    const h_m_nt_access = members.m_nt_access ?? 0;
+    let page: any = (((((offset) >>> (10)) & ((1 << (2)) - 1))) | 0);
+    if (h_m_nt_writable[page]) {
+      runtime.writeIndex(h_m_nt_access[page], ((offset) & (1023)), data);
+    }
+  }
+
+  function method_nt_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_nt_access = members.m_nt_access ?? 0;
+    let page: any = (((((offset) >>> (10)) & ((1 << (2)) - 1))) | 0);
+    return ((runtime.readIndex(h_m_nt_access[page], ((offset) & (1023)))) & 0xff);
+  }
+
+  function method_device_nes_cart_interface__nt_r(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    const h_m_nt_access = members.m_nt_access ?? 0;
+    let page: any = (((((offset) >>> (10)) & ((1 << (2)) - 1))) | 0);
+    return ((runtime.readIndex(h_m_nt_access[page], ((offset) & (1023)))) & 0xff);
+  }
+
+  function method_read_l(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    return ((method_get_open_bus(runtime)) & 0xff);
+  }
+
+  function method_read_m(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    0;
+    let i2c_val: any = ((0) & 0xff);
+    return (((((members.m_datach_latch ?? 0)) | (i2c_val))) & 0xff);
+  }
+
+  function method_write_l(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_write_m(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    0;
+    if ((((((members.m_battery).length === 0 ? 1 : 0)) && (((members.m_prgram).length === 0 ? 1 : 0))) ? 1 : 0)) {
+      method_fcg_write(runtime, ((offset) & (15)), data);
+    } else {
+      if (((((members.m_battery).length === 0 ? 1 : 0)) ? 0 : 1)) {
+        runtime.writeIndex(runtime.writableMember("m_battery"), offset, data);
+      } else {
+        runtime.writeIndex(runtime.writableMember("m_prgram"), offset, data);
+      }
+    }
+  }
+
+  function method_fcg_write(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    0;
+    switch ((((offset) & (15)) as number)) {
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      {
+        method_chr1_x(runtime, ((offset) & (7)), data, (members.m_chr_source ?? 0));
+        break;
+      }
+      case 8:
+      {
+        method_prg16_89ab(runtime, data);
+        break;
+      }
+      case 9:
+      {
+        switch ((((data) & (3)) as number)) {
+          case 0:
+          {
+            method_set_nt_mirroring(runtime, 1);
+            break;
+          }
+          case 1:
+          {
+            method_set_nt_mirroring(runtime, 2);
+            break;
+          }
+          case 2:
+          {
+            method_set_nt_mirroring(runtime, 4);
+            break;
+          }
+          case 3:
+          {
+            method_set_nt_mirroring(runtime, 3);
+            break;
+          }
+        }
+        break;
+      }
+      case 10:
+      {
+        members.m_irq_enable = ((((data) & (1))) | 0);
+        method_set_irq_line(runtime, 0);
+        break;
+      }
+      case 11:
+      {
+        members.m_irq_count = (((((((members.m_irq_count ?? 0)) & (65280))) | (data))) & 0xffff);
+        break;
+      }
+      case 12:
+      {
+        members.m_irq_count = (((((((members.m_irq_count ?? 0)) & (255))) | (((data) << (8))))) & 0xffff);
+        break;
+      }
+      default:
+      {
+        0;
+        break;
+      }
+    }
+  }
+
+  function method_chr1_x(runtime: any, start: any, bank: any, source: any): any {
+    const members = runtime.members;
+
+    method_bank_chr(runtime, 0, start, bank, source);
+  }
+
+  function method_bank_chr(runtime: any, shift: any, start: any, bank: any, source: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    const h_m_chr_src = members.m_chr_src ?? 0;
+    const h_m_chr_orig = members.m_chr_orig ?? 0;
+    const h_m_chr_access = members.m_chr_access ?? 0;
+    let base_ptr: any = 0;
+    let chr_chunks: any = ((0) >>> 0);
+    if (((Number(source) === Number(1)) ? 1 : 0)) {
+      (__l["assert"] ? __l["assert"](((((members.m_vram).length === 0 ? 1 : 0)) ? 0 : 1)) : runtime.macro("assert", ((((members.m_vram).length === 0 ? 1 : 0)) ? 0 : 1)));
+      base_ptr = runtime.addressOf((members.m_vram ?? 0), 0);
+      chr_chunks = (((members.m_vram_chunks ?? 0)) >>> 0);
+    } else {
+      0;
+      base_ptr = (members.m_vrom ?? 0);
+      chr_chunks = (((members.m_vrom_chunks ?? 0)) >>> 0);
+    }
+    bank = ((((bank) & (((((chr_chunks) << (((3) - (shift))))) - (1))))) | 0);
+    let size: any = ((((1024) << (shift))) | 0);
+    let bank_start: any = ((((bank) * (size))) | 0);
+    let kbyte: any = ((((1) << (shift))) | 0);
+    for (let i: any = ((0) | 0); ((Number(i) < Number(kbyte)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+      h_m_chr_src[((i) + (start))] = source;
+      h_m_chr_orig[((i) + (start))] = ((bank_start) + (((i) * (1024))));
+      h_m_chr_access[((i) + (start))] = runtime.addressOf(base_ptr, h_m_chr_orig[((i) + (start))]);
+    }
+  }
+
+  function method_prg16_89ab(runtime: any, bank: any): any {
+    const members = runtime.members;
+
+    const h_m_prg_bank = members.m_prg_bank ?? 0;
+    bank = ((method_prg_8k_bank_num(runtime, ((bank) * (2)))) | 0);
+    h_m_prg_bank[0] = ((bank) + (0));
+    h_m_prg_bank[1] = ((bank) + (1));
+    method_update_prg_banks(runtime, 0, 1);
+  }
+
+  function method_prg_8k_bank_num(runtime: any, bank_8k: any): any {
+    const members = runtime.members;
+
+    if (((Number((members.m_prg_mask ?? 0)) === Number((((((members.m_prg_chunks ?? 0)) << (1))) - (1)))) ? 1 : 0)) {
+      return ((bank_8k) & ((members.m_prg_mask ?? 0)));
+    }
+    if (((Number(bank_8k) < Number((((((members.m_prg_chunks ?? 0)) << (1))) - (1)))) ? 1 : 0)) {
+      return bank_8k;
+    }
+    bank_8k = ((((bank_8k) & ((members.m_prg_mask ?? 0)))) | 0);
+    bank_8k = ((((bank_8k) - (runtime.add(runtime.divide((members.m_prg_mask ?? 0), 2), 1)))) | 0);
+    return runtime.readIndex((members.m_prg_bank_map ?? 0), bank_8k);
+  }
+
+  function method_update_prg_banks(runtime: any, prg_bank_start: any, prg_bank_end: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    const h_m_prg_bank = members.m_prg_bank ?? 0;
+    const h_m_prg_bank_mem = members.m_prg_bank_mem ?? 0;
+    for (let prg_bank: any = ((prg_bank_start) | 0); ((Number(prg_bank) <= Number(prg_bank_end)) ? 1 : 0); prg_bank = ((((prg_bank) + (1))) | 0)) {
+      0;
+      (__l["assert"] ? __l["assert"](((Number(prg_bank) < Number(((h_m_prg_bank)?.length ?? 0))) ? 1 : 0)) : runtime.macro("assert", ((Number(prg_bank) < Number(((h_m_prg_bank)?.length ?? 0))) ? 1 : 0)));
+      (__l["assert"] ? __l["assert"](((Number(prg_bank) < Number(((h_m_prg_bank_mem)?.length ?? 0))) ? 1 : 0)) : runtime.macro("assert", ((Number(prg_bank) < Number(((h_m_prg_bank_mem)?.length ?? 0))) ? 1 : 0)));
+      ((runtime.dereference(h_m_prg_bank_mem[prg_bank])).set_entry?.(h_m_prg_bank[prg_bank]) ?? 0);
+    }
+  }
+
+  function method_set_nt_mirroring(runtime: any, mirroring: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    switch ((mirroring as number)) {
+      default:
+      {
+        method_set_nt_page(runtime, 0, 0, 0, 1);
+        method_set_nt_page(runtime, 1, 0, 0, 1);
+        method_set_nt_page(runtime, 2, 0, 1, 1);
+        method_set_nt_page(runtime, 3, 0, 1, 1);
+        break;
+      }
+      case 1:
+      {
+        method_set_nt_page(runtime, 0, 0, 0, 1);
+        method_set_nt_page(runtime, 1, 0, 1, 1);
+        method_set_nt_page(runtime, 2, 0, 0, 1);
+        method_set_nt_page(runtime, 3, 0, 1, 1);
+        break;
+      }
+      case 3:
+      {
+        method_set_nt_page(runtime, 0, 0, 1, 1);
+        method_set_nt_page(runtime, 1, 0, 1, 1);
+        method_set_nt_page(runtime, 2, 0, 1, 1);
+        method_set_nt_page(runtime, 3, 0, 1, 1);
+        break;
+      }
+      case 4:
+      {
+        method_set_nt_page(runtime, 0, 0, 0, 1);
+        method_set_nt_page(runtime, 1, 0, 0, 1);
+        method_set_nt_page(runtime, 2, 0, 0, 1);
+        method_set_nt_page(runtime, 3, 0, 0, 1);
+        break;
+      }
+      case 5:
+      {
+        if (((members.m_ext_ntram).length === 0 ? 1 : 0)) {
+          (__l["fatalerror"] ? __l["fatalerror"]("4-screen mirroring without on-cart NTRAM!\n") : runtime.macro("fatalerror", "4-screen mirroring without on-cart NTRAM!\n"));
+        }
+        method_set_nt_page(runtime, 0, 4, 0, 1);
+        method_set_nt_page(runtime, 1, 4, 1, 1);
+        method_set_nt_page(runtime, 2, 4, 2, 1);
+        method_set_nt_page(runtime, 3, 4, 3, 1);
+        break;
+      }
+    }
+  }
+
+  function method_set_nt_page(runtime: any, page: any, source: any, bank: any, writable: any): any {
+    const members = runtime.members;
+
+    const h_m_nt_src = members.m_nt_src ?? 0;
+    const h_m_nt_orig = members.m_nt_orig ?? 0;
+    const h_m_nt_access = members.m_nt_access ?? 0;
+    const h_m_nt_writable = members.m_nt_writable ?? 0;
+    let base_ptr: any = 0;
+    switch ((source as number)) {
+      case 4:
+      {
+        base_ptr = runtime.addressOf((members.m_ext_ntram ?? 0), 0);
+        break;
+      }
+      case 1:
+      {
+        bank = ((((bank) & ((((((members.m_vrom_chunks ?? 0)) << (3))) - (1))))) | 0);
+        base_ptr = (members.m_vrom ?? 0);
+        break;
+      }
+      case 2:
+      case 3:
+      {
+        base_ptr = 0;
+        break;
+      }
+      default:
+      {
+        base_ptr = (members.m_ciram ?? 0);
+        break;
+      }
+    }
+    page = ((((page) & (3))) | 0);
+    h_m_nt_src[page] = source;
+    if (base_ptr) {
+      h_m_nt_orig[page] = ((bank) * (1024));
+      h_m_nt_access[page] = runtime.addressOf(base_ptr, h_m_nt_orig[page]);
+    }
+    h_m_nt_writable[page] = writable;
+  }
+
+  function method_write_h(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    0;
+    switch ((((offset) & (15)) as number)) {
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      {
+        break;
+      }
+      case 8:
+      {
+        (__l["m_subslot.write_prg_bank"] ? __l["m_subslot.write_prg_bank"](((data) & (15))) : ((members.m_subslot)?.write_prg_bank?.(((data) & (15))) ?? 0));
+        break;
+      }
+      case 13:
+      {
+        break;
+      }
+      default:
+      {
+        method_fcg_write(runtime, ((offset) & (15)), data);
+        break;
+      }
+    }
+  }
+
+  function method_device_nes_cart_interface__read_h(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    return ((255) & 0xff);
+  }
+
+  function method_device_nes_cart_interface__read_ex(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    return ((255) & 0xff);
+  }
+
+  function method_device_nes_cart_interface__write_ex(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_device_nes_cart_interface__get_mirroring(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_mirroring ?? 0);
+  }
+
+  function method_device_nes_cart_interface__set_mirroring(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_mirroring = ((val) | 0);
+  }
+
+  function method_device_nes_cart_interface__get_pcb_ctrl_mirror(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_pcb_ctrl_mirror ?? 0);
+  }
+
+  function method_device_nes_cart_interface__set_pcb_ctrl_mirror(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_pcb_ctrl_mirror = ((val) ? 1 : 0);
+  }
+
+  function method_device_nes_cart_interface__get_four_screen_vram(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_four_screen_vram ?? 0);
+  }
+
+  function method_device_nes_cart_interface__set_four_screen_vram(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_four_screen_vram = ((val) ? 1 : 0);
+  }
+
+  function method_device_nes_cart_interface__get_trainer(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_has_trainer ?? 0);
+  }
+
+  function method_device_nes_cart_interface__set_trainer(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_has_trainer = ((val) ? 1 : 0);
+  }
+
+  function method_device_nes_cart_interface__set_mmc1_type(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_mmc1_type = val;
+  }
+
+  function method_device_nes_cart_interface__set_n163_vol(runtime: any, vol: any): any {
+    const members = runtime.members;
+
+    members.m_n163_vol = ((vol) | 0);
+  }
+
+  function method_device_nes_cart_interface__set_outer_prg_size(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_outer_prg_size = ((val) >>> 0);
+  }
+
+  function method_device_nes_cart_interface__set_outer_chr_size(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_outer_chr_size = ((val) >>> 0);
+  }
+
+  function method_device_nes_cart_interface__set_smd133_addr(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_smd133_addr = ((val) | 0);
+  }
+
+  function method_device_nes_cart_interface__set_x1_005_alt(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_x1_005_alt_mirroring = ((val) ? 1 : 0);
+  }
+
+  function method_device_nes_cart_interface__set_bus_conflict(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_bus_conflict = ((val) ? 1 : 0);
+  }
+
+  function method_device_nes_cart_interface__get_open_bus(runtime: any): any {
+    const members = runtime.members;
+
+    return (((members.m_open_bus ?? 0)) & 0xff);
+  }
+
+  function method_device_nes_cart_interface__set_open_bus(runtime: any, val: any): any {
+    const members = runtime.members;
+
+    members.m_open_bus = ((val) & 0xff);
+  }
+
+  function method_device_nes_cart_interface__get_prg_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_prg ?? 0);
+  }
+
+  function method_device_nes_cart_interface__get_prgram_base(runtime: any): any {
+    const members = runtime.members;
+
+    return runtime.addressOf((members.m_prgram ?? 0), 0);
+  }
+
+  function method_device_nes_cart_interface__get_vrom_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_vrom ?? 0);
+  }
+
+  function method_device_nes_cart_interface__get_vram_base(runtime: any): any {
+    const members = runtime.members;
+
+    return runtime.addressOf((members.m_vram ?? 0), 0);
+  }
+
+  function method_device_nes_cart_interface__get_ciram_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_ciram ?? 0);
+  }
+
+  function method_device_nes_cart_interface__get_battery_base(runtime: any): any {
+    const members = runtime.members;
+
+    return runtime.addressOf((members.m_battery ?? 0), 0);
+  }
+
+  function method_device_nes_cart_interface__get_mapper_sram_base(runtime: any): any {
+    const members = runtime.members;
+
+    const h_m_mapper_sram = members.m_mapper_sram ?? 0;
+    return h_m_mapper_sram;
+  }
+
+  function method_device_nes_cart_interface__get_misc_rom_base(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_misc_rom ?? 0);
+  }
+
+  function method_device_nes_cart_interface__get_prg_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_prg_size ?? 0);
+  }
+
+  function method_device_nes_cart_interface__get_prgram_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_prgram).length;
+  }
+
+  function method_device_nes_cart_interface__get_vrom_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_vrom_size ?? 0);
+  }
+
+  function method_device_nes_cart_interface__get_vram_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_vram).length;
+  }
+
+  function method_device_nes_cart_interface__get_battery_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_battery).length;
+  }
+
+  function method_device_nes_cart_interface__get_mapper_sram_size(runtime: any): any {
+    const members = runtime.members;
+
+    const h_m_mapper_sram_size = members.m_mapper_sram_size ?? 0;
+    return h_m_mapper_sram_size;
+  }
+
+  function method_device_nes_cart_interface__get_misc_rom_size(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_misc_rom_size ?? 0);
+  }
+
+  function method_device_nes_cart_interface__ppu_latch(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_device_nes_cart_interface__write_m(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    if (((((members.m_battery).length === 0 ? 1 : 0)) ? 0 : 1)) {
+      runtime.writeIndex(runtime.writableMember("m_battery"), ((offset) & (runtime.subtract((members.m_battery).length, 1))), data);
+    }
+    if (((((members.m_prgram).length === 0 ? 1 : 0)) ? 0 : 1)) {
+      runtime.writeIndex(runtime.writableMember("m_prgram"), ((offset) & (runtime.subtract((members.m_prgram).length, 1))), data);
+    }
+  }
+
+  function method_irq_timer_tick(runtime: any, param: any): any {
+    const members = runtime.members;
+
+    if ((members.m_irq_enable ?? 0)) {
+      if ((((members.m_irq_count ?? 0)) ? 0 : 1)) {
+        members.m_irq_count = ((65535) & 0xffff);
+      } else {
+        members.m_irq_count = ((((members.m_irq_count) - (1))) & 0xffff);
+      }
+      if ((((members.m_irq_count ?? 0)) ? 0 : 1)) {
+        method_set_irq_line(runtime, 1);
+        members.m_irq_enable = ((0) | 0);
+      }
+    }
+  }
+
+  function method_device_nes_cart_interface__write_h(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+
+  }
+
+  function method_nes_lz93d50_device__write_h(runtime: any, offset: any, data: any): any {
+    const members = runtime.members;
+
+    method_fcg_write(runtime, offset, data);
+  }
+
+  function method_device_nes_cart_interface__read_m(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    if (((((members.m_battery).length === 0 ? 1 : 0)) ? 0 : 1)) {
+      return ((runtime.readIndex((members.m_battery ?? 0), ((offset) & (runtime.subtract((members.m_battery).length, 1))))) & 0xff);
+    }
+    if (((((members.m_prgram).length === 0 ? 1 : 0)) ? 0 : 1)) {
+      return ((runtime.readIndex((members.m_prgram ?? 0), ((offset) & (runtime.subtract((members.m_prgram).length, 1))))) & 0xff);
+    }
+    return ((method_get_open_bus(runtime)) & 0xff);
+  }
+
+  function method_serial_tick(runtime: any, param: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    members.m_datach_latch = (((((__l["m_reader.read_pixel"] ? __l["m_reader.read_pixel"]() : ((members.m_reader)?.read_pixel?.() ?? 0))) << (3))) & 0xff);
+  }
+  return {
+    "read_h": method_read_h,
+    "hi_access_rom": method_hi_access_rom,
+    "read_ex": method_read_ex,
+    "write_ex": method_write_ex,
+    "get_mirroring": method_get_mirroring,
+    "set_mirroring": method_set_mirroring,
+    "get_pcb_ctrl_mirror": method_get_pcb_ctrl_mirror,
+    "set_pcb_ctrl_mirror": method_set_pcb_ctrl_mirror,
+    "get_four_screen_vram": method_get_four_screen_vram,
+    "set_four_screen_vram": method_set_four_screen_vram,
+    "get_trainer": method_get_trainer,
+    "set_trainer": method_set_trainer,
+    "set_mmc1_type": method_set_mmc1_type,
+    "set_n163_vol": method_set_n163_vol,
+    "set_outer_prg_size": method_set_outer_prg_size,
+    "set_outer_chr_size": method_set_outer_chr_size,
+    "set_smd133_addr": method_set_smd133_addr,
+    "set_x1_005_alt": method_set_x1_005_alt,
+    "set_bus_conflict": method_set_bus_conflict,
+    "get_open_bus": method_get_open_bus,
+    "set_open_bus": method_set_open_bus,
+    "get_prg_base": method_get_prg_base,
+    "get_prgram_base": method_get_prgram_base,
+    "get_vrom_base": method_get_vrom_base,
+    "get_vram_base": method_get_vram_base,
+    "get_ciram_base": method_get_ciram_base,
+    "get_battery_base": method_get_battery_base,
+    "get_mapper_sram_base": method_get_mapper_sram_base,
+    "get_misc_rom_base": method_get_misc_rom_base,
+    "get_prg_size": method_get_prg_size,
+    "get_prgram_size": method_get_prgram_size,
+    "get_vrom_size": method_get_vrom_size,
+    "get_vram_size": method_get_vram_size,
+    "get_battery_size": method_get_battery_size,
+    "get_mapper_sram_size": method_get_mapper_sram_size,
+    "get_misc_rom_size": method_get_misc_rom_size,
+    "ppu_latch": method_ppu_latch,
+    "hblank_irq": method_hblank_irq,
+    "scanline_irq": method_scanline_irq,
+    "prgram_alloc": method_prgram_alloc,
+    "battery_alloc": method_battery_alloc,
+    "set_irq_line": method_set_irq_line,
+    "chr_w": method_chr_w,
+    "chr_r": method_chr_r,
+    "device_nes_cart_interface::chr_r": method_device_nes_cart_interface__chr_r,
+    "nt_w": method_nt_w,
+    "device_nes_cart_interface::nt_w": method_device_nes_cart_interface__nt_w,
+    "nt_r": method_nt_r,
+    "device_nes_cart_interface::nt_r": method_device_nes_cart_interface__nt_r,
+    "read_l": method_read_l,
+    "read_m": method_read_m,
+    "write_l": method_write_l,
+    "write_m": method_write_m,
+    "fcg_write": method_fcg_write,
+    "chr1_x": method_chr1_x,
+    "bank_chr": method_bank_chr,
+    "prg16_89ab": method_prg16_89ab,
+    "prg_8k_bank_num": method_prg_8k_bank_num,
+    "update_prg_banks": method_update_prg_banks,
+    "set_nt_mirroring": method_set_nt_mirroring,
+    "set_nt_page": method_set_nt_page,
+    "write_h": method_write_h,
+    "device_nes_cart_interface::read_h": method_device_nes_cart_interface__read_h,
+    "device_nes_cart_interface::read_ex": method_device_nes_cart_interface__read_ex,
+    "device_nes_cart_interface::write_ex": method_device_nes_cart_interface__write_ex,
+    "device_nes_cart_interface::get_mirroring": method_device_nes_cart_interface__get_mirroring,
+    "device_nes_cart_interface::set_mirroring": method_device_nes_cart_interface__set_mirroring,
+    "device_nes_cart_interface::get_pcb_ctrl_mirror": method_device_nes_cart_interface__get_pcb_ctrl_mirror,
+    "device_nes_cart_interface::set_pcb_ctrl_mirror": method_device_nes_cart_interface__set_pcb_ctrl_mirror,
+    "device_nes_cart_interface::get_four_screen_vram": method_device_nes_cart_interface__get_four_screen_vram,
+    "device_nes_cart_interface::set_four_screen_vram": method_device_nes_cart_interface__set_four_screen_vram,
+    "device_nes_cart_interface::get_trainer": method_device_nes_cart_interface__get_trainer,
+    "device_nes_cart_interface::set_trainer": method_device_nes_cart_interface__set_trainer,
+    "device_nes_cart_interface::set_mmc1_type": method_device_nes_cart_interface__set_mmc1_type,
+    "device_nes_cart_interface::set_n163_vol": method_device_nes_cart_interface__set_n163_vol,
+    "device_nes_cart_interface::set_outer_prg_size": method_device_nes_cart_interface__set_outer_prg_size,
+    "device_nes_cart_interface::set_outer_chr_size": method_device_nes_cart_interface__set_outer_chr_size,
+    "device_nes_cart_interface::set_smd133_addr": method_device_nes_cart_interface__set_smd133_addr,
+    "device_nes_cart_interface::set_x1_005_alt": method_device_nes_cart_interface__set_x1_005_alt,
+    "device_nes_cart_interface::set_bus_conflict": method_device_nes_cart_interface__set_bus_conflict,
+    "device_nes_cart_interface::get_open_bus": method_device_nes_cart_interface__get_open_bus,
+    "device_nes_cart_interface::set_open_bus": method_device_nes_cart_interface__set_open_bus,
+    "device_nes_cart_interface::get_prg_base": method_device_nes_cart_interface__get_prg_base,
+    "device_nes_cart_interface::get_prgram_base": method_device_nes_cart_interface__get_prgram_base,
+    "device_nes_cart_interface::get_vrom_base": method_device_nes_cart_interface__get_vrom_base,
+    "device_nes_cart_interface::get_vram_base": method_device_nes_cart_interface__get_vram_base,
+    "device_nes_cart_interface::get_ciram_base": method_device_nes_cart_interface__get_ciram_base,
+    "device_nes_cart_interface::get_battery_base": method_device_nes_cart_interface__get_battery_base,
+    "device_nes_cart_interface::get_mapper_sram_base": method_device_nes_cart_interface__get_mapper_sram_base,
+    "device_nes_cart_interface::get_misc_rom_base": method_device_nes_cart_interface__get_misc_rom_base,
+    "device_nes_cart_interface::get_prg_size": method_device_nes_cart_interface__get_prg_size,
+    "device_nes_cart_interface::get_prgram_size": method_device_nes_cart_interface__get_prgram_size,
+    "device_nes_cart_interface::get_vrom_size": method_device_nes_cart_interface__get_vrom_size,
+    "device_nes_cart_interface::get_vram_size": method_device_nes_cart_interface__get_vram_size,
+    "device_nes_cart_interface::get_battery_size": method_device_nes_cart_interface__get_battery_size,
+    "device_nes_cart_interface::get_mapper_sram_size": method_device_nes_cart_interface__get_mapper_sram_size,
+    "device_nes_cart_interface::get_misc_rom_size": method_device_nes_cart_interface__get_misc_rom_size,
+    "device_nes_cart_interface::ppu_latch": method_device_nes_cart_interface__ppu_latch,
+    "device_nes_cart_interface::write_m": method_device_nes_cart_interface__write_m,
+    "irq_timer_tick": method_irq_timer_tick,
+    "device_nes_cart_interface::write_h": method_device_nes_cart_interface__write_h,
+    "nes_lz93d50_device::write_h": method_nes_lz93d50_device__write_h,
+    "device_nes_cart_interface::read_m": method_device_nes_cart_interface__read_m,
+    "serial_tick": method_serial_tick
+  };
+})() as GeneratedDeviceMethodMap;
+definition.compiledMethodLinks = ["assert","fatalerror","m_maincpu.set_input_line","m_reader.read_pixel","m_subslot.write_prg_bank"];
+definition.children![0]!.definition.compiledMethods = (() => {
+  const __mame_table_0 = [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1];
+  const __mame_table_1 = [1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0];
+  const __mame_table_2 = [1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0];
+  const __mame_table_3 = [0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1];
+
+  function method_decode(runtime: any, len: any): any {
+    const members = runtime.members;
+
+    const h_m_pixel_data = members.m_pixel_data ?? 0;
+    const h_m_byte_data = members.m_byte_data ?? 0;
+    let output: any = ((0) | 0);
+    let sum: any = ((0) | 0);
+    if (((Number(len) === Number(13)) ? 1 : 0)) {
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+      for (let i: any = ((1) | 0); ((Number(i) < Number(7)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        if ((__mame_table_0[(((runtime.add(((h_m_byte_data[0]) * (6)), ((i) - (1)))) % 60) + 60) % 60] ?? 0)) {
+          for (let j: any = ((0) | 0); ((Number(j) < Number(7)) ? 1 : 0); j = ((((j) + (1))) | 0)) {
+            h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = (__mame_table_1[(((((((h_m_byte_data[i]) * (7))) + (j))) % 70) + 70) % 70] ?? 0);
+          }
+        } else {
+          for (let j: any = ((0) | 0); ((Number(j) < Number(7)) ? 1 : 0); j = ((((j) + (1))) | 0)) {
+            h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = (__mame_table_2[(((((((h_m_byte_data[i]) * (7))) + (j))) % 70) + 70) % 70] ?? 0);
+          }
+        }
+      }
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+      for (let i: any = ((7) | 0); ((Number(i) < Number(12)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        for (let j: any = ((0) | 0); ((Number(j) < Number(7)) ? 1 : 0); j = ((((j) + (1))) | 0)) {
+          h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = (__mame_table_3[(((((((h_m_byte_data[i]) * (7))) + (j))) % 70) + 70) % 70] ?? 0);
+        }
+      }
+      for (let i: any = ((0) | 0); ((Number(i) < Number(12)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+        sum = ((((sum) + (((((i) & (1))) ? (((h_m_byte_data[i]) * (3))) : (((h_m_byte_data[i]) * (1))))))) | 0);
+      }
+    } else {
+      if (((Number(len) === Number(8)) ? 1 : 0)) {
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+        for (let i: any = ((0) | 0); ((Number(i) < Number(4)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+          for (let j: any = ((0) | 0); ((Number(j) < Number(7)) ? 1 : 0); j = ((((j) + (1))) | 0)) {
+            h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = (__mame_table_1[(((((((h_m_byte_data[i]) * (7))) + (j))) % 70) + 70) % 70] ?? 0);
+          }
+        }
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+        h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+        for (let i: any = ((4) | 0); ((Number(i) < Number(7)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+          for (let j: any = ((0) | 0); ((Number(j) < Number(7)) ? 1 : 0); j = ((((j) + (1))) | 0)) {
+            h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = (__mame_table_3[(((((((h_m_byte_data[i]) * (7))) + (j))) % 70) + 70) % 70] ?? 0);
+          }
+        }
+        for (let i: any = ((0) | 0); ((Number(i) < Number(7)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+          sum = ((((sum) + (((((i) & (1))) ? (((h_m_byte_data[i]) * (1))) : (((h_m_byte_data[i]) * (3))))))) | 0);
+        }
+      }
+    }
+    sum = ((((((10) - (((sum) % (10))))) % (10))) | 0);
+    if (((Number(sum) !== Number(h_m_byte_data[((len) - (1))])) ? 1 : 0)) {
+      0;
+    }
+    for (let i: any = ((0) | 0); ((Number(i) < Number(7)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+      h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = (__mame_table_3[(((((((sum) * (7))) + (i))) % 70) + 70) % 70] ?? 0);
+    }
+    h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+    h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 1;
+    h_m_pixel_data[(() => { const previous = output; output = ((((output) + (1))) | 0); return previous; })()] = 0;
+    members.m_byte_length = ((len) | 0);
+    members.m_pixel_length = ((output) | 0);
+  }
+
+  function method_write_code(runtime: any, barcode: any, len: any): any {
+    const members = runtime.members;
+
+    const h_m_byte_data = members.m_byte_data ?? 0;
+    let shift: any = ((0) | 0);
+    let deconde_len: any = ((len) | 0);
+    if (((Number(deconde_len) === Number(12)) ? 1 : 0)) {
+      shift = ((1) | 0);
+      deconde_len = ((13) | 0);
+      h_m_byte_data[0] = 0;
+    }
+    for (let i: any = ((0) | 0); ((Number(i) < Number(len)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+      h_m_byte_data[((i) + (shift))] = ((barcode[i]) - (48));
+    }
+    method_decode(runtime, deconde_len);
+    members.m_new_code = ((1) | 0);
+  }
+
+  function method_get_pending_code(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_new_code ?? 0);
+  }
+
+  function method_get_byte_length(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_byte_length ?? 0);
+  }
+
+  function method_is_valid(runtime: any, len: any): any {
+    const members = runtime.members;
+
+    return ((((((((((Number(len) !== Number(12)) ? 1 : 0)) && (((Number(len) !== Number(13)) ? 1 : 0))) ? 1 : 0)) && (((Number(len) !== Number(8)) ? 1 : 0))) ? 1 : 0)) ? (0) : (1));
+  }
+
+  function method_barcode_reader_device__get_pending_code(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_new_code ?? 0);
+  }
+
+  function method_barcode_reader_device__get_byte_length(runtime: any): any {
+    const members = runtime.members;
+
+    return (members.m_byte_length ?? 0);
+  }
+
+  function method_barcode_reader_device__is_valid(runtime: any, len: any): any {
+    const members = runtime.members;
+
+    return ((((((((((Number(len) !== Number(12)) ? 1 : 0)) && (((Number(len) !== Number(13)) ? 1 : 0))) ? 1 : 0)) && (((Number(len) !== Number(8)) ? 1 : 0))) ? 1 : 0)) ? (0) : (1));
+  }
+  return {
+    "decode": method_decode,
+    "write_code": method_write_code,
+    "get_pending_code": method_get_pending_code,
+    "get_byte_length": method_get_byte_length,
+    "is_valid": method_is_valid,
+    "barcode_reader_device::get_pending_code": method_barcode_reader_device__get_pending_code,
+    "barcode_reader_device::get_byte_length": method_barcode_reader_device__get_byte_length,
+    "barcode_reader_device::is_valid": method_barcode_reader_device__is_valid
+  };
+})() as GeneratedDeviceMethodMap;
+definition.children![1]!.definition.compiledMethods = (() => {
+
+
+  function method_is_readable(runtime: any): any {
+    const members = runtime.members;
+
+    return 1;
+  }
+
+  function method_is_writeable(runtime: any): any {
+    const members = runtime.members;
+
+    return 0;
+  }
+
+  function method_is_creatable(runtime: any): any {
+    const members = runtime.members;
+
+    return 0;
+  }
+
+  function method_image_type_name(runtime: any): any {
+    const members = runtime.members;
+
+    return "cartridge";
+  }
+
+  function method_image_brief_type_name(runtime: any): any {
+    const members = runtime.members;
+
+    return "cart";
+  }
+
+  function method_get_software_list_loader(runtime: any): any {
+    const members = runtime.members;
+    const __l = runtime.links ?? runtime.calls;
+
+    return (__l["rom_software_list_loader::instance"] ? __l["rom_software_list_loader::instance"]() : runtime.macro("rom_software_list_loader::instance"));
+  }
+
+  function method_device_rom_image_interface__is_readable(runtime: any): any {
+    const members = runtime.members;
+
+    return 1;
+  }
+
+  function method_device_rom_image_interface__is_writeable(runtime: any): any {
+    const members = runtime.members;
+
+    return 0;
+  }
+
+  function method_device_rom_image_interface__is_creatable(runtime: any): any {
+    const members = runtime.members;
+
+    return 0;
+  }
+
+  function method_device_rom_image_interface__image_type_name(runtime: any): any {
+    const members = runtime.members;
+
+    return "romimage";
+  }
+
+  function method_device_rom_image_interface__image_brief_type_name(runtime: any): any {
+    const members = runtime.members;
+
+    return "rom";
+  }
+
+  function method_device_cartrom_image_interface__image_type_name(runtime: any): any {
+    const members = runtime.members;
+
+    return "cartridge";
+  }
+
+  function method_device_cartrom_image_interface__image_brief_type_name(runtime: any): any {
+    const members = runtime.members;
+
+    return "cart";
+  }
+
+  function method_read(runtime: any, offset: any): any {
+    const members = runtime.members;
+
+    if ((members.m_cart ?? 0)) {
+      return (((members.m_cart.read?.(offset) ?? 0)) & 0xff);
+    } else {
+      return ((255) & 0xff);
+    }
+  }
+
+  function method_is_reset_on_load(runtime: any): any {
+    const members = runtime.members;
+
+    return 1;
+  }
+
+  function method_image_interface(runtime: any): any {
+    const members = runtime.members;
+
+    return "datach_cart";
+  }
+
+  function method_file_extensions(runtime: any): any {
+    const members = runtime.members;
+
+    return "nes,bin";
+  }
+
+  function method_write_prg_bank(runtime: any, bank: any): any {
+    const members = runtime.members;
+
+    if ((members.m_cart ?? 0)) {
+      (members.m_cart.write_prg_bank?.(bank) ?? 0);
+    }
+  }
+
+  function method_nes_datach_slot_device__is_reset_on_load(runtime: any): any {
+    const members = runtime.members;
+
+    return 1;
+  }
+
+  function method_nes_datach_slot_device__image_interface(runtime: any): any {
+    const members = runtime.members;
+
+    return "datach_cart";
+  }
+
+  function method_nes_datach_slot_device__file_extensions(runtime: any): any {
+    const members = runtime.members;
+
+    return "nes,bin";
+  }
+
+  function method_nes_datach_slot_device__write_prg_bank(runtime: any, bank: any): any {
+    const members = runtime.members;
+
+    if ((members.m_cart ?? 0)) {
+      (members.m_cart.write_prg_bank?.(bank) ?? 0);
+    }
+  }
+  return {
+    "is_readable": method_is_readable,
+    "is_writeable": method_is_writeable,
+    "is_creatable": method_is_creatable,
+    "image_type_name": method_image_type_name,
+    "image_brief_type_name": method_image_brief_type_name,
+    "get_software_list_loader": method_get_software_list_loader,
+    "device_rom_image_interface::is_readable": method_device_rom_image_interface__is_readable,
+    "device_rom_image_interface::is_writeable": method_device_rom_image_interface__is_writeable,
+    "device_rom_image_interface::is_creatable": method_device_rom_image_interface__is_creatable,
+    "device_rom_image_interface::image_type_name": method_device_rom_image_interface__image_type_name,
+    "device_rom_image_interface::image_brief_type_name": method_device_rom_image_interface__image_brief_type_name,
+    "device_cartrom_image_interface::image_type_name": method_device_cartrom_image_interface__image_type_name,
+    "device_cartrom_image_interface::image_brief_type_name": method_device_cartrom_image_interface__image_brief_type_name,
+    "read": method_read,
+    "is_reset_on_load": method_is_reset_on_load,
+    "image_interface": method_image_interface,
+    "file_extensions": method_file_extensions,
+    "write_prg_bank": method_write_prg_bank,
+    "nes_datach_slot_device::is_reset_on_load": method_nes_datach_slot_device__is_reset_on_load,
+    "nes_datach_slot_device::image_interface": method_nes_datach_slot_device__image_interface,
+    "nes_datach_slot_device::file_extensions": method_nes_datach_slot_device__file_extensions,
+    "nes_datach_slot_device::write_prg_bank": method_nes_datach_slot_device__write_prg_bank
+  };
+})() as GeneratedDeviceMethodMap;
+definition.children![1]!.definition.compiledMethodLinks = ["rom_software_list_loader::instance"];
+definition.children![2]!.definition.compiledMethods = {} as GeneratedDeviceMethodMap;
+
+export const device = definition;
+export default device;

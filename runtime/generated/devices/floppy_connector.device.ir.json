@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "type": "FLOPPY_CONNECTOR",
+  "className": "floppy_connector",
+  "description": "Floppy drive connector abstraction",
+  "hierarchy": [
+    "floppy_connector"
+  ],
+  "sourceFiles": [
+    "src/devices/imagedev/floppy.cpp",
+    "src/devices/imagedev/floppy.h",
+    "src/devices/sound/samples.h",
+    "src/devices/sound/samples.cpp",
+    "src/lib/formats/imageutl.h",
+    "src/lib/formats/imageutl.cpp"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "QUIET": -1,
+    "START_EMPTY": 0,
+    "SPIN_EMPTY": 1,
+    "END_EMPTY": 2,
+    "START_LOADED_INITIAL": 3,
+    "START_LOADED": 4,
+    "SPIN_LOADED": 5,
+    "END_LOADED": 6,
+    "BOTH": 0,
+    "IN": 1,
+    "OUT": 2,
+    "SPIN": 0,
+    "STEP": 1,
+    "SEEK": 2,
+    "FRAC_BITS": 24,
+    "FRAC_ONE": 16777216,
+    "FRAC_MASK": 16777215,
+    "sample_scale": 0.000030517578125,
+    "floppy_sound_samples::QUIET": -1,
+    "floppy_sound_samples::START_EMPTY": 0,
+    "floppy_sound_samples::START_LOADED": 4,
+    "floppy_sound_samples::SPIN_EMPTY": 1,
+    "floppy_sound_samples::SPIN_LOADED": 5,
+    "floppy_sound_samples::END_LOADED": 6,
+    "floppy_sound_samples::END_EMPTY": 2,
+    "floppy_sound_samples::START_LOADED_INITIAL": 3,
+    "floppy_sound_samples::IN": 1,
+    "floppy_sound_samples::OUT": 2,
+    "floppy_image_format_t::FIFID_EXT": 2,
+    "floppy_image::SOFT": 1413893971,
+    "floppy_image::H10": 540029256,
+    "floppy_image::SSSD": 1146311507,
+    "floppy_image::SSSD10": 808538963,
+    "floppy_image::SSDD": 1145328467,
+    "floppy_image::SSDD10": 808535123,
+    "floppy_image::SSQD": 1146180435,
+    "floppy_image::SSQD10": 808538451,
+    "floppy_image::DSSD": 1146311492,
+    "floppy_image::DSSD10": 808538948,
+    "floppy_image::DSDD": 1145328452,
+    "floppy_image::DSDD10": 808535108,
+    "floppy_image::DSQD": 1146180420,
+    "floppy_image::DSQD10": 808538436,
+    "floppy_image::H16": 540422472,
+    "floppy_image::SSDD16": 909198419,
+    "floppy_image::SSSD16": 909202259,
+    "floppy_image::SSQD16": 909201747,
+    "floppy_image::DSSD16": 909202244,
+    "floppy_image::DSDD16": 909198404,
+    "floppy_image::DSQD16": 909201732,
+    "floppy_image::H32": 540160840,
+    "floppy_image::SSSD32": 842224467,
+    "floppy_image::SSDD32": 842220627,
+    "floppy_image::DSSD32": 842224452,
+    "floppy_image::DSDD32": 842220612,
+    "floppy_image::FF_UNKNOWN": 0,
+    "floppy_image::DSHD": 1145590596,
+    "floppy_image::DSED": 1145393988,
+    "floppy_image::TIME_MASK": 268435455,
+    "floppy_image::MG_N": 268435456,
+    "floppy_image::MG_MASK": 4026531840,
+    "floppy_image::MG_D": 536870912,
+    "floppy_image::MG_E": 805306368,
+    "floppy_image::MG_F": 0,
+    "floppy_image::FF_3": 538976307,
+    "floppy_image::FF_35": 538981683,
+    "floppy_image::FF_525": 540357173,
+    "floppy_image::FF_8": 538976312,
+    "floppy_image::FF_TWIG": 1195988820
+  },
+  "members": [
+    {
+      "name": "m_use_sound",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_sectoring_type",
+      "valueType": "uint32_t",
+      "bits": 32,
+      "initial": 1413893971
+    },
+    {
+      "name": "formats",
+      "valueType": "std::function<void (format_registration &fr)>"
+    },
+    {
+      "name": "m_samples",
+      "valueType": "floppy_sound_samples*",
+      "initial": 0,
+      "objectType": "floppy_sound_samples"
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "enable_sound",
+      "parameters": "bool use_sound = true",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_use_sound"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "use_sound"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "use_sound"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "enable_sound"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.cpp",
+        "line": 237,
+        "column": 1
+      }
+    },
+    {
+      "name": "enable_sound",
+      "parameters": "floppy_sound_samples *samples = true",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_samples"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "samples"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_use_sound"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.cpp",
+        "line": 247,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.cpp",
+        "line": 253,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_config_complete",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "dev",
+            "valueType": "auto*",
+            "value": {
+              "kind": "cast",
+              "valueType": "",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_card_device"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "dev"
+                    },
+                    "property": "set_formats"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "formats"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "dev"
+                    },
+                    "property": "set_sectoring_type"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sectoring_type"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.cpp",
+        "line": 257,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_device",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "cast",
+              "valueType": "",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_card_device"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.cpp",
+        "line": 267,
+        "column": 1
+      }
+    },
+    {
+      "name": "floppy_connector",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&opts, const char *dflt, auto &&formats, bool fixed = false",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "fixed"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_formats"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "formats"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 591,
+        "column": 1
+      }
+    },
+    {
+      "name": "floppy_connector",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, const char *option, device_type drivetype, bool is_default, auto &&formats",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "option_reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "option"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "drivetype"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "is_default"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_default_option"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "option"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_fixed"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_formats"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "formats"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 600,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_formats",
+      "parameters": "auto &&_formats",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "formats"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::forward"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "_formats"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 615,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_sectoring_type",
+      "parameters": "uint32_t sectoring_type",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sectoring_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "sectoring_type"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 617,
+        "column": 1
+      }
+    },
+    {
+      "name": "use_sound",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_use_sound"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 621,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_samples",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_samples"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 626,
+        "column": 1
+      }
+    },
+    {
+      "name": "floppy_connector::floppy_connector",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&opts, const char *dflt, auto &&formats, bool fixed = false",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "fixed"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_formats"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "formats"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 592,
+        "column": 1
+      }
+    },
+    {
+      "name": "floppy_connector::set_formats",
+      "parameters": "auto &&_formats",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "formats"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::forward"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "_formats"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 615,
+        "column": 29
+      }
+    },
+    {
+      "name": "floppy_connector::set_sectoring_type",
+      "parameters": "uint32_t sectoring_type",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sectoring_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "sectoring_type"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 618,
+        "column": 1
+      }
+    },
+    {
+      "name": "floppy_connector::use_sound",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_use_sound"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 621,
+        "column": 35
+      }
+    },
+    {
+      "name": "floppy_connector::get_samples",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_samples"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/floppy.h",
+        "line": 626,
+        "column": 50
+      }
+    }
+  ],
+  "structs": {
+    "floppy_sound_entry": [
+      {
+        "name": "index",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "type",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "form_factor",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "mintrack",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "maxtrack",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "rate",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "maxrate",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "spintype",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "dir",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "directory",
+        "valueType": "char*"
+      },
+      {
+        "name": "filename",
+        "valueType": "char*"
+      }
+    ],
+    "fs_info": [
+      {
+        "name": "m_manager",
+        "valueType": "fs::manager_t*"
+      },
+      {
+        "name": "m_type",
+        "valueType": "floppy_image_format_t*"
+      },
+      {
+        "name": "m_image_size",
+        "bits": 32
+      },
+      {
+        "name": "m_name",
+        "valueType": "char*"
+      },
+      {
+        "name": "m_key",
+        "bits": 32
+      },
+      {
+        "name": "m_description",
+        "valueType": "char*"
+      }
+    ],
+    "wspan": [
+      {
+        "name": "start",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "end",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "flux_change_positions",
+        "valueType": "std::vector<int>"
+      }
+    ],
+    "sample_t": [
+      {
+        "name": "frequency",
+        "bits": 32
+      },
+      {
+        "name": "data",
+        "valueType": "std::vector<int16_t>"
+      }
+    ],
+    "channel_t": [
+      {
+        "name": "stream",
+        "valueType": "sound_stream*"
+      },
+      {
+        "name": "source",
+        "valueType": "int16_t*"
+      },
+      {
+        "name": "source_num",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "source_len",
+        "bits": 32
+      },
+      {
+        "name": "pos",
+        "valueType": "double"
+      },
+      {
+        "name": "basefreq",
+        "bits": 32
+      },
+      {
+        "name": "curfreq",
+        "bits": 32
+      },
+      {
+        "name": "loop",
+        "bits": 8
+      },
+      {
+        "name": "paused",
+        "bits": 8
+      }
+    ]
+  },
+  "start": "device_start",
+  "summary": {
+    "methods": 16,
+    "compiledMethods": 16,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "enable_sound",
+    "enable_sound",
+    "device_start",
+    "device_config_complete",
+    "get_device",
+    "floppy_connector",
+    "floppy_connector",
+    "set_formats",
+    "set_sectoring_type",
+    "use_sound",
+    "get_samples",
+    "floppy_connector::floppy_connector",
+    "floppy_connector::set_formats",
+    "floppy_connector::set_sectoring_type",
+    "floppy_connector::use_sound",
+    "floppy_connector::get_samples"
+  ]
+}

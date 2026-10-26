@@ -1,0 +1,46 @@
+Arcade Video game published 42 years ago:
+
+Hyper Sports (c) 1984 Konami
+
+Export release. Game developed in Japan. See the original for more information; "Hyper Olympic '84 [Model GX330]".
+
+- TECHNICAL -
+
+Game ID: GX330
+
+- TRIVIA -
+
+Hyper Sports was released in July 1984 by Centuri in the US, under license from Konami. 
+
+Kelly Kobashigawa holds the official record for this game with 538340 points.
+
+- PORTS -
+
+* COMPUTERS: 
+[EU] BBC Micro (1984) 
+[EU] MSX (1984) "Hyper Sports 1 [Model RC715]" 
+[EU] MSX (1984) "Hyper Sports 2 [Model RC717]" 
+[EU] MSX (1985) "Hyper Sports 3 [Model RC733]" 
+[EU] Commodore 64 (1984) "Hyper Sports [Model 120060]"
+[EU] Commodore 16 (1986) "3 Konami Coin-Op Hits [Model 110122]"
+[EU] Sinclair ZX Spectrum (1985) 
+[EU] Amstrad CPC (1986)
+
+- SERIES -
+
+1. Track & Field [Model GX361] (1983, ARC)
+2. Hyper Sports [Model GX330] (1984, ARC)
+3. '88 Games [Model GX861] (1988, ARC)
+4. Hyper Athlete [Model GV021] (1996, ARC)
+5. Nagano Winter Olympics '98 [Model GX720] (1998, ARC)
+6. International Track & Field 2000 (2000, PS)
+7. International Track & Field Summer Games (2000, N64)
+8. New International Track & Field (2008, DS)
+9. Hyper Sports Winter (2010 iPhone)
+10. Hyper Sports Track & Field (2010 iPhone)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/1164/?o=2
+
+— Gaming History (arcade-history.com)

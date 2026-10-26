@@ -1,0 +1,32 @@
+{
+  "type": "TMS320C10",
+  "uses": [
+    {
+      "game": "wardner",
+      "tags": [
+        "dsp"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TMS320C10",
+    "className": "tms320c10_device",
+    "shortName": "tms320c10",
+    "description": "Texas Instruments TMS320C10",
+    "sourceFile": "src/devices/cpu/tms320c1x/tms320c1x.cpp",
+    "sourceLine": 35,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TMS320C10, tms320c10_device, \"tms320c10\", \"Texas Instruments TMS320C10\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/tms320c1x/tms320c1x.cpp",
+    "src/devices/cpu/tms320c1x/tms320c1x.h",
+    "src/devices/cpu/tms320c1x/tms320c1x_dasm.h"
+  ],
+  "declaredBy": [
+    "toaplan_dsp_device"
+  ]
+}

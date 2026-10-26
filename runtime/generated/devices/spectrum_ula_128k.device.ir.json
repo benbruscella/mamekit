@@ -1,0 +1,3332 @@
+{
+  "schemaVersion": 1,
+  "type": "SPECTRUM_ULA_128K",
+  "className": "spectrum_ula_128k_device",
+  "description": "Spectrum ULA Contention :: 128K/+2",
+  "hierarchy": [
+    "spectrum_ula_device",
+    "spectrum_ula_contended_device",
+    "spectrum_ula_128k_device"
+  ],
+  "sourceFiles": [
+    "src/mame/sinclair/spectrum_ula.cpp",
+    "src/mame/sinclair/spectrum_ula.h",
+    "src/devices/cpu/z80/z80.h",
+    "src/devices/machine/z80daisy.h",
+    "src/devices/machine/z80daisy.cpp",
+    "src/devices/cpu/z80/z80.cpp"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "SA_BUSREQ": 0,
+    "SA_NMI_PENDING": 1,
+    "SA_IRQ_ON": 2,
+    "SA_HALT": 3,
+    "SA_AFTER_EI": 4,
+    "SA_AFTER_LDAIR": 5,
+    "SA_NSC800_IRQ_ON": 6,
+    "Z80_SP": 1,
+    "Z80_A": 2,
+    "Z80_F": 3,
+    "Z80_B": 4,
+    "Z80_C": 5,
+    "Z80_D": 6,
+    "Z80_E": 7,
+    "Z80_H": 8,
+    "Z80_L": 9,
+    "Z80_AF": 10,
+    "Z80_BC": 11,
+    "Z80_DE": 12,
+    "Z80_HL": 13,
+    "Z80_IX": 14,
+    "Z80_IY": 15,
+    "Z80_AF2": 16,
+    "Z80_BC2": 17,
+    "Z80_DE2": 18,
+    "Z80_HL2": 19,
+    "Z80_R": 20,
+    "Z80_I": 21,
+    "Z80_IM": 22,
+    "Z80_IFF1": 23,
+    "Z80_IFF2": 24,
+    "Z80_HALT": 25,
+    "Z80_DC0": 26,
+    "Z80_DC1": 27,
+    "Z80_DC2": 28,
+    "Z80_DC3": 29,
+    "Z80_WZ": 30,
+    "VERBOSE": 0
+  },
+  "members": [
+    {
+      "name": "m_screen_area",
+      "valueType": "rectangle"
+    },
+    {
+      "name": "m_bank3_page",
+      "valueType": "u8",
+      "bits": 8
+    },
+    {
+      "name": "m_maincpu",
+      "valueType": "optional_device<z80_device>",
+      "finder": {
+        "kind": "device",
+        "tag": ""
+      }
+    },
+    {
+      "name": "m_screen",
+      "valueType": "optional_device<screen_device>",
+      "finder": {
+        "kind": "device",
+        "tag": ""
+      }
+    },
+    {
+      "name": "m_pattern",
+      "valueType": "u8",
+      "bits": 8,
+      "values": [
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0,
+        0
+      ],
+      "arrayLength": 8
+    },
+    {
+      "name": "m_btime",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 3
+    },
+    {
+      "name": "m_atime_left",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 4
+    },
+    {
+      "name": "m_atime_right",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_base_offset",
+      "valueType": "s8",
+      "bits": 8,
+      "signed": true,
+      "initial": -1
+    },
+    {
+      "name": "m_video_line_clocks",
+      "valueType": "u64"
+    },
+    {
+      "name": "m_raster_line_clocks",
+      "valueType": "u64"
+    },
+    {
+      "name": "m_is_timings_late",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_int_at",
+      "valueType": "u64"
+    },
+    {
+      "name": "m_is_m1_rd_contended",
+      "valueType": "bool",
+      "bits": 1
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "spectrum_ula_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_is_timings_late"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_int_at"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_is_m1_rd_contended"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_video_line_clocks"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen"
+                    },
+                    "property": "width"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "clock"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_screen"
+                  },
+                  "property": "clock"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_raster_line_clocks"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "width"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "clock"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_screen"
+                  },
+                  "property": "clock"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 159,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bank3_page"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 25,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_z80",
+      "parameters": "auto &&cpu_tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_maincpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 14,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_screen",
+      "parameters": "auto &&screen_tag, rectangle screen_area",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_screen_area"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "screen_area"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 16,
+        "column": 1
+      }
+    },
+    {
+      "name": "INPUT_CHANGED_MEMBER",
+      "parameters": "on_contention_changed",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 17,
+        "column": 1
+      }
+    },
+    {
+      "name": "nomem_rq",
+      "parameters": "offs_t offset, u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_contended"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 42,
+        "column": 1
+      }
+    },
+    {
+      "name": "m1",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_is_m1_rd_contended"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "side_effects_disabled"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "is_contended"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "offset"
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "io_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "side_effects_disabled"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "is_contended"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "offset"
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_late"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 55,
+        "column": 1
+      }
+    },
+    {
+      "name": "io_w",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_contended"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_late"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 64,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "side_effects_disabled"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "is_contended"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "offset"
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 90,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_contended"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 96,
+        "column": 1
+      }
+    },
+    {
+      "name": "ula_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "is_contended"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "content_early"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 73,
+        "column": 1
+      }
+    },
+    {
+      "name": "ula_w",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_contended"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "content_early"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "content_early"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "on_irq",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_int_at"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_maincpu"
+                  },
+                  "property": "total_cycles"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_maincpu"
+                  },
+                  "property": "attotime_to_cycles"
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_maincpu"
+                        },
+                        "property": "local_time"
+                      },
+                      "args": []
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "time"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 143,
+        "column": 1
+      }
+    },
+    {
+      "name": "bank3_pg_w",
+      "parameters": "u8 bank3_page",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bank3_page"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bank3_page"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 29,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_snow_possible",
+      "parameters": "u16 addr",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "is_contended"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "addr"
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_is_m1_rd_contended"
+                  }
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_screen_area"
+                  },
+                  "property": "contains"
+                },
+                "args": [
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_screen"
+                      },
+                      "property": "hpos"
+                    },
+                    "args": []
+                  },
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_screen"
+                      },
+                      "property": "vpos"
+                    },
+                    "args": []
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 148,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_in_contended_area",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "u64",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "vpos"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": ">=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 153,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_video_line_clocks",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_video_line_clocks"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 75,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_raster_line_clocks",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_raster_line_clocks"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 76,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_irq_at",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_int_at"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 77,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_irq_ext_length",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_is_timings_late"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 78,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "get_border_chunk_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 8
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 79,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "get_btime",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_btime"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 80,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "get_atime_left",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_atime_left"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 81,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "get_atime_right",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_atime_right"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 82,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "get_raster_contention_offset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_base_offset"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_is_timings_late"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 83,
+        "column": 1
+      },
+      "returnWidth": -8
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_is_m1_rd_contended"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 171,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::set_z80",
+      "parameters": "auto &&cpu_tag",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_maincpu"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "cpu_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 14,
+        "column": 101
+      }
+    },
+    {
+      "name": "spectrum_ula_device::set_screen",
+      "parameters": "auto &&screen_tag, rectangle screen_area",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_screen_area"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "screen_area"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 17,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::INPUT_CHANGED_MEMBER",
+      "parameters": "on_contention_changed",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 18,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::nomem_rq",
+      "parameters": "offs_t offset, u8 data",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 18,
+        "column": 56
+      }
+    },
+    {
+      "name": "spectrum_ula_device::m1",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 21,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::io_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 22,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::io_w",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 23,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::data_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 24,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::data_w",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 25,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::ula_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 26,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::ula_w",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 27,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::on_irq",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::bank3_pg_w",
+      "parameters": "u8 bank3_page",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bank3_page"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bank3_page"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 30,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::is_snow_possible",
+      "parameters": "u16 addr",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::is_in_contended_area",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 33,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::get_video_line_clocks",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 34,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::get_raster_line_clocks",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 35,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::get_irq_at",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "assert"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 36,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::get_irq_ext_length",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 37,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_device::get_border_chunk_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 38,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_device::get_btime",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 39,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_device::get_atime_left",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 40,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_device::get_atime_right",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 41,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_device::get_raster_contention_offset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 42,
+        "column": 1
+      },
+      "returnWidth": -8
+    },
+    {
+      "name": "content_early",
+      "parameters": "s8 shift = 0",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "u64",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "vpos"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "now",
+            "valueType": "u64",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "total_cycles"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_int_at"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "shift"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "cf",
+            "valueType": "u64",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_video_line_clocks"
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_raster_contention_offset"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ct",
+            "valueType": "u64",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "cf"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_raster_line_clocks"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "<=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "cf"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "now"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "now"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "ct"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_is_m1_rd_contended"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "declare",
+                "name": "clocks",
+                "valueType": "u64",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "now"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "cf"
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "c",
+                "valueType": "u8",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_pattern"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "%",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "clocks"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "adjust_icount"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "c"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 102,
+        "column": 1
+      }
+    },
+    {
+      "name": "content_late",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "u64",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "vpos"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen_area"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "now",
+            "valueType": "u64",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "total_cycles"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_int_at"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "cf",
+            "valueType": "u64",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_video_line_clocks"
+                }
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_raster_contention_offset"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ct",
+            "valueType": "u64",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "cf"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_raster_line_clocks"
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "auto",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            ],
+            "condition": {
+              "kind": "identifier",
+              "name": "i"
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": ">>=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "cf"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "now"
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "now"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "ct"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "clocks",
+                    "valueType": "u64",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "now"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cf"
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "c",
+                    "valueType": "u8",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_pattern"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "%",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "clocks"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 8
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_maincpu"
+                        },
+                        "property": "adjust_icount"
+                      },
+                      "args": [
+                        {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "c"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "now"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "c"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "now"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 121,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_device::device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 45,
+        "column": 115
+      }
+    },
+    {
+      "name": "on_contention_changed",
+      "parameters": "ioport_field &field, u32 param, ioport_value oldval, ioport_value newval",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_is_timings_late"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "newval"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 37,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_video_line_clocks",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_video_line_clocks"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 75,
+        "column": 46
+      }
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_raster_line_clocks",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_raster_line_clocks"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 77,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_irq_at",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_int_at"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 78,
+        "column": 1
+      }
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_irq_ext_length",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_is_timings_late"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 79,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_border_chunk_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 8
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 79,
+        "column": 72
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_btime",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_btime"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 81,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_atime_left",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_atime_left"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 82,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_atime_right",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_atime_right"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 83,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "spectrum_ula_contended_device::get_raster_contention_offset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_base_offset"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_is_timings_late"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.h",
+        "line": 84,
+        "column": 1
+      },
+      "returnWidth": -8
+    },
+    {
+      "name": "is_contended",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16384
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "offset"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32768
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 49152
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 65535
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_bank3_page"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/sinclair/spectrum_ula.cpp",
+        "line": 209,
+        "column": 1
+      }
+    }
+  ],
+  "structs": {
+    "m_f": [
+      {
+        "name": "s_val",
+        "bits": 8
+      },
+      {
+        "name": "z_val",
+        "bits": 8
+      },
+      {
+        "name": "yx_val",
+        "bits": 8
+      },
+      {
+        "name": "h_val",
+        "bits": 8
+      },
+      {
+        "name": "pv_val",
+        "bits": 8
+      },
+      {
+        "name": "n",
+        "bits": 8
+      },
+      {
+        "name": "c",
+        "bits": 8
+      },
+      {
+        "name": "q",
+        "bits": 8
+      },
+      {
+        "name": "qtemp",
+        "bits": 8
+      },
+      {
+        "name": "val",
+        "bits": 8
+      }
+    ],
+    "z80_daisy_config": [
+      {
+        "name": "devname",
+        "valueType": "char*"
+      }
+    ]
+  },
+  "structMethods": {
+    "m_f": [
+      {
+        "name": "s",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "return",
+              "value": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "s_val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 128
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "z",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "return",
+              "value": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "z_val"
+                },
+                "whenTrue": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 64
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "yx",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "return",
+              "value": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "yx_val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 40
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "h",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "return",
+              "value": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "h_val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 16
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "pv",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "declare",
+              "name": "val",
+              "valueType": "u8",
+              "value": {
+                "kind": "identifier",
+                "name": "pv_val"
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "val"
+              },
+              "operator": "^=",
+              "value": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "val"
+              },
+              "operator": "^=",
+              "value": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "val"
+              },
+              "operator": "^=",
+              "value": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "val"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "return",
+              "value": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "val"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      }
+    ]
+  },
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 65,
+    "compiledMethods": 65,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "spectrum_ula_device::device_start",
+    "set_z80",
+    "set_screen",
+    "INPUT_CHANGED_MEMBER",
+    "nomem_rq",
+    "m1",
+    "io_r",
+    "io_w",
+    "data_r",
+    "data_w",
+    "ula_r",
+    "ula_w",
+    "on_irq",
+    "bank3_pg_w",
+    "is_snow_possible",
+    "is_in_contended_area",
+    "get_video_line_clocks",
+    "get_raster_line_clocks",
+    "get_irq_at",
+    "get_irq_ext_length",
+    "get_border_chunk_size",
+    "get_btime",
+    "get_atime_left",
+    "get_atime_right",
+    "get_raster_contention_offset",
+    "device_reset",
+    "spectrum_ula_device::set_z80",
+    "spectrum_ula_device::set_screen",
+    "spectrum_ula_device::INPUT_CHANGED_MEMBER",
+    "spectrum_ula_device::nomem_rq",
+    "spectrum_ula_device::m1",
+    "spectrum_ula_device::io_r",
+    "spectrum_ula_device::io_w",
+    "spectrum_ula_device::data_r",
+    "spectrum_ula_device::data_w",
+    "spectrum_ula_device::ula_r",
+    "spectrum_ula_device::ula_w",
+    "spectrum_ula_device::on_irq",
+    "spectrum_ula_device::bank3_pg_w",
+    "spectrum_ula_device::is_snow_possible",
+    "spectrum_ula_device::is_in_contended_area",
+    "spectrum_ula_device::get_video_line_clocks",
+    "spectrum_ula_device::get_raster_line_clocks",
+    "spectrum_ula_device::get_irq_at",
+    "spectrum_ula_device::get_irq_ext_length",
+    "spectrum_ula_device::get_border_chunk_size",
+    "spectrum_ula_device::get_btime",
+    "spectrum_ula_device::get_atime_left",
+    "spectrum_ula_device::get_atime_right",
+    "spectrum_ula_device::get_raster_contention_offset",
+    "content_early",
+    "content_late",
+    "spectrum_ula_device::device_reset",
+    "on_contention_changed",
+    "spectrum_ula_contended_device::get_video_line_clocks",
+    "spectrum_ula_contended_device::get_raster_line_clocks",
+    "spectrum_ula_contended_device::get_irq_at",
+    "spectrum_ula_contended_device::get_irq_ext_length",
+    "spectrum_ula_contended_device::get_border_chunk_size",
+    "spectrum_ula_contended_device::get_btime",
+    "spectrum_ula_contended_device::get_atime_left",
+    "spectrum_ula_contended_device::get_atime_right",
+    "spectrum_ula_contended_device::get_raster_contention_offset",
+    "is_contended"
+  ]
+}

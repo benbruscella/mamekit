@@ -1,0 +1,542 @@
+{
+  "game": "missile",
+  "title": "Missile Command (rev 3, A035467-02/04 PCBs) (Atari, 1980)",
+  "fullname": "Missile Command (rev 3, A035467-02/04 PCBs)",
+  "year": "1980",
+  "company": "Atari",
+  "family": "missile",
+  "driverFile": "src/mame/atari/missile.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "m6502",
+      "clock": 1250000,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 0,
+          "end": 65535,
+          "kind": "handler",
+          "read": "missile_state.trampoline_r",
+          "write": "missile_state.trampoline_w",
+          "handlerWidth": 8
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "pokey",
+    "clock": 1250000,
+    "chips": 1,
+    "deviceTags": [
+      "pokey"
+    ],
+    "clocks": [
+      1250000
+    ],
+    "routes": [
+      {
+        "chip": 0,
+        "channel": 0,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 1,
+        "gain": 1,
+        "target": "mono"
+      },
+      {
+        "chip": 0,
+        "channel": 2,
+        "gain": 1,
+        "target": "mono"
+      }
+    ],
+    "masterGain": 0.7,
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 256,
+    "height": 231,
+    "xOffset": 0,
+    "yOffset": 25,
+    "refresh": 61.03515625,
+    "htotal": 320,
+    "vtotal": 256,
+    "vbstart": 256,
+    "vbend": 25,
+    "updateMode": "partial",
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "035820-02.h1",
+          "offset": 20480,
+          "size": 2048,
+          "crc": "7a62ce6a",
+          "alt": [
+            {
+              "file": "35820-01.h1",
+              "crc": "41cbb8f2"
+            },
+            {
+              "file": "035820_sma.h1",
+              "crc": "75f01b87"
+            },
+            {
+              "file": "1.1h",
+              "crc": "49d66ca1"
+            },
+            {
+              "file": "002-0-0.10a",
+              "crc": "589b81de"
+            }
+          ]
+        },
+        {
+          "file": "035821-02.jk1",
+          "offset": 22528,
+          "size": 2048,
+          "crc": "df3bd57f",
+          "alt": [
+            {
+              "file": "35821-01.jk1",
+              "crc": "728702c8"
+            },
+            {
+              "file": "035821_sma.jk1",
+              "crc": "3320d67e"
+            },
+            {
+              "file": "2.1j",
+              "crc": "8008918d"
+            },
+            {
+              "file": "002-1-1.9a",
+              "crc": "08796a78"
+            }
+          ]
+        },
+        {
+          "file": "035822-03e.kl1",
+          "offset": 24576,
+          "size": 2048,
+          "crc": "1a2f599a",
+          "alt": [
+            {
+              "file": "035822-02.kl1",
+              "crc": "a1cd384a"
+            },
+            {
+              "file": "35822-01.kl1",
+              "crc": "28f0999f"
+            },
+            {
+              "file": "035822_sma.kl1",
+              "crc": "e6be5055"
+            },
+            {
+              "file": "3.1k",
+              "crc": "b87c02f7"
+            },
+            {
+              "file": "002-2-2.8a",
+              "crc": "59ab750c"
+            }
+          ]
+        },
+        {
+          "file": "035823-02.lm1",
+          "offset": 26624,
+          "size": 2048,
+          "crc": "82e552bb",
+          "alt": [
+            {
+              "file": "35823-01.lm1",
+              "crc": "bcc93c94"
+            },
+            {
+              "file": "035823_sma.lm1",
+              "crc": "a6069185"
+            },
+            {
+              "file": "4.1l",
+              "crc": "33bc6f47"
+            },
+            {
+              "file": "002-3-3.7a",
+              "crc": "3295cc3f"
+            },
+            {
+              "file": "3.bin",
+              "crc": "ddbfda20"
+            },
+            {
+              "file": "002-3.3a",
+              "crc": "3ad69b83"
+            }
+          ]
+        },
+        {
+          "file": "035824-02.np1",
+          "offset": 28672,
+          "size": 2048,
+          "crc": "606e42e0",
+          "alt": [
+            {
+              "file": "35824-01.np1",
+              "crc": "0ca089c8"
+            },
+            {
+              "file": "035824_sma.np1",
+              "crc": "90a06be8"
+            },
+            {
+              "file": "5.1n",
+              "crc": "df8c58f4"
+            },
+            {
+              "file": "002-4-4.6a",
+              "crc": "aac71e95"
+            },
+            {
+              "file": "4.bin",
+              "crc": "e3b5428d"
+            }
+          ]
+        },
+        {
+          "file": "035825-02.r1",
+          "offset": 30720,
+          "size": 2048,
+          "crc": "f752eaeb",
+          "alt": [
+            {
+              "file": "35825-01.r1",
+              "crc": "428cf0d5"
+            },
+            {
+              "file": "035825_sma.r1",
+              "crc": "1298213d"
+            },
+            {
+              "file": "6.1r",
+              "crc": "96a21c1f"
+            },
+            {
+              "file": "002-5-5.5a",
+              "crc": "1b9a16e2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 32,
+      "loads": [
+        {
+          "file": "035826-01.l6",
+          "offset": 0,
+          "size": 32,
+          "crc": "86a22140"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_BUTTON3",
+      "type": "IPT_BUTTON3",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 64,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "IPT_BUTTON3",
+      "type": "IPT_BUTTON3",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 64,
+      "keys": [
+        "F2"
+      ],
+      "label": "IPT_SERVICE",
+      "type": "IPT_SERVICE",
+      "activeLow": true,
+      "toggle": true
+    },
+    {
+      "port": "TRACK0_X",
+      "mask": 15,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_TRACKBALL_X_LEFT",
+      "type": "IPT_TRACKBALL_X_LEFT",
+      "activeLow": false,
+      "relativeDelta": -10,
+      "sensitivity": 20
+    },
+    {
+      "port": "TRACK0_X",
+      "mask": 15,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_TRACKBALL_X_RIGHT",
+      "type": "IPT_TRACKBALL_X_RIGHT",
+      "activeLow": false,
+      "relativeDelta": 10,
+      "sensitivity": 20
+    },
+    {
+      "port": "TRACK0_Y",
+      "mask": 15,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_TRACKBALL_Y_UP",
+      "type": "IPT_TRACKBALL_Y_UP",
+      "activeLow": false,
+      "relativeDelta": 10,
+      "sensitivity": 20
+    },
+    {
+      "port": "TRACK0_Y",
+      "mask": 15,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_TRACKBALL_Y_DOWN",
+      "type": "IPT_TRACKBALL_Y_DOWN",
+      "activeLow": false,
+      "relativeDelta": -10,
+      "sensitivity": 20
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "R10",
+      "mask": 3,
+      "value": 1,
+      "name": "Coinage"
+    },
+    {
+      "port": "R10",
+      "mask": 12,
+      "value": 0,
+      "name": "Right Coin"
+    },
+    {
+      "port": "R10",
+      "mask": 16,
+      "value": 0,
+      "name": "Center Coin"
+    },
+    {
+      "port": "R10",
+      "mask": 96,
+      "value": 0,
+      "name": "Language"
+    },
+    {
+      "port": "R10",
+      "mask": 128,
+      "value": 128,
+      "name": "Unknown"
+    },
+    {
+      "port": "R8",
+      "mask": 3,
+      "value": 3,
+      "name": "Cities"
+    },
+    {
+      "port": "R8",
+      "mask": 4,
+      "value": 0,
+      "name": "Bonus Credit for 4 Coins"
+    },
+    {
+      "port": "R8",
+      "mask": 8,
+      "value": 0,
+      "name": "Trackball Size"
+    },
+    {
+      "port": "R8",
+      "mask": 112,
+      "value": 112,
+      "name": "Bonus City"
+    },
+    {
+      "port": "R8",
+      "mask": 128,
+      "value": 0,
+      "name": "Cabinet"
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.198",
+        "lastRelease": "0.199"
+      },
+      {
+        "name": "couriersud",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      },
+      {
+        "name": "einstein95",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 194,
+    "authors": 26,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Arcade Video game published 46 years ago:\n\nMissile Command (c) 1980 Atari.\n\nMissile Command is a one or two-player game depicting the outbreak of a nuclear war. Players must defend six cities from waves of incoming nuclear missiles by launching their own anti-ballistic missiles (ABMs) from one of three missile batteries. \n\nThe game is played by moving a cross-hair across the sky and pressing one of three buttons to launch an ABM from the corresponding battery (either Alpha Base, Delta Base or Omega Base). Upon reaching the cross-hair the player's ABM explodes, creating a fireball that lasts for several seconds and destroys any enemy missiles that enter it. Each battery is initially armed with ten anti-ballistic missiles and becomes useless when either all of its missiles have been fired or it's been destroyed by enemy missiles. \n\nNew enemy weapons are introduced in later levels that increase the level of difficulty; smart bombs that can evade a less than perfectly targeted missile, and bomber planes and satellites that fly across the screen and launch missiles of their own. Missiles from the player's central battery fly to their targets at much greater speed and are the most effective way of destroying smart bombs from a distance.\n\nEnemy weapons are only able to destroy a maximum of three cities per level. A level ends once all enemy missiles have either been destroyed or have reached their target. At the conclusion of a level, players receive bonus points for any remaining cities and unused missiles. Between levels, missile batteries are rebuilt and replenished, while destroyed cities are only rebuilt at set point thresholds (determined by the game's dip switch settings).\n\nThe game ends once all cities have been destroyed.\n\n- CAST OF ELEMENTS - \n\nAnti-Ballistic Missiles (ABM) : The defensive missiles you launch to protect your cities. Each missile base contains 10 ABMs per wave. If any missile base is struck by an attack missile or smart bomb, the remaining stock of ABMs for that wave are destroyed, and the missile base is rendered useless until the next wave. You receive bonus points for every ABM you have remaining at the end of each wave. \n\nTargeting crosshair : Aim your ABMs quickly but carefully. Use the trackball to move the targeting crosshair to where you want the next ABM to go, then press any Launch Control button to fire the ABM. The ABM will explode where the crosshair was positioned when the Launch Control button was pressed. \n\nCities : There are six cities in total on the screen at one time, three on either side of the Delta Base. If one enemy missile or smart bomb manages to strike a city, that city will be wiped out. When all cities are destroyed, the game is over. \n\nAlpha Base : The missile base on the bottom left corner of the screen. Press the leftmost Launch Control button to launch an ABM from the Alpha base. \n\nDelta Base : The missile base in the bottom center of the screen. Press the middle Launch Control button to launch an ABM from the Delta base. \n\nOmega Base : The missile base on the bottom right corner of the screen. Press the rightmost Launch Control button to launch an ABM from the Omega base. \n\nNOTE: The Alpha and Omega bases launch ABMs at a slower speed than the Delta base, so you must plan further ahead when launching ABMs from those bases. \n\nAttack Missiles : Their only aim is to destroy your cities and missile bases. Every missile wave starts off with a hailstorm of attack missiles. They never deviate from their path. They may, however, turn into MIRVs. \n\nMultiple Independently-targeted Re-entry Vehicles (MIRV) : Surprise! There is no warning when an attack missile turns into an MIRV (with multiple warheads). Think fast. Each new missile that the MIRV unleashes is carefully targeted. \n\nKiller Satellite : A mean-looking satellite that travels across the sky at a mid-level altitude and fires attack missiles. First appears in Wave 2. \n\nBomber : A big slow-moving target that flies across the sky at a mid-level altitude, but watch out! It fires attack missiles. First appears in Wave 2. \n\nWARNING: If you destroy a bomber or killer satellite before they deploy their attack missiles, you may see their attack missiles added to the downpour. An existing attack missile may also turn into an MIRV. \n\nSmart Bomb : Smart enough to avoid most explosion clouds from your ABMs. Your ABM must explode next to one in order to destroy it. You can also squeen it between two explosions to destroy it. First appears in Wave 5. \n\n'LOW' Warning : As soon as there are only three ABMs left in a missile base, the game displays the word 'LOW' underneath that base, and a warning signal sounds. Heed the warning.\n\n- TECHNICAL -\n\nMissile Command is available in four different cabinet models: upright, cabaret, cocktail, and cockpit.\nThe cockpit model only supports 1 player, while all others support up to 2 players. \n\nAfter every two attack waves, the color scheme changes. There are ten different color schemes in all. After Waves 19 and 20, the game returns to the first color scheme. Notice that the sky remains black for the first four color schemes, and starts changing its color with the fifth scheme. \n\nGame ID: 035820-035825 \n\nMain CPU: MOS Technology M6502 (@ 1.25 Mhz) \nSound Chips: POKEY (@ 1.25 Mhz) \n\n(Cockpit model) \nPlayers: 1 \n\n(Upright, Cabaret, and Cocktail models) \nPlayers: 2 \n\nControl: Trackball ('TARGET CONTROL' for moving and aiming the targeting crosshair) \n\n(Upright and Cockpit models)\nDiameter of trackball: 4.5 inches (11.43cm)\n\n(Cabaret and Cocktail models)\nDiameter of trackball: 2.5 inches (6.35cm)\n\nButtons: 3 ('LAUNCH CONTROL') - for firing the ABMs from each base \n= > [A] (leftmost button) - fires ABMs from Alpha Base \n= > [B] (middle button) - fires ABMs from Delta Base \n= > [C] (rightmost button) - fires ABMs from Omega Base\n\n- TRIVIA -\n\nMissile Command was released on June 15, 1980 (Sunday) in the USA, selling at an MSRP of $1995.\n\nLicensed to Sega & Taito for the Japanese market. \n\nThe Upright and Cockpit versions of Missile Command were the last games to use the large 4.5-inch aluminum trackball that was also used by \"Atari Football\", \"Atari Basketball\", \"Atari Baseball\" and \"Atari Soccer\". The Cabaret and Cocktail versions used the smaller 2.5-inch trackball that would be used by later Atari titles, especially \"Centipede\".\n\nMissile Command was an immensely popular arcade game that combined great game play with a rather chilling message about the dangers of war. Approximately 20,000 units were produced (14044 Upright, 3005 Cocktail, ~1500 cabaret)\n\nOriginally called 'Armaggedon', Missile Command was designed at a time that the United States and Russia were locked in a fierce 'cold war'. Missile Command was originally going to have a large status panel as part of its marquee which indicated the status of the bases and cities but it was eliminated when the designers learned that players lost track of on-screen gameplay when they looked up at the panel. There is a picture of a prototype cabinet with the status panel on page 60 of the book 'High Score : The Illustrated History of Electronics Games, 2nd Edition'. \n\n* The Creation of Missile Command : The idea for Missile Command began with a magazine story about satellites that captured the attention of Atari's president, who passed the clipping to Lyle Rains. Rains asked Dave Theurer to lead the effort in creating the classic, action-packed arcade game. \n\n* Remembrances from the Video Game Masters : Recalling the birth of Missile Command, Dave Theurer said : \"The request was for a game where there are missiles attacking the California coast and the player is defending the coast. They said, take it from here and write up a game proposal. In the first proposal it was the California coast.\" \n\nPart of creating a great game is knowing what to strip away. Some of the first baggage the developers dropped was geographic identifications because of the frightful scenario of the game. And then they stripped away more. \n\nDave Theurer : \"The original suggestion was for there to be a scanning radar, but I immediately said, no way! It would be just too hard for the player because he wouldn't be able to see what was going on. We chucked that idea. And when we first developed the game, we added railroads to transport missiles from the cities to the missile bases. That got to be too complicated and people got confused... if you get too complicated, people won't play. We also had submarines for a while but that didn't work out so we ripped them out, too.\" \n\nThe smart bombs presented the most difficult challenge in writing the code for Missile Command. \n\nDave Theurer : \"These little diamond-shape guys can evade your explosions. The only way you can kill them is if the explosion starts out right on top of them. Programming that was the hardest part. They had to be intelligent because the little guy had to look around on the screen to see what he had to avoid and he had to figure out the best path to go around what there was to avoid. Of course, if I made it too smart, then the player couldn't kill it and they'd be guaranteed instant death. So it had to be a fine line between smarter than the dumb missiles, yet not totally unkillable.\" \n\nNerves of steel is the way Rich Adam, one of the Missile Command team members, described his co-worker : \"Dave Theurer was extremely detail oriented, very thorough, and very disciplined. He had nerves of steel, would never get rattled, and worked tirelessly. You need nerves of steel because if your code doesn't work it's your fault, something inside that code is not correct. There's really nowhere to hide. The real Achilles' heel with a lot of software people, I believe, is that they spin their wheels and they go through this denial phase : 'It can't be my code! How could anything possibly be wrong with it? My code is so straightforward!' Well, it's so straightforward you might not have thought of a nuance. So, that's why it takes nerves of steel, I think. The work requires sort of a cold, methodical approach to the software.\" \n\n* Popular from the Start : Even before it shipped, Missile Command had intense fans. \n\nSpeaking of the play, the game got just within the labs of Atari. Ed Rotberg said : \"There were guys there that would literally have to worship that game for hours at a time. Their hands were sweating, and it was a definite adrenaline rush.\" \n\nDescribing some of the dedicated players at Atari, Dave Theurer said : \"We were in the same building as the consumer division and there were a couple of guys from that division who would come down and spend all day playing Missile Command. I don't know what they did upstairs, but they would spend the entire day playing the game.\" \n\n* The Great 25-Cent Escape : The escape from reality could sometimes have frightful consequences. The horrifying subject matter of Missile Command had an impact on the developers. \n\nDave Theurer : \"It was pretty scary. During the project and for 6 months after the project, I'd wake up in a cold sweat because I'd have these dreams where I'd see the missile streak coming in and I'd see the impact. I would be up on top of a mountain and I'd see the missiles coming in, and I'd know it would be about 30 seconds until the blast hit and fried me to a crisp.\" \n\nSteve Calfee : \"Everybody I know who really got into the game had nightmares about nuclear war.\" \n\nThe game was nearly shipped with a name that carried the message of the end of the world... Armageddon. \n\nSteve Calfee : \"We had this big thing about the name of the game. From the beginning, it was called Armageddon. The management, themselves, didn't know what the word meant and they thought none of the kids would. Then we went through this big thing of naming it. Engineering loved the name Armageddon, and we always wanted to call it that. From the very top came the message, 'We can't use that name, nobody'll know what it means, and nobody can spell it.'\" \n\nPlacing the game in the context of the previous decade, Ed Rotberg said : \"The thing about Missile Command is that the world was not nearly as stable politically as it is now. There is a little bit of a spooky message in that whole game when you have that final cloud at the end.\" \n\nVictor Ali holds the official record for this game on 'Marathon' settings with 80,364,995 points. \n\nRoy Shildt holds the official record for this game on 'Tournament' settings with 1,695,265 points. \n\nHacks of this game are known as \"Super Missile Attack\" and \"Missile Combat\". \n\nA Missile Command unit appears in the 1982 movie 'Fast Times at Ridgemont High', in the 1991 movie 'Terminator 2 - Judgment Day' and in the 1995 movie 'Species'. \n\nA Missile Command upright cabinet appears in the Judas Priest music video 'Freewheel Burning'. The game's THE END screen appears at the end of the video. \n\nIn 1982, a multi-player sequel was planned but never released. This game would have have been identical to the first except with twice as many cities and batteries and the players cooperating to save each other cities from the onslaught. \n\nIn 1982, Atari released a set of 12 collector pins including : \"Missile Command\", \"Battle Zone\", \"Tempest\", \"Asteroids Deluxe\", \"Space Duel\", \"Centipede\", \"Gravitar\", \"Dig Dug\", \"Kangaroo\", \"Xevious\", \"Millipede\" and \"Food Fight\".\n\n- SCORING -\n\nPoints are awarded for destroying attack missiles, ships and planes : \nAttack Missile : 25 points \nKiller Satellite : 100 points \nBomber : 100 points \nSmart Bomb : 125 points \n\nBonus points are awarded at the end of each missile wave for any cities and ABMs remaining : \nUnused ABMs : 5 points each \nSaved Cities : 100 points each \n\nA scoring multiplier based on the missile wave being played is displayed at the start of each wave : \nWaves 1 and 2 have 1x scoring. \nWaves 3 and 4 have 2x scoring. \nWaves 5 and 6 have 3x scoring. \nWaves 7 and 8 have 4x scoring. \nWaves 9 and 10 have 5x scoring. \nWaves 11 and above have 6x scoring.\n\n- TIPS AND TRICKS -\n\n* Anticipate. Place the targeting crosshair ahead of attack missiles so the explosion cloud expands toward the enemy's shots. If the leading edge of an attack missile touches any part of the explosion cloud, it is destroyed. \n\n* A well-placed ABM can destroy two or more attack missiles converging into the same explosion cloud. \n\n* Aim just in front of attack missiles, satellites, and bombers, and let them travel into your explosion clouds. As soon as you've launced an ABM and marked the target for destination, move the crosshair to another target. Don't wait for the explosion. \n\n* Hit bombers and killer satellites before they can drop attack missiles. Also, the sooner you destroy them, the sooner they'll reappear and the more points you can score. You may want to launch \"insurance\" ABM's at the left and right sides of the screen even before a bomber or killer satellite appears, in the chance that one will travel into the explosion cloud. \n\n* A sound tactic used by many expert players is the spread. Fire a sweeping barrage of ABMs across the screen just below the attack missiles at the start of a wave, creating a solid line of explosion clouds to trap and destory as many of the first shots fired by the enemy as possible. If possible, create the spread in the path of a bomber or killer satellite. \n\n* When creating a spread, fire all your ABMs from the same base. Once all 10 ABMs are launched (or the base has been destroyed by the enemy), you no longer need to worry about defending it. \n\n* When creating a spread, don't use the Delta Base. It is in a strategic position and its missiles fly faster than ABMs from the side bases. Save the Delta Base's ABMs for more precise shots. \n\n* Destroy attack missiles while they are high on the screen. You don't want them to turn into MIRVs. If you notice that an attack missile has become an MIRV, try to destroy as many of the split missiles with a single explosion cloud as possible. \n\n* Hit targets before they cross the radar line. The radar line is an invisible line marking the crosshair's lower limit. Since you can't position the crosshair below this line, any attack missile that crosses it is beyond range of your ABMs. \n\n* There are usually two main attack waves per stage. Just when it looks like things have calmed down, another assault commences. Repeating the strategy above is a good idea. \n\n* Smart bombs are usually fooled by a couple of quick ABMs being fired on opposite sides of the bomb, but overlapping. Then the smart bomb cannot escape. \n\n* Don't let smart bombs distract you. Sometimes you can try so hard to hit smart bombs you forget to defend your planet. Remember that a smart bomb can only hit one target. \n\n* Don't defend depleted missile bases or destroyed cities. Concentrate your efforts defending cities and missile bases that still show signs of life. If all your cities are destroyed or you are on the verge of earning a bonus city, then it is good strategy to go for the high-score targets like smart bombs, even if they are heading for dirt. \n\n* As waves become more difficult, you may be forced to sacrifice some cities. Choose the left or the right, and give up the cities on the other side. When waves become really tough, you may want to defend only one city and go for as many high score targets as possible.\n\n- STAFF -\n\nDesigned and programmed by : Dave Theurer (DFT)\nLead hardware engineer by : Dave Sherman (DLS)\nChief engineer of software engineering by : Steve Calfee (SRC)\nJunior programmer and sound routines by : Rich Adam (RDA)\nElectrical engineering by : Mary Pepper (MJP)\nHardware design, head of special projects in engineering and power supply by : Jed Margolin (JED)\nTechnician : Dave Webienson (DEW)\nTrack ball designed by : Gerry Lichac (GJL)\n\n- PORTS -\n\n* CONSOLES: \n[US] Atari 2600 (1981) \"Missile Command [Model CX2638]\"\n[EU] Atari 2600 (1981) \"Missile Command [Model CX2638P]\"\n[US] Atari 5200 (1982) \"Missile Command [Model CX5202]\"\n[US] Emerson Arcadia (1982) \"Missile War [Model 1010]\" \nAtari XEGS \n[JP] Atari 2600 (1983) \n[BR] DynaVision (198?) \n[EU] Sega Master System (1992) \"Arcade Smash Hits [Model MK-27032-50]\" \n[US] Sega Genesis (1996) \"Arcade Classics [Model MK-1715]\" \n[EU] Sega Mega Drive (1996) \"Arcade Classics [Model 1715-50]\" \n[US] Sony PlayStation (dec.31, 1996) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SLUS-00339]\" \n[EU] Sega Saturn (1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model T-25413H-50]\" \n[US] Sega Saturn (june.30, 1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model T-9706H]\" \n[US] Nintendo SNES (aug.1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SNS-AW7E-USA]\" \n[EU] Sony PlayStation (dec.1997) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SLES-00466]\" \n[EU] Nintendo SNES (feb.26, 1998) \"Arcade's Greatest Hits - The Atari Collection 1 [Model SNSP-AW7P-EUR]\" \n[US] Sony PlayStation (2001) \"Atari Anniversary Edition Redux [Model SLUS-01427]\" \n[US] Sega Dreamcast (jul.2, 2001) \"Atari Anniversary Edition [Model T-15130N]\" \n[EU] Sony PlayStation (mar.1, 2002) \"Atari Anniversary Edition Redux [Model SLES-03808]\" \n[US] Microsoft XBOX (nov.16, 2004) \"Atari Anthology [Model 26084]\" \n[US] Sony PS2 (nov.22, 2004) \"Atari Anthology [Model SLUS-21076]\" \n[EU] Microsoft XBOX (nov.26, 2004) \"Atari Anthology\" \n[EU] Sony PS2 (feb.18, 2005) \"Atari Anthology [Model SLES-53061]\" \n[JP] Microsoft XBOX (aug.4, 2005) \"Atari Anthology [Model B7X-00001]\" \n[US] [EU] Microsoft XBOX 360 [XBLA] (jul.4, 2007) \n[US] [EU] Microsoft XBOX One (nov.1, 2016) \"Atari Flashback Classics Vol.2\" \n[US] Sony PlayStation 4 (nov.1, 2016) \"Atari Flashback Classics Vol.2\" \n\n* HANDHELDS: \n[EU] Nintendo Game Boy (1992) \n[US] Nintendo Game Boy (mar.1992) \"Missile Command [Model DMG-MW-USA]\" \n[US] Atari Lynx (1994) \"Super Asteroids & Missile Command [Model PA2093]\" \n[EU] Nintendo Game Boy (1995) \"Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCP-NOE]\"\n[US] Nintendo Game Boy (jul.1995) \"Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCE-USA]\"\n[UK] Nintendo Game Boy (1995) \"Arcade Classic No. 1 - Asteroids & Missile Command [Model DMG-AMCP-UKV]\"\n[US] Sega Game Gear (1996) \"Arcade Classics\" \n[EU] Nintendo Game Boy Color (1999) \"Missile Command [Model CGB-ALCP-EUR]\" \n[EU] Nintendo Game Boy Color (sept.1999) \"Missile Command [Model CGB-VLCE-USA]\" \n[US] Nintendo GBA (mar.25, 2002) \"Atari Anniversary Advance [Model AGB-AAVE-USA]\" \n[EU] Nintendo GBA (feb.14, 2003) \"Atari Anniversary Advance [Model AGB-AAVP-EUR]\" \n[UK] Nintendo DS (mar.11, 2005) \"Retro Atari Classics [Model NTR-ATAE-UKV]\" \n[EU] Nintendo DS (mar.11, 2005) \"Retro Atari Classics [Model NTR-ATAE-EUR]\" \n[US] Nintendo DS (mar.16, 2005) \"Retro Atari Classics [Model NTR-ATAE-USA]\" \n[JP] Nintendo DS (june.30, 2005) \"Atarimix Happy 10 Games [Model NTR-ATAJ-JPN]\" \n[AU] Nintendo DS (nov.2007) \"Retro Atari Classics [Model NTR-ATAE-AUS]\" \n[US] Sony PSP (dec.19, 2007) \"Atari Classics Evolved [Model ULUS-10325]\" \n[AU] Sony PSP (mar.7, 2008) \"Atari Classics Evolved\" \n[US] Nintendo DS (nov.2, 2010) \"Atari Greatest Hits Vol.1 [Model NTR-BR6E-USA]\" \n[EU] Nintendo DS (feb.24, 2011) \"Atari Greatest Hits Vol.1 [Model NTR-BR6P-EUR]\" \n\n* COMPUTERS: \n[US] Atari 800 (1981) [Model CXL4012] \n[US] Tandy Color Computer (1981) \"Polaris\" \n[US] Tandy Color Computer (1982) \"Defense\" \n[US] Tandy Color Computer (1982) \"Missile Attack\" \n[US] [EU] Commodore C64 (1983) \n[EU] Sinclair ZX-Spectrum (1983) \"Missile Defence\" by Anirog Software \n[EU] Acorn Electron (1983) \"Missile Control\" by Gemini \n[EU] BBC B (1983) \"Missile Control\" by Gemini \n[EU] Sinclair ZX-Spectrum (1983) \"Missile Command\" by Anirog Software \n[AU] VTech Laser-VZ \"Missile Attack\" \n[EU] BBC B \"Missile Strike\" by Superior Software\n[EU] Atari ST (1986) \n[EU] MSX (1988) \n[JP] Sharp X68000 (1988) \n[US] PC [MS Windows 3.1x, 3.5\"] (1993) \"Microsoft Arcade\" \n[US] PC [MS Windows 95, CD-ROM] (1995) \"Patriot Command\" : Part of \"Windows Arcade Pack\" \n[EU] PC [MS Windows, CD-ROM] (1999) \"Atari Arcade Hits 1\" \n[US] PC [MS Windows, CD-ROM] (jul.13, 1999) \"Atari Arcade Hits 1\" \n[US] PC [MS Windows, CD-ROM] (jul.9, 2001) \"Atari Anniversary Edition\" \n[EU] PC [MS Windows, CD-ROM] (dec.14, 2001) \"Atari Anniversary Edition\" \n[US] PC [MS Windows, CD-ROM] (nov.11, 2003) \"Atari - 80 Classic Games in One! [Model 25069J]\" \n[EU] PC [MS Windows, CD-ROM] (june.10, 2005) \"Atari - 80 Classic Games in One! [Replay]\" \n[US] Steam (mar.24, 2016) \"Atari Vault [Model 400020]\" \n\n* OTHERS: \n[US] Mobile phone [Motorola T720] (june.13, 2003) \n[US] Nokia N-Gage (2005) \"Atari Masterpieces Vol. I\" \n[EU] Nokia N-Gage (oct.13, 2005) \"Atari Masterpieces Vol. I\" \n[US] Apple iPhone/iPod (sept.16, 2008) [Model 291286162] \n[US] Apple Store (2011) \"Atari Greatest Hits\" \n[US] Google Play (2011) \"Atari Greatest Hits\"\n\n- SERIES -\n\n1. Missile Command (1980) \n2. Missile Command 3D (1995, Atari Jaguar) \n3. Missile Command (1999, PlayStation/PC CD-ROM)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/1644/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

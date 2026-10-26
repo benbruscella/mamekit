@@ -1,0 +1,5608 @@
+{
+  "type": "C64_EXPANSION_SLOT",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "exp"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "exp"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "C64_EXPANSION_SLOT",
+    "className": "c64_expansion_slot_device",
+    "shortName": "c64_expansion_slot",
+    "description": "C64 expansion port",
+    "sourceFile": "src/devices/bus/c64/exp.cpp",
+    "sourceLine": 22,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(C64_EXPANSION_SLOT, c64_expansion_slot_device, \"c64_expansion_slot\", \"C64 expansion port\")"
+  },
+  "methods": [
+    {
+      "name": "is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_software_list_loader",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rom_software_list_loader::instance"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_readable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_writeable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_creatable",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "romimage"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "rom"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "sourceFile": "src/devices/imagedev/cartrom.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "err",
+            "valueType": "std::error_condition"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_card"
+                  },
+                  "property": "m_roml_size"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_card"
+                  },
+                  "property": "m_romh_size"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_card"
+                  },
+                  "property": "m_exrom"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_card"
+                  },
+                  "property": "m_game"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "declare",
+                "name": "size",
+                "valueType": "size_t"
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "loaded_through_softlist"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "file",
+                    "valueType": "util::core_file&",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "image_core_file"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "size"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "length"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_filetype"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "80"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "actual",
+                        "valueType": "std::size_t"
+                      },
+                      {
+                        "op": "declare",
+                        "name": "__tie_325",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "read"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "size"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "err"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_325"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_roml"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_325"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "actual"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_325"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                              "kind": "identifier",
+                              "name": "err"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "!=",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "actual"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "size"
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "err"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "std::errc::io_error"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_roml_size"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_exrom"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "size"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16384
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_game"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "is_filetype"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "a0"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "declare",
+                            "name": "actual",
+                            "valueType": "std::size_t"
+                          },
+                          {
+                            "op": "declare",
+                            "name": "__tie_638",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "read"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "file"
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 8192
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "err"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "__tie_638"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_roml"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "__tie_638"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "actual"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "__tie_638"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "err"
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "!=",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "actual"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 8192
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "err"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "std::errc::io_error"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_romh_size"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 8192
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_exrom"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_game"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "is_filetype"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "e0"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "declare",
+                                "name": "actual",
+                                "valueType": "std::size_t"
+                              },
+                              {
+                                "op": "declare",
+                                "name": "__tie_920",
+                                "value": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "read"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "identifier",
+                                      "name": "file"
+                                    },
+                                    {
+                                      "kind": "number",
+                                      "value": 8192
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "err"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "__tie_920"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 0
+                                  }
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_card"
+                                  },
+                                  "property": "m_roml"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "__tie_920"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "actual"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "__tie_920"
+                                  },
+                                  "index": {
+                                    "kind": "number",
+                                    "value": 2
+                                  }
+                                }
+                              },
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "&&",
+                                  "left": {
+                                    "kind": "unary",
+                                    "operator": "!",
+                                    "operand": {
+                                      "kind": "identifier",
+                                      "name": "err"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "!=",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "actual"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 8192
+                                    }
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "err"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "std::errc::io_error"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_card"
+                                  },
+                                  "property": "m_romh_size"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 8192
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_card"
+                                  },
+                                  "property": "m_game"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "is_filetype"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "crt"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "op": "if",
+                                    "condition": {
+                                      "kind": "call",
+                                      "callee": {
+                                        "kind": "identifier",
+                                        "name": "cbm_crt_read_header"
+                                      },
+                                      "args": [
+                                        {
+                                          "kind": "identifier",
+                                          "name": "file"
+                                        },
+                                        {
+                                          "kind": "unary",
+                                          "operator": "&",
+                                          "operand": {
+                                            "kind": "member",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "m_card"
+                                            },
+                                            "property": "m_roml_size"
+                                          }
+                                        },
+                                        {
+                                          "kind": "unary",
+                                          "operator": "&",
+                                          "operand": {
+                                            "kind": "member",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "m_card"
+                                            },
+                                            "property": "m_romh_size"
+                                          }
+                                        },
+                                        {
+                                          "kind": "unary",
+                                          "operator": "&",
+                                          "operand": {
+                                            "kind": "member",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "m_card"
+                                            },
+                                            "property": "m_exrom"
+                                          }
+                                        },
+                                        {
+                                          "kind": "unary",
+                                          "operator": "&",
+                                          "operand": {
+                                            "kind": "member",
+                                            "object": {
+                                              "kind": "identifier",
+                                              "name": "m_card"
+                                            },
+                                            "property": "m_game"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "then": [
+                                      {
+                                        "op": "declare",
+                                        "name": "roml",
+                                        "valueType": "auto*",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      },
+                                      {
+                                        "op": "declare",
+                                        "name": "romh",
+                                        "valueType": "auto*",
+                                        "value": {
+                                          "kind": "number",
+                                          "value": 0
+                                        }
+                                      },
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "m_card"
+                                          },
+                                          "property": "m_roml"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "ALLOC"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "member",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "m_card"
+                                              },
+                                              "property": "m_roml_size"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      {
+                                        "op": "assign",
+                                        "target": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "m_card"
+                                          },
+                                          "property": "m_romh"
+                                        },
+                                        "operator": "=",
+                                        "value": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "ALLOC"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "member",
+                                              "object": {
+                                                "kind": "identifier",
+                                                "name": "m_card"
+                                              },
+                                              "property": "m_romh_size"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "m_card"
+                                          },
+                                          "property": "m_roml_size"
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "roml"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "call",
+                                              "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                  "kind": "member",
+                                                  "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_card"
+                                                  },
+                                                  "property": "m_roml"
+                                                },
+                                                "property": "get"
+                                              },
+                                              "args": []
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "op": "if",
+                                        "condition": {
+                                          "kind": "member",
+                                          "object": {
+                                            "kind": "identifier",
+                                            "name": "m_card"
+                                          },
+                                          "property": "m_romh_size"
+                                        },
+                                        "then": [
+                                          {
+                                            "op": "assign",
+                                            "target": {
+                                              "kind": "identifier",
+                                              "name": "romh"
+                                            },
+                                            "operator": "=",
+                                            "value": {
+                                              "kind": "call",
+                                              "callee": {
+                                                "kind": "member",
+                                                "object": {
+                                                  "kind": "member",
+                                                  "object": {
+                                                    "kind": "identifier",
+                                                    "name": "m_card"
+                                                  },
+                                                  "property": "m_romh"
+                                                },
+                                                "property": "get"
+                                              },
+                                              "args": []
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "op": "call",
+                                        "expression": {
+                                          "kind": "call",
+                                          "callee": {
+                                            "kind": "identifier",
+                                            "name": "cbm_crt_read_data"
+                                          },
+                                          "args": [
+                                            {
+                                              "kind": "identifier",
+                                              "name": "file"
+                                            },
+                                            {
+                                              "kind": "identifier",
+                                              "name": "roml"
+                                            },
+                                            {
+                                              "kind": "identifier",
+                                              "name": "romh"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "else": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "err"
+                                    },
+                                    "operator": "=",
+                                    "value": {
+                                      "kind": "identifier",
+                                      "name": "image_error::INVALIDIMAGE"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "size"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "uprom"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "size"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "load_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "lorom"
+                            },
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_roml"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "load_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "uprom"
+                            },
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_romh"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_roml_size"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "lorom"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_romh_size"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "uprom"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_exrom"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_game"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "load_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "roml"
+                            },
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_roml"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "load_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "romh"
+                            },
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_romh"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "load_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "romx"
+                            },
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_romx"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "load_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "nvram"
+                            },
+                            {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_nvram"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_roml_size"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "roml"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_card"
+                          },
+                          "property": "m_romh_size"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "romh"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "get_feature"
+                            },
+                            "args": [
+                              {
+                                "kind": "string",
+                                "value": "exrom"
+                              }
+                            ]
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_exrom"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "atol"
+                              },
+                              "args": [
+                                {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "get_feature"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "exrom"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "get_feature"
+                            },
+                            "args": [
+                              {
+                                "kind": "string",
+                                "value": "game"
+                              }
+                            ]
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_card"
+                              },
+                              "property": "m_game"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "atol"
+                              },
+                              "args": [
+                                {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "get_feature"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "game"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_card"
+                      },
+                      "property": "m_roml_size"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_card"
+                        },
+                        "property": "m_roml_size"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_card"
+                      },
+                      "property": "m_romh_size"
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_card"
+                        },
+                        "property": "m_romh_size"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "std::make_pair"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "image_error::INVALIDLENGTH"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ROM size must be power of 2"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_pair"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "err"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_default_card_software",
+      "parameters": "get_default_card_software_hook &hook",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 219,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "hook"
+                },
+                "property": "image_file"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "hook"
+                    },
+                    "property": "is_filetype"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "crt"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "cbm_crt_get_card"
+                      },
+                      "args": [
+                        {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "hook"
+                              },
+                              "property": "image_file"
+                            },
+                            "args": []
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "software_get_default_slot"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "standard"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cd_r",
+      "parameters": "offs_t offset, uint8_t data, int sphi2, int ba, int roml, int romh, int io1, int io2",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 235,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_cd_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "roml"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "romh"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io1"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io2"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cd_w",
+      "parameters": "offs_t offset, uint8_t data, int sphi2, int ba, int roml, int romh, int io1, int io2",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 250,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_cd_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "roml"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "romh"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io1"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "io2"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "game_r",
+      "parameters": "offs_t offset, int sphi2, int ba, int rw, int loram, int hiram",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 263,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "hiram"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_loram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "loram"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_game_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "rw"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "exrom_r",
+      "parameters": "offs_t offset, int sphi2, int ba, int rw, int loram, int hiram",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 283,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "hiram"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_loram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "loram"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_card"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "c64_exrom_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sphi2"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ba"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "rw"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_passthrough",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.cpp",
+      "sourceLine": 299,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "irq_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::irq_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "nmi_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::nmi_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "reset_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::reset_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "cd_input_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::dma_cd_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "cd_output_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::dma_cd_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "dma_callback"
+                  },
+                  "args": []
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "DEVICE_SELF_OWNER"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "c64_expansion_slot_device::dma_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_irq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_nmi"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_reset"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cd_input_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_read_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cd_output_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 70,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_cd_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 77,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_read_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_cd_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_irq"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 82,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_nmi"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 83,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_reset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "phi2",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dotclock",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "phi2"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "hiram",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "loram",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_loram"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "image_interface",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "c64_cart,vic10_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "file_extensions",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 102,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "80,a0,e0,crt"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::c64_expansion_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::irq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_irq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::nmi_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_nmi"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::reset_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_reset"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::cd_input_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_read_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::cd_output_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 70,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma_cd"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_write_dma"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_cd_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 77,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_read_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_cd_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma_cd"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::irq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 82,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_irq"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::nmi_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 83,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_nmi"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dma_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_dma"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::reset_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_write_reset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::phi2",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::dotclock",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "phi2"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::hiram",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_hiram"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::loram",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_loram"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::is_reset_on_load",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::image_interface",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 102,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "c64_cart,vic10_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64_expansion_slot_device::file_extensions",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/c64/exp.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "80,a0,e0,crt"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_crt_get_card",
+      "parameters": "util::core_file &file",
+      "sourceFile": "src/lib/formats/cbm_crt.cpp",
+      "sourceLine": 139,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "header",
+            "valueType": "cbm_crt_header",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "STRUCT_OF"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "cbm_crt_header"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "__binding_21",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "header"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CRT_HEADER_LENGTH"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "err",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "__binding_21"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "actual",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "__binding_21"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "err"
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "CRT_HEADER_LENGTH"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "actual"
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memcmp"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "header"
+                      },
+                      "property": "signature"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "C64 CARTRIDGE   "
+                    },
+                    {
+                      "kind": "number",
+                      "value": 16
+                    }
+                  ]
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "hardware",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16be"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "header"
+                      },
+                      "property": "hardware"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TABLE"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "hardware"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "final3"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "simons_basic"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ocean"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "fun_play"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "super_games"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "epyxfastload"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "westermann"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "rex"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "final"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "magic_formel"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "system3"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "warp_speed"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "dinamic"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "zaxxon"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "magic_desk"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "comal80"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "struct_basic"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ross"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ep64"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ep7x8"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "dela_ep256"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "rex_ep256"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "mikroasm"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "stardos"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "easyflash"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ide64"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ieee488"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "prophet64"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "exos"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "super_explode"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "magic_voice"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "mach5"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "pagefox"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "silverrock"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::string"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_crt_read_header",
+      "parameters": "util::core_file &file, size_t *roml_size, size_t *romh_size, int *exrom, int *game",
+      "sourceFile": "src/lib/formats/cbm_crt.cpp",
+      "sourceLine": 160,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "err",
+            "valueType": "std::error_condition"
+          },
+          {
+            "op": "declare",
+            "name": "actual",
+            "valueType": "size_t"
+          },
+          {
+            "op": "declare",
+            "name": "header",
+            "valueType": "cbm_crt_header",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "STRUCT_OF"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "cbm_crt_header"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "__tie_90",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "header"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CRT_HEADER_LENGTH"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "err"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "__tie_90"
+              },
+              "index": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "actual"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "__tie_90"
+              },
+              "index": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "err"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "CRT_HEADER_LENGTH"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "actual"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memcmp"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "header"
+                      },
+                      "property": "signature"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "C64 CARTRIDGE   "
+                    },
+                    {
+                      "kind": "number",
+                      "value": 16
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "hardware",
+            "valueType": "uint16_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_u16be"
+              },
+              "args": [
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "header"
+                  },
+                  "property": "hardware"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "exrom"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "property": "exrom"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "game"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "header"
+              },
+              "property": "game"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "LOG"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_verbose"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Name: %s\n"
+                    },
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "header"
+                      },
+                      "property": "name"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_verbose"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Hardware: %04x\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "hardware"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_verbose"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Slot device: %s\n"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TABLE"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "hardware"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "final3"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "simons_basic"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ocean"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "fun_play"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "super_games"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "epyxfastload"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "westermann"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "rex"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "final"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "magic_formel"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "system3"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "warp_speed"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "dinamic"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "zaxxon"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "magic_desk"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "comal80"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "struct_basic"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ross"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ep64"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ep7x8"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "dela_ep256"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "rex_ep256"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "mikroasm"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "stardos"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "easyflash"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ide64"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "ieee488"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "prophet64"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "exos"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "super_explode"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "magic_voice"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "mach5"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "pagefox"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "standard"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "silverrock"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_verbose"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "EXROM: %u\n"
+                    },
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "header"
+                      },
+                      "property": "exrom"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_verbose"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "GAME: %u\n"
+                    },
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "header"
+                      },
+                      "property": "game"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "file"
+                  },
+                  "property": "eof"
+                },
+                "args": []
+              }
+            },
+            "body": [
+              {
+                "op": "declare",
+                "name": "chip",
+                "valueType": "cbm_crt_chip",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_OF"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "cbm_crt_chip"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__tie_1417",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CRT_CHIP_LENGTH"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "err"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__tie_1417"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "actual"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__tie_1417"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "err"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "CRT_CHIP_LENGTH"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "actual"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "address",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16be"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      },
+                      "property": "start_address"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "size",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16be"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      },
+                      "property": "image_size"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "type",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16be"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      },
+                      "property": "chip_type"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "LOG"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_verbose"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "CHIP Address: %04x\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "address"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_verbose"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "CHIP Size: %04x\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_verbose"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "CHIP Type: %04x\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "type"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "switch",
+                "expression": {
+                  "kind": "identifier",
+                  "name": "address"
+                },
+                "cases": [
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 32768
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "roml_size"
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 40960
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "romh_size"
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 57344
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "unary",
+                          "operator": "*",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "romh_size"
+                          }
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "osd_printf_verbose"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "Invalid CHIP loading address!\n"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    "property": "seek"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "size"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "SEEK_CUR"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_crt_read_data",
+      "parameters": "util::core_file &file, uint8_t *roml, uint8_t *romh",
+      "sourceFile": "src/lib/formats/cbm_crt.cpp",
+      "sourceLine": 226,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "file"
+                },
+                "property": "seek"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "CRT_HEADER_LENGTH"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SEEK_SET"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "roml_offset",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "romh_offset",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "file"
+                  },
+                  "property": "eof"
+                },
+                "args": []
+              }
+            },
+            "body": [
+              {
+                "op": "declare",
+                "name": "err",
+                "valueType": "std::error_condition"
+              },
+              {
+                "op": "declare",
+                "name": "actual",
+                "valueType": "size_t"
+              },
+              {
+                "op": "declare",
+                "name": "chip",
+                "valueType": "cbm_crt_chip",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_OF"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "cbm_crt_chip"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__tie_211",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "read"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "file"
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CRT_CHIP_LENGTH"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "err"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__tie_211"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "actual"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__tie_211"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "err"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "!=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "CRT_CHIP_LENGTH"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "actual"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "address",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16be"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      },
+                      "property": "start_address"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "size",
+                "valueType": "uint16_t",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_u16be"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "chip"
+                      },
+                      "property": "image_size"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "switch",
+                "expression": {
+                  "kind": "identifier",
+                  "name": "address"
+                },
+                "cases": [
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 32768
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "declare",
+                        "name": "__tie_480",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "read"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "roml"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "roml_offset"
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "size"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "err"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_480"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "actual"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_480"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "roml_offset"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 40960
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "declare",
+                        "name": "__tie_585",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "read"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "romh"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "romh_offset"
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "size"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "err"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_585"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "actual"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_585"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "romh_offset"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  },
+                  {
+                    "values": [
+                      {
+                        "kind": "number",
+                        "value": 57344
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "declare",
+                        "name": "__tie_690",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "read"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "file"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "romh"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "romh_offset"
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "size"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "err"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_690"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "actual"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__tie_690"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "romh_offset"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "size"
+                        }
+                      },
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "err"
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/c64/exp.cpp",
+    "src/devices/bus/c64/exp.h",
+    "src/devices/imagedev/cartrom.h",
+    "src/devices/imagedev/cartrom.cpp",
+    "src/lib/formats/cbm_crt.h",
+    "src/lib/formats/cbm_crt.cpp"
+  ]
+}

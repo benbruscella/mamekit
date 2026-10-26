@@ -1,0 +1,29 @@
+{
+  "type": "I8085A",
+  "uses": [
+    {
+      "game": "phoenix",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8085A",
+    "className": "i8085a_cpu_device",
+    "shortName": "i8085a",
+    "description": "Intel 8085A",
+    "sourceFile": "src/devices/cpu/i8085/i8085.cpp",
+    "sourceLine": 210,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8085A, i8085a_cpu_device, \"i8085a\", \"Intel 8085A\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/i8085/8085dasm.h",
+    "src/devices/cpu/i8085/i8085.cpp",
+    "src/devices/cpu/i8085/i8085.h"
+  ]
+}

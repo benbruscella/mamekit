@@ -1,0 +1,2910 @@
+{
+  "schemaVersion": 1,
+  "type": "SPEAKER_SOUND",
+  "className": "speaker_sound_device",
+  "description": "Filtered DAC",
+  "hierarchy": [
+    "speaker_sound_device"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/spkrdev.cpp",
+    "src/devices/sound/spkrdev.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "RATE_MULTIPLIER": 4,
+    "FILTER_LENGTH": 64
+  },
+  "members": [
+    {
+      "name": "m_prevx",
+      "valueType": "double"
+    },
+    {
+      "name": "m_prevy",
+      "valueType": "double"
+    },
+    {
+      "name": "m_ampl",
+      "valueType": "double",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrayLength": 64
+    },
+    {
+      "name": "m_level",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_composed_volume",
+      "valueType": "double",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrayLength": 64
+    },
+    {
+      "name": "m_composed_sample_index",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_channel_sample_period",
+      "valueType": "attoseconds_t"
+    },
+    {
+      "name": "m_channel_sample_period_secfrac",
+      "valueType": "double"
+    },
+    {
+      "name": "m_channel_last_sample_time",
+      "valueType": "attotime"
+    },
+    {
+      "name": "m_channel_next_sample_time",
+      "valueType": "attotime"
+    },
+    {
+      "name": "m_interm_sample_period",
+      "valueType": "attoseconds_t"
+    },
+    {
+      "name": "m_interm_sample_period_secfrac",
+      "valueType": "double"
+    },
+    {
+      "name": "m_next_interm_sample_time",
+      "valueType": "attotime"
+    },
+    {
+      "name": "m_interm_sample_index",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_last_update_time",
+      "valueType": "attotime"
+    },
+    {
+      "name": "m_num_levels",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 2
+    },
+    {
+      "name": "m_channel",
+      "valueType": "sound_stream*"
+    },
+    {
+      "name": "m_levels",
+      "valueType": "const double*",
+      "values": [
+        0,
+        1
+      ]
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sample_rate"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_level"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::begin"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_composed_volume",
+                      "floating": true
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::end"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_composed_volume",
+                      "floating": true
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_composed_sample_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interm_sample_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prevx",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_prevy",
+                "floating": true
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0,
+                "floating": true
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_update_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "machine"
+                  },
+                  "args": []
+                },
+                "property": "time"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_sample_period"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "HZ_TO_ATTOSECONDS"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sample_rate"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_sample_period_secfrac",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ATTOSECONDS_TO_DOUBLE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_channel_sample_period"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interm_sample_period"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_sample_period"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "RATE_MULTIPLIER"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interm_sample_period_secfrac",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ATTOSECONDS_TO_DOUBLE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_interm_sample_period"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_last_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_last_update_time"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_next_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "m_channel_sample_period"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_interm_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "m_interm_sample_period"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "FILTER_STEP",
+            "valueType": "double",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "identifier",
+                  "name": "std::numbers::pi"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "RATE_MULTIPLIER"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "i",
+            "valueType": "int"
+          },
+          {
+            "op": "declare",
+            "name": "x",
+            "valueType": "double"
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "number",
+                      "value": 0.5,
+                      "floating": true
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "FILTER_LENGTH"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2,
+                        "floating": true
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "FILTER_STEP",
+                    "floating": true
+                  }
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "FILTER_LENGTH"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x",
+                  "floating": true
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "FILTER_STEP",
+                  "floating": true
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x",
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_ampl",
+                        "floating": true
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_ampl",
+                        "floating": true
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "sin"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "x",
+                            "floating": true
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "x",
+                        "floating": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_level"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_composed_volume",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_composed_sample_index"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_channel_last_sample_time"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_interm_sample_index"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_update_time"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prevx",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prevy",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 104,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_level"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 175,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_next_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "m_channel_sample_period"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_interm_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "m_interm_sample_period"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 180,
+        "column": 1
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "volume",
+            "valueType": "double",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_levels"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_level"
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "filtered_volume",
+            "valueType": "double"
+          },
+          {
+            "op": "declare",
+            "name": "sampled_time",
+            "valueType": "attotime",
+            "value": {
+              "kind": "identifier",
+              "name": "attotime::zero"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sampled_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_channel_sample_period"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sampled_time"
+                    },
+                    "operator": "*=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "samples"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "iterate": [],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "filtered_volume",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_interm_samples_get_filtered_volume"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "volume",
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "put"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "assignment",
+                      "target": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      },
+                      "operator": "+=",
+                      "value": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "postfix": true
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "filtered_volume",
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "sampindex"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  }
+                },
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "filtered_volume",
+                      "floating": true
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "update_interm_samples_get_filtered_volume"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "volume",
+                          "floating": true
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "put"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "identifier",
+                            "name": "sampindex"
+                          },
+                          "operator": "+=",
+                          "value": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "postfix": true
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "filtered_volume",
+                          "floating": true
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_channel_last_sample_time"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "sampled_time"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_channel_next_sample_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_channel_last_sample_time"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "attotime"
+                    },
+                    "args": [
+                      {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "m_channel_sample_period"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_next_interm_sample_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_channel_last_sample_time"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "attotime"
+                    },
+                    "args": [
+                      {
+                        "kind": "number",
+                        "value": 0
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "m_interm_sample_period"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_last_update_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_channel_last_sample_time"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 191,
+        "column": 1
+      }
+    },
+    {
+      "name": "level_w",
+      "parameters": "int new_level",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "volume",
+            "valueType": "double"
+          },
+          {
+            "op": "declare",
+            "name": "time",
+            "valueType": "attotime"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "new_level"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_level"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "new_level"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "new_level"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "new_level"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_num_levels"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "new_level"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_num_levels"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "volume",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_levels"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_level"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "machine"
+                  },
+                  "args": []
+                },
+                "property": "time"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "time"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_channel_next_sample_time"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_interm_samples"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "time"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "volume",
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_level"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "new_level"
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_last_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_channel"
+                },
+                "property": "end_time"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "time"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_channel_last_sample_time"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_channel_sample_period"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_channel_next_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "m_channel_sample_period"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_interm_sample_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "identifier",
+                "name": "m_channel_last_sample_time"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "m_interm_sample_period"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_update_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_channel_last_sample_time"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_interm_samples"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "time"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "volume",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_level"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "new_level"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 235,
+        "column": 1
+      }
+    },
+    {
+      "name": "update_interm_samples",
+      "parameters": "const attotime &time, double volume",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "fraction",
+            "valueType": "double"
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "time"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_next_interm_sample_time"
+              }
+            },
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "finalize_interm_sample"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "volume",
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "init_next_interm_sample"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "fraction",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "make_fraction"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "time"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_last_update_time"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_interm_sample_period_secfrac",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_composed_volume",
+                "floating": true
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_composed_sample_index"
+              }
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "volume",
+                "floating": true
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "fraction",
+                "floating": true
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_update_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "time"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 292,
+        "column": 1
+      }
+    },
+    {
+      "name": "update_interm_samples_get_filtered_volume",
+      "parameters": "double volume",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "filtered_volume",
+            "valueType": "double"
+          },
+          {
+            "op": "declare",
+            "name": "tempx",
+            "valueType": "double"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "m_interm_sample_index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "RATE_MULTIPLIER"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "finalize_interm_sample"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "volume",
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "while",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_interm_sample_index"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "RATE_MULTIPLIER"
+                  }
+                },
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "init_next_interm_sample"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_composed_volume",
+                        "floating": true
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "m_composed_sample_index"
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "volume",
+                      "floating": true
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_filtered_volume"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "init_next_interm_sample"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interm_sample_index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "tempx",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "tempx",
+                  "floating": true
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_prevx",
+                  "floating": true
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "number",
+                  "value": 0.995,
+                  "floating": true
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_prevy",
+                  "floating": true
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prevx",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "tempx",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prevy",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 314,
+        "column": 1
+      }
+    },
+    {
+      "name": "finalize_interm_sample",
+      "parameters": "double volume",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "fraction",
+            "valueType": "double"
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "fraction",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "make_fraction"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_next_interm_sample_time"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_last_update_time"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_interm_sample_period_secfrac",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_composed_volume",
+                "floating": true
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_composed_sample_index"
+              }
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "volume",
+                "floating": true
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "fraction",
+                "floating": true
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_update_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_next_interm_sample_time"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_interm_sample_time"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "attotime"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_interm_sample_period"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 347,
+        "column": 1
+      }
+    },
+    {
+      "name": "init_next_interm_sample",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_composed_sample_index"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_composed_sample_index"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "FILTER_LENGTH"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_composed_sample_index"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_composed_volume",
+                "floating": true
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_composed_sample_index"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interm_sample_index"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 362,
+        "column": 1
+      }
+    },
+    {
+      "name": "make_fraction",
+      "parameters": "const attotime &a, const attotime &b, double timediv",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "a"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "b"
+                    }
+                  },
+                  "property": "as_double"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "timediv",
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 375,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_filtered_volume",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "filtered_volume",
+            "valueType": "double",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ampsum",
+            "valueType": "double",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "i",
+            "valueType": "int"
+          },
+          {
+            "op": "declare",
+            "name": "c",
+            "valueType": "int"
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_composed_sample_index"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "c"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "c"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "FILTER_LENGTH"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "c"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "FILTER_LENGTH"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "filtered_volume",
+                  "floating": true
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_composed_volume",
+                      "floating": true
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "i"
+                    }
+                  },
+                  "right": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ampl",
+                      "floating": true
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "c"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ampsum",
+                  "floating": true
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::abs"
+                  },
+                  "args": [
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_ampl",
+                        "floating": true
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "c"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            },
+            "operator": "/=",
+            "value": {
+              "kind": "identifier",
+              "name": "ampsum",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "filtered_volume",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.cpp",
+        "line": 382,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_levels",
+      "parameters": "int num_levels, const double *levels",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_num_levels"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "num_levels"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_levels"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "levels"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.h",
+        "line": 21,
+        "column": 1
+      }
+    },
+    {
+      "name": "speaker_sound_device::set_levels",
+      "parameters": "int num_levels, const double *levels",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_num_levels"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "num_levels"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_levels"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "levels"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/spkrdev.h",
+        "line": 22,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 13,
+    "compiledMethods": 13,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "device_reset",
+    "device_post_load",
+    "sound_stream_update",
+    "level_w",
+    "update_interm_samples",
+    "update_interm_samples_get_filtered_volume",
+    "finalize_interm_sample",
+    "init_next_interm_sample",
+    "make_fraction",
+    "get_filtered_volume",
+    "set_levels",
+    "speaker_sound_device::set_levels"
+  ]
+}

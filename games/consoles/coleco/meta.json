@@ -1,0 +1,64 @@
+{
+  "game": "coleco",
+  "title": "ColecoVision (NTSC) (Coleco, 1982)",
+  "fullname": "ColecoVision (NTSC)",
+  "year": "1982",
+  "manufacturer": "Coleco",
+  "family": "coleco",
+  "kind": "console",
+  "driverFile": "src/mame/coleco/coleco.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mike Balfour, Ben Bruscella, Sean Young, Frank Palazzolo",
+  "credits": {
+    "people": [
+      {
+        "name": "Ben Bruscella",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Frank Palazzolo",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Mike Balfour",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Sean Young",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "gordon-fish",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.184",
+        "lastRelease": "0.184"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-10-21",
+    "commits": 86,
+    "authors": 22,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,131 @@
+{
+  "game": "invaders",
+  "title": "Space Invaders / Space Invaders M (Taito / Midway, 1978)",
+  "fullname": "Space Invaders / Space Invaders M",
+  "year": "1978",
+  "manufacturer": "Taito / Midway",
+  "family": "mw8080bw",
+  "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria, Tormod Tjaberg, Mirko Buffoni,Lee Taylor, Valerio Verrando, Zsolt Vasvari",
+  "credits": {
+    "people": [
+      {
+        "name": "Lee Taylor",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Mirko Buffoni",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Tormod Tjaberg",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Valerio Verrando",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Zsolt Vasvari",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Colin Douglas Howell",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.223",
+        "lastRelease": "0.224"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.281",
+        "lastRelease": "0.281"
+      },
+      {
+        "name": "Colin Howell",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      },
+      {
+        "name": "einstein95",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.243",
+        "lastRelease": "0.243"
+      },
+      {
+        "name": "Osso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.160",
+        "lastRelease": "0.160"
+      },
+      {
+        "name": "Retromaniacs",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.281",
+        "lastRelease": "0.281"
+      },
+      {
+        "name": "Roger Parramon Junyent",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.281",
+        "lastRelease": "0.281"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 209,
+    "authors": 28,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

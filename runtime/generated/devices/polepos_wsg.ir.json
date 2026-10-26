@@ -1,0 +1,1321 @@
+{
+  "type": "POLEPOS_WSG",
+  "uses": [
+    {
+      "game": "polepos",
+      "tags": [
+        "namco"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "POLEPOS_WSG",
+    "className": "polepos_wsg_device",
+    "shortName": "polepos_wsg",
+    "description": "Namco Pole Position WSG",
+    "sourceFile": "src/devices/sound/namco.cpp",
+    "sourceLine": 59,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(POLEPOS_WSG, polepos_wsg_device, \"polepos_wsg\", \"Namco Pole Position WSG\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/namco.cpp",
+      "sourceLine": 168,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "namco_audio_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "INTERNAL_RATE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_soundregs"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 64
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": [
+          "could not parse statement at byte 112"
+        ]
+      }
+    },
+    {
+      "name": "polepos_sound_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/sound/namco.cpp",
+      "sourceLine": 374,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_soundregs"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "polepos_sound_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/sound/namco.cpp",
+      "sourceLine": 379,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_soundregs"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_soundregs"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ch",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 31
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "voice",
+            "valueType": "sound_channel&",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_channel_list"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "ch"
+              }
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "offset"
+              },
+              "right": {
+                "kind": "number",
+                "value": 35
+              }
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "voice"
+                      },
+                      "property": "frequency"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_soundregs"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "ch"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "voice"
+                      },
+                      "property": "frequency"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_soundregs"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 35
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "voice"
+                      },
+                      "property": "waveform_select"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 2
+                  },
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "voice"
+                        },
+                        "property": "volume"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_soundregs"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "voice"
+                        },
+                        "property": "volume"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_soundregs"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 15
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "voice"
+                        },
+                        "property": "volume"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_soundregs"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 35
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "voice"
+                        },
+                        "property": "volume"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_soundregs"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_soundregs"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "ch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 35
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "voice"
+                            },
+                            "property": "volume"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "assignment",
+                          "target": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "voice"
+                              },
+                              "property": "volume"
+                            },
+                            "index": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "operator": "=",
+                          "value": {
+                            "kind": "assignment",
+                            "target": {
+                              "kind": "index",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "voice"
+                                },
+                                "property": "volume"
+                              },
+                              "index": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "assignment",
+                              "target": {
+                                "kind": "index",
+                                "object": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "voice"
+                                  },
+                                  "property": "volume"
+                                },
+                                "index": {
+                                  "kind": "number",
+                                  "value": 3
+                                }
+                              },
+                              "operator": "=",
+                              "value": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": [
+          "could not parse statement at byte 504"
+        ]
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/namco.cpp",
+      "sourceLine": 618,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_sound_enable"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_channel_list"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "flv",
+                "valueType": "int",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "frv",
+                "valueType": "int",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "rlv",
+                "valueType": "int",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "rrv",
+                "valueType": "int",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "__range0"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "__range0_index"
+                      }
+                    },
+                    "property": "volume"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "c",
+                "valueType": "uint32_t",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "__range0"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "__range0_index"
+                    }
+                  },
+                  "property": "counter"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "flv"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "c"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "namco_update_one"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "waveform_select"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "flv"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "counter"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "frequency"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "frv"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "c"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "namco_update_one"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 1
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "waveform_select"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "frv"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "counter"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "frequency"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "rlv"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "c"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "namco_update_one"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 2
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "waveform_select"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "rlv"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "counter"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "frequency"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "rrv"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "c"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "namco_update_one"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 3
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "waveform_select"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "rrv"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "counter"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "__range0"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "__range0_index"
+                            }
+                          },
+                          "property": "frequency"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "__range0"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "__range0_index"
+                    }
+                  },
+                  "property": "counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "c"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/namco.cpp",
+    "src/devices/sound/namco.h"
+  ]
+}

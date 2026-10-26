@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marble Madness (set 1) — full dossier</title>
+<style>
+:root{--night:#080a17;--panel:#11162f;--line:#29315f;--gold:#f2c200;--ink:#eef0ff;--muted:#929bd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1b214b 0,var(--night) 42%);
+color:var(--ink);font:15px/1.65 ui-sans-serif,system-ui,sans-serif}a{color:#b8c4ff}nav{position:sticky;top:0;z-index:4;
+display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:13px max(22px,calc((100vw - 1120px)/2));
+background:rgba(8,10,23,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+nav strong{color:var(--gold);margin-right:auto}.button{border:1px solid #5966aa;border-radius:999px;padding:7px 13px;text-decoration:none}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#17130a;font-weight:800}
+main{max-width:1120px;margin:auto;padding:48px 24px 80px}.eyebrow{color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:800}
+h1{font-size:clamp(38px,7vw,76px);line-height:.96;margin:10px 0 16px;max-width:900px}.dek{color:var(--muted);font-size:18px;margin-bottom:32px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:34px;align-items:end}.hero img{width:100%;max-height:330px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:28px 0}.card,section{background:rgba(17,22,47,.86);
+border:1px solid var(--line);border-radius:16px;padding:24px}section{margin:20px 0}h2{color:var(--gold);margin:0 0 14px;font-size:22px}
+.fact{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #222a54;padding:7px 0}.fact span{color:var(--muted)}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #252d5b}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}details{border-top:1px solid var(--line);padding:12px 0}
+summary{cursor:pointer;color:var(--gold);font-weight:700}.story{white-space:pre-wrap;color:#cbd0ef}
+@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.hero img{display:none}nav{position:static}main{padding-top:30px}}
+</style>
+</head>
+<body>
+<nav>
+  <strong>MAME HISTORY · DOSSIER</strong>
+  <a href="../">Back to Marble Madness (set 1)</a>
+  <a href="../../../browse/">Browse the archive</a>
+  <a href="../../../../games/arcade/marble/viewer.html">Machine explorer</a>
+  <a class="button primary" href="../../../../games/arcade/marble/marble-dossier.md" download="marble-dossier.md">Download marble-dossier.md</a>
+</nav>
+<main>
+  <div class="hero"><div><div class="eyebrow">Atari Games · 1984</div>
+    <h1>Marble Madness (set 1)</h1>
+    <p class="dek">A generated preservation dossier drawn from the MAME driver, its knowledge graph, and source history.</p>
+  </div><img src="/artwork/media/marquees/marble.webp" alt=""></div>
+  <div class="grid">
+    <div class="card"><h2>Machine identity</h2>
+      <div class="fact"><span>Set</span><strong>marble</strong></div>
+      <div class="fact"><span>Driver</span><strong>src/mame/atari/atarisy1.cpp</strong></div>
+      <div class="fact"><span>Board family</span><strong>atarisy1</strong></div>
+      <div class="fact"><span>License</span><strong>BSD-3-Clause</strong></div>
+    </div>
+    <div class="card"><h2>Signal and display</h2>
+      <div class="fact"><span>Sound</span><strong>ym2151</strong></div>
+      <div class="fact"><span>Screen</span><strong>336×240 @ 59.92 Hz</strong></div>
+      <div class="fact"><span>Orientation</span><strong>landscape</strong></div>
+    </div>
+  </div>
+  <section><h2>Processors</h2><div class="table-wrap"><table><thead><tr><th>Tag</th><th>Family</th><th>Clock</th><th>Mapped ranges</th></tr></thead><tbody><tr><td>maincpu</td><td>M68010</td><td>7.159 MHz</td><td>23</td></tr><tr><td>audiocpu</td><td>M6502</td><td>1.790 MHz</td><td>8</td></tr></tbody></table></div></section>
+  <section><h2>ROM map</h2><div class="table-wrap"><table><thead><tr><th>Region</th><th>Chip</th><th>Offset</th><th>Size</th><th>CRC</th></tr></thead><tbody><tr><td>maincpu</td><td>136032.205.l13</td><td>0x0</td><td>0x4000</td><td>88d0be26</td></tr><tr><td>maincpu</td><td>136032.206.l12</td><td>0x1</td><td>0x4000</td><td>3c79ef05</td></tr><tr><td>maincpu</td><td>136033.623</td><td>0x10000</td><td>0x4000</td><td>284ed2e9</td></tr><tr><td>maincpu</td><td>136033.624</td><td>0x10001</td><td>0x4000</td><td>d541b021</td></tr><tr><td>maincpu</td><td>136033.625</td><td>0x18000</td><td>0x4000</td><td>563755c7</td></tr><tr><td>maincpu</td><td>136033.626</td><td>0x18001</td><td>0x4000</td><td>860feeb3</td></tr><tr><td>maincpu</td><td>136033.627</td><td>0x20000</td><td>0x4000</td><td>d1dbd439</td></tr><tr><td>maincpu</td><td>136033.628</td><td>0x20001</td><td>0x4000</td><td>957d6801</td></tr><tr><td>maincpu</td><td>136033.229</td><td>0x28000</td><td>0x4000</td><td>c81d5c14</td></tr><tr><td>maincpu</td><td>136033.630</td><td>0x28001</td><td>0x4000</td><td>687a09f7</td></tr><tr><td>maincpu</td><td>136033.107</td><td>0x80000</td><td>0x4000</td><td>f3b8745b</td></tr><tr><td>maincpu</td><td>136033.108</td><td>0x80001</td><td>0x4000</td><td>e51eecaa</td></tr><tr><td>audiocpu</td><td>136033.421</td><td>0x8000</td><td>0x4000</td><td>78153dc3</td></tr><tr><td>audiocpu</td><td>136033.422</td><td>0xc000</td><td>0x4000</td><td>2e66300e</td></tr><tr><td>alpha</td><td>136032.104.f5</td><td>0x0</td><td>0x2000</td><td>7a29dc07</td></tr><tr><td>tiles</td><td>136033.137</td><td>0x0</td><td>0x4000</td><td>7a45f5c1</td></tr><tr><td>tiles</td><td>136033.138</td><td>0x4000</td><td>0x4000</td><td>7e954a88</td></tr><tr><td>tiles</td><td>136033.139</td><td>0x10000</td><td>0x4000</td><td>1eb1bb5f</td></tr><tr><td>tiles</td><td>136033.140</td><td>0x14000</td><td>0x4000</td><td>8a82467b</td></tr><tr><td>tiles</td><td>136033.141</td><td>0x20000</td><td>0x4000</td><td>52448965</td></tr><tr><td>tiles</td><td>136033.142</td><td>0x24000</td><td>0x4000</td><td>b4a70e4f</td></tr><tr><td>tiles</td><td>136033.143</td><td>0x30000</td><td>0x4000</td><td>7156e449</td></tr><tr><td>tiles</td><td>136033.144</td><td>0x34000</td><td>0x4000</td><td>4c3e4c79</td></tr><tr><td>tiles</td><td>136033.145</td><td>0x40000</td><td>0x4000</td><td>9062be7f</td></tr><tr><td>tiles</td><td>136033.146</td><td>0x44000</td><td>0x4000</td><td>14566dca</td></tr><tr><td>tiles</td><td>136033.149</td><td>0x84000</td><td>0x4000</td><td>b6658f06</td></tr><tr><td>tiles</td><td>136033.151</td><td>0x94000</td><td>0x4000</td><td>84ee1c80</td></tr><tr><td>tiles</td><td>136033.153</td><td>0xa4000</td><td>0x4000</td><td>daa02926</td></tr><tr><td>proms</td><td>136033.118</td><td>0x0</td><td>0x200</td><td>2101b0ed</td></tr><tr><td>proms</td><td>136033.119</td><td>0x200</td><td>0x200</td><td>19f6e767</td></tr><tr><td>motherbrd_proms</td><td>136032.101.e3</td><td>0x0</td><td>0x100</td><td>7e84972a</td></tr><tr><td>motherbrd_proms</td><td>136032.102.e5</td><td>0x0</td><td>0x100</td><td>ebf1e0ae</td></tr><tr><td>motherbrd_proms</td><td>136032.103.f7</td><td>0x0</td><td>0xeb</td><td>92d6a0b4</td></tr></tbody></table></div></section>
+  <section><h2>Controls</h2><div class="table-wrap"><table><thead><tr><th>Key</th><th>Function</th><th>Port</th><th>Bit</th></tr></thead><tbody><tr><td>Left</td><td>trackball x left</td><td>IN0</td><td>0xff</td></tr><tr><td>Right</td><td>trackball x right</td><td>IN0</td><td>0xff</td></tr><tr><td>Up</td><td>trackball y up</td><td>IN1</td><td>0xff</td></tr><tr><td>Down</td><td>trackball y down</td><td>IN1</td><td>0xff</td></tr><tr><td>1</td><td>start1</td><td>F60000</td><td>0x1</td></tr><tr><td>2</td><td>start2</td><td>F60000</td><td>0x2</td></tr><tr><td>5</td><td>coin1</td><td>1820</td><td>0x1</td></tr><tr><td>6</td><td>coin2</td><td>1820</td><td>0x2</td></tr></tbody></table></div></section>
+  <section><h2>The people behind the driver</h2>
+    <div class="fact"><span>Driver source</span><strong>src/mame/atari/atarisy1.cpp</strong></div>
+    <div class="fact"><span>Written by</span><strong>Aaron Giles</strong></div>
+    <div class="fact"><span>Credited by MAMEDEV</span><strong>Aaron Giles (driver header); SynaMax (3 release notes); David Haywood (2 release notes); hap (2 release notes); algestam (1 release note); anonymous (1 release note); AntoPISA (1 release note); Dutchman2000 (1 release note); Sonikos (1 release note); Tafoid (1 release note)</strong></div>
+    <div class="fact"><span>Credit source</span><strong>MAME driver header (copyright-holders) and MAMEDEV release notes</strong></div>
+    <div class="fact"><span>Commit activity</span><strong>233 commits by 32 commit authors, 2007–2026 (git log --follow over the driver file at MAME f34f02505e32; not a statement of authorship)</strong></div>
+  </section>
+  <section><h2>The story</h2><p class="story">Arcade Video game published 42 years ago:
+
+Marble Madness (c) 1984 Atari Games Corporation.
+
+Marble Madness is an abstract maze game for one or two players. The game's goal is to guide a small glass marble over a three-dimensional maze and reach the finish line before the level's timer has expired. Any seconds that remain on the timer when the finish line is crossed are carried over to the next level. 
+
+As well as having to negotiate the marble over treacherous walkways and ramps, numerous obstacles and unfriendly creatures will try to slow the marble's progress or knock it over the edge of a platform, wasting yet more precious seconds until a replacement marble appears. The two-player game has players competing to reach the goal first. 
+
+Marble Madness features six different mazes. The race names are:
+1. Practice
+2. Beginner
+3. Intermediate
+4. Aerial
+5. Silly
+6. Ultimate</p><details><summary>TECHNICAL</summary><p class="story">Game ID : 136033
+
+Runs on the &quot;Atari System 1&quot; hardware.
+
+Players : 2
+Control : trackball</p></details><details><summary>TRIVIA</summary><p class="story">Marble Madness was released in December 1984. 
+
+Marble Madness was the first game to run on the new Atari System 1 hardware and was the perfect showcase for Atari to demonstrate the technical superiority of its new arcade architecture. It was also the first game to feature such impressive and cleanly rendered pseudo 3-D Graphics. The original design brief called for the trackball to be motorized and synchronize its spin with that of the marble, to simulate inertia.
+
+Mark Cerny was only 17 years old when he joined Atari and designed Marble Madness. The game was designed as part of a contest Atari ran at the time, allowing outsiders to design a game. Mark was very well known for his game-playing skills and easily won the contest. He then taught himself how to program in assembly language before joining Atari, so he found it very easy to settle in at Atari.
+
+3,270 units were produced. The original selling price was $1,795.
+
+Marble Madness was the first game to feature true stereo sound; it was the first game to truly capitalize on what in-game music could offer the player, with each level having its own distinctive, and suspense building soundtrack. Marble Madness was also one of the few games of the time to have a definite goal, in that the game ends when all levels are completed.
+
+Default highscore table (TROUBLEMAKERS) :
+#1 C R 14,500
+#2 UFO 14,000
+#3 GJL 13,500
+#4 SKP 13,000
+#5 PCT 12,500
+#6 PTR 12,000
+#7 JDH 11,500
+#8 DAT 11,000
+#9 JFS 10,500
+#10 DAR 10,000
+
+Stan Szczepanski holds the official record for this game with 187,880 points.
+
+A sequel to this classic game, entitled &quot;Marble Madness 2 - Marble Man&quot; was fully developed and a very small number of cabinets were built, but unfortunately the game was never released. Unlike the first game's superb trackball control, 'Marble Man' was controlled via a joystick.</p></details><details><summary>SCORING</summary><p class="story">Moving the marble : 10 points per unit
+Taking a jump (Practice race only) : 3,000 to 6,000 points
+Killing Black Steelie : 1,000 points
+Going through a tunnel or tube : 2,000 or 4,000 points
+Rolling over an enemy (Silly race only) : 500 points + 3 seconds of time
+Finishing a race : race number x 1,000 points
+Finishing a race : seconds remaining x 100 points
+Finishing the game : 20,000 points + 1,000 points per second remaining
+Finishing the game : -1,000 point penalty for every death during the game.</p></details><details><summary>TIPS AND TRICKS</summary><p class="story">* Hints:
+1) Anticipate your next move and start the Trak-Ball rolling in that direction ahead of time.
+2) Complete each raceway as fast as possible because extra seconds mean extra points, and the extra time from one raceway is carried over to the next raceway
+3) Try to maneuver around the Black Steelie, or try to bump him off a cliff to get rid of him permanently.
+4) Move quickly to avoid being swallowed by the green Marble Munchers.
+5) Watch for patterns, and time your movements right to pass by difficult obstacles.
+6) Some raceways have alternate paths, so explore a bit and you may find an easier way to reach the goal. Bonus points are given for paths which are more difficult.
+
+* Cancel The Timer: Begin a game and then hold down either 1 or 2 player Start and press service switch' twice. The first press will glitch the screen display slightly - the second will remove it and give you 99 seconds to complete the level. This method adds 60 seconds to the clock, after which the normal countdown will begin. The clock will not appear to be counting down during the first 60 seconds, probably because the 99-second display was overflowed by the extra 60 seconds added. This method can be used multiple times per level for virtually infinite play time.
+
+* When playing with 2 players, the winner of each level gets a bonus 5 seconds. If your opponent can make it as far as the silly race, that's an extra 25 seconds for the ultimate race, not to mention a possible extra 10 seconds with a wand. The opponent can also continue once (with the same time as the other player).
+
+* This isn't really a trick, but some people don't realize it: On the practice race, don't move when you start, and after a few seconds, a ramp will appear that will slide away the ball.</p></details><details><summary>STAFF</summary><p class="story">Designer &amp; Graphics Programmer: Mark Cerny
+Game Programmer: Bob Flanagan
+Animator: Sam Comstock
+Sound Design: Hal Canon, Brad Fuller
+Hardware Design: Sam Ly (S Ly), Jed Margolin (J Margolin), Don Paauw (D Paauw), Doug Snyder (D Snyder)
+System Support: Chris Downend (C Downend), Morgan Hoff (M Hoff), Jack Ritter (J Ritter)
+Software Support: Mike Albaugh (M Albaugh), Mike Mahar (M Mahar), Rich Moore (R Moore)
+Hardware Support: Juan Castillo (J Castillo), Erik Durfey (E Durfey), Patrick McCarthy (P McCarthy), Minh Nguyen (N Minh)</p></details><details><summary>PORTS</summary><p class="story">* CONSOLES:
+Atari 7800 : Unreleased prototype
+[EU] [AU] Nintendo NES (1989) 
+[US] Nintendo NES (mar.1989) &quot;Marble Madness [Model NES-MV]&quot; 
+[EU] Sega Master System (1992) &quot;Marble Madness [Model 27024]&quot; 
+[US] Sega Genesis (1993) 
+[EU] Sega Mega Drive (1993) 
+[JP] Sega Mega Drive (aug.13, 1993) &quot;Marble Madness [Model T-48113]&quot; 
+[US] Sony PlayStation (dec.31, 1997) &quot;Arcade's Greatest Hits - The Atari Collection 2 [Model SLUS-00449]&quot; 
+[EU] Sony PlayStation (june.1998) &quot;Arcade's Greatest Hits - The Atari Collection 2 [Model SLES-00712]&quot; 
+[US] Sony PS2 (nov.18, 2003) &quot;Midway Arcade Treasures [Model SLUS-20801]&quot; 
+[US] Microsoft XBOX (nov.24, 2003) &quot;Midway Arcade Treasures&quot; 
+[US] Nintendo GameCube (dec.18, 2003) &quot;Midway Arcade Treasures [Model DOL-GAKE-USA]&quot; 
+[EU] Microsoft XBOX (feb.6, 2004) &quot;Midway Arcade Treasures&quot; 
+[EU] Sony PS2 (feb.6, 2004) &quot;Midway Arcade Treasures [Model SLES-51927]&quot; 
+[US] Microsoft XBOX 360 (nov.6, 2012) &quot;Midway Arcade Origins&quot; 
+[US] Sony PlayStation 3 (nov.6, 2012) &quot;Midway Arcade Origins [Model BLUS-31083]&quot;
+[EU] Microsoft XBOX 360 (nov.15, 2012) &quot;Midway Arcade Origins&quot; 
+[EU] Sony PlayStation 3 (nov.15, 2012) &quot;Midway Arcade Origins [Model BLES-01768]&quot;
+
+* HANDHELDS: 
+[US] Nintendo Game Boy (may.1991) &quot;Marble Madness [Model DMG-MB-USA]&quot; 
+[US] Sega Game Gear (1992) &quot;Marble Madness [Model T-48058]&quot; 
+[EU] Sega Game Gear (1992) &quot;Marble Madness [Model T-48058-50]&quot; 
+[EU] Nintendo Game Boy (may.21, 1992) &quot;Marble Madness [Model DMG-MB-NOE]&quot; 
+[US] Nintendo Game Boy Color (dec.1999) &quot;Marble Madness [Model CGB-ANNE-USA]&quot; 
+[EU] Nintendo Game Boy Color (mar.13, 2000) &quot;Marble Madness [Model CGB-ANNE-USA]&quot; 
+[US] Nintendo GBA (aug.16, 2005) &quot;2 Games in One! Marble Madness + Klax [Model AGB-B68E-USA]&quot; 
+[EU] Nintendo GBA (sept.16, 2005) &quot;2 Games in One! Marble Madness + Klax [Model AGB-B68P-EUR]&quot; 
+[US] Sony PSP (dec.13, 2005) &quot;Midway Arcade Treasures Extended Play [Model ULUS-10059]&quot; 
+[EU] Sony PSP (feb.24, 2006) &quot;Midway Arcade Treasures Extended Play [Model ULES-00180]&quot; 
+
+* COMPUTERS:
+[US] Tandy Color Computer (1985) &quot;Marble Maze&quot; 
+[US] Atari ST (1986)
+[US] PC [Booter] (1986)
+[US] [EU] Commodore C64 (1986)
+[US] Apple II (1986)
+[EU] Amstrad CPC (1986)
+[US] [EU] Commodore Amiga (1986)
+[EU] Sinclair ZX Spectrum (1987)
+[US] PC [MS-DOS] (1987) 
+[JP] Sharp X68000 (mar.15, 1991) 
+[JP] FM Towns PC (1991) 
+[JP] NEC PC-9801 (1991) &quot;Marble Madness&quot;
+[US] PC [MS Windows, CD-ROM] (jan.1, 1999) &quot;Arcade's Greatest Hits - The Atari Collection 2&quot; 
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) &quot;Midway Arcade Treasures&quot; 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) &quot;Midway Arcade Treasures&quot; 
+
+* OTHERS:
+[US] LCD handheld game (1989) by Tiger Electronics.
+[US] Mobile Phones (sept.2004) 
+[US] BlackBerry (nov.12, 2009) [Model 4315] 
+[US] Windows Mobile (feb.1, 2010) 
+[US] Apple iPhone/iPod (apr.23, 2010) [Model 367932500]</p></details><details><summary>SERIES</summary><p class="story">1. Marble Madness (1984)
+2. Marble Man - Marble Madness II (1991)</p></details><details><summary>CONTRIBUTE</summary><p class="story">Edit this entry: https://www.arcade-history.com/game/1559/?o=2</p></details><p class="dek">Story courtesy of Gaming History (arcade-history.com)</p></section>
+</main>
+</body>
+</html>

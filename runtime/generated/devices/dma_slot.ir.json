@@ -1,0 +1,802 @@
+{
+  "type": "DMA_SLOT",
+  "uses": [
+    {
+      "game": "spec128",
+      "tags": [
+        "dma"
+      ]
+    },
+    {
+      "game": "spectrum",
+      "tags": [
+        "dma"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DMA_SLOT",
+    "className": "dma_slot_device",
+    "shortName": "dma_slot",
+    "description": "Spectrum DMA Slot",
+    "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+    "sourceLine": 26,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DMA_SLOT, dma_slot_device, \"dma_slot\", \"Spectrum DMA Slot\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "busreq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 51,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_out_busreq_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "int_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 52,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_out_int_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mreq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 53,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_out_mreq_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mreq_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_in_mreq_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iorq_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_out_iorq_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iorq_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 56,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_in_iorq_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bai_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.cpp",
+      "sourceLine": 57,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_card"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_card"
+                    },
+                    "property": "bai_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_io_space",
+      "parameters": "auto &&tag, int spacenum",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spacenum"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_busreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_busreq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_int_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_mreq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_mreq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_iorq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_iorq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "io",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_io"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::dma_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, auto &&opts, const char *dflt",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::set_io_space",
+      "parameters": "auto &&tag, int spacenum",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "spacenum"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::out_busreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_busreq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_int_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::in_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_mreq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::out_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_mreq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::in_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_in_iorq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::out_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_out_iorq_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dma_slot_device::io",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/spectrum/dma/slot.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_io"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/spectrum/dma/slot.cpp",
+    "src/devices/bus/spectrum/dma/slot.h",
+    "src/devices/cpu/z80/z80.h",
+    "src/devices/machine/z80daisy.h",
+    "src/devices/machine/z80daisy.cpp",
+    "src/devices/cpu/z80/z80.cpp",
+    "src/devices/machine/z80dma.h",
+    "src/devices/machine/z80dma.cpp"
+  ]
+}

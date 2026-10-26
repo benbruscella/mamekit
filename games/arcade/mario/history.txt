@@ -1,0 +1,43 @@
+Arcade Video game published 43 years ago:
+
+Mario Bros. (c) 1983 Nintendo of America, Incorporated.
+
+North American version. For more information about the game itself, please see the original Japanese version entry; "Mario Bros. [No. TMA1-UP]".
+
+- TECHNICAL -
+
+Game No. TMA1-UP-US
+
+- TRIVIA -
+
+Mario Bros. was released on July 20, 1983 in the USA.
+
+- UPDATES -
+
+Revisions E and G:
+You get an extra life at 20,000, 30,000, 40,000 points, or none at all (depending on the DIP Switch settings, the default is 20,000). You don't get any more free lives afterward.
+
+Revision F:
+You get an extra life at 20,000, 30,000, or 40,000 points (depending on the DIP Switch settings, the default is 20,000). Afterward you get free lives at every 20,000 points you score. The option to get no free lives at all is not available in Revision F.
+
+- PORTS -
+
+NOTE: Only ports released in North America are listed here. For ports released in other regions, please see the original Japanese version entry; "Mario Bros. [No. TMA1-UP]".
+
+* CONSOLES: 
+[US] Atari 2600 (1983) "Mario Bros. [Model CX2697]" 
+[US] Atari 5200 (1983) "Mario Bros. [Model CX5247]" 
+[US] Nintendo NES (june.1986) "Mario Bros. [Model NES-MA-USA]" 
+[US] Atari 7800 (1987) "Mario Bros. [Model CX7850]" 
+Atari XEGS 
+
+* COMPUTERS: 
+[US] Apple II (1984) 
+[US] Commodore C64 (1984)
+[US] Atari 800 (1989) "Mario Bros. [Model RX8103]"
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/57554/?o=2
+
+— Gaming History (arcade-history.com)

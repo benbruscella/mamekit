@@ -1,0 +1,121 @@
+{
+  "game": "ddragon",
+  "title": "Double Dragon (World set 1) (Technos Japan (Taito license), 1987)",
+  "fullname": "Double Dragon (World set 1)",
+  "year": "1987",
+  "manufacturer": "Technos Japan (Taito license)",
+  "family": "ddragon",
+  "driverFile": "src/mame/technos/ddragon.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Philip Bennett,Carlos A. Lozano, Rob Rosenbrock, Phil Stroffolino, Ernesto Corvi, David Haywood, R. Belmont",
+  "credits": {
+    "people": [
+      {
+        "name": "Carlos A. Lozano",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Ernesto Corvi",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Phil Stroffolino",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Philip Bennett",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "R. Belmont",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Rob Rosenbrock",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.150",
+        "lastRelease": "0.150"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.276",
+        "lastRelease": "0.276"
+      },
+      {
+        "name": "Osso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.153",
+        "lastRelease": "0.153"
+      },
+      {
+        "name": "Augusto",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.243",
+        "lastRelease": "0.243"
+      },
+      {
+        "name": "jotego",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.252",
+        "lastRelease": "0.252"
+      },
+      {
+        "name": "Steven Coomber",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.243",
+        "lastRelease": "0.243"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-12-26",
+    "commits": 257,
+    "authors": 35,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

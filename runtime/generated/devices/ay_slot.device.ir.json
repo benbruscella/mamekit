@@ -1,0 +1,1142 @@
+{
+  "schemaVersion": 1,
+  "type": "AY_SLOT",
+  "className": "ay_slot_device",
+  "description": "AY Slot",
+  "hierarchy": [
+    "ay_slot_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/spectrum/ay/slot.cpp",
+    "src/devices/bus/spectrum/ay/slot.h",
+    "src/devices/sound/ay8910.h",
+    "src/devices/sound/ay8910.cpp"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "AY8910_INTERNAL_RESISTANCE": 356,
+    "YM2149_INTERNAL_RESISTANCE": 353,
+    "AY8910_LEGACY_OUTPUT": 1,
+    "AY8910_SINGLE_OUTPUT": 2,
+    "AY8910_DISCRETE_OUTPUT": 4,
+    "AY8910_RESISTOR_OUTPUT": 8,
+    "YM2149_PIN26_HIGH": 0,
+    "YM2149_PIN26_LOW": 16,
+    "NUM_CHANNELS": 3,
+    "PSG_TYPE_AY": 0,
+    "PSG_TYPE_YM": 1,
+    "PSG_DEFAULT": 0,
+    "PSG_PIN26_IS_CLKSEL": 1,
+    "PSG_HAS_INTERNAL_DIVIDER": 2,
+    "PSG_EXTENDED_ENVELOPE": 4,
+    "PSG_HAS_EXPANDED_MODE": 8,
+    "AY_AFINE": 0,
+    "AY_ACOARSE": 1,
+    "AY_BFINE": 2,
+    "AY_BCOARSE": 3,
+    "AY_CFINE": 4,
+    "AY_CCOARSE": 5,
+    "AY_NOISEPER": 6,
+    "AY_ENABLE": 7,
+    "AY_AVOL": 8,
+    "AY_BVOL": 9,
+    "AY_CVOL": 10,
+    "AY_EAFINE": 11,
+    "AY_EACOARSE": 12,
+    "AY_EASHAPE": 13,
+    "AY_PORTA": 14,
+    "AY_PORTB": 15,
+    "AY_EBFINE": 16,
+    "AY_EBCOARSE": 17,
+    "AY_ECFINE": 18,
+    "AY_ECCOARSE": 19,
+    "AY_EBSHAPE": 20,
+    "AY_ECSHAPE": 21,
+    "AY_ADUTY": 22,
+    "AY_BDUTY": 23,
+    "AY_CDUTY": 24,
+    "AY_NOISEAND": 25,
+    "AY_NOISEOR": 26,
+    "AY_TEST": 31,
+    "ENABLE_REGISTER_TEST": 0,
+    "MAX_OUTPUT": 1
+  },
+  "members": [
+    {
+      "name": "m_dev",
+      "valueType": "device_ay_slot_interface*",
+      "initial": 0,
+      "objectType": "device_ay_slot_interface"
+    },
+    {
+      "name": "ym2149_param",
+      "valueType": "ay_ym_param",
+      "fields": [
+        {
+          "name": "r_up",
+          "valueType": "double"
+        },
+        {
+          "name": "r_down",
+          "valueType": "double"
+        },
+        {
+          "name": "res_count",
+          "bits": 32,
+          "signed": true
+        },
+        {
+          "name": "res",
+          "length": 32,
+          "valueType": "double"
+        }
+      ],
+      "initialValue": {
+        "r_up": 630,
+        "r_down": 801,
+        "res_count": 16,
+        "res": [
+          73770,
+          37586,
+          27458,
+          21451,
+          15864,
+          12371,
+          8922,
+          6796,
+          4763,
+          3521,
+          2403,
+          1737,
+          1123,
+          762,
+          438,
+          251
+        ]
+      }
+    },
+    {
+      "name": "ym2149_param_env",
+      "valueType": "ay_ym_param",
+      "fields": [
+        {
+          "name": "r_up",
+          "valueType": "double"
+        },
+        {
+          "name": "r_down",
+          "valueType": "double"
+        },
+        {
+          "name": "res_count",
+          "bits": 32,
+          "signed": true
+        },
+        {
+          "name": "res",
+          "length": 32,
+          "valueType": "double"
+        }
+      ],
+      "initialValue": {
+        "r_up": 630,
+        "r_down": 801,
+        "res_count": 32,
+        "res": [
+          103350,
+          73770,
+          52657,
+          37586,
+          32125,
+          27458,
+          24269,
+          21451,
+          18447,
+          15864,
+          14009,
+          12371,
+          10506,
+          8922,
+          7787,
+          6796,
+          5689,
+          4763,
+          4095,
+          3521,
+          2909,
+          2403,
+          2043,
+          1737,
+          1397,
+          1123,
+          925,
+          762,
+          578,
+          438,
+          332,
+          251
+        ]
+      }
+    },
+    {
+      "name": "ay8910_param",
+      "valueType": "ay_ym_param",
+      "fields": [
+        {
+          "name": "r_up",
+          "valueType": "double"
+        },
+        {
+          "name": "r_down",
+          "valueType": "double"
+        },
+        {
+          "name": "res_count",
+          "bits": 32,
+          "signed": true
+        },
+        {
+          "name": "res",
+          "length": 32,
+          "valueType": "double"
+        }
+      ],
+      "initialValue": {
+        "r_up": 800000,
+        "r_down": 8000000,
+        "res_count": 16,
+        "res": [
+          15950,
+          15350,
+          15090,
+          14760,
+          14275,
+          13620,
+          12890,
+          11370,
+          10600,
+          8590,
+          7190,
+          5985,
+          4820,
+          3945,
+          3017,
+          2345
+        ]
+      }
+    },
+    {
+      "name": "ay8910_mosfet_param",
+      "valueType": "mosfet_param",
+      "fields": [
+        {
+          "name": "m_Vth",
+          "valueType": "double"
+        },
+        {
+          "name": "m_Vg",
+          "valueType": "double"
+        },
+        {
+          "name": "m_count",
+          "bits": 32,
+          "signed": true
+        },
+        {
+          "name": "m_Kn",
+          "length": 32,
+          "valueType": "double"
+        }
+      ],
+      "initialValue": {
+        "m_Vth": 1.465385778,
+        "m_Vg": 4.9,
+        "m_count": 16,
+        "m_Kn": [
+          0.00076,
+          0.80536,
+          1.13106,
+          1.65952,
+          2.42261,
+          3.60536,
+          5.34893,
+          8.96871,
+          10.97202,
+          19.3237,
+          29.01935,
+          38.82026,
+          55.50539,
+          78.44395,
+          109.49257,
+          153.72985
+        ]
+      }
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dev"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/spectrum/ay/slot.cpp",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_dev"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_dev"
+                  },
+                  "property": "data_r"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/spectrum/ay/slot.cpp",
+        "line": 36,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "data_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dev"
+                    },
+                    "property": "data_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/spectrum/ay/slot.cpp",
+        "line": 41,
+        "column": 1
+      }
+    },
+    {
+      "name": "address_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_dev"
+                    },
+                    "property": "address_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/spectrum/ay/slot.cpp",
+        "line": 46,
+        "column": 1
+      }
+    },
+    {
+      "name": "ay_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, auto &&opts, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/spectrum/ay/slot.h",
+        "line": 17,
+        "column": 1
+      }
+    },
+    {
+      "name": "ay_slot_device::ay_slot_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, auto &&opts, const char *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/spectrum/ay/slot.h",
+        "line": 17,
+        "column": 39
+      }
+    }
+  ],
+  "structs": {
+    "ay_ym_param": [
+      {
+        "name": "r_up",
+        "valueType": "double"
+      },
+      {
+        "name": "r_down",
+        "valueType": "double"
+      },
+      {
+        "name": "res_count",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "res",
+        "length": 32,
+        "valueType": "double"
+      }
+    ],
+    "mosfet_param": [
+      {
+        "name": "m_Vth",
+        "valueType": "double"
+      },
+      {
+        "name": "m_Vg",
+        "valueType": "double"
+      },
+      {
+        "name": "m_count",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "m_Kn",
+        "length": 32,
+        "valueType": "double"
+      }
+    ],
+    "tone_t": [
+      {
+        "name": "period",
+        "bits": 32
+      },
+      {
+        "name": "volume",
+        "bits": 8
+      },
+      {
+        "name": "duty",
+        "bits": 8
+      },
+      {
+        "name": "count",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "duty_cycle",
+        "bits": 8
+      },
+      {
+        "name": "output",
+        "bits": 8
+      }
+    ],
+    "envelope_t": [
+      {
+        "name": "period",
+        "bits": 32
+      },
+      {
+        "name": "count",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "step",
+        "bits": 8,
+        "signed": true
+      },
+      {
+        "name": "volume",
+        "bits": 32
+      },
+      {
+        "name": "hold",
+        "bits": 8
+      },
+      {
+        "name": "alternate",
+        "bits": 8
+      },
+      {
+        "name": "attack",
+        "bits": 8
+      },
+      {
+        "name": "holding",
+        "bits": 8
+      }
+    ]
+  },
+  "structMethods": {
+    "tone_t": [
+      {
+        "name": "reset",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "period"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "volume"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "duty"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "count"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "duty_cycle"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "output"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "set_period",
+        "parameters": "u8 fine, u8 coarse",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "period"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "identifier",
+                  "name": "fine"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "coarse"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "set_volume",
+        "parameters": "u8 val",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "volume"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "val"
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "set_duty",
+        "parameters": "u8 val",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "duty"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "val"
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      }
+    ],
+    "envelope_t": [
+      {
+        "name": "reset",
+        "parameters": "",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "period"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "count"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "step"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "volume"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "hold"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "alternate"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "attack"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "holding"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "set_period",
+        "parameters": "u8 fine, u8 coarse",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "period"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "identifier",
+                  "name": "fine"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "coarse"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      },
+      {
+        "name": "set_shape",
+        "parameters": "u8 shape, u8 mask",
+        "program": {
+          "operations": [
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "attack"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "conditional",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "shape"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "whenTrue": {
+                  "kind": "identifier",
+                  "name": "mask"
+                },
+                "whenFalse": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            {
+              "op": "if",
+              "condition": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "shape"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "then": [
+                {
+                  "op": "assign",
+                  "target": {
+                    "kind": "identifier",
+                    "name": "hold"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                {
+                  "op": "assign",
+                  "target": {
+                    "kind": "identifier",
+                    "name": "alternate"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "attack"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "op": "assign",
+                  "target": {
+                    "kind": "identifier",
+                    "name": "hold"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "shape"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                {
+                  "op": "assign",
+                  "target": {
+                    "kind": "identifier",
+                    "name": "alternate"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "shape"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "step"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "mask"
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "holding"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            {
+              "op": "assign",
+              "target": {
+                "kind": "identifier",
+                "name": "volume"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "identifier",
+                  "name": "step"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "attack"
+                }
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      }
+    ]
+  },
+  "start": "device_start",
+  "summary": {
+    "methods": 6,
+    "compiledMethods": 6,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "data_r",
+    "data_w",
+    "address_w",
+    "ay_slot_device",
+    "ay_slot_device::ay_slot_device"
+  ]
+}

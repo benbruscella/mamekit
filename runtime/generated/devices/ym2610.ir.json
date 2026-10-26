@@ -1,0 +1,28 @@
+{
+  "type": "YM2610",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "ymsnd"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM2610",
+    "className": "ym2610_device",
+    "shortName": "ym2610",
+    "description": "YM2610 OPNB",
+    "sourceFile": "src/devices/sound/ymopn.cpp",
+    "sourceLine": 224,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM2610, ym2610_device, \"ym2610\", \"YM2610 OPNB\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ymopn.cpp",
+    "src/devices/sound/ymopn.h"
+  ]
+}
