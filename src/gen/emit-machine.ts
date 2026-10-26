@@ -723,6 +723,18 @@ export function lowerGeneratedMachine(
     const interruptMixer = deviceByTag.get(cpu.tag)?.configuration?.find(
       configuration => configuration.method === 'set_interrupt_mixer',
     )?.args[0];
+    // daisy_init finds each named device below the CPU first, then beside it.
+    const daisyNames = deviceByTag.get(cpu.tag)?.configuration?.find(
+      configuration => configuration.method === 'set_daisy_config',
+    )?.args[0];
+    const siblingPrefix = cpu.tag.includes(':') ? cpu.tag.slice(0, cpu.tag.lastIndexOf(':') + 1) : '';
+    const daisyChain = Array.isArray(daisyNames)
+      ? daisyNames.map(name => [`${cpu.tag}:${name}`, `${siblingPrefix}${name}`]
+        .find(tag => deviceByTag.has(tag)))
+      : undefined;
+    if (daisyChain?.some(tag => tag === undefined)) {
+      throw new Error(`${cpu.tag}: daisy chain names a device the machine does not have (${String(daisyNames)})`);
+    }
     const cpuDeviceId = deviceByTag.get(cpu.tag)?.id;
     const cpuSpaceMapId = graph.edges.find(edge =>
       edge.from === cpuDeviceId &&
@@ -753,6 +765,7 @@ export function lowerGeneratedMachine(
       cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
       ...(interruptMixer !== undefined ? { interruptMixer: Boolean(interruptMixer) } : {}),
       ...(interruptAcknowledge ? { interruptAcknowledge } : {}),
+      ...(daisyChain?.length ? { daisyChain: daisyChain as string[] } : {}),
       ...(interruptVectorWriters.length ? { interruptVectorWriters } : {}),
       ...(deviceByTag.get(cpu.tag)?.source ? { source: deviceByTag.get(cpu.tag)!.source } : {}),
     };
@@ -2025,7 +2038,7 @@ function deviceDelegates(
 
 function deviceConfiguration(
   props: Record<string, unknown>,
-): { method: string; args: (number | string | number[] | { rectangle: number[] })[] }[] {
+): { method: string; args: (number | string | (number | string)[] | { rectangle: number[] })[] }[] {
   const encoded = Array.isArray(props.configCalls)
     ? props.configCalls.map(String)
     : [];
@@ -2042,13 +2055,13 @@ function deviceConfiguration(
     if (!match) return [];
     const rawArgs = match[2]!.trim();
     // A string argument may hold commas of its own (`set_extensions("p00,prg,t64")`).
-    const args = rawArgs ? (rawArgs.match(/\{[^}]*\}|"[^"]*"|\[[^\]]*\]|[^,]+/g) ?? []).map((argument): number | string | number[] | { rectangle: number[] } => {
+    const args = rawArgs ? (rawArgs.match(/\{[^}]*\}|"[^"]*"|\[[^\]]*\]|[^,]+/g) ?? []).map((argument): number | string | (number | string)[] | { rectangle: number[] } => {
       const raw = argument.trim();
       if (raw === 'true') return 1;
       if (raw === 'false') return 0;
       if (/^"[^"]*"$/.test(raw)) return raw.slice(1, -1);
-      // A whole table (set_levels' volumes), encoded by the graph as JSON.
-      if (raw.startsWith('[')) return JSON.parse(raw) as number[];
+      // A whole table (set_levels' volumes, set_daisy_config's tags), encoded by the graph as JSON.
+      if (raw.startsWith('[')) return JSON.parse(raw) as (number | string)[];
       // A rectangle (the ULA's screen area), encoded the same way.
       if (raw.startsWith('{')) return JSON.parse(raw) as { rectangle: number[] };
       return Number(raw);

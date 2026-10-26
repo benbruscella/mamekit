@@ -20,7 +20,7 @@ const mameSource = process.env.MAME_SRC ??
   new URL('../../../../mame/', import.meta.url).pathname;
 const definitions = indexMameHardware(mameSource);
 const types = ['PPU_2C02', 'NES_CONTROL_PORT', 'NES_CART_SLOT'];
-const extraction = extractNes({
+const extraction = await extractNes({
   mameSource,
   entries: [...types, 'RP2A03G'].map(type => ({
     type,

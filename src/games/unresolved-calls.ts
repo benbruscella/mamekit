@@ -15,6 +15,7 @@
 export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["<expression>.allocate", "elevator junglek"],
   ["abort_timeslice", "dkong dkongjr"],
+  ["cartheader::checksum", "gameboy"],
   ["coin_in", "carnival"],
   ["configured", "arkanoid elevator"],
   ["decode_gfx", "simpsons tmnt wardner"],
@@ -113,8 +114,10 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["m_voice[3].voice_start", "simpsons"],
   ["m_watchdog.watchdog_reset", "dkong dkongjr"],
   ["MACHINE_RESET_CALL_MEMBER", "ffight ghouls sf2 sf2ce"],
+  ["machine().disable_side_effects", "gameboy"],
   ["machine().scheduler().add_quantum", "rtype"],
   ["machine().tilemap().set_flip_all", "wardner"],
+  ["memregion", "gameboy"],
   ["memshare", "shinobi"],
   ["memshare().bytes", "shinobi"],
   ["midtunit_base_state::machine_reset", "mk nbajam"],

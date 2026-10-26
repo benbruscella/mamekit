@@ -55,6 +55,12 @@ export interface GeneratedCpuMember {
   /** A member-function pointer: holds a method name, empty for nullptr. */
   text?: boolean;
   /**
+   * A pointer to another device that the host sets from the machine's
+   * configuration -- the Z80's daisy-chain head, `m_chain` -- rather than
+   * state the core keeps: never part of a save state.
+   */
+  link?: boolean;
+  /**
    * Store \`values\` in a typed array of the member's width, so a host that is
    * handed the member's address (\`&m_shiftreg[0]\`) can copy into it.
    */
@@ -195,6 +201,60 @@ export interface GeneratedCpuDefinition {
 }
 
 /**
+ * The daisy-chain side of a Z80 (machine/z80daisy.{h,cpp}): the chain's head,
+ * `m_chain`, and the methods that walk it -- `daisy_chain_present`,
+ * `daisy_update_irq_state`, `daisy_get_irq_device` and
+ * `daisy_call_reti_device`. Each chained device is reached through its own
+ * `m_daisy_next` and answers its own `z80daisy_irq_*` methods.
+ */
+function z80DaisyChain(mameSrc: string): {
+  methods: GeneratedCpuMethod[];
+  members: GeneratedCpuMember[];
+  constants: Record<string, number>;
+  sourceFiles: string[];
+} {
+  const cppFile = 'src/devices/machine/z80daisy.cpp';
+  const headerFile = 'src/devices/machine/z80daisy.h';
+  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
+  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
+  const walkers = ['daisy_update_irq_state', 'daisy_get_irq_device', 'daisy_call_reti_device'];
+  const methods: GeneratedCpuMethod[] = parseMameSource(cppFile, cpp).functions
+    .filter(fn => fn.className === 'z80_daisy_chain_interface' && walkers.includes(fn.name))
+    .map(fn => ({
+      name: fn.name,
+      parameters: fn.parameters,
+      program: compileMameHandler(normalizeMameExecutionSource(fn.body)),
+      source: sourceRef(fn.span.file, fn.span.line),
+    }));
+  const chainClass = /class\s+z80_daisy_chain_interface\b[^{]*\{/.exec(header);
+  const classBody = chainClass ? header.slice(chainClass.index, matchBrace(header, header.indexOf('{', chainClass.index)) + 1) : '';
+  for (const method of extractInlineMethods(classBody)) {
+    if (method.name !== 'daisy_chain_present') continue;
+    methods.push({
+      name: method.name,
+      parameters: method.parameters,
+      program: compileMameHandler(normalizeMameExecutionSource(method.body)),
+      source: sourceRef(headerFile, lineAt(header, (chainClass?.index ?? 0) + method.start)),
+    });
+  }
+  if (methods.length !== walkers.length + 1 || methods.some(method => method.program.diagnostics.length)) {
+    throw new Error('MAME Z80 daisy chain (z80daisy.cpp) did not lower');
+  }
+  const constants: Record<string, number> = {};
+  for (const match of header.matchAll(/^const\s+uint8_t\s+(\w+)\s*=\s*(0x[0-9a-f]+|\d+)\s*;/gim)) {
+    constants[match[1]!] = Number(match[2]);
+  }
+  // z80daisy.cpp's own `#define VERBOSE 0` guards its log line.
+  return {
+    methods,
+    // The head of the chain: null until the host links the machine's daisy config.
+    members: [{ name: 'm_chain', initial: 0, link: true }],
+    constants: { ...constants, ...extractDefineConstants(cpp) },
+    sourceFiles: [cppFile, headerFile],
+  };
+}
+
+/**
  * Compile the generic Z80 variant using MAME's own operation DSL, helper
  * methods, register aliases and reset/input logic. The output contains no
  * handwritten opcode or flag implementation.
@@ -263,6 +323,13 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
       source: sourceRef(headerFile, lineAt(header, method.start)),
     });
   }
+  // The Z80 is a z80_daisy_chain_interface: it asks the devices on its daisy
+  // chain whether one is interrupting, takes the IM2 vector from the one
+  // that is, and tells them about RETI (machine/z80daisy.cpp). Building the
+  // chain (`daisy_init`, a pointer-to-pointer splice) is the host's, from
+  // the machine's `set_daisy_config`; walking it is MAME's own code.
+  const daisy = z80DaisyChain(mameSrc);
+  methods.push(...daisy.methods);
 
   const startMethod = unit.functions.find(fn =>
     fn.className === 'z80_device' && fn.name === 'device_start');
@@ -309,11 +376,12 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
     // keeping both paths enabled preserves configured refresh/nomreq pins.
     refresh_en: 1,
     nomreq_en: 1,
+    ...daisy.constants,
   };
   const aliases = extractAliases(aliasesSource, header);
   const stateEntries = extractStateEntries(startMethod.body, aliases, constants);
   const initializers = extractConstructorInitializers(cpp, 'z80_device');
-  const members = extractMembers(header, objectFields).map(member => ({
+  const members = [...extractMembers(header, objectFields), ...daisy.members].map(member => ({
     ...member,
     ...(initializers[member.name] !== undefined
       ? { initial: initializers[member.name] }
@@ -332,7 +400,7 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
     schemaVersion: 1,
     type: 'Z80',
     dialect: dsl.dialect,
-    sourceFiles: [cppFile, headerFile, aliasesFile, dslFile],
+    sourceFiles: [cppFile, headerFile, aliasesFile, dslFile, ...daisy.sourceFiles],
     constants,
     aliases,
     ...(stateEntries.length ? { stateEntries } : {}),

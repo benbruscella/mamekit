@@ -370,13 +370,29 @@ export interface GeneratedDeviceDefinition {
      * `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, ...)`.
      */
     slotOptions?: string;
-    /** The child's own clock, where its constructor gives one. */
+    /**
+     * The child's own clock, where its constructor gives one. A child added
+     * with no clock at all is 0, as in MAME: only DERIVED_CLOCK takes the
+     * owner's, and that is left out so the owner's is used.
+     */
     clock?: number;
     /**
      * Where a sound child's outputs go, as its `add_route` calls say: the
      * output (-1 for ALL_OUTPUTS), the speaker, and MAME's gain.
      */
     routes?: { output: number; target: string; gain: number }[];
+    /**
+     * A `required_device_array` builds one child per element, each tagged
+     * from the finder's format: the Z80 CTC's `m_channel(*this, "ch%u", 0U)`
+     * is `ch0` to `ch3`. The member then holds the array.
+     */
+    tags?: string[];
+    /**
+     * What device_add_mconfig sets on each built child, by element: the
+     * CTC numbers its channels with `m_channel[ch]->m_index = ch`, and a
+     * channel's vector and zero-crossing output both depend on it.
+     */
+    configured?: Record<string, number>[];
   }[];
   /** Children its machine config builds that did not lower, so are not built. */
   omittedChildren?: { member: string; type: string; diagnostics: number }[];
@@ -1170,9 +1186,12 @@ export function compileMameDevice(
   if (mconfig) {
     const nested = new Set([...compiling, type]);
     const known = indexMameHardware(mameSrc);
-    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)/g)) {
+    // An element of a device array is added the same way, in a loop over the
+    // array: `Z80CTC_CHANNEL(config, m_channel[ch])`.
+    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)(?:\s*\[[^\]]*\])?/g)) {
       const [, childType, member] = match;
       if (!childType || !member || nested.has(childType)) continue;
+      if (children.some(existing => existing.member === member)) continue;
       const childDefinition = known.get(childType);
       if (!childDefinition) continue;
       const child = compileMameDevice(mameSrc, childDefinition, childType, nested);
@@ -1204,8 +1223,11 @@ export function compileMameDevice(
         if (call[close] === '(') depth++;
         else if (call[close] === ')') depth--;
       }
-      const extra = splitMameArgs(call.slice(0, Math.max(0, close - 1)).replace(/^\s*,/, ''));
-      const childClock = !slotOptions && extra[0] ? evalExpr(extra[0], constants) : null;
+      const extra = splitMameArgs(call.slice(0, Math.max(0, close - 1)).replace(/^\s*,/, ''))
+        .map(argument => argument.trim()).filter(Boolean);
+      // No clock argument is clock 0 (device_t keeps what it was given);
+      // DERIVED_CLOCK, or anything else that does not evaluate, takes the owner's.
+      const childClock = slotOptions ? null : extra[0] ? evalExpr(extra[0], constants) : 0;
       const chained = call.slice(close, Math.max(close, call.indexOf(';', close)));
       const separate = [...mconfig.matchAll(new RegExp(String.raw`\b${member}\s*->\s*(add_route\s*\([^;]*)\s*;`, 'g'))]
         .map(route => `.${route[1]}`).join('');
@@ -1217,16 +1239,23 @@ export function compileMameDevice(
       if (childSlot) child.slot = childSlot;
       // The child's tag, as its finder names it: `m_vrc7snd(*this, "vrc7snd")`.
       const childTag = unquoteToken(constructorBindings[member]?.at(-1) ?? '');
+      const tags = deviceArrayTags(
+        members.find(candidate => candidate.name === member)?.valueType ?? '',
+        constructorBindings[member] ?? [],
+        constants,
+      );
       children.push({
         member, type: childType, definition: child,
-        ...(childTag ? { tag: childTag } : {}),
-        ...(childClock && childClock > 0 ? { clock: childClock } : {}),
+        ...(childTag && !tags ? { tag: childTag } : {}),
+        ...(childClock !== null && childClock >= 0 ? { clock: childClock } : {}),
         ...(routes.length ? { routes } : {}),
         ...(Object.keys(delegateTargets).length ? { delegateTargets } : {}),
         ...(slotOptions && /\bget_card_device\s*\(/.test(child.sourceFiles.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'))
           ? { slotOptions } : {}),
+        ...(tags ? { tags } : {}),
       });
     }
+    configureChildren(mconfig, children);
   }
   // Bitmap entry points are necessarily frame/scanline hot paths. Methods
   // installed through FUNC(...) are hardware callbacks too: a child MCU can
@@ -2698,8 +2727,68 @@ function finderBinding(
       : undefined;
   if (!kind) return undefined;
   const target = constructorBindings[name]?.at(-1);
+  // DEVICE_SELF_OWNER is MAME's "^": the device that owns this one. A CTC
+  // channel reaches its CTC that way (`m_device(*this, DEVICE_SELF_OWNER)`).
+  if (kind === 'device' && target === 'DEVICE_SELF_OWNER') return { kind, tag: '^' };
   const tag = target && unquoteToken(target);
   return { kind, tag: tag ?? '' };
+}
+
+/**
+ * The tags of a `required_device_array<T, N>` member's elements, from its
+ * finder's format and first index: `m_channel(*this, "ch%u", 0U)` is `ch0`
+ * to `ch3`. Undefined for anything that is not a device array.
+ */
+function deviceArrayTags(
+  valueType: string,
+  binding: readonly string[],
+  constants: Record<string, number>,
+): string[] | undefined {
+  const bound = /^(?:required|optional)_device_array<\s*[\w:]+\s*,\s*([^<>]+)>$/.exec(valueType.trim())?.[1];
+  const count = bound === undefined ? null : evalExpr(bound, constants);
+  const format = unquoteToken(binding[1] ?? '');
+  if (count === null || !Number.isInteger(count) || count <= 0 || !format) return undefined;
+  const first = evalExpr((binding[2] ?? '0').replace(/(\d)[uUlL]+$/, '$1'), constants) ?? 0;
+  return Array.from({ length: count }, (_, index) => format.replace(/%[ud]/, String(first + index)));
+}
+
+/**
+ * What device_add_mconfig sets on the children it builds, kept per element.
+ * The method is configuration, not behaviour, so it is not lowered with the
+ * device's methods; it is run once here against a stand-in for each child,
+ * and the numbers it stores into a child's own members are the child's
+ * configuration (`m_channel[ch]->m_index = ch`). Statements that are not
+ * about a child (routes, clocks, other devices) have nothing to store into
+ * and are passed over.
+ */
+function configureChildren(
+  mconfig: string,
+  children: NonNullable<GeneratedDeviceDefinition['children']>,
+): void {
+  if (!children.length) return;
+  const program = compileMameHandler(normalizeMameExecutionSource(mconfig));
+  if (program.diagnostics.length) return;
+  const state: Record<string, unknown> = {};
+  for (const child of children) {
+    state[child.member] = child.tags ? child.tags.map(() => ({})) : {};
+  }
+  const calls = Object.fromEntries(children.map(child => [child.type, () => 0]));
+  const bindings = { members: state, constants: {}, calls } as never;
+  for (const operation of program.operations) {
+    try {
+      executeGeneratedProgram({ ...program, operations: [operation] }, bindings, {});
+    } catch {
+      continue;
+    }
+  }
+  for (const child of children) {
+    const own = new Set(child.definition.members.map(member => member.name));
+    const elements = (child.tags ? state[child.member] : [state[child.member]]) as Record<string, unknown>[];
+    const configured = elements.map(element => Object.fromEntries(Object.entries(element)
+      .filter((entry): entry is [string, number] =>
+        own.has(entry[0]) && typeof entry[1] === 'number' && Number.isFinite(entry[1]))));
+    if (configured.some(values => Object.keys(values).length)) child.configured = configured;
+  }
 }
 
 /**
@@ -3109,6 +3198,15 @@ function numericConstants(
   for (const match of source.matchAll(
     // `const` may follow the type too: the 6805's `static unsigned const PORT_COUNT = 4;`.
     /\bstatic\s+(?:(?!const\b)[\w:]+\s+)*const\s+(?:[\w:]+\s+)*?(\w+)\s*=\s*([^;]+);/g,
+  )) {
+    expressions.set(match[1]!, match[2]!.trim());
+  }
+  // A namespace-scope `const` needs no `static`: z80daisy.h's
+  // `const uint8_t Z80_DAISY_INT = 0x01;`. Unread, every daisy device's
+  // interrupt request was 0 and the Z80 CTC could never raise one. A
+  // declaration at column 0 is at file scope; a method's locals never are.
+  for (const match of source.matchAll(
+    /^const\s+(?:[\w:]+\s+)+?(\w+)\s*=\s*([^;]+);/gm,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }

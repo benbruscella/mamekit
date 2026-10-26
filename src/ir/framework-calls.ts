@@ -71,6 +71,18 @@ const FRAMEWORK_ACCESSORS = new Set([
   'owner', 'device',
 ]);
 
+/**
+ * device_t's own lifecycle methods, every one of which does nothing by default
+ * (emu/device.cpp). A derived class's `base::device_reset_after_children()`
+ * lands on one when no class between it and device_t overrides the method:
+ * the Game Boy's cartridge slot calls its base's before it reads the
+ * cartridge header. One that is overridden is compiled and never reaches here.
+ */
+const DEVICE_T_DEFAULTS = new Set([
+  'device_config_complete', 'device_reset', 'device_reset_after_children', 'device_stop',
+  'device_pre_save', 'device_post_load', 'device_clock_changed',
+]);
+
 /** Tilemap creation in video_start, which the video compiler reads to build each layer. */
 const VIDEO_PLAN_CALLS = new Set(['machine().tilemap().create']);
 
@@ -90,7 +102,14 @@ export function isDeclaredFrameworkNoOp(name: string): boolean {
     NO_EFFECT_METHODS.has(callMethod(name)) ||
     isFrameworkAccessor(name) ||
     isDelegateConstructor(name) ||
-    isVideoPlanCall(name);
+    isVideoPlanCall(name) ||
+    isDeviceDefault(name);
+}
+
+/** `gb_cart_slot_device_base::device_reset_after_children`: a base call that only device_t answers. */
+function isDeviceDefault(name: string): boolean {
+  const qualified = /^\w+::(\w+)$/.exec(name);
+  return Boolean(qualified && DEVICE_T_DEFAULTS.has(qualified[1]!));
 }
 
 /** `machine()`, `machine().bookkeeping()`: an accessor whose result is an object. */

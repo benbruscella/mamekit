@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { availableParallelism, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   compileMameDevice,
@@ -10,7 +12,9 @@ import {
   generatedNesApuWorkletSource,
 } from '../../mame/nes-apu-compiler.ts';
 import {
+  HARDWARE_INDEX_ENV,
   indexMameHardware,
+  writeHardwareIndex,
   type MameHardwareDefinition,
 } from '../../mame/hardware.ts';
 import { shareCardInterface } from '../../ir/card-interface.ts';
@@ -47,15 +51,27 @@ const CART_INTERFACE = 'device_nes_cart_interface';
  * registers exactly the devices present in the machine closure while the
  * generic device runtime can instantiate the selected controller/cart card.
  */
-export function extractNes(input: CapabilityInput): CapabilityExtraction | undefined {
+export function extractNes(input: CapabilityInput): Promise<CapabilityExtraction | undefined> | undefined {
   const present = input.entries.filter(entry =>
     NES_MAME_TYPES.includes(entry.type as (typeof NES_MAME_TYPES)[number]));
   const hasApu = input.entries.some(entry =>
     NES_CPU_TYPES.includes(entry.type as (typeof NES_CPU_TYPES)[number]));
   if (!present.length && !hasApu) return undefined;
+  return extractPresentNes(input, present, hasApu);
+}
 
+async function extractPresentNes(
+  input: CapabilityInput,
+  present: CapabilityInput['entries'],
+  hasApu: boolean,
+): Promise<CapabilityExtraction | undefined> {
   const definitions = indexMameHardware(input.mameSource);
   const machineWiring = nesMachineWiring(input.mameSource);
+  // The cartridge boards are most of the work, every one independent of the
+  // others, so they compile in worker processes while this one goes on.
+  const boards = present.some(entry => entry.type === 'NES_CART_SLOT')
+    ? compileCartridgeBoards(input.mameSource, nesBusMethods(machineWiring))
+    : undefined;
   const compiled = new Map<string, GeneratedDeviceDefinition>();
   const artifacts: CapabilityArtifact[] = [];
   for (const entry of present) {
@@ -87,7 +103,7 @@ export function extractNes(input: CapabilityInput): CapabilityExtraction | undef
         console.warn(`  ! NES_CART_SLOT: ${dropped.map(method => method.name).join(', ')} did not lower`);
       }
       const hotMethods = nesBusMethods(machineWiring);
-      const cards = cartridgeCards(input.mameSource, definitions, hotMethods);
+      const cards = cartridgeCards(input.mameSource, definitions, await boards!);
       device.hotMethods = hotMethods.filter(name =>
         device.methods.some(method => method.name === name));
       device.slot = {
@@ -231,10 +247,90 @@ function controllerDefaultOption(mameSource: string): string {
  * cannot. Each device type is its own module, loaded when a cartridge
  * selects it: 390 cards are 50 MB of IR, and a machine ever runs one.
  */
+/** One cartridge board compiled, or why it could not be. */
+export type CartridgeBoard =
+  | { card: GeneratedDeviceDefinition; source: string }
+  | { reason: string };
+
+/**
+ * Compile one cartridge board as the slot uses it: the bus methods it is
+ * entered through are its hot ones, and its PRG banks are the driver's.
+ * Compiled from the whole card, so its emitted code resolves the interface's
+ * virtual calls to this card's overrides.
+ */
+export function compileCartridgeBoard(
+  mameSource: string,
+  type: string,
+  hotMethods: readonly string[],
+): CartridgeBoard {
+  const definition = indexMameHardware(mameSource).get(type);
+  if (!definition) return { reason: `MAME declares no device class for ${type}` };
+  const card = compileMameDevice(mameSource, definition, type);
+  const broken = card.methods.find(method => method.program.diagnostics.length);
+  if (broken) {
+    return { reason: `${broken.name} (${broken.source.file}:${broken.source.line}) does not lower: ${String(broken.program.diagnostics[0])}` };
+  }
+  card.hotMethods = hotMethods.filter(name => card.methods.some(method => method.name === name));
+  // MAME's prg_alloc/vrom_alloc and friends fill the rest from the
+  // image in call_load; the four PRG banks are the driver's own, which
+  // pcb_start asks the root device for.
+  card.resources = { members: { m_prg_bank_mem: { kind: 'bank-array', name: 'prg', count: 4 } } };
+  const key = type.toLowerCase();
+  return { card, source: generatedDeviceExecutableSource(card, `${key}.device.ir.json`, '../../../core/generated-device.js') };
+}
+
+/**
+ * Every board MAME's NES cartridge slot offers, compiled in worker processes
+ * (src/mame/nes-board-worker.ts), each taking every n-th board. Nearly four hundred of
+ * them took two minutes one after another, most of the hardware closure.
+ * The workers read this process's index of MAME's devices rather than
+ * building their own. The result is the same as compiling them here; the
+ * slot puts them together in its own order.
+ */
+async function compileCartridgeBoards(
+  mameSource: string,
+  hotMethods: readonly string[],
+): Promise<Map<string, CartridgeBoard>> {
+  const types = [...new Set(nesCartOptions(mameSource).map(([, type]) => type))];
+  const workers = Math.max(1, Math.min(availableParallelism(), 8, Math.ceil(types.length / 25)));
+  if (workers === 1) return new Map(types.map(type => [type, compileCartridgeBoard(mameSource, type, hotMethods)]));
+  const scratch = mkdtempSync(join(tmpdir(), 'mamekit-nes-boards-'));
+  try {
+    const env = { ...process.env };
+    if (!env[HARDWARE_INDEX_ENV]) {
+      env[HARDWARE_INDEX_ENV] = join(scratch, 'hardware-index.json');
+      writeHardwareIndex(mameSource, env[HARDWARE_INDEX_ENV]);
+    }
+    const shares = await Promise.all(Array.from({ length: workers }, (_, worker) => {
+      const job = join(scratch, `job-${worker}.json`);
+      const out = join(scratch, `boards-${worker}.json`);
+      writeFileSync(job, JSON.stringify({
+        mameSource,
+        hotMethods,
+        types: types.filter((_, position) => position % workers === worker),
+      }));
+      return new Promise<[string, CartridgeBoard][]>((resolveShare, rejectShare) => {
+        const child = spawn(process.execPath, [join(import.meta.dirname, '../../mame/nes-board-worker.ts'), job, out], {
+          env,
+          stdio: ['ignore', 'inherit', 'inherit'],
+        });
+        child.once('error', rejectShare);
+        child.once('exit', (code, signal) => {
+          if (code === 0) resolveShare(JSON.parse(readFileSync(out, 'utf8')) as [string, CartridgeBoard][]);
+          else rejectShare(new Error(`NES board worker ${worker + 1}/${workers} exited ${code ?? signal}`));
+        });
+      });
+    }));
+    return new Map(shares.flat());
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
 function cartridgeCards(
   mameSource: string,
   definitions: Map<string, MameHardwareDefinition>,
-  hotMethods: readonly string[],
+  boards: ReadonlyMap<string, CartridgeBoard>,
 ): {
   modules: Record<string, string>;
   unsupported: Record<string, string>;
@@ -257,33 +353,16 @@ function cartridgeCards(
   for (const [option, type] of options) {
     const known = built.get(type) ?? failed.get(type);
     if (!known) {
-      const definition = definitions.get(type);
-      let reason: string | undefined;
-      let card: GeneratedDeviceDefinition | undefined;
-      if (!definition) reason = `MAME declares no device class for ${type}`;
-      else {
-        card = compileMameDevice(mameSource, definition, type);
-        const broken = card.methods.find(method => method.program.diagnostics.length);
-        if (broken) {
-          reason = `${broken.name} (${broken.source.file}:${broken.source.line}) does not lower: ${String(broken.program.diagnostics[0])}`;
-        }
-      }
-      if (reason || !card) {
-        failed.set(type, reason ?? `${type} did not compile`);
+      const board = boards.get(type);
+      if (!board) throw new Error(`NES cartridge board ${type} was not compiled`);
+      if ('reason' in board) {
+        failed.set(type, board.reason);
       } else {
-        card.hotMethods = hotMethods.filter(name =>
-          card!.methods.some(method => method.name === name));
-        // MAME's prg_alloc/vrom_alloc and friends fill the rest from the
-        // image in call_load; the four PRG banks are the driver's own, which
-        // pcb_start asks the root device for.
-        card.resources = { members: { m_prg_bank_mem: { kind: 'bank-array', name: 'prg', count: 4 } } };
+        const card = board.card;
         cardInterface ??= { className: CART_INTERFACE, methods: card.methods.filter(interfaceMethod) };
         const key = type.toLowerCase();
         const shared = shareCardInterface(card.methods, cardInterface);
         const ir = `devices/nes_cart_slot/${key}.device.ir.json`;
-        // Compiled from the whole card: its emitted code resolves the
-        // interface's virtual calls to this card's overrides.
-        const source = generatedDeviceExecutableSource(card, `${key}.device.ir.json`, '../../../core/generated-device.js');
         artifacts.push(
           {
             path: ir,
@@ -291,7 +370,7 @@ function cartridgeCards(
               ? { ...card, methods: shared.methods, inheritsCardInterface: true }
               : card),
           },
-          { path: `devices/nes_cart_slot/${key}.ts`, contents: source },
+          { path: `devices/nes_cart_slot/${key}.ts`, contents: board.source },
         );
         built.set(type, `nes_cart_slot/${key}`);
       }

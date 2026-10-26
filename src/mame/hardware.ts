@@ -3,6 +3,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -196,9 +197,17 @@ function unquote(value: string | undefined): string | undefined {
  */
 const hardwareIndexes = new Map<string, Map<string, MameHardwareDefinition>>();
 
+/** The file a build shares its index through; see shareHardwareIndex. */
+export const HARDWARE_INDEX_ENV = 'MAMEKIT_HARDWARE_INDEX';
+
 export function indexMameHardware(mameSrc: string): Map<string, MameHardwareDefinition> {
   const cached = hardwareIndexes.get(mameSrc);
   if (cached) return cached;
+  const shared = sharedHardwareIndex(mameSrc);
+  if (shared) {
+    hardwareIndexes.set(mameSrc, shared);
+    return shared;
+  }
   const roots = [join(mameSrc, 'src/devices'), join(mameSrc, 'src/mame')]
     .filter(existsSync);
   const definitions = new Map<string, MameHardwareDefinition>();
@@ -212,6 +221,35 @@ export function indexMameHardware(mameSrc: string): Map<string, MameHardwareDefi
   }
   hardwareIndexes.set(mameSrc, definitions);
   return definitions;
+}
+
+/**
+ * Index MAME's devices once for a whole build, and hand it to every process
+ * the build spawns. Reading every source file under src/devices and src/mame
+ * takes twenty seconds, and each target generates in a process of its own:
+ * Galaga spent 22 of its 26 seconds building this index, and a full build
+ * built it 92 times. The file lives as long as the build that wrote it, so it
+ * can never describe another MAME tree.
+ */
+export function shareHardwareIndex(mameSrc: string, file: string): void {
+  writeHardwareIndex(mameSrc, file);
+  process.env[HARDWARE_INDEX_ENV] = file;
+}
+
+/** Write the index where a process given `HARDWARE_INDEX_ENV` will read it. */
+export function writeHardwareIndex(mameSrc: string, file: string): void {
+  const definitions = indexMameHardware(mameSrc);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(`${file}.tmp`, JSON.stringify({ mameSrc, definitions: [...definitions.values()] }));
+  renameSync(`${file}.tmp`, file);
+}
+
+function sharedHardwareIndex(mameSrc: string): Map<string, MameHardwareDefinition> | undefined {
+  const file = process.env[HARDWARE_INDEX_ENV];
+  if (!file || !existsSync(file)) return undefined;
+  const stored = JSON.parse(readFileSync(file, 'utf8')) as { mameSrc: string; definitions: MameHardwareDefinition[] };
+  if (resolve(stored.mameSrc) !== resolve(mameSrc)) return undefined;
+  return new Map(stored.definitions.map(definition => [definition.type, definition]));
 }
 
 function sourceFiles(root: string): string[] {
@@ -551,13 +589,18 @@ export async function emitHardwareClosure(
   // Capability packages own their own extraction, emitted artifacts and
   // manifest entry. Everything below this line is hardware still awaiting a
   // package; adding one must not require editing this function again.
-  const extracted = HARDWARE_CAPABILITIES.flatMap(capability => {
-    const result = capability.extract({
+  // Every capability is started before any is awaited, so one that compiles
+  // in worker processes (the NES's cartridge boards) runs alongside the rest.
+  const pending = HARDWARE_CAPABILITIES.map(capability => ({
+    capability,
+    result: capability.extract({
       mameSource: closure.mameSource,
       entries: closure.hardware,
-    });
-    return result ? [{ capability, result }] : [];
-  });
+    }),
+  }));
+  const extracted = (await Promise.all(pending.map(async ({ capability, result }) =>
+    ({ capability, result: await result }))))
+    .flatMap(({ capability, result }) => result ? [{ capability, result }] : []);
   const capabilityExecutable = new Map(
     extracted.flatMap(({ result }) => Object.entries(result.executable)),
   );

@@ -30,6 +30,23 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The Z80 CTC compiled from MAME, and IM 2 vectors through the Z80's daisy chain ([#181](https://github.com/benbruscella/mamekit/issues/181))
+
+**For players:** Rampage's attract demo stays with MAME's for longer. It used to run two frames ahead of MAME's and drift from about frame 600; now it keeps MAME's frame, and at frames 600 to 1200 it differs from MAME's picture by a tenth to a quarter as many pixels as before. Spy Hunter plays as before.
+
+**Under the hood:** The Z80 CTC used to be hand-written twice: `compileZ80Ctc` replaced ten of MAME's methods, and a runtime model in `generated-board.ts` advanced its timers once a scanline and handed the CPU its vector. Both are gone, and `Z80CTC` is off `DEVICE_TYPE_BRANCHES`. `z80ctc.cpp` compiles as it stands, with its four `z80ctc_channel_device` children, their `emu_timer`s and the daisy-chain methods. Every gap this exposed was general and silent:
+- A `required_device_array` builds one child per element, tagged from its finder's format (`ch0` to `ch3`).
+- `device_add_mconfig` runs once at generation, so `m_channel[ch]->m_index = ch` numbers the channels.
+- A child handle exposes the child's members as well as its methods.
+- `DEVICE_SELF_OWNER` finds the owner, and a device answers `clock()` and `clocks_to_attotime` to whatever holds it.
+- A child added with no clock has clock 0, as in MAME.
+- A reset runs `device_reset`, then the children, then `device_reset_after_children` and `interface_post_reset`.
+- A namespace-scope `const uint8_t Z80_DAISY_INT = 0x01;` is read as a constant. Unread, it was 0, so no daisy device could raise an interrupt.
+
+That reset order now runs the Game Boy cartridge slot's `device_reset_after_children` too. All it does is log the cartridge header, but it reaches three calls MAMEKIT cannot answer yet: `machine().disable_side_effects`, `cartheader::checksum` and the device's `memregion`. These are listed as known gaps for `gameboy`. A base call to one of `device_t`'s empty lifecycle defaults is declared as such in `framework-calls.ts`.
+
+The Z80 now compiles `z80daisy.cpp`'s chain walk. The machine's `set_daisy_config` table, which for MCR sits in `mcr_m.cpp`, becomes the CPU's `daisyChain` in the IR. The board links the chain as `daisy_init` does, so the core takes its IM 2 vector from `z80daisy_irq_ack()` and signals RETI to the chain. A call through a pointer local (`intf->z80daisy_irq_ack()`) used to be emitted as 0 and is now a call.
+
 ### Sound writes timed by the processor that makes them, and Gauntlet's mixer, speech and POKEY as MAME has them ([#196](https://github.com/benbruscella/mamekit/pull/196))
 
 **For players:** Mat Mania's sampled bell and count and Gyruss's drums and voices are clean again, where they had been a noisy smear. Gauntlet's speech is no longer harsh: it matches MAME's brightness while it speaks. The click when Gauntlet's sound board leaves reset is gone, and the game's own volume settings for its music, effects and speech now apply. POKEY sound effects in Gauntlet, Marble Madness, Missile Command, Centipede and Battlezone no longer fold ultrasonic tones back into the audible range.

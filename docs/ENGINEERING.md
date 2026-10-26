@@ -392,6 +392,24 @@ MAME source closure before the shared runtime/app build runs once. The
 hardware closure's isolated CPU artifact workers run through the same bounded
 pool policy.
 
+Each target generates in a process of its own, and every one needs MAME's
+device index (`indexMameHardware`): about twenty seconds of reading every
+source file under `src/devices` and `src/mame`. A build indexes once and
+hands the index to its children through a temporary file
+(`shareHardwareIndex`, `MAMEKIT_HARDWARE_INDEX`); the spec runner does the
+same for its specs. Before that, Galaga spent 22 of its 26 seconds building
+it. The NES capability compiles its ~390 cartridge boards in worker processes
+the same way (`src/mame/nes-board-worker.ts`), which took the hardware
+closure from minutes to about one.
+
+A full build can also be split across machines, which is how CI runs it.
+`mamekit --all --shard i/n` generates every n-th target from the i-th into a
+clean output directory and stops. Once every shard's directories are merged
+into one output directory, `mamekit --all --assemble` finishes the build: it
+refuses to run if any target is missing, then builds the hardware closure,
+the app and the manifests exactly as `--all` does. `npm run audit:current`
+then runs the audits `test:current` runs after `gen:all`.
+
 `gen:all` memoizes derived artifacts in the gitignored `.cache/` tree: driver
 git history, per-target output, the hardware closure (CPU cores included) and
 the compiled app. The build's only inputs are the MAME checkout and this

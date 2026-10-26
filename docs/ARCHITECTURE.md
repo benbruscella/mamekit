@@ -393,6 +393,18 @@ C++ call does, in the emitted and the interpreted core alike. The 6502's
 moved the stack from `$1FF` to `$300` instead of `$100`, and put every
 page-crossing dummy read on the wrong page (#184).
 
+A Z80 is a `z80_daisy_chain_interface`, and its chain is compiled with it:
+`daisy_chain_present`, `daisy_update_irq_state`, `daisy_get_irq_device` and
+`daisy_call_reti_device` from `machine/z80daisy.cpp`, so the core takes an
+IM 2 vector from `intf->z80daisy_irq_ack()` of the device that is
+interrupting and tells the chain about RETI, as MAME's does (#181). The
+machine's `set_daisy_config(mcr_daisy_chain)` names the devices through a
+`z80_daisy_config` table, which may sit in another file of the driver
+(`mcr_m.cpp`); the graph resolves it to tags, the IR carries them as the
+CPU's `daisyChain`, and the board does what `daisy_init` does with them:
+links each device's `m_daisy_next` and puts the first in the CPU's `m_chain`.
+Those two are wiring (`link` on a CPU member), never part of a save state.
+
 A core's `state_add` table is part of its IR (`stateEntries`): each state
 index, the register or member it names, and whether `.callimport()` follows a
 write with the core's own `state_import`. That is MAME's
@@ -510,6 +522,24 @@ channel a register write keyed on. Emitted code calls a held object's methods
 directly. The DS1001's output is sample for sample what native ymfm gives for
 the same writes, and its emitted code renders it four times faster than real
 time.
+
+A device built out of an array of devices builds one per element. The Z80
+CTC declares `required_device_array<z80ctc_channel_device, 4> m_channel` with
+the finder `(*this, "ch%u", 0U)`, and its `device_add_mconfig` adds them in a
+loop and numbers them: `m_channel[ch]->m_index = ch`. The compiler gives the
+child its tags (`children[].tags`, `ch0` to `ch3`) and runs
+`device_add_mconfig` once against a stand-in for each element, keeping what it
+stores into a child's members (`children[].configured`); the member then holds
+the four channels, and the owner reads and writes their state through it
+(`m_channel[ch]->m_int_state`). A channel finds its CTC with
+`m_device(*this, DEVICE_SELF_OWNER)`, MAME's `^`, and asks it for the clock:
+`m_device->clocks_to_attotime(16)`. A child added with no clock has clock 0,
+as in MAME; only `DERIVED_CLOCK` takes its owner's. A reset follows
+`device_t::reset`: the device, then its children, then
+`device_reset_after_children`, then `interface_post_reset`. A namespace-scope
+`const` is a constant like a `static` one: `const uint8_t Z80_DAISY_INT =
+0x01;` in `z80daisy.h`, which unread made every daisy device's interrupt
+request 0.
 
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
@@ -1173,14 +1203,15 @@ unchanged for the next generated machine".
 The left-hand column above is the rule, not yet the whole state of the code.
 Some MAME-derived behaviour is still written by hand, in `src/runtime`,
 `src/hardware` and inside some compilers: several sound engines, a set of
-game-named screen renderers, a few board devices (the Z80 CTC and DMA, Neo
-Geo I/O, the Taito SJ watchdog and interface start values), compile-time
-method replacements and CPU support layers. Each one is listed in the
+game-named screen renderers, a few board devices (the Z80 DMA, Neo Geo I/O,
+the Taito SJ watchdog and interface start values), compile-time method
+replacements and CPU support layers. Each one is listed in the
 [#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103),
 and nothing may be added to that list. Generating an item and deleting its
 hand-written version is tracked in
-[#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU and
-the Z80 PIO went that way, and both now compile from MAME's own source.
+[#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU, the
+Z80 PIO and the Z80 CTC went that way, and all three now compile from MAME's
+own source.
 
 ## 9. BROWSER BOOT SEQUENCE
 

@@ -243,7 +243,7 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   /** Setter calls from the machine config: numbers, and tags as strings. */
-  configuration?: { method: string; args: (number | string | number[] | { rectangle: number[] })[] }[];
+  configuration?: { method: string; args: (number | string | (number | string)[] | { rectangle: number[] })[] }[];
   /**
    * Delegates the machine configuration binds on this device, by setter:
    * `m_maincpu->set_scanline_ind16_callback(m_video,
@@ -507,6 +507,12 @@ export interface GeneratedExecutionCpu {
   interruptMixer?: boolean;
   /** Source handler mapped in the CPU's interrupt-acknowledge address space. */
   interruptAcknowledge?: string;
+  /**
+   * The devices on a Z80's daisy chain by board tag, highest priority first
+   * (`set_daisy_config`). The CPU asks them, not its IRQ line, for the IM2
+   * vector, and tells them about RETI.
+   */
+  daisyChain?: string[];
   region: string;
   /** Explicit source CPU-space semantics; no runtime CPU-family inference required. */
   space?: GeneratedAddressSpaceSemantics;

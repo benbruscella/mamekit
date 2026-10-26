@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
-import { readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { shareHardwareIndex } from '../mame/hardware.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const srcRoot = join(projectRoot, 'src');
@@ -48,11 +50,30 @@ function runSpec(file: string): Promise<SpecResult> {
   });
 }
 
-const files = [...specFiles(srcRoot), ...specFiles(toolsRoot)];
+// `SPEC_SHARD=i/n` runs every n-th spec from the i-th, so CI can split the
+// specs across runners. Interleaved, as the generation and contract shards
+// are: the slow `*.game.spec.ts` files sit together alphabetically.
+const allFiles = [...specFiles(srcRoot), ...specFiles(toolsRoot)];
+const shard = process.env.SPEC_SHARD;
+const [shardIndex, shardCount] = (shard ?? '1/1').split('/').map(Number);
+if (!Number.isInteger(shardIndex) || !Number.isInteger(shardCount) ||
+    shardCount! < 1 || shardIndex! < 1 || shardIndex! > shardCount!) {
+  throw new Error(`SPEC_SHARD expects i/n with 1 <= i <= n, got "${shard}"`);
+}
+const files = allFiles.filter((_, position) => position % shardCount! === shardIndex! - 1);
 const requestedJobs = Number(process.env.SPEC_JOBS ?? 4);
 const jobs = Number.isInteger(requestedJobs) && requestedJobs > 0
   ? Math.min(requestedJobs, Math.max(1, files.length))
   : 4;
+// Most specs build a graph or compile a device, and each, in a process of its
+// own, would index MAME's devices for itself: twenty seconds a spec, before it
+// tests anything. Index once here and hand it to them all.
+const mameSource = resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+if (existsSync(join(mameSource, 'src/devices'))) {
+  const indexFile = join(tmpdir(), `mamekit-spec-hardware-index-${process.pid}.json`);
+  shareHardwareIndex(mameSource, indexFile);
+  process.once('exit', () => rmSync(indexFile, { force: true }));
+}
 const failures: SpecResult[] = [];
 let next = 0;
 
@@ -78,5 +99,5 @@ if (failures.length) {
   console.error(`\n${files.length - failures.length} passed, ${failures.length} failed`);
   process.exitCode = 1;
 } else {
-  console.log(`${files.length} colocated specs passed (${jobs} workers)`);
+  console.log(`${files.length} colocated specs passed (${jobs} workers${shard ? `, shard ${shard} of ${allFiles.length}` : ''})`);
 }

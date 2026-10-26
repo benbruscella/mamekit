@@ -10,6 +10,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import {
   defaultGeneratorJobs,
@@ -49,6 +50,8 @@ function usage(): never {
   console.error('       mamekit --all              generate every required target, then the app');
   console.error('                  [--jobs <n>]   parallel target generators (default: memory-aware, max 8)');
   console.error('                  [--no-cache]   ignore .cache/ and re-derive everything from MAME source');
+  console.error('                  [--shard <i/n>] generate only every n-th target from the i-th, and stop');
+  console.error('                  [--assemble]   finish a build whose targets the shards generated');
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   console.error('                  [--no-build]   serve dist exactly as it is, without recompiling the app');
@@ -72,7 +75,7 @@ for (let i = 0; i < argv.length; i++) {
     opts[key] = next && next.endsWith('.json') ? argv[++i] : 'true';
   } else if (
     key === 'skip-app' || key === 'build-app' || key === 'build-runtime' ||
-    key === 'all' || key === 'no-cache' || key === 'no-build'
+    key === 'all' || key === 'no-cache' || key === 'no-build' || key === 'assemble'
   ) {
     opts[key] = 'true';
   } else {
@@ -235,6 +238,12 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
   const cache = primeDriverIndex();
   const absent = targets.filter(target => !cache[target]);
   if (absent.length) throw new Error(`MAME drivers not found: ${absent.join(', ')}`);
+  // And MAME's device index, which every target needs and each would
+  // otherwise build for itself. Only for this build: removed when it ends.
+  const { shareHardwareIndex } = await import('./mame/hardware.ts');
+  const indexFile = join(tmpdir(), `mamekit-hardware-index-${process.pid}.json`);
+  shareHardwareIndex(mameSrc, indexFile);
+  process.once('exit', () => rmSync(indexFile, { force: true }));
 
   // Verified cache entries restore in place of a generator run; the rest
   // regenerate and refresh their entries in the same pass.
@@ -336,6 +345,19 @@ async function emitClosureFromGraphs(targets: readonly string[], root = outRoot)
   );
 }
 
+/**
+ * `--shard i/n`: every n-th target from the i-th. Interleaved rather than in
+ * blocks, so the heavy boards that cluster by name (c64, c64p) land on
+ * different machines.
+ */
+function shardTargets(targets: readonly string[], spec: string): string[] {
+  const [index, count] = spec.split('/').map(Number);
+  if (!Number.isInteger(index) || !Number.isInteger(count) || count! < 1 || index! < 1 || index! > count!) {
+    throw new Error(`--shard expects i/n with 1 <= i <= n, got "${spec}"`);
+  }
+  return targets.filter((_, position) => position % count! === index! - 1);
+}
+
 function generateTargetProcess(target: string, attempt = 1): Promise<string> {
   return new Promise((resolveProcess, rejectProcess) => {
     const child = spawn(process.execPath, [
@@ -416,10 +438,27 @@ if (generateAll) {
   // Quick cache pre-step: verify every entry against the current MAME
   // revision + mamekit source before anything is reused.
   prepareGenCache();
-  // A complete build owns the output directory. Starting clean prevents
-  // deleted or renamed generated modules surviving from an earlier build.
-  rmSync(outRoot, { recursive: true, force: true });
-  await generateTargetsInParallel(GENERATION_TARGETS);
+  // A build can be split across machines (CI does): each `--shard i/n` run
+  // generates its share of the targets into a clean output directory and
+  // stops, and one `--assemble` run over the union of their outputs does the
+  // rest -- the closure, the app and the manifests -- exactly as a single
+  // `--all` would. Targets are independent; nothing a target writes leaves
+  // its own directory.
+  const shard = opts.shard;
+  if (shard !== undefined && 'assemble' in opts) throw new Error('--shard and --assemble are separate runs');
+  if (!('assemble' in opts)) {
+    // A complete build owns the output directory. Starting clean prevents
+    // deleted or renamed generated modules surviving from an earlier build.
+    rmSync(outRoot, { recursive: true, force: true });
+    await generateTargetsInParallel(shard === undefined ? GENERATION_TARGETS : shardTargets(GENERATION_TARGETS, shard));
+  } else {
+    const missing = GENERATION_TARGETS.filter(target => !existingGameOutputDir(outRoot, target));
+    if (missing.length) throw new Error(`--assemble: no generated output for ${missing.join(', ')}`);
+  }
+  if (shard !== undefined) {
+    console.log(`\nmamekit: shard ${shard} generated; finish the build with --all --assemble`);
+    process.exit(0);
+  }
   await emitClosureFromGraphs(GENERATION_TARGETS);
   const { buildApp } = await import('./gen/generate.ts');
   if (!await buildApp(outRoot, PUBLISHED_TARGETS)) process.exitCode = 1;

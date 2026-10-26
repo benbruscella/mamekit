@@ -723,6 +723,16 @@ ${updateInput}
 }
 
 function emitMember(member: GeneratedCpuMember): string {
+  // A pointer to another device, set by the host (the daisy chain's head):
+  // a private field behind an accessor, so it is no own key of the core and
+  // a save state, which walks those, never follows it into the device.
+  if (member.link) {
+    return [
+      `  #${member.name}: any = ${member.initial ?? 0};`,
+      `  private get ${member.name}(): any { return this.#${member.name}; }`,
+      `  private set ${member.name}(value: any) { this.#${member.name} = value; }`,
+    ].join('\n');
+  }
   if (member.z8000Registers) return `  private ${member.name} = new Z8000RegisterFile();`;
   if (member.xyRegisters) {
     return [
@@ -1550,6 +1560,15 @@ function emitCall(
   }
   if (name === 'LOG' || name === 'LOGMASKED' || name === 'logerror') return '0';
   if (name === 'total_cycles') return '1';
+  // A method of an object a local points at: the Z80's daisy chain asks
+  // `intf->z80daisy_irq_ack()` of the device it found interrupting, and as a
+  // silent 0 every IM2 vector it took was 0.
+  const pointerCall = /^(\w+)\.(\w+)$/.exec(name);
+  const pointerType = pointerCall ? context.locals.get(pointerCall[1]!) : undefined;
+  if (pointerCall && pointerType && /^\s*(?:const\s+)?[A-Za-z_]\w*\s*\*\s*$/.test(pointerType) &&
+      !typeOfName(pointerType.replace(/\*|\bconst\b/g, '').trim())) {
+    return `(${pointerCall[1]} as any).${pointerCall[2]}(${args.join(', ')})`;
+  }
 
   if (context.definition.strictCalls) {
     // A method of an object the host passed in -- `bitmap.pix(y)` on the

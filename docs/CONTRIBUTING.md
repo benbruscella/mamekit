@@ -837,7 +837,7 @@ A pull request follows `.github/pull_request_template.md` and should state:
 CI checks source/compiler specs and clean generation against a pinned MAME
 revision, then fetches the accepted ROM closure from the public mirror
 (`src/games/fetch-acceptance-roms.ts`) and runs every accepted real-ROM
-contract across eight shards. CI runs no browser checks, so a green workflow
+contract across sixteen shards. CI runs no browser checks, so a green workflow
 does not replace local browser evidence.
 
 ## 6. SOURCE AND OUTPUT HYGIENE

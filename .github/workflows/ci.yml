@@ -16,10 +16,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  unit:
-    name: Unit and lowering specs
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+  # Every job runs on hosted arm64. The x64 hosted runners come in two speeds
+  # and a run cannot pick: the same commit generated in 17 minutes on one and
+  # 31 on the other, and half of all runs drew the slow one. The arm64 runners
+  # the contract shards already used have held within a minute run to run.
+  #
+  # The two long phases, generation and the specs, are split across runners
+  # the way the contracts are. Each runner's fixed cost (checkouts, npm ci) is
+  # about twenty seconds, so the split costs almost nothing in runner time.
+  unit-shard:
+    name: Unit and lowering specs ${{ matrix.shard }}/4
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Four runners of four workers each: about 2,700 spec-seconds, which
+        # left one runner taking 15 to 31 minutes. nes.spec.ts, the slowest
+        # spec at over two minutes, sets the floor past four.
+        shard: [1, 2, 3, 4]
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
       NODE_OPTIONS: --max-old-space-size=4096
@@ -61,21 +76,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit and lowering specs
+      - name: Unit and lowering specs ${{ matrix.shard }}/4
         # Colocated specs are independent processes with no shared state, so
-        # they fan out across the runner's cores; the sequential loop spent
-        # most of its time idle behind six slow lowering specs.
+        # they fan out across the runner's cores as well as across runners.
         env:
           SPEC_JOBS: 4
+          SPEC_SHARD: ${{ matrix.shard }}/4
         run: npm run test:unit
 
-  generate:
-    # The distribution is generated once for the whole run and handed to the
-    # ROM-backed shards. Generating it per shard cost four extra clean
-    # generations, and had each shard testing a distribution no other job saw.
-    name: Clean generation and audit
+  unit:
+    # Branch protection requires a check with this exact name, so it gathers
+    # the shards: it passes only when every shard passed.
+    name: Unit and lowering specs
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    needs: unit-shard
+    if: always()
+    steps:
+      - name: Every shard passed
+        run: |
+          echo "shards reported: ${{ needs.unit-shard.result }}"
+          test "${{ needs.unit-shard.result }}" = "success"
+
+  generate-shard:
+    # Generating the 92 targets was two thirds of a run, one target after
+    # another on three workers. Targets are independent and each writes only
+    # its own directory, so each runner generates every eighth one
+    # (`--all --shard i/8`, about 11 seconds a target) and hands its
+    # directories on.
+    name: Generate targets ${{ matrix.shard }}/8
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       MAME_SRC: ${{ github.workspace }}/.mame
       NODE_OPTIONS: --max-old-space-size=4096
@@ -117,8 +151,98 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Clean generation and audit
-        run: npm run test:current
+      - name: Generate targets ${{ matrix.shard }}/8
+        run: node bin/mamekit.js --all --shard ${{ matrix.shard }}/8
+
+      - name: Upload the generated targets
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-targets-${{ matrix.shard }}
+          path: dist
+          retention-days: 1
+          compression-level: 6
+
+  generate:
+    # The rest of a clean generation, once, over every shard's targets: the
+    # hardware closure, the app and the manifests (`--all --assemble`), then
+    # the audits. The distribution is handed to the ROM-backed shards, so each
+    # of them tests the one distribution this job audited.
+    name: Clean generation and audit
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    needs: generate-shard
+    env:
+      MAME_SRC: ${{ github.workspace }}/.mame
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Check out MAMEKIT
+        uses: actions/checkout@v6
+
+      - name: Check out pinned MAME source
+        uses: actions/checkout@v6
+        with:
+          repository: mamedev/mame
+          ref: f34f02505e32c1993c6a782b6814232cbfc74e36
+          path: .mame
+          sparse-checkout: |
+            src
+            hash/nes.xml
+            hash/nes_ade.xml
+            hash/nes_ntbrom.xml
+            hash/nes_kstudio.xml
+            hash/nes_datach.xml
+            hash/gameboy.xml
+            hash/coleco.xml
+            hash/a2600.xml
+            hash/c64_cart.xml
+            hash/c64_cass.xml
+            hash/c64_flop_orig.xml
+            hash/c64_flop_misc.xml
+            hash/c64_quik.xml
+            hash/vic10.xml
+            3rdparty/ymfm/src
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download the generated targets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: generated-targets-*
+          path: dist
+          merge-multiple: true
+
+      - name: Assemble the distribution
+        run: node bin/mamekit.js --all --assemble
+
+      - name: Audit
+        run: npm run audit:current
+
+      - name: Restore the contracts' last measured durations
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/contract-durations.json
+          key: contract-durations-${{ github.run_id }}
+          restore-keys: contract-durations-
+
+      - name: Hand every contract shard the same durations
+        # Each shard works out its own share from this one file, so they must
+        # all read the same one. With none yet, `{}` makes them interleave.
+        run: mkdir -p .cache && (test -f .cache/contract-durations.json || echo '{}' > .cache/contract-durations.json)
+
+      - name: Upload the contract durations
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-durations
+          path: .cache/contract-durations.json
+          retention-days: 1
 
       - name: Upload the generated distribution
         uses: actions/upload-artifact@v4
@@ -128,7 +252,7 @@ jobs:
           # Only the ROM-backed shards in this same run consume it.
           retention-days: 1
           # dist is generated JS and JSON; the default level pays for itself in
-          # download time across four shards.
+          # download time across the shards.
           compression-level: 6
 
   acceptance:
@@ -137,32 +261,32 @@ jobs:
     # asserts an emulated-fps floor measured against wall clock, so contracts
     # sharing a runner's cores would drag each other under their floors and
     # fail for load rather than for behaviour.
-    name: ROM-backed accepted contracts ${{ matrix.shard }}/8
+    name: ROM-backed accepted contracts ${{ matrix.shard }}/16
     # arm64 is the requirement, not macOS: CPS1 clears its exact 50 fps
     # contract on an arm64 core while the x64 hosted VM measured 45.1-49.4 fps.
     # Keep the contract strict by selecting capacity, not lowering it. macOS
     # used to be the only hosted arm64; Linux arm64 is now offered too, has
     # four cores to the macOS VM's three, and counts against the standard
-    # concurrent-job pool rather than the five-job macOS one, so all eight
-    # shards run at once instead of in two waves.
+    # concurrent-job pool rather than the five-job macOS one, so all the
+    # shards run at once instead of in waves.
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     needs: generate
     strategy:
       fail-fast: false
       matrix:
-        # Keep SHARDS equal to the number of entries here. Eight is chosen
-        # against measured contract durations: the phase is ~9.7 min over four
-        # runners and ~5.6 over eight, and a shard's own fixed cost is only 22
-        # seconds (the generated distribution downloads in three), so extra
-        # runners are nearly free. Past eight the 92-second mslug contract
-        # starts to set the floor on its own.
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        # Keep SHARDS equal to the number of entries here. Shards are
+        # balanced by each contract's duration in the last run
+        # (src/games/acceptance-shards.ts): about 3,200 contract-seconds over
+        # sixteen runners leaves each about four minutes. The C64's disk load,
+        # 210 seconds on its own, is the floor, and sixteen is within half a
+        # minute of it.
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     env:
       # No MAME_SRC: the contracts run the generated distribution and never
       # read MAME source, which is why this job does not check it out.
       NODE_OPTIONS: --max-old-space-size=4096
-      SHARDS: 8
+      SHARDS: 16
     steps:
       - name: Check out MAMEKIT
         uses: actions/checkout@v6
@@ -182,11 +306,20 @@ jobs:
           name: generated-dist
           path: dist
 
+      - name: Download the contract durations
+        uses: actions/download-artifact@v4
+        with:
+          name: contract-durations
+          path: .cache
+
       - name: Fetch acceptance ROMs
         run: npm run fetch:acceptance-roms
 
-      - name: Accepted contracts ${{ matrix.shard }}/8
-        run: npm run test:games:matrix -- --shard ${{ matrix.shard }}/${{ env.SHARDS }}
+      - name: Accepted contracts ${{ matrix.shard }}/${{ env.SHARDS }}
+        run: >-
+          npm run test:games:matrix --
+          --shard ${{ matrix.shard }}/${{ env.SHARDS }}
+          --durations .cache/contract-durations.json
 
       - name: Upload complete acceptance report
         if: always()
@@ -202,7 +335,9 @@ jobs:
     # Branch protection requires a check with this exact name. Sharding the
     # work renamed the jobs that do it, so this job aggregates them and keeps
     # the required check stable: it passes only when every shard passed, and a
-    # shard that fails, is cancelled or never runs fails it too.
+    # shard that fails, is cancelled or never runs fails it too. It also checks
+    # that the shards between them ran every contract exactly once, and keeps
+    # this run's durations for the next run to balance by.
     name: ROM-backed accepted contracts
     runs-on: ubuntu-latest
     needs: acceptance
@@ -212,3 +347,30 @@ jobs:
         run: |
           echo "shards reported: ${{ needs.acceptance.result }}"
           test "${{ needs.acceptance.result }}" = "success"
+
+      - name: Check out MAMEKIT
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download the shards' reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: rom-acceptance-report-*
+          path: reports
+
+      - name: Every contract ran exactly once
+        run: node src/games/acceptance-shards.ts reports/*/acceptance-report.json --durations .cache/contract-durations.json
+
+      - name: Keep the durations for the next run
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/contract-durations.json
+          key: contract-durations-${{ github.run_id }}
