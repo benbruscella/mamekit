@@ -37,6 +37,18 @@ archives in git or Actions: it downloads only the accepted set closure from the
 same public, immutable mirror used by the application, then verifies every file
 against MAME's declared size and CRC.
 
+Every CI job runs on hosted arm64 Linux. The x64 hosted runners come in two
+speeds a run cannot choose between: the same commit generated in 17 minutes on
+one and 31 on the other. The two long phases are split across runners like
+the contracts. Four `Unit and lowering specs i/4` runners each take an
+interleaved quarter of the specs (`SPEC_SHARD=i/4`), gathered into the
+required `Unit and lowering specs` check. Four `Generate targets i/4` runners
+each generate an interleaved quarter of the targets (`mamekit --all --shard
+i/4`); `Clean generation and audit` merges their directories, finishes the
+build once (`mamekit --all --assemble`: the hardware closure, the app and the
+manifests) and runs `npm run audit:current`. The result is the same
+distribution a single `npm run gen:all` makes.
+
 The distribution is generated once per run by `Clean generation and audit` and
 handed to the gate as an artifact; the gate is split across eight arm64 Linux
 runners, each running an interleaved eighth of the contracts (`--shard i/8`)
@@ -481,10 +493,12 @@ it must not gain game logic.
 2. sparse-checks out the pinned MAME source commit used to establish these
    contracts;
 3. installs the locked npm dependencies on the repository's Node version;
-4. runs every colocated spec;
-5. deletes `dist`, regenerates every discovered accepted/candidate machine,
-   and runs `test:current`'s three audits: generated structure, machine facts
-   (skipped and passing, since CI has no MAME binary) and semantic BoardIR;
+4. runs every colocated spec, a quarter on each of four runners;
+5. regenerates every discovered accepted/candidate machine from a clean
+   output directory, a quarter on each of four runners, assembles the
+   distribution once over all of them, and runs `audit:current`'s three
+   audits: generated structure, machine facts (skipped and passing, since CI
+   has no MAME binary) and semantic BoardIR;
 6. in each ROM-backed shard, downloads the distribution generated in step 5
    and the exact accepted ROM closure from the application's public mirror,
    verifies the ROMs against MAME metadata, runs that shard's contracts, and uploads its report even when one or more fail (one

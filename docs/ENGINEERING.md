@@ -392,6 +392,14 @@ MAME source closure before the shared runtime/app build runs once. The
 hardware closure's isolated CPU artifact workers run through the same bounded
 pool policy.
 
+A full build can also be split across machines, which is how CI runs it.
+`mamekit --all --shard i/n` generates every n-th target from the i-th into a
+clean output directory and stops. Once every shard's directories are merged
+into one output directory, `mamekit --all --assemble` finishes the build: it
+refuses to run if any target is missing, then builds the hardware closure,
+the app and the manifests exactly as `--all` does. `npm run audit:current`
+then runs the audits `test:current` runs after `gen:all`.
+
 `gen:all` memoizes derived artifacts in the gitignored `.cache/` tree: driver
 git history, per-target output, the hardware closure (CPU cores included) and
 the compiled app. The build's only inputs are the MAME checkout and this
