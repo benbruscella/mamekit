@@ -4,7 +4,7 @@
  * without MAME or ROMs (report.spec.ts).
  */
 
-import type { FrameResult, IoResult, RamResult } from './compare.ts';
+import type { FrameResult, InputsResult, IoResult, RamResult } from './compare.ts';
 import type { InputMode } from './plan.ts';
 
 export interface RunReport {
@@ -29,6 +29,8 @@ export interface RunReport {
   };
   ram?: RamResult;
   io?: IoResult;
+  /** Whether MAME read the driven inputs as ours did (`--input start|contract`). */
+  inputs?: InputsResult;
   grade?: { samples: number; drawn: number; changes: number; colours: number };
   /** How far our side ran; `retried` is a first failure the second run did not repeat. */
   ours?: { frames: number; error?: string; retried?: string };

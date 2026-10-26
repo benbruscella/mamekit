@@ -8,6 +8,8 @@
  *     frames "ahead").
  *   * Out of the way: -window -nomaximize under -video none, or MAME takes
  *     over a Mac's screen; nice 10, so it yields to whatever else is running.
+ *   * The screen alone: -snapview native, or a machine with layout artwork
+ *     (Spy Hunter's lamp row) snapshots the artwork too, 480x500 to our 480x480.
  *   * The same release as the source checkout, or every difference is noise
  *     (src/gen/listxml.ts refuses a mismatch, and so does this).
  */
@@ -82,7 +84,7 @@ export function mameArguments(
     '-rompath', romPaths(config, category).join(';'),
     '-hashpath', join(mameSrc, 'hash'),
     ...(politeness.watch ? ['-window'] : ['-window', '-nomaximize', '-video', 'none']),
-    '-sound', 'none', '-nothrottle', '-skip_gameinfo',
+    '-sound', 'none', '-nothrottle', '-skip_gameinfo', '-snapview', 'native',
     '-nvram_directory', join(dir, 'mame-nvram'),
     '-cfg_directory', join(dir, 'mame-cfg'),
     '-snapshot_directory', join(dir, 'mame-snap'),
@@ -107,20 +109,24 @@ export function mameFrames(plan: OraclePlan, ramFramesOurs: number[]): { snapsho
 }
 
 /**
- * The timeline as oracle.lua applies it. A control's value set from Lua takes
+ * The timeline as oracle.lua applies it. A digital control set from Lua takes
  * effect at MAME's next ioport frame update, which is itself a frame notifier
- * that runs before the script's: set in notifier N, it is read from frame
+ * that runs before the script's: pressed in notifier N, it is read from frame
  * N + 2 on. Ours, and MAME's own host input, take effect at the start of the
- * frame after the one it is given on, so a control event goes to MAME one
- * notifier early. Typed text, PLAY and resets keep their frame. Lua tables are
- * 1-based: an event's input index moves up by one.
+ * frame after the one it is given on, so a press or release goes to MAME one
+ * notifier early; a PORT_TOGGLE switch's flip then shows a frame later on both
+ * sides (KeyboardInput's `flips`). An analog value
+ * is read straight from its override, with no frame update between, so it
+ * keeps its frame (the recorder already put it on the frame before the one
+ * that reads it), as do typed text, PLAY and resets.
+ * Lua tables are 1-based: an event's input index moves up by one.
  */
 export function luaEvents(timeline: Timeline): Record<number, TimelineEvent[]> {
   const events: Record<number, TimelineEvent[]> = {};
   for (const [frame, list] of Object.entries(timeline.events)) {
     for (const event of list) {
-      const control = event.kind === 'press' || event.kind === 'release' || event.kind === 'set';
-      const at = control ? Math.max(0, Number(frame) - 1) : Number(frame);
+      const digital = event.kind === 'press' || event.kind === 'release';
+      const at = digital ? Math.max(0, Number(frame) - 1) : Number(frame);
       (events[at] ??= []).push('input' in event ? { ...event, input: event.input + 1 } : event);
     }
   }

@@ -30,6 +30,22 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The oracle replays every contract in MAME, and four of the gaps it found ([#198](https://github.com/benbruscella/mamekit/issues/198))
+
+**For players:** Spy Hunter's picture is no longer drawn 16 lines low: its text layer now has MAME's scroll, because the machine's own video start finally runs. A cabinet toggle switch (Defender, Joust and Robotron's Auto Up / Manual Down, Pole Position's gear change) takes effect a frame after it is pressed, as on MAME. Centipede's, Marble Madness's and Missile Command's reversed trackball axes, and the ColecoVision's driving wheel, roller and Super Action slider, start where MAME's do. Donkey Kong and Donkey Kong Jr. now run their video start, as do Centipede, Crush Roller, Ms. Pac-Man, Pengo and R-Type.
+
+**Under the hood:**
+- `tools/mame-oracle.ts --input contract` now replays all 102 contracts. Analog controls (pedal, paddle, stick, dial, trackball, light gun) are given to MAME as the value our port read each frame (`InputRecorder`), not as key presses. MAME 0.289's `analog_field::set_value` override is read at once and replaces the whole port, so analog values keep their frame, and `oracle.lua` refuses an analog field that shares its port.
+- Every run now compares what both sides' ports read on every frame.
+- `oracle.lua` survives MAME rerunning its autoboot script after every reset.
+- Our side counts frames on through a reset, which resets the board's frame counter but not MAME's. Joust and Robotron are pixel-exact against MAME through their reset.
+- MAME snapshots use `-snapview native`.
+- `KeyboardInput` shows a toggle's flip at the next frame boundary (MAME's `update_defvalue` runs before the fields update).
+- A `PORT_REVERSE` relative field starts at its mask, because MAME reverses x to ~x.
+- `IPT_DIAL` honours `PORT_REVERSE`.
+- `MCFG_VIDEO_START_OVERRIDE` and `MCFG_MACHINE_START_OVERRIDE` are read through the base configs a machine config calls.
+- `VIDEO_START_CALL_MEMBER(x)` lowers to a call of `video_start_x`.
+
 ### The Z80 CTC compiled from MAME, and IM 2 vectors through the Z80's daisy chain ([#181](https://github.com/benbruscella/mamekit/issues/181))
 
 **For players:** Rampage's attract demo stays with MAME's for longer. It used to run two frames ahead of MAME's and drift from about frame 600; now it keeps MAME's frame, and at frames 600 to 1200 it differs from MAME's picture by a tenth to a quarter as many pixels as before. Spy Hunter plays as before.

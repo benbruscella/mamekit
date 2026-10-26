@@ -17,9 +17,19 @@
 --     the image a -snapshot PNG holds: rotated as presented;
 --   * machine.time inside a tap is the executing CPU's local time, cycle
 --     exact, so a bus access is stamped with the time it happened at (a
---     device's clock is not readable from Lua, so seconds, not cycles).
+--     device's clock is not readable from Lua, so seconds, not cycles);
+--   * MAME runs the autoboot script again after EVERY machine reset (its
+--     reset notifier re-arms the autoboot timer), a contract's reset or a
+--     watchdog's alike; the script runs once, and a rerun returns at once,
+--     or it starts counting frames from zero and truncates its captures;
+--   * an analog field's set_value (0.289's analog_field::read) returns the
+--     override as the WHOLE port, unshifted and unmasked: every other field
+--     on the port is lost, so an analog input must be its port's only field,
+--     from bit 0.
 -- The cold-boot rules (a fresh -nvram_directory and -cfg_directory per run)
 -- are the runner's, which owns the command line.
+
+if oracle then return end
 
 local plan = dofile(os.getenv("MAMEKIT_ORACLE_PLAN"))
 local machine = manager.machine
@@ -68,10 +78,28 @@ local function find_field(input)
   return nil, string.format("MAME's %s has no field with mask 0x%x", port.tag, input.mask)
 end
 
+-- An analog value replaces the port it is read from, so it can only stand in
+-- for a field that is the whole port.
+local function check_analog(field, input)
+  if not field.is_analog then
+    return string.format("MAME's %s 0x%x is digital, but ours moves it as a value", input.port, input.mask)
+  end
+  if input.mask % 2 == 0 then
+    return string.format("MAME 0.289 gives %s 0x%x's value unshifted, so it cannot be set from Lua", input.port, input.mask)
+  end
+  for _, other in pairs(field.port.fields) do
+    if other.mask ~= field.mask then
+      return string.format("MAME 0.289's set_value would replace all of %s, which also holds 0x%x", input.port, other.mask)
+    end
+  end
+  return nil
+end
+
 oracle.fields = {}
 for index, input in ipairs(plan.inputs) do
   local field, problem = find_field(input)
-  if not field then return fail(problem) end
+  if field and input.analog then problem = check_analog(field, input) end
+  if problem then return fail(problem) end
   oracle.fields[index] = field
 end
 
@@ -96,6 +124,25 @@ end
 
 local function apply_frame(frame)
   for _, event in ipairs(plan.events[frame] or {}) do apply(event) end
+end
+
+-- What each input reads during the next frame, as its port's bits: read once
+-- the frame's events are applied, after MAME's own ioport frame update (an
+-- earlier notifier), so it is what frame + 1 reads. Logged on change, for the
+-- comparison with what ours read (compareInputs). A port read also runs any
+-- read handler on the port, so a handler with side effects would be disturbed.
+oracle.read_back = {}
+if #oracle.fields > 0 then
+  oracle.files.inputs = io.open(plan.out .. "/mame-inputs.txt", "w")
+end
+local function read_back(frame)
+  for index, field in ipairs(oracle.fields) do
+    local ok, value = pcall(function() return field.port:read() & plan.inputs[index].mask end)
+    if ok and oracle.read_back[index] ~= value then
+      oracle.read_back[index] = value
+      oracle.files.inputs:write(string.format("%d %d %d\n", frame + 1, index - 1, value))
+    end
+  end
 end
 
 local function cpu_space(tag)
@@ -162,6 +209,7 @@ local function finish()
 end
 
 apply_frame(0)
+if oracle.files.inputs then read_back(0) end
 
 oracle.frame_notifier = emu.add_machine_frame_notifier(function()
   oracle.count = oracle.count + 1
@@ -173,6 +221,7 @@ oracle.frame_notifier = emu.add_machine_frame_notifier(function()
   if plan.snapshots[frame] then snapshot(frame) end
   if oracle.files.ram and plan.ram_frames[frame] then dump_ram() end
   apply_frame(frame)
+  if oracle.files.inputs then read_back(frame) end
   if frame >= plan.last then
     finish()
     machine:exit()

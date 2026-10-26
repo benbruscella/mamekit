@@ -550,6 +550,27 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     return machineConfigs.find(candidate => candidate.cls === cfg.cls && candidate.name === callee)
       ?? cfgByName.get(callee);
   };
+  /**
+   * A machine config's statements with every config it calls spliced in where
+   * it is called, as MAME runs them. An override set in a base config counts
+   * (Spy Hunter's MCFG_VIDEO_START_OVERRIDE is in `mcrscroll`, which its own
+   * `mcrsc_csd` calls), and a later one replaces an earlier one.
+   */
+  const composedConfigRaw = (cfg: (typeof machineConfigs)[number], seen = new Set<string>()): string => {
+    const key = `${cfg.cls}.${cfg.name}`;
+    if (seen.has(key)) return '';
+    seen.add(key);
+    let raw = cfg.raw;
+    for (const callee of cfg.calls) {
+      const target = resolveConfig(cfg, callee);
+      if (!target) continue;
+      const name = callee.split('::').at(-1)!;
+      const call = new RegExp(`\\b(?:\\w+::)*${name}\\s*\\(\\s*config\\s*\\)`).exec(raw);
+      const body = composedConfigRaw(target, seen);
+      raw = call ? raw.slice(0, call.index) + body + raw.slice(call.index + call[0].length) : `${body}\n${raw}`;
+    }
+    return raw;
+  };
   const virtualMethod = (className: string, method: string): boolean => {
     const seen = new Set<string>();
     const visit = (candidate: string): boolean => {
@@ -652,10 +673,22 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       cfg.name,
       'start',
     );
+    // The video start the machine runs: an MCFG_VIDEO_START_OVERRIDE, in its
+    // own config or a base config it calls, else the class's video_start.
+    const composedRaw = composedConfigRaw(cfg);
+    const videoStartOverride = [...composedRaw.matchAll(
+      /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g,
+    )].at(-1);
+    const videoStart = videoStartOverride
+      ? ast.findFunctionInHierarchy(
+          videoStartOverride[1]!,
+          `video_start_${videoStartOverride[2]}`,
+        )
+      : ast.findFunctionInHierarchy(cfg.cls, 'video_start');
     // video_start is a start too, and where the Spectrum allocates its
-    // interrupt and screen-finish timers.
-    const timerVideoStart = ast.findFunctionInHierarchy(cfg.cls, 'video_start');
-    if (timerVideoStart) pendingTimerStarts.push(timerVideoStart);
+    // interrupt and screen-finish timers (Donkey Kong's override, its scanline
+    // timer).
+    if (videoStart) pendingTimerStarts.push(videoStart);
     while (pendingTimerStarts.length) {
       const fn = pendingTimerStarts.shift()!;
       const key = `${fn.className}.${fn.name}`;
@@ -665,6 +698,11 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       // `spectrum_state::video_start()` from the 128K's own video_start.
       for (const call of fn.body.matchAll(/\b(\w+)::(\w+)\s*\(/g)) {
         const target = ast.findFunction(call[1]!, call[2]!);
+        if (target) pendingTimerStarts.push(target);
+      }
+      // VIDEO_START_CALL_MEMBER(x), as the parser lowers it: video_start_x().
+      for (const call of fn.body.matchAll(/(?<!::)\b(video_start_\w+)\s*\(\s*\)/g)) {
+        const target = ast.findFunctionInHierarchy(fn.className, call[1]!);
         if (target) pendingTimerStarts.push(target);
       }
       // Drivers commonly allocate their scanline timers in a helper called
@@ -691,15 +729,6 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       'reset',
     );
     const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
-    const videoStartOverride = [...cfg.raw.matchAll(
-      /MCFG_VIDEO_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g,
-    )].at(-1);
-    const videoStart = videoStartOverride
-      ? ast.findFunctionInHierarchy(
-          videoStartOverride[1]!,
-          `video_start_${videoStartOverride[2]}`,
-        )
-      : ast.findFunctionInHierarchy(cfg.cls, 'video_start');
     const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
     // MAME `machine_config::set_perfect_quantum(device)`: this board is
     // interleaved as finely as the scheduler can manage, for the whole run.
@@ -740,7 +769,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         // schedules its own way (Neo Geo's raster interrupts, Simpsons'
         // sprite DMA), and lowering it too fires it twice.
         .flatMap(match => functionClosureContains(ast, fn, body => body.includes(`${match[1]}->adjust`)) ||
-          (method === 'video_start' &&
+          (method?.startsWith('video_start') &&
             ast.ast.units.some(unit => unit.functions.some(candidate => candidate.body.includes(`${match[1]}->adjust`))))
           ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
           : []);
@@ -905,7 +934,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         pendingBankFunctions.push(target);
       }
     }
-    const overrideBankSources = [...cfg.raw.matchAll(
+    const overrideBankSources = [...composedRaw.matchAll(
       /MCFG_MACHINE_START_OVERRIDE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)/g,
     )].flatMap(match => {
       const body = machineStartMemberBody(combined, match[1]!, match[2]!);

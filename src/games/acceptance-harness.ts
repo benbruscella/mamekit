@@ -122,9 +122,9 @@ export interface GameAcceptanceOptions {
    * Diagnostic hook called once, before the first frame, with the booted board
    * and the configuration it was built from: the slot cards it holds and the
    * media slots it left empty, which a MAME reference run has to be given too
-   * (tools/mame-oracle.ts).
+   * (tools/mame-oracle.ts), and the input model whose ports the board reads.
    */
-  onBoard?: (booted: { board: Board; boardConfig: ShellConfig['board']; config: ShellConfig }) => void;
+  onBoard?: (booted: { board: Board; boardConfig: ShellConfig['board']; config: ShellConfig; input: KeyboardInput }) => void;
   /**
    * Called when a software title's start acts, after `frame` frames: the frame
    * it types its command on can wait for a quickload to finish loading, so a
@@ -336,7 +336,7 @@ export async function runGameAcceptance(
   // that reads its trackball mid-frame -- Missile Command, from its scanline
   // IRQ -- saw one lump per frame here and gradual steps in the browser.
   input.frameFraction = () => board.frameFraction?.() ?? 1;
-  options.onBoard?.({ board, boardConfig, config });
+  options.onBoard?.({ board, boardConfig, config, input });
 
   const audio = await createAudioProbe(config, regions, outRoot);
   const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);

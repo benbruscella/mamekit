@@ -70,10 +70,13 @@ export interface OraclePlan {
 export interface TimelineInput {
   port: string;
   mask: number;
+  /** Given to MAME as the value our side read (`set`), never as a press. */
+  analog?: true;
 }
 
 export type TimelineEvent =
   | { kind: 'press' | 'release'; input: number }
+  /** An analog field's value, in the field's own units (shifted down by its mask). */
   | { kind: 'set'; input: number; value: number }
   | { kind: 'text'; text: string }
   | { kind: 'reset' }
@@ -119,17 +122,26 @@ export function startSchedule(bindings: readonly FieldBinding[], last: number): 
   return actions;
 }
 
-/** A binding MAME can be given by set_value/clear_value: an on/off bit. */
-function digital(binding: FieldBinding): boolean {
+/**
+ * A binding MAME is given as an on/off bit: a key, a button or a maintained
+ * switch. On a digital field `set_value` is a press and `clear_value` a
+ * release; a PORT_TOGGLE field flips on the press and shows it a frame later,
+ * as ours does, so a toggle is pressed like any other key. Every other binding (a pedal, paddle, stick,
+ * dial, trackball or light gun) moves a value our input model works out, and
+ * MAME is given that value (`InputRecorder`).
+ */
+export function digital(binding: FieldBinding): boolean {
   return binding.activeValue === undefined && binding.relativeDelta === undefined &&
-    binding.keyDelta === undefined && !binding.toggle && !binding.lightgun;
+    binding.keyDelta === undefined && !binding.lightgun;
 }
 
 /**
  * The frame every action lands on, worked out the way runGameAcceptance runs
  * them: each waits for its frame, a key is held for `heldFrames` and released
  * for `releasedFrames` before the next action is looked at, and a later
- * action whose frame has already passed goes at once.
+ * action whose frame has already passed goes at once. A reset sets the board's
+ * frame counter back to zero, so every action after one waits for its frame
+ * counted from the reset; the timeline counts on, as MAME does.
  */
 export function inputTimeline(
   actions: readonly GameInputAction[],
@@ -145,27 +157,22 @@ export function inputTimeline(
     inputs.push({ port: binding.port, mask: binding.mask });
     return inputs.length - 1;
   };
+  // A key on an analog control moves a value, which the recorder gives MAME.
   const keyed = (code: string): number[] => {
     const matched = bindings.filter(binding => binding.keys.includes(code));
     if (!matched.length) throw new Error(`no control is bound to ${code}`);
-    const unsupported = matched.filter(binding => !digital(binding));
-    if (unsupported.length) {
-      throw new Error(`${code} drives ${unsupported.map(binding => binding.label).join(', ')}, which MAME is not given yet`);
-    }
-    return matched.map(inputIndex);
+    return matched.filter(digital).map(inputIndex);
   };
   let cursor = 0;
+  let counterStart = 0;
   for (const action of actions) {
-    cursor = Math.max(cursor, action.atFrame);
-    if ('reset' in action) { at(cursor, { kind: 'reset' }); continue; }
+    cursor = Math.max(cursor, counterStart + action.atFrame);
+    if ('reset' in action) { at(cursor, { kind: 'reset' }); counterStart = cursor; continue; }
     if ('text' in action) { at(cursor, { kind: 'text', text: action.text }); continue; }
-    if ('aim' in action) {
-      for (const binding of bindings.filter(candidate => candidate.lightgun)) {
-        at(cursor, { kind: 'set', input: inputIndex(binding), value: action.aim[binding.lightgun!.axis === 'x' ? 0 : 1] });
-      }
-      continue;
-    }
-    if ('analog' in action || 'signal' in action) throw new Error('analog and signal actions are not mirrored in MAME yet');
+    // An aim, like an analog action, moves a port value the recorder gives MAME.
+    if ('aim' in action) continue;
+    if ('analog' in action) { cursor += action.heldFrames + action.releasedFrames; continue; }
+    if ('signal' in action) throw new Error(`a ${action.signal} signal has no port value to give MAME`);
     const pressed = 'codes' in action ? action.codes.flatMap(keyed) : keyed(action.code);
     for (const input of pressed) at(cursor, { kind: 'press', input });
     cursor += action.heldFrames;
@@ -174,6 +181,85 @@ export function inputTimeline(
   }
   if (boot) at(boot.frame, { kind: 'boot', text: boot.text, play: boot.play });
   return { inputs, events };
+}
+
+/** Our input model's port bytes, as the board reads them (KeyboardInput). */
+export interface OurPorts {
+  has(port: string): boolean;
+  peek(port: string): number;
+}
+
+/**
+ * What our side read, frame by frame, and the analog values MAME is given
+ * from it.
+ *
+ * An analog control is mirrored as a value, not a gesture: MAME's
+ * `analog_field::set_value` makes `read()` return that value as it stands, with
+ * no PORT_SENSITIVITY, PORT_KEYDELTA, PORT_REVERSE, wrap or interpolation, so
+ * both sides read the same port and the comparison measures the emulation, not
+ * two input models. It is the value the driver reads: a dial or trackball's
+ * wrapped counter, a reversed stick already reversed. The override is read at
+ * once, unlike a digital value, which waits for the next ioport frame update:
+ * the value our frame N reads goes to MAME at notifier N - 1, as the timeline's
+ * event at N - 1 (`luaEvents` leaves `set` where it is).
+ *
+ * Only a control that moves is put on the timeline, so a card's controller
+ * that is not plugged in, or a dial nobody turns, is never looked for in MAME.
+ * Every input on the timeline is also logged as its port bits per frame, the
+ * read-back MAME's side is compared with (`compareInputs`).
+ */
+export class InputRecorder {
+  private readonly watched: { port: string; mask: number; analog: boolean; rest: number; sent: number; changes: [number, number][] }[] = [];
+  private readonly timeline: Timeline;
+  private readonly ports: OurPorts;
+
+  /** `ports` is our input model before the first frame, every control at rest. */
+  constructor(timeline: Timeline, bindings: readonly FieldBinding[], ports: OurPorts) {
+    this.timeline = timeline;
+    this.ports = ports;
+    for (const input of timeline.inputs) {
+      const rest = ports.peek(input.port) & input.mask;
+      this.watched.push({ port: input.port, mask: input.mask, analog: Boolean(input.analog), rest, sent: rest, changes: [] });
+    }
+    for (const binding of bindings) {
+      if (digital(binding) || !ports.has(binding.port) || this.find(binding.port, binding.mask)) continue;
+      const rest = ports.peek(binding.port) & binding.mask;
+      this.watched.push({ port: binding.port, mask: binding.mask, analog: true, rest, sent: rest, changes: [] });
+    }
+  }
+
+  private find(port: string, mask: number) {
+    return this.watched.find(entry => entry.port === port && entry.mask === mask);
+  }
+
+  /** Our port bytes as frame `frame` read them, called once it has run. */
+  frame(frame: number): void {
+    for (const entry of this.watched) {
+      const value = this.ports.peek(entry.port) & entry.mask;
+      if (entry.changes.at(-1)?.[1] !== value) entry.changes.push([frame, value]);
+      if (!entry.analog || value === entry.sent) continue;
+      entry.sent = value;
+      const shift = Math.log2(entry.mask & -entry.mask);
+      let input = this.timeline.inputs.findIndex(candidate => candidate.port === entry.port && candidate.mask === entry.mask);
+      if (input < 0) {
+        input = this.timeline.inputs.push({ port: entry.port, mask: entry.mask, analog: true }) - 1;
+        // From the first frame, ours at rest too, so a rest MAME's own input
+        // puts elsewhere cannot show as a difference in the emulation.
+        if (frame > 1) (this.timeline.events[0] ??= []).push({ kind: 'set', input, value: entry.rest >>> shift });
+      }
+      (this.timeline.events[frame - 1] ??= []).push({ kind: 'set', input, value: value >>> shift });
+    }
+  }
+
+  /** `frame input bits` whenever an input on the timeline changed, from frame 1. */
+  readings(): string {
+    const lines: [number, number, number][] = [];
+    this.timeline.inputs.forEach((input, index) => {
+      for (const [frame, value] of this.find(input.port, input.mask)?.changes ?? []) lines.push([frame, index, value]);
+    });
+    return lines.sort((left, right) => left[0] - right[0] || left[1] - right[1])
+      .map(line => `${line.join(' ')}\n`).join('');
+  }
 }
 
 /**

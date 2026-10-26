@@ -38,6 +38,8 @@ assert.equal(value(args, '-hashpath'), '/mame/hash');
 for (const flag of ['-window', '-nomaximize', '-skip_gameinfo', '-nothrottle']) assert.ok(args.includes(flag), flag);
 assert.equal(value(args, '-video'), 'none');
 assert.equal(value(args, '-sound'), 'none');
+// The screen alone, without a layout's artwork around it.
+assert.equal(value(args, '-snapview'), 'native');
 assert.ok(value(args, '-autoboot_script')!.endsWith('/tools/oracle/oracle.lua'));
 // --watch shows MAME's picture in an ordinary window.
 const watched = mameArguments(config, 'arcade', boot, undefined, '/mame', '/work', { background: false, watch: true });
@@ -68,6 +70,9 @@ try {
     { port: 'ctrl2:GUN_X', mask: 0xff, keys: [], label: 'X', lightgun: { axis: 'x', min: 0, max: 255 } },
     { port: 'ctrl2:GUN_Y', mask: 0xff, keys: [], label: 'Y', lightgun: { axis: 'y', min: 0, max: 239 } },
   ], { frame: 151, text: 'LOAD{ENTER}', play: true });
+  // An analog value, as the recorder adds one (input-mirror.spec.ts).
+  timeline.inputs.push({ port: 'ctrl2:GUN_X', mask: 0xff, analog: true });
+  (timeline.events[19] ??= []).push({ kind: 'set', input: timeline.inputs.length - 1, value: 1 });
   writeLuaPlan(join(dir, 'plan.lua'), dir, timeline, { snapshots: [599, 600], ram: [1, 2] }, plan);
   const written = readFileSync(join(dir, 'plan.lua'), 'utf8');
   assert.ok(written.startsWith('return {'));
@@ -77,6 +82,9 @@ try {
   // early (luaEvents); a reset keeps its frame.
   assert.match(written, /\[9\]=\{\{\["kind"\]="press",\["input"\]=1\}\}/);
   assert.match(written, /\[40\]=\{\{\["kind"\]="reset"\}\}/);
+  // An analog value is read from its override at once, so it keeps its frame.
+  assert.match(written, /\[19\]=\{\{\["kind"\]="set",\["input"\]=2,\["value"\]=1\}\}/);
+  assert.match(written, /\{\["port"\]="ctrl2:GUN_X",\["mask"\]=255,\["analog"\]=true\}/);
   assert.match(written, /\["last"\]=600/);
 
   const script = readFileSync(join(dirname(), 'oracle.lua'), 'utf8');
@@ -94,9 +102,16 @@ try {
   assert.match(script, /oracle\.frame_notifier = emu\.add_machine_frame_notifier/);
   assert.match(script, /emu\.add_machine_stop_notifier/);
   assert.match(script, /video:snapshot_pixels\(\)/);
+  // An analog input is refused unless it is all of its port from bit 0 (0.289
+  // returns the override as the whole port), and both sides' reads are logged.
+  assert.match(script, /if field and input\.analog then problem = check_analog\(field, input\) end/);
+  assert.match(script, /not field\.is_analog/);
+  assert.match(script, /mame-inputs\.txt/);
   // Code only: the comments name these pitfalls on purpose.
   const code = script.replace(/--.*$/gm, '');
   assert.doesNotMatch(code, /screen:pixels|register_stop|^local\s+\w+\s*=\s*emu\.add_/m);
+  // MAME reruns the autoboot script after every reset; the rerun must not start over.
+  assert.match(code, /^if oracle then return end$/m);
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

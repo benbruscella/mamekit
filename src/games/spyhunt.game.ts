@@ -49,11 +49,11 @@ export const spyhunt = sourceTarget({
     checkpoints: {
       1: { video: '230fe52e', state: 'efef722a' },
       60: { video: '46862ad0', state: 'a58ebca7' },
-      180: { video: 'dce8f242', state: '4f29b8e7' },
-      300: { video: 'd0d8fdf0', state: 'b115e9a7' },
-      600: { video: '8cd979b6', state: '32ce2789' },
-      900: { video: '02d0b856', state: 'effae156' },
-      1200: { video: '18dc6160', state: 'a94f12e4' },
+      180: { video: '537eb4b8', state: '4f29b8e7' },
+      300: { video: '11bb1ad5', state: 'b115e9a7' },
+      600: { video: 'afb665b8', state: '32ce2789' },
+      900: { video: '21bfa458', state: 'effae156' },
+      1200: { video: '3bb37d6e', state: 'a94f12e4' },
     },
     audio: {
       writes: 3858,

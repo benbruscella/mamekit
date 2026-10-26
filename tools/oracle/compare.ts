@@ -1,12 +1,12 @@
 /**
  * Setting the two sides' captures against each other: pictures, RAM, bus
- * traffic. Everything here reads files the two runs wrote and nothing else.
+ * traffic and the inputs each side read. Everything here reads files the two runs wrote and nothing else.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { crc32, deflateSync } from 'node:zlib';
-import { ramBytesPerFrame, type RamPlan } from './plan.ts';
+import { ramBytesPerFrame, type RamPlan, type TimelineInput } from './plan.ts';
 
 export interface Picture {
   width: number;
@@ -338,6 +338,56 @@ export function compareIo(dir: string): IoResult {
       before: ours.slice(Math.max(0, index - 6), index),
     };
     break;
+  }
+  return result;
+}
+
+export interface InputsResult {
+  /** Inputs on the timeline, and the frames both sides read them on. */
+  inputs: number;
+  frames: number;
+  /** Frames on which some input read differently. */
+  differing: number;
+  firstDivergence?: { frame: number; port: string; mask: number; mame: number; ours: number };
+}
+
+/** `frame input bits` change lines -> each input's bits on every frame from 1 to `last`. */
+function readReadings(path: string, inputs: number, last: number): (number | undefined)[][] {
+  const values = Array.from({ length: inputs }, () => new Array<number | undefined>(last + 1).fill(undefined));
+  const changes = existsSync(path) ? readFileSync(path, 'utf8').split('\n').filter(Boolean)
+    .map(line => line.split(' ').map(Number) as [number, number, number]) : [];
+  for (const [frame, input, value] of changes) {
+    if (input >= inputs || frame > last) continue;
+    values[input]!.fill(value, Math.max(1, frame));
+  }
+  return values;
+}
+
+/**
+ * Whether MAME read each input as ours did, frame by frame: the check that
+ * the timeline gave MAME what our side read, on the frame it read it (a
+ * press's timing, a toggle's state, an analog value), before any picture is
+ * blamed on the emulation.
+ */
+export function compareInputs(dir: string, inputs: readonly TimelineInput[], last: number): InputsResult | undefined {
+  if (!inputs.length || !existsSync(join(dir, 'mame-inputs.txt'))) return undefined;
+  const mame = readReadings(join(dir, 'mame-inputs.txt'), inputs.length, last);
+  const ours = readReadings(join(dir, 'ours-inputs.txt'), inputs.length, last);
+  const result: InputsResult = { inputs: inputs.length, frames: 0, differing: 0 };
+  for (let frame = 1; frame <= last; frame++) {
+    let compared = false;
+    let differs = false;
+    inputs.forEach((input, index) => {
+      const left = mame[index]![frame];
+      const right = ours[index]![frame];
+      if (left === undefined || right === undefined) return;
+      compared = true;
+      if (left === right) return;
+      differs = true;
+      result.firstDivergence ??= { frame, port: input.port, mask: input.mask, mame: left, ours: right };
+    });
+    if (compared) result.frames++;
+    if (differs) result.differing++;
   }
   return result;
 }

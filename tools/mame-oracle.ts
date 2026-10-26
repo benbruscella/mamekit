@@ -51,7 +51,7 @@ import { gameOutputDir } from '../src/gen/output-layout.ts';
 import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../src/gen/oracle-result.ts';
 import { romsDir } from '../src/paths.ts';
 import type { ShellConfig } from '../src/runtime/shell.ts';
-import { compareIo, comparePictures, compareRam, sideBySide, writePng } from './oracle/compare.ts';
+import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './oracle/compare.ts';
 import { mameArguments, mameFrames, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './oracle/mame-side.ts';
 import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './oracle/plan.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type RunReport, type SurveyEntry } from './oracle/report.ts';
@@ -235,7 +235,9 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
 
   const ramOurs = request.ram ? ramFrames(request.ram) : [];
   const frames = mameFrames(plan, ramOurs);
-  writeLuaPlan(join(dir, 'mame-plan.lua'), dir, boot.timeline, frames, plan);
+  // A reset sets our board's frame counter back, and the harness then runs its
+  // full length again: MAME runs as many frames as ours did.
+  writeLuaPlan(join(dir, 'mame-plan.lua'), dir, boot.timeline, frames, { ...plan, last: Math.max(plan.last, report.ours.frames) });
   const args = mameArguments(config, outputDir.category, boot, boot.software, mameSrc, dir, politeness);
   // What to type to see the same run by hand, less this run's private directories.
   const shown: string[] = [];
@@ -274,6 +276,8 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   }
   if (request.ram) report.ram = compareRam(dir, request.ram, ramOurs, frames.ram, offsets, request.frames);
   if (request.io) report.io = compareIo(dir);
+  const inputs = compareInputs(dir, boot.timeline.inputs, report.ours.frames);
+  if (inputs) report.inputs = inputs;
   if (!quiet) printRun(key, report);
   if (flag('--keep')) {
     if (!quiet) console.log(`  captures kept in ${relative(projectRoot, dir)}`);
@@ -308,6 +312,13 @@ function printRun(key: string, report: RunReport): void {
     const nearest = comparedFrames.filter(frame => report.ram!.nearest[frame])
       .map(frame => `@${frame}: ${report.ram!.nearest[frame]!.bytes} (${signed(report.ram!.nearest[frame]!.offset)})`).join('  ');
     if (nearest) console.log(`    nearest per frame ${nearest}`);
+  }
+  if (report.inputs) {
+    const first = report.inputs.firstDivergence;
+    console.log(`  inputs (${report.inputs.inputs}, ${report.inputs.frames} frames): ` + (first
+      ? `MAME read differently on ${report.inputs.differing} frames, first at ${first.frame}: ` +
+        `${first.port} 0x${first.mask.toString(16)} MAME ${hex(first.mame)} / ours ${hex(first.ours)}`
+      : 'MAME read what ours read on every frame'));
   }
   if (report.io) {
     const first = report.io.firstDivergence;
