@@ -235,7 +235,9 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
 
   const ramOurs = request.ram ? ramFrames(request.ram) : [];
   const frames = mameFrames(plan, ramOurs);
-  writeLuaPlan(join(dir, 'mame-plan.lua'), dir, boot.timeline, frames, plan);
+  // A reset sets our board's frame counter back, and the harness then runs its
+  // full length again: MAME runs as many frames as ours did.
+  writeLuaPlan(join(dir, 'mame-plan.lua'), dir, boot.timeline, frames, { ...plan, last: Math.max(plan.last, report.ours.frames) });
   const args = mameArguments(config, outputDir.category, boot, boot.software, mameSrc, dir, politeness);
   // What to type to see the same run by hand, less this run's private directories.
   const shown: string[] = [];

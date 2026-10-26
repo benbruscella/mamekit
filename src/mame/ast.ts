@@ -223,13 +223,24 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const braceEnd = matchPair(masked, braceStart, '{', '}');
     if (braceEnd < 0) continue;
     const bodyStart = braceStart + 1;
+    const rawBody = source.slice(bodyStart, braceEnd);
+    // VIDEO_START_CALL_MEMBER(x) runs another of the class's video starts,
+    // which this parser names video_start_x: call it as that method (Donkey
+    // Kong's video_start_dkong starts with dkong_base's). The same length, so
+    // every line and column stays where the source has it.
+    const calls = /\bVIDEO_START_CALL_MEMBER\s*\(\s*(\w+)\s*\)/g;
+    const body = calls.test(rawBody)
+      ? rawBody.replace(calls, (whole, name: string) => `video_start_${name}()`.padEnd(whole.length, ' '))
+      : undefined;
     functions.push({
       kind: 'function',
       className: fm[1],
       name: `video_start_${fm[2]}`,
       parameters: '',
-      body: source.slice(bodyStart, braceEnd),
-      statements: parseStatements(file, source, masked, bodyStart, braceEnd, lineStarts),
+      body: body ?? rawBody,
+      statements: body === undefined
+        ? parseStatements(file, source, masked, bodyStart, braceEnd, lineStarts)
+        : parseStatements(file, body, maskComments(body), 0, body.length, buildLineStarts(body)),
       span: span(fm.index, braceEnd + 1),
       bodySpan: span(bodyStart, braceEnd),
     });

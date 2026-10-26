@@ -17,6 +17,21 @@ import { inputKeys, inputLabel, inputPlayer, joystickWays, keyName, keypadKeys, 
 
 import { Graph } from '../kg/query.ts';
 
+/** MAME's relative analog types: a counter the driver reads, wrapping in its mask. */
+const RELATIVE_TYPES = new Set(['IPT_DIAL', 'IPT_DIAL_V', 'IPT_TRACKBALL_X', 'IPT_TRACKBALL_Y', 'IPT_MOUSE_X', 'IPT_MOUSE_Y']);
+
+/**
+ * Where a PORT_REVERSE relative field rests. MAME reverses a relative count
+ * from one past its range (analog_field::apply_settings, `m_reverse_val`), so x
+ * reads as ~x, not -x: Centipede's trackball rests at 0xff, Missile Command's
+ * 4-bit one at 0x0f. Counting the other way from there reads the same.
+ */
+export function reversedRest(rest: number, mask: number): number {
+  const shift = Math.log2(mask & -mask);
+  const width = mask >>> shift;
+  return ((width - (rest >>> shift)) & width) << shift;
+}
+
 export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opts: GenerateOptions, devices: KGNode[]) {
   // --- inputs -----------------------------------------------------------------------
   // Port polarity comes from the graph per field: galaga/pacman inputs are
@@ -217,9 +232,10 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
         // the polarity restated -- released reads the mask when active low --
         // but an analog field rests somewhere inside its travel, and starting
         // it at zero pins the control to one end (see parse.ts).
-        init = (init & ~mask) | (Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask);
         const type = String(f.props.type ?? '');
         const mods = (f.props.modifiers as string[] | undefined) ?? [];
+        const rest = Number(f.props.defaultValue ?? (activeLow ? mask : 0)) & mask;
+        init = (init & ~mask) | (RELATIVE_TYPES.has(type) && mods.includes('PORT_REVERSE') ? reversedRest(rest, mask) : rest);
         const changed = mods
           .map(modifier => /PORT_CHANGED_MEMBER\s*\([^,]+,\s*FUNC\s*\(\s*(\w+)::(\w+)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
@@ -345,7 +361,7 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
         const named = portLabel(mods);
         if (type === 'IPT_DIAL') {
           if (player !== 1) continue;
-          const delta = keyDelta ? sourceNumber(keyDelta[1]!) : 1;
+          const delta = (keyDelta ? sourceNumber(keyDelta[1]!) : 1) * (mods.includes('PORT_REVERSE') ? -1 : 1);
           bindings.push({
             port: tag, mask, keys: ['ArrowLeft'], label: named ? `${named} Left` : `${type}_LEFT`,
             type: `${type}_LEFT`, activeLow: false, relativeDelta: -delta, sensitivity,

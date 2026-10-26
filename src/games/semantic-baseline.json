@@ -137,7 +137,7 @@
       "palette": "prom:proms"
     },
     "centiped": {
-      "sha256": "a74e746223db229872be2841b28363b6d72b51f4dee8a2112b1788a522a10424",
+      "sha256": "a0476d662b057e6058a82243ae36829c8c49fa43c96d303b5195120bba9c7e1a",
       "callbacks": 6,
       "frameEvents": 16,
       "devices": 10,
@@ -173,7 +173,7 @@
       "palette": "prom:proms"
     },
     "crush": {
-      "sha256": "3d91fc82edc8790950dcfd30c81b17aa811fbb7037d9c041b7df9e5ec5059449",
+      "sha256": "a0e794ec5309574937572030a2e6a8040f006ee6a44d1959e17618f004964bc1",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 8,
@@ -209,20 +209,20 @@
       "palette": "prom:proms"
     },
     "dkong": {
-      "sha256": "5c31e16c033ecf73cb082327cbaaede044a749d956351dcaf4df0239dd7334df",
+      "sha256": "9b510bdc3a3dfb05fc636d60f8686c41b93b920587d9ebfc10c8d186da1548fe",
       "callbacks": 23,
       "frameEvents": 2,
       "devices": 12,
-      "handlers": 47,
+      "handlers": 48,
       "maps": 3,
       "palette": "prom:proms"
     },
     "dkongjr": {
-      "sha256": "30292997898aa73e454781229067cdaaae327f361b9cd8ec67c9d5bde9b602d7",
+      "sha256": "df20398e25901925874668a4bb047199fc56b3ef7e8cee0a1321c8c1afa255b2",
       "callbacks": 23,
       "frameEvents": 2,
       "devices": 14,
-      "handlers": 47,
+      "handlers": 48,
       "maps": 4,
       "palette": "prom:proms"
     },
@@ -488,7 +488,7 @@
       "palette": "none"
     },
     "mspacman": {
-      "sha256": "23b74b5a6b15d2320804db72d8ea65b28ee3ebe2f9fecaa830ca44f93528a150",
+      "sha256": "bb535076ca77ef627867223f6ff8208f7a9ad18fe77ed8e88e0014a7d68b5166",
       "callbacks": 9,
       "frameEvents": 2,
       "devices": 8,
@@ -533,7 +533,7 @@
       "palette": "prom:proms"
     },
     "pengo": {
-      "sha256": "574a9af94f679bc6414cb02329b18c45cd90cbb3ce41f3fb12163c757504de63",
+      "sha256": "69548e6b6280f2798fdbb3cd2016660c594c4463742a64e12fa66da717132791",
       "callbacks": 12,
       "frameEvents": 2,
       "devices": 8,
@@ -623,7 +623,7 @@
       "palette": "prom:proms"
     },
     "rtype": {
-      "sha256": "4235743b1ebb2e3add528b9c80e2b845c95be3cb9bc389efe79062fa151f9fec",
+      "sha256": "f23c6286c74f194c4e6acb6ac0ba3c6967e88c5496587fdbc0cf637c1c027aac",
       "callbacks": 8,
       "frameEvents": 284,
       "devices": 11,
@@ -713,7 +713,7 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "f75d19fe845ee4258d9c46ffdaf4fa798420e71c3f4ae0b40e2fa4de6edff10c",
+      "sha256": "67b797f01af4ba3f2b1a2ffa2f130f5ab016123f6bbc4665709e9f5fd6ab258d",
       "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,

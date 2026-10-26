@@ -176,17 +176,20 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         moveBootEvent(booted.timeline, frame);
         writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(booted)}\n`);
       },
+      // Frames as MAME counts them, one after another: a reset sets the
+      // board's own frame counter back to zero (and a contract's later
+      // actions count from there), but MAME's goes on.
       inspectFrame: frame => {
-        framesRun = frame.number;
-        recorder?.frame(frame.number);
-        if (snapshotFrames.has(frame.number)) {
-          writeFileSync(join(plan.dir, `ours-${frame.number}.rgba`), new Uint8Array(frame.framebuffer.buffer.slice(0)));
+        const number = ++framesRun;
+        recorder?.frame(number);
+        if (snapshotFrames.has(number)) {
+          writeFileSync(join(plan.dir, `ours-${number}.rgba`), new Uint8Array(frame.framebuffer.buffer.slice(0)));
         }
-        if (dumpFrames.has(frame.number)) {
+        if (dumpFrames.has(number)) {
           appendFileSync(ramFile, presented ?? readRam(frame.buses));
           presented = undefined;
         }
-        if (plan.grade && frame.number % 30 === 0) {
+        if (plan.grade && number % 30 === 0) {
           const pixels = frame.framebuffer;
           let hash = 2166136261;
           const colours = new Set<number>();

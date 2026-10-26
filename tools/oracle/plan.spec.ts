@@ -52,6 +52,21 @@ assert.deepEqual(moved.events, {
 moveBootEvent(moved, 160);
 assert.deepEqual(Object.keys(moved.events), ['151', '152', '160'], 'moving to where it already is changes nothing');
 
+// A reset sets the board's frame counter back to zero, and the harness waits
+// for an action's frame on that counter: Joust's Advance at "700", after its
+// reset at 620, is pressed 700 frames after the reset. The timeline counts on.
+const afterReset = inputTimeline([
+  { atFrame: 620, reset: true },
+  { atFrame: 80, code: 'Enter', heldFrames: 4, releasedFrames: 0 },
+  { atFrame: 60, code: 'KeyX', heldFrames: 1, releasedFrames: 0 },
+], bindings);
+assert.deepEqual(afterReset.events, {
+  620: [{ kind: 'reset' }],
+  700: [{ kind: 'press', input: 0 }],
+  704: [{ kind: 'release', input: 0 }, { kind: 'press', input: 1 }],
+  705: [{ kind: 'release', input: 1 }],
+});
+
 // MAME is told the medium for every kind of shelf the software room mounts.
 assert.deepEqual(MEDIA_SWITCH, { cartridge: 'cart', cassette: 'cass', floppy: 'flop', quickload: 'quik' });
 

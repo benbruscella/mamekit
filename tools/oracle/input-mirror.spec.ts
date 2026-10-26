@@ -161,9 +161,9 @@ const dial = mirrored('dial', [
 // Its first frame carries the press's own travel and a frame of ramp (#128).
 assert.equal(dial.ours[0]![4], 0xe2, 'the dial wraps below zero, as the driver reads it');
 
-// Trackball (missile): a 4-bit counter, wrapping inside its mask. MAME's
-// PORT_REVERSE turns a relative count x into ~x, so its Y rests at 0x0f where
-// ours rests at 0: MAME is given ours from the first frame, before it moves.
+// Trackball (missile): a 4-bit counter, wrapping inside its mask. Were MAME's
+// own rest elsewhere than ours, it is given ours from the first frame, before
+// the control moves, so the difference never reaches the comparison.
 const trackball = mirrored('trackball', [
   { port: 'TRACK0_X', mask: 0x0f, keys: ['ArrowLeft'], label: 'X Left', type: 'IPT_TRACKBALL_X_LEFT', relativeDelta: -10 },
   { port: 'TRACK0_Y', mask: 0x0f, keys: ['ArrowUp'], label: 'Y Up', type: 'IPT_TRACKBALL_Y_UP', relativeDelta: 10 },
@@ -177,8 +177,9 @@ assert.deepEqual(trackball.timeline.events[0], [
 const toggle = mirrored('toggle', [
   { port: 'IN2', mask: 0x01, keys: ['F1'], label: 'Auto Up / Manual Down', type: 'IPT_SERVICE1', activeLow: false, toggle: true },
 ], [{ tag: 'IN2', init: 0 }], [key(5, 'F1', 1, 10), key(30, 'F1', 3, 0)]);
-assert.deepEqual(toggle.timeline.inputs, [{ port: 'IN2', mask: 0x01, toggle: true }], 'a toggle is pressed, never set');
-assert.deepEqual(toggle.ours[0]!.slice(5, 8), [0, 1, 1]);
+assert.deepEqual(toggle.timeline.inputs, [{ port: 'IN2', mask: 0x01 }], 'a toggle is pressed, never set');
+// Pressed for frame 6, shown from frame 7, as MAME shows it.
+assert.deepEqual(toggle.ours[0]!.slice(5, 9), [0, 0, 1, 1]);
 
 // Light gun: the aim our side read, a frame after it was given.
 mirrored('light gun', [
@@ -193,11 +194,11 @@ try {
   writeFileSync(join(dir, 'ours-inputs.txt'), toggle.readings);
   writeFileSync(join(dir, 'mame-inputs.txt'), toggle.readings);
   assert.deepEqual(compareInputs(dir, toggle.timeline.inputs, 60), { inputs: 1, frames: 60, differing: 0 });
-  // MAME a frame late: the press shows on frame 7, not 6.
-  writeFileSync(join(dir, 'mame-inputs.txt'), toggle.readings.replace(/^6 0 1$/m, '7 0 1'));
+  // MAME a frame late: the flip shows on frame 8, not 7.
+  writeFileSync(join(dir, 'mame-inputs.txt'), toggle.readings.replace(/^7 0 1$/m, '8 0 1'));
   assert.deepEqual(compareInputs(dir, toggle.timeline.inputs, 60), {
     inputs: 1, frames: 60, differing: 1,
-    firstDivergence: { frame: 6, port: 'IN2', mask: 1, mame: 0, ours: 1 },
+    firstDivergence: { frame: 7, port: 'IN2', mask: 1, mame: 0, ours: 1 },
   });
   assert.equal(compareInputs(dir, [], 60), undefined, 'nothing driven, nothing compared');
 } finally {

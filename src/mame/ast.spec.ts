@@ -328,5 +328,19 @@ fm_operator<RegisterType>::fm_operator(fm_engine_base<RegisterType> &owner, uint
   check('template constructor initializers', constructor?.initializers.map(initializer => initializer.name), ['m_opoffs', 'm_regs']);
 }
 
+// VIDEO_START_CALL_MEMBER(x) is a call to the class's video_start_x, at the
+// same columns (Donkey Kong's video_start_dkong starts with dkong_base's).
+{
+  const videoUnit = parseMameSource('dkong_v.cpp', `VIDEO_START_MEMBER(dkong_state,dkong)
+{
+	VIDEO_START_CALL_MEMBER(dkong_base);
+	m_flip = 0;
+}
+`);
+  const start = videoUnit.functions.find(fn => fn.name === 'video_start_dkong');
+  check('video start call member: called as a method', start?.statements[0]?.calls.map(call => call.name), ['video_start_dkong_base']);
+  check('video start call member: columns kept', start?.body.split('\n')[1]?.length, '\tVIDEO_START_CALL_MEMBER(dkong_base);'.length);
+}
+
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

@@ -147,6 +147,32 @@ console.log('input.spec: polarity, SOCD, release, DIP and generated port handler
   assert.equal(settle(pads).read('IN1'), 0x02);
 }
 
+// A maintained switch shows its flip a frame after the press, as MAME's does:
+// ioport_manager::frame_update folds every PORT_TOGGLE into its port before
+// it updates the fields, so the press is seen by one frame update and the new
+// position by the next. A probe's latch() shows it at once.
+{
+  const toggle = { port: 'IN2', mask: 0x01, keys: ['F1'], label: 'Auto Up / Manual Down', activeLow: false, toggle: true };
+  const switches = new KeyboardInput([toggle], [], [{ tag: 'IN2', init: 0x00 }]);
+  switches.press(toggle, true);
+  switches.advance();
+  assert.equal(switches.read('IN2'), 0x00, 'the frame the press lands on still reads the old position');
+  switches.press(toggle, false);
+  switches.advance();
+  assert.equal(switches.read('IN2'), 0x01, 'the next frame reads the new one');
+  switches.advance();
+  assert.equal(switches.read('IN2'), 0x01, 'and it stays there');
+  switches.press(toggle, true);
+  switches.releaseAll();
+  switches.advance();
+  assert.equal(switches.read('IN2'), 0x01, 'a release in the same frame keeps the switch where it shows');
+  switches.advance();
+  assert.equal(switches.read('IN2'), 0x00, 'until the flip reaches it');
+  switches.press(toggle, true);
+  switches.latch();
+  assert.equal(switches.read('IN2'), 0x01, 'latch() shows a flip at once');
+}
+
 // reset(): back to a known place, which is what a shared machine needs.
 {
   // Fire rests high and is active-low; the service switch rests low, is

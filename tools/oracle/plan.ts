@@ -72,8 +72,6 @@ export interface TimelineInput {
   mask: number;
   /** Given to MAME as the value our side read (`set`), never as a press. */
   analog?: true;
-  /** A PORT_TOGGLE switch, which MAME takes a frame longer to read (`luaEvents`). */
-  toggle?: true;
 }
 
 export type TimelineEvent =
@@ -127,8 +125,8 @@ export function startSchedule(bindings: readonly FieldBinding[], last: number): 
 /**
  * A binding MAME is given as an on/off bit: a key, a button or a maintained
  * switch. On a digital field `set_value` is a press and `clear_value` a
- * release; a PORT_TOGGLE field flips on the press, as ours does, so a toggle is
- * pressed like any other key (a frame earlier: `luaEvents`). Every other binding (a pedal, paddle, stick,
+ * release; a PORT_TOGGLE field flips on the press and shows it a frame later,
+ * as ours does, so a toggle is pressed like any other key. Every other binding (a pedal, paddle, stick,
  * dial, trackball or light gun) moves a value our input model works out, and
  * MAME is given that value (`InputRecorder`).
  */
@@ -141,7 +139,9 @@ export function digital(binding: FieldBinding): boolean {
  * The frame every action lands on, worked out the way runGameAcceptance runs
  * them: each waits for its frame, a key is held for `heldFrames` and released
  * for `releasedFrames` before the next action is looked at, and a later
- * action whose frame has already passed goes at once.
+ * action whose frame has already passed goes at once. A reset sets the board's
+ * frame counter back to zero, so every action after one waits for its frame
+ * counted from the reset; the timeline counts on, as MAME does.
  */
 export function inputTimeline(
   actions: readonly GameInputAction[],
@@ -154,7 +154,7 @@ export function inputTimeline(
   const inputIndex = (binding: FieldBinding): number => {
     const found = inputs.findIndex(input => input.port === binding.port && input.mask === binding.mask);
     if (found >= 0) return found;
-    inputs.push({ port: binding.port, mask: binding.mask, ...(binding.toggle ? { toggle: true as const } : {}) });
+    inputs.push({ port: binding.port, mask: binding.mask });
     return inputs.length - 1;
   };
   // A key on an analog control moves a value, which the recorder gives MAME.
@@ -164,9 +164,10 @@ export function inputTimeline(
     return matched.filter(digital).map(inputIndex);
   };
   let cursor = 0;
+  let counterStart = 0;
   for (const action of actions) {
-    cursor = Math.max(cursor, action.atFrame);
-    if ('reset' in action) { at(cursor, { kind: 'reset' }); continue; }
+    cursor = Math.max(cursor, counterStart + action.atFrame);
+    if ('reset' in action) { at(cursor, { kind: 'reset' }); counterStart = cursor; continue; }
     if ('text' in action) { at(cursor, { kind: 'text', text: action.text }); continue; }
     // An aim, like an analog action, moves a port value the recorder gives MAME.
     if ('aim' in action) continue;
@@ -242,8 +243,8 @@ export class InputRecorder {
       let input = this.timeline.inputs.findIndex(candidate => candidate.port === entry.port && candidate.mask === entry.mask);
       if (input < 0) {
         input = this.timeline.inputs.push({ port: entry.port, mask: entry.mask, analog: true }) - 1;
-        // From the first frame, ours at rest too: MAME's own rest can differ
-        // (a PORT_REVERSE trackball reads ~0, 0xff, where ours reads 0).
+        // From the first frame, ours at rest too, so a rest MAME's own input
+        // puts elsewhere cannot show as a difference in the emulation.
         if (frame > 1) (this.timeline.events[0] ??= []).push({ kind: 'set', input, value: entry.rest >>> shift });
       }
       (this.timeline.events[frame - 1] ??= []).push({ kind: 'set', input, value: value >>> shift });

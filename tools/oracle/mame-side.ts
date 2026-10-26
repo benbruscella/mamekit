@@ -114,10 +114,8 @@ export function mameFrames(plan: OraclePlan, ramFramesOurs: number[]): { snapsho
  * that runs before the script's: pressed in notifier N, it is read from frame
  * N + 2 on. Ours, and MAME's own host input, take effect at the start of the
  * frame after the one it is given on, so a press or release goes to MAME one
- * notifier early. A PORT_TOGGLE switch flips in that frame update, but the
- * update folds each toggle into its port's value before it updates the fields,
- * so the flip is read a frame later still (MAME is a frame behind ours, with
- * its own keyboard too): its press goes two notifiers early. An analog value
+ * notifier early; a PORT_TOGGLE switch's flip then shows a frame later on both
+ * sides (KeyboardInput's `flips`). An analog value
  * is read straight from its override, with no frame update between, so it
  * keeps its frame (the recorder already put it on the frame before the one
  * that reads it), as do typed text, PLAY and resets.
@@ -128,8 +126,7 @@ export function luaEvents(timeline: Timeline): Record<number, TimelineEvent[]> {
   for (const [frame, list] of Object.entries(timeline.events)) {
     for (const event of list) {
       const digital = event.kind === 'press' || event.kind === 'release';
-      const toggle = event.kind === 'press' && timeline.inputs[event.input]?.toggle;
-      const at = digital ? Math.max(0, Number(frame) - (toggle ? 2 : 1)) : Number(frame);
+      const at = digital ? Math.max(0, Number(frame) - 1) : Number(frame);
       (events[at] ??= []).push('input' in event ? { ...event, input: event.input + 1 } : event);
     }
   }

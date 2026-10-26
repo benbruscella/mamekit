@@ -307,6 +307,14 @@ export class KeyboardInput implements InputPorts {
    * sometimes did nothing.
    */
   private carried = new Set<number>();
+  /**
+   * Maintained switches flipped since the last frame boundary, which the port
+   * shows only from the next one. MAME folds every PORT_TOGGLE into its port's
+   * value before it updates the fields (ioport_manager::frame_update), so a
+   * flip is read a frame after the press that made it, a frame later than a
+   * plain key.
+   */
+  private flips = new Set<number>();
   private releaseListeners: (() => void)[] = [];
   /** ports holding a relative control, and their bytes as the frame began */
   private relativePorts = new Set<string>();
@@ -465,6 +473,7 @@ export class KeyboardInput implements InputPorts {
     const list = this.takePending();
     this.settle(list);
     for (const event of list) this.applyEvent(event, 'travel');
+    this.showFlips();
     // A probe reads the port back immediately, so an absolute control settles
     // at its destination here rather than over the frames a ramp would take.
     this.rampAnalog(true);
@@ -478,6 +487,8 @@ export class KeyboardInput implements InputPorts {
    * and only then does a field decide whether its bit reaches the port.
    */
   private settle(list: readonly InputEvent[]): void {
+    // Last frame's flips of a maintained switch reach the port now.
+    this.showFlips();
     // Last frame's one-frame holds go back to whatever is physically held.
     for (const index of this.carried) {
       const field = this.fields[index];
@@ -946,9 +957,8 @@ export class KeyboardInput implements InputPorts {
     }
     if (h.toggle) {
       if (!down) return;
-      const active = !(this.toggled.get(this.fid(h)) ?? false);
-      this.toggled.set(this.fid(h), active);
-      this.apply(h, active);
+      this.toggled.set(this.fid(h), !(this.toggled.get(this.fid(h)) ?? false));
+      this.flips.add(h.index);
       return;
     }
     const held = this.hold(h, source, down);
@@ -995,7 +1005,7 @@ export class KeyboardInput implements InputPorts {
   /** Save-state roots (machine-state.ts): port bytes, holds, toggles and this frame's travel. */
   stateKeys(): readonly string[] {
     return ['state', 'init', 'holds', 'toggled', 'frameStart', 'frameDelta', 'pending',
-      'sticks', 'pressOrder', 'pressFrame', 'releaseFrame', 'sequence', 'frameCount', 'carried'];
+      'sticks', 'pressOrder', 'pressFrame', 'releaseFrame', 'sequence', 'frameCount', 'carried', 'flips'];
   }
 
   /** all port bytes as hex, for logging/overlay */
@@ -1033,6 +1043,7 @@ export class KeyboardInput implements InputPorts {
     this.pending = [];
     this.holds.clear();
     this.toggled.clear();
+    this.flips.clear();
     this.pressOrder.clear();
     this.pressFrame.clear();
     this.releaseFrame.clear();
@@ -1053,9 +1064,19 @@ export class KeyboardInput implements InputPorts {
     this.holds.clear();
     this.carried.clear();
     for (const stick of this.sticks.values()) { stick.previous = 0; stick.four = 0; }
+    // A maintained switch stays where it shows, a flip still on its way included.
     for (const field of this.fields) {
-      if (field.toggle && this.toggled.get(this.fid(field))) this.apply(field, true);
+      if (field.toggle && this.toggled.get(this.fid(field)) !== this.flips.has(field.index)) this.apply(field, true);
     }
+  }
+
+  /** Each maintained switch flipped since the last boundary, at its new position. */
+  private showFlips(): void {
+    for (const index of this.flips) {
+      const field = this.fields[index];
+      if (field) this.apply(field, this.toggled.get(this.fid(field)) ?? false);
+    }
+    this.flips.clear();
   }
 
   /** A port's byte as a probe sees it: not the program's read, so the seat does not follow it. */
