@@ -42,17 +42,23 @@ speeds a run cannot choose between: the same commit generated in 17 minutes on
 one and 31 on the other. The two long phases are split across runners like
 the contracts. Four `Unit and lowering specs i/4` runners each take an
 interleaved quarter of the specs (`SPEC_SHARD=i/4`), gathered into the
-required `Unit and lowering specs` check. Four `Generate targets i/4` runners
-each generate an interleaved quarter of the targets (`mamekit --all --shard
-i/4`); `Clean generation and audit` merges their directories, finishes the
+required `Unit and lowering specs` check. Eight `Generate targets i/8` runners
+each generate an interleaved eighth of the targets (`mamekit --all --shard
+i/8`); `Clean generation and audit` merges their directories, finishes the
 build once (`mamekit --all --assemble`: the hardware closure, the app and the
 manifests) and runs `npm run audit:current`. The result is the same
 distribution a single `npm run gen:all` makes.
 
 The distribution is generated once per run by `Clean generation and audit` and
-handed to the gate as an artifact; the gate is split across eight arm64 Linux
-runners, each running an interleaved eighth of the contracts (`--shard i/8`)
-against that same distribution. arm64 is a requirement of the fps floors, not a
+handed to the gate as an artifact; the gate is split across sixteen arm64
+Linux runners (`--shard i/16`) against that same distribution. The shares are
+balanced by each contract's duration in the previous run
+(`src/games/acceptance-shards.ts`), longest first onto the least-loaded
+runner, because contracts take from seven seconds to three and a half minutes
+and a split by count left one runner twice another's work. The generation job
+hands every shard the same durations file, so they agree on the split, and
+the gate checks afterwards that every contract ran exactly once and keeps the
+new durations in the Actions cache for the next run. arm64 is a requirement of the fps floors, not a
 preference: the x64 hosted VM measured 45.1-49.4 fps against CPS1's exact 50
 fps contract. The split is across
 machines and never within one: every contract asserts an emulated-fps floor
@@ -195,10 +201,11 @@ npm run test:games:ci
 
 That command clean-generates first, runs the three audits, fetches any
 missing accepted primary/parent/device sets, and runs the non-fail-fast matrix.
-To reproduce exactly what one CI runner did, add the same shard selector:
+To reproduce exactly what one CI runner did, add the same shard selector and
+the run's `contract-durations` artifact (the shares depend on it):
 
 ```sh
-npm run test:games:matrix -- --shard 3/8
+npm run test:games:matrix -- --shard 3/16 --durations contract-durations.json
 ```
 The Actions job uploads `.cache/acceptance-report.json` even on failure, so a
 focused local pass cannot masquerade as the required full-suite check.
@@ -495,7 +502,7 @@ it must not gain game logic.
 3. installs the locked npm dependencies on the repository's Node version;
 4. runs every colocated spec, a quarter on each of four runners;
 5. regenerates every discovered accepted/candidate machine from a clean
-   output directory, a quarter on each of four runners, assembles the
+   output directory, an eighth on each of eight runners, assembles the
    distribution once over all of them, and runs `audit:current`'s three
    audits: generated structure, machine facts (skipped and passing, since CI
    has no MAME binary) and semantic BoardIR;
@@ -503,8 +510,8 @@ it must not gain game logic.
    and the exact accepted ROM closure from the application's public mirror,
    verifies the ROMs against MAME metadata, runs that shard's contracts, and uploads its report even when one or more fail (one
    artifact per shard, `rom-acceptance-report-<shard>`);
-7. aggregates the eight shards into the required `ROM-backed accepted
-   contracts` check.
+7. aggregates the sixteen shards into the required `ROM-backed accepted
+   contracts` check, after checking that every contract ran exactly once.
 
 A contract killed by a signal and one that stops answering are each retried
 once; a contract that misses its fps floor is not. The retry runs on the same

@@ -2,10 +2,11 @@
 
 import { spawn } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGameContracts } from './contracts.ts';
+import { shardContracts, type ContractDurations } from './acceptance-shards.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -120,26 +121,24 @@ function option(name: string): string | undefined {
 }
 
 /**
- * `--shard 2/4` runs one quarter of the contracts, so the gate can be split
- * across runners instead of one runner spending half an hour on it.
+ * `--shard 2/8` runs one runner's share of the contracts, so the gate can be
+ * split across runners instead of one runner spending half an hour on it;
+ * `--durations <file>` balances the shares by each contract's measured
+ * duration (src/games/acceptance-shards.ts).
  *
  * Sharding is across machines, never within one: every contract asserts an
  * emulated-fps floor measured against wall clock, so two contracts sharing a
  * runner's cores would drag each other under their floors and fail for load
  * rather than for behaviour.
- *
- * Shards interleave the list rather than slicing it into blocks. The heavy
- * boards cluster by name (sf2, sf2ce) and a block split would land them on one
- * runner while another idles.
  */
 function shardOf(targets: string[], spec: string | undefined): string[] {
   if (!spec) return targets;
-  const [index, count] = spec.split('/').map(Number);
-  if (!Number.isInteger(index) || !Number.isInteger(count)
-    || count < 1 || index < 1 || index > count) {
-    throw new Error(`--shard expects i/n with 1 <= i <= n, got "${spec}"`);
-  }
-  return targets.filter((_, position) => position % count === index - 1);
+  const durationsFile = option('--durations');
+  const durations = durationsFile && existsSync(durationsFile)
+    ? JSON.parse(readFileSync(durationsFile, 'utf8')) as ContractDurations
+    : undefined;
+  if (durationsFile && !durations) console.log(`no ${durationsFile} yet: shards interleave`);
+  return shardContracts(targets, spec, durations);
 }
 
 const allTargets = (await loadGameContracts()).map(contractKey);
