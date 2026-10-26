@@ -24,18 +24,18 @@ const timeline = inputTimeline([
   { atFrame: 30, text: 'RUN{ENTER}' },
   { atFrame: 40, reset: true },
 ], bindings, { frame: 181, text: 'LOAD{ENTER}', play: true });
+// An aim moves a value, which the recorder gives MAME once ours has read it
+// (input-mirror.spec.ts), so it adds nothing here.
 assert.deepEqual(timeline.inputs, [
   { port: 'ctrl1:JOYPAD', mask: 0x08 },
   { port: 'ctrl1:JOYPAD', mask: 0x01 },
-  { port: 'ctrl2:GUN_X', mask: 0xff },
-  { port: 'ctrl2:GUN_Y', mask: 0xff },
 ]);
 assert.deepEqual(timeline.events, {
   10: [{ kind: 'press', input: 0 }],
   16: [{ kind: 'release', input: 0 }],
   20: [{ kind: 'press', input: 1 }],
   22: [{ kind: 'release', input: 1 }],
-  30: [{ kind: 'set', input: 2, value: 128 }, { kind: 'set', input: 3, value: 100 }, { kind: 'text', text: 'RUN{ENTER}' }],
+  30: [{ kind: 'text', text: 'RUN{ENTER}' }],
   40: [{ kind: 'reset' }],
   181: [{ kind: 'boot', text: 'LOAD{ENTER}', play: true }],
 });
@@ -56,7 +56,17 @@ assert.deepEqual(Object.keys(moved.events), ['151', '152', '160'], 'moving to wh
 assert.deepEqual(MEDIA_SWITCH, { cartridge: 'cart', cassette: 'cass', floppy: 'flop', quickload: 'quik' });
 
 assert.throws(() => inputTimeline([{ atFrame: 1, code: 'KeyQ', heldFrames: 1, releasedFrames: 0 }], bindings), /no control is bound to KeyQ/);
-assert.throws(() => inputTimeline([{ atFrame: 1, code: 'KeyP', heldFrames: 1, releasedFrames: 0 }], bindings), /not given yet/);
+// A key on an analog control is no press: the value it moves is recorded.
+const paddle = inputTimeline([{ atFrame: 1, code: 'KeyP', heldFrames: 1, releasedFrames: 0 }], bindings);
+assert.deepEqual(paddle, { inputs: [], events: {} });
+// An analog action holds the timeline as long as a key would; a machine signal
+// has no port value to mirror.
+const analog = inputTimeline([
+  { atFrame: 1, analog: 'Paddle', value: 0.5, heldFrames: 4, releasedFrames: 2 },
+  { atFrame: 2, code: 'Enter', heldFrames: 1, releasedFrames: 0 },
+], bindings);
+assert.deepEqual(analog.events, { 7: [{ kind: 'press', input: 0 }], 8: [{ kind: 'release', input: 0 }] });
+assert.throws(() => inputTimeline([{ atFrame: 1, signal: 'nmi', assertedFrames: 1 }], bindings), /no port value/);
 
 assert.deepEqual(parseRanges('maincpu:0-7ff,6000'), { tag: 'maincpu', ranges: [[0, 0x7ff], [0x6000, 0x6000]] });
 assert.deepEqual(parseRanges('iec8:c1541:ucd5:0-7ff'), { tag: 'iec8:c1541:ucd5', ranges: [[0, 0x7ff]] });

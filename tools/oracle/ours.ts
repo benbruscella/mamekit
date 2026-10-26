@@ -17,7 +17,7 @@ import type { GameInputAction, GameTestContract } from '../../src/games/types.ts
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { Board } from '../../src/runtime/types.ts';
-import { bootFrame, inputTimeline, MEDIA_SWITCH, moveBootEvent, ramFrames, startSchedule, type OraclePlan, type OursBoot } from './plan.ts';
+import { bootFrame, InputRecorder, inputTimeline, MEDIA_SWITCH, moveBootEvent, ramFrames, startSchedule, type OraclePlan, type OursBoot } from './plan.ts';
 import { projectRoot } from './mame-side.ts';
 
 /** The machine's contract to borrow: the scenario named, else one of the title's kind, else its first. */
@@ -130,6 +130,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   };
 
   let booted: OursBoot | undefined;
+  let recorder: InputRecorder | undefined;
   let completed = false;
   try {
     await runGameAcceptance(contract, projectRoot, {
@@ -139,7 +140,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       frames: plan.last,
       // What MAME must be given to boot the same machine: the cards in its
       // slots, the media slots left empty, the title and the input timeline.
-      onBoard: ({ board, boardConfig, config }) => {
+      onBoard: ({ board, boardConfig, config, input }) => {
         const shelf = title && 'software' in title
           ? config.software?.shelves.find(candidate => candidate.list === title.software.list)
           : undefined;
@@ -159,6 +160,12 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         };
         booted = boot;
         writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(boot)}\n`);
+        recorder = new InputRecorder(boot.timeline, config.bindings, input);
+        // MAME's analog override is read as it stands, never interpolated
+        // across the frame, so a dial or trackball reads one value a frame here
+        // too: the two sides then read the same port, and only the emulation
+        // differs. A contract run hands a frame's travel out against the beam.
+        input.frameFraction = null;
         if (plan.io) tapBuses(board);
         if (plan.ram) captureAtPresentation(board);
       },
@@ -171,6 +178,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       },
       inspectFrame: frame => {
         framesRun = frame.number;
+        recorder?.frame(frame.number);
         if (snapshotFrames.has(frame.number)) {
           writeFileSync(join(plan.dir, `ours-${frame.number}.rgba`), new Uint8Array(frame.framebuffer.buffer.slice(0)));
         }
@@ -194,6 +202,11 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     });
     completed = true;
   } finally {
+    // The analog values MAME is given are known only once they have been read.
+    if (booted && recorder) {
+      writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(booted)}\n`);
+      writeFileSync(join(plan.dir, 'ours-inputs.txt'), recorder.readings());
+    }
     // How far it got, whether or not it finished: a failure's frame is part of the result.
     writeFileSync(join(plan.dir, 'ours-done.json'),
       `${JSON.stringify({ frames: framesRun, completed, ...(plan.grade ? { grade } : {}) })}\n`);

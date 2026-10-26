@@ -825,24 +825,64 @@ zeroed — were found this way, not by a golden.
   That is how the NES's first-VBLANK boards were traced to an NMI a few
   cycles late (#184). MAME's OAM DMA writes `$2004` through the program space
   and so appears on its tap; ours does not.
+- *Inputs*, whenever the run drives any. Each side logs the bits of every
+  driven input on every frame: ours from the port byte the board reads, and
+  MAME's from `port:read()` in the frame notifier. The report gives the frames
+  on which MAME read something different and the first one
+  (`inputs (5, 1150 frames): MAME read what ours read on every frame`). It
+  checks that the timeline gave MAME the same input on the same frame. If it
+  fails, the pictures say nothing about the emulation.
 
 **Input.** A machine runs with no input by default (attract mode is
 deterministic on both sides), and so does a computer title, which starts the
 way its shelf does (typed command, PLAY). A console title gets the Start
 schedule by default: Start held for six frames every 300, from frame 300.
 `--input none|start` overrides either default. `--input contract --scenario <id>`
-replays a contract's own actions. Key, chord, light-gun aim, typed text and
-reset actions are all given to MAME. A software title's start command is typed
-through MAME's natural keyboard on the frame `title-start.ts` types it, and
-PLAY is pressed once typing ends.
+replays a contract's own actions, and every contract can be replayed (#198).
+Keys, chords, typed text and resets are given to MAME as they are. A key on a
+digital field is a press (`set_value(1)`) and a release (`clear_value()`). A
+`PORT_TOGGLE` field is pressed the same way, because MAME flips it on the press
+as ours does. MAME folds toggles into the port before it updates the fields, so
+a flip is read a frame later than a plain press, with MAME's own keyboard too.
+Ours flips on the press frame, so a toggle's press goes to MAME a further
+notifier early. A software title's start command is typed through MAME's natural
+keyboard on the frame `title-start.ts` types it, and PLAY is pressed once typing
+ends.
+
+An analog control (pedal, paddle, analog stick, dial, trackball, light gun) is
+given to MAME as a *value*, not a gesture. Our input model works out what the
+port reads every frame: key travel, `PORT_KEYDELTA` ramp, centring, a dial's
+wrapped counter, an aim. The oracle records it and calls `set_value` with it
+whenever it changes (`InputRecorder` in `tools/oracle/plan.ts`). In MAME 0.289,
+`analog_field::read` returns that override as it stands, with no sensitivity,
+key delta, reverse, wrap or interpolation, so both sides read the same port
+and only the emulation differs. Two consequences:
+
+- Our side hands a frame's dial or trackball travel out against the beam
+  (MAME's `frame_interpolate`), but the override has no interpolation. The
+  oracle therefore turns ours off (`frameFraction`), and both sides read one
+  value per frame.
+- The override is the *whole* port, unshifted and unmasked: `read()` assigns
+  `result = m_adjoverride` and returns. Every other field on that port is
+  lost. `oracle.lua` refuses an analog input unless it is its port's only
+  field, starting at bit 0. Every contract's analog field is.
+
+Only a control that moves goes on the timeline, so MAME is never asked for a
+controller card that isn't plugged in. Once a control is on the timeline, MAME
+is given our rest value from the first frame. MAME's own rest can differ:
+`PORT_REVERSE` turns a relative count x into ~x, not -x, so a reversed
+trackball rests at `0xff` where ours rests at 0. `analog` contract actions hold the
+timeline like a key and reach MAME the same way, through the value they move.
+A `signal` action has no port value and is refused (the harness refuses both).
 
 **Frames.** Both sides count frames as they run them, from one VBLANK to the
 next, and a frame's input takes effect at its start. An input given at frame N
-is read during frame N + 1: the harness's `atFrame`. A control set from Lua
-takes effect at MAME's next ioport frame update, which is itself a frame
-notifier and runs before the script's, so the oracle gives MAME a control
-event one notifier early (`luaEvents`); typed text, PLAY and resets keep their
-frame. Our frame N is set against MAME's N + offset, and the offset
+is read during frame N + 1: the harness's `atFrame`. A digital control set from
+Lua takes effect at MAME's next ioport frame update, which is itself a frame
+notifier and runs before the script's, so the oracle gives MAME a press or
+release one notifier early (`luaEvents`). An analog value is read straight from
+its override, so it keeps its frame, as typed text, PLAY and resets do. Until
+#198 a light gun's aim was shifted like a press and reached MAME a frame early. Our frame N is set against MAME's N + offset, and the offset
 is searched (`--search 2`, or a fixed `--offset`). One offset is kept for the
 whole run, never the best per frame, because choosing per frame would hide a
 machine running at the wrong speed. Offsets that fit equally well are listed
@@ -854,7 +894,14 @@ notifier returns the frame before.
 **MAME the same way every time.** The tool refuses a binary of another release
 (`src/gen/listxml.ts`). Every run gets a fresh `-nvram_directory` and
 `-cfg_directory`, because MAME writes NVRAM back on exit and a reused
-directory boots warm. The title is given as `<list>:<name>`, so no media switch
+directory boots warm. MAME runs the autoboot script again after every machine
+reset, whether a contract's `reset` or a watchdog's, because its reset notifier
+re-arms the autoboot timer. A rerun of `oracle.lua` returns at once, since
+otherwise it would count frames from zero again and truncate its captures.
+Until #198, Joust and Robotron never got past their contract's reset. Snapshots
+are `-snapview native`, the screen alone. The
+default view also takes in a layout's artwork, so Spy Hunter's lamp row made
+MAME's picture 480x500 against our 480x480, and it could never be compared. The title is given as `<list>:<name>`, so no media switch
 is needed, and our boot's slot cards and empty slots are passed on:
 `-ctrl2 zapper`, `-iec8 ""`. The Lua script keeps its taps and files in
 globals, uses `add_machine_stop_notifier`, and does not log its own RAM reads
@@ -902,6 +949,11 @@ harness hook it uses cannot be renamed under it.
 `tools/oracle/*.spec.ts` cover:
 
 - the input timeline against the harness's own frame rules;
+- every kind of control a contract drives (pedal, paddle, analog stick, dial,
+  trackball, toggle, light gun) driven through a real `KeyboardInput` and
+  replayed into a model of MAME's two read rules, digital a frame update late
+  and analog at once, so that MAME reads what ours read on every frame
+  (`input-mirror.spec.ts`);
 - MAME's command line: slot options before the title, the medium named,
   cold-boot directories, and the out-of-the-way flags;
 - the pixel, RAM and I/O comparisons, and the PNG writer;
