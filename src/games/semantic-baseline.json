@@ -596,7 +596,7 @@
       "palette": "none"
     },
     "rampage": {
-      "sha256": "8275e326bd2ba0a8ff28208fba2944e08ffde497a652d4aee4ccedd99ed6a92f",
+      "sha256": "181e87e580a5f9d25ac2d23bd8281394380aea9e0c7c6512936bbbf06543c702",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 16,
@@ -713,7 +713,7 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "d9539a41efa4e3f58a866d6d770aa4c834e74d7c649d44081ac11be897b6dafa",
+      "sha256": "f75d19fe845ee4258d9c46ffdaf4fa798420e71c3f4ae0b40e2fa4de6edff10c",
       "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,

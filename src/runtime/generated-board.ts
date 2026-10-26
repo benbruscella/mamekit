@@ -1774,7 +1774,6 @@ class IrBoard implements Board {
       write: { ...sourceHandlers.write },
     };
     this.installDeviceHandlers(machine, registry);
-    this.installZ80CtcRuntime(machine, registry, calls);
     this.boardSpecificReset = this.installBoardSpecificRuntime(machine, regions, registry);
     if (machine.video?.vector?.type === 'DVG') {
       registry.write['dvg.go_w'] = () => {};
@@ -2269,6 +2268,7 @@ class IrBoard implements Board {
         };
       }
       this.cpus.set(specification.tag, cpu);
+      this.linkDaisyChain(specification, cpu);
       this.cpuCycles.set(specification.tag, 0);
       this.cpuStalls.set(specification.tag, 0);
       this.cpuHeld.set(specification.tag, false);
@@ -4200,140 +4200,27 @@ class IrBoard implements Board {
   }
 
   /**
-   * Z80 CTC register/counter core for source-resolved devices whose C++
-   * implementation is not yet lowered to generated methods.  The machine
-   * graph still owns every register access, trigger edge and CPU connection;
-   * this runtime supplies the reusable silicon semantics between them.
+   * MAME's daisy_init: the devices a Z80's `set_daisy_config` names, linked
+   * highest priority first through each one's `m_daisy_next`, with the head
+   * in the CPU's `m_chain`. The CPU's own compiled z80daisy.cpp walks the
+   * chain from there. The links are wiring, kept out of save states: the
+   * chain is rebuilt from the configuration, never restored.
    */
-  private installZ80CtcRuntime(
-    machine: BoardIr,
-    registry: HandlerRegistry,
-    calls: NonNullable<GeneratedHandlerBindings['calls']>,
-  ): void {
-    for (const specification of machine.devices?.filter(device =>
-      device.type === 'Z80CTC') ?? []) {
-      type Channel = {
-        mode: number;
-        constant: number;
-        down: number;
-        edge: number;
-        elapsedCycles: number;
-      };
-      const ctc = this.hostModel(`${specification.tag}.ctc`, {
-        vector: 0,
-        channels: Array.from({ length: 4 }, (): Channel => ({
-          mode: 0x02,
-          constant: 0x100,
-          down: 0x100,
-          edge: 0,
-          elapsedCycles: 0,
-        })),
-      });
-      const channels = ctc.channels;
-      const interrupt = machine.callbacks.find(callback =>
-        callback.ownerTag === specification.tag &&
-        callback.signal === 'intr_callback');
-      const zeroCrossings = machine.callbacks.filter(callback =>
-        callback.ownerTag === specification.tag &&
-        callback.signal === 'zc_callback');
-
-      const trigger = (index: number, state: number): void => {
-        const channel = channels[index & 3]!;
-        const next = Number(Boolean(state));
-        if (next === channel.edge) return;
-        channel.edge = next;
-        const active = (channel.mode & 0x10) ? next === 1 : next === 0;
-        if (!active) return;
-        // External counter mode. Timer mode uses the per-scanline clock below.
-        if (channel.mode & 0x40) {
-          channel.down--;
-          if (channel.down <= 0) fire(index & 3);
-        }
-      };
-      const fire = (index: number): void => {
-        const channel = channels[index]!;
-        channel.down = channel.constant;
-        channel.elapsedCycles = 0;
-        if (channel.mode & 0x80) {
-          const cpuTag = interrupt?.targetTag ?? machine.execution.cpus[0]?.tag;
-          // HOLD_LINE is cleared by GeneratedCpu after the IM2 acknowledge,
-          // matching the CTC daisy device's interrupt_check/irq_ack handshake.
-          this.cpus.get(cpuTag ?? '')?.setIrqLine(true, (ctc.vector + index * 2) & 0xff, true);
-        }
-        for (const callback of zeroCrossings.filter(candidate =>
-          (candidate.slot ?? 0) === index)) {
-          const chained = /trg([0-3])/.exec(callback.targetMethod ?? '');
-          if (callback.targetTag === specification.tag && chained) {
-            const target = Number(chained[1]);
-            trigger(target, 1);
-            trigger(target, 0);
-          }
-        }
-      };
-      const write = (offset: number, data: number): void => {
-        const index = offset & 3;
-        const channel = channels[index]!;
-        data &= 0xff;
-        if (channel.mode & 0x04) {
-          channel.constant = data || 0x100;
-          channel.down = channel.constant;
-          channel.elapsedCycles = 0;
-          channel.mode &= ~(0x04 | 0x02);
-        } else if (!(data & 1) && index === 0) {
-          ctc.vector = data & 0xf8;
-        } else if (data & 1) {
-          channel.mode = data;
-          if (data & 0x02) {
-            channel.down = channel.constant;
-            channel.elapsedCycles = 0;
-          }
-        }
-      };
-      const read = (offset: number): number => channels[offset & 3]!.down & 0xff;
-      const reset = (): void => {
-        ctc.vector = 0;
-        for (const channel of channels) Object.assign(channel, {
-          mode: 0x02,
-          constant: 0x100,
-          down: 0x100,
-          edge: 0,
-          elapsedCycles: 0,
-        });
-      };
-
-      registry.read[`${specification.tag}.read`] = (_address, offset) => read(offset);
-      registry.write[`${specification.tag}.write`] = (_address, offset, data) =>
-        write(offset, data);
-      for (const alias of [
-        specification.tag,
-        `m_${specification.tag}`,
-        specification.member,
-      ].filter((value): value is string => Boolean(value))) {
-        calls[`${alias}.read`] = read;
-        calls[`${alias}.write`] = write;
-        for (let index = 0; index < 4; index++) {
-          calls[`${alias}.trg${index}`] = state => {
-            trigger(index, state);
-            return 0;
-          };
-        }
+  private linkDaisyChain(specification: GeneratedExecutionCpu, cpu: Cpu): void {
+    if (!specification.daisyChain?.length) return;
+    const links = specification.daisyChain.map(tag => {
+      const handle = this.devices.get(tag)?.instance?.() as Record<string, unknown> | undefined;
+      if (!handle || typeof handle.z80daisy_irq_state !== 'function') {
+        throw new Error(`${specification.tag}: daisy chain device ${tag} does not implement the z80daisy interface`);
       }
-      this.peripheralTicks.push(seconds => {
-        const cycles = (specification.clock ?? 0) * seconds;
-        for (let index = 0; index < channels.length; index++) {
-          const channel = channels[index]!;
-          if ((channel.mode & (0x40 | 0x02 | 0x04)) !== 0) continue;
-          const period = ((channel.mode & 0x20) ? 256 : 16) * channel.constant;
-          channel.elapsedCycles += cycles;
-          while (channel.elapsedCycles >= period) {
-            channel.elapsedCycles -= period;
-            fire(index);
-          }
-        }
+      return handle;
+    });
+    links.forEach((handle, index) => {
+      Object.defineProperty(handle, 'm_daisy_next', {
+        value: links[index + 1] ?? 0, writable: true, enumerable: false, configurable: true,
       });
-      this.peripheralResets.push(reset);
-      reset();
-    }
+    });
+    cpu.set('m_chain', links[0] as unknown as number);
   }
 
   /**

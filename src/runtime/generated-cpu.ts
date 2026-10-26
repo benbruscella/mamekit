@@ -82,6 +82,8 @@ interface CpuMember {
   initial?: number;
   wordByteRegisters?: number;
   z8000Registers?: boolean;
+  /** A pointer to another device the host sets: wiring, not state. */
+  link?: boolean;
 }
 
 interface CpuMethod {
@@ -286,6 +288,12 @@ class IrCpu implements Cpu {
         this.members[member.name] = typedObject(member.fields);
       } else if (member.pair) {
         this.members[member.name] = new Pair16(member.initial ?? 0);
+      } else if (member.link) {
+        // A pointer to another device the host sets (the daisy chain's
+        // head): wiring, so not a key a save state walks.
+        Object.defineProperty(this.members, member.name, {
+          value: member.initial ?? 0, writable: true, enumerable: false, configurable: true,
+        });
       } else {
         this.members[member.name] = member.initial ?? 0;
         if (member.bits) this.memberBits.set(member.name, member.bits);

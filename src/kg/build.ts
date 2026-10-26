@@ -1091,6 +1091,12 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           if (finder) return JSON.stringify(finder);
           // A format list, which the device keeps by name (`set_formats(tzx_cassette_formats)`).
           if (call[1] === 'set_formats' && /^\w+$/.test(text)) return JSON.stringify(text);
+          // A Z80's daisy chain, by the tags its table names, highest
+          // priority first: `set_daisy_config(mcr_daisy_chain)`.
+          if (call[1] === 'set_daisy_config' && /^\w+$/.test(text)) {
+            const chain = daisyConfigTags(combined, text);
+            return chain ? JSON.stringify(chain) : null;
+          }
           // A rectangle the config computes: the Spectrum ULA's
           // `set_screen(m_screen, get_screen_area())`.
           const rectangle = evaluateRectangle(text, cfgFunction?.body ?? cfg.raw, cfg.cls, combined, consts);
@@ -2358,6 +2364,25 @@ function emitCallbacks(
 }
 
 /** A `static const`/`constexpr` array's values, when every entry is a constant. */
+/**
+ * The device tags a `z80_daisy_config` table names, in order, up to its
+ * `{ nullptr }` terminator: `const z80_daisy_config mcr_daisy_chain[] =
+ * { { "ctc" }, { nullptr } };`. The table is namespace-scope and may sit in
+ * another file of the driver's family (MCR's is in mcr_m.cpp).
+ */
+function daisyConfigTags(source: string, name: string): string[] | undefined {
+  const table = new RegExp(
+    `\\b(?:static\\s+)?const\\s+z80_daisy_config\\s+${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([\\s\\S]*?)\\}\\s*;`,
+  ).exec(source);
+  if (!table) return undefined;
+  const tags: string[] = [];
+  for (const entry of table[1]!.matchAll(/\{\s*("([^"]*)"|nullptr|NULL|0)\s*\}/g)) {
+    if (entry[2] === undefined) break;
+    tags.push(entry[2]);
+  }
+  return tags.length ? tags : undefined;
+}
+
 function staticTableValues(source: string, name: string, consts: Record<string, number>): number[] | undefined {
   const declaration = new RegExp(
     `\\bstatic\\s+(?:(?:const|constexpr|inline)\\s+)+[\\w:]+\\s+${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([^{}]*)\\}`,

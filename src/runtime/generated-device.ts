@@ -259,10 +259,14 @@ export interface GeneratedDeviceDefinition {
     /** Child delegate member -> this device's method that fills it. */
     delegateTargets?: Record<string, string>;
     slotOptions?: string;
-    /** The child's own clock, where its constructor gives one. */
+    /** The child's own clock, where its constructor gives one (0 when it gives none). */
     clock?: number;
     /** Where a sound child's outputs go (`add_route`): output -1 is ALL_OUTPUTS. */
     routes?: { output: number; target: string; gain: number }[];
+    /** One tag per element of a `required_device_array`; the member is the array. */
+    tags?: string[];
+    /** What device_add_mconfig sets on each built child, by element. */
+    configured?: Record<string, number>[];
   }[];
   slot?: {
     member: string;
@@ -1028,6 +1032,8 @@ class IrDevice implements Device {
   private installSpace?: unknown;
   /** Devices instantiated from this one's device_add_mconfig. */
   private readonly children: IrDevice[] = [];
+  /** The device_add_mconfig entry each of `children` was built from (an array entry builds several). */
+  private readonly childSpecs: NonNullable<GeneratedDeviceDefinition['children']> = [];
   /** The device's own MAME tag (a slot card's is `<slot>:<option>`). */
   private readonly ownTag: string;
 
@@ -1105,6 +1111,9 @@ class IrDevice implements Device {
           :
         (inputTag
           ? { read: inputFinderRead(options.inputs, inputTag, definition.inputDefaults?.[member.finder?.tag ?? '']) }
+          // DEVICE_SELF_OWNER: the device this one was built inside.
+          : member.finder?.kind === 'device' && member.finder.tag === '^' && options.owner
+            ? options.owner
           : member.finder?.kind === 'device'
             ? options.finder?.(member.finder.tag, member.name) ?? 0
           : /^(?:required|optional)_address_space$/.test(member.valueType)
@@ -1230,6 +1239,13 @@ class IrDevice implements Device {
       }
     }
     self.tag = () => options.tag ?? '';
+    // device_t's clock, asked by whatever holds the device: a CTC channel
+    // times its prescaler with `m_device->clocks_to_attotime(16)`, against
+    // the CTC's clock rather than its own (which is 0). Never in place of a
+    // method of the same name: ymfm's engine is ticked by its own `clock()`.
+    self.clock ??= () => clock;
+    self.clocks_to_attotime ??= (ticks: unknown) => clock > 0 ? Number(ticks) / clock : Infinity;
+    self.attotime_to_clocks ??= (seconds: unknown) => Math.floor(Number(seconds) * clock);
     self.machine = () => ({
       sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000),
       rand: () => Number(this.bindings.calls?.['machine().rand']?.() ?? 0),
@@ -1782,37 +1798,59 @@ class IrDevice implements Device {
       // callback it loads its image through reaches straight back for it
       // (`m_cart->common_get_size("rom")`).
       const targets = Object.entries(child.delegateTargets ?? {});
-      const instance = new IrDevice(child.definition, child.clock ?? clock, {
-        ...resourceOptions,
-        owner: this.members.this,
-        // Tagged below this device, as MAME tags it: the VRC7's DS1001 is
-        // `nes_slot:vrc7:vrc7snd`, and its instrument ROM region
-        // `nes_slot:vrc7:vrc7snd:internal`.
-        deviceTag: `${this.ownTag}:${child.tag ?? child.member.replace(/^m_/, '')}`,
-        slot: undefined,
-        ...(targets.length ? {
-          calls: {
-            ...resourceOptions.calls,
-            ...Object.fromEntries(targets.map(([delegate, method]) =>
-              [delegate, (...args: GeneratedCallArgument[]) => this.invoke(method, ...args)])),
-          },
-          deferStart: true,
-        } : {}),
+      // A `required_device_array` is one child per element, the member the
+      // array of them: the Z80 CTC's four channels.
+      const tags = child.tags ?? [child.tag ?? child.member.replace(/^m_/, '')];
+      const handles = tags.map((tag, index) => {
+        const instance = new IrDevice(child.definition, child.clock ?? clock, {
+          ...resourceOptions,
+          owner: this.members.this,
+          // Tagged below this device, as MAME tags it: the VRC7's DS1001 is
+          // `nes_slot:vrc7:vrc7snd`, and its instrument ROM region
+          // `nes_slot:vrc7:vrc7snd:internal`.
+          deviceTag: `${this.ownTag}:${tag}`,
+          slot: undefined,
+          // What device_add_mconfig set on this one (`m_channel[ch]->m_index = ch`).
+          members: child.configured?.[index],
+          ...(targets.length ? {
+            calls: {
+              ...resourceOptions.calls,
+              ...Object.fromEntries(targets.map(([delegate, method]) =>
+                [delegate, (...args: GeneratedCallArgument[]) => this.invoke(method, ...args)])),
+            },
+            deferStart: true,
+          } : {}),
+        });
+        this.children.push(instance);
+        this.childSpecs.push(child);
+        const callable: Record<string, unknown> = Object.fromEntries(
+          instance.methodNames().map(name => [
+            name,
+            (...args: GeneratedCallArgument[]) => instance.preparedCall(name)(...args),
+          ]),
+        );
+        // And the image interface the host answers for it: the ZX Interface 2
+        // asks its own GENERIC_CARTSLOT `m_cart->exists()` before every read.
+        const self = instance.instance() as Record<string, unknown>;
+        for (const [name, value] of Object.entries(self)) {
+          if (typeof value === 'function' && !Object.hasOwn(callable, name)) callable[name] = value;
+        }
+        // An owner reads and writes its children's state as well as calling
+        // them: the CTC's daisy-chain methods walk `m_channel[ch]->m_int_state`
+        // and acknowledge through `channel.m_int_state = Z80_DAISY_IEO`. Not
+        // enumerable: the child's state is saved with the child.
+        for (const member of child.definition.members) {
+          if (Object.hasOwn(callable, member.name)) continue;
+          Object.defineProperty(callable, member.name, {
+            enumerable: false, configurable: true,
+            get: () => self[member.name],
+            set: value => { self[member.name] = value; },
+          });
+        }
+        return { instance, callable };
       });
-      this.children.push(instance);
-      const callable: Record<string, unknown> = Object.fromEntries(
-        instance.methodNames().map(name => [
-          name,
-          (...args: GeneratedCallArgument[]) => instance.preparedCall(name)(...args),
-        ]),
-      );
-      // And the image interface the host answers for it: the ZX Interface 2
-      // asks its own GENERIC_CARTSLOT `m_cart->exists()` before every read.
-      for (const [name, value] of Object.entries(instance.instance() as Record<string, unknown>)) {
-        if (typeof value === 'function' && !Object.hasOwn(callable, name)) callable[name] = value;
-      }
-      this.members[child.member] = callable;
-      if (targets.length) instance.startDeferred();
+      this.members[child.member] = child.tags ? handles.map(handle => handle.callable) : handles[0]!.callable;
+      if (targets.length) for (const { instance } of handles) instance.startDeferred();
     }
 
     // `device_delegate::isnull()`: set exactly when something bound it. The
@@ -1872,14 +1910,12 @@ class IrDevice implements Device {
    * its route gives output 0.
    */
   streamDescendants(): { tag: string; device: Device; gain: number }[] {
-    const own = this.ownTag;
     const found: { tag: string; device: Device; gain: number }[] = [];
-    (this.definition.children ?? []).forEach((child, index) => {
-      const instance = this.children[index];
-      if (!instance) return;
+    this.children.forEach((instance, index) => {
+      const child = this.childSpecs[index]!;
       const route = child.routes?.find(candidate => candidate.output === -1 || candidate.output === 0);
       if (route && route.gain > 0 && instance.methods.has('sound_stream_update')) {
-        found.push({ tag: `${own}:${child.tag ?? child.member.replace(/^m_/, '')}`, device: instance, gain: route.gain });
+        found.push({ tag: instance.ownTag, device: instance, gain: route.gain });
       }
       found.push(...instance.streamDescendants());
     });
@@ -1890,13 +1926,19 @@ class IrDevice implements Device {
   reset(): void {
     this.executedCycles = 0;
     this.runningCycles = undefined;
-    for (const child of this.children) child.reset();
+    // device_t::reset: the device, then its subdevices, then
+    // device_reset_after_children, then its interfaces' post-reset work.
     if (this.definition.reset) this.call(this.definition.reset);
-    // The card in a slot is one of its subdevices, and device_t::reset
-    // resets those after the device itself: an Ocean cartridge's
-    // device_reset puts it back on bank 0, so a reset machine restarts from
-    // the cartridge's own entry rather than whichever bank it last switched to.
+    // Its subdevices come after the device itself. The card in a slot is one:
+    // an Ocean cartridge's device_reset puts it back on bank 0, so a reset
+    // machine restarts from the cartridge's own entry rather than whichever
+    // bank it last switched to.
+    for (const child of this.children) child.reset();
     this.slotChild?.reset();
+    // The Z80 CTC raises or drops its interrupt only once its channels are
+    // reset (interrupt_check), and a daisy device forgets a half-decoded RETI.
+    if (this.methods.has('device_reset_after_children')) this.call('device_reset_after_children');
+    if (this.methods.has('interface_post_reset')) this.call('interface_post_reset');
   }
 
   /**
