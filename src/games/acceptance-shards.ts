@@ -19,7 +19,8 @@
  * durations the next run will balance with.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Seconds each contract took, by contract key (`c64:disk`). */
@@ -113,6 +114,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     contracts,
     files.map(file => JSON.parse(readFileSync(file, 'utf8')) as ShardReport),
   );
+  // A fresh checkout has no .cache yet.
+  mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, `${JSON.stringify(durations, null, 2)}\n`);
   const total = Object.values(durations).reduce((sum, seconds) => sum + seconds, 0);
   console.log(`${Object.keys(durations).length} contracts from ${files.length} shards, ${total.toFixed(0)}s in all -> ${out}`);

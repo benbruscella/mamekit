@@ -10,6 +10,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import {
   defaultGeneratorJobs,
@@ -237,6 +238,12 @@ async function generateTargetsInParallel(targets: readonly string[]): Promise<vo
   const cache = primeDriverIndex();
   const absent = targets.filter(target => !cache[target]);
   if (absent.length) throw new Error(`MAME drivers not found: ${absent.join(', ')}`);
+  // And MAME's device index, which every target needs and each would
+  // otherwise build for itself. Only for this build: removed when it ends.
+  const { shareHardwareIndex } = await import('./mame/hardware.ts');
+  const indexFile = join(tmpdir(), `mamekit-hardware-index-${process.pid}.json`);
+  shareHardwareIndex(mameSrc, indexFile);
+  process.once('exit', () => rmSync(indexFile, { force: true }));
 
   // Verified cache entries restore in place of a generator run; the rest
   // regenerate and refresh their entries in the same pass.

@@ -120,11 +120,13 @@ function mameRevision(mameSrc: string): string | undefined {
 }
 
 function followLog(mameSrc: string, driverFile: string): string[] {
-  const log = spawnSync(
-    'git',
-    ['-C', mameSrc, 'log', '--follow', '--format=%as|%an', '--', driverFile],
-    { encoding: 'utf8', timeout: 30000 },
-  );
+  const args = ['-C', mameSrc, 'log', '--follow', '--format=%as|%an', '--', driverFile];
+  let log = spawnSync('git', args, { encoding: 'utf8', timeout: 30000 });
+  // A log stopped by the timeout has printed only its newest commits, and
+  // kept as it stands it is a short history, not a missing one: on a loaded
+  // machine Bump 'n' Jump's 225 commits came out as 1. It is asked again
+  // without the limit rather than recorded wrong.
+  if (log.error || log.signal) log = spawnSync('git', args, { encoding: 'utf8' });
   return (log.stdout ?? '').trim().split('\n').filter(Boolean);
 }
 

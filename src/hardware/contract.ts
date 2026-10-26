@@ -99,9 +99,11 @@ export interface HardwareCapability {
    * Lower this family from MAME source. Returns undefined when the closure
    * does not contain the family, or when it contains it in a shape this
    * capability does not support — in which case the type stays unresolved in
-   * the manifest rather than being marked executable dishonestly.
+   * the manifest rather than being marked executable dishonestly. A family
+   * with a lot to compile may hand the work to worker processes and return a
+   * promise; one with nothing to do still answers undefined at once.
    */
-  extract(input: CapabilityInput): CapabilityExtraction | undefined;
+  extract(input: CapabilityInput): CapabilityExtraction | Promise<CapabilityExtraction | undefined> | undefined;
   /**
    * Browser master gain for a generated audio core. MAME route gains set the
    * relative mix; this is the single post-mix level the shell applies, and it
