@@ -36,9 +36,9 @@ export const crush = sourceTarget({
     audio: {
       writes: 23621,
       nonzeroWrites: 9114,
-      writeHash: '3f4c21bf',
-      pcmHash: '9f2daf44',
-      rms: 0.086029,
+      writeHash: 'e6a914b9',
+      pcmHash: '2f340cd7',
+      rms: 0.085937,
     },
   },
 });

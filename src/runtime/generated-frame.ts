@@ -495,6 +495,26 @@ export class GeneratedFrameRunner {
   }
 
   /**
+   * The running processor's position, `elapsedCycles` into its slice, as
+   * lines since the frame began at `originLine`; undefined outside a slice.
+   * A round never spans the origin, so its first line places it in the frame
+   * and the processor's progress through it is added unwrapped: a slice that
+   * overruns the frame's last line comes out past `vtotal`, never back at 0.
+   *
+   * Unlike `runningBeam`, a one-line round counts too. Its slice starts where
+   * the last one overran to (`runStartLines`), and progress through the line
+   * measured as `elapsed / target` restarted at 0: Gyruss's i8039 DAC stepped
+   * back a fifth of a line at every round seam (#194).
+   */
+  runningFrameLines(elapsedCycles: number): number | undefined {
+    const running = this.running;
+    if (!running) return undefined;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const first = ((this.roundFirstLine - this.originLine) % vtotal + vtotal) % vtotal;
+    return first + this.runStartLines + elapsedCycles / running.cyclesPerLine;
+  }
+
+  /**
    * The `perfect_quantum` window: from `done` to the window's end (or the
    * round's), the processor furthest behind in emulated time executes one
    * instruction, then any work that instruction synchronized runs.

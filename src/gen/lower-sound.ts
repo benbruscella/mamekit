@@ -133,6 +133,8 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
           kind: 'ym2151',
           clock: Number(opmChips[0]!.props.clock),
           chips: opmChips.length,
+          // set_output_gain names a chip by tag (Gauntlet's mixer_w).
+          deviceTags: opmChips.map(device => String(device.props.tag)),
           ...(lowerAudioRoutes(
             graph,
             opmChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),

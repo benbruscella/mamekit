@@ -34,9 +34,9 @@ export const galaxian = sourceTarget({
     audio: {
       writes: 4001,
       nonzeroWrites: 2177,
-      writeHash: '097190ba',
-      pcmHash: 'afb240e6',
-      rms: 0.101076,
+      writeHash: 'ea964db9',
+      pcmHash: 'af247c51',
+      rms: 0.100591,
     },
   },
 });

@@ -400,6 +400,29 @@ assert.ok(acRms(Array.from({ length: 1024 }, () => gainControlled.sample()).slic
 gainControlled.write(0, 0, 'ay1.set_output_gain');
 assert.ok(Array.from({ length: 64 }, () => gainControlled.sample()).every(sample => sample === 0));
 
+// MAME's ALL_OUTPUTS (65535) turns every output of the chip down, not only
+// the first: Gauntlet's mixer_w sets its YM2151's gain this way (#194).
+const allOutputs = new ayModule.GeneratedAy8910Mixer(
+  1_789_772,
+  1,
+  48_000,
+  [0, 1, 2].map(channel => ({ chip: 0, channel, gain: 1, target: 'speaker' })),
+  [],
+  undefined,
+  ['ay1'],
+);
+allOutputs.write(2, 16);
+allOutputs.write(7, 0x3d);
+allOutputs.write(9, 0x0f);
+allOutputs.write(0, 0, 'ay1.set_output_gain');
+assert.ok(
+  acRms(Array.from({ length: 1024 }, () => allOutputs.sample()).slice(256)) > 0.01,
+  'output 0 alone leaves channel B playing',
+);
+allOutputs.write(65535, 0, 'ay1.set_output_gain');
+Array.from({ length: 64 }, () => allOutputs.sample());
+assert.ok(Array.from({ length: 64 }, () => allOutputs.sample()).every(sample => sample === 0));
+
 const timedMixer = new ayModule.GeneratedAy8910Mixer(1_789_772, 1, 48_000);
 const frameRenderer = new ayModule.GeneratedAy8910FrameRenderer(timedMixer, 48_000, 60);
 const timed = frameRenderer.render([

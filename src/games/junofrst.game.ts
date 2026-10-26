@@ -38,9 +38,9 @@ export const junofrst = sourceTarget({
     audio: {
       writes: 46835,
       nonzeroWrites: 25888,
-      writeHash: 'fe1849db',
-      pcmHash: '61d0a229',
-      rms: 0.197786,
+      writeHash: '1eabfdb7',
+      pcmHash: 'a391f252',
+      rms: 0.197263,
     },
   },
 });

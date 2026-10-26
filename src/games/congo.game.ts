@@ -31,9 +31,9 @@ export const congo = sourceTarget({
     audio: {
       writes: 2253,
       nonzeroWrites: 2163,
-      writeHash: '7ab01341',
-      pcmHash: '7a98e994',
-      rms: 0.032103,
+      writeHash: 'bce02367',
+      pcmHash: 'e0622036',
+      rms: 0.032156,
     },
   },
 });

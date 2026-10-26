@@ -30,9 +30,9 @@ export const wboy = sourceTarget({
     audio: {
       writes: 52764,
       nonzeroWrites: 48483,
-      writeHash: '68b33652',
-      pcmHash: '762ae8c6',
-      rms: 0.046425,
+      writeHash: '32fc8bca',
+      pcmHash: '5b03d6fb',
+      rms: 0.046401,
     },
   },
 });

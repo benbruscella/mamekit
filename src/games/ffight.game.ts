@@ -41,9 +41,9 @@ export const ffight = sourceTarget({
     audio: {
       writes: 127235,
       nonzeroWrites: 118806,
-      writeHash: '55848841',
-      pcmHash: 'b82355e7',
-      rms: 0.082493,
+      writeHash: '6ffde644',
+      pcmHash: '91972758',
+      rms: 0.082494,
     },
   },
 });

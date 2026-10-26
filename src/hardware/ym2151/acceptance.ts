@@ -11,6 +11,7 @@ export async function createYm2151Probe(context: AudioProbeContext): Promise<Aud
     GeneratedYm2151Mixer: new (
       clock: number, chips: number, outputRate: number,
       sampleRom?: Uint8Array, auxiliaryDevices?: unknown, routes?: unknown,
+      deviceTags?: string[],
     ) => unknown;
     GeneratedYm2151FrameRenderer: new (
       mixer: unknown, outputRate: number, refresh: number,
@@ -32,6 +33,7 @@ export async function createYm2151Probe(context: AudioProbeContext): Promise<Aud
           : {}),
       })),
       context.sound.routes,
+      context.sound.deviceTags,
     ),
     context.outputRate,
     context.refresh,

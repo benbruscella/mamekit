@@ -10,6 +10,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { MameHardwareDefinition } from './hardware.ts';
+import { LOFI_RESAMPLER_SOURCE } from './lofi-resampler.ts';
 
 export interface GeneratedPokeyLfsr {
   /** Register width in bits. */
@@ -162,6 +163,9 @@ export function compilePokey(
  * hardware does and what the polynomial counters require: the tone a channel
  * produces is the polynomial bit standing at the moment its divider borrows,
  * so sampling the chip any more coarsely than its own clock changes the sound.
+ * Its clock-rate stream reaches the output rate through MAME's own LOFI
+ * resampler, as MAME's sound manager takes it there. The module that hosts
+ * this core emits LOFI_RESAMPLER_SOURCE (lofi-resampler.ts) once beside it.
  *
  * Scope: the audio path. POKEY's serial port, keyboard scanner, potentiometer
  * counters and IRQ line are not driven — no board that reaches this worklet
@@ -232,13 +236,12 @@ export class GeneratedPokeyCore {
   private clock114 = 0;
   private outRaw = 0;
   private rawInvalid = false;
-  private phase = 0;
-  private readonly clock: number;
-  private readonly outputRate: number;
+  private outSample = 0;
+  private outSampleRaw = -1;
+  private readonly resampler: GeneratedLofiResampler;
 
   constructor(clock: number, outputRate: number) {
-    this.clock = clock;
-    this.outputRate = outputRate;
+    this.resampler = new GeneratedLofiResampler(clock, outputRate);
     for (let channel = 0; channel < 4; channel++) this.resetChannel(channel);
   }
 
@@ -391,19 +394,23 @@ export class GeneratedPokeyCore {
     }
   }
 
-  /** One host sample, LEGACY_LINEAR: the four volume nibbles, summed. */
+  /** One host sample: the chip's clock-rate stream through MAME's LOFI resampler. */
   sample(): number {
-    this.phase += this.clock / this.outputRate;
-    let steps = Math.floor(this.phase);
-    this.phase -= steps;
-    // A stalled worklet must never turn into an unbounded catch-up burst.
-    if (steps > 4096) steps = 4096;
-    for (let step = 0; step < steps; step++) this.stepOneClock();
-    let out = 0;
-    for (let channel = 0; channel < 4; channel++) out += (this.outRaw >> (4 * channel)) & 0x0f;
-    out *= pokeyPlan.defaultGain;
-    if (out > 0x7fff) out = 0x7fff;
-    return out / 32768;
+    return this.resampler.sample(this);
+  }
+
+  /** One chip clock's stream sample, LEGACY_LINEAR: the four volume nibbles, summed. */
+  next(): number {
+    this.stepOneClock();
+    if (this.outRaw !== this.outSampleRaw) {
+      let out = 0;
+      for (let channel = 0; channel < 4; channel++) out += (this.outRaw >> (4 * channel)) & 0x0f;
+      out *= pokeyPlan.defaultGain;
+      if (out > 0x7fff) out = 0x7fff;
+      this.outSample = out / 32768;
+      this.outSampleRaw = this.outRaw;
+    }
+    return this.outSample;
   }
 }
 `;
@@ -411,7 +418,8 @@ export class GeneratedPokeyCore {
 
 /** Emit a standalone POKEY AudioWorklet for boards where it is the primary sound chip. */
 export function generatedPokeyWorkletSource(plan: GeneratedPokeyPlan): string {
-  return `${generatedPokeyCoreSource(plan)}
+  return `${LOFI_RESAMPLER_SOURCE}
+${generatedPokeyCoreSource(plan)}
 
 export interface GeneratedPokeyWrite {
   offset: number;

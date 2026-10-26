@@ -53,9 +53,9 @@ export const hyperspt = sourceTarget({
     audio: {
       writes: 505794,
       nonzeroWrites: 47055,
-      writeHash: '25e6f201',
-      pcmHash: '1f175214',
-      rms: 0.37486,
+      writeHash: '25ed7f42',
+      pcmHash: 'd5c7ceca',
+      rms: 0.374869,
     },
   },
 });

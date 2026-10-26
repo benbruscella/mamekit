@@ -7,6 +7,7 @@ import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
+import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import type {
   GeneratedDacFilterPlan,
   GeneratedDiscreteDacPlan,
@@ -2780,6 +2781,7 @@ const plan = ${JSON.stringify(plan, null, 2)};
 const msmPlan: GeneratedMsm5205PlanData | null = ${JSON.stringify(msm5205 ?? null, null, 2)};
 const FILTER_CONTROL_BASE = ${AY_FILTER_CONTROL_BASE};
 const FILTER_CONTROL_STRIDE = ${AY_FILTER_CONTROL_STRIDE};
+const ALL_OUTPUTS = ${DEFAULT_CONSTANTS.ALL_OUTPUTS};
 
 interface GeneratedMsm5205PlanData {
   schemaVersion: number;
@@ -3377,8 +3379,11 @@ export class GeneratedAy8910Mixer {
         return;
       }
       const chip = this.deviceTags.indexOf(gainWrite[1]!);
-      if (chip >= 0 && this.outputGains[chip]) {
-        this.outputGains[chip]![Math.max(0, Math.min(2, offset))] = gain;
+      const outputs = this.outputGains[chip];
+      if (outputs) {
+        // MAME's ALL_OUTPUTS sets the gain of every output the chip has.
+        if (offset === ALL_OUTPUTS) outputs.fill(gain);
+        else outputs[Math.max(0, Math.min(2, offset))] = gain;
       }
       return;
     }

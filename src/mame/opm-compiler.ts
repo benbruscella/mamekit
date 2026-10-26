@@ -1,4 +1,6 @@
 import { DAC_VALUE_MAP_SOURCE } from '../hardware/dac/worklet-source.ts';
+import { LOFI_RESAMPLER_SOURCE } from './lofi-resampler.ts';
+import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { readFileSync } from 'node:fs';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedMsm5205Plan, GeneratedUpd7759Plan } from './audio-compiler.ts';
@@ -282,6 +284,8 @@ const plan = ${JSON.stringify(plan, null, 2)};
 const msmPlan = (${JSON.stringify(msm5205Plan ?? null, null, 2)}) as GeneratedMsm5205PlanData | null;
 const updPlan = (${JSON.stringify(upd7759Plan ?? null, null, 2)}) as GeneratedUpd7759PlanData | null;
 ${DAC_VALUE_MAP_SOURCE}
+${LOFI_RESAMPLER_SOURCE}
+const ALL_OUTPUTS = ${DEFAULT_CONSTANTS.ALL_OUTPUTS};
 ${pokeyPlanSource ? generatedPokeyCoreSource(pokeyPlanSource) : ''}
 /** Null on a board with no POKEY, so the engine above is only emitted when one exists. */
 const pokeyFactory: ((clock: number, rate: number) => {
@@ -1484,16 +1488,23 @@ export class GeneratedYm2151Mixer {
     core: GeneratedRawSamplesCore;
   }[];
   // A speech chip whose engine runs on the main thread streams finished PCM
-  // in rather than register writes; all this side does is resample it.
+  // in rather than register writes; all this side does is resample it, with
+  // MAME's LOFI resampler. Holding each 8 kHz sample instead left images of
+  // the speech above 4 kHz: Gauntlet's ran 8-11 dB bright (#194).
   private readonly pcmChips: {
     deviceTag: string;
     gain: number;
-    rate: number;
     queue: number[];
-    phase: number;
     held: number;
+    resampler: GeneratedLofiResampler;
+    source: GeneratedLofiSource;
   }[];
   private readonly routes: GeneratedYmRoute[];
+  /** Each YM2151's tag, for set_output_gain, and the gain of its two outputs. */
+  private readonly deviceTags: readonly string[];
+  private readonly outputGains: number[][];
+  /** An auxiliary device's route gain before any set_output_gain. */
+  private readonly routeGains = new Map<object, number>();
   private readonly chipRate: number;
   private readonly outputRate: number;
   private readonly scratch = new Int32Array(2);
@@ -1508,11 +1519,14 @@ export class GeneratedYm2151Mixer {
     sampleRom?: Uint8Array,
     auxiliaryDevices: readonly GeneratedAuxiliaryAudioDevice[] = [],
     routes?: GeneratedYmRoute[],
+    deviceTags: readonly string[] = [],
   ) {
     this.chips = Array.from(
       { length: Math.max(1, chips) },
       () => new GeneratedYm2151Chip(),
     );
+    this.deviceTags = deviceTags;
+    this.outputGains = this.chips.map(() => [1, 1]);
     const oki = auxiliaryDevices.find(device => device.type === 'OKIM6295');
     const okiSpace = oki?.sampleMap?.length
       ? new GeneratedSampleSpace(oki.sampleRom ?? sampleRom ?? new Uint8Array(), oki.sampleMap)
@@ -1588,15 +1602,20 @@ export class GeneratedYm2151Mixer {
     });
     this.pcmChips = auxiliaryDevices
       .filter(device => device.type.startsWith('TMS5220'))
-      .map(device => ({
-        deviceTag: device.deviceTag,
-        gain: device.gain,
-        // The engine reports its own rate with each sample; this is the start.
-        rate: device.clock / 80,
-        queue: [] as number[],
-        phase: 0,
-        held: 0,
-      }));
+      .map(device => {
+        const pcm = {
+          deviceTag: device.deviceTag,
+          gain: device.gain,
+          queue: [] as number[],
+          held: 0,
+          // tms5220_device::device_start: stream_alloc(0, 1, clock() / 80).
+          resampler: new GeneratedLofiResampler(Math.floor(Math.floor(device.clock) / 80), outputRate),
+          source: { next: () => 0 } as GeneratedLofiSource,
+        };
+        // An empty queue repeats the last sample, as the held path did.
+        pcm.source = { next: () => (pcm.held = pcm.queue.length ? pcm.queue.shift()! : pcm.held) };
+        return pcm;
+      });
     this.chipRate = clock / plan.sampleRateDivider;
     this.outputRate = outputRate;
     this.held = this.chips.map(() => new Int32Array(2));
@@ -1608,6 +1627,12 @@ export class GeneratedYm2151Mixer {
 
   /** Register writes arrive as chip * 2 + port; auxiliaries route by method. */
   write(offset: number, data: number, method?: string): void {
+    // Before the auxiliaries: their tag-prefix routing would hand a gain
+    // write to the chip as a command (an OKI's, a uPD7759's).
+    if (method?.endsWith('.set_output_gain')) {
+      this.setOutputGain(method.slice(0, -'.set_output_gain'.length), offset, data / 0xff);
+      return;
+    }
     if (method?.startsWith('bank.')) {
       for (const space of this.sampleSpaces) space.select(method, data);
       return;
@@ -1703,14 +1728,7 @@ export class GeneratedYm2151Mixer {
     for (const device of this.k007232Chips) output += device.core.sample() * device.gain;
     for (const device of this.k053260Chips) output += device.core.sample() * device.gain;
     for (const device of this.rawSamples) output += device.core.sample() * device.gain;
-    for (const device of this.pcmChips) {
-      device.phase += device.rate / this.outputRate;
-      while (device.phase >= 1) {
-        device.phase -= 1;
-        if (device.queue.length) device.held = device.queue.shift()!;
-      }
-      output += device.held * device.gain;
-    }
+    for (const device of this.pcmChips) output += device.resampler.sample(device.source) * device.gain;
     return Math.max(-1, Math.min(1, output));
   }
 
@@ -1719,9 +1737,36 @@ export class GeneratedYm2151Mixer {
     for (const route of this.routes) {
       const chip = this.held[route.chip];
       if (!chip) continue;
-      total += (chip[route.channel] ?? 0) * route.gain;
+      total += (chip[route.channel] ?? 0) * route.gain * (this.outputGains[route.chip]?.[route.channel] ?? 1);
     }
     return total;
+  }
+
+  /**
+   * MAME's device_sound_interface::set_output_gain: one output of the device,
+   * or every one for ALL_OUTPUTS. A YM2151 has two; an auxiliary device here
+   * mixes one, so its route gain is scaled. Gauntlet's mixer_w sets all three
+   * of its chips this way, and silences them all at reset.
+   */
+  private setOutputGain(tag: string, output: number, gain: number): void {
+    const chip = this.deviceTags.indexOf(tag);
+    if (chip >= 0) {
+      const outputs = this.outputGains[chip]!;
+      if (output === ALL_OUTPUTS) outputs.fill(gain);
+      else if (output >= 0 && output < outputs.length) outputs[output] = gain;
+      return;
+    }
+    const devices: { deviceTag?: string; tag?: string; gain: number }[] = [
+      ...(this.oki ? [this.oki] : []),
+      ...this.msmChips, ...this.pokeyChips, ...this.dacs, ...this.updChips,
+      ...this.k007232Chips, ...this.k053260Chips, ...this.rawSamples, ...this.pcmChips,
+    ];
+    for (const device of devices) {
+      if ((device.deviceTag ?? device.tag) !== tag) continue;
+      const routeGain = this.routeGains.get(device) ?? device.gain;
+      this.routeGains.set(device, routeGain);
+      device.gain = routeGain * gain;
+    }
   }
 }
 
@@ -1816,6 +1861,7 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
         chips?: number;
         routes?: GeneratedYmRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
+        deviceTags?: string[];
         sampleRom?: Uint8Array;
         refresh?: number;
         offset?: number;
@@ -1831,6 +1877,7 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
           message.sampleRom,
           message.auxiliaryDevices,
           message.routes,
+          message.deviceTags,
         );
         this.renderer = new GeneratedYm2151FrameRenderer(
           this.mixer,

@@ -65,9 +65,9 @@ export const gauntlet = sourceTarget({
     audio: {
       writes: 284417,
       nonzeroWrites: 252841,
-      writeHash: '45c5edf0',
-      pcmHash: '7d4909e8',
-      rms: 0.049251,
+      writeHash: '5246baac',
+      pcmHash: '82b84478',
+      rms: 0.049273,
     },
   },
   // Long enough to reach real play: the warrior is in the maze from about

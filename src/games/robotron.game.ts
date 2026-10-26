@@ -60,9 +60,9 @@ export const robotron = sourceTarget({
     audio: {
       writes: 270221,
       nonzeroWrites: 266506,
-      writeHash: 'c7d18040',
-      pcmHash: '14983d98',
-      rms: 0.850471,
+      writeHash: '92a6244a',
+      pcmHash: '29a2be6d',
+      rms: 0.850473,
     },
   },
 });

@@ -384,4 +384,44 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.deepEqual(origins, [true, false, false]);
 }
 
-console.log('generated-frame.spec: 19 passed');
+// The running processor's place in the frame is its own position, measured
+// from the origin. 4-cycle instructions against 10-cycle lines overrun every
+// round, and the next slice starts where that one stopped, so each instruction
+// lands 0.4 lines after the last: across rounds of 10 lines, the one-line
+// boundary rounds (lines 300 and 399) and the wrap from 399 to 0, never
+// backwards. Stamped with the round's progress instead, Mat Mania's DAC writes
+// bunched into a round's last line and jumped, and Gyruss's i8039 stepped back
+// at every seam into a one-line round (#194).
+{
+  const fixture: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      cpus: [{ tag: 'soundcpu', type: 'm6502', clock: 400_000, region: 'soundcpu' }],
+      screen: { width: 1, height: 1, refresh: 100, vtotal: 400, vbstart: 300, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const stamps: (number | undefined)[] = [];
+  const budgets: number[] = [];
+  const runner: GeneratedFrameRunner = new GeneratedFrameRunner({
+    machine: fixture,
+    origin: 'vbstart',
+    processors: [{ tag: 'soundcpu', run: budget => {
+      budgets.push(budget);
+      let elapsed = 0;
+      for (; elapsed < budget; elapsed += 4) stamps.push(runner.runningFrameLines(elapsed));
+      return elapsed;
+    } }],
+  });
+  runner.frame(new Uint32Array(1));
+  assert.ok(budgets.some(budget => budget >= 96), 'rounds of 10 lines');
+  assert.ok(budgets.some(budget => budget <= 10), 'one-line rounds');
+  assert.equal(stamps.length, 1000);
+  stamps.forEach((at, index) => {
+    assert.ok(at !== undefined && Math.abs(at - index * 0.4) < 1e-9, `instruction ${index} at ${at}`);
+  });
+  assert.equal(runner.runningFrameLines(0), undefined, 'outside a slice');
+}
+
+console.log('generated-frame.spec: 20 passed');

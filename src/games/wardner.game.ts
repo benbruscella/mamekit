@@ -71,9 +71,9 @@ export const wardner = sourceTarget({
     audio: {
       writes: 778078,
       nonzeroWrites: 566543,
-      writeHash: '6f2fa488',
-      pcmHash: 'ce65d3ba',
-      rms: 0.014907,
+      writeHash: 'cfe75734',
+      pcmHash: 'efb8f4e7',
+      rms: 0.014838,
     },
   },
 });

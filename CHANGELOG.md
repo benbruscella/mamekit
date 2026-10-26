@@ -30,7 +30,56 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
-### The 68705 and Z80 PIO compile from MAME, and the docs catch up ([#176](https://github.com/benbruscella/mamekit/issues/176))
+### Sound writes timed by the processor that makes them, and Gauntlet's mixer, speech and POKEY as MAME has them ([#196](https://github.com/benbruscella/mamekit/pull/196))
+
+**For players:** Mat Mania's sampled bell and count and Gyruss's drums and voices are clean again, where they had been a noisy smear. Gauntlet's speech is no longer harsh: it matches MAME's brightness while it speaks. The click when Gauntlet's sound board leaves reset is gone, and the game's own volume settings for its music, effects and speech now apply. POKEY sound effects in Gauntlet, Marble Madness, Missile Command, Centipede and Battlezone no longer fold ultrasonic tones back into the audible range.
+
+**Under the hood:** A sound write was stamped with the progress through the whole scheduler round, so a round of several lines squeezed its writes into its last line, and some ran backwards (37 games). `GeneratedFrameRunner.runningFrameLines` now gives the running processor's own position from the frame's origin, including where a slice overran to, and `frameLines()` adds the cycles of the current instruction, as MAME's `machine().time()` does. No DAC writes run backwards any more in Mat Mania (4.4% before) or Gyruss (0.22%). `ALL_OUTPUTS` resolved to nothing and read as 0; it is now 65535, from `emu/disound.h`. The OPM worklet, which had no `set_output_gain` handling at all, scales a YM2151's outputs and an auxiliary device's route gain. MAME's default stream resampler, `audio_resampler_lofi` from `src/emu/resampler.cpp`, is now emitted once as a shared piece (`src/mame/lofi-resampler.ts`). The POKEY's 1.79 MHz stream and the TMS5220's 8.1 kHz speech both go through it, instead of keeping one sample in 37 and holding each sample. The OPM worklet's other sample-and-hold devices (OKI, K007232 and others) still hold, and are next.
+
+## 2026-10-25 23:13 AEDT · `8ae66b11` · [#193](https://github.com/benbruscella/mamekit/pull/193)
+### Node 26.12.1, and no catch on the emulation path hides an error
+
+**For players:** Nothing visible.
+
+**Under the hood:** `.nvmrc` moves from Node 26.8.1 to 26.12.1, which takes V8's fix for object literals sharing their double fields under Maglev OSR (nodejs/node#66457), with `@types/node` ^26 and Playwright 1.64 to match. Two catches on the emulation path no longer swallow errors: a cartridge whose installer throws (a stack overflow included) used to carry on half-mounted, and the save-state walker turned any setter error into a "cannot assign" diagnostic. `installSlotCard` now checks for an installer by presence, and only a TypeError counts as a refused slot. The non-determinism in [#190](https://github.com/benbruscella/mamekit/issues/190) is narrowed to V8, not fixed: a whole contract fits in a 75 KB stack, the emulation path has no clocks, randomness or threads, and Bubble Bobble still diverged once and crashed natively twice in 50 runs.
+
+## 2026-10-25 21:36 AEDT · `938a8466` · [#192](https://github.com/benbruscella/mamekit/pull/192)
+### PlayStation pads: Sony's names, console Select and Start in order, and a DualShock 4 on the home page
+
+**For players:** A DualShock 4 or DualSense is recognised by name, and the control legend shows the buttons as Sony prints them: □ △ ✕ ○, L1/R1/L2/R2 and Share/Options. On the NES and Game Boy, a pad's Select and Start buttons are now Select and Start, in that order. The home page's Controllers section has a "Wireless" card with a drawing of a DualShock 4 and pairing steps.
+
+**Under the hood:** `gamepad.ts` detects Sony pads by USB vendor id `054c` in the Chrome/Safari and Firefox id formats. Where the browser gives no ids, as Chrome-family browsers on macOS 26 do, it detects them by the bare name `Wireless Controller (STANDARD GAMEPAD)`; a pad that carries ids is never taken for Sony by name. `IPT_SELECT` maps to standard button 8 and `IPT_START` to 9, and the arcade cabinet rule for `IPT_START1`/`IPT_COIN1` is unchanged. The home page's drawing takes its labels from the same table the gamepad poll uses.
+
+## 2026-10-25 19:06 AEDT · `d8d5ce68` · [#191](https://github.com/benbruscella/mamekit/pull/191)
+### NES VRC7 sound: ymfm's OPLL compiled from MAME
+
+**For players:** Konami VRC7 cartridges play their FM music: Lagrange Point is heard, with its music starting at the same moment as in MAME. A VRC7 cartridge asks for `ds1001.zip`, the chip's instrument ROM that MAME also requires, the way the ColecoVision asks for its BIOS. No other cartridge asks for it.
+
+**Under the hood:** The DS1001 (a Yamaha OPLL) compiles from MAME's bundled `3rdparty/ymfm` library with no diagnostics, and matches a native clang build of ymfm on all 46,100 samples of a register script. The device compiler gained class templates compiled per instance, held objects built by their own constructors, `using` aliases across classes, reference and `mutable` members, class constants that shadow the flat cross-file table, and non-const reference arguments that write back. A reference bound to a call's result is now evaluated once; as an l-value it re-ran `output->clear()` on every read, so only the last channel was heard. A device child that does not lower is now reported instead of vanishing (18 in a clean build). Lagrange Point runs at 81 fps in the Node harness with music playing, up from 29. The app's `tsc` check now declares JSON imports opaque, because inferring the generated IR's literal types took the clean build past its 8 GB heap.
+
+## 2026-10-25 09:48 AEDT · `5a907b2a` · [#189](https://github.com/benbruscella/mamekit/pull/189)
+### NES part 3: MAME's power-on origin on every board, and 314 of 344 NES boards pixel-exact
+
+**For players:** Every machine now starts its first frame where MAME does, at the start of VBLANK, and presents each frame at MAME's snapshot instant. Sound writes are no longer stamped out of order where the frame wraps past line 0, which had garbled Gyruss and Mat Mania. On the NES, the G-101, JF-24 and TQROM boards and the bottom line of the picture now match MAME. Duck Hunt matches MAME to frame 1100, and 314 of 344 NES cartridge boards are pixel-exact at frame 1500, up from 272.
+
+**Under the hood:** The frame runner starts at `vbstart` and runs frames from VBLANK to VBLANK; screens whose VBLANK wraps to line 0 keep origin 0, and the `present: 'frame-boundary'` flag is gone. Sound timestamps, trackball interpolation and the Neo Geo clock measure the frame from that origin. The 6502 runs reset as its first instruction, sees timers as MAME's cycle-suspending core does (a catch-up before every device access and a two-cycle lookahead before each instruction), and converts method arguments to their declared C types. Line 239 keeps the previous frame because device time is held just short of `vbstart` until the frame is presented, as MAME's `remaining()` check implies. Cartridges' own input ports read their declared defaults. Every acceptance golden was re-recorded for the origin change.
+
+## 2026-10-24 11:48 AEDT · `7ebbb098` · [#183](https://github.com/benbruscella/mamekit/pull/183)
+### NES part 2: the MMC5 at full speed and in step with MAME, and the MMC5 and Sunsoft 5B heard
+
+**For players:** Castlevania III runs at full speed: an MMC5 frame takes 11 ms instead of 40. The NES no longer starts a frame behind MAME. MMC5 PCM and the Sunsoft 5B's sound are audible. Every MMC5 battery cartridge boots, and multicarts that count resets start on their first game. 272 of 344 NES boards are pixel-exact against MAME at frame 1500, up from 248.
+
+**Under the hood:** Device codegen treats one-line inline accessors as roots, so `get_draw_phase` and its kind stop running in the interpreter 30,000 times a frame, and each device keeps one prepared call per method. Device-facing beam reads measure from the real beam until the first line boundary. `ay8910.cpp` now lowers, after eight general fixes: `#if` on a parenthesised define, if-with-initializer, class-sized array bounds, qualified static tables, constructor bodies run at generation, `make_unique` float arrays, smart-pointer `get()` and struct methods. Silent zeros on the cartridge load path are fixed: `strncmp` (every MMC1 read as an MMC1B), battery load and save, `sscanf` and `emu_timer::reset()`. The NES package no longer declares a second `pcb_reset` by hand, and iNES images use the NES 2.0 exponent size form.
+
+## 2026-10-24 00:06 AEDT · `46a00db1` · [#182](https://github.com/benbruscella/mamekit/pull/182)
+### Fix MAME calls that answered a silent 0, with a census and strict contracts
+
+**For players:** Coin lockout works as in MAME, so Final Fight refuses coins while it locks them out and Metal Slug's coins unlock. Battlezone, Frogger, Scramble and Up'n Down mute their sound when the game asks to, as in attract mode. Spy Hunter's sound board is connected to the game: its wheel, pedal and music board were wired through three delegates that had been dropped.
+
+**Under the hood:** `tools/unresolved-calls.ts` counts every call that resolved to nothing, and `src/ir/framework-calls.ts` declares the calls answered on purpose, each with its reason. Every contract now fails on an unresolved call in neither that list nor the known-gaps list, which went from 146 to 135. Fixed: `std::begin`/`end`/`fill`/`min_element`/`max_element`, `system_mute`, virtual overrides that call their base (kept as `method__base` handlers), `HOLD_LINE` and the interrupt acknowledge for generated processors, `machine().time` in board handlers, and forwarding-delegate setters recognised by their shape.
+
+## 2026-10-23 10:22 AEDT · `796a95e2` · [#177](https://github.com/benbruscella/mamekit/pull/177)
+### The 68705 and Z80 PIO compile from MAME, and the docs catch up
 
 **For players:** Arkanoid and Elevator Action now run their protection MCU from MAME's own source, at the same accuracy against MAME as before and at full speed. Wonder Boy's Z80 PIO is generated too, and is still pixel-exact.
 

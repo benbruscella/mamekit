@@ -48,9 +48,9 @@ export const gunsmoke = sourceTarget({
     audio: {
       writes: 355048,
       nonzeroWrites: 192211,
-      writeHash: '39e8e4a9',
-      pcmHash: 'e41b2596',
-      rms: 0.083943,
+      writeHash: '58847f87',
+      pcmHash: '688e027e',
+      rms: 0.083906,
     },
   },
 });
