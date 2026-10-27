@@ -131,7 +131,8 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:current` | clean-generate and audit the currently supported games |
 | `npm run audit:generated` | audit the games currently present in `dist` |
 | `npm run audit:facts` | diff generated machine facts against MAME's own `-listxml` |
-| `node tools/mame-oracle.ts <target> [<title>]` | run a machine beside MAME and compare pictures, RAM and bus traffic |
+| `node tools/mame-oracle.ts <target> [<title>]` | run a machine beside MAME and compare pictures, RAM, bus traffic and audio |
+| `npm run oracle:baseline -- record\|compare\|show [<target>]` | record every contract scenario against MAME, and judge a change against that record |
 | `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
 | `npm run audit:game-package -- <target>` | validate local artwork, history and dossier completeness |
 | `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
@@ -572,7 +573,8 @@ npm run audio:compare -- <target> --mame /path/to/mame
 ```
 
 The command runs MAME with `-wavwrite`, captures the actual emitted MAMEKIT
-worklet, and writes both WAVs plus their spectrogram under `.files/`.
+worklet, and writes both WAVs plus their spectrogram under `.files/`, with the
+numbers it prints in `compare.json` beside them.
 
 ## 5A. ADDING HARDWARE
 
@@ -825,6 +827,13 @@ zeroed — were found this way, not by a golden.
   That is how the NES's first-VBLANK boards were traced to an NMI a few
   cycles late (#184). MAME's OAM DMA writes `$2004` through the program space
   and so appears on its tap; ours does not.
+- *Audio* with `--audio`. MAME records the run with `-wavwrite`, and our side's
+  capture (what reaches the browser's output) is set against it by
+  `tools/compare-audio.mjs`: the level (ours over MAME, in dB), the share of
+  each octave band, and the onset rate, a tempo proxy. The spectrogram is
+  written beside the frame PNGs. Unlike `audio:compare`, both sides get the
+  run's input and its title, so a contract's play is heard, not a silent
+  attract mode.
 - *Inputs*, whenever the run drives any. Each side logs the bits of every
   driven input on every frame: ours from the port byte the board reads, and
   MAME's from `port:read()` in the frame notifier. The report gives the frames
@@ -955,6 +964,52 @@ page says what it found ("pixel-exact against MAME 0.289 at frames 300, 600,
 *Checked against MAME* facet lists machines by it. A machine nobody has checked
 says nothing. Running MAME stays local: CI keeps the goldens.
 
+**The baseline.** The report keeps only the latest run of each title, and
+generation turns it into `oracle.json`, so a change's "before" is gone as soon
+as the oracle is run on the "after". A baseline is kept apart:
+
+```sh
+MAME_BIN=... npm run oracle:baseline -- record --jobs 4     # every contract scenario
+MAME_BIN=... npm run oracle:baseline -- compare dkong dkongjr
+npm run oracle:baseline -- show --markdown
+```
+
+`record` runs every contract scenario (accepted and candidate; nothing is listed
+by hand) through the oracle twice. The first run has no input, with `--ram` and
+`--audio`. The second has the contract's own input, with `--audio`. The frames
+compared are every 300 (a wider step past 2400 frames, so there are at most
+eight) and the contract's last frame. RAM is compared every frame, up to 256 MB
+a side. It writes `.cache/oracle/baseline/<commit>/<target>.json`. Nothing else
+writes there, so neither a later oracle run nor a generation can change it.
+Each file holds:
+
+- each step's exact arguments;
+- the identity: commit, `src` tree hash and whether it was `main`'s, MAME
+  release, Node and dist build id.
+
+`record` refuses a dirty tree or a Node other than `.nvmrc`'s. It never runs a
+measure already recorded, so a stopped recording resumes. A failed measure is
+retried by the next `record`, and every failing step is run once more before
+it is believed (#190). A scenario either side cannot run is kept as `failed`
+with the reason. One that cannot be measured, such as a board that maps no
+RAM, is kept as `skipped` with the reason. `show` lists both.
+
+`compare` re-runs the stored arguments on the current tree. It prints better,
+same or worse for five measures: pixels with no input, pixels with the
+contract's input, RAM, audio with no input, and audio with the contract's
+input. It exits 1 if any measure is worse. The rules are in
+`tools/oracle/baseline.ts`:
+
+- *Pixels:* losing an exact frame is worse, whatever else improves.
+- *RAM:* a later first divergence is better.
+- *Ties:* both then go to the count at the first divergence, and then the
+  total.
+- *Audio:* worse if the level (measured above a -80 dBFS silence floor), the
+  summed band differences or the onset rate moves away from MAME.
+
+Both sides are deterministic, so a change that touches nothing measured reads
+`same` everywhere.
+
 **What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
 tool with the rest of the tree (`tsconfig.json` includes all of `tools/`), so a
 harness hook it uses cannot be renamed under it.
@@ -969,7 +1024,8 @@ harness hook it uses cannot be renamed under it.
 - MAME's command line: slot options before the title, the medium named,
   cold-boot directories, and the out-of-the-way flags;
 - the pixel, RAM and I/O comparisons, and the PNG writer;
-- survey grading and grouping.
+- survey grading and grouping;
+- the baseline's units, plans and verdicts (`baseline.spec.ts`).
 
 With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
 to one vocabulary: every plan field read is written, every timeline event kind

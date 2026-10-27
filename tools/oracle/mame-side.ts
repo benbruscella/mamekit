@@ -14,7 +14,7 @@
  *     (src/gen/listxml.ts refuses a mismatch, and so does this).
  */
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +39,14 @@ export function politeCommand(command: string, args: string[], politeness: Polit
     return ['/usr/sbin/taskpolicy', ['-b', command, ...args]];
   }
   return process.platform === 'win32' ? [command, args] : ['nice', ['-n', '10', command, ...args]];
+}
+
+/** The mamekit commit a run is made on; `dirty` when src, tools or bin have local changes. */
+export function mamekitIdentity(): { commit: string; dirty: boolean } {
+  const commit = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: projectRoot, encoding: 'utf8' }).stdout.trim();
+  const dirty = spawnSync('git', ['status', '--porcelain', '--', 'src', 'tools', 'bin'], { cwd: projectRoot, encoding: 'utf8' })
+    .stdout.trim().length > 0;
+  return { commit, dirty };
 }
 
 /** The MAME binary to use, refused unless it is the checkout's release. */

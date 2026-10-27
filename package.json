@@ -40,7 +40,8 @@
     "test:e2e:headed": "MAMEKIT_HEADED=1 playwright test --config e2e/playwright.config.ts",
     "test:e2e:record": "playwright test --config e2e/playwright.config.ts --update-snapshots",
     "test:games:record": "for game in $(node src/games/acceptance.ts --list); do node src/games/record-goldens.ts \"$game\" || exit 1; sleep 5; done",
-    "audio:compare": "node tools/compare-game-audio.ts"
+    "audio:compare": "node tools/compare-game-audio.ts",
+    "oracle:baseline": "node tools/mame-baseline.ts"
   },
   "engines": {
     "node": ">=23.6"
