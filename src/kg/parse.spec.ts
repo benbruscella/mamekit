@@ -64,6 +64,35 @@ void spectrum_state::spectrum(machine_config &config) {
 }
 
 {
+  // A samples device's names come from the array it is handed; the `*`
+  // entry is the set they are filed under (listxml's sampleof), not a sample.
+  const src = `
+static const char *const zaxxon_sample_names[] =
+{
+	"*zaxxon",
+	"03",   /* 0 - Homing Missile */
+	"02",   // 1 - Base Missile, "quoted" in a comment
+	nullptr
+};
+static const char *const plain_names[] = { "knocker", nullptr };
+void zaxxon_state::zaxxon_samples(machine_config &config)
+{
+	SAMPLES(config, m_samples);
+	m_samples->set_channels(12);
+	m_samples->set_samples_names(zaxxon_sample_names);
+	m_samples->add_route(ALL_OUTPUTS, "speaker", 0.25);
+}
+void zaxxon_state::knocker(machine_config &config)
+{
+	SAMPLES(config, m_knocker);
+	m_knocker->set_samples_names(plain_names);
+}`;
+  const [zaxxon, knocker] = parseMachineConfigs(src, { m_samples: 'samples', m_knocker: 'knocker' }, {});
+  eq('set_samples_names lowers the array and its set', zaxxon?.devices[0]?.samples, { set: 'zaxxon', names: ['03', '02'] });
+  eq('an array with no * entry names no set', knocker?.devices[0]?.samples, { names: ['knocker'] });
+}
+
+{
   // The Spectrum's config keeps a perfect-quantum alternative behind #if 1;
   // the directive glued itself to SCREEN(...) and the screen vanished.
   const resolved = resolveLiteralConditionals([

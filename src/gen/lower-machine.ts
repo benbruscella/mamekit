@@ -117,6 +117,14 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   // hiscore plugin data; the shell runs the plugin's logic against them
   // (runtime/machine-memory.ts). Absent when the file has no entry.
   const hiscore = hiscoreTable(opts.mameSrc, opts.game);
+  // The sample sets MAME's samples devices load. MAME names each sample but
+  // gives it no CRC, so the names are what the ROM library files a set by and
+  // what audit:facts checks. With no `*` entry a set is the machine's own.
+  const samples = devices.filter(device => Array.isArray(device.props.sampleNames)).map(device => ({
+    tag: String(device.props.tag),
+    set: String(device.props.sampleSet ?? opts.game),
+    names: (device.props.sampleNames as unknown[]).map(String),
+  }));
 
   const compiledVideo = compileMameVideo(graph, opts.mameSrc, machine.id, opts.game);
   if (compiledVideo?.plan.updateMode) {
@@ -170,6 +178,7 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
     ...(romPatches ? { romPatches } : {}),
     ...(romTransforms.length ? { romTransforms } : {}),
     ...(hiscore ? { hiscore } : {}),
+    ...(samples.length ? { samples } : {}),
     ...(cart ? { cart } : {}),
     ...(software ? { software } : {}),
     bindings,

@@ -77,6 +77,39 @@ assert.deepEqual(pacman.displays, [{
   vbend: 0,
 }]);
 
+// --- samples and the device sets MAME's run needs ------------------------
+
+const qbertDump = `<mame build="0.289 (mame0289)">
+\t<machine name="qbert" sourcefile="gottlieb/gottlieb.cpp" sampleof="qbert">
+\t\t<rom name="qb-rom2.bin" size="8192" crc="fe434526" region="maincpu" offset="a000"/>
+\t\t<device_ref tag=":maincpu" name="i8088"/>
+\t\t<device_ref tag=":r1sound" name="gotsndspr1a"/>
+\t\t<device_ref tag=":r1sound:votrax" name="votrsc01a"/>
+\t\t<device_ref tag=":r1sound:dac" name="mc1408"/>
+\t\t<device_ref tag=":speaker" name="speaker"/>
+\t\t<device_ref tag=":knocker" name="speaker"/>
+\t\t<device_ref tag=":knocker_sam" name="samples"/>
+\t\t<sample name="knocker"/>
+\t</machine>
+\t<machine name="votrsc01a" sourcefile="devices/sound/votrax.cpp" isdevice="yes" runnable="no">
+\t\t<rom name="sc01a.bin" size="512" crc="fc416227" region="internal" offset="0"/>
+\t</machine>
+\t<machine name="opt" sourcefile="devices/x.cpp" isdevice="yes" runnable="no">
+\t\t<rom name="x.bin" size="16" crc="00000001" region="x" offset="0" optional="yes"/>
+\t</machine>
+\t<machine name="mc1408" sourcefile="devices/sound/dac.cpp" isdevice="yes" runnable="no"/>
+</mame>`;
+const qbert = parseListXmlMachines(qbertDump)[0]!;
+assert.equal(qbert.sampleof, 'qbert');
+assert.deepEqual(qbert.samples, ['knocker']);
+assert.deepEqual(qbert.deviceRefs, ['i8088', 'gotsndspr1a', 'votrsc01a', 'mc1408', 'speaker', 'samples'], 'each device once');
+assert.deepEqual(qbert.deviceSets, ['votrsc01a'], 'only devices with ROMs of their own are sets');
+assert.deepEqual(
+  parseListXmlMachines(qbertDump.replace('name="sc01a.bin"', 'name="sc01a.bin" optional="yes"'))[0]!.deviceSets,
+  [],
+  'a device whose ROMs are all optional is no set MAME needs',
+);
+
 // --- entities, because descriptions carry them ----------------------------
 
 const entities = parseListXmlMachines(

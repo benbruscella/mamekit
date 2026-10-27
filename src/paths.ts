@@ -24,6 +24,15 @@ export function romsDir(projectRoot: string): string {
   return join(projectRoot, DATA_DIR, 'roms');
 }
 
+/**
+ * MAME's sample sets, one `<set>.zip` of .wav files each: what MAME plays
+ * where a board's sound is recordings (Zaxxon's, Space Panic's). The MAME
+ * oracle passes it as -samplepath; the app plays none of them yet.
+ */
+export function samplesDir(projectRoot: string): string {
+  return join(projectRoot, DATA_DIR, 'samples');
+}
+
 /** Bezels, flyers, cabinet scans and the Gaming History dataset. */
 export function artworkDir(projectRoot: string): string {
   return join(projectRoot, DATA_DIR, 'artwork');

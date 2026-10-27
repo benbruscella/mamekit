@@ -19,6 +19,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listXmlOracle } from '../../src/gen/listxml.ts';
+import { samplesDir as samplesRoot } from '../../src/paths.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { IoPlan, OraclePlan, OursBoot, Timeline, TimelineEvent } from './plan.ts';
 
@@ -62,7 +63,7 @@ export function resolveMame(mameSrc: string, explicit?: string): { binary: strin
  * depend on one machine's mame.ini. Without a set MAME plays silence where
  * its samples belong.
  */
-export const samplesDir = join(projectRoot, '.data/samples');
+export const samplesDir = samplesRoot(projectRoot);
 
 /** Where MAME finds a machine's sets and a title's software, for each category. */
 export function romPaths(config: ShellConfig, category: string): string[] {

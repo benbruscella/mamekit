@@ -15,7 +15,10 @@
  *                        pixels:none pixels:contract ram audio:none audio:contract
  *   --allow-dirty        record from a tree with local changes (marked dirty; not a baseline to quote)
  *   --redo list          with record and named targets: take these measures again, replacing
- *                        what was recorded (MAME's reference changed: a sample set was added)
+ *                        what was recorded (MAME's reference changed: a sample set was added).
+ *                        A redo needs the same src, MAME and Node, but not the same dist build:
+ *                        each generation stamps a new build id, so a baseline whose dist was
+ *                        regenerated could otherwise never take one. The file records the redo.
  *
  * The set is every acceptance contract scenario (src/games/contracts.ts),
  * accepted and candidate, so nothing is listed by hand. Each is run twice
@@ -105,6 +108,8 @@ interface TargetFile {
   target: string;
   identity: BaselineIdentity;
   units: Record<string, UnitRecord & { measuredAt?: string }>;
+  /** Measures taken again with --redo, and the identity they were taken under. */
+  redone?: { measures: string[]; identity: BaselineIdentity }[];
 }
 
 const git = (...args: string[]) => spawnSync('git', args, { cwd: projectRoot, encoding: 'utf8' }).stdout.trim();
@@ -312,10 +317,18 @@ async function record(): Promise<void> {
     console.error(`no baseline ${options.get('--baseline')} to finish`);
     process.exit(2);
   }
+  const redo = options.has('--redo') ? measuresWanted('--redo') : [];
+  if (redo.length && !names.length) {
+    console.error('--redo replaces recorded measures, so it takes the targets to redo by name');
+    process.exit(2);
+  }
   const manifestPath = join(dir, 'baseline.json');
   if (existsSync(manifestPath)) {
     const recorded = readJson<BaselineIdentity>(manifestPath);
-    const differs = (['mame', 'node', 'srcTree', 'distBuildId'] as const).filter(field => recorded[field] !== identity[field]);
+    // A dist build id is a generation's timestamp, not its content: a redo
+    // asks for named measures again against the same src, MAME and Node.
+    const fields = redo.length ? ['mame', 'node', 'srcTree'] as const : ['mame', 'node', 'srcTree', 'distBuildId'] as const;
+    const differs = fields.filter(field => recorded[field] !== identity[field]);
     if (differs.length) {
       console.error(`${relative(projectRoot, dir)} was recorded with another ${differs.join(', ')}; ` +
         `one baseline is one measurement (${differs.map(field => `${recorded[field]} vs ${identity[field]}`).join(', ')})`);
@@ -324,17 +337,13 @@ async function record(): Promise<void> {
   } else {
     writeJson(manifestPath, identity);
   }
-  const redo = options.has('--redo') ? measuresWanted('--redo') : [];
-  if (redo.length && !names.length) {
-    console.error('--redo replaces recorded measures, so it takes the targets to redo by name');
-    process.exit(2);
-  }
   if (!identity.srcIsMain) console.warn(`note: src/ is not main's (${identity.main}); this baseline is of ${identity.commit}`);
   console.log(`recording ${units.length} scenarios of ${byTarget(units).length} targets into ${relative(projectRoot, dir)} ` +
     `(MAME ${mame.version}, Node ${process.version}, ${jobs} at a time)`);
   await eachTarget(async (target, list) => {
     const path = join(dir, `${target}.json`);
     const file: TargetFile = existsSync(path) ? readJson<TargetFile>(path) : { target, identity, units: {} };
+    if (redo.length) file.redone = [...(file.redone ?? []), { measures: redo, identity }];
     for (const unit of list) {
       if (!file.units[unit.key]) {
         try {

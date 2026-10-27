@@ -1029,6 +1029,25 @@ export function statementAudioRoutes(
     .flatMap(chain => parseAudioRoute(chain.args, consts, statement) ?? []);
 }
 
+/**
+ * The samples a `samples_device::set_samples_names(names)` call loads, read
+ * from the array's declaration:
+ *
+ *   static const char *const zaxxon_sample_names[] = { "*zaxxon", "03", ..., nullptr };
+ *
+ * A leading `*` entry is no sample but the set the rest are filed under:
+ * MAME's altbasename, which -listxml prints as `sampleof`.
+ */
+export function parseSampleNames(src: string, array: string): { set?: string; names: string[] } | undefined {
+  const declaration = new RegExp(
+    `\\bconst\\s+char\\s*\\*\\s*const\\s+${array}\\s*\\[\\s*\\]\\s*=\\s*\\{([^}]*)\\}`,
+  ).exec(stripComments(src));
+  if (!declaration) return undefined;
+  const entries = [...declaration[1]!.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(match => match[1]!);
+  const set = entries[0]?.startsWith('*') ? entries.shift()!.slice(1) : undefined;
+  return { ...(set ? { set } : {}), names: entries };
+}
+
 function parseChain(s: string): { method: string; args: string[] }[] {
   const out: { method: string; args: string[] }[] = [];
   let i = 0;
@@ -1114,6 +1133,8 @@ export interface DeviceDef {
     input?: number;
     raw: string;
   }[];
+  /** A SAMPLES device's set_samples_names array (see parseSampleNames). */
+  samples?: { set?: string; names: string[] };
   /** slot devices: NES_CONTROL_PORT(config, m_ctrl1, nes_control_port1_devices, "joypad") */
   slotOptions?: string;
   slotDefault?: string;
@@ -2144,6 +2165,11 @@ export function parseMachineConfigs(
               const route = parseAudioRoute(chain.args, consts, s);
               if (route) (dev.audioRoutes ??= []).push(route);
             }
+          } else if (method === 'set_samples_names') {
+            const open = s.indexOf('(', s.indexOf(method));
+            const close = matchParen(s, open);
+            const samples = parseSampleNames(src, s.slice(open + 1, close).trim());
+            if (samples) dev.samples = samples;
           } else if (method === 'set_raw') {
             const open = s.indexOf('(', s.indexOf(method));
             const close = matchParen(s, open);

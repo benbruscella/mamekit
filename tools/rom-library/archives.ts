@@ -216,6 +216,11 @@ export function readZipMember(source: ByteSource, member: ZipMember): Uint8Array
   return bytes;
 }
 
+/** The file members' names of an in-memory zip, nothing decompressed. */
+export function zipMemberNames(bytes: Uint8Array): string[] {
+  return zipMembers(bufferSource(bytes)).map(member => member.name).filter(name => !name.endsWith('/'));
+}
+
 /** Every file member of an in-memory zip, by name. */
 export function readZipBytes(bytes: Uint8Array): Map<string, Uint8Array> {
   const source = bufferSource(bytes);

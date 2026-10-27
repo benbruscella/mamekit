@@ -12,13 +12,16 @@
 //
 // What counts as claimed is decided by content and by the generated machines,
 // never by a list of names: a BIOS zip belongs to whichever machine accepts its
-// chips' CRCs, an arcade zip to whichever supported board loads its chips.
+// chips' CRCs, an arcade zip to whichever supported board loads its chips --
+// or to whichever supported machine MAME's own run loads it for (mame-run.ts),
+// since the oracle runs MAME from these shelves too.
 
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
 import { crc32 } from 'node:zlib';
 import { readZipBytes } from './archives.ts';
 import { hex8, type Library } from './library.ts';
+import type { MameRunSets } from './mame-run.ts';
 import { acceptedCrcs, biosKey, machineSets, type System } from './systems.ts';
 
 export type MoveKind = 'rename' | 'bios' | 'quarantine';
@@ -75,7 +78,7 @@ export interface TidyPlan {
   notes: string[];
 }
 
-export function planTidy(library: Library): TidyPlan {
+export function planTidy(library: Library, mameRun?: MameRunSets): TidyPlan {
   const roms = library.options.romsDir;
   const { systems, parked } = library.systems;
   const moves: Move[] = [];
@@ -118,13 +121,29 @@ export function planTidy(library: Library): TidyPlan {
       // An arcade folder keeps every set a supported board loads -- its own,
       // its parent's, its devices' -- and the sets of parked contracts.
       const needed = new Set([...system.machines.flatMap(machineSets), ...parked]);
+      const unsure: string[] = [];
       for (const child of children(systemDir)) {
         if (child.name.startsWith('_')) continue;
         if (child.directory) { quarantine(child.path, 'arcade sets are zips at the folder root'); continue; }
         if (!child.name.toLowerCase().endsWith('.zip')) { quarantine(child.path, 'not a ROM set'); continue; }
-        if (needed.has(basename(child.name, '.zip'))) continue;
+        const set = basename(child.name, '.zip');
+        if (needed.has(set)) continue;
         if (claimants(zipCrcs(child.path), [system]).length) continue;
-        quarantine(child.path, 'no supported arcade machine loads its chips');
+        const forMame = mameRun?.sets.get(set);
+        if (forMame) {
+          notes.push(`kept arcade/${child.name}: MAME's own run of ${forMame.join(' ')} loads it, though ours does not`);
+          continue;
+        }
+        if (!mameRun || mameRun.unknown.length) {
+          unsure.push(child.name);
+          continue;
+        }
+        quarantine(child.path, 'no supported arcade machine loads its chips, and MAME\'s run of none needs it');
+      }
+      if (unsure.length) {
+        notes.push(`left ${unsure.map(name => `arcade/${name}`).join(' ')} in place: no board of ours loads ${unsure.length === 1 ? 'it' : 'them'}, ` +
+          `and what MAME's own run of ${mameRun ? `${mameRun.unknown.length} supported machine(s)` : 'the supported machines'} loads is unknown ` +
+          `(${mameRun?.reason ?? 'no listxml answer'}; set MAME_BIN to a binary of the checkout's release)`);
       }
       continue;
     }

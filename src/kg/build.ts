@@ -1177,6 +1177,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         props.screenVisarea = [dev.screenVisarea.x0, dev.screenVisarea.x1, dev.screenVisarea.y0, dev.screenVisarea.y1];
       }
       if (dev.screenVideoAttributes?.length) props.screenVideoAttributes = dev.screenVideoAttributes;
+      if (dev.samples) {
+        props.sampleNames = dev.samples.names;
+        if (dev.samples.set) props.sampleSet = dev.samples.set;
+      }
       if (dev.slotOptions) props.slotOptions = dev.slotOptions;
       if (dev.slotDefault) props.slotDefault = dev.slotDefault;
       if (dev.slotAddress !== undefined) props.slotAddress = dev.slotAddress;
