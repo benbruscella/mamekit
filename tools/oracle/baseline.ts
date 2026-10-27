@@ -99,6 +99,8 @@ export function unitPlan(unit: BaselineUnit, ramBytesPerFrame: number): UnitPlan
 
 export interface PixelsResult {
   offset: number;
+  /** The scale ours was compared at, MAME's screen over the board's; absent at 1:1. */
+  scale?: number;
   frames: FrameResult[];
   exact: number[];
   firstDivergence?: number;
@@ -157,6 +159,7 @@ export function pixelsMeasure(run: RunReport): Measure<PixelsResult> {
   const failure = runFailure(run);
   const result: PixelsResult | undefined = run.pixels ? {
     offset: run.pixels.offset,
+    ...(run.pixels.scale ? { scale: run.pixels.scale } : {}),
     frames: run.pixels.frames,
     exact: run.pixels.exact,
     ...(run.pixels.firstDivergence !== undefined ? { firstDivergence: run.pixels.firstDivergence } : {}),
@@ -286,6 +289,7 @@ export function pixelsVerdict(before: Measure<PixelsResult> | undefined, after: 
   return ranOrFailed(before, after, (was, now) => {
     const notes: string[] = [];
     if (was.offset !== now.offset) notes.push(`offset ${was.offset} -> ${now.offset}`);
+    if ((was.scale ?? 1) !== (now.scale ?? 1)) notes.push(`compared at ${was.scale ?? 1}x -> ${now.scale ?? 1}x`);
     if ((now.inputsDiffering ?? 0) > (was.inputsDiffering ?? 0)) {
       return { verdict: 'worse', detail: `MAME read different input on ${now.inputsDiffering} frames (baseline ${was.inputsDiffering ?? 0})` };
     }

@@ -90,6 +90,10 @@ assert.equal(pixelsVerdict(pixels([], [10]), { status: 'ok', result: { offset: 0
 assert.equal(pixelsVerdict(pixels([300], [0, 40]), pixels([300], [0, 40], { inputsDiffering: 3 })).verdict, 'worse',
   'MAME reading different input makes the run worthless');
 assert.match(pixelsVerdict(pixels([300], [0, 40]), pixels([300], [0, 40], { offset: 1 })).detail ?? '', /offset 0 -> 1/);
+// A size mismatch compared at MAME's scale (#207) has counts at last, and says so.
+const sized: Measure<PixelsResult> = { status: 'ok', result: { offset: 0, frames: [{ frame: 300, mame: 300, size: '224x768 vs 224x256' }], exact: [], firstDivergence: 300 } };
+assert.deepEqual(pixelsVerdict(sized, pixels([], [40], { scale: 3 })),
+  { verdict: 'better', detail: 'pixels at 300 Infinity -> 40; compared at 1x -> 3x' });
 
 // A run that fails is worse than one that ran; two failures are the same; a skip is not judged.
 const failed: Measure<PixelsResult> = { status: 'failed', reason: 'ours: RangeError' };

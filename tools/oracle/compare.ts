@@ -40,6 +40,28 @@ export function oursPicture(path: string, width: number, height: number, rotate:
   return out;
 }
 
+/**
+ * Ours at MAME's resolution, where MAME draws the board's horizontal axis
+ * `scale` times wider (GALAXIAN_XSCALE): each of our pixels repeated along
+ * that axis, which a quarter turn has made the picture's vertical one. MAME's
+ * picture is never shrunk to ours instead, since that would average away what
+ * MAME puts on only some of a pixel's copies (Tutankham's stars).
+ */
+export function scaledPicture(picture: Picture, scale: number, rotate: number): Picture {
+  if (scale === 1) return picture;
+  const vertical = rotate === 90 || rotate === 270;
+  const width = vertical ? picture.width : picture.width * scale;
+  const height = vertical ? picture.height * scale : picture.height;
+  const rgb = new Uint8Array(width * height * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const from = ((vertical ? Math.floor(y / scale) : y) * picture.width + (vertical ? x : Math.floor(x / scale))) * 3;
+      rgb.set(picture.rgb.subarray(from, from + 3), (y * width + x) * 3);
+    }
+  }
+  return { width, height, rgb };
+}
+
 /** MAME's snapshot_pixels: rgb_t words, 0xAARRGGBB, little-endian. */
 export function mamePicture(path: string, width: number, height: number): Picture {
   const words = readFileSync(path);
@@ -128,7 +150,7 @@ export interface FrameResult {
   mame: number;
   /** Differing pixels; absent when a side has no picture. */
   pixels?: number;
-  /** Set when the pictures differ in size: "256x240 vs 256x224". */
+  /** Set when the pictures differ in size: "256x240 vs 256x224", ours as compared (at MAME's scale). */
   size?: string;
 }
 
@@ -137,12 +159,17 @@ export interface FrameResult {
  * differing pixels over the whole run. One offset for the run, never the best
  * per frame: a frame-by-frame choice would hide a machine running at the
  * wrong speed.
+ *
+ * `ours.scale` is how many times wider MAME draws the board's horizontal axis
+ * (`scaledScreen`, from MAME's own facts): ours is compared at MAME's
+ * resolution. It never comes from the pictures' shapes, so a plain width
+ * error is still a size.
  */
 export function comparePictures(
   dir: string,
   frames: readonly number[],
   offsets: readonly number[],
-  ours: { width: number; height: number; rotate: number },
+  ours: { width: number; height: number; rotate: number; scale?: number },
 ): {
   offset: number;
   /** Every offset as good as the one kept: a still picture fits several. */
@@ -157,7 +184,9 @@ export function comparePictures(
   const oursFor = new Map<number, Picture>();
   for (const frame of frames) {
     const path = join(dir, `ours-${frame}.rgba`);
-    if (existsSync(path)) oursFor.set(frame, oursPicture(path, ours.width, ours.height, ours.rotate));
+    if (existsSync(path)) {
+      oursFor.set(frame, scaledPicture(oursPicture(path, ours.width, ours.height, ours.rotate), ours.scale ?? 1, ours.rotate));
+    }
   }
   const mameFor = (frame: number): Picture | undefined => {
     const path = join(dir, `mame-${frame}.rgb`);
