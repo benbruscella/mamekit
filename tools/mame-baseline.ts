@@ -268,7 +268,7 @@ function describe(measure: Measure<unknown> | undefined): string {
     const first = pixels.firstDivergence;
     const at = first === undefined ? undefined : pixels.frames.find(frame => frame.frame === first);
     return `exact ${pixels.exact.length}/${pixels.frames.length}` +
-      (at ? `, first differs at ${first} (${at.pixels ?? at.size} px)` : '') + ` @${pixels.offset >= 0 ? '+' : ''}${pixels.offset}`;
+      (at ? `, first differs at ${first} (${at.pixels === undefined ? `size ${at.size}` : `${at.pixels} px`})` : '') + ` @${pixels.offset >= 0 ? '+' : ''}${pixels.offset}`;
   }
   if ('compared' in result) {
     const ram = result as RamSummary;
