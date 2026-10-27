@@ -803,7 +803,9 @@ zeroed — were found this way, not by a golden.
   (MAME | ours | ours dimmed with every differing pixel red) under
   `.cache/oracle/<target>/<title>/`.
 - *RAM* with `--ram`, every frame from 1, for every RAM range the generated
-  board maps, or the ranges named (`--ram maincpu:0-7ff`). The report gives
+  board maps, or the ranges named (`--ram maincpu:0-7ff`). A processor this
+  boot does not have is left out of the board's ranges, such as the 1541's
+  when a C64 tape leaves the drive slot empty; one named is refused. The report gives
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
   is the figure the earlier RAM-only oracle reported (Green Beret: 16, 25 and 19
@@ -987,7 +989,10 @@ Each file holds:
 - the identity: commit, `src` tree hash and whether it was `main`'s, MAME
   release, Node and dist build id.
 
-`record` refuses a dirty tree or a Node other than `.nvmrc`'s. It never runs a
+`record` refuses a dirty tree or a Node other than `.nvmrc`'s.
+`record --baseline <commit>` finishes a baseline from a later commit only when
+its `src` tree, MAME, Node and dist build are all the same, as after a
+tools-only fix. Each measure notes the commit it was taken on. It never runs a
 measure already recorded, so a stopped recording resumes. A failed measure is
 retried by the next `record`, and every failing step is run once more before
 it is believed (#190). A scenario either side cannot run is kept as `failed`

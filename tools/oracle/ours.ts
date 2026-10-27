@@ -158,6 +158,11 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
             play: Boolean(shelf.boot.play),
           } : undefined),
         };
+        const buses = (board as unknown as { cpuBuses?: Map<string, unknown> }).cpuBuses;
+        if (plan.ram?.fromBoard && buses) {
+          plan.ram.cpus = plan.ram.cpus.filter(cpu => buses.has(cpu.tag));
+          boot.ramCpus = plan.ram.cpus;
+        }
         booted = boot;
         writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(boot)}\n`);
         recorder = new InputRecorder(boot.timeline, config.bindings, input);

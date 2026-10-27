@@ -232,6 +232,11 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     return report;
   }
   const boot = JSON.parse(bootText) as OursBoot;
+  // MAME dumps, and the comparison reads, only what our side dumped.
+  if (request.ram && boot.ramCpus) {
+    request.ram = { ...request.ram, cpus: boot.ramCpus };
+    plan.ram = request.ram;
+  }
 
   const ramOurs = request.ram ? ramFrames(request.ram) : [];
   const frames = mameFrames(plan, ramOurs);
@@ -403,7 +408,7 @@ function ramRequest(): RamPlan | undefined {
   if (!cpus.length) throw new Error(`${target}'s generated board maps no RAM ranges; name them: --ram <cpu>:<start>-<end>`);
   const [range, every] = (option('--ram-frames') ?? `1-${comparedFrames.at(-1)}`).split('/');
   const [from, to] = range!.split('-').map(Number);
-  return { cpus, from: from!, to: to ?? from!, every: Number(every ?? 1) };
+  return { cpus, from: from!, to: to ?? from!, every: Number(every ?? 1), ...(given.length ? {} : { fromBoard: true as const }) };
 }
 
 function ioRequest(): OraclePlan['io'] {

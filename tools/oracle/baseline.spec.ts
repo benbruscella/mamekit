@@ -65,6 +65,8 @@ const ram = ramMeasure(run({
 }));
 assert.deepEqual(ram.result, { compared: 3, bytesPerFrame: 16, offset: 0, total: 10, firstDivergence: { frame: 2, bytes: 4, addresses: ['maincpu:4df9'] } });
 assert.equal(ramMeasure(run({})).status, 'failed', 'a run without RAM has nothing to keep');
+assert.equal(ramMeasure(run({ ram: { offset: 0, bytesPerFrame: 0, compared: 0, differing: {}, nearest: {} } })).status, 'skipped',
+  'a boot without the processors the board maps RAM on has none to compare');
 assert.equal(audioMeasure(run({ audioError: 'no MAME recording' })).reason, 'no MAME recording');
 assert.deepEqual(audioMeasure(run({
   audio: { seconds: 10, rms: { ours: 0.1, ref: 0.2, ratioDb: -6 }, bands: [{ hz: 125, ours: 0.5, ref: 0.4, diffDb: 1 }], onsets: { ours: 2, ref: 2 } },

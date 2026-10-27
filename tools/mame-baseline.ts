@@ -9,7 +9,8 @@
  *   node tools/mame-baseline.ts show [<target> ...] [--markdown]
  *
  *   --jobs N             targets at once (default 1; one target's scenarios always run in turn)
- *   --baseline <commit>  the baseline to compare with or show (default: the newest recorded)
+ *   --baseline <commit>  the baseline to compare with or show (default: the newest recorded);
+ *                        with record, a baseline to finish from a later commit of the same src
  *   --measures list      compare only these: pixels, ram, audio, or any of
  *                        pixels:none pixels:contract ram audio:none audio:contract
  *   --allow-dirty        record from a tree with local changes (marked dirty; not a baseline to quote)
@@ -215,6 +216,9 @@ async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunRe
   return outcome;
 }
 
+/** The commit each measure was taken on: a baseline can be finished from a later, tools-only commit. */
+const toolsCommit = mamekitIdentity().commit;
+
 const pending = (measure: Measure<unknown> | undefined) => !measure || measure.status === 'failed';
 
 /**
@@ -230,10 +234,12 @@ async function measureUnit(unit: BaselineUnit, record: UnitRecord, scratch: stri
     const { run, failure, retried } = await oracleRun(plan.none, `${scratch}-none`);
     const from = <T>(measure: (run: RunReport) => Measure<T>): Measure<T> => {
       const kept = run ? measure(run) : { status: 'failed' as const, reason: failure! };
-      return retried ? { ...kept, retried } : kept;
+      return { ...kept, ...(retried ? { retried } : {}), measuredOn: toolsCommit };
     };
     if (due('pixels:none', record.pixelsNone)) record.pixelsNone = from(pixelsMeasure);
-    if (due('ram', record.ram)) record.ram = plan.ramSkipped ? { status: 'skipped', reason: plan.ramSkipped } : from(ramMeasure);
+    if (due('ram', record.ram)) {
+      record.ram = plan.ramSkipped ? { status: 'skipped', reason: plan.ramSkipped, measuredOn: toolsCommit } : from(ramMeasure);
+    }
     if (due('audio:none', record.audioNone)) record.audioNone = from(audioMeasure);
     save();
     progress(unit, 'no input', record.pixelsNone, record.ram, record.audioNone);
@@ -242,7 +248,7 @@ async function measureUnit(unit: BaselineUnit, record: UnitRecord, scratch: stri
     const { run, failure, retried } = await oracleRun(plan.contract, `${scratch}-contract`);
     const from = <T>(measure: (run: RunReport) => Measure<T>): Measure<T> => {
       const kept = run ? measure(run) : { status: 'failed' as const, reason: failure! };
-      return retried ? { ...kept, retried } : kept;
+      return { ...kept, ...(retried ? { retried } : {}), measuredOn: toolsCommit };
     };
     if (due('pixels:contract', record.pixelsContract)) record.pixelsContract = from(pixelsMeasure);
     if (due('audio:contract', record.audioContract)) record.audioContract = from(audioMeasure);
@@ -293,7 +299,13 @@ async function record(): Promise<void> {
     console.error('src, tools or bin have local changes: a baseline is recorded from a commit (--allow-dirty to try it anyway)');
     process.exit(2);
   }
-  const dir = join(baselineRoot, identity.commit);
+  // A baseline measures src/: one begun on another commit is finished from
+  // this one only if src, MAME, Node and the generation are all the same.
+  const dir = join(baselineRoot, options.get('--baseline') ?? identity.commit);
+  if (options.has('--baseline') && !existsSync(join(dir, 'baseline.json'))) {
+    console.error(`no baseline ${options.get('--baseline')} to finish`);
+    process.exit(2);
+  }
   const manifestPath = join(dir, 'baseline.json');
   if (existsSync(manifestPath)) {
     const recorded = readJson<BaselineIdentity>(manifestPath);

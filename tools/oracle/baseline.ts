@@ -128,6 +128,8 @@ export interface Measure<T> {
   reason?: string;
   /** A first failure the second run did not repeat. */
   retried?: string;
+  /** The mamekit commit the measure was taken on. */
+  measuredOn?: string;
   result?: T;
 }
 
@@ -172,6 +174,8 @@ export function ramMeasure(run: RunReport): Measure<RamSummary> {
   const failure = runFailure(run);
   const ram: RamResult | undefined = run.ram;
   if (!ram) return { status: 'failed', reason: failure ?? 'no RAM was compared' };
+  // The board's ranges were all on processors this boot does not have (a C64 tape leaves the 1541 out).
+  if (!failure && ram.bytesPerFrame === 0) return { status: 'skipped', reason: 'no RAM range the board maps is on a processor this boot has' };
   const first = ram.firstDivergence;
   const result: RamSummary = {
     compared: ram.compared,
