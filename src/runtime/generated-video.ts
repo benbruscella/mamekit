@@ -3826,9 +3826,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       }
       return true;
     }
-    if (this.directScreenShape === 'system16b-layers') {
-      return this.drawSystem16BLayers(screen, bitmap, cliprect);
-    }
     if (this.directScreenShape === 'system16a-layers') {
       return this.drawSystem16ALayers(bitmap, cliprect);
     }
@@ -4280,103 +4277,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       return this.drawVicDual(bitmap, cliprect);
     }
     return false;
-  }
-
-  /**
-   * Compose a System 16B board's source-declared tile and text layers.
-   * SEGAIC16VID is not a standalone generated core yet, so the renderer reads
-   * the same shared RAM and 8x8 graphics layout directly; tile codes, colors,
-   * paging, scrolling and text are the real board data.
-   */
-  private drawSystem16BLayers(
-    screen: { visible_area(): GeneratedRectangle },
-    bitmap: BitmapTarget,
-    cliprect: GeneratedRectangle,
-  ): boolean {
-    const bytesView = (value: unknown): Uint8Array | undefined =>
-      ArrayBuffer.isView(value)
-        ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
-        : undefined;
-    const wordsView = (value: unknown): Uint16Array | undefined => {
-      const bytes = bytesView(value);
-      return bytes ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1) : undefined;
-    };
-    const tile = wordsView(this.state.m_tileram);
-    const text = wordsView(this.state.m_textram);
-    const palette = wordsView(this.state.m_paletteram);
-    const gfx = this.gfx[0];
-    if (!tile || !text || !gfx) return false;
-    const system16a = hasDeviceType(this.machine, 'SEGA_SYS16A_SPRITES');
-
-    if (palette && this.ramPalette) {
-      const mirror = this.ramPaletteMirror ??= new Uint16Array(palette.length);
-      for (let index = 0; index < palette.length; index++) {
-        const value = palette[index]!;
-        if (mirror[index] === value) continue;
-        mirror[index] = value;
-        this.ramPalette.write(index * 2, value >>> 8);
-        this.ramPalette.write(index * 2 + 1, value);
-      }
-    }
-
-    bitmap.fill(0, cliprect);
-
-    const drawLayer = (which: 0 | 1, transparent: boolean) => {
-      const rawPages = system16a
-        ? text[(0xe9e >>> 1) - which] ?? 0
-        : text[(0xe80 >>> 1) + which] ?? 0;
-      // System 16A swaps the page-select nibbles along X and only has eight
-      // tile pages. Its scroll registers and 200-pixel origin also differ
-      // from the later 16B layout.
-      const pageSelect = system16a
-        ? (((rawPages >>> 4) & 0x0707) | ((rawPages << 4) & 0x7070))
-        : rawPages;
-      const yScroll = system16a
-        ? (text[(0xf24 >>> 1) + which] ?? 0) & 0xff
-        : text[(0xe90 >>> 1) + which] ?? 0;
-      const rawXScroll = system16a
-        ? (text[(0xff8 >>> 1) + which] ?? 0) & 0x1ff
-        : text[(0xe98 >>> 1) + which] ?? 0;
-      const xScroll = system16a ? (0xc8 - rawXScroll) & 0x3ff : rawXScroll;
-      for (let row = 0; row < 29; row++) {
-        for (let column = 0; column < 41; column++) {
-          const virtualX = system16a
-            ? (column + (xScroll >>> 3)) & 0x7f
-            : (column + ((0xc0 - xScroll) >>> 3)) & 0x7f;
-          const virtualY = (row + ((yScroll & 0x1ff) >>> 3)) & 0x3f;
-          const quadrant = (virtualY >= 32 ? 2 : 0) | (virtualX >= 64 ? 1 : 0);
-          const page = (pageSelect >>> (quadrant * 4)) & 0x0f;
-          const index = page * 0x800 + (virtualY & 31) * 64 + (virtualX & 63);
-          const data = tile[index % tile.length] ?? 0;
-          const code = system16a ? ((data >>> 1) & 0x1000) | (data & 0x0fff) : data & 0x1fff;
-          const color = (data >>> (system16a ? 5 : 6)) & 0x7f;
-          const x = column * 8 - (xScroll & 7);
-          const y = row * 8 - (yScroll & 7);
-          if (transparent) gfx.transpen(bitmap, cliprect, code, color, 0, 0, x, y, 0);
-          else gfx.opaque(bitmap, cliprect, code, color, 0, 0, x, y);
-        }
-      }
-    };
-    drawLayer(1, false);
-    drawLayer(0, true);
-
-    for (let row = 0; row < 28; row++) {
-      for (let column = 0; column < 40; column++) {
-        const data = text[row * 64 + column + 24] ?? 0;
-        gfx.transpen(
-          bitmap,
-          cliprect,
-          data & (system16a ? 0xff : 0x1ff),
-          (data >>> (system16a ? 8 : 9)) & 0x07,
-          0,
-          0,
-          column * 8,
-          row * 8,
-          0,
-        );
-      }
-    }
-    return true;
   }
 
   /** Compose System 16A's paged tilemaps, text and scanline sprite hardware. */

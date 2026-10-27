@@ -1106,12 +1106,20 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         // Device finder arrays retain their source spelling (`m_pia[0]`).
         // Accept the subscript here so their constant machine-config setters
         // are lowered just like setters on scalar finder members.
-        const call = /(?:\w+|m_\w+(?:\[\d+\])?)\s*(?:->|\.)\s*(\w+)\s*\(([\s\S]*)\)\s*;?$/.exec(raw.trim());
+        // A setter can be a function template with numeric arguments
+        // (`m_pit->set_clk<0>(SH8253_CLOCK)`); it is named as the device
+        // compiler names each instance it generates, `set_clk_0`.
+        const call = /(?:\w+|m_\w+(?:\[\d+\])?)\s*(?:->|\.)\s*(\w+)\s*(?:<([^<>()]*)>)?\s*\(([\s\S]*)\)\s*;?$/.exec(raw.trim());
         if (!call) return [];
+        const instance = call[2] === undefined
+          ? []
+          : splitMameArgs(call[2]).map(value => evalExpr(value.replace(/\btrue\b/g, '1').replace(/\bfalse\b/g, '0'), consts));
+        if (instance.some(value => value === null || !Number.isInteger(value))) return [];
+        const method = [call[1]!, ...instance].join('_');
         // Numbers, and the tags a setter hands another device: a string
         // literal, or a device finder resolved to its tag (the Battlezone
         // AVG's `set_memory(m_maincpu, AS_PROGRAM, 0x2000)`).
-        const values = splitMameArgs(call[2]!).map(value => {
+        const values = splitMameArgs(call[3]!).map(value => {
           const number = evalExpr(value, { ...addressSpaces, ...consts });
           if (number !== null) return String(number);
           const text = value.trim();
@@ -1119,10 +1127,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           const finder = /^m_\w+$/.test(text) ? memberTags[text] : undefined;
           if (finder) return JSON.stringify(finder);
           // A format list, which the device keeps by name (`set_formats(tzx_cassette_formats)`).
-          if (call[1] === 'set_formats' && /^\w+$/.test(text)) return JSON.stringify(text);
+          if (method === 'set_formats' && /^\w+$/.test(text)) return JSON.stringify(text);
           // A Z80's daisy chain, by the tags its table names, highest
           // priority first: `set_daisy_config(mcr_daisy_chain)`.
-          if (call[1] === 'set_daisy_config' && /^\w+$/.test(text)) {
+          if (method === 'set_daisy_config' && /^\w+$/.test(text)) {
             const chain = daisyConfigTags(combined, text);
             return chain ? JSON.stringify(chain) : null;
           }
@@ -1136,7 +1144,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           return table ? JSON.stringify(table) : null;
         });
         return values.every((value): value is string => value !== null)
-          ? [`${call[1]}(${values.join(',')})`]
+          ? [`${method}(${values.join(',')})`]
           : [];
       });
       // Arguments past the tag that select a constructor overload of setters.

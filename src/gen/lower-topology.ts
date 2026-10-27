@@ -274,36 +274,6 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
     if (r.props.bankRead || r.props.bankWrite) {
       spec.bank = String(r.props.bankRead ?? r.props.bankWrite);
     }
-    // MAME embeds the MOS6532's RAM and register maps with `.m(...)`. Preserve
-    // those source-declared submaps as executable device handlers instead of
-    // collapsing them to NOP ranges. Composite-device tags inherit their
-    // owning CPU's namespace (soundbd:audiocpu -> soundbd:riot).
-    //
-    // Only when the submap did not resolve. Where it did, the range has already
-    // been split into the device's own entries -- `map(0x1c,0x1f).w(timer_on_w)`
-    // and the rest -- and each carries the handler and the offset origin MAME
-    // gives it. Rewriting those back to the whole-window io_read/io_write left
-    // every one of them dispatching on an offset measured from its own start,
-    // so a write to 0x081c arrived as offset 0 and set port A instead of
-    // arming the timer: Venture's sound CPU then never took its timer
-    // interrupt and the board hung on PLAYER 1 GET READY.
-    const riotSubmap = !spec.read && !spec.write
-      ? /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*mos6532_device::(ram_map|io_map)\s*\)\s*\)/
-        .exec(raw)
-      : null;
-    if (riotSubmap) {
-      const localTag = riotSubmap[2]!;
-      const namespace = ownerTag?.includes(':')
-        ? ownerTag.slice(0, ownerTag.lastIndexOf(':'))
-        : undefined;
-      const scopedTag = namespace && byTag.has(`${namespace}:${localTag}`)
-        ? `${namespace}:${localTag}`
-        : localTag;
-      const method = riotSubmap[3] === 'ram_map' ? 'ram' : 'io';
-      spec.kind = 'handler';
-      spec.read = `${scopedTag}.${method}_read`;
-      spec.write = `${scopedTag}.${method}_write`;
-    }
     // Williams first-generation boards embed the blitter's eight-byte
     // register decoder with `.m(m_blitter, FUNC(...::map))`.  Keep that
     // source-declared submap attached to the generated device; otherwise the

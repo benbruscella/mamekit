@@ -441,6 +441,18 @@ export function compileMameDevice(
      * constructor is lowered and run when it is built.
      */
     nestedClass?: boolean;
+    /**
+     * The machine-configuration statements the boards make on this device.
+     * They name function-template instances its own source never does: only
+     * the Exidy sound board writes `m_pit->set_clk<0>(SH8253_CLOCK)`.
+     */
+    configuration?: readonly string[];
+    /**
+     * Function-template instances the rest of each game names, unqualified
+     * when called through this device's finder (`in_w<0>`), qualified
+     * otherwise (`input_merger_device::in_set<0>`, any class's).
+     */
+    references?: readonly string[];
   } = {},
 ): GeneratedDeviceDefinition {
   // A class template held by value is compiled once per instance: ymfm's
@@ -577,6 +589,7 @@ export function compileMameDevice(
     { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
+    coreEnumerators(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
     ...sources.map(({ source }) => numericConstants(stripCppComments(source))),
@@ -862,10 +875,24 @@ export function compileMameDevice(
   };
 
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
+  // A configuration statement calls the device through its finder; without
+  // the receiver it names the instance as the device's own code would. A
+  // qualified reference is this device's only when the class is one of its.
+  const own = new Set(hierarchy);
+  const instantiations = [
+    ...(options.configuration ?? []).map(line => line.replace(/[\w\]\[]+\s*(?:->|\.)\s*/g, ' ')),
+    ...(options.references ?? []).filter(name => {
+      const qualifier = /^(\w+)::/.exec(name)?.[1];
+      return qualifier === undefined || own.has(qualifier);
+    }),
+  ];
+  const instantiating = instantiations.length
+    ? [...sources, { file: '(machine configuration)', source: [...new Set(instantiations)].join(';\n') }]
+    : sources;
   for (const className of hierarchy) {
     for (const method of sourceMethods.filter(candidate => candidate.className === className)) {
       for (const specialized of specializeFunctionTemplate(
-        method, sources, templateDiscoveryMacros, constants,
+        method, instantiating, templateDiscoveryMacros, constants,
       )) {
         replaceOrAppend(specialized);
       }
@@ -874,7 +901,7 @@ export function compileMameDevice(
     if (!declaration) continue;
     for (const method of inlineMethods(declaration)) {
       for (const specialized of specializeFunctionTemplate(
-        method, sources, templateDiscoveryMacros, constants,
+        method, instantiating, templateDiscoveryMacros, constants,
       )) {
         replaceOrAppend(specialized);
       }
@@ -1327,6 +1354,16 @@ export function compileMameDevice(
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
   runConstructorBodies(constructorBodies, members, methods, constants);
+  // An XTAL reaches a device as its frequency, so `set_clk<0>(const XTAL &)`
+  // and `set_clk<0>(double)` take the same number, and of overloads with the
+  // same arity the runtime selects the last. MAME's XTAL overload forwards
+  // `xtal.dvalue()` to the arithmetic one, which would then select itself
+  // again; it goes first, so the call lands where MAME's does.
+  const arithmetic = new Set(methods.filter(method => !/\bXTAL\b/.test(method.parameters)).map(method => method.name));
+  const xtalOverloads = new Set(methods.filter(method => /\bXTAL\b/.test(method.parameters) && arithmetic.has(method.name)));
+  if (xtalOverloads.size) {
+    methods.sort((left, right) => Number(xtalOverloads.has(right)) - Number(xtalOverloads.has(left)));
+  }
   const imageInterface = hierarchy.some(className => classes.get(className)?.bases.includes('device_image_interface'));
   const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
@@ -2489,6 +2526,14 @@ function compileMethod(
   }
   // A table's entries can be macros themselves (the CRT format's UNSUPPORTED).
   body = expandStringMacros(body, stringMacros);
+  // An XTAL parameter is the number the machine configuration evaluated it
+  // to, so its accessors are that number: `dvalue()` itself, and `value()`
+  // xtal.h's rounding, `u32(m_current_clock + 1e-3)`.
+  for (const [, name] of method.parameters.matchAll(/\bXTAL\s*&?\s*(\w+)/g)) {
+    body = body
+      .replace(new RegExp(`\\b${name}\\s*\\.\\s*dvalue\\s*\\(\\s*\\)`, 'g'), `(${name})`)
+      .replace(new RegExp(`\\b${name}\\s*\\.\\s*value\\s*\\(\\s*\\)`, 'g'), `u32(${name} + 1e-3)`);
+  }
   return {
     name: method.name,
     parameters: method.parameters,
@@ -3057,6 +3102,60 @@ function coreLineStates(mameSrc: string): Record<string, number> {
     states[match[1]!] = next++;
   }
   return states;
+}
+
+const CORE_ENUMERATORS = new Map<string, Record<string, number>>();
+
+/**
+ * The enumerators of the emulator core's unscoped enums that the device's
+ * source names. Every device sees all of `src/emu` through emu.h without
+ * including any of it, so these are never in its own sources: the K051960
+ * builds its sprite draw-mode table from drawgfx.h's `DRAWMODE_SOURCE`,
+ * `DRAWMODE_SHADOW` and `DRAWMODE_SHADOW_PRI`. The device's own constants
+ * are layered over these.
+ */
+function coreEnumerators(
+  mameSrc: string,
+  sources: readonly { source: string }[],
+): Record<string, number> {
+  let core = CORE_ENUMERATORS.get(mameSrc);
+  if (!core) {
+    core = {};
+    const directory = join(mameSrc, 'src/emu');
+    for (const file of existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.h')).sort() : []) {
+      const header = stripCppComments(readFileSync(join(directory, file), 'utf8'));
+      // File scope only: an enum inside a class is named through it
+      // (device.h's feature flags, `ROM` and `SOUND` among them).
+      const depths: number[] = [];
+      for (let index = 0, depth = 0; index < header.length; index++) {
+        depths.push(depth);
+        if (header[index] === '{') depth++;
+        else if (header[index] === '}') depth--;
+      }
+      // `enum class` is scoped: its enumerators are only ever named qualified.
+      for (const match of header.matchAll(/\benum\s+(?!class\b|struct\b)(?:\w+\s*)?(?::\s*[\w:]+\s*)?\{([^{}]*)\}/g)) {
+        if (depths[match.index] !== 0) continue;
+        let next = 0;
+        for (const entry of match[1]!.split(',')) {
+          const parsed = /^\s*([A-Za-z_]\w*)\s*(?:=\s*([\s\S]+?))?\s*$/.exec(entry);
+          if (!parsed) continue;
+          const value = parsed[2] === undefined ? next : evalExpr(parsed[2], core);
+          if (value === null || !Number.isInteger(value)) break;
+          core[parsed[1]!] = value;
+          next = value + 1;
+        }
+      }
+    }
+    CORE_ENUMERATORS.set(mameSrc, core);
+  }
+  // Named in code: a comment's "gfx ROM" is not a use.
+  const named = new Set(sources.flatMap(({ source }) =>
+    stripCppComments(source).replace(/"(?:[^"\\\n]|\\.)*"/g, '""').match(/\b[A-Za-z_]\w*\b/g) ?? []));
+  // The runtime numbers some of them its own way, and its numbering is what
+  // every processor answers: diexec.h's INPUT_LINE_NMI is MAX_INPUT_LINES - 3,
+  // the generated CPUs' is -1.
+  return Object.fromEntries(Object.entries(core).filter(([name]) =>
+    named.has(name) && DEFAULT_CONSTANTS[name] === undefined));
 }
 
 /**

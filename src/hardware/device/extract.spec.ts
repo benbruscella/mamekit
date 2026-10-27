@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { generatedDeviceMethodsSource } from '../../mame/device-codegen.ts';
 import { indexMameHardware } from '../../mame/hardware.ts';
-import { compileK051960, compileK053246 } from './extract.ts';
+import { compileMameDevice } from '../../mame/device-compiler.ts';
+import { compileK053246 } from './extract.ts';
 
 const mameSource = process.env.MAME_SRC ?? '../mame';
 // K053246 is MAME's board-construction alias for the K053247 device type.
@@ -43,7 +44,9 @@ console.log('device extract spec: K053246 indexed sprite renderer remains direct
 
 const k051960Definition = indexMameHardware(mameSource).get('K051960');
 assert.ok(k051960Definition, 'MAME hardware index should resolve the K051960 device');
-const k051960 = compileK051960(mameSource, k051960Definition);
+// Compiled as any other device: drawgfx.h's draw modes are the core's enum,
+// which every device sees through emu.h (#203).
+const k051960 = compileMameDevice(mameSource, k051960Definition, 'K051960');
 const k051960Emitted = generatedDeviceMethodsSource(k051960);
 assert.ok(
   k051960Emitted.methods.includes('k051960_sprites_draw'),

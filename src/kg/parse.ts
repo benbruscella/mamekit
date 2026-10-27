@@ -260,6 +260,23 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
+  // An unsigned functional cast keeps its width: the AND-gate input merger
+  // hands its base `~u32(0)` as both its initial state and its XOR mask.
+  for (let cast; (cast = /\b(?:u(8|16|32)|uint(8|16|32)_t)\s*\(/.exec(s));) {
+    const open = cast.index + cast[0].length - 1;
+    let depth = 0;
+    let close = open;
+    for (; close < s.length; close++) {
+      if (s[close] === '(') depth++;
+      else if (s[close] === ')' && --depth === 0) break;
+    }
+    if (close >= s.length) return null;
+    const bits = Number(cast[1] ?? cast[2]);
+    const inner = s.slice(open + 1, close);
+    s = s.slice(0, cast.index) +
+      (bits === 32 ? `(${inner})` : `((${inner}) & ${(2 ** bits) - 1})`) +
+      s.slice(close + 1);
+  }
   if (!/^[\s0-9a-fA-FxX+\-*/().<>&|^?:=!~]*$/.test(s)) return null;
   // recursive-descent evaluation, no eval()
   let pos = 0;

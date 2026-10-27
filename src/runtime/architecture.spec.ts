@@ -66,36 +66,31 @@ const HOST_BOUNDARIES = {
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
   'audio-fidelity.ts': ['SAMPLES'],
   'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS', 'DISCRETE', 'DVG', 'I8243', 'M58715', 'MOS6532',
+    'ATARI_MOTION_OBJECTS', 'DISCRETE', 'DVG', 'I8243', 'M58715',
     'NEOGEO_CONTROL_PORT', 'NEOGEO_CTRL_EDGE_CONNECTOR', 'NEOGEO_SPRITE_OPTIMZIED',
-    'SEGA_SYS16A_SPRITES', 'SEGA_SYS16B_SPRITES', 'TAITO_SJ_SECURITY_MCU', 'Z80DMA',
+    'SEGA_SYS16A_SPRITES', 'TAITO_SJ_SECURITY_MCU', 'Z80DMA',
   ],
   'generated-device.ts': ['GENERIC_LATCH_8'],
-  'generated-video.ts': ['DVG', 'NEOGEO_SPRITE_OPTIMZIED', 'SEGA_SYS16A_SPRITES'],
+  'generated-video.ts': ['DVG', 'NEOGEO_SPRITE_OPTIMZIED'],
 };
 // Each direct-screen shape is a renderer written for one driver.
 const DIRECT_SCREEN_SHAPES = [
   'berzerk-color-bitmap', 'bublbobl-object-columns', 'cosmic-bitmap-sprites',
   'dkong-scanline-sprites', 'exidy-character-ram', 'galaxian-no-bullets',
   'gauntlet-tilemaps', 'm62-category-sprites', 'system1-prom-mixer',
-  'system16a-layers', 'system16b-layers', 'taitosj-layered-char-ram',
+  'system16a-layers', 'taitosj-layered-char-ram',
   'technos-tilemap-sprites', 'timeplt', 'tnx1-banked-raster', 'vicdual-character-ram',
 ];
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
-// for a hand-written body, keyed by the compiler that makes it. Two arguments
-// are not literals: `bit${bit}_w` is LATCH8's eight bit writers, and `method`
-// is every SEGAIC16VID method that has diagnostics.
+// for a hand-written body, keyed by the compiler that makes it. One argument
+// is not a literal: `method` is every SEGAIC16VID method that has diagnostics.
 const REPLACED_METHODS = [
   'compileI8257: advance', 'compileI8257: device_reset', 'compileI8257: dma_read',
   'compileI8257: dma_write', 'compileI8257: execute_run',
   'compileI8257: is_request_active', 'compileI8257: next_channel',
   'compileK053246: device_start', 'compileK053246: k053247_sprites_draw_common',
-  'compileLadybugVideo: device_start',
-  'compileLatch8: bit${bit}_w', 'compileLatch8: device_start',
-  'compileMos6532: timer_w',
   'compileNeogeoSprite: device_reset', 'compileNeogeoSprite: draw_fixed_layer',
   'compileNeogeoSprite: draw_pixel',
-  'compilePit8253: set_clk',
   'compileSegaic16Video: method', 'compileSegaic16Video: tilemap_init',
   'compileSlapstic: change_bank', 'compileSlapstic: device_post_load',
   'compileSlapstic: device_pre_save', 'compileSlapstic: device_reset',
@@ -105,9 +100,7 @@ const REPLACED_METHODS = [
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
 const SPECIALIZED_COMPILERS = [
-  'I8257', 'INPUT_MERGER_ALL_HIGH', 'INPUT_MERGER_ANY_HIGH', 'INPUT_MERGER_ANY_LOW',
-  'K051960', 'K052109', 'K053246', 'LADYBUG_VIDEO', 'LATCH8', 'M68705P5',
-  'MIDTUNIT_VIDEO', 'MOS6532', 'NEOGEO_SPRITE_OPTIMZIED', 'PIT8253', 'SEGAIC16VID',
+  'I8257', 'K053246', 'M68705P5', 'MIDTUNIT_VIDEO', 'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID',
   'SLAPSTIC', 'UPD7759',
 ];
 // Each class in src/hardware, or in the worklet source a compiler emits,

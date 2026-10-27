@@ -4,6 +4,7 @@ import {
   hardwareKnowledgeGraph,
   isDeclarativeHostHardwareType,
   resolveCompositeExecutableTypes,
+  templateInstanceReferences,
 } from './hardware.ts';
 import type { HardwareClosureEntry } from './hardware.ts';
 
@@ -142,3 +143,24 @@ const serial = deviceDefinitionsFromSource('src/devices/machine/eepromser.cpp',
 assert.equal(serial[0]?.type, 'EEPROM_ER5911_8BIT');
 assert.equal(serial[0]?.className, 'eeprom_serial_er5911_8bit_device');
 assert.equal(isDeclarativeHostHardwareType('EEPROM_ER5911_8BIT'), false);
+
+// #203: the template instances a game names on each device type. A handler
+// calls the merger through its finder; a map binds a qualified instance, which
+// every type is given because only the device compile knows its own classes.
+{
+  const devices = [
+    { id: 'device:a/audionmi', label: 'Device', props: { type: 'INPUT_MERGER_ANY_HIGH', tag: 'audionmi', member: 'm_audionmi' } },
+    { id: 'device:a/pit', label: 'Device', props: { type: 'PIT8253', tag: 'pit', member: 'm_pit' } },
+  ];
+  const graph = {
+    nodes: [
+      ...devices,
+      { id: 'handler:a.w', label: 'Handler', props: { sourceBody: 'm_audionmi->in_w<1>(data & 1);' } },
+      { id: 'map:a/range', label: 'AddressRange', props: { raw: 'map(0xa000, 0xa000).w(m_audionmi, FUNC(input_merger_device::in_set<0>));' } },
+    ],
+    edges: [],
+  } as unknown as Parameters<typeof templateInstanceReferences>[0];
+  const named = templateInstanceReferences(graph, devices as never);
+  assert.deepEqual([...named.get('INPUT_MERGER_ANY_HIGH') ?? []].sort(), ['in_w<1>', 'input_merger_device::in_set<0>']);
+  assert.deepEqual([...named.get('PIT8253') ?? []], ['input_merger_device::in_set<0>']);
+}

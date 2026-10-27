@@ -371,6 +371,11 @@ eq('expression bitwise precedence', evalExpr('(3 << 4) | (7 & 3) ^ 1'), 48 | (3 
 eq('expression logical and/not', evalExpr('(!(feature & 8)) && (type == 0)', { feature: 2, type: 1 }), 0);
 eq('expression logical or', evalExpr('a || b && 0', { a: 0, b: 1 }), 0);
 eq('expression complement', evalExpr('~0 & 0xff'), 255);
+// An unsigned functional cast keeps its width: the AND-gate input merger's
+// constructor passes its base `~u32(0)`.
+eq('expression u32 cast', evalExpr('~u32(0)'), 0xffffffff);
+eq('expression narrow cast', evalExpr('1 + u8(0x1ff)'), 256);
+eq('expression uintN_t cast', evalExpr('uint16_t(0x12345) | 1'), 0x2345);
 
 eq('memory-region finder configures a source-derived bank entry', parseMemoryBanks(`
   m_bank1->configure_entry(0, m_maincpu_region->base() + 0x8000);

@@ -164,7 +164,8 @@ assert.equal(
       body: segaScreenBody,
     }],
   } as unknown as BoardIr),
-  'system16b-layers',
+  undefined,
+  'without the 16A sprite device a Sega screen has no direct shape',
 );
 
 assert.equal(

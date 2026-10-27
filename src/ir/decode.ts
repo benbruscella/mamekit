@@ -162,9 +162,8 @@ const DIRECT_SCREEN_SHAPES = new Set([
   'berzerk-color-bitmap', 'bublbobl-object-columns', 'cosmic-bitmap-sprites',
   'dkong-scanline-sprites', 'exidy-character-ram', 'gauntlet-tilemaps',
   'galaxian-no-bullets', 'm62-category-sprites', 'system16a-layers',
-  'system16b-layers', 'system1-prom-mixer', 'technos-tilemap-sprites',
-  'tnx1-banked-raster', 'timeplt', 'taitosj-layered-char-ram',
-  'vicdual-character-ram',
+  'system1-prom-mixer', 'technos-tilemap-sprites', 'tnx1-banked-raster',
+  'timeplt', 'taitosj-layered-char-ram', 'vicdual-character-ram',
 ]);
 
 function decodeStateMembers(reader: Reader, value: unknown): void {

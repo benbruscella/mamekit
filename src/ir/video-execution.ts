@@ -10,7 +10,6 @@ export type GeneratedDirectScreenShape =
   | 'galaxian-no-bullets'
   | 'm62-category-sprites'
   | 'system16a-layers'
-  | 'system16b-layers'
   | 'system1-prom-mixer'
   | 'technos-tilemap-sprites'
   | 'tnx1-banked-raster'
