@@ -15,7 +15,8 @@ export const DEVICE_ID = 'device';
  */
 export const DEVICE_MAME_TYPES = [
   'ADC0804',
-  // MAME's 6805 core and the 68705's ports, timer and EPROM (src/mame/m6805-device.ts).
+  // MAME's 6805 core and the 68705's ports, timer and EPROM, read after the C
+  // preprocessor (compileMameDevice).
   'M68705P5',
   'AVG_BZONE',
   'BUFFERED_SPRITERAM8',

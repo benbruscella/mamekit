@@ -263,7 +263,10 @@ function ranOrFailed<T>(
 
 /** Lower is better; `same` within the tolerance. */
 function lower(before: number, after: number, tolerance: number, what: string): MeasureVerdict {
-  if (Math.abs(after - before) <= tolerance) return { verdict: 'same' };
+  // Two pictures of the wrong size are both Infinity, and Infinity - Infinity
+  // is NaN, which compares as no tolerance: Battlezone's unchanged vector
+  // screen read as worse on every run.
+  if (after === before || Math.abs(after - before) <= tolerance) return { verdict: 'same' };
   return { verdict: after < before ? 'better' : 'worse', detail: `${what} ${round(before)} -> ${round(after)}` };
 }
 

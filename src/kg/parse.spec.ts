@@ -376,6 +376,7 @@ eq('expression complement', evalExpr('~0 & 0xff'), 255);
 eq('expression u32 cast', evalExpr('~u32(0)'), 0xffffffff);
 eq('expression narrow cast', evalExpr('1 + u8(0x1ff)'), 256);
 eq('expression uintN_t cast', evalExpr('uint16_t(0x12345) | 1'), 0x2345);
+eq('expression literal suffixes', evalExpr('(1U << 11) - 1 + 0x10UL + 2l'), 0x7ff + 0x10 + 2);
 
 eq('memory-region finder configures a source-derived bank entry', parseMemoryBanks(`
   m_bank1->configure_entry(0, m_maincpu_region->base() + 0x8000);

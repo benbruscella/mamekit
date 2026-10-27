@@ -30,6 +30,30 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Eleven device forks become ordinary devices, and the dead System 16B code goes ([#203](https://github.com/benbruscella/mamekit/issues/203))
+
+**For players:** Nothing visible. Every affected machine compares the same against MAME 0.289 as before.
+
+**Under the hood:**
+- Eleven `SPECIALIZED` compile functions are deleted, and those devices compile from MAME's source as any device does: the three input mergers, LATCH8, PIT8253, MOS6532, K051960, K052109, Lady Bug's video, the M68705P5 and Midway's T-Unit video. Five of the forks covered a gap the compiler had since closed.
+- A function template is instanced wherever the machine names it: the boards' machine config (`set_clk<0>(...)`, which the graph now keeps as `set_clk_0`), calls through the device's finder, and qualified names in maps and callbacks. An XTAL parameter is its frequency, and an XTAL overload no longer shadows the arithmetic one it forwards to.
+- The constructor chain chooses overloads by type, carries brace lists and map constructors down as text, and builds struct members and mapped device spaces from them. The 6805's `m_params` and internal map come from there.
+- The body of a constructor that has a brace-list argument or a brace member initializer was read from the wrong brace, which hid every initializer after it.
+- A device that only lowers after the C preprocessor is detected by its source including a non-header file, and is preprocessed when it does not lower as written.
+- File-scope `src/emu` enums such as `DRAWMODE_*` reach the devices that name them. `evalExpr` evaluates unsigned casts (`~u32(0)`) and integer literal suffixes (`1U`).
+- A scoped enum's enumerators are numbered within their own enum: the 6805's `addr_mode::IX1` had taken the disassembler's `md::IX1`.
+- A keyword is never a member name. `protected:` before an anonymous enum had made a member called `enum` in eleven devices.
+- A device whose `device_start` reads callbacks or tilemaps starts once the board has bound them. LATCH8 had never forwarded a write; the fork's forced `m_has_write` hid it.
+- Deleted as dead:
+  - `system16b-layers`, the `SEGA_SYS16B_SPRITES` board branch, and generated-video.ts's only `SEGA_SYS16A_SPRITES` branch;
+  - the `MOS6532` register decoding in generated-board.ts, with its regex fallback, since all three RIOT boards already reach MAME's `ram_map`/`io_map`.
+- The guard lists shrink:
+  - `SPECIALIZED_COMPILERS` from 17 to 6;
+  - `REPLACED_METHODS` by 5;
+  - `DEVICE_TYPE_BRANCHES` by 3;
+  - `DIRECT_SCREEN_SHAPES` by 1.
+- `oracle:baseline compare` no longer calls an unchanged wrong-size picture worse (`Infinity - Infinity` is NaN).
+
 ### ZX Spectrum cartridges load under MAME's region name, and candidate contracts run where a failure is seen ([#208](https://github.com/benbruscella/mamekit/issues/208))
 
 **For players:** Nothing visible. Interface 2 cartridges such as Jetpac already played in the browser.

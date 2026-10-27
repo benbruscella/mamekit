@@ -260,6 +260,9 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
   }
+  // An integer literal's suffix is its type, not its value: the 6805's
+  // vector mask is `(1U << addr_width) - 1`.
+  s = s.replace(/\b(0[xX][0-9a-fA-F]+|\d+)(?:[uU][lL]{0,2}|[lL]{1,2}[uU]?)\b/g, '$1');
   // An unsigned functional cast keeps its width: the AND-gate input merger
   // hands its base `~u32(0)` as both its initial state and its XOR mask.
   for (let cast; (cast = /\b(?:u(8|16|32)|uint(8|16|32)_t)\s*\(/.exec(s));) {

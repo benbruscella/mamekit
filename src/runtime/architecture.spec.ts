@@ -100,8 +100,7 @@ const REPLACED_METHODS = [
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
 const SPECIALIZED_COMPILERS = [
-  'I8257', 'K053246', 'M68705P5', 'MIDTUNIT_VIDEO', 'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID',
-  'SLAPSTIC', 'UPD7759',
+  'I8257', 'K053246', 'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID', 'SLAPSTIC', 'UPD7759',
 ];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
