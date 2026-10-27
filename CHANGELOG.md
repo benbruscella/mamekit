@@ -30,6 +30,21 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### A MAME baseline for every contract scenario, and a command that judges a change against it ([#204](https://github.com/benbruscella/mamekit/issues/204))
+
+**For players:** Nothing visible.
+
+**Under the hood:**
+- `npm run oracle:baseline -- record` runs every contract scenario through `tools/mame-oracle.ts` twice. The first run has no input and measures pixels, RAM and audio. The second has the contract's own input and measures pixels and audio. That is 107 scenarios of 92 targets, taken from the contracts rather than listed by hand.
+- Results go to `.cache/oracle/baseline/<commit>/`, together with each step's arguments and the commit, `src` tree, MAME, Node and dist build that produced them. No oracle run or generation writes there.
+- `compare <targets>` re-runs the stored plans and says better, same or worse for each of five measures. It exits 1 when any is worse. `show` lists every scenario that could not be measured, and why.
+- `tools/mame-oracle.ts --audio` records MAME with `-wavwrite` and sets that against our own capture, so the audio heard is the run's own input and title. `--out` writes one invocation's runs to their own file.
+- RAM ranges taken from the board now leave out a processor that a boot lacks. A C64 tape, cartridge or quickload leaves the 1541 out, and the oracle refused those runs.
+- `compare-audio.mjs` writes `compare.json`. `compare-game-audio.ts`:
+  - takes `--scenario`;
+  - loads candidate contracts;
+  - gives MAME the scenario's cartridge. Before, `nes` booted Super Mario Bros. 3 on our side against an empty MAME slot.
+
 ### Every piece of hand-written hardware pinned by name, apart from the host ([#201](https://github.com/benbruscella/mamekit/issues/201))
 
 **For players:** Nothing visible.
