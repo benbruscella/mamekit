@@ -37,7 +37,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runGameAcceptance } from '../src/games/acceptance-harness.ts';
 import { loadGenerationGameContracts } from '../src/games/contracts.ts';
-import { mamekitIdentity, politeCommand, resolveMame, romPaths } from './oracle/mame-side.ts';
+import { mamekitIdentity, politeCommand, resolveMame, romPaths, samplesDir } from './oracle/mame-side.ts';
 import { startSchedule } from './oracle/plan.ts';
 import { gameOutputDir } from '../src/gen/output-layout.ts';
 import type { ShellConfig } from '../src/runtime/shell.ts';
@@ -173,6 +173,7 @@ const [command, commandArgs] = politeCommand(resolve(mame), [
   ...title,
   // A computer's firmware is in its dumps' bios/, not its category's root.
   '-rompath', romPaths(config, contract.category).join(';'),
+  '-samplepath', samplesDir,
   '-window', '-nomaximize',
   '-video', 'none',
   '-sound', 'none',

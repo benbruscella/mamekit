@@ -14,6 +14,8 @@
  *   --measures list      compare only these: pixels, ram, audio, or any of
  *                        pixels:none pixels:contract ram audio:none audio:contract
  *   --allow-dirty        record from a tree with local changes (marked dirty; not a baseline to quote)
+ *   --redo list          with record and named targets: take these measures again, replacing
+ *                        what was recorded (MAME's reference changed: a sample set was added)
  *
  * The set is every acceptance contract scenario (src/games/contracts.ts),
  * accepted and candidate, so nothing is listed by hand. Each is run twice
@@ -63,7 +65,7 @@ const thisFile = relative(projectRoot, fileURLToPath(import.meta.url));
 
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
-const valued = new Set(['--jobs', '--baseline', '--measures', '--mame', '--mame-src']);
+const valued = new Set(['--jobs', '--baseline', '--measures', '--redo', '--mame', '--mame-src']);
 const positional: string[] = [];
 const options = new Map<string, string>();
 for (let index = 0; index < argv.length; index++) {
@@ -219,6 +221,10 @@ async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunRe
 /** The commit each measure was taken on: a baseline can be finished from a later, tools-only commit. */
 const toolsCommit = mamekitIdentity().commit;
 
+const RECORD_FIELD: Record<MeasureName, Exclude<keyof UnitRecord, 'plan'>> = {
+  'pixels:none': 'pixelsNone', 'pixels:contract': 'pixelsContract', ram: 'ram', 'audio:none': 'audioNone', 'audio:contract': 'audioContract',
+};
+
 const pending = (measure: Measure<unknown> | undefined) => !measure || measure.status === 'failed';
 
 /**
@@ -318,6 +324,11 @@ async function record(): Promise<void> {
   } else {
     writeJson(manifestPath, identity);
   }
+  const redo = options.has('--redo') ? measuresWanted('--redo') : [];
+  if (redo.length && !names.length) {
+    console.error('--redo replaces recorded measures, so it takes the targets to redo by name');
+    process.exit(2);
+  }
   if (!identity.srcIsMain) console.warn(`note: src/ is not main's (${identity.main}); this baseline is of ${identity.commit}`);
   console.log(`recording ${units.length} scenarios of ${byTarget(units).length} targets into ${relative(projectRoot, dir)} ` +
     `(MAME ${mame.version}, Node ${process.version}, ${jobs} at a time)`);
@@ -334,6 +345,8 @@ async function record(): Promise<void> {
         }
       }
       const entry = file.units[unit.key]!;
+      // Replacing a recorded measure is only ever asked for, by name.
+      for (const measure of redo) delete entry[RECORD_FIELD[measure]];
       await measureUnit(unit, entry, join(dir, 'logs', safe(unit.key)), () => true,
         () => { entry.measuredAt = new Date().toISOString(); writeJson(path, file); });
     }
@@ -358,11 +371,11 @@ function baselineDir(): string {
   return recorded[0]!.dir;
 }
 
-function measuresWanted(): MeasureName[] {
-  const asked = options.get('--measures');
+function measuresWanted(option = '--measures'): MeasureName[] {
+  const asked = options.get(option);
   if (!asked) return [...MEASURES];
   const wanted = asked.split(',').flatMap(name => MEASURES.filter(measure => measure === name || measure.startsWith(`${name}:`)));
-  if (!wanted.length) throw new Error(`--measures takes ${MEASURES.join(', ')}, or pixels, ram, audio`);
+  if (!wanted.length) throw new Error(`${option} takes ${MEASURES.join(', ')}, or pixels, ram, audio`);
   return wanted;
 }
 

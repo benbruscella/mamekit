@@ -35,6 +35,8 @@ const value = (list: string[], flag: string) => list[list.indexOf(flag) + 1];
 assert.equal(value(args, '-nvram_directory'), '/work/mame-nvram');
 assert.equal(value(args, '-cfg_directory'), '/work/mame-cfg');
 assert.equal(value(args, '-hashpath'), '/mame/hash');
+// Sample sets from the library, never from whatever a mame.ini says.
+assert.ok(value(args, '-samplepath')!.endsWith('/.data/samples'));
 for (const flag of ['-window', '-nomaximize', '-skip_gameinfo', '-nothrottle']) assert.ok(args.includes(flag), flag);
 assert.equal(value(args, '-video'), 'none');
 assert.equal(value(args, '-sound'), 'none');

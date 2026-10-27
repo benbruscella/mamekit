@@ -56,6 +56,14 @@ export function resolveMame(mameSrc: string, explicit?: string): { binary: strin
   return { binary: found.binary, version: found.version };
 }
 
+/**
+ * Where MAME finds sample sets (Zaxxon's, Space Panic's): the library's own
+ * folder, named on the command line as the rompath is, so a run does not
+ * depend on one machine's mame.ini. Without a set MAME plays silence where
+ * its samples belong.
+ */
+export const samplesDir = join(projectRoot, '.data/samples');
+
 /** Where MAME finds a machine's sets and a title's software, for each category. */
 export function romPaths(config: ShellConfig, category: string): string[] {
   const roms = join(projectRoot, '.data/roms');
@@ -90,6 +98,7 @@ export function mameArguments(
     ...boot.emptySlots.flatMap(slot => [`-${slot}`, '']),
     ...(software ? [...boot.media ? [`-${boot.media}`] : [], software] : []),
     '-rompath', romPaths(config, category).join(';'),
+    '-samplepath', samplesDir,
     '-hashpath', join(mameSrc, 'hash'),
     ...(politeness.watch ? ['-window'] : ['-window', '-nomaximize', '-video', 'none']),
     '-sound', 'none', '-nothrottle', '-skip_gameinfo', '-snapview', 'native',
