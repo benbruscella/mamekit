@@ -28,14 +28,13 @@ export function generatedDirectScreenShape(
     return 'gauntlet-tilemaps';
   }
   if (
+    hasDeviceType(machine, 'SEGA_SYS16A_SPRITES') &&
     body.includes('m_sprites->draw_async(cliprect)') &&
     body.includes('m_segaic16vid->tilemap_draw') &&
     body.includes('m_sprites->iterate_dirty_rects(') &&
     !body.includes('m_segaic16road->segaic16_road_draw')
   ) {
-    return hasDeviceType(machine, 'SEGA_SYS16A_SPRITES')
-      ? 'system16a-layers'
-      : 'system16b-layers';
+    return 'system16a-layers';
   }
   if (
     body.includes('m_bg_tilemap->set_scrollx(i, m_m62_background_hscroll)') &&

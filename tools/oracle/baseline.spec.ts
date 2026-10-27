@@ -94,6 +94,7 @@ assert.match(pixelsVerdict(pixels([300], [0, 40]), pixels([300], [0, 40], { offs
 const sized: Measure<PixelsResult> = { status: 'ok', result: { offset: 0, frames: [{ frame: 300, mame: 300, size: '224x768 vs 224x256' }], exact: [], firstDivergence: 300 } };
 assert.deepEqual(pixelsVerdict(sized, pixels([], [40], { scale: 3 })),
   { verdict: 'better', detail: 'pixels at 300 Infinity -> 40; compared at 1x -> 3x' });
+assert.equal(pixelsVerdict(sized, sized).verdict, 'same', 'a size mismatch that did not change is the same');
 
 // A run that fails is worse than one that ran; two failures are the same; a skip is not judged.
 const failed: Measure<PixelsResult> = { status: 'failed', reason: 'ours: RangeError' };

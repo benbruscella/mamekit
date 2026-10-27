@@ -34,9 +34,9 @@ export const dkongjr = sourceTarget({
       1800: { video: '6c39ef51', state: '7cf32234' },
     },
     audio: {
-      writes: 332998,
-      nonzeroWrites: 275047,
-      writeHash: 'ed8d604b',
+      writes: 332999,
+      nonzeroWrites: 275048,
+      writeHash: 'c5973d28',
       pcmHash: '51140721',
       rms: 0.091057,
     },

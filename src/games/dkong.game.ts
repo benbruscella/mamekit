@@ -68,9 +68,9 @@ export const dkong = sourceTarget({
       1800: { video: '0eb9b522', state: '52f5a11b' },
     },
     audio: {
-      writes: 341877,
-      nonzeroWrites: 283518,
-      writeHash: 'eefbe1b1',
+      writes: 341878,
+      nonzeroWrites: 283519,
+      writeHash: '291a9961',
       pcmHash: '380b2105',
       rms: 0.200671,
     },

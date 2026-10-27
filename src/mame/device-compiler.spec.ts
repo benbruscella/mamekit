@@ -378,4 +378,35 @@ assert.equal(compileMameDevice(mameSrc, hardware.get('MOS8564')!, 'MOS8564').clo
   assert.deepEqual(member('m_vol_table')?.arrayShape, [3, 16]);
 }
 
+// #203: only the Exidy sound board names `set_clk<0>`, in its machine
+// configuration, so the PIT's own source has no instance of the template.
+// Given the configuration, each instance is a method of its own, and the
+// configured clock is the channel's.
+const pitDefinition = hardware.get('PIT8253');
+assert.ok(pitDefinition, 'MAME hardware index should resolve PIT8253');
+const generatedPit = compileMameDevice(mameSrc, pitDefinition, 'PIT8253', new Set(), {
+  configuration: [0, 1, 2].map(channel => `m_pit->set_clk<${channel}>(SH8253_CLOCK)`),
+});
+assert.equal(generatedPit.summary.diagnostics, 0);
+assert.deepEqual(
+  generatedPit.methods.filter(method => /^set_clk_\d$/.test(method.name))
+    .map(method => `${method.name}(${method.parameters})`),
+  [
+    'set_clk_0(const XTAL &xtal)', 'set_clk_1(const XTAL &xtal)', 'set_clk_2(const XTAL &xtal)',
+    'set_clk_0(double clk)', 'set_clk_1(double clk)', 'set_clk_2(double clk)',
+  ],
+  'an XTAL overload goes ahead of the arithmetic one it forwards to',
+);
+registerGeneratedDevice(generatedPit);
+const pit = createDevice('PIT8253', {
+  tag: 'pit',
+  clock: 894_886,
+  configure: device => [0, 1, 2].forEach(channel => device.invoke(`set_clk_${channel}`, 1_789_772.5 + channel)),
+});
+assert.deepEqual(
+  Array.from((pit.instance!() as { m_clk: ArrayLike<number> }).m_clk),
+  [1_789_772.5, 1_789_773.5, 1_789_774.5],
+  'set_clk<N> sets channel N clock',
+);
+
 console.log('device-compiler.spec: source-derived latch, ER2055, MB8844, TMS9928A and AY-3-8910 devices passed');

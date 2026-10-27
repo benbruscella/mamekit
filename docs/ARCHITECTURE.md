@@ -497,6 +497,36 @@ Read as an unknown port they were all ones, which expired Nintendo Campus
 Challenge 1991's competition timer at power-on, held every one of Karaoke
 Studio's microphone buttons, and set Sachen's jumper to the wrong game.
 
+The constructor chain is followed as C++ follows it (#203). Overloads are
+chosen by type as well as count: only a brace list binds a struct parameter.
+An argument with no number travels down the chain as its text, so a brace
+list becomes a struct member through that struct's own inline constructor,
+static class tables included. The 6805's `m_params` is built that way, its
+opcode table and address width with it. An `address_map_constructor` handed
+down to an `address_space_config` gives the device a mapped space of its
+own: the 68705's ports, timer, RAM and EPROM, and the Namco MB88s' and the
+NES PPU's maps. A function template is instanced wherever the machine names
+it, not only in the device's own source: in the boards' machine config
+(`m_pit->set_clk<0>(SH8253_CLOCK)`, kept by the graph as `set_clk_0`), through
+the device's finder in a handler (`m_audionmi->in_w<0>(1)`), or qualified by
+one of its classes in a map (`FUNC(input_merger_device::in_set<0>)`). An
+XTAL parameter is its frequency. The unscoped enums at file scope in
+`src/emu` are constants for a device whose code names them (drawgfx.h's
+`DRAWMODE_*`), except where the runtime numbers a name its own way
+(`INPUT_LINE_NMI`). A device whose source only makes sense after the C
+preprocessor says so by including a file that is not a header: Midway's
+T-Unit video includes its `.ipp` blitters, and the 6805 core includes
+`6805ops.hxx`. When such a device does not lower as written, it is compiled
+again with its hierarchy's files preprocessed. Each file follows its own
+directory, and any header elsewhere whose function-like macros it calls.
+A device that lowers as written is never preprocessed.
+
+A device whose `device_start` reads what the board binds after composition
+starts after it, as MAME starts it after configuration. LATCH8 sets
+`m_has_write` from `isunset()` on each write callback, and Lady Bug's video
+device creates its background tilemap there; started first, the latch never
+forwarded a write and the tilemap was not yet the video plan's.
+
 A device may be a wrapper over a library MAME bundles. Every Yamaha FM chip
 is one over ymfm in `3rdparty/ymfm`, which source discovery follows like
 `src/devices`. The Konami VRC7's DS1001 holds a `ymfm::ds1001` (an

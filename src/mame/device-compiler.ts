@@ -28,6 +28,7 @@ import {
 import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 import { monomorphizeFunctionTemplate } from './function-template.ts';
 import { renameShadowedLocals } from '../ir/scope.ts';
+import { preprocessedDeviceTransform } from './preprocessed-device.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -423,6 +424,15 @@ export type GeneratedDeviceResource =
 /**
  * Compile a MAME device class and its MAME-defined base classes into the
  * hardware-neutral executable-device IR.
+ *
+ * A few devices only make sense after the C preprocessor has run: Midway's
+ * T-Unit video picks its pixel extractor with `#if defined(LSB_FIRST)` and
+ * declares its methods through TMS34010 header macros, and the 6805's opcode
+ * handlers are macro heads in the `6805ops.hxx` its core includes. Their
+ * sources say so by including a file that is not a header. A device like that
+ * which does not lower as written is compiled again through the preprocessor
+ * (preprocessedSources), and the result kept when it lowers better. A device
+ * that lowers as written is never preprocessed.
  */
 export function compileMameDevice(
   mameSrc: string,
@@ -430,18 +440,101 @@ export function compileMameDevice(
   type = definition.type,
   /** Types already being compiled, so a device cycle cannot recurse forever. */
   compiling: ReadonlySet<string> = new Set(),
-  options: {
-    /**
-     * Rewrite a source file before it is read, for a device whose code only
-     * exists after the C preprocessor has run (see preprocessed-device.ts).
-     */
-    transformSource?: (file: string, source: string) => string;
-    /**
-     * A class the owner holds or allocates rather than a device: its source
-     * constructor is lowered and run when it is built.
-     */
-    nestedClass?: boolean;
-  } = {},
+  options: DeviceCompileOptions = {},
+): GeneratedDeviceDefinition {
+  const device = compileMameDeviceSource(mameSrc, definition, type, compiling, options);
+  if (!device.summary.diagnostics || options.transformSource) return device;
+  const transformSource = preprocessedSources(mameSrc, device);
+  if (!transformSource) return device;
+  const preprocessed = compileMameDeviceSource(mameSrc, definition, type, compiling, { ...options, transformSource });
+  return preprocessed.summary.diagnostics < device.summary.diagnostics ? preprocessed : device;
+}
+
+/**
+ * The preprocessor pass compileMameDevice retries a device with: every source
+ * file that defines a class of the device's hierarchy is preprocessed, each
+ * following the files of its own directory and any header elsewhere whose
+ * function-like macros those files call (the T-Unit's methods are declared
+ * with tms34010.h's `TMS340X0_SCANLINE_IND16_CB_MEMBER`). Undefined unless one
+ * of those files includes something that is not a header, which is what says
+ * the source is meant to be read after the preprocessor.
+ */
+function preprocessedSources(
+  mameSrc: string,
+  device: GeneratedDeviceDefinition,
+): ((file: string, source: string) => string) | undefined {
+  const text = new Map<string, string>();
+  const read = (file: string) => {
+    if (!text.has(file)) text.set(file, existsSync(join(mameSrc, file)) ? readFileSync(join(mameSrc, file), 'utf8') : '');
+    return text.get(file)!;
+  };
+  const includes = (file: string) => [...stripCppComments(read(file)).matchAll(/^\s*#\s*include\s+"([^"]+)"/gm)].map(match => match[1]!);
+  const resolve = (path: string, from: string) =>
+    [join(dirname(from), path), join('src/devices', path), join('src/mame', path)]
+      .find(file => existsSync(join(mameSrc, file)));
+  const hierarchy = device.hierarchy ?? [device.className];
+  const entries = device.sourceFiles.filter(file =>
+    file.endsWith('.cpp') && hierarchy.some(className => read(file).includes(`${className}::`)));
+  if (!entries.some(entry => includes(entry).some(path => !path.endsWith('.h')))) return undefined;
+  const transforms = entries.map(entry => {
+    const own = dirname(entry);
+    const ownFiles = [entry];
+    const elsewhere = new Set<string>();
+    for (let index = 0; index < ownFiles.length; index++) {
+      for (const path of includes(ownFiles[index]!)) {
+        const file = resolve(path, ownFiles[index]!);
+        if (!file) continue;
+        if (dirname(file) === own) {
+          if (!ownFiles.includes(file)) ownFiles.push(file);
+        } else if (file.endsWith('.h')) {
+          elsewhere.add(file);
+        }
+      }
+    }
+    const ownText = ownFiles.map(read).join('\n');
+    const macroHeaders = new Set([...elsewhere].filter(header =>
+      [...read(header).matchAll(/^\s*#\s*define\s+(\w+)\(/gm)].some(match =>
+        new RegExp(`\\b${match[1]}\\s*\\(`).test(ownText))));
+    return preprocessedDeviceTransform(mameSrc, {
+      entry,
+      allow: file => dirname(file) === own || macroHeaders.has(file),
+      classes: hierarchy,
+    });
+  });
+  return (file, source) => transforms.reduce((current, transform) => transform(file, current), source);
+}
+
+interface DeviceCompileOptions {
+  /**
+   * Rewrite a source file before it is read, for a device whose code only
+   * exists after the C preprocessor has run (see preprocessed-device.ts).
+   */
+  transformSource?: (file: string, source: string) => string;
+  /**
+   * A class the owner holds or allocates rather than a device: its source
+   * constructor is lowered and run when it is built.
+   */
+  nestedClass?: boolean;
+  /**
+   * The machine-configuration statements the boards make on this device.
+   * They name function-template instances its own source never does: only
+   * the Exidy sound board writes `m_pit->set_clk<0>(SH8253_CLOCK)`.
+   */
+  configuration?: readonly string[];
+  /**
+   * Function-template instances the rest of each game names, unqualified
+   * when called through this device's finder (`in_w<0>`), qualified
+   * otherwise (`input_merger_device::in_set<0>`, any class's).
+   */
+  references?: readonly string[];
+}
+
+function compileMameDeviceSource(
+  mameSrc: string,
+  definition: MameHardwareDefinition,
+  type: string,
+  compiling: ReadonlySet<string>,
+  options: DeviceCompileOptions,
 ): GeneratedDeviceDefinition {
   // A class template held by value is compiled once per instance: ymfm's
   // OPLL holds an `fm_engine_base<opll_registers>`, and every
@@ -577,6 +670,7 @@ export function compileMameDevice(
     { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
+    coreEnumerators(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
     ...sources.map(({ source }) => numericConstants(stripCppComments(source))),
@@ -862,10 +956,24 @@ export function compileMameDevice(
   };
 
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
+  // A configuration statement calls the device through its finder; without
+  // the receiver it names the instance as the device's own code would. A
+  // qualified reference is this device's only when the class is one of its.
+  const own = new Set(hierarchy);
+  const instantiations = [
+    ...(options.configuration ?? []).map(line => line.replace(/[\w\]\[]+\s*(?:->|\.)\s*/g, ' ')),
+    ...(options.references ?? []).filter(name => {
+      const qualifier = /^(\w+)::/.exec(name)?.[1];
+      return qualifier === undefined || own.has(qualifier);
+    }),
+  ];
+  const instantiating = instantiations.length
+    ? [...sources, { file: '(machine configuration)', source: [...new Set(instantiations)].join(';\n') }]
+    : sources;
   for (const className of hierarchy) {
     for (const method of sourceMethods.filter(candidate => candidate.className === className)) {
       for (const specialized of specializeFunctionTemplate(
-        method, sources, templateDiscoveryMacros, constants,
+        method, instantiating, templateDiscoveryMacros, constants,
       )) {
         replaceOrAppend(specialized);
       }
@@ -874,7 +982,7 @@ export function compileMameDevice(
     if (!declaration) continue;
     for (const method of inlineMethods(declaration)) {
       for (const specialized of specializeFunctionTemplate(
-        method, sources, templateDiscoveryMacros, constants,
+        method, instantiating, templateDiscoveryMacros, constants,
       )) {
         replaceOrAppend(specialized);
       }
@@ -1098,6 +1206,7 @@ export function compileMameDevice(
   const constructorStrings: Record<string, string> = {};
   const constructorPointers: Record<string, string> = {};
   const constructorBodies: { body: string; env: Record<string, number> }[] = [];
+  const constructorChain: ConstructorChainValues = { structs: {}, spaceConfigs: {} };
   const constructorValues = constructorInitialValues(
     definition.className,
     sources.map(source => source.source).join('\n'),
@@ -1106,7 +1215,18 @@ export function compileMameDevice(
     constructorPointers,
     constructorBodies,
     resolvedMemberName,
+    constructorChain,
   );
+  // A struct member the chain builds from a brace list: the 6805's m_params,
+  // its opcode and cycle tables and its address width among the fields.
+  for (const [name, value] of Object.entries(constructorChain.structs)) {
+    const member = members.find(candidate => candidate.name === name);
+    if (!member) continue;
+    delete member.initial;
+    delete member.values;
+    member.fields = Object.keys(value).map(field => ({ name: field }));
+    member.initialValue = value;
+  }
   for (const member of members) {
     if (constructorValues[member.name] !== undefined) {
       member.initial = constructorValues[member.name];
@@ -1174,7 +1294,7 @@ export function compileMameDevice(
   const clockDivider = executionClockDivider(methodBodies.get('execute_cycles_to_clocks') ?? '');
   const inputDefaults = deviceInputDefaults(methodBodies.get('device_input_ports'), source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
-  const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies);
+  const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies, constructorChain.spaceConfigs);
 
   // Devices this one builds out of other devices. MAME writes them as
   // `TYPE(config, m_member)` inside device_add_mconfig -- a method that is not
@@ -1327,6 +1447,16 @@ export function compileMameDevice(
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
   runConstructorBodies(constructorBodies, members, methods, constants);
+  // An XTAL reaches a device as its frequency, so `set_clk<0>(const XTAL &)`
+  // and `set_clk<0>(double)` take the same number, and of overloads with the
+  // same arity the runtime selects the last. MAME's XTAL overload forwards
+  // `xtal.dvalue()` to the arithmetic one, which would then select itself
+  // again; it goes first, so the call lands where MAME's does.
+  const arithmetic = new Set(methods.filter(method => !/\bXTAL\b/.test(method.parameters)).map(method => method.name));
+  const xtalOverloads = new Set(methods.filter(method => /\bXTAL\b/.test(method.parameters) && arithmetic.has(method.name)));
+  if (xtalOverloads.size) {
+    methods.sort((left, right) => Number(xtalOverloads.has(right)) - Number(xtalOverloads.has(left)));
+  }
   const imageInterface = hierarchy.some(className => classes.get(className)?.bases.includes('device_image_interface'));
   const result: GeneratedDeviceDefinition = {
     schemaVersion: 1,
@@ -2489,6 +2619,14 @@ function compileMethod(
   }
   // A table's entries can be macros themselves (the CRT format's UNSUPPORTED).
   body = expandStringMacros(body, stringMacros);
+  // An XTAL parameter is the number the machine configuration evaluated it
+  // to, so its accessors are that number: `dvalue()` itself, and `value()`
+  // xtal.h's rounding, `u32(m_current_clock + 1e-3)`.
+  for (const [, name] of method.parameters.matchAll(/\bXTAL\s*&?\s*(\w+)/g)) {
+    body = body
+      .replace(new RegExp(`\\b${name}\\s*\\.\\s*dvalue\\s*\\(\\s*\\)`, 'g'), `(${name})`)
+      .replace(new RegExp(`\\b${name}\\s*\\.\\s*value\\s*\\(\\s*\\)`, 'g'), `u32(${name} + 1e-3)`);
+  }
   return {
     name: method.name,
     parameters: method.parameters,
@@ -2688,7 +2826,10 @@ export function memberDeclarations(
       });
     }
   }
-  return members;
+  // An access label before an anonymous enum on its own line (m68705.h's
+  // `protected:` then `enum` then `{`) reads as a type and a name; a keyword
+  // is never a member's name.
+  return members.filter(member => !/^(?:enum|struct|class|union|typedef|using|template|friend|public|protected|private)$/.test(member.name));
 }
 
 /**
@@ -2869,8 +3010,22 @@ export function integerSigned(valueType: string): boolean {
 interface Constructor {
   className: string;
   parameters: string[];
+  /** The parameters as declared, types included. */
+  declared: string[];
   initializers: { name: string; args: string[] }[];
   body: string;
+}
+
+/**
+ * What a constructor chain sets that is not a number, from its arguments as
+ * text: the 6805 hands its base a brace list for a `configuration_params`
+ * parameter, and its internal map as `address_map_constructor(FUNC(...), this)`.
+ */
+export interface ConstructorChainValues {
+  /** A struct member the chain builds from a brace list, as its fields' values. */
+  structs: Record<string, Record<string, unknown>>;
+  /** An `address_space_config` member, as its initializer configures it. */
+  spaceConfigs: Record<string, { name: string; dataBits: number; addressBits: number; map?: string }>;
 }
 
 /**
@@ -2915,6 +3070,7 @@ export function constructorInitialValues(
    * base's instead, leaving the G-101's own mask 0 (#184).
    */
   memberName: (className: string, name: string) => string = (_className, name) => name,
+  chain?: ConstructorChainValues,
 ): Record<string, number> {
   const constructors = new Map<string, Constructor[]>();
   const pattern = /\b(\w+)::\1\s*\(/g;
@@ -2923,16 +3079,18 @@ export function constructorInitialValues(
     const open = source.indexOf('(', match.index);
     const close = matchingPair(source, open, '(', ')');
     if (close < 0) continue;
-    const brace = source.indexOf('{', close + 1);
+    const brace = constructorBodyBrace(source, close + 1);
     if (brace < 0) continue;
     const braceEnd = matchingBrace(source, brace);
     if (braceEnd < 0) continue;
     const between = source.slice(close + 1, brace).trim();
     const initializerSource = (between.startsWith(':') ? between.slice(1) : '')
       .replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '');
+    const declared = splitMameArgs(source.slice(open + 1, close));
     const constructor: Constructor = {
       className: match[1]!,
-      parameters: splitMameArgs(source.slice(open + 1, close)).map(parameterName),
+      parameters: declared.map(parameterName),
+      declared,
       initializers: splitMameArgs(initializerSource).flatMap(initializer => {
         const parsed = /^(\w+)\s*\(([\s\S]*)\)$/.exec(initializer.trim());
         return parsed ? [{ name: parsed[1]!, args: splitMameArgs(parsed[2]!) }] : [];
@@ -2945,31 +3103,102 @@ export function constructorInitialValues(
     pattern.lastIndex = brace + 1;
   }
   const result: Record<string, number> = {};
-  const activeConstructors = new Set<string>();
-  const visit = (className: string, values: number[] = []): void => {
+  const activeConstructors = new Set<Constructor>();
+  // Structs the sources declare, which a parameter can be one of, and each
+  // one's inline constructors: `configuration_params(ops, cycles, ...) : m_ops(ops), ...`.
+  const structNames = new Set([...source.matchAll(/\bstruct\s+(\w+)\b[^;{()]*\{/g)].map(found => found[1]!));
+  const structOf = (declaration: string) => [...structNames].find(name => new RegExp(`\\b${name}\\b`).test(declaration));
+  const isBrace = (text: string | undefined) => text !== undefined && /^\(?\s*\{[\s\S]*\}\s*\)?$/.test(text.trim());
+  // A table a class defines at file scope (`m6805_base_device::s_hmos_s_ops = {...}`),
+  // its entries numbers or, once its member pointers are lowered, method names.
+  const tables = new Map<string, (string | number)[]>();
+  for (const table of source.matchAll(/\b\w+::(\w+)\s*=\s*\{([^{};]*(?:\{[^{}]*\}[^{};]*)*)\}\s*;/g)) {
+    const entries = splitMameArgs(table[2]!.replace(/\/\*[\s\S]*?\*\//g, ''))
+      .map(entry => entry.trim().replace(/^\((.*)\)$/s, '$1').trim()).filter(Boolean)
+      .map(entry => /^"(\w+)"$/.exec(entry)?.[1] ?? constantValue(entry, constants));
+    if (entries.length && entries.every(entry => entry !== undefined)) tables.set(table[1]!, entries as (string | number)[]);
+  }
+  /** A brace list, as the fields the struct's own constructor of that arity sets. */
+  const structValue = (struct: string, brace: string, env: Record<string, number>): Record<string, unknown> | undefined => {
+    const values = splitMameArgs(brace.trim().replace(/^\((.*)\)$/s, '$1').trim().slice(1, -1)).map(value => value.trim());
+    const inline = [...source.matchAll(new RegExp(`\\b${struct}\\s*\\(([^)]*)\\)\\s*:([\\s\\S]*?)\\{\\s*\\}`, 'g'))]
+      .map(found => ({ parameters: splitMameArgs(found[1]!).map(parameterName), initializers: found[2]! }))
+      .find(candidate => candidate.parameters.length === values.length);
+    if (!inline) return undefined;
+    const bound = Object.fromEntries(inline.parameters.map((name, index) => [name, values[index]!]));
+    const fields: Record<string, unknown> = {};
+    for (const field of inline.initializers.matchAll(/(m_\w+)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) {
+      const text = field[2]!.trim().replace(/\b[A-Za-z_]\w*\b/g, name => bound[name] !== undefined ? `(${bound[name]})` : name);
+      // A table is chosen by name: `addr_width > 13 ? s_hmos_b_ops : s_hmos_s_ops`.
+      const picked = chooseOperand(text, expression => constantValue(expression, { ...constants, ...env }));
+      const table = picked !== undefined ? tables.get(picked) : undefined;
+      const value = table ?? constantValue(picked ?? text, { ...constants, ...env });
+      if (value === undefined) return undefined;
+      fields[field[1]!] = value;
+    }
+    return fields;
+  };
+  const visit = (className: string, values: number[] = [], texts: (string | undefined)[] = []): void => {
     const overloads = constructors.get(className) ?? [];
-    const constructor = overloads.find(candidate =>
-      values.length > 0 && candidate.parameters.length === values.length) ??
+    // Chosen as C++ chooses: by count, then by type -- only a brace list
+    // binds a struct parameter (the 6805's two seven-argument constructors).
+    // A struct parameter takes text (a brace list, or a struct passed on); a
+    // scalar one never takes a brace list.
+    const fits = (declaration: string, text: string | undefined) =>
+      structOf(declaration) ? text !== undefined : !isBrace(text);
+    const sameArity = overloads.filter(candidate => values.length > 0 && candidate.parameters.length === values.length);
+    const constructor = sameArity.find(candidate =>
+      candidate.declared.every((declaration, index) => fits(declaration, texts[index]))) ??
+      sameArity[0] ??
       [...overloads].sort((left, right) =>
         left.parameters.length - right.parameters.length)[0];
     if (!constructor) return;
-    const activeKey = `${className}/${constructor.parameters.length}`;
-    if (activeConstructors.has(activeKey)) return;
-    activeConstructors.add(activeKey);
-    const env = Object.fromEntries(
-      constructor.parameters.map((parameter, index) => [parameter, values[index] ?? 0]),
-    );
+    if (activeConstructors.has(constructor)) return;
+    activeConstructors.add(constructor);
+    // A parameter that arrived as text is that text, not a number.
+    const env = Object.fromEntries(constructor.parameters.flatMap((parameter, index) =>
+      texts[index] === undefined ? [[parameter, values[index] ?? 0]] : []));
+    const textEnv = Object.fromEntries(constructor.parameters.flatMap((parameter, index) =>
+      texts[index] !== undefined ? [[parameter, texts[index]!]] : []));
+    const substitute = (text: string) =>
+      text.replace(/\b[A-Za-z_]\w*\b/g, name => textEnv[name] ?? (env[name] !== undefined ? String(env[name]) : name));
+    const structArguments = Object.fromEntries(constructor.parameters.flatMap((parameter, index) => {
+      const struct = structOf(constructor.declared[index]!);
+      const value = struct && isBrace(texts[index]) ? structValue(struct, texts[index]!, env) : undefined;
+      return value ? [[parameter, value]] : [];
+    }));
+    // `params.m_addr_width`: a field of a struct argument.
+    const fieldsOf = (text: string) => text.replace(/\b(\w+)\s*\.\s*(m_\w+)\b/g, (whole, name: string, field: string) => {
+      const value = structArguments[name]?.[field];
+      return typeof value === 'number' ? String(value) : whole;
+    });
     for (const initializer of constructor.initializers) {
       const args = initializer.args.map(arg =>
-        constantValue(arg, { ...constants, ...env }) ?? 0);
-      if (constructors.has(initializer.name)) visit(initializer.name, args);
+        constantValue(fieldsOf(arg), { ...constants, ...env }) ?? 0);
+      // An argument with no number travels as its text: a brace list, a
+      // struct passed on, a map constructor.
+      const argTexts = initializer.args.map(arg => {
+        const text = substitute(arg.trim());
+        return constantValue(fieldsOf(arg), { ...constants, ...env }) === undefined ? text : undefined;
+      });
+      if (constructors.has(initializer.name)) visit(initializer.name, args, argTexts);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
         const member = memberName(className, initializer.name);
         const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1];
         const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
-        if (text !== undefined && strings) strings[member] = text;
+        const struct = structArguments[initializer.args[0]!.trim()];
+        if (struct && chain) chain.structs[member] = struct;
+        else if (text !== undefined && strings) strings[member] = text;
         else if (target) pointers[member] = target;
         else result[member] = args[0]!;
+      } else if (chain && initializer.name.startsWith('m_') && args.length >= 4) {
+        // address_space_config(name, endianness, data width, address width[, shift, map])
+        const name = /^"([^"]*)"$/.exec(initializer.args[0]!.trim())?.[1];
+        if (name === undefined || !/^ENDIANNESS_\w+$/.test(initializer.args[1]!.trim())) continue;
+        const map = /address_map_constructor\s*\(\s*FUNC\s*\(\s*[\w:]*::(\w+)\s*\)/.exec(argTexts[5] ?? initializer.args[5] ?? '')?.[1];
+        chain.spaceConfigs[memberName(className, initializer.name)] = {
+          name, dataBits: args[2]!, addressBits: args[3]!, ...(map ? { map } : {}),
+        };
       }
     }
     bodies?.push({ body: constructor.body, env });
@@ -2977,10 +3206,58 @@ export function constructorInitialValues(
       const value = constantValue(assignment[2]!, { ...constants, ...env });
       if (value !== undefined && Number.isFinite(value)) result[memberName(className, assignment[1]!)] = value;
     }
-    activeConstructors.delete(activeKey);
+    activeConstructors.delete(constructor);
   };
   visit(concreteClass);
   return result;
+}
+
+/**
+ * Where a constructor's body opens, from just past its parameter list. Not
+ * the first brace: an initializer can take a brace list as an argument (the
+ * 6805's `m6805_hmos_device(..., { addr_width > 13 ? ... }, ram_size)`) or be
+ * one (`m_port_open_drain{ false, false, false, false }`), and either read as
+ * the body hid every initializer after it -- m_ram_size among them.
+ */
+function constructorBodyBrace(source: string, from: number): number {
+  let depth = 0;
+  for (let index = from; index < source.length; index++) {
+    const char = source[index];
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    else if (char === ';') return -1;
+    else if (char === '{') {
+      if (depth === 0 && !/\w/.test(source.slice(from, index).trimEnd().slice(-1))) return index;
+      const end = matchingBrace(source, index);
+      if (end < 0) return -1;
+      index = end;
+    }
+  }
+  return -1;
+}
+
+/**
+ * The operand a conditional picks, when its condition evaluates: `c ? a : b`
+ * is `a` or `b`. Undefined when the text is no conditional.
+ */
+function chooseOperand(text: string, evaluate: (expression: string) => number | undefined): string | undefined {
+  let value = text.trim();
+  while (value.startsWith('(') && matchingPair(value, 0, '(', ')') === value.length - 1) value = value.slice(1, -1).trim();
+  let depth = 0;
+  let question = -1;
+  for (let index = 0; index < value.length; index++) {
+    const char = value[index];
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    else if (depth === 0 && char === '?' && question < 0) question = index;
+    else if (depth === 0 && char === ':' && question >= 0 && value[index + 1] !== ':' && value[index - 1] !== ':') {
+      const condition = evaluate(value.slice(0, question));
+      if (condition === undefined) return undefined;
+      const picked = (condition ? value.slice(question + 1, index) : value.slice(index + 1)).trim();
+      return picked.replace(/^\((.*)\)$/s, '$1').trim();
+    }
+  }
+  return /^\w+$/.test(value) ? value : undefined;
 }
 
 /**
@@ -3057,6 +3334,60 @@ function coreLineStates(mameSrc: string): Record<string, number> {
     states[match[1]!] = next++;
   }
   return states;
+}
+
+const CORE_ENUMERATORS = new Map<string, Record<string, number>>();
+
+/**
+ * The enumerators of the emulator core's unscoped enums that the device's
+ * source names. Every device sees all of `src/emu` through emu.h without
+ * including any of it, so these are never in its own sources: the K051960
+ * builds its sprite draw-mode table from drawgfx.h's `DRAWMODE_SOURCE`,
+ * `DRAWMODE_SHADOW` and `DRAWMODE_SHADOW_PRI`. The device's own constants
+ * are layered over these.
+ */
+function coreEnumerators(
+  mameSrc: string,
+  sources: readonly { source: string }[],
+): Record<string, number> {
+  let core = CORE_ENUMERATORS.get(mameSrc);
+  if (!core) {
+    core = {};
+    const directory = join(mameSrc, 'src/emu');
+    for (const file of existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.h')).sort() : []) {
+      const header = stripCppComments(readFileSync(join(directory, file), 'utf8'));
+      // File scope only: an enum inside a class is named through it
+      // (device.h's feature flags, `ROM` and `SOUND` among them).
+      const depths: number[] = [];
+      for (let index = 0, depth = 0; index < header.length; index++) {
+        depths.push(depth);
+        if (header[index] === '{') depth++;
+        else if (header[index] === '}') depth--;
+      }
+      // `enum class` is scoped: its enumerators are only ever named qualified.
+      for (const match of header.matchAll(/\benum\s+(?!class\b|struct\b)(?:\w+\s*)?(?::\s*[\w:]+\s*)?\{([^{}]*)\}/g)) {
+        if (depths[match.index] !== 0) continue;
+        let next = 0;
+        for (const entry of match[1]!.split(',')) {
+          const parsed = /^\s*([A-Za-z_]\w*)\s*(?:=\s*([\s\S]+?))?\s*$/.exec(entry);
+          if (!parsed) continue;
+          const value = parsed[2] === undefined ? next : evalExpr(parsed[2], core);
+          if (value === null || !Number.isInteger(value)) break;
+          core[parsed[1]!] = value;
+          next = value + 1;
+        }
+      }
+    }
+    CORE_ENUMERATORS.set(mameSrc, core);
+  }
+  // Named in code: a comment's "gfx ROM" is not a use.
+  const named = new Set(sources.flatMap(({ source }) =>
+    stripCppComments(source).replace(/"(?:[^"\\\n]|\\.)*"/g, '""').match(/\b[A-Za-z_]\w*\b/g) ?? []));
+  // The runtime numbers some of them its own way, and its numbering is what
+  // every processor answers: diexec.h's INPUT_LINE_NMI is MAX_INPUT_LINES - 3,
+  // the generated CPUs' is -1.
+  return Object.fromEntries(Object.entries(core).filter(([name]) =>
+    named.has(name) && DEFAULT_CONSTANTS[name] === undefined));
 }
 
 /**
@@ -3392,9 +3723,14 @@ function deviceAddressSpaces(
   source: string,
   constants: Record<string, number>,
   methodBodies: ReadonlyMap<string, string>,
+  /** Configurations a constructor chain builds from its arguments (ConstructorChainValues). */
+  chainConfigs: ConstructorChainValues['spaceConfigs'] = {},
 ): NonNullable<GeneratedDeviceDefinition['spaces']> {
   const spaces: NonNullable<GeneratedDeviceDefinition['spaces']> = [];
   const configs = new Map<string, { name: string; dataBits: number; addressBits: number; map: string }>();
+  for (const [member, config] of Object.entries(chainConfigs)) {
+    if (config.map) configs.set(member, { ...config, map: config.map });
+  }
   for (const owner of hierarchy) {
     const escaped = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     for (const match of source.matchAll(new RegExp(
@@ -3428,7 +3764,15 @@ function deviceAddressSpaces(
     // are MAME asking whether the owner supplied a map instead, which the
     // driver here does not.
     const statements = [...map.matchAll(/\bmap\s*\(([^)]*)\)\s*\.\s*(\w+)\s*\(\s*\)/g)];
-    if (statements.length !== 1 || statements[0]![2] !== 'ram') continue;
+    if (statements.length !== 1 || statements[0]![2] !== 'ram') {
+      // A map that decodes more than RAM, handed down the constructor chain
+      // as an `address_map_constructor`: the 68705's internal map of ports,
+      // timer, RAM and EPROM, which the host builds by running the method.
+      if (chainConfigs[pair[2]!]?.map === config.map) {
+        spaces.push({ index, name: config.name, addressBits: config.addressBits, dataBits: config.dataBits, map: config.map });
+      }
+      continue;
+    }
     const [start, end] = splitMameArgs(statements[0]![1]!)
       .map(value => Number(evalExpr(value.trim(), constants)));
     if (start !== 0 || end !== (1 << config.addressBits) - 1) continue;

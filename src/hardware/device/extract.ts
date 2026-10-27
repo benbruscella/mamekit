@@ -5,7 +5,6 @@ import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import { compileMameDevice } from '../../mame/device-compiler.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
-import { compileInputMerger } from '../../mame/input-merger-compiler.ts';
 import { lowerSlapstic } from '../../mame/slapstic-compiler.ts';
 import type {
   CapabilityArtifact,
@@ -19,9 +18,6 @@ import {
   deviceModuleArtifact,
 } from './definition.ts';
 
-import { preprocessedDeviceTransform } from '../../mame/preprocessed-device.ts';
-import { compileM6805Device } from '../../mame/m6805-device.ts';
-
 type Compiled = ReturnType<typeof compileMameDevice>;
 
 const SPECIALIZED: Record<
@@ -29,71 +25,12 @@ string,
 (mameSource: string, definition: MameHardwareDefinition) => Compiled
 > = {
   I8257: compileI8257,
-  M68705P5: compileM6805Device,
-  INPUT_MERGER_ALL_HIGH: compileInputMerger,
-  INPUT_MERGER_ANY_HIGH: compileInputMerger,
-  INPUT_MERGER_ANY_LOW: compileInputMerger,
-  LADYBUG_VIDEO: compileLadybugVideo,
-  MIDTUNIT_VIDEO: compileMidtunitVideo,
-  K051960: compileK051960,
-  K052109: compileK052109,
   K053246: compileK053246,
   UPD7759: compileUpd7759,
-  LATCH8: compileLatch8,
-  MOS6532: compileMos6532,
   NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
-  PIT8253: compilePit8253,
   SEGAIC16VID: compileSegaic16Video,
   SLAPSTIC: compileSlapstic,
 };
-
-/**
- * Midway's T-Unit video (and the W/X-unit variants sharing its source) is
- * only complete after the C preprocessor: its pixel extractor is chosen by
- * `#if`, its TMS34010 callbacks are header macros, and its blitter tables are
- * macro-expanded member-function pointers to dma_draw<...> instances.
- */
-export function compileMidtunitVideo(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const directory = definition.sourceFile.slice(0, definition.sourceFile.lastIndexOf('/') + 1);
-  const stem = definition.sourceFile.slice(directory.length).replace(/\.cpp$/, '');
-  return compileMameDevice(mameSource, definition, definition.type, new Set(), {
-    transformSource: preprocessedDeviceTransform(mameSource, {
-      entry: definition.sourceFile,
-      // The device's own header and .ipp files, and the TMS34010 header whose
-      // callback macros its methods are declared with.
-      allow: file => (file.startsWith(directory) && /\.(?:h|ipp)$/.test(file) &&
-        (file.startsWith(`${directory}${stem}`) || file.endsWith('view.ipp'))) ||
-        file === 'src/devices/cpu/tms34010/tms34010.h',
-      classes: [definition.className],
-    }),
-  });
-}
-
-/**
- * K051960 draws from its vblank-latched 1 KiB sprite list. The draw-mode
- * values live in drawgfx.h rather than the device's source closure, so make
- * that source ABI explicit and keep the renderer on the direct-code path.
- */
-export function compileK051960(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'K051960');
-  Object.assign(device.constants, {
-    DRAWMODE_NONE: 0,
-    DRAWMODE_SOURCE: 1,
-    DRAWMODE_SHADOW: 2,
-    DRAWMODE_SHADOW_PRI: 3,
-  });
-  device.hotMethods = [...new Set([
-    ...(device.hotMethods ?? []),
-    'k051960_sprites_draw',
-  ])];
-  return refreshSummary(device);
-}
 
 /**
  * The browser audio worklet renders the uPD7759 stream, while the generated
@@ -108,41 +45,6 @@ export function compileUpd7759(
 ): Compiled {
   const device = compileMameDevice(mameSource, definition, 'UPD7759');
   replaceMethod(device, 'sound_stream_update', '');
-  return refreshSummary(device);
-}
-
-/**
- * K052109 owns 0x6000 bytes of tile, colour, and scroll RAM. MAME allocates
- * it with make_unique_clear in device_start; represent that source allocation
- * directly in the member IR so the pointer aliases established immediately
- * afterwards all refer to real storage.
- */
-export function compileK052109(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'K052109');
-  const ram = device.members.find(member => member.name === 'm_ram');
-  if (!ram) throw new Error('K052109: source tile RAM member is missing');
-  delete ram.initial;
-  ram.values = Array<number>(0x6000).fill(0);
-  ram.arrayLength = 0x6000;
-
-  const start = device.methods.find(method => method.name === 'device_start');
-  if (!start) throw new Error('K052109: source device_start is missing');
-  start.program.operations = start.program.operations.filter(operation =>
-    !(operation.op === 'assign' &&
-      operation.target.kind === 'identifier' &&
-      operation.target.name === 'm_ram'));
-  // These are the chip's board-facing hot path. Direct code also preserves
-  // calls to its devcb members through runtime.invoke (the generic handler
-  // interpreter intentionally treats unknown identifier calls as macros).
-  device.hotMethods = [...new Set([
-    ...(device.hotMethods ?? []),
-    'read',
-    'write',
-    'vblank_callback',
-  ])];
   return refreshSummary(device);
 }
 
@@ -176,13 +78,6 @@ export function compileK053246(
     (method.name === 'k053247_sprites_draw' || method.name === 'zdrawgfxzoom32GP') &&
     method.parameters.includes('bitmap_rgb32')
   ));
-  // drawgfx.h owns these global enum values rather than the device source
-  // closure. They are still source ABI used by the renderer's pen tables.
-  Object.assign(device.constants, {
-    DRAWMODE_NONE: 0,
-    DRAWMODE_SOURCE: 1,
-    DRAWMODE_SHADOW: 2,
-  });
   replaceMethod(device, 'device_start', `
     m_z_rejection = -1;
     m_objcha_line = 0;
@@ -197,30 +92,9 @@ export function compileK053246(
 }
 
 /**
- * Lady Bug owns its RAM immediately, but its tilemap and decoded-gfx finder
- * are board video services. The composition host binds those after it creates
- * the generated video primitives, so device_start must not replace them with
- * unresolved framework-call placeholders during early device construction.
- */
-function compileLadybugVideo(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'LADYBUG_VIDEO');
-  replaceMethod(device, 'device_start', '');
-  device.hotMethods = [...new Set([
-    ...(device.hotMethods ?? []),
-    'draw',
-    'draw_sprites',
-    'get_bg_tile_info',
-  ])];
-  return refreshSummary(device);
-}
-
-/**
  * The shared Sega video device contains both the System 16 tile engine and
  * unrelated rotate/road paths.  The generic parser sees C++ struct casts in
- * those methods as diagnostics even when a System 16B board never selects the
+ * those methods as diagnostics even when a System 16 board never selects the
  * rotate hardware.  Preserve the executable device surface and let the board
  * video compiler own rasterization; these entry points keep the source state
  * transitions that the mapper and driver call.
@@ -304,35 +178,6 @@ function compileNeogeoSprite(
     'draw_fixed_layer',
     'draw_sprites',
   ])];
-  return refreshSummary(device);
-}
-
-/** Lower the RIOT prescaler table without a function-local static array. */
-function compileMos6532(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'MOS6532');
-  replaceMethod(device, 'timer_w', `
-    int select = offset & 3;
-    m_timershift = select == 0 ? 0 : select == 1 ? 3 : select == 2 ? 6 : 10;
-    timer_start(data);
-    m_irq_timer = false;
-    m_ie_timer = ie;
-    update_irq();
-  `);
-  return refreshSummary(device);
-}
-
-/** Expand the templated channel clock setter into its concrete three lanes. */
-function compilePit8253(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'PIT8253');
-  replaceMethod(device, 'set_clk', `
-    return;
-  `);
   return refreshSummary(device);
 }
 
@@ -420,27 +265,6 @@ function refreshSummary(device: Compiled): Compiled {
     ),
   };
   return device;
-}
-
-/** Specialize MAME's templated bit writers for the eight concrete entry points. */
-function compileLatch8(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'LATCH8');
-  for (let bit = 0; bit < 8; bit++) {
-    replaceMethod(device, `bit${bit}_w`, `
-      uint8_t mask = 1 << offset;
-      uint8_t masked_data = BIT(data, ${bit}) << offset;
-      update(masked_data, mask);
-    `);
-  }
-  // Machine-config callbacks are already validated and wired by the board.
-  replaceMethod(device, 'device_start', `
-    m_has_write = true;
-    m_has_read = true;
-  `);
-  return refreshSummary(device);
 }
 
 /** Expand MAME's two fixed four-channel range-for loops into executable IR. */
@@ -609,7 +433,10 @@ export function extractDevices(input: CapabilityInput): CapabilityExtraction | u
     const definition = entry.definition as MameHardwareDefinition;
     const device = SPECIALIZED[type]
       ? SPECIALIZED[type](input.mameSource, definition)
-      : compileMameDevice(input.mameSource, definition, type);
+      : compileMameDevice(input.mameSource, definition, type, new Set(), {
+        configuration: entry.uses?.flatMap(use => use.configuration ?? []),
+        references: entry.uses?.flatMap(use => use.references ?? []),
+      });
     // A device whose methods did not lower cleanly is not executable. Emitting
     // it anyway would claim hardware the runtime cannot actually run.
     if (device.summary.diagnostics) continue;

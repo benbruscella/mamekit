@@ -684,6 +684,10 @@ Choose the layer from evidence, not from the visible symptom.
 | A software-list set will not mount though every chip matches | its rebuilt iNES header could not say its size: past 4,095 banks NES 2.0 uses the exponent form (the 64 MB dpcmcart set) |
 | A device's stream plays at the wrong pitch | `sound_stream::set_sample_rate` after `stream_alloc` retunes it (the AY's internal divider) |
 | A device's child is silent and nothing says why | the child did not lower: it is left out with a warning and listed in `omittedChildren` |
+| A device's `isunset()` says a callback the machine binds is unset | the device started before the board wired it; a `device_start` that reads callbacks or tilemaps waits for both (`startReadsHostBindings`). LATCH8 never forwarded a write |
+| A template method's parameter lowered as `auto` | its instance is named only outside the device: the boards' machine config (`set_clk<0>`), a call through its finder, a qualified `FUNC(...)` (`HardwareUse.references`) |
+| A constructor initializer after a brace list sets nothing | the constructor's body was read from an argument's or initializer's brace (`constructorBodyBrace`); the 6805's `m_ram_size` was lost after `m_port_open_drain{...}` |
+| A scoped enumerator has another enum's value | it was numbered from a flat table of leaf names; each `enum class` numbers its own (`addr_mode::IX1` had taken `md::IX1`) |
 | A device's member of a library class is a number | the library's header is reached through MAME's `3rdparty` include root, and the class is built as a held object (`m_chip`, a `ymfm::ds1001`) |
 | A class template's constant reads another class's value | it is the instance's: `RegisterType::CHANNELS` is resolved with the template argument, and a class's own constant shadows the file's |
 | A callee's write through a `T &` parameter never comes back | across objects the call needs `references` (the receiver's class is the member's declared type); a reference bound to a call's result is evaluated once |

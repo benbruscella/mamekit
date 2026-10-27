@@ -24,6 +24,14 @@ export interface HardwareUse {
    * list its `set_formats(...)` names. Compile-time only; not in the manifest.
    */
   configuration?: string[];
+  /**
+   * Function-template instances the rest of the game names on this device:
+   * `in_w<0>` from a handler's `m_audionmi->in_w<0>(1)`, and every qualified
+   * `input_merger_device::in_w<0>` a callback or map binds, which the device
+   * compile keeps only when the class is in its own hierarchy.
+   * Compile-time only; not in the manifest.
+   */
+  references?: string[];
 }
 
 export interface MameHardwareDefinition {
@@ -236,6 +244,55 @@ export function shareHardwareIndex(mameSrc: string, file: string): void {
   process.env[HARDWARE_INDEX_ENV] = file;
 }
 
+/**
+ * The function-template instances each device type is named with, anywhere
+ * in a game's graph: a call through the device's finder member
+ * (`m_audionmi->in_w<0>(1)` in a driver handler), and every qualified name
+ * (`FUNC(input_merger_device::in_set<0>)` in an address map) under every type,
+ * since only the device compile knows which classes are its own and which
+ * arguments are numbers.
+ */
+export function templateInstanceReferences(
+  graph: KnowledgeGraph,
+  devices: readonly KnowledgeGraph['nodes'][number][],
+): Map<string, Set<string>> {
+  const typeOfMember = new Map<string, Set<string>>();
+  for (const device of devices) {
+    const member = device.props.member;
+    if (typeof member !== 'string') continue;
+    const types = typeOfMember.get(member) ?? new Set<string>();
+    types.add(String(device.props.type));
+    typeOfMember.set(member, types);
+  }
+  const byType = new Map<string, Set<string>>();
+  const qualified = new Set<string>();
+  const add = (type: string, name: string) => {
+    const named = byType.get(type) ?? new Set<string>();
+    named.add(name);
+    byType.set(type, named);
+  };
+  const visit = (value: unknown): void => {
+    if (typeof value === 'string') {
+      if (!value.includes('<')) return;
+      for (const match of value.matchAll(/\b(m_\w+)(?:\s*\[[^\]]*\])?\s*->\s*(\w+\s*<[^<>()]+>)/g)) {
+        for (const type of typeOfMember.get(match[1]!) ?? []) add(type, match[2]!.replace(/\s+/g, ''));
+      }
+      for (const match of value.matchAll(/\b(\w+::\w+\s*<[^<>()]+>)/g)) qualified.add(match[1]!.replace(/\s+/g, ''));
+    } else if (Array.isArray(value)) {
+      value.forEach(visit);
+    } else if (value && typeof value === 'object') {
+      Object.values(value).forEach(visit);
+    }
+  };
+  for (const node of graph.nodes) visit(node.props);
+  if (qualified.size) {
+    for (const type of new Set(devices.map(device => String(device.props.type)))) {
+      for (const name of qualified) add(type, name);
+    }
+  }
+  return byType;
+}
+
 /** Write the index where a process given `HARDWARE_INDEX_ENV` will read it. */
 export function writeHardwareIndex(mameSrc: string, file: string): void {
   const definitions = indexMameHardware(mameSrc);
@@ -273,6 +330,7 @@ export function buildHardwareClosure(
   const definitions = indexMameHardware(mameSrc);
   const uses = new Map<string, Map<string, Set<string>>>();
   const configurations = new Map<string, Map<string, Set<string>>>();
+  const references = new Map<string, Map<string, Set<string>>>();
   // Device-node ids encode where the device was declared:
   //   device:<class>.device_add_mconfig/<tag> — inside another device
   //   device:<machineConfig>/<tag>            — at board level
@@ -282,6 +340,11 @@ export function buildHardwareClosure(
   const composedTypes = new Map<string, Set<string>>();
   for (const { game, graph } of targetGraphs) {
     const devices = graph.nodes.filter(node => node.label === 'Device');
+    for (const [type, named] of templateInstanceReferences(graph, devices)) {
+      const games = references.get(type) ?? new Map<string, Set<string>>();
+      games.set(game, named);
+      references.set(type, games);
+    }
     const nodesById = new Map(graph.nodes.map(node => [node.id, node]));
     const outgoing = new Map<string, typeof graph.edges>();
     for (const edge of graph.edges) {
@@ -331,7 +394,13 @@ export function buildHardwareClosure(
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([game, tags]) => {
           const configuration = [...configurations.get(type)?.get(game) ?? []];
-          return { game, tags: [...tags].sort(), ...(configuration.length ? { configuration } : {}) };
+          const named = [...references.get(type)?.get(game) ?? []].sort();
+          return {
+            game,
+            tags: [...tags].sort(),
+            ...(configuration.length ? { configuration } : {}),
+            ...(named.length ? { references: named } : {}),
+          };
         });
       if (!definition || isDeclarativeHostHardwareType(type)) {
         return {

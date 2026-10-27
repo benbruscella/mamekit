@@ -479,7 +479,7 @@
       "palette": "none"
     },
     "mslug": {
-      "sha256": "7ab2f9c9d1f1f6ade949eb7ff773325dd532ff57ff298d6e239cf342cd0b9d1e",
+      "sha256": "5ff242fb1f1cb9f89f8ead126f8f09918985f6fa8a22c717a8cb6b4508adb235",
       "callbacks": 12,
       "frameEvents": 0,
       "devices": 19,
@@ -569,7 +569,7 @@
       "palette": "prom:proms"
     },
     "popeye": {
-      "sha256": "54067f310dad5d88df8160302c7f8d16492729786bb31efabcffaae55609273a",
+      "sha256": "8b76bdc4eabef0f845f35ad7fa6c5afa854162ebb352e787f7b815e8d883921b",
       "callbacks": 6,
       "frameEvents": 2,
       "devices": 11,
@@ -776,7 +776,7 @@
       "palette": "prom:maincpu"
     },
     "venture": {
-      "sha256": "33ba2825c5e7a863412979e3dc2dbf533df67871d92d9e4caf211147455ef156",
+      "sha256": "186794bf354a382fd956b398e84fa459c946dcdd97031e3b427d9a046b3fd853",
       "callbacks": 20,
       "frameEvents": 1,
       "devices": 12,

@@ -56,11 +56,14 @@ export function preprocessedDeviceTransform(
   const expanded = preprocessor.run(entry, readFileSync(entry, 'utf8'));
   const enumSource = [...(options.enumHeaders ?? []).map(header => readFileSync(join(mameSrc, header), 'utf8')), expanded].join('\n');
   const constants = parseEnumConstants(enumSource, {});
-  // A scoped enumerator is spelled with its enum's name (`addr_mode::DI`).
+  // A scoped enumerator is spelled with its enum's name (`addr_mode::DI`), and
+  // numbered within its own enum: the 6805's `addr_mode::IX1` is 4 whatever
+  // the disassembler's `md::IX1` in 6805dasm.h is, though the two share a name.
   for (const scoped of enumSource.matchAll(/\benum\s+class\s+(\w+)[^{;]*\{([^}]*)\}/g)) {
+    const own = parseEnumConstants(`enum { ${scoped[2]!} };`, constants);
     for (const member of scoped[2]!.split(',')) {
       const name = /^\s*(\w+)/.exec(member)?.[1];
-      if (name && constants[name] !== undefined) constants[`${scoped[1]}::${name}`] = constants[name]!;
+      if (name && own[name] !== undefined) constants[`${scoped[1]}::${name}`] = own[name]!;
     }
   }
   const instances = new Set<string>();
