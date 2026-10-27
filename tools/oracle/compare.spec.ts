@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { inflateSync } from 'node:zlib';
-import { compareIo, comparePictures, compareRam, differingPixels, oursPicture, sideBySide, writePng } from './compare.ts';
+import { compareIo, comparePictures, compareRam, differingPixels, oursPicture, scaledPicture, sideBySide, writePng } from './compare.ts';
 
 const dir = mkdtempSync(join(tmpdir(), 'oracle-compare-'));
 try {
@@ -40,6 +40,34 @@ try {
   // Pixel 4 is row 1, column 1; the difference panel starts after two pictures and two gaps.
   const at = (1 * both.width + 3 + 4 + 3 + 4 + 1) * 3;
   assert.deepEqual([...both.rgb.subarray(at, at + 3)], [255, 0, 0], 'the differing pixel is red');
+
+  // At MAME's integer scale (GALAXIAN_XSCALE): ours is a 2x1 board, MAME draws it 3x wide.
+  const scaled = join(dir, 'scaled');
+  mkdirSync(scaled);
+  writeFileSync(join(scaled, 'ours-1.rgba'), new Uint8Array([10, 0, 0, 255, 20, 0, 0, 255]));
+  const mameRow = (reds: number[], width: number, height: number) => {
+    writeFileSync(join(scaled, 'mame-1.rgb'), new Uint8Array(reds.flatMap(red => [0, 0, red, 255])));
+    writeFileSync(join(scaled, 'mame-size.txt'), `${width} ${height}\n`);
+  };
+  // Each board pixel written three times matches exactly, at MAME's resolution.
+  mameRow([10, 10, 10, 20, 20, 20], 6, 1);
+  const replicated = comparePictures(scaled, [1], [0], { width: 2, height: 1, rotate: 0, scale: 3 });
+  assert.deepEqual(replicated.results, [{ frame: 1, mame: 1, pixels: 0 }]);
+  assert.equal(replicated.pictures.get(1)!.ours!.width, 6, 'ours is shown at MAME\'s size');
+  // A star on one of a pixel's three copies is one differing pixel, never averaged away.
+  mameRow([10, 10, 10, 20, 99, 20], 6, 1);
+  assert.deepEqual(comparePictures(scaled, [1], [0], { width: 2, height: 1, rotate: 0, scale: 3 }).results,
+    [{ frame: 1, mame: 1, pixels: 1 }]);
+  // A quarter turn puts the board's horizontal axis down the picture: ROT90 repeats rows.
+  mameRow([10, 10, 10, 20, 20, 20], 1, 6);
+  assert.deepEqual(comparePictures(scaled, [1], [0], { width: 2, height: 1, rotate: 90, scale: 3 }).results,
+    [{ frame: 1, mame: 1, pixels: 0 }]);
+  assert.deepEqual([...scaledPicture({ width: 1, height: 2, rgb: new Uint8Array([1, 0, 0, 2, 0, 0]) }, 2, 270).rgb]
+    .filter((_, at) => at % 3 === 0), [1, 1, 2, 2]);
+  // A width that is not MAME's scale stays a size mismatch, whatever the scale.
+  mameRow([10, 10, 10, 20, 20], 5, 1);
+  assert.deepEqual(comparePictures(scaled, [1], [0], { width: 2, height: 1, rotate: 0, scale: 3 }).results,
+    [{ frame: 1, mame: 1, size: '5x1 vs 6x1' }]);
 
   // RAM: one 4-byte processor, frames 1..4 ours and 1..5 MAME; ours lags MAME by one.
   const ram = { cpus: [{ tag: 'maincpu', ranges: [[0x10, 0x13]] as [number, number][] }], from: 1, to: 4, every: 1 };

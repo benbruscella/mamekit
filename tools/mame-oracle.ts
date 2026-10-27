@@ -52,6 +52,8 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { primaryDisplay, scaledScreen } from '../src/gen/fact-audit.ts';
+import { cachedListXmlMachine } from '../src/gen/listxml.ts';
 import { gameOutputDir } from '../src/gen/output-layout.ts';
 import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../src/gen/oracle-result.ts';
 import { romsDir } from '../src/paths.ts';
@@ -115,6 +117,11 @@ const reportRoot = join(projectRoot, '.cache/oracle');
 const mame = resolveMame(mameSrc, option('--mame'));
 const outputDir = locateTarget(target);
 const config = JSON.parse(readFileSync(join(outputDir.dir, 'config.json'), 'utf8')) as ShellConfig;
+// MAME draws some screens an integer times wider than the board's own pixels
+// (the Galaxian family and Tutankham, 3x, for their stars): pictures are
+// compared at MAME's resolution, the factor read from MAME's own facts.
+const listed = cachedListXmlMachine(mame, config.game);
+const pictureScale = (listed && scaledScreen(config.board.screen, primaryDisplay(listed))) ?? 1;
 
 function locateTarget(game: string): { dir: string; category: string } {
   for (const category of ['arcade', 'consoles', 'computers']) {
@@ -258,7 +265,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   if (mameError) report.mameError = mameError.slice(0, 400);
 
   const imageDir = join(reportRoot, target!, safeKey);
-  const pictures = comparePictures(dir, request.frames, offsets, boot);
+  const pictures = comparePictures(dir, request.frames, offsets, { ...boot, scale: pictureScale });
   if (pictures.results.some(result => result.pixels !== undefined || result.size)) {
     mkdirSync(imageDir, { recursive: true });
     const images: string[] = [];
@@ -273,6 +280,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     const diverged = pictures.results.find(result => result.pixels !== 0);
     report.pixels = {
       offset: pictures.offset,
+      ...(pictureScale !== 1 ? { scale: pictureScale } : {}),
       tied: pictures.tied,
       frames: pictures.results,
       exact,
@@ -327,7 +335,8 @@ function printRun(key: string, report: RunReport): void {
     const frames = report.pixels.frames.map(result =>
       `${result.frame}: ${result.size ? `size ${result.size}` : result.pixels === undefined ? '-' : result.pixels}`).join('  ');
     const tied = report.pixels.tied.length > 1 ? `, as good at ${report.pixels.tied.map(signed).join(' ')}` : '';
-    console.log(`  pixels (MAME frame = ours ${signed(report.pixels.offset)}${tied}): ${frames}`);
+    const scale = report.pixels.scale ? `, at MAME's ${report.pixels.scale}x width` : '';
+    console.log(`  pixels (MAME frame = ours ${signed(report.pixels.offset)}${tied}${scale}): ${frames}`);
     for (const image of report.pixels.images) console.log(`    ${image}`);
   }
   if (report.ram) {

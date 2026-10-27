@@ -822,7 +822,14 @@ zeroed — were found this way, not by a golden.
 
 - *Pictures* at `--frames` (default 600). Each side writes a side-by-side PNG
   (MAME | ours | ours dimmed with every differing pixel red) under
-  `.cache/oracle/<target>/<title>/`.
+  `.cache/oracle/<target>/<title>/`. Where MAME draws the screen an integer
+  times wider than the board's own pixels (`scaledScreen`: the Galaxian family,
+  Tutankham and Juno First, 3x), each of our pixels is repeated that many times
+  along the board's horizontal axis and the pictures are compared, and shown,
+  at MAME's resolution; the report's `pixels.scale` says so. The factor comes
+  from MAME's `-listxml`, never from the pictures, so a plain width error is
+  still a size mismatch. MAME's picture is never shrunk to ours, which would
+  average away the stars it puts on only some of a pixel's copies.
 - *RAM* with `--ram`, every frame from 1, for every RAM range the generated
   board maps, or the ranges named (`--ram maincpu:0-7ff`). A processor this
   boot does not have is left out of the board's ranges, such as the 1541's

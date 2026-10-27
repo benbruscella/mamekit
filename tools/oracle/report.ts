@@ -26,6 +26,11 @@ export interface RunReport {
   mameCommand: string;
   pixels?: {
     offset: number;
+    /**
+     * How many times wider than the board's own pixels MAME draws the screen,
+     * and so the scale ours was compared at (`scaledScreen`); absent at 1:1.
+     */
+    scale?: number;
     /** Every offset that fits as well (a still screen fits several). */
     tied: number[];
     frames: FrameResult[];
