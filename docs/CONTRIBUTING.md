@@ -212,7 +212,12 @@ npm run serve                            # verify ROM, input, video and audio
 
 Register bring-up work as an explicit candidate. It joins clean generation and
 the published catalog, where the menu labels it EXPERIMENTAL, but not the
-real-ROM acceptance sweep. Discovery adds it only when both
+required real-ROM acceptance sweep. `npm run test:candidates` runs every
+candidate contract locally; quote its result in a PR that touches a candidate,
+so one that worked and then stops is seen (issue #208). CI shows the same run
+as a skipped job, and runs it only when CI is started by hand (Actions -> CI ->
+Run workflow). Discovery adds it only
+when both
 `src/games/candidates/<target>.game.ts` and its colocated spec exist; an
 orphaned file is an error.
 
@@ -361,9 +366,11 @@ never for game logic.
 ### STEP 5: VERIFY WITH REAL ROMS
 
 Place the local archive at the token's default path or use its environment
-variable. `npm run test:games` iterates accepted contracts only and rejects a
-candidate, so run a candidate's contract through the recorder, which drives the
-same harness and loads accepted and candidate contracts:
+variable. `npm run test:games` iterates accepted contracts only;
+`node src/games/acceptance.ts <target>[:<scenario>]` checks one contract,
+candidate or accepted, against its golden, and `npm run test:candidates` checks
+them all. To record a candidate's golden, run its contract through the
+recorder, which drives the same harness:
 
 ```sh
 MAMEKIT_<TARGET>_ROM=/path/to/<target>.zip node src/games/record-goldens.ts <target>[:<scenario>]

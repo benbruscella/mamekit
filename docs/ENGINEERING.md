@@ -159,6 +159,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
 | `npm run test:generation` | clean-generate every required target and audit all output |
 | `npm run test:games` | deterministic real-ROM contracts for supported games |
+| `npm run test:candidates` | the same for candidate contracts, which no gate requires |
 | `npm run test:blast-radius` | run every old and new real-ROM game canary |
 | `npm run blast-radius` | which machines a change can reach, and the e2e command for exactly those |
 | `npm run test:games:record` | record candidate game baselines for review |

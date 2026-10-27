@@ -4,6 +4,7 @@ import {
   executeGeneratedProgram,
   generatedAdd,
   generatedContainerAccessor,
+  generatedStringCall,
   generatedVectorMethod,
   generatedPackedView,
   generatedPointerStore,
@@ -832,6 +833,36 @@ assert.equal(
   }, track, 2), 3);
   assert.deepEqual(track, [2, 7, 3]);
   assert.match(normalizeMameExecutionSource('std::vector<wspan> wspans(1);'), /auto wspans = VECTOR_OF\("wspan", 1\);/);
+}
+
+// A std::string is a JS string. device_generic_cart_interface::rom_alloc
+// names a cartridge's ROM region `fulltag.append(GENERIC_ROM_REGION_TAG)`:
+// the declaration narrowed the text to 0 and the call answered nothing, so the
+// region was "0" rather than "<slot>:cart:rom". Both paths now agree on it.
+{
+  const program = compileMameHandler(normalizeMameExecutionSource(`
+    std::string fulltag(tag);
+    fulltag.append(":cart:rom");
+    device().logerror("Allocating ROM region with tag '%s'\\n", fulltag);
+    return fulltag.size() + region(fulltag.c_str());
+  `));
+  assert.doesNotMatch(JSON.stringify(program.operations), /"device"/,
+    'a log call goes with its receiver, not as device().TRACE_NOOP()');
+  const strings = generatedDeviceMethodsSource({
+    ...definition,
+    hotMethods: ['name'],
+    methods: [{ name: 'name', parameters: 'char const *tag', source: { file: 'fixture.cpp', line: 1 }, program }],
+  });
+  assert.match(strings.source, /runtime\.stringMethod\(fulltag, "append", ":cart:rom"\)/);
+  const regions: unknown[] = [];
+  const region = (name: unknown) => { regions.push(name); return 0; };
+  const built = new Function(`return ${strings.source}`)();
+  assert.equal(built.name({ members: {}, links: { region }, stringMethod: generatedStringCall, add: generatedAdd,
+    dereference: dereferenceGeneratedValue }, ':exp:cartslot'), 22);
+  assert.equal(executeGeneratedProgram(program, {
+    members: { tag: ':exp:cartslot' }, referenceCalls: { region }, callParameters: { region: ['std::string_view name'] },
+  }).value, 22);
+  assert.deepEqual(regions, [':exp:cartslot:cart:rom', ':exp:cartslot:cart:rom']);
 }
 
 {

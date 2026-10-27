@@ -753,6 +753,7 @@ function preparedHandlerRuntime(
     // low byte at the word index and lost every high byte.
     packedView: generatedPackedView,
     container: generatedContainerAccessor,
+    stringMethod: generatedStringCall,
     pointerStore: generatedPointerStore,
     add: generatedAdd,
     subtract: generatedSubtract,
@@ -1842,6 +1843,15 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   // A `float` local rounds to single precision on every store, as it does in
   // C++; `double` and every unnamed scalar type keep their value unchanged.
   if (declared === 'float') return value => Math.fround(toNumber(value));
+  // A std::string is its text. Narrowed as a number, `std::string
+  // fulltag(tag)` in device_generic_cart_interface::rom_alloc held 0, and
+  // every generic cartridge's ROM region was named "0".
+  if (declared === 'std::string' || declared === 'std::string_view') {
+    return value => {
+      const held = isLValue(value) ? value.get() : value;
+      return typeof held === 'string' ? held : '';
+    };
+  }
   // wrapValue's terminal case: an unnamed scalar type (`int`, `double`, a
   // driver typedef) keeps its numeric value unchanged.
   return toNumber;
@@ -2808,6 +2818,22 @@ function evaluateCall(
     // base pens through `pen_color(i).r()`.
     if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method]) {
       return (object >>> RGB_CHANNELS[method]!) & 0xff;
+    }
+    // A std::string is a JS string, which has none of its methods. `append`
+    // changes the string in place, so its answer is stored back into a
+    // receiver that names storage; `std::string(tag()).append(...)` has none.
+    const text = isLValue(object) ? object.get() : object;
+    if (typeof text === 'string') {
+      const answered = generatedStringMethod(text, method,
+        ...expression.args.map(arg => evaluate(arg, context)));
+      if (answered !== undefined) {
+        const receiver = expression.callee.object;
+        if (STRING_MUTATORS.has(method) &&
+            (receiver.kind === 'identifier' || receiver.kind === 'member' || receiver.kind === 'index')) {
+          assign(receiver, '=', answered, context);
+        }
+        return answered;
+      }
     }
     if (isReference(object)) {
       const key = `${object.reference}.${method}`;
@@ -3957,6 +3983,39 @@ export function generatedPointerStore(pointer: unknown, value: unknown): unknown
  * 1541 write failed its verify (`25, WRITE ERROR`). Anything else keeps its
  * own method of that name.
  */
+/** The std::string methods that change the string, answering its new text. */
+export const STRING_MUTATORS: ReadonlySet<string> = new Set(['append']);
+
+/**
+ * A std::string method over the JS string that stands for one, or undefined
+ * for a method or overload not modelled here, which the caller reports as
+ * unresolved. A mutator answers the new text; storing it is the caller's.
+ *
+ * device_generic_cart_interface::rom_alloc names a cartridge's ROM region
+ * `fulltag.append(GENERIC_ROM_REGION_TAG)`, and the NES loader hands its
+ * `mapinfo.c_str()` to sscanf.
+ */
+export function generatedStringMethod(text: string, method: string, ...args: unknown[]): unknown {
+  const values = args.map(arg => isLValue(arg) ? arg.get() : arg);
+  if ((method === 'c_str' || method === 'data') && !values.length) return text;
+  if ((method === 'size' || method === 'length') && !values.length) return text.length;
+  if (method === 'empty' && !values.length) return text.length ? 0 : 1;
+  if (method === 'append' && values.length === 1 && typeof values[0] === 'string') return text + values[0];
+  return undefined;
+}
+
+/**
+ * A std::string method as emitted code calls it (`runtime.stringMethod`): its
+ * answer, or 0 -- noted for the census like every other unresolved call.
+ */
+export function generatedStringCall(value: unknown, method: string, ...args: unknown[]): unknown {
+  const text = isLValue(value) ? value.get() : value;
+  const answered = typeof text === 'string' ? generatedStringMethod(text, method, ...args) : undefined;
+  if (answered !== undefined) return answered;
+  noteUnresolvedCall(`std::string::${method}`);
+  return 0;
+}
+
 export function generatedVectorMethod(container: unknown, method: string, ...args: unknown[]): unknown {
   const vector = isLValue(container) ? container.get() : container;
   if (!Array.isArray(vector)) {
