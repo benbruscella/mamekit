@@ -7,6 +7,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Started by hand from the Actions tab. Only this runs the candidate
+  # contracts, which are too long to hold every PR for.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -335,6 +338,49 @@ jobs:
           # own report rather than the last writer winning.
           name: rom-acceptance-report-${{ matrix.shard }}
           path: .cache/acceptance-report.json
+          if-no-files-found: warn
+
+  candidates:
+    # Candidate contracts gate nothing, and their tape loads take half an hour
+    # on a hosted runner, so a PR shows this job as skipped. Run CI by hand
+    # (Actions -> CI -> Run workflow) to play them all; locally it is
+    # `npm run test:candidates`.
+    name: ROM-backed candidate contracts (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 75
+    needs: generate
+    continue-on-error: true
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Check out MAMEKIT
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download the generated distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-dist
+          path: dist
+
+      - name: Candidate contracts
+        run: npm run test:candidates -- --timeout 20
+
+      - name: Upload the candidate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rom-candidate-report
+          path: .cache/candidate-report.json
           if-no-files-found: warn
 
   acceptance-gate:

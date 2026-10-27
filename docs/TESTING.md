@@ -27,7 +27,7 @@ source forms, generated hardware contracts, and named supported machines.
 | Current clean generation + semantic drift | `npm run test:current` | yes | no | yes |
 | All registered target generation | `npm run test:generation` | yes | no | manual |
 | Generated game behavior | `npm run test:games:matrix` | no after generation | yes | required Actions job |
-| Candidate game behavior | `npm run test:candidates` | no after generation | yes | local |
+| Candidate game behavior | `npm run test:candidates` | no after generation | yes | local; Actions only when run by hand |
 | Shared-core blast radius | `npm run test:blast-radius` | no after generation | yes | local |
 | Browser presentation | `npm run test:e2e` | no after generation | yes | local |
 

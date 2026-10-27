@@ -39,7 +39,7 @@ MAMEDEV's release notes (see the README).
 - `append`, `c_str`, `data`, `size`, `length` and `empty` are lowered in the interpreter and in device codegen (`runtime.stringMethod`). `append` stores the new text back into its receiver.
 - The tracing stripper took `logerror(...)` but left its receiver, so `device().logerror(...)` became `device().TRACE_NOOP()`, a member call nothing answers. The receiver now goes with the call.
 - `tag()` on a card's child answered the slot's tag. It now answers the device's own, so the Interface 2's cartridge ROM is `exp:intf2:cartslot:cart:rom`, as MAME names it.
-- `npm run test:candidates` runs every candidate contract locally. The Spectrum cartridge had failed the strict harness unseen since #182, because nothing ran candidates. CI's MAME checkout gains the Spectrum software lists, so CI generates the Spectrum with its shelves as a local build does.
+- `npm run test:candidates` runs every candidate contract locally, and CI runs it only when started by hand: on a PR the job shows as skipped. The matrix takes `--timeout <minutes>` for contracts longer than its 5-minute cap. The Spectrum cartridge had failed the strict harness unseen since #182, because nothing ran candidates. CI's MAME checkout gains the Spectrum software lists, so CI generates the Spectrum with its shelves as a local build does.
 - The ZX Spectrum and Spectrum 128 goldens are re-recorded. They were already stale before this change.
 
 ### The MAME oracle compares Galaxian, Scramble, Frogger, Jump Bug, Zig Zag, Tutankham and Juno First at MAME's own screen scale ([#207](https://github.com/benbruscella/mamekit/issues/207))

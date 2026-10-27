@@ -30,9 +30,11 @@ interface AcceptanceResult {
  * child that never exits takes the whole run down with it: the job sits
  * silent for the rest of its hour, GitHub kills it for time, and nothing in
  * the log says which contract stopped. Five minutes is several times the
- * slowest and still leaves the run its budget.
+ * slowest and still leaves the run its budget. `--timeout <minutes>` raises it
+ * for a run that needs longer: the candidates' tape loads are 12,000 and
+ * 16,500 frames.
  */
-const TARGET_TIMEOUT_MS = 5 * 60_000;
+const TARGET_TIMEOUT_MS = Number(option('--timeout') ?? 5) * 60_000;
 
 /** Grace between asking a stuck child to stop and insisting. */
 const KILL_GRACE_MS = 5_000;

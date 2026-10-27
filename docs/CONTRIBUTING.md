@@ -214,7 +214,9 @@ Register bring-up work as an explicit candidate. It joins clean generation and
 the published catalog, where the menu labels it EXPERIMENTAL, but not the
 required real-ROM acceptance sweep. `npm run test:candidates` runs every
 candidate contract locally; quote its result in a PR that touches a candidate,
-so one that worked and then stops is seen (issue #208). Discovery adds it only
+so one that worked and then stops is seen (issue #208). CI shows the same run
+as a skipped job, and runs it only when CI is started by hand (Actions -> CI ->
+Run workflow). Discovery adds it only
 when both
 `src/games/candidates/<target>.game.ts` and its colocated spec exist; an
 orphaned file is an error.
