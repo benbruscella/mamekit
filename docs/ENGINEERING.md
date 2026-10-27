@@ -915,7 +915,10 @@ the driver presents it. Ours is turned to match. `screen:pixels()` in a frame
 notifier returns the frame before.
 
 **MAME the same way every time.** The tool refuses a binary of another release
-(`src/gen/listxml.ts`). Every run gets a fresh `-nvram_directory` and
+(`src/gen/listxml.ts`). Sets come from the library alone (`-rompath`), and so do
+sample sets (`-samplepath .data/samples`), never from a `mame.ini`. Without
+Zaxxon's, Space Panic's, Congo Bongo's, Carnival's or Q*bert's samples, MAME
+plays silence where they belong. Every run gets a fresh `-nvram_directory` and
 `-cfg_directory`, because MAME writes NVRAM back on exit and a reused
 directory boots warm. MAME runs the autoboot script again after every machine
 reset, whether a contract's `reset` or a watchdog's, because its reset notifier
@@ -992,7 +995,10 @@ Each file holds:
 `record` refuses a dirty tree or a Node other than `.nvmrc`'s.
 `record --baseline <commit>` finishes a baseline from a later commit only when
 its `src` tree, MAME, Node and dist build are all the same, as after a
-tools-only fix. Each measure notes the commit it was taken on. It never runs a
+tools-only fix. Each measure notes the commit it was taken on. A recorded
+measure is replaced only when asked, by name: `record <targets> --baseline
+<commit> --redo audio` takes it again. That is for when MAME's reference itself
+changed, such as a sample set added to `.data/samples`. It never runs a
 measure already recorded, so a stopped recording resumes. A failed measure is
 retried by the next `record`, and every failing step is run once more before
 it is believed (#190). A scenario either side cannot run is kept as `failed`

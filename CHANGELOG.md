@@ -39,6 +39,7 @@ MAMEDEV's release notes (see the README).
 - Results go to `.cache/oracle/baseline/<commit>/`, together with each step's arguments and the commit, `src` tree, MAME, Node and dist build that produced them. No oracle run or generation writes there.
 - `compare <targets>` re-runs the stored plans and says better, same or worse for each of five measures. It exits 1 when any is worse. `show` lists every scenario that could not be measured, and why.
 - `tools/mame-oracle.ts --audio` records MAME with `-wavwrite` and sets that against our own capture, so the audio heard is the run's own input and title. `--out` writes one invocation's runs to their own file.
+- MAME gets its sample sets from `.data/samples` (`-samplepath`), as it gets its sets from the library, never from a `mame.ini`. `record <targets> --redo <measures>` re-takes measures by name when MAME's reference changes.
 - RAM ranges taken from the board now leave out a processor that a boot lacks. A C64 tape, cartridge or quickload leaves the 1541 out, and the oracle refused those runs.
 - `compare-audio.mjs` writes `compare.json`. `compare-game-audio.ts`:
   - takes `--scenario`;
