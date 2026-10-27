@@ -551,7 +551,7 @@
       "palette": "prom:proms"
     },
     "polepos": {
-      "sha256": "1e8b00896d4d3d67b909544938209fd355edd4212c7d171359dd7b435ba8aeae",
+      "sha256": "b0e30676dd62fe12449212fe5655eb2712316b642b5dd076340b2e2b6d5152da",
       "callbacks": 67,
       "frameEvents": 5,
       "devices": 25,
