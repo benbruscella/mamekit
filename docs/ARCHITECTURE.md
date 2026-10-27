@@ -1226,9 +1226,8 @@ A new entry fails the spec, and so does an entry that no longer matches until
 it is deleted from its list. Host boundaries, such as the `SCREEN` and
 `VECTOR` hosts and the shared stream worklet that plays what a generated chip
 rendered, are declared apart in `HOST_BOUNDARIES` with the reason each is not
-hardware. The epic is done when `DEVICE_TYPE_BRANCHES`,
-`DIRECT_SCREEN_SHAPES` and `REPLACED_METHODS` are empty; the other two shrink
-as the items that name them are retired. The
+hardware. The epic is done when all five lists are empty and only
+`HOST_BOUNDARIES` is left. The
 [#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103)
 has the original file and line references; CPU support layers and MAME facts
 copied by hand have no list yet, and nothing may be added to them either.

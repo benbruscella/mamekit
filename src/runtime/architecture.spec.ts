@@ -34,9 +34,7 @@ for (const file of sharedRuntime) {
 // The hand-written hardware #178 retires, as exact lists. Each list may only
 // shrink: a new entry is new hand-written hardware, and an entry that no
 // longer matches must be deleted here so it cannot come back unnoticed. The
-// epic is done when DEVICE_TYPE_BRANCHES, DIRECT_SCREEN_SHAPES and
-// REPLACED_METHODS are empty; HAND_WRITTEN_ENGINES and SPECIALIZED_COMPILERS
-// shrink as the items that name them are retired.
+// epic is done when all five are empty and only HOST_BOUNDARIES is left.
 //
 // A host boundary is MAMEKIT's own hosting, which a generated machine needs
 // whatever its hardware: the guards below expect it beside the inventory, so
