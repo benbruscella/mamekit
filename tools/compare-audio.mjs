@@ -5,7 +5,9 @@
 //
 // Emits stacked spectrograms (ours-vs-ref.png) and prints a numeric diff:
 // per-octave-band energy, RMS, and a coarse onset-rate (tempo proxy), so an
-// agent without ears can see EXACTLY how the mix differs from hardware.
+// agent without ears can see EXACTLY how the mix differs from hardware. The
+// same numbers go to compare.json beside the spectrogram, for a later run to
+// be set against (tools/mame-baseline.ts).
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -138,11 +140,11 @@ const bandEnergy = (S) => {
   return e.map(x => x / total);
 };
 const ea = bandEnergy(A), eb = bandEnergy(B);
+const bandDiffs = bands.map((hz, k) => ({ hz, ours: ea[k], ref: eb[k], diffDb: 10 * Math.log10((ea[k] + 1e-9) / (eb[k] + 1e-9)) }));
 console.log('\nband      ours    ref     diff(dB)');
-bands.forEach((hz, k) => {
-  const d = 10 * Math.log10((ea[k] + 1e-9) / (eb[k] + 1e-9));
-  console.log(`<${String(hz).padStart(4)}Hz  ${ea[k].toFixed(3)}  ${eb[k].toFixed(3)}  ${d >= 0 ? '+' : ''}${d.toFixed(1)}`);
-});
+for (const { hz, ours: o, ref: r, diffDb: d } of bandDiffs) {
+  console.log(`<${String(hz).padStart(4)}Hz  ${o.toFixed(3)}  ${r.toFixed(3)}  ${d >= 0 ? '+' : ''}${d.toFixed(1)}`);
+}
 
 // onset rate (tempo proxy): spectral-flux peaks per second
 const onsets = (S) => {
@@ -152,7 +154,14 @@ const onsets = (S) => {
   for (const f of flux) { if (f > mean * 1.4 && prev <= mean * 1.4) count++; prev = f; }
   return count / (S.rows.length / 93.75);
 };
-console.log(`\nonsets/s: ours ${onsets(A).toFixed(2)} vs ref ${onsets(B).toFixed(2)} (tempo proxy — should match closely)`);
+const onsetsOurs = onsets(A), onsetsRef = onsets(B);
+console.log(`\nonsets/s: ours ${onsetsOurs.toFixed(2)} vs ref ${onsetsRef.toFixed(2)} (tempo proxy — should match closely)`);
+writeFileSync(join(outDir, 'compare.json'), `${JSON.stringify({
+  seconds,
+  rms: { ours: rmsOurs, ref: rmsRef, ratioDb: 20 * Math.log10(rmsOurs / (rmsRef || 1e-12) + 1e-12) },
+  bands: bandDiffs,
+  onsets: { ours: onsetsOurs, ref: onsetsRef },
+}, null, 2)}\n`);
 
 // stacked spectrogram image (ours on top, ref below, same 0-8kHz scale)
 const H = 170, W = Math.min(A.rows.length, B.rows.length);

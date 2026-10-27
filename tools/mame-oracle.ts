@@ -23,12 +23,17 @@
  *   --ram-frames a-b[/n] which frames to dump (default 1 to the last compared frame)
  *   --io cpu:a-b[:r|w|rw]  tap bus accesses in a range on both sides (repeatable, hex)
  *   --io-frames a-b      the frames to tap (required with --io)
+ *   --audio              record MAME's sound too (-wavwrite) and compare it with
+ *                        ours over the run, as tools/compare-audio.mjs does
  *   --jobs N             titles at once in a survey (default 1)
  *   --limit N            survey at most N boards
  *   --fresh              re-run survey titles already graded on this commit
  *   --background         run on the efficiency cores (macOS): slower, never in the way
  *   --watch              give MAME a window to watch the run in
  *   --keep               keep the raw captures
+ *   --out file           also write this invocation's runs, by title, to a file
+ *                        of their own (the report's runs are keyed by title
+ *                        alone, so a later run with other input replaces one)
  *   --dist dir, --mame bin, --mame-src dir, --timeout seconds
  *
  * MAME_BIN must be the same release as the MAME source checkout; anything else
@@ -52,9 +57,9 @@ import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '..
 import { romsDir } from '../src/paths.ts';
 import type { ShellConfig } from '../src/runtime/shell.ts';
 import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './oracle/compare.ts';
-import { mameArguments, mameFrames, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './oracle/mame-side.ts';
+import { mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './oracle/mame-side.ts';
 import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './oracle/plan.ts';
-import { gradeRun, pickSurveyTitles, surveyGroups, type RunReport, type SurveyEntry } from './oracle/report.ts';
+import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './oracle/report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
 
@@ -77,7 +82,7 @@ if (childAt >= 0) {
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
 const valued = new Set(['--titles', '--frames', '--search', '--offset', '--input', '--scenario', '--ram-frames',
-  '--io', '--io-frames', '--jobs', '--limit', '--dist', '--mame', '--mame-src', '--timeout']);
+  '--io', '--io-frames', '--jobs', '--limit', '--dist', '--mame', '--mame-src', '--timeout', '--out']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -129,12 +134,6 @@ function titleKey(title: OracleTitle | undefined): string {
   return 'cartridge' in title ? title.cartridge : `${title.software.list}:${title.software.name}`;
 }
 
-function mamekitIdentity(): { commit: string; dirty: boolean } {
-  const commit = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: projectRoot, encoding: 'utf8' }).stdout.trim();
-  const dirty = spawnSync('git', ['status', '--porcelain', '--', 'src', 'tools', 'bin'], { cwd: projectRoot, encoding: 'utf8' })
-    .stdout.trim().length > 0;
-  return { commit, dirty };
-}
 const identity = mamekitIdentity();
 
 // --- one run ---------------------------------------------------------------
@@ -147,6 +146,7 @@ interface RunRequest {
   ram?: RamPlan;
   io?: OraclePlan['io'];
   grade?: boolean;
+  audio?: boolean;
 }
 
 function readText(path: string): string | undefined {
@@ -232,6 +232,11 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     return report;
   }
   const boot = JSON.parse(bootText) as OursBoot;
+  // MAME dumps, and the comparison reads, only what our side dumped.
+  if (request.ram && boot.ramCpus) {
+    request.ram = { ...request.ram, cpus: boot.ramCpus };
+    plan.ram = request.ram;
+  }
 
   const ramOurs = request.ram ? ramFrames(request.ram) : [];
   const frames = mameFrames(plan, ramOurs);
@@ -239,10 +244,11 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   // full length again: MAME runs as many frames as ours did.
   writeLuaPlan(join(dir, 'mame-plan.lua'), dir, boot.timeline, frames, { ...plan, last: Math.max(plan.last, report.ours.frames) });
   const args = mameArguments(config, outputDir.category, boot, boot.software, mameSrc, dir, politeness);
+  if (request.audio) args.push('-wavwrite', join(dir, 'mame.wav'));
   // What to type to see the same run by hand, less this run's private directories.
   const shown: string[] = [];
   for (let index = 0; index < args.length; index++) {
-    if (/^-(nvram|cfg|snapshot)_directory$|^-autoboot_script$/.test(args[index]!)) { index++; continue; }
+    if (/^-(nvram|cfg|snapshot)_directory$|^-autoboot_script$|^-wavwrite$/.test(args[index]!)) { index++; continue; }
     shown.push(args[index] === '' ? '""' : /[\s;]/.test(args[index]!) ? `'${args[index]}'` : args[index]!);
   }
   report.mameCommand = `$MAME_BIN ${shown.join(' ')}`;
@@ -251,9 +257,9 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     (existsSync(join(dir, 'mame-done.txt')) ? undefined : `MAME exited ${ran.status}: ${ran.output.trim().split('\n').slice(-2).join(' | ')}`);
   if (mameError) report.mameError = mameError.slice(0, 400);
 
+  const imageDir = join(reportRoot, target!, safeKey);
   const pictures = comparePictures(dir, request.frames, offsets, boot);
   if (pictures.results.some(result => result.pixels !== undefined || result.size)) {
-    const imageDir = join(reportRoot, target!, safeKey);
     mkdirSync(imageDir, { recursive: true });
     const images: string[] = [];
     for (const frame of request.frames) {
@@ -278,6 +284,11 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   if (request.io) report.io = compareIo(dir);
   const inputs = compareInputs(dir, boot.timeline.inputs, report.ours.frames);
   if (inputs) report.inputs = inputs;
+  if (request.audio) {
+    const audio = compareAudio(dir, imageDir);
+    if ('error' in audio) report.audioError = audio.error;
+    else report.audio = audio;
+  }
   if (!quiet) printRun(key, report);
   if (flag('--keep')) {
     if (!quiet) console.log(`  captures kept in ${relative(projectRoot, dir)}`);
@@ -285,6 +296,26 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     rmSync(dir, { recursive: true, force: true });
   }
   return report;
+}
+
+/**
+ * Ours against MAME's -wavwrite with tools/compare-audio.mjs, the measure the
+ * audio comparison prints; its spectrogram lands beside the frame PNGs. Ours
+ * is the harness's capture of what reaches the browser's output.
+ */
+function compareAudio(dir: string, outDir: string): AudioComparison | { error: string } {
+  const ours = join(dir, 'ours.pcm');
+  const mameWav = join(dir, 'mame.wav');
+  if (!existsSync(ours) || !existsSync(mameWav)) return { error: `no ${existsSync(ours) ? 'MAME' : 'our'} recording` };
+  mkdirSync(outDir, { recursive: true });
+  rmSync(join(outDir, 'compare.json'), { force: true });
+  const compared = spawnSync(process.execPath, [join(projectRoot, 'tools/compare-audio.mjs'), ours, mameWav, outDir],
+    { cwd: projectRoot, encoding: 'utf8' });
+  const result = join(outDir, 'compare.json');
+  if (compared.status !== 0 || !existsSync(result)) {
+    return { error: `compare-audio failed: ${(compared.stderr || compared.stdout).trim().split('\n').at(-1) ?? compared.status}` };
+  }
+  return JSON.parse(readFileSync(result, 'utf8')) as AudioComparison;
 }
 
 function printRun(key: string, report: RunReport): void {
@@ -320,6 +351,13 @@ function printRun(key: string, report: RunReport): void {
         `${first.port} 0x${first.mask.toString(16)} MAME ${hex(first.mame)} / ours ${hex(first.ours)}`
       : 'MAME read what ours read on every frame'));
   }
+  if (report.audio) {
+    const { rms, bands, onsets } = report.audio;
+    console.log(`  audio (${report.audio.seconds.toFixed(1)} s): ours/MAME ${rms.ratioDb.toFixed(1)} dB, ` +
+      `bands ${bands.map(band => `${band.diffDb >= 0 ? '+' : ''}${band.diffDb.toFixed(1)}`).join(' ')} dB, ` +
+      `onsets ${onsets.ours.toFixed(2)}/${onsets.ref.toFixed(2)} a second`);
+  }
+  if (report.audioError) console.log(`  audio: ${report.audioError}`);
   if (report.io) {
     const first = report.io.firstDivergence;
     console.log(`  I/O: ${report.io.mame} MAME / ${report.io.ours} ours accesses; ` + (first
@@ -370,7 +408,7 @@ function ramRequest(): RamPlan | undefined {
   if (!cpus.length) throw new Error(`${target}'s generated board maps no RAM ranges; name them: --ram <cpu>:<start>-<end>`);
   const [range, every] = (option('--ram-frames') ?? `1-${comparedFrames.at(-1)}`).split('/');
   const [from, to] = range!.split('-').map(Number);
-  return { cpus, from: from!, to: to ?? from!, every: Number(every ?? 1) };
+  return { cpus, from: from!, to: to ?? from!, every: Number(every ?? 1), ...(given.length ? {} : { fromBoard: true as const }) };
 }
 
 function ioRequest(): OraclePlan['io'] {
@@ -452,6 +490,7 @@ if (flag('--survey')) {
     ? option('--titles')!.split(',').map(parseTitle)
     : [titleArg ? parseTitle(titleArg) : undefined];
   const report = loadReport();
+  const runs: Record<string, RunReport> = {};
   for (const title of titles) {
     // A console title gets Start presses; a computer title starts the way
     // its shelf does (typed command, PLAY) and a machine runs untouched.
@@ -463,9 +502,12 @@ if (flag('--survey')) {
       ...(option('--scenario') ? { scenario: option('--scenario')! } : {}),
       ...(flag('--ram') ? { ram: ramRequest()! } : {}),
       ...(options.has('--io') ? { io: ioRequest()! } : {}),
+      ...(flag('--audio') ? { audio: true } : {}),
     });
     report.runs[titleKey(title)] = run;
+    runs[titleKey(title)] = run;
     saveReport(report);
   }
+  if (option('--out')) writeFileSync(resolve(option('--out')!), `${JSON.stringify(runs, null, 2)}\n`);
   console.log(`report: ${relative(projectRoot, reportPath)}`);
 }

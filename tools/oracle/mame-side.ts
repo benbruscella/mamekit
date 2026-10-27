@@ -14,7 +14,7 @@
  *     (src/gen/listxml.ts refuses a mismatch, and so does this).
  */
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,12 +41,28 @@ export function politeCommand(command: string, args: string[], politeness: Polit
   return process.platform === 'win32' ? [command, args] : ['nice', ['-n', '10', command, ...args]];
 }
 
+/** The mamekit commit a run is made on; `dirty` when src, tools or bin have local changes. */
+export function mamekitIdentity(): { commit: string; dirty: boolean } {
+  const commit = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: projectRoot, encoding: 'utf8' }).stdout.trim();
+  const dirty = spawnSync('git', ['status', '--porcelain', '--', 'src', 'tools', 'bin'], { cwd: projectRoot, encoding: 'utf8' })
+    .stdout.trim().length > 0;
+  return { commit, dirty };
+}
+
 /** The MAME binary to use, refused unless it is the checkout's release. */
 export function resolveMame(mameSrc: string, explicit?: string): { binary: string; version: string } {
   const found = listXmlOracle(mameSrc, explicit);
   if (!found.binary || !found.version) throw new Error(found.reason ?? 'no usable MAME binary');
   return { binary: found.binary, version: found.version };
 }
+
+/**
+ * Where MAME finds sample sets (Zaxxon's, Space Panic's): the library's own
+ * folder, named on the command line as the rompath is, so a run does not
+ * depend on one machine's mame.ini. Without a set MAME plays silence where
+ * its samples belong.
+ */
+export const samplesDir = join(projectRoot, '.data/samples');
 
 /** Where MAME finds a machine's sets and a title's software, for each category. */
 export function romPaths(config: ShellConfig, category: string): string[] {
@@ -82,6 +98,7 @@ export function mameArguments(
     ...boot.emptySlots.flatMap(slot => [`-${slot}`, '']),
     ...(software ? [...boot.media ? [`-${boot.media}`] : [], software] : []),
     '-rompath', romPaths(config, category).join(';'),
+    '-samplepath', samplesDir,
     '-hashpath', join(mameSrc, 'hash'),
     ...(politeness.watch ? ['-window'] : ['-window', '-nomaximize', '-video', 'none']),
     '-sound', 'none', '-nothrottle', '-skip_gameinfo', '-snapview', 'native',

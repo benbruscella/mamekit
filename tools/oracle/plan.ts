@@ -26,6 +26,12 @@ export interface RamPlan {
   from: number;
   to: number;
   every: number;
+  /**
+   * The ranges came from the generated board, not the command line: a
+   * processor this boot does not have (the 1541's, with no disk drive fitted
+   * for a tape) is left out rather than refused.
+   */
+  fromBoard?: true;
 }
 
 export interface IoPlan {
@@ -105,6 +111,8 @@ export interface OursBoot {
    */
   media?: string;
   timeline: Timeline;
+  /** The processors whose RAM is dumped, when the board's set was cut to the ones this boot has. */
+  ramCpus?: RamPlan['cpus'];
 }
 
 /**

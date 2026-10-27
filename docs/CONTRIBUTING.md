@@ -669,8 +669,12 @@ MAME_BIN=/path/to/mame npm run audio:compare -- <target> \
   --out .files/audio/<target>
 ```
 
-This is optional when the machine has no audio. The tool loads accepted
-contracts only, so it works for a game once it is promoted; use it then, before
+This is optional when the machine has no audio. The tool loads accepted and
+candidate contracts. `--scenario <id>` picks one of a machine's scenarios, and
+a console scenario's cartridge is given to MAME too. A scenario that boots
+other list software, such as a tape or a disk, is refused. For those, and to
+hear a contract's play rather than its power-on, use the oracle's `--audio`.
+The numbers it prints are also written to `compare.json`. Use it before
 deciding that a write hash or merely audible output is correct.
 
 ### STEP 6: ADD THE PRESENTATION PACKAGE

@@ -7,6 +7,14 @@
 import type { FrameResult, InputsResult, IoResult, RamResult } from './compare.ts';
 import type { InputMode } from './plan.ts';
 
+/** tools/compare-audio.mjs's compare.json: ours against MAME's -wavwrite over the same run. */
+export interface AudioComparison {
+  seconds: number;
+  rms: { ours: number; ref: number; ratioDb: number };
+  bands: { hz: number; ours: number; ref: number; diffDb: number }[];
+  onsets: { ours: number; ref: number };
+}
+
 export interface RunReport {
   title?: string;
   scenario?: string;
@@ -31,6 +39,9 @@ export interface RunReport {
   io?: IoResult;
   /** Whether MAME read the driven inputs as ours did (`--input start|contract`). */
   inputs?: InputsResult;
+  /** The two sides' sound over the run (`--audio`), or why there is none. */
+  audio?: AudioComparison;
+  audioError?: string;
   grade?: { samples: number; drawn: number; changes: number; colours: number };
   /** How far our side ran; `retried` is a first failure the second run did not repeat. */
   ours?: { frames: number; error?: string; retried?: string };
