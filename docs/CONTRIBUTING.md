@@ -213,9 +213,9 @@ npm run serve                            # verify ROM, input, video and audio
 Register bring-up work as an explicit candidate. It joins clean generation and
 the published catalog, where the menu labels it EXPERIMENTAL, but not the
 required real-ROM acceptance sweep. `npm run test:candidates` runs every
-candidate contract, and CI runs it as a job that shows red without failing the
-run, so a candidate that worked and then stops is seen (issue #208). Discovery
-adds it only when both
+candidate contract locally; quote its result in a PR that touches a candidate,
+so one that worked and then stops is seen (issue #208). Discovery adds it only
+when both
 `src/games/candidates/<target>.game.ts` and its colocated spec exist; an
 orphaned file is an error.
 

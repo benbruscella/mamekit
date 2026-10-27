@@ -105,7 +105,8 @@ export async function loadGameContracts(): Promise<GameTestContract[]> {
 /**
  * Candidate contracts. They stay out of the accepted gate, but a candidate
  * that once worked and stops is still news (issue #208: the ZX Spectrum's
- * cartridge failed unseen for three days), so `test:candidates` runs them.
+ * cartridge failed unseen for three days), so `test:candidates` runs them
+ * locally.
  */
 export async function loadCandidateGameContracts(): Promise<GameTestContract[]> {
   return (await loadRegisteredGameContracts(['candidate'])).map(loaded => loaded.contract);
