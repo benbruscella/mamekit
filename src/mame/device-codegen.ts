@@ -1,5 +1,5 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression } from '../ir/execute.ts';
+import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, STRING_MUTATORS } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
@@ -1824,6 +1824,15 @@ function valueMemberCallCode(
   if (property === 'insert' || property === 'erase') {
     return `runtime.vectorMethod(${object}, ${JSON.stringify(property)}${args.map(argument => `, ${argument}`).join('')})`;
   }
+  // A std::string is a JS string, answered as the interpreter answers it
+  // (generatedStringMethod), and `append` stores the new text back.
+  if (/^(?:const\s+)?std::string(?:_view)?\b/.test(expressionValueType(expression.callee.object, context) ?? '')) {
+    const call = `runtime.stringMethod(${object}, ${JSON.stringify(property)}${args.map(argument => `, ${argument}`).join('')})`;
+    if (!STRING_MUTATORS.has(property)) return call;
+    const receiver = expression.callee.object;
+    if (receiver.kind !== 'identifier' && receiver.kind !== 'member' && receiver.kind !== 'index') return call;
+    return `(${emitAssignment(receiver, '=', receiver, context, call)}, ${object})`;
+  }
   // normalizeMameExecutionSource lowers std::vector::push_back to Array.push.
   // A vector is the container value itself, not a C++ pointer to its first
   // element. Running it through runtime.dereference turns an empty vector into
@@ -1995,8 +2004,8 @@ function emitAssignment(
   operator: string,
   value: GeneratedExpression,
   context: EmitContext,
+  right = emitExpression(value, context),
 ): string {
-  const right = emitExpression(value, context);
   if (expression.kind === 'call') {
     if (operator !== '=' || expression.callee.kind !== 'member') {
       throw new Error('device codegen only supports assignment to member call results');

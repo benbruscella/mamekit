@@ -16,7 +16,7 @@ import { ROM_BUCKET_BASE, encodeRomKey, machineSetDir, machineSetKeys } from '..
 import { readZip } from '../runtime/zip.ts';
 import { gameOutputDir } from '../gen/output-layout.ts';
 import { romsDir } from '../paths.ts';
-import { loadGameContracts } from './contracts.ts';
+import { loadCandidateGameContracts, loadGameContracts } from './contracts.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const parallelism = 8;
@@ -98,8 +98,9 @@ async function downloadMissing(requirements: RomRequirement[]): Promise<Map<stri
   return downloaded;
 }
 
-export async function fetchAcceptanceRoms(): Promise<void> {
-  const contracts = await loadGameContracts();
+/** `candidates` fetches the candidate contracts' closure instead (`test:candidates`). */
+export async function fetchAcceptanceRoms(candidates = false): Promise<void> {
+  const contracts = await (candidates ? loadCandidateGameContracts() : loadGameContracts());
   const machines = [...new Map(contracts.map(contract => [
     `${contract.category}/${contract.game}`,
     { category: contract.category, game: contract.game },
@@ -184,5 +185,5 @@ export async function fetchAcceptanceRoms(): Promise<void> {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await fetchAcceptanceRoms();
+  await fetchAcceptanceRoms(process.argv.includes('--candidates'));
 }

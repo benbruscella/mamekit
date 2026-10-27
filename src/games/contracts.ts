@@ -102,6 +102,15 @@ export async function loadGameContracts(): Promise<GameTestContract[]> {
   return (await loadRegisteredGameContracts(['accepted'])).map(loaded => loaded.contract);
 }
 
+/**
+ * Candidate contracts. They stay out of the accepted gate, but a candidate
+ * that once worked and stops is still news (issue #208: the ZX Spectrum's
+ * cartridge failed unseen for three days), so `test:candidates` runs them.
+ */
+export async function loadCandidateGameContracts(): Promise<GameTestContract[]> {
+  return (await loadRegisteredGameContracts(['candidate'])).map(loaded => loaded.contract);
+}
+
 /** Accepted and candidate contracts used by clean generation. */
 export async function loadGenerationGameContracts(): Promise<GameTestContract[]> {
   return (await loadRegisteredGameContracts(['accepted', 'candidate']))

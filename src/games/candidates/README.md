@@ -3,4 +3,6 @@
 Place an in-progress `<game>.game.ts` and `<game>.game.spec.ts` pair here.
 Candidates participate in clean generation and compiler CI, and are published
 in the catalog labelled EXPERIMENTAL, but are excluded from the accepted
-real-ROM sweeps until promoted.
+real-ROM sweeps until promoted. `npm run test:candidates` runs their contracts,
+and CI runs it in a job that is not required, so a candidate that stops working
+shows red without blocking a merge.

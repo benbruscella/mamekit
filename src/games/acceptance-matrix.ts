@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadGameContracts } from './contracts.ts';
+import { loadCandidateGameContracts, loadGameContracts } from './contracts.ts';
 import { shardContracts, type ContractDurations } from './acceptance-shards.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -141,12 +141,16 @@ function shardOf(targets: string[], spec: string | undefined): string[] {
   return shardContracts(targets, spec, durations);
 }
 
-const allTargets = (await loadGameContracts()).map(contractKey);
+// `--candidates` runs the candidate contracts instead, which no gate requires:
+// it is how a candidate that stops working is seen (issue #208).
+const candidates = process.argv.includes('--candidates');
+const kind = candidates ? 'candidate' : 'accepted';
+const allTargets = (await (candidates ? loadCandidateGameContracts() : loadGameContracts())).map(contractKey);
 const requested = (process.env.MAMEKIT_ACCEPTANCE_GAMES ?? '')
   .split(',').map(value => value.trim()).filter(Boolean);
 const selected = requested.length ? requested : allTargets;
 const unknown = selected.filter(target => !allTargets.includes(target));
-if (unknown.length) throw new Error(`unknown accepted contract(s): ${unknown.join(', ')}`);
+if (unknown.length) throw new Error(`unknown ${kind} contract(s): ${unknown.join(', ')}`);
 const shard = option('--shard');
 const targets = shardOf(selected, shard);
 if (shard) console.log(`shard ${shard}: ${targets.length} of ${selected.length} contracts`);
@@ -174,10 +178,11 @@ const report: AcceptanceReport = {
   failed: results.filter(result => result.status === 'failed').length,
   results,
 };
-const reportPath = resolve(option('--report') ?? '.cache/acceptance-report.json');
+const reportPath = resolve(option('--report') ??
+  (candidates ? '.cache/candidate-report.json' : '.cache/acceptance-report.json'));
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
-console.log(`\n${report.passed}/${results.length} accepted contracts passed`);
+console.log(`\n${report.passed}/${results.length} ${kind} contracts passed`);
 console.log(`report: ${reportPath}`);
 
 if (report.failed) process.exitCode = 1;

@@ -35,6 +35,7 @@
     "fetch:acceptance-roms": "node src/games/fetch-acceptance-roms.ts",
     "test:games:matrix": "node src/games/acceptance-matrix.ts",
     "test:games:ci": "npm run test:current && npm run fetch:acceptance-roms && npm run test:games:matrix",
+    "test:candidates": "node src/games/fetch-acceptance-roms.ts --candidates && node src/games/acceptance-matrix.ts --candidates",
     "test:blast-radius": "npm run test:games:matrix",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:e2e:headed": "MAMEKIT_HEADED=1 playwright test --config e2e/playwright.config.ts",

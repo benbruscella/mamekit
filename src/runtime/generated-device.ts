@@ -9,6 +9,7 @@ import {
   generatedPackedView,
   generatedContainerAccessor,
   generatedVectorMethod,
+  generatedStringCall,
   generatedAdd,
   generatedPointerStore,
   generatedWideBinary,
@@ -165,6 +166,8 @@ export interface GeneratedDeviceExecutionContext {
   container(value: unknown, method: string): unknown;
   /** std::vector `insert`/`erase` at an iterator, or the object's own method of that name. */
   vectorMethod(container: unknown, method: string, ...args: unknown[]): unknown;
+  /** A std::string method over the JS string that stands for one. */
+  stringMethod(value: unknown, method: string, ...args: unknown[]): unknown;
   /** The container an indexed write stores into, addressed by member name. */
   writableMember(name: string): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
@@ -1238,7 +1241,10 @@ class IrDevice implements Device {
           : (...args: GeneratedCallArgument[]) => compiled(device.executionContext, ...args);
       }
     }
-    self.tag = () => options.tag ?? '';
+    // device_t::tag() is the device's own full tag, which for a card or a
+    // child is not the slot's: the Interface 2's cartridge slot allocates its
+    // ROM as `<tag()>:cart:rom`, MAME's `:exp:intf2:cartslot:cart:rom`.
+    self.tag = () => this.ownTag;
     // device_t's clock, asked by whatever holds the device: a CTC channel
     // times its prescaler with `m_device->clocks_to_attotime(16)`, against
     // the CTC's clock rather than its own (which is 0). Never in place of a
@@ -1627,6 +1633,7 @@ class IrDevice implements Device {
       packedView: generatedPackedView,
       container: generatedContainerAccessor,
       vectorMethod: generatedVectorMethod,
+      stringMethod: generatedStringCall,
       pointerStore: generatedPointerStore,
       add: generatedAdd,
       subtract: generatedSubtract,

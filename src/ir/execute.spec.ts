@@ -716,6 +716,23 @@ check('std::vector insert and erase work at iterators', () => {
     'anything else keeps its own method');
 });
 
+// A std::string is its text, not a number, and its methods answer over it.
+// vcs_slot.cpp names its region `std::string(tag()).append(...).c_str()`,
+// a temporary with nowhere to store the new text but the answer.
+check('std::string is text, and append changes it', () => {
+  const regions: unknown[] = [];
+  const run = (source: string) => executeGeneratedProgram(
+    compileMameHandler(normalizeMameExecutionSource(source)), {
+      members: { m_tag: ':slot' },
+      referenceCalls: { tag: () => ':slot', region: name => { regions.push(name); return 0; } },
+      callParameters: { region: ['std::string_view name'] },
+    }).value;
+  assert.equal(run('std::string text; return text.empty() * 10 + text.size();'), 10);
+  assert.equal(run('std::string text(m_tag); text.append(":rom"); return text.length();'), 9);
+  run('region(std::string(tag()).append(":cart:rom").c_str());');
+  assert.deepEqual(regions, [':slot:cart:rom']);
+});
+
 // The 6805's device_reset clears its IRQ lines with std::fill over
 // std::begin/std::end, and its device_start sizes the cycle range with
 // std::min_element/std::max_element. All four answered 0 (#178).

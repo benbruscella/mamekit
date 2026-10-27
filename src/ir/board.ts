@@ -1401,6 +1401,8 @@ export interface GeneratedHandlerRuntime {
   packedView(value: unknown, signed: boolean): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
+  /** A std::string method over the JS string that stands for one. */
+  stringMethod(value: unknown, method: string, ...args: unknown[]): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
   /** C++ `*pointer = value`, over a generated pointer or plain memory. */

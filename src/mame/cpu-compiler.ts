@@ -4009,9 +4009,13 @@ export function normalizeMameExecutionSource(source: string): string {
  * Replace MAME's diagnostic-only calls with a harmless expression. A balanced
  * scan is required because log arguments often contain initializer lists and
  * nested calls that cannot be removed safely with a regular expression.
+ *
+ * The receiver goes with the call: `device().logerror(...)` left as
+ * `device().TRACE_NOOP()` was a member call nothing answers, and
+ * device_generic_cart_interface::rom_alloc logs that way.
  */
 function stripTracingCalls(source: string): string {
-  const call = /\b(?:LOG[A-Z0-9_]*|logerror|popmessage)\s*\(/g;
+  const call = /(?:\b\w+(?:\s*\(\s*\))?\s*(?:\.|->)\s*)*\b(?:LOG[A-Z0-9_]*|logerror|popmessage)\s*\(/g;
   let output = '';
   let cursor = 0;
   let match: RegExpExecArray | null;

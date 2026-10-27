@@ -64,6 +64,8 @@ jobs:
             hash/c64_flop_misc.xml
             hash/c64_quik.xml
             hash/vic10.xml
+            hash/spectrum_cart.xml
+            hash/spectrum_cass.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
@@ -139,6 +141,8 @@ jobs:
             hash/c64_flop_misc.xml
             hash/c64_quik.xml
             hash/vic10.xml
+            hash/spectrum_cart.xml
+            hash/spectrum_cass.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
@@ -200,6 +204,8 @@ jobs:
             hash/c64_flop_misc.xml
             hash/c64_quik.xml
             hash/vic10.xml
+            hash/spectrum_cart.xml
+            hash/spectrum_cass.xml
             3rdparty/ymfm/src
           sparse-checkout-cone-mode: false
 
@@ -329,6 +335,48 @@ jobs:
           # own report rather than the last writer winning.
           name: rom-acceptance-report-${{ matrix.shard }}
           path: .cache/acceptance-report.json
+          if-no-files-found: warn
+
+  candidates:
+    # Candidate contracts gate nothing, but one that worked and then stops is
+    # news: the ZX Spectrum's cartridge failed unseen for three days (#208)
+    # because no run ever played it. This job runs them all and fails red on
+    # the run without failing it, so a PR shows the regression it caused.
+    name: ROM-backed candidate contracts (not required)
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    needs: generate
+    continue-on-error: true
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Check out MAMEKIT
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download the generated distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-dist
+          path: dist
+
+      - name: Candidate contracts
+        run: npm run test:candidates
+
+      - name: Upload the candidate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rom-candidate-report
+          path: .cache/candidate-report.json
           if-no-files-found: warn
 
   acceptance-gate:

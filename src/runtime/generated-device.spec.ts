@@ -6,6 +6,7 @@ import {
   endGeneratedTimerDelivery,
   clearGeneratedDevices,
   createDevice,
+  generatedDeviceDefinition,
   generatedInstanceFactories,
   hasGeneratedDevice,
   registerGeneratedDevice,
@@ -663,6 +664,29 @@ registerGeneratedDevice({
   assert.equal(((file.instance!() as Record<string, unknown>).m_card as { m_roml_size: number }).m_roml_size, 0,
     'the file chose the other card (whose call_load read no software part)');
   assert.ok(((file.instance!() as Record<string, unknown>).m_card as Record<string, unknown>).read_rom, 'and a card is there');
+}
+
+// device_t::tag() is the device's own full tag. The ZX Interface 2's
+// cartridge slot is its child `cartslot`, and allocates the ROM it loads as
+// `<tag()>:cart:rom` (device_generic_cart_interface::rom_alloc); answered
+// with the outer device's tag, the region lost its MAME name.
+{
+  registerGeneratedDevice({
+    type: 'TAGGED_SLOT_FIXTURE', imageInterface: true, constants: {}, members: [], callbacks: [], timers: [],
+    methods: [method('rom_alloc', '', 'std::string fulltag(tag()); fulltag.append(":cart:rom");' +
+      'device().machine().memory().region_alloc(fulltag, 4, 1, ENDIANNESS_LITTLE)->base();')],
+    summary: { diagnostics: 0 },
+  });
+  registerGeneratedDevice({
+    type: 'TAGGED_CARD_FIXTURE', constants: {}, members: [], callbacks: [], timers: [],
+    children: [{ member: 'm_cart', type: 'TAGGED_SLOT_FIXTURE', tag: 'cartslot',
+      definition: generatedDeviceDefinition('TAGGED_SLOT_FIXTURE')! }],
+    methods: [method('load', '', 'm_cart->rom_alloc();')],
+    summary: { diagnostics: 0 },
+  } as unknown as GeneratedDeviceDefinition);
+  const regions: Record<string, Uint8Array> = {};
+  createDevice('TAGGED_CARD_FIXTURE', { tag: 'exp', deviceTag: 'exp:intf2', regions }).call('load');
+  assert.deepEqual(Object.keys(regions), ['exp:intf2:cartslot:cart:rom']);
 }
 
 // A struct field of a named struct type is built as that struct: MMC5's
