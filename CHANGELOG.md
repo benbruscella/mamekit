@@ -30,6 +30,16 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The MAME oracle compares Galaxian, Scramble, Frogger, Jump Bug, Zig Zag, Tutankham and Juno First at MAME's own screen scale ([#207](https://github.com/benbruscella/mamekit/issues/207))
+
+**For players:** Nothing visible.
+
+**Under the hood:**
+- MAME draws these screens 3x wider than the board's 256 pixels (`GALAXIAN_XSCALE`), so every frame the oracle compared was a size mismatch. It now repeats each of our pixels 3 times along the board's horizontal axis, after rotation, and compares at MAME's resolution.
+- The factor comes from `scaledScreen` against MAME's `-listxml`, never from the pictures, so a plain width error is still a size mismatch. MAME's picture is never shrunk, which would average away its sub-pixel stars.
+- Run reports and the baseline record `pixels.scale`, and the side-by-side PNGs show both pictures at MAME's size.
+- The 7 machines' pixels were re-taken into baseline `090275cf`. Frogger, Juno First and Zig Zag with no input are pixel-exact against MAME. In Galaxian's checked frame, every differing pixel is a star.
+
 ### A MAME baseline for every contract scenario, and a command that judges a change against it ([#204](https://github.com/benbruscella/mamekit/issues/204))
 
 **For players:** Nothing visible.
