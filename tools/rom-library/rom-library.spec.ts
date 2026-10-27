@@ -10,6 +10,7 @@ import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { readZipBytes, walkFile, type Blob } from './archives.ts';
 import { identifyBlob, isBlank, parseCrt, sha1 } from './identify.ts';
 import { hex8, Library, writeZip } from './library.ts';
+import { checkSampleSet, identifySampleZip, rootOnly, sampleNeeds, zipSamples } from './samples.ts';
 import { parseList } from './softlists.ts';
 import type { Systems } from './systems.ts';
 import { applyTidy, planTidy } from './tidy.ts';
@@ -256,9 +257,68 @@ const pocket = setsLibrary.fileMachineSets([chipOf('pocket_boot.bin', pocketChip
 assert.deepEqual(pocket.map(outcome => `${outcome.list}:${outcome.name}:${outcome.verdict}`), ['consoles/pocketable/bios:pocketable_pocket:imported']);
 assert.ok(existsSync(join(setsRoot, 'consoles/pocketable/bios/pocketable_pocket.zip')));
 
+// --- device sets only MAME's run needs --------------------------------------------
+// No board of ours loads the speech chip's set, but MAME's run of `clone`
+// does, so tidying keeps it; once MAME's answer is known, a set neither run
+// needs is quarantined; with no answer, nothing is guessed.
+writeFileSync(join(setsRoot, 'arcade/speech.zip'), writeZip(new Map([['speech.bin', bytes(512, 17)]])));
+writeFileSync(join(setsRoot, 'arcade/stray.zip'), writeZip(new Map([['stray.bin', bytes(512, 18)]])));
+const arcadeMoves = (mameRun?: Parameters<typeof planTidy>[1]) =>
+  planTidy(setsLibrary, mameRun).moves.filter(move => move.from.includes('/arcade/')).map(move => move.from.split('/').pop());
+assert.deepEqual(arcadeMoves({ sets: new Map([['speech', ['clone']]]), unknown: [] }), ['stray.zip'], 'MAME\'s run keeps its device set');
+assert.deepEqual(arcadeMoves({ sets: new Map(), unknown: [] }), ['speech.zip', 'stray.zip']);
+const unsure = planTidy(setsLibrary, { sets: new Map(), unknown: ['clone'], reason: 'no MAME binary found' });
+assert.deepEqual(unsure.moves.filter(move => move.from.includes('/arcade/')), [], 'an unknown MAME run quarantines nothing');
+assert.ok(unsure.notes.some(note => /speech\.zip.*stray\.zip.*no MAME binary found/.test(note)));
+
+// --- sample sets ------------------------------------------------------------------
+// Names come from each generated config's `samples`; a set two machines share
+// needs both machines' names. MAME has no CRCs for samples, so a zip is the
+// set whose names it covers.
+const sampleSystems: Systems = {
+  systems: [{
+    key: 'arcade', category: 'arcade', lists: [], machines: [
+      { game: 'blaster', lifecycle: 'accepted', config: { samples: [{ tag: 'samples', set: 'blaster', names: ['shot', 'boom'] }] } as unknown as ShellConfig },
+      { game: 'blaster2', lifecycle: 'accepted', config: { samples: [{ tag: 'samples', set: 'blaster', names: ['boom', 'alarm'] }] } as unknown as ShellConfig },
+      { game: 'knock', lifecycle: 'accepted', config: { samples: [{ tag: 'knocker', set: 'knock', names: ['knocker'] }] } as unknown as ShellConfig },
+      { game: 'quiet', lifecycle: 'accepted', config: {} as unknown as ShellConfig },
+    ],
+  }],
+  parked: [], ungenerated: [],
+};
+const needs = sampleNeeds(sampleSystems);
+assert.deepEqual(needs, [
+  { set: 'blaster', names: ['shot', 'boom', 'alarm'], machines: ['blaster', 'blaster2'] },
+  { set: 'knock', names: ['knocker'], machines: ['knock'] },
+]);
+const wav = (seed: number) => bytes(64, seed);
+const blasterZip = writeZip(new Map([['SHOT.wav', wav(1)], ['boom.flac', wav(2)], ['alarm.wav', wav(3)], ['readme.txt', wav(4)]]));
+const held = zipSamples(blasterZip);
+assert.deepEqual([...held.keys()].sort(), ['alarm', 'boom', 'shot'], 'names as MAME looks them up: no extension, any case, .flac too');
+assert.deepEqual(identifySampleZip(held, 'whatever', needs), { kind: 'complete', need: needs[0] }, 'extra files are fine, the zip name is not needed');
+const short = zipSamples(writeZip(new Map([['shot.wav', wav(1)]])));
+assert.deepEqual(identifySampleZip(short, 'blaster', needs), { kind: 'incomplete', need: needs[0], missing: ['boom', 'alarm'] });
+assert.deepEqual(identifySampleZip(zipSamples(writeZip(new Map([['tune.wav', wav(5)]]))), 'tune', needs), { kind: 'unidentified' });
+assert.equal(identifySampleZip(zipSamples(writeZip(new Map([['tune.wav', wav(5)]]))), 'knock', needs).kind, 'incomplete',
+  'a zip named for a set it lacks is that set, incomplete');
+const both = zipSamples(writeZip(new Map([['shot.wav', wav(1)], ['boom.wav', wav(2)], ['alarm.wav', wav(3)], ['knocker.wav', wav(6)]])));
+assert.equal(identifySampleZip(both, 'pack', needs).kind, 'ambiguous', 'a zip covering two sets is neither');
+assert.deepEqual(identifySampleZip(both, 'knock', needs), { kind: 'complete', need: needs[1] }, 'unless its name says which');
+// MAME looks only at the zip's root.
+const nested = zipSamples(writeZip(new Map([['knock/knocker.wav', wav(6)]])));
+assert.equal(identifySampleZip(nested, 'knock', needs).kind, 'complete', 'a nested set is still identified');
+assert.equal(rootOnly(nested).size, 0, 'but MAME would not find it where it is');
+const samplesRoot = join(root, 'samples');
+mkdirSync(samplesRoot);
+writeFileSync(join(samplesRoot, 'blaster.zip'), blasterZip);
+writeFileSync(join(samplesRoot, 'knock.zip'), writeZip(new Map([['knock/knocker.wav', wav(6)]])));
+assert.deepEqual(checkSampleSet(samplesRoot, needs[0]!).missing, []);
+assert.deepEqual(checkSampleSet(samplesRoot, needs[1]!).missing, ['knocker'], 'a filed set is checked as MAME reads it');
+assert.deepEqual(checkSampleSet(join(root, 'nowhere'), needs[1]!), { need: needs[1], missing: ['knocker'] });
+
 function countFiles(dir: string): number {
   return readdirSync(dir, { withFileTypes: true }).reduce((total, entry) =>
     total + (entry.isDirectory() ? countFiles(join(dir, entry.name)) : 1), 0);
 }
 
-console.log('rom-library.spec: identification, pooled filing, blank banks, both manifest shapes and non-destructive tidy passed');
+console.log('rom-library.spec: identification, pooled filing, blank banks, both manifest shapes, non-destructive tidy, MAME-run device sets and sample sets passed');

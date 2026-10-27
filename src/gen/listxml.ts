@@ -44,6 +44,8 @@ export interface ListXmlRom {
   status?: string;
   /** Set when the chip is one option of a selectable BIOS, not a fixed load. */
   bios?: string;
+  /** ROM_OPTIONAL: MAME runs without it. */
+  optional?: boolean;
 }
 
 export interface ListXmlChip {
@@ -78,6 +80,19 @@ export interface ListXmlMachine {
   roms: ListXmlRom[];
   chips: ListXmlChip[];
   displays: ListXmlDisplay[];
+  /** The set its samples are filed under, when a samples device names one. */
+  sampleof?: string;
+  /** Every `<sample>` it loads, in MAME's order, each name once. */
+  samples: string[];
+  /** `device_ref` names, one per device MAME instantiates. */
+  deviceRefs: string[];
+  /**
+   * The device sets MAME's own run of the machine loads from: the
+   * `device_ref`s whose device entry carries dumped ROMs (`votrsc01a`, the
+   * Votrax qbert speaks through). Read from the device entries in the same
+   * dump, so only a full `-listxml <machine>` answer fills it.
+   */
+  deviceSets: string[];
 }
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -87,7 +102,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
  * reading a field it previously ignored: the MAME version alone cannot tell a
  * cached entry that predates the change from a current one.
  */
-const PARSE_VERSION = 2;
+const PARSE_VERSION = 3;
 
 export function defaultListXmlCacheRoot(): string {
   return join(projectRoot, '.cache/listxml');
@@ -140,6 +155,7 @@ export function parseListXmlMachines(xml: string): ListXmlMachine[] {
       ...(attrs.sourcefile ? { sourcefile: attrs.sourcefile } : {}),
       ...(attrs.cloneof ? { cloneof: attrs.cloneof } : {}),
       ...(attrs.romof ? { romof: attrs.romof } : {}),
+      ...(attrs.sampleof ? { sampleof: attrs.sampleof } : {}),
       isdevice: attrs.isdevice === 'yes',
       ...(text(body, 'description') ? { description: text(body, 'description') } : {}),
       ...(text(body, 'year') ? { year: text(body, 'year') } : {}),
@@ -154,6 +170,7 @@ export function parseListXmlMachines(xml: string): ListXmlMachine[] {
         ...(rom.merge ? { merge: rom.merge } : {}),
         ...(rom.bios ? { bios: rom.bios } : {}),
         ...(rom.status ? { status: rom.status } : {}),
+        ...(rom.optional === 'yes' ? { optional: true } : {}),
       })),
       chips: children(body, 'chip')
         .filter(chip => chip.type === 'cpu' || chip.type === 'audio')
@@ -175,7 +192,16 @@ export function parseListXmlMachines(xml: string): ListXmlMachine[] {
         ...(num(display.vbstart) !== undefined ? { vbstart: num(display.vbstart) } : {}),
         ...(num(display.vbend) !== undefined ? { vbend: num(display.vbend) } : {}),
       })),
+      samples: children(body, 'sample').map(sample => sample.name).filter(Boolean),
+      deviceRefs: [...new Set(children(body, 'device_ref').map(device => device.name).filter(Boolean))],
+      deviceSets: [],
     });
+  }
+  const withRoms = new Set(machines
+    .filter(machine => machine.isdevice && machine.roms.some(rom => rom.status !== 'nodump' && !rom.optional))
+    .map(machine => machine.name));
+  for (const machine of machines) {
+    if (!machine.isdevice) machine.deviceSets = machine.deviceRefs.filter(name => withRoms.has(name));
   }
   return machines;
 }
@@ -276,6 +302,29 @@ function runListXml(binary: string, machine: string): ListXmlMachine | undefined
 }
 
 /**
+ * A cached answer, read without a binary: `{ machine: undefined }` is MAME
+ * not knowing the machine, `undefined` is no current entry. Tools that only
+ * read facts (the ROM library) can then run where no MAME binary is set, once
+ * any run with one has warmed the cache for the checkout's release.
+ */
+export function storedListXmlMachine(
+  version: string,
+  machine: string,
+  cacheRoot = defaultListXmlCacheRoot(),
+): { machine: ListXmlMachine | undefined } | undefined {
+  const file = cacheFile(cacheRoot, version, machine);
+  if (!existsSync(file)) return undefined;
+  try {
+    const cached = JSON.parse(readFileSync(file, 'utf8')) as {
+      parseVersion?: number;
+      machine: ListXmlMachine | null;
+    };
+    if (cached.parseVersion === PARSE_VERSION) return { machine: cached.machine ?? undefined };
+  } catch { /* torn concurrent write or corrupt file: no entry */ }
+  return undefined;
+}
+
+/**
  * MAME's own description of one machine, cached against the binary's build
  * version. Undefined when MAME does not know the machine.
  */
@@ -286,17 +335,10 @@ export function cachedListXmlMachine(
 ): ListXmlMachine | undefined {
   if (cachingDisabled()) return runListXml(oracle.binary, machine);
 
-  const file = cacheFile(cacheRoot, oracle.version, machine);
-  if (existsSync(file)) {
-    try {
-      const cached = JSON.parse(readFileSync(file, 'utf8')) as {
-        parseVersion?: number;
-        machine: ListXmlMachine | null;
-      };
-      if (cached.parseVersion === PARSE_VERSION) return cached.machine ?? undefined;
-    } catch { /* torn concurrent write or corrupt file — re-run below */ }
-  }
+  const cached = storedListXmlMachine(oracle.version, machine, cacheRoot);
+  if (cached) return cached.machine;
 
+  const file = cacheFile(cacheRoot, oracle.version, machine);
   pruneOtherVersions(cacheRoot, oracle.version);
   const parsed = runListXml(oracle.binary, machine);
   mkdirSync(dirname(file), { recursive: true });

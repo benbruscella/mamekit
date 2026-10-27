@@ -60,6 +60,7 @@ export interface DerivedConfig {
     screen?: DerivedScreen;
   };
   roms?: { region?: string; loads?: DerivedRomLoad[] }[];
+  samples?: { tag?: string; set?: string; names?: string[] }[];
 }
 
 export interface FactFindings {
@@ -239,6 +240,34 @@ function romFailures(
 }
 
 /**
+ * The samples MAME loads, by name, and the set it files them under. MAME
+ * prints `sampleof` only for a set named with a `*` entry; without one the
+ * set is the machine's own.
+ */
+function sampleFailures(
+  target: string,
+  game: string,
+  ours: DerivedConfig['samples'],
+  machine: ListXmlMachine,
+): string[] {
+  const failures: string[] = [];
+  const named = new Set((ours ?? []).flatMap(device => device.names ?? []));
+  const loaded = new Set(machine.samples ?? []);
+  const missing = [...loaded].filter(name => !named.has(name));
+  const extra = [...named].filter(name => !loaded.has(name));
+  if (missing.length) failures.push(`${target}: MAME loads sample(s) ${missing.join(' ')}, which the board never names`);
+  if (extra.length) failures.push(`${target}: the board names sample(s) ${extra.join(' ')}, which MAME does not load`);
+  if (named.size) {
+    const sets = [...new Set((ours ?? []).filter(device => device.names?.length).map(device => device.set))];
+    const expected = machine.sampleof ?? game;
+    if (!sets.includes(expected)) {
+      failures.push(`${target}: samples are filed under ${sets.map(set => JSON.stringify(set)).join(', ')} but MAME's set is ${JSON.stringify(expected)}`);
+    }
+  }
+  return failures;
+}
+
+/**
  * Every disagreement between our derived facts and MAME's own answer for one
  * machine, split into real failures and explained divergences.
  */
@@ -263,5 +292,6 @@ export function machineFactFindings(
   failures.push(...screen.failures);
   failures.push(...cpuFailures(target, config.board?.cpus, machine));
   failures.push(...romFailures(target, config.roms, machine));
+  failures.push(...sampleFailures(target, machine.name, config.samples, machine));
   return { failures, divergences: screen.divergences };
 }

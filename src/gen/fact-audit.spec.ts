@@ -19,6 +19,9 @@ const machine = (over: Partial<ListXmlMachine> = {}): ListXmlMachine => ({
   roms: [],
   chips: [],
   displays: [],
+  samples: [],
+  deviceRefs: [],
+  deviceSets: [],
   ...over,
 });
 
@@ -134,5 +137,31 @@ const scaled = machineFactFindings(
 );
 assert.deepEqual(scaled.failures, [], 'a scaled screen is not a failure');
 assert.match(scaled.divergences[0], /MAME renders this screen 3× wide/);
+
+// --- samples: names and the set they are filed under ------------------------
+
+const meta = { fullname: 'Demo Game', year: '1982', manufacturer: 'Maker', driverFile: 'src/mame/maker/demo.cpp' };
+assert.deepEqual(
+  machineFactFindings('demo', meta, { samples: [{ tag: 'samples', set: 'demo', names: ['shot', 'boom'] }] },
+    machine({ sampleof: 'demo', samples: ['shot', 'boom'] })).failures,
+  [],
+  'the same names under MAME\'s set agree',
+);
+assert.deepEqual(
+  machineFactFindings('democlone', meta, { samples: [{ tag: 'samples', set: 'democlone', names: ['shot'] }] },
+    machine({ name: 'democlone', samples: ['shot'] })).failures.filter(failure => /sample/.test(failure)),
+  [],
+  'with no sampleof the set is the machine\'s own',
+);
+const sampleDiff = machineFactFindings('demo', meta, { samples: [{ tag: 'samples', set: 'other', names: ['shot', 'zap'] }] },
+  machine({ sampleof: 'demo', samples: ['shot', 'boom'] })).failures;
+assert.ok(sampleDiff.some(failure => /MAME loads sample\(s\) boom/.test(failure)), 'a sample MAME loads and we never name');
+assert.ok(sampleDiff.some(failure => /names sample\(s\) zap/.test(failure)), 'a name MAME does not load');
+assert.ok(sampleDiff.some(failure => /MAME's set is "demo"/.test(failure)), 'the wrong set');
+assert.ok(
+  machineFactFindings('demo', meta, {}, machine({ sampleof: 'demo', samples: ['shot'] })).failures
+    .some(failure => /never names/.test(failure)),
+  'a samples device the compiler never lowered is a failure',
+);
 
 console.log('fact-audit.spec: ok');

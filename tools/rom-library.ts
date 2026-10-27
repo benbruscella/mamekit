@@ -5,6 +5,8 @@
 //   node tools/rom-library.ts missing            name the gaps (--list nes --region western --limit 40 --csv)
 //   node tools/rom-library.ts import [--dry-run] tidy, then identify and file everything in _new/
 //   node tools/rom-library.ts tidy [--dry-run]   quarantine what nothing supported claims
+//   node tools/rom-library.ts samples [import [--dry-run]]
+//                                                sample sets: which are filed, or file samples/_new/
 //
 // Supported means generated: the systems, their software lists and their BIOS
 // sets come from the game contracts and each target's config.json (see
@@ -23,15 +25,25 @@
 //   _unidentified/  it matched nothing a supported list names
 //
 // and every run writes _new/_reports/<command>-<time>.json naming each match.
+//
+// Sample sets (.data/samples/<set>.zip) have no CRCs in MAME, so `samples
+// import` files a zip by the .wav names it covers (rom-library/samples.ts),
+// into the same outcome folders under samples/_new/. Tidying asks MAME's own
+// -listxml (MAME_BIN, or its warm cache) which device sets MAME's run of a
+// supported machine needs, so the oracle's Votrax for Q*bert stays filed.
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { crc32 } from 'node:zlib';
 import { checkRomSet, missingRomSets } from '../src/runtime/shell.ts';
-import { romsDir as romsRoot } from '../src/paths.ts';
+import { romsDir as romsRoot, samplesDir as samplesRoot } from '../src/paths.ts';
 import { walkFile, readZipBytes, type Blob } from './rom-library/archives.ts';
 import { identifyBlob, type Piece, type Variant } from './rom-library/identify.ts';
-import { hex8, Library, type Outcome, type SetChip, type Verdict } from './rom-library/library.ts';
+import { hex8, Library, writeZip, type Outcome, type SetChip, type Verdict } from './rom-library/library.ts';
+import { mameRunSets } from './rom-library/mame-run.ts';
+import {
+  checkSampleSet, identifySampleZip, rootOnly, sampleNeeds, zipSamples,
+} from './rom-library/samples.ts';
 import { parseRegions, regionsOf, type ListEntry } from './rom-library/softlists.ts';
 import { acceptedCrcs, biosKey, criticalRegions, machineSets, type Machine, type System } from './rom-library/systems.ts';
 import { aliasRenames, applyTidy, planTidy, type Move, type TidyPlan } from './rom-library/tidy.ts';
@@ -50,6 +62,8 @@ const romsDir = resolve(flag('--roms') ?? romsRoot(projectRoot));
 const inbox = resolve(flag('--inbox') ?? join(romsDir, '_new'));
 const mameSrc = resolve(flag('--mame') ?? process.env.MAME_SRC ?? join(projectRoot, '../mame'));
 const distDir = resolve(flag('--dist') ?? join(projectRoot, 'dist'));
+const samplesDir = resolve(flag('--samples') ?? samplesRoot(projectRoot));
+const samplesInbox = join(samplesDir, '_new');
 
 if (!existsSync(join(mameSrc, 'hash'))) fail(`no MAME software lists at ${join(mameSrc, 'hash')} -- pass --mame <checkout>`);
 const library = await Library.open({ romsDir, mameSrc, distDir, dryRun });
@@ -60,7 +74,7 @@ if (library.systems.ungenerated.length) {
 
 // Reads see each list folder under the name tidying gives it, so the counts
 // and a dry run agree with what a real run produces.
-const plan = planTidy(library);
+const plan = planTidy(library, mameRunSets(library.systems, mameSrc, flag('--mame-bin')));
 aliasRenames(library, plan);
 
 
@@ -196,14 +210,38 @@ function status(): void {
       [extra.length ? `alternates: ${extra.join(' ')}` : '', loose.length ? `${loose.length} set${loose.length === 1 ? '' : 's'} loose in ${system.category}/ (roms-tidy files ${loose.length === 1 ? 'it' : 'them'})` : ''].filter(Boolean).join('; '),
     ]);
   }
+  rows.push(sampleRow());
   printTable(rows);
 
-  const waiting = existsSync(inbox) ? readdirSync(inbox).filter(name => !name.startsWith('_') && !name.startsWith('.')) : [];
+  const waiting = waitingIn(inbox);
+  const waitingSamples = waitingIn(samplesInbox);
   const quarantine = plan.moves.filter(move => move.kind === 'quarantine');
   console.log('');
   console.log(`inbox       ${shown(inbox)}/: ${waiting.length ? `${waiting.length} item(s) waiting -- make roms-import` : 'empty'}`);
+  if (waitingSamples.length) console.log(`            ${shown(samplesInbox)}/: ${waitingSamples.length} item(s) waiting -- make samples-import`);
   console.log(`tidy        ${plan.moves.length ? `${quarantine.length} to quarantine, ${plan.moves.length - quarantine.length} to refile -- make roms-tidy DRY=1 lists them` : 'nothing to do'}`);
   if (regions) console.log(`region      only entries tagged ${flag('--region')}`);
+}
+
+function waitingIn(dir: string): string[] {
+  return existsSync(dir) ? readdirSync(dir).filter(name => !name.startsWith('_') && !name.startsWith('.')) : [];
+}
+
+/** The status table's samples row: every set a supported machine needs, and how its zip answers. */
+function sampleRow(): string[] {
+  const checks = sampleNeeds(library.systems).map(need => checkSampleSet(samplesDir, need));
+  const complete = checks.filter(check => check.path && !check.missing.length);
+  const short = checks.filter(check => !check.path || check.missing.length);
+  return ['samples', 'sets', `${complete.length}/${checks.length} sets`, pct(complete.length, checks.length),
+    !checks.length ? 'no supported machine plays samples'
+      : short.length ? short.map(check => `${check.need.set} ${describeShort(check)}`).join(', ')
+      : `${checks.map(check => check.need.set).join(' ')} complete (${shown(samplesDir)}/)`];
+}
+
+function describeShort(check: ReturnType<typeof checkSampleSet>): string {
+  if (!check.path) return `MISSING ${check.need.set}.zip (for ${check.need.machines.join(' ')})`;
+  if (check.problem) return `UNREADABLE (${check.problem})`;
+  return `lacks ${check.missing.join(' ')}`;
 }
 
 // --- missing ----------------------------------------------------------------
@@ -436,8 +474,12 @@ function inboxFiles(dir: string, top = true): string[] {
 
 /** Move an input out of the inbox into its bucket, never over an earlier run's file. */
 function park(input: string, rel: string, bucket: string): string {
-  let dest = join(inbox, bucket, rel);
-  for (let n = 2; existsSync(dest); n++) dest = join(inbox, bucket, `${rel}.${n}`);
+  return parkIn(inbox, input, rel, bucket);
+}
+
+function parkIn(box: string, input: string, rel: string, bucket: string): string {
+  let dest = join(box, bucket, rel);
+  for (let n = 2; existsSync(dest); n++) dest = join(box, bucket, `${rel}.${n}`);
   if (dryRun) return dest;
   mkdirSync(dirname(dest), { recursive: true });
   renameSync(input, dest);
@@ -446,19 +488,142 @@ function park(input: string, rel: string, bucket: string): string {
 }
 
 function writeReport(kind: string, body: Record<string, unknown>): string {
-  const dir = join(inbox, '_reports');
+  return writeReportIn(inbox, kind, body);
+}
+
+function writeReportIn(box: string, kind: string, body: Record<string, unknown>): string {
+  const dir = join(box, '_reports');
   mkdirSync(dir, { recursive: true });
   const path = join(dir, `${kind}${dryRun ? '-dry-run' : ''}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
   writeFileSync(path, `${JSON.stringify({ command: kind, dryRun, at: new Date().toISOString(), ...body }, null, 2)}\n`);
   return path;
 }
 
+// --- samples ----------------------------------------------------------------
+
+/** `samples`: each needed set, its machines and what its zip lacks. */
+function samples(): void {
+  const needs = sampleNeeds(library.systems);
+  console.log(`sample sets  ${shown(samplesDir)}/\n`);
+  if (!needs.length) { console.log('no supported machine plays samples'); return; }
+  for (const check of needs.map(need => checkSampleSet(samplesDir, need))) {
+    const state = !check.path || check.missing.length || check.problem ? describeShort(check) : 'ok';
+    console.log(`  ${`${check.need.set}.zip`.padEnd(16)} ${String(check.need.names.length).padStart(3)} names  for ${check.need.machines.join(' ').padEnd(16)} ${state}`);
+  }
+  const waiting = waitingIn(samplesInbox);
+  console.log(`\ninbox       ${shown(samplesInbox)}/: ${waiting.length ? `${waiting.length} item(s) waiting -- make samples-import` : 'empty'}`);
+}
+
+const SAMPLE_BUCKETS = { imported: '_imported', duplicate: '_duplicate', incomplete: '_incomplete', unidentified: '_unidentified' } as const;
+
+/**
+ * `samples import`: file every zip in samples/_new/ as the <set>.zip it
+ * covers. The input parks in an outcome folder beside the inbox; the filed
+ * copy is the input itself when MAME can read it as it is, or a rebuild with
+ * the samples moved to the zip's root when they sat in a folder. A filed set
+ * that lacked names is replaced, and moves to samples/_quarantine/.
+ */
+function importSamples(): void {
+  const needs = sampleNeeds(library.systems);
+  if (!existsSync(samplesInbox)) fail(`${samplesInbox} does not exist -- create it and drop sample zips in`);
+  const inputs = readdirSync(samplesInbox, { withFileTypes: true })
+    .filter(entry => entry.isFile() && !entry.name.startsWith('.') && !entry.name.startsWith('_'))
+    .map(entry => entry.name).sort();
+  console.log(`== samples import ${shown(samplesInbox)}/: ${inputs.length} input(s), ${needs.length} set(s) needed`);
+  const report: Record<string, unknown>[] = [];
+  const totals = { imported: 0, duplicate: 0, incomplete: 0, unidentified: 0 };
+  for (const name of inputs) {
+    const input = join(samplesInbox, name);
+    const stem = name.replace(/\.zip$/i, '');
+    let held: ReturnType<typeof zipSamples> | undefined;
+    let problem: string | undefined;
+    try {
+      held = name.toLowerCase().endsWith('.zip') ? zipSamples(readFileSync(input)) : undefined;
+      if (!held) problem = 'not a zip';
+    } catch (error) {
+      problem = error instanceof Error ? error.message : String(error);
+    }
+    const verdict = held ? identifySampleZip(held, stem, needs) : { kind: 'unidentified' as const };
+    let outcome: keyof typeof SAMPLE_BUCKETS = 'unidentified';
+    let detail = problem ?? 'its samples are no supported machine\'s';
+    let filed: string | undefined;
+    let replaced: string | undefined;
+    if (verdict.kind === 'ambiguous') {
+      detail = `covers ${verdict.needs.map(need => need.set).join(' and ')}; rename it to the set it is`;
+    } else if (verdict.kind === 'incomplete') {
+      outcome = 'incomplete';
+      detail = `${verdict.need.set} lacks ${verdict.missing.join(' ')}`;
+    } else if (verdict.kind === 'complete') {
+      const current = checkSampleSet(samplesDir, verdict.need);
+      if (current.path && !current.missing.length) {
+        outcome = 'duplicate';
+        detail = `${verdict.need.set}.zip is already filed and complete`;
+      } else {
+        outcome = 'imported';
+        filed = join(samplesDir, `${verdict.need.set}.zip`);
+        detail = `${verdict.need.set}: all ${verdict.need.names.length} sample(s) for ${verdict.need.machines.join(' ')}`;
+        if (current.path) {
+          replaced = join(samplesDir, '_quarantine', `${verdict.need.set}.zip`);
+          detail += ` (replaces a set that ${current.problem ? 'could not be read' : `lacked ${current.missing.join(' ')}`})`;
+        }
+        if (!dryRun) {
+          if (current.path) replaced = quarantineSample(current.path, `replaced by ${name} from samples/_new/: ${current.problem ?? `lacked ${current.missing.join(' ')}`}`);
+          fileSampleSet(input, held!, filed);
+        }
+      }
+    }
+    totals[outcome]++;
+    const parked = parkIn(samplesInbox, input, name, SAMPLE_BUCKETS[outcome]);
+    console.log(`  ${outcome.padEnd(12)} ${name.padEnd(20)} ${detail}`);
+    report.push({
+      input: name, outcome, detail, parked: relative(samplesDir, parked),
+      ...(filed ? { filed: relative(samplesDir, filed) } : {}),
+      ...(replaced ? { replaced: relative(samplesDir, replaced) } : {}),
+      ...(verdict.kind === 'incomplete' ? { set: verdict.need.set, missing: verdict.missing } : {}),
+      ...(verdict.kind === 'complete' ? { set: verdict.need.set } : {}),
+      ...(held ? { samples: [...held.keys()] } : {}),
+    });
+  }
+  console.log(`\n${dryRun ? '[dry run] ' : ''}samples import: ${totals.imported} imported, ${totals.duplicate} already filed, ` +
+    `${totals.incomplete} incomplete, ${totals.unidentified} unidentified`);
+  const path = writeReportIn(samplesInbox, 'samples-import', { inputs: report });
+  console.log(`report: ${relative(process.cwd(), path)}`);
+}
+
+/** Copy a set into place as MAME reads it: samples at the zip's root. */
+function fileSampleSet(input: string, held: ReturnType<typeof zipSamples>, to: string): void {
+  mkdirSync(dirname(to), { recursive: true });
+  if (rootOnly(held).size === held.size) { copyFileSync(input, to); return; }
+  const members = readZipBytes(readFileSync(input));
+  const flat = new Map<string, Uint8Array>();
+  for (const [member, bytes] of members) {
+    const name = basename(member);
+    if (name && !flat.has(name)) flat.set(name, bytes);
+  }
+  writeFileSync(to, writeZip(flat));
+}
+
+function quarantineSample(path: string, reason: string): string {
+  const planned = join(samplesDir, '_quarantine', basename(path));
+  let to = planned;
+  for (let n = 2; existsSync(to); n++) to = `${planned}.${n}`;
+  mkdirSync(dirname(to), { recursive: true });
+  renameSync(path, to);
+  appendFileSync(join(samplesDir, '_quarantine', 'quarantine.jsonl'), `${JSON.stringify({
+    at: new Date().toISOString(), from: relative(samplesDir, path), to: relative(samplesDir, to), reason,
+  })}\n`);
+  return to;
+}
+
 // --- helpers ----------------------------------------------------------------
 
-/** A path as the reader knows it: below .data/roms when it is, absolute otherwise. */
+/** A path as the reader knows it: below .data/roms, else below .data, else absolute. */
 function shown(path: string): string {
-  const inside = relative(romsDir, path);
-  return inside.startsWith('..') ? path : inside;
+  for (const root of [romsDir, dirname(romsDir)]) {
+    const inside = relative(root, path);
+    if (!inside.startsWith('..')) return inside;
+  }
+  return path;
 }
 
 function printTable(rows: string[][]): void {
@@ -500,4 +665,6 @@ if (command === 'status') status();
 else if (command === 'missing') missing();
 else if (command === 'tidy') tidy();
 else if (command === 'import') await importInbox();
-else fail(`unknown command "${command}" -- status, missing, import or tidy`);
+else if (command === 'samples' && (argv[1] === undefined || argv[1].startsWith('--'))) samples();
+else if (command === 'samples' && argv[1] === 'import') importSamples();
+else fail(`unknown command "${argv.slice(0, command === 'samples' ? 2 : 1).join(' ')}" -- status, missing, import, tidy, samples or samples import`);

@@ -332,6 +332,12 @@ export interface ShellConfig {
   romTransforms?: RomTransform[];
   /** the machine's hiscore.dat rows (mame/hiscore-dat.ts), absent when it has none */
   hiscore?: HiscoreTable;
+  /**
+   * The sample sets MAME's samples devices load, by name: `set` is the zip
+   * (`sampleof`), `names` the `.wav`/`.flac` files in it. Nothing plays them
+   * yet; the ROM library files them and audit:facts checks them.
+   */
+  samples?: { tag: string; set: string; names: string[] }[];
   bindings: FieldBinding[];
   dipDefaults: DipDefault[];
   ports: PortSpec[];

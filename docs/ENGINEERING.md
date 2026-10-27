@@ -35,6 +35,8 @@ hidden, gitignored tree:
 .data/roms/computers/<family>/<list>/ software per software list, BIOS in <family>/bios/
 .data/roms/_new/                      the ROM library's inbox (make roms-import)
 .data/roms/_quarantine/               what no supported machine uses, with the reason logged
+.data/samples/<set>.zip               MAME's sample sets (.wav), read by the MAME oracle
+.data/samples/_new/                   the sample inbox (make samples-import)
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
 .data/release-notes/raw/              MAMEDEV's published whatsnew/messnew notes
 .data/release-notes/index.json        digested driver credits generation reads
@@ -89,6 +91,7 @@ make -C .data roms-missing LIST=a2600     # the uncovered games (REGION=western 
 make -C .data roms-missing DAT=1          # + a Logiqx want list per list in roms/_new/_reports/
 make -C .data roms-import DRY=1           # every verdict for roms/_new/, nothing moved
 make -C .data roms-import                 # tidy, then file everything in roms/_new/
+make -C .data samples-import DRY=1        # every verdict for samples/_new/, nothing moved
 ```
 
 Identification is by chip size, CRC32 and SHA1 against the list, never by file
@@ -106,6 +109,24 @@ renames a computer list folder to its
 list, and quarantines whatever no supported list or machine claims,
 MAME-unsupported sets included; inputs park in `_new/_imported/` and its
 siblings, and every run writes `_new/_reports/`.
+
+Tidying also keeps an arcade zip that only MAME's own run of a supported
+machine loads. Our Q*bert never reads the Votrax's `votrsc01a.zip`, but MAME
+refuses to start without it, and the oracle runs MAME from these shelves.
+MAME's `-listxml` says which device sets those are (a `device_ref` whose
+device has ROMs), so this needs `MAME_BIN=` set to a binary of the checkout's
+release, or a `.cache/listxml` that an earlier run warmed. Without either,
+tidy leaves those zips where they are and says why.
+
+Sample sets are named in generated output rather than listed by hand: each
+machine's `config.json` carries `samples` (`{ tag, set, names }`), lowered
+from the `set_samples_names` array, and `audit:facts` checks it against
+`-listxml`'s `sampleof` and `<sample>` entries. MAME gives samples no CRCs, so
+`samples-import` identifies a zip by the `.wav`/`.flac` names it covers. It
+files the zip as `.data/samples/<set>.zip` with the samples at the root, where
+MAME looks, and uses the same outcome folders and reports as `roms-import`.
+`roms-status` gives the sets a row, and `make sync-samples` backs them up to
+the bucket privately, since the app plays none of them yet.
 
 MAME source discovery order is implemented by the CLI. Override automatic
 discovery with:
