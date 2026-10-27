@@ -30,6 +30,19 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Every piece of hand-written hardware pinned by name, apart from the host ([#201](https://github.com/benbruscella/mamekit/issues/201))
+
+**For players:** Nothing visible.
+
+**Under the hood:**
+- `src/runtime/architecture.spec.ts` declares `HOST_BOUNDARIES`, with a reason for each entry: the `SCREEN` and `VECTOR` hosts (moved out of `DEVICE_TYPE_BRANCHES`), the shared stream worklet and the offline probe's resampler.
+- Three new exact, shrink-only lists cover what no guard did:
+  - `REPLACED_METHODS`: the 25 `replaceMethod` sites in `src/hardware/device/extract.ts`;
+  - `SPECIALIZED_COMPILERS`: the 17 types compiled by their own function;
+  - `HAND_WRITTEN_ENGINES`: 81 classes in `src/hardware` and in the compilers' emitted worklets.
+- An added entry fails the spec with its name, and so does a removed one until it is deleted from its list.
+- ARCHITECTURE's "What is still hand-written" cites these lists as its source of truth. #178 is done when all five are empty.
+
 ### The oracle replays every contract in MAME, and four of the gaps it found ([#198](https://github.com/benbruscella/mamekit/issues/198))
 
 **For players:** Spy Hunter's picture is no longer drawn 16 lines low: its text layer now has MAME's scroll, because the machine's own video start finally runs. A cabinet toggle switch (Defender, Joust and Robotron's Auto Up / Manual Down, Pole Position's gear change) takes effect a frame after it is pressed, as on MAME. Centipede's, Marble Madness's and Missile Command's reversed trackball axes, and the ColecoVision's driving wheel, roller and Super Action slider, start where MAME's do. Donkey Kong and Donkey Kong Jr. now run their video start, as do Centipede, Crush Roller, Ms. Pac-Man, Pengo and R-Type.

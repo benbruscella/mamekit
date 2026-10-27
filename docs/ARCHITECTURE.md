@@ -1205,13 +1205,32 @@ Some MAME-derived behaviour is still written by hand, in `src/runtime`,
 `src/hardware` and inside some compilers: several sound engines, a set of
 game-named screen renderers, a few board devices (the Z80 DMA, Neo Geo I/O,
 the Taito SJ watchdog and interface start values), compile-time method
-replacements and CPU support layers. Each one is listed in the
-[#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103),
-and nothing may be added to that list. Generating an item and deleting its
+replacements and CPU support layers. Generating an item and deleting its
 hand-written version is tracked in
 [#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU, the
 Z80 PIO and the Z80 CTC went that way, and all three now compile from MAME's
 own source.
+
+The source of truth for what is left is `src/runtime/architecture.spec.ts`,
+which pins each piece by name in an exact, shrink-only list:
+
+| List | What it pins |
+|---|---|
+| `DEVICE_TYPE_BRANCHES` | Shared-runtime branches on a MAME device type, per file |
+| `DIRECT_SCREEN_SHAPES` | Renderers written for one driver |
+| `REPLACED_METHODS` | `replaceMethod` calls in `src/hardware/device/extract.ts`, as compiler and method |
+| `SPECIALIZED_COMPILERS` | Device types `extract.ts` compiles with their own source-editing function |
+| `HAND_WRITTEN_ENGINES` | Classes in `src/hardware` and in compiler-emitted worklets: cores, chips, mixers, frame renderers and processors |
+
+A new entry fails the spec, and so does an entry that no longer matches until
+it is deleted from its list. Host boundaries, such as the `SCREEN` and
+`VECTOR` hosts and the shared stream worklet that plays what a generated chip
+rendered, are declared apart in `HOST_BOUNDARIES` with the reason each is not
+hardware. The epic is done when all five lists are empty and only
+`HOST_BOUNDARIES` is left. The
+[#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103)
+has the original file and line references; CPU support layers and MAME facts
+copied by hand have no list yet, and nothing may be added to them either.
 
 ## 9. BROWSER BOOT SEQUENCE
 
