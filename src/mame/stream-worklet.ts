@@ -61,6 +61,16 @@ export class GeneratedStreamFrameRenderer {
     if (this.queue.length < 8192) this.queue.push(sample);
   }
 
+  /**
+   * A board write: only a stream's samples (\`stream.pcm\`, \`<tag>.pcm\`)
+   * are sound. The sink carries the board's other writes too -- Battlezone's
+   * \`m_discrete->write\` to a netlist not lowered yet -- and pushed as
+   * samples they were full-scale clicks.
+   */
+  write(write: GeneratedStreamWrite): void {
+    if (write.method === undefined || write.method.endsWith('.pcm')) this.push(write.data);
+  }
+
   render(): Float32Array {
     this.carry += this.outputRate / this.refresh;
     const count = Math.floor(this.carry);
@@ -112,7 +122,7 @@ class GeneratedStreamProcessor extends AudioWorkletProcessor {
           message.refresh ?? 60,
         );
       } else if (message.type === 'batch' && this.renderer) {
-        for (const write of message.writes ?? []) this.renderer.push(write.data);
+        for (const write of message.writes ?? []) this.renderer.write(write);
         this.frames.push(this.renderer.render());
         while (this.frames.length > 3) this.frames.shift();
       }

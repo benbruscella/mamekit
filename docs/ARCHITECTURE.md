@@ -643,9 +643,8 @@ audio IR. Worklets live under
 `dist/runtime/generated/audio` and import shared operations from
 `dist/runtime/core` when required.
 
-Generated configs select one of sixteen `sound.kind` values: `ay8910` (with
-generated RC routing), `sn76489`, `ym2203`, `ym2151`, `pokey`, `wsg` (Namco
-WSG), `dac`, `samples`, `sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy`,
+Generated configs select one of fifteen `sound.kind` values: `ay8910` (with
+generated RC routing), `sn76489`, `ym2203`, `ym2151`, `wsg` (Namco WSG), `dac`, `samples`, `sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy`,
 `stream`, and `discrete` for MAME `DISCRETE` soundboards, including SN76477 and
 counter/LFSR topologies. Discrete plans emit port wiring, method roles, control nodes, LFSR parameters,
 component values, mixer resistances and route gains from MAME. Every such board
@@ -654,12 +653,14 @@ the generated MAME-device artifact in `dist`. Runtime and QA code must never
 branch on a game or board-family name.
 
 A board whose only sound is MAME's own stream devices -- the Spectrum's
-`SPEAKER_SOUND` beeper and its `CASSETTE`, routed to the speakers -- is
-`sound.kind = "stream"`: each device's `sound_stream_update` renders at 48 kHz
-on the main thread as the processor runs (the speaker forces an update on
-every level change, as in MAME), and the routed mix is played by the shared
-stream worklet. A board with a chip as well (the 128K's AY-3-8912) keeps the
-chip's worklet and adds the streams to its mix (`streamDevices`).
+`SPEAKER_SOUND` beeper and its `CASSETTE`, routed to the speakers, or a POKEY
+-- is `sound.kind = "stream"`: each device's `sound_stream_update` renders on
+the main thread as the processor runs (the speaker forces an update on every
+level change, as in MAME, and a POKEY on every change of its output), and the
+routed mix is played by the shared stream worklet. A board with a chip as well
+(the 128K's AY-3-8912, Gauntlet's YM2151) keeps the chip's worklet and adds
+the streams to its mix (`streamDevices`). A device's `set_output_gain` scales
+its stream there, as Gauntlet's mixer does to its POKEY.
 
 A cartridge can carry a sound chip of its own: the MMC5's pulse and PCM
 channels, the VRC6, the Namco 163. The card builds it in its own
@@ -706,18 +707,27 @@ states rather than holding a table keyed by sound kind.
 A board is rarely one chip. The chip that decides `sound.kind` owns the
 worklet; every other chip routed to the same speaker is lowered as an entry in
 `sound.auxiliaryDevices`, carrying its tag, clock and the gain its own
-`add_route` gave it, and is hosted inside that worklet. Gauntlet is the widest
+`add_route` gave it, and is hosted inside that worklet, or, when it renders
+its own stream, is mixed beside it (`streamDevices`). Gauntlet is the widest
 case: a YM2151 for music, a POKEY for effects and a TMS5220C for speech, all
 three answering one two-input speaker.
 
 Where a chip's engine runs is decided by what reads it back, not by what it
-sounds like. A chip the CPU only writes to belongs in the worklet, and POKEY
-is emitted that way — `src/mame/pokey-compiler.ts` reads its register map,
-prescaler divisors, polynomial taps and output gain out of `pokey.cpp` and
-emits an engine that runs MAME's `step_one_clock` once per chip clock.
+sounds like. A chip the CPU only writes to can live in the worklet. A chip
+the CPU reads back cannot, because its state would have to exist twice.
 
-A chip whose pins are wired back into a port the CPU polls cannot be, and the
-TMS5220 is the case that forces the distinction. Its `/READY` pin feeds a port
+POKEY is read back: `RANDOM` is its polynomial counter where the chip stands,
+and the pots, `IRQST` and `SKSTAT` are its registers. So it is compiled whole
+from `pokey.cpp`, an ordinary generated device. It is a
+`device_execute_interface`, and the board runs it as MAME's scheduler does:
+in the round beside the CPUs, after them. Inside a CPU's slice it stands where
+the round last left it, so a read finds `RANDOM` there, and the read's own
+`synchronize()` ends the slice so the next one finds it caught up. While it
+runs, the time is its own, so the stream update its `step_one_clock` forces
+lands where the output changed. A 6502 synchronizes between bus cycles
+(`position` in the frame runner), and the round ends there.
+
+The TMS5220 is the case that forces the distinction too. Its `/READY` pin feeds a port
 bit the sound CPU tests before every byte it writes; ready depends on the FIFO
 level, the FIFO level depends on how fast the frame parser consumes bits, and
 the parser is the synthesiser. Splitting that across a worklet boundary means

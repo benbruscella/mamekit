@@ -51,6 +51,12 @@ export interface SoundRuntimeContext {
   /** The native rate a main-thread device gave `stream_alloc`, once started. */
   deviceStreamRate?(tag: string): number | undefined;
   /**
+   * Where a device the scheduler runs in its round beside the CPUs (a POKEY)
+   * stands, in seconds; undefined for any other. It is behind the CPUs until
+   * the round reaches it, so its stream is rendered no further than this.
+   */
+  deviceTime?(tag: string): number | undefined;
+  /**
    * Sound devices a board device is built out of that render a routed stream,
    * by MAME tag, with their route gain: an NES cartridge's MMC5, VRC6 or Namco
    * 163, which exist only once a cartridge chose that board. callDevice and

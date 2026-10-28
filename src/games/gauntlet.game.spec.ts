@@ -54,9 +54,10 @@ assert.ok(bank);
 assert.equal(bank.props.tag, 'slapstic_bank');
 
 // The sound board answers one speaker with three chips. The YM2151 is the
-// board's primary sound kind; the POKEY and the TMS5220C reach the same
-// speaker as routed auxiliaries, and each one has to carry the gain the
-// driver's own add_route gave it or the mix is not the board's mix.
+// board's primary sound kind; the TMS5220C reaches the same speaker as a
+// routed auxiliary, carrying the gain the driver's own add_route gave it or
+// the mix is not the board's mix. The POKEY renders its own stream beside the
+// processor, so it is not an auxiliary of the worklet.
 const auxiliary = lowerAuxiliaryAudioDevices(
   graph,
   devices.map(node => ({
@@ -68,13 +69,12 @@ const auxiliary = lowerAuxiliaryAudioDevices(
 );
 assert.deepEqual(
   auxiliary.map(device => [device.type, device.deviceTag, device.gain]),
-  [['POKEY', 'pokey', 0.32], ['TMS5220C', 'tms', 0.8]],
+  [['TMS5220C', 'tms', 0.8]],
 );
-// 14.318181 MHz over 8 and over 2*11; the speech clock is what its sample
-// rate is derived from, and the driver retunes it while the chip talks.
-assert.equal(Math.round(auxiliary[0]!.clock), 1789773);
-assert.equal(Math.round(auxiliary[1]!.clock), 650826);
-assert.deepEqual(auxiliary[1]!.writeMethods, ['data_w']);
+// 14.318181 MHz over 2*11; the speech clock is what its sample rate is
+// derived from, and the driver retunes it while the chip talks.
+assert.equal(Math.round(auxiliary[0]!.clock), 650826);
+assert.deepEqual(auxiliary[0]!.writeMethods, ['data_w']);
 
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video, 'gauntlet MAME video source must lower to executable video IR');

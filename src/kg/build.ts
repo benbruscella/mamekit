@@ -29,6 +29,7 @@ import {
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
   parseEnumConstants, normalizeTemplatedMethod, matchParen,
+  parseConstexprFunctions, expandConstexprCalls,
   type InputPortsDef,
   type AddressMapDef,
   type AddressRangeDef,
@@ -191,6 +192,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // unresolved reference: the Game Boy's serial control bits resolved to
   // nothing, and the handler that reads them could not be compiled either.
   const consts = parseEnumConstants(combined, parseDefines(combined, extConsts));
+  // One-expression constexpr helpers a config hands a device its values
+  // through: rescap.h's RES_K and CAP_U.
+  const constexprFunctions = Object.assign({},
+    ...externalSources.map(parseConstexprFunctions), parseConstexprFunctions(combined));
   const textMacros = parseTextMacros(combined);
   textMacros.strings = Object.assign({}, ...externalSources.map(source => parseTextMacros(source).strings), textMacros.strings);
   const ioportMembers = parseIoportMembers(combined, textMacros.strings);
@@ -1120,7 +1125,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         // literal, or a device finder resolved to its tag (the Battlezone
         // AVG's `set_memory(m_maincpu, AS_PROGRAM, 0x2000)`).
         const values = splitMameArgs(call[3]!).map(value => {
-          const number = evalExpr(value, { ...addressSpaces, ...consts });
+          const number = evalExpr(expandConstexprCalls(value, constexprFunctions), { ...addressSpaces, ...consts });
           if (number !== null) return String(number);
           const text = value.trim();
           if (/^"[^"]*"$/.test(text)) return text;

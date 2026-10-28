@@ -26,7 +26,7 @@ export async function createStreamWorkletProbe(
       rate: number,
       outputRate: number,
       refresh: number,
-    ) => { push(sample: number): void; render(): Float32Array };
+    ) => { write(write: ProbeSoundWrite): void; render(): Float32Array };
   };
   assert.ok(module.GeneratedStreamFrameRenderer, `${artifact} exports no stream frame renderer`);
   // audio.ts posts `clock: core.clock ?? core.sampleRate` as the stream's rate.
@@ -37,7 +37,7 @@ export async function createStreamWorkletProbe(
   );
   return {
     render(writes: readonly ProbeSoundWrite[]): Float32Array {
-      for (const write of writes) renderer.push(write.data);
+      for (const write of writes) renderer.write(write);
       return renderer.render();
     },
   };

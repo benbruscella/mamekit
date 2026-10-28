@@ -92,7 +92,6 @@ import { extractSn76489 } from './sn76489/extract.ts';
 import {
   POKEY_ID,
   POKEY_MAME_TYPES,
-  POKEY_MASTER_GAIN,
   POKEY_PORTS,
 } from './pokey/definition.ts';
 import { extractPokey } from './pokey/extract.ts';
@@ -244,7 +243,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: POKEY_MAME_TYPES,
     ports: POKEY_PORTS,
     extract: extractPokey,
-    masterGain: POKEY_MASTER_GAIN,
   },
   {
     id: DAC_ID,

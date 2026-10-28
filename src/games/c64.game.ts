@@ -95,7 +95,7 @@ export const c64 = {
       audio: {
         writes: 4011626,
         nonzeroWrites: 4011626,
-        writeHash: '32a52999',
+        writeHash: '8013da89',
         pcmHash: '379e6250',
         rms: 0.457978,
       },

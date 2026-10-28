@@ -24,7 +24,7 @@ export const timeplt = sourceTarget({
     checkpoints: {
       1: { video: '43d7f729', state: '43e30c92' },
       60: { video: 'b95a6e16', state: '5efcf53e' },
-      300: { video: '958f2475', state: 'c0d35f3b' },
+      300: { video: '958f2475', state: 'f1c39dba' },
       540: { video: '3757fed1', state: '61e17559' },
       720: { video: 'fa28120a', state: 'f5de8c11' },
       1200: { video: 'a420bb8b', state: '5552fce6' },
@@ -32,7 +32,7 @@ export const timeplt = sourceTarget({
     audio: {
       writes: 5823,
       nonzeroWrites: 5549,
-      writeHash: '1926392b',
+      writeHash: '868688c4',
       pcmHash: '8e6dc285',
       rms: 0.029438,
     },

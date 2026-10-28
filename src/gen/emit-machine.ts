@@ -921,7 +921,6 @@ export function lowerGeneratedMachine(
   const snDevices = devices.filter(device =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(device.type));
-  const pokeyDevices = devices.filter(device => device.type === 'POKEY');
   const dacDevices = devices.filter(device =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT'].includes(device.type));
@@ -935,9 +934,10 @@ export function lowerGeneratedMachine(
   // reach the chip and only the sample pull needs wiring.
   const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(device.type));
   const gameboyApu = devices.find(device => device.type === 'DMG_APU');
-  // A speaker the board drives, with whatever else renders a routed stream
-  // at machine().sample_rate() beside it.
-  const streamDevices = devices.some(device => device.type === 'SPEAKER_SOUND')
+  // A speaker the board drives or a POKEY, with whatever else renders a
+  // routed stream beside it. A cassette alone is only heard beside one.
+  const streamDevices = devices.some(device =>
+    STREAM_SOUND_TYPES.includes(device.type) && device.type !== 'CASSETTE')
     ? devices.filter(device => STREAM_SOUND_TYPES.includes(device.type) &&
       lowerAudioRoutes(graph, [device]).length > 0)
     : [];
@@ -1038,19 +1038,6 @@ export function lowerGeneratedMachine(
             : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
-    : pokeyDevices.length
-      ? {
-          kind: 'pokey',
-          deviceTag: pokeyDevices[0]!.tag,
-          deviceTags: pokeyDevices.map(device => device.tag),
-          deviceType: 'POKEY',
-          writeMethods: ['write'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, pokeyDevices).length
-            ? { routes: lowerAudioRoutes(graph, pokeyDevices) }
-            : {}),
-        }
     : dacDevices.length && !(sampleDevices.length && dacDevices.every(device =>
         device.type === 'DAC_1BIT'))
       ? {
@@ -1111,7 +1098,10 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
           };
         })()
-      : discreteDevice
+      // A netlist a stream feeds (Battlezone's POKEY into its DISCRETE) is
+      // not lowered yet, so the stream is what plays, as the app's plan
+      // (lower-sound.ts) already says; a discrete plan here pumped nothing.
+      : discreteDevice && !streamDevices.length
         ? {
             kind: 'discrete',
             deviceTag: discreteDevice.tag,
@@ -1162,7 +1152,8 @@ export function lowerGeneratedMachine(
         : streamDevices.length
           ? {
               // Devices rendering their own stream beside the processor (the
-              // Spectrum's beeper and its cassette), mixed by routed gain.
+              // Spectrum's beeper and its cassette, a POKEY), mixed by routed
+              // gain.
               kind: 'stream',
               deviceTag: streamDevices[0]!.tag,
               deviceTags: streamDevices.map(device => device.tag),
@@ -1173,7 +1164,7 @@ export function lowerGeneratedMachine(
               routes: lowerAudioRoutes(graph, streamDevices),
             }
         : undefined;
-  // A speaker or cassette routed beside a chip that owns the worklet.
+  // A speaker, cassette or POKEY routed beside a chip that owns the worklet.
   const auxiliaryStreams = sound && sound.kind !== 'stream'
     ? devices.filter(device => STREAM_SOUND_TYPES.includes(device.type))
       .flatMap(device => {
@@ -1788,7 +1779,6 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   HC55516: ['digit_w', 'clock_w'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
   OKIM6295: ['write', 'set_pin7'],
-  POKEY: ['write'],
   UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
   K007232: ['write', 'read', 'set_volume', 'set_bank'],
   K053260: ['write'],

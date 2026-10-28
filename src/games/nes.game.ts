@@ -222,7 +222,7 @@ export const nes = {
       audio: {
         writes: 1438273,
         nonzeroWrites: 355246,
-        writeHash: 'c7bd8abb',
+        writeHash: '45c892cc',
         pcmHash: '5cb15f8f',
         rms: 0.023801,
       },

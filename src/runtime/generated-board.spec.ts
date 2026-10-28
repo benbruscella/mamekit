@@ -531,10 +531,14 @@ registerGeneratedDevice({
     program: compileMameHandler('m_counter += m_icount; m_icount = 0;') }],
   summary: { diagnostics: 0 },
 });
+// Under a perfect quantum MAME's round is one cycle, so an executing
+// peripheral with no host advances between the CPU's instructions (the C64's
+// VIC-II and CIAs).
 const clockedMachine: BoardIr = {
   ...screenHostMachine, game: 'clocked-counter-fixture',
   devices: [{ id: 'clocked-counter', tag: 'counter', type: 'CLOCKED_COUNTER_FIXTURE', clock: 6000 }],
   execution: { ...screenHostMachine.execution,
+    perfectQuantum: true,
     cpus: [{ ...screenHostMachine.execution.cpus[0]!, type: 'CLOCK_OBSERVER_FIXTURE', clock: 6000 }],
     screen: { ...screenHostMachine.execution.screen, vtotal: 1, height: 1 } },
 };
@@ -547,6 +551,28 @@ clockedBoard.frame(new Uint32Array(1));
 clockedBoard.frame(new Uint32Array(1));
 assert.ok(instructionObservations.some(samples => new Set(samples).size > 1),
   'clocked peripheral counters must advance between CPU instructions within one scanline');
+
+// Otherwise it runs in MAME's round, after the CPU: inside the CPU's slice it
+// stands where the last round left it, and the round brings it level.
+{
+  instructionObservations.length = 0;
+  const roundMachine: BoardIr = {
+    ...clockedMachine, game: 'round-counter-fixture',
+    execution: { ...clockedMachine.execution, perfectQuantum: undefined },
+  };
+  const roundBoard = createGeneratedBoard(roundMachine,
+    { game: roundMachine.game, family: 'fixture', cpus: [], ranges: [],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 1, vbstart: 1, rotate: 0 }, clocks: { namco06: 0, wsg: 0 } },
+    { maincpu: Uint8Array.of(0) }, { read: () => 0xff }, { soundWrite() {} });
+  clockedPeripheral = (roundBoard as unknown as { devices: Map<string, Device> }).devices.get('counter');
+  roundBoard.frame(new Uint32Array(1));
+  roundBoard.frame(new Uint32Array(1));
+  assert.ok(instructionObservations.length > 1 &&
+    instructionObservations.every(samples => new Set(samples).size === 1),
+  'a peripheral the round runs stands still inside the CPU slice');
+  assert.equal(clockedPeripheral?.get('m_counter'), 200, 'and the rounds give it every cycle of two frames');
+  clockedPeripheral = (clockedBoard as unknown as { devices: Map<string, Device> }).devices.get('counter');
+}
 
 // A clocked peripheral's fractional cycles are part of a save state. They are
 // delivered after every instruction, so they run in a plain array, written into

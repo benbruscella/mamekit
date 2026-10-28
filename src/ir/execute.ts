@@ -250,6 +250,12 @@ export interface GeneratedHandlerBindings {
    */
   schedule?(run: () => void): void;
   /**
+   * MAME `machine().scheduler().synchronize()` with no callback: end the
+   * running processor's timeslice, so the devices behind it in the round
+   * catch up to it. Absent, there is no slice to end.
+   */
+  endTimeslice?(): void;
+  /**
    * MAME's address_space for a handler whose signature takes one
    * (`void congo_sprite_custom_w(address_space &space, ...)`). The space is the
    * one belonging to the CPU whose map reached the handler, so the board
@@ -717,6 +723,10 @@ function preparedHandlerRuntime(
     members: bindings.members ??= {},
     calls,
     links: undefined as GeneratedHandlerRuntime['links'],
+    // Through the prepared namespace: a board's own handlers (Qix's
+    // deferred_sndpia1_porta_w) are prepared calls, not raw bindings.
+    synchronize: (callback: string, parameter: unknown) =>
+      generatedSynchronize(bindings, callback, parameter, prepared.referenceCalls),
     linksGeneration: undefined as number | undefined,
     // Memory a handler indexes is almost always a typed array (RAM, a ROM
     // region, a share); answer it before the pointer and reference probes,
@@ -2780,21 +2790,20 @@ function evaluateCall(
       expression.callee.object.callee.object.callee.kind === 'identifier' &&
       expression.callee.object.callee.object.callee.name === 'machine';
     if (schedulerCall) {
+      // With no callback MAME posts an empty timer at the current time: the
+      // running processor's slice ends and the others catch up to it, and
+      // nothing else happens. POKEY's read asks for one to "force resync".
+      if (!expression.args.length) return generatedSynchronize(context.bindings, '', 0);
       const callback = timerDelegateName(expression.args[0]);
-      const generatedCallback = callback
-        ? context.bindings.referenceCalls?.[callback]
-        : undefined;
-      if (!generatedCallback) {
-        noteUnresolvedCall(`synchronize(${callback ?? '?'})`);
+      if (!callback) {
+        noteUnresolvedCall('synchronize(?)');
         return 0;
       }
-      const parameter = expression.args[1] ? evaluate(expression.args[1], context) : 0;
-      // Posted at the current time, as below: it fires once the running
-      // processor has yielded and the others have caught up to it.
-      const schedule = context.bindings.schedule;
-      if (!schedule) return generatedCallback(parameter);
-      schedule(() => void generatedCallback(parameter));
-      return 0;
+      return generatedSynchronize(
+        context.bindings,
+        callback,
+        expression.args[1] ? evaluate(expression.args[1], context) : 0,
+      );
     }
     const generated = context.bindings.referenceCalls?.[generatedName];
     if (generated) {
@@ -2868,27 +2877,17 @@ function evaluateCall(
         return context.bindings.inputs?.read(object.reference.slice('ioport:'.length)) ?? 0xff;
       }
       if (key === 'machine().scheduler().synchronize') {
+        if (!expression.args.length) return generatedSynchronize(context.bindings, '', 0);
         const callback = timerDelegateName(expression.args[0]);
-        const generatedCallback = callback
-          ? context.bindings.referenceCalls?.[callback]
-          : undefined;
-        if (!generatedCallback) {
-          noteUnresolvedCall(`synchronize(${callback ?? '?'})`);
+        if (!callback) {
+          noteUnresolvedCall('synchronize(?)');
           return 0;
         }
-        const parameter = expression.args[1]
-          ? evaluate(expression.args[1], context)
-          : 0;
-        // MAME posts this at the current timestamp, which fires only after the
-        // running CPU gives up its timeslice. Running it inline delivers the
-        // effect too early: Sinistar's first sound command reached the sound
-        // board's PIA before the sound CPU had configured CB1's active edge,
-        // so the line latched high with no interrupt and no later command --
-        // all of which drive CB1 the same way -- could ever produce an edge.
-        const schedule = context.bindings.schedule;
-        if (!schedule) return generatedCallback(parameter);
-        schedule(() => void generatedCallback(parameter));
-        return 0;
+        return generatedSynchronize(
+          context.bindings,
+          callback,
+          expression.args[1] ? evaluate(expression.args[1], context) : 0,
+        );
       }
       // Generated devices only execute while their host processor is runnable;
       // board-level reset/hold state is enforced by the frame scheduler.
@@ -3390,6 +3389,9 @@ function modulo(value: number, divisor: number): number {
 }
 
 function indexValue(object: unknown, index: number): unknown {
+  // Memory first: a typed array is never a pointer wrapper or a reference,
+  // and a board's per-pixel row reads (`&bitmap.pix(y)`) land here.
+  if (ArrayBuffer.isView(object)) return (object as Uint8Array)[index] ?? 0;
   if (isGeneratedPointer(object)) return pointerValue(object, index);
   // Finder arrays such as required_device_array and required_memory_bank_array
   // are symbolic runtime references, not JavaScript arrays. Preserve the
@@ -3884,6 +3886,7 @@ function describeGeneratedTarget(expression: unknown): string {
 }
 
 export function dereferenceGeneratedValue(value: unknown): unknown {
+  if (ArrayBuffer.isView(value)) return (value as Uint8Array)[0] ?? 0;
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
   if (isIndexableMemory(value)) return indexValue(value, 0);
   return value;
@@ -4309,6 +4312,37 @@ function memoryDelegate(
   const own = context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
   if (typeof own === 'function') return apply(own as (...values: number[]) => unknown);
   return undefined;
+}
+
+/**
+ * MAME `machine().scheduler().synchronize(callback, parameter)`, shared by the
+ * interpreter and emitted code. With no callback (`''`) it only ends the
+ * running slice. Otherwise the callback is posted at the current time and
+ * fires once the running processor has yielded and the others have caught up
+ * to it: run inline, Sinistar's first sound command reached the sound board's
+ * PIA before the sound CPU had configured CB1's active edge, so the line
+ * latched high with no interrupt and no later command could produce an edge.
+ * Without a scheduler (a spec harness) it runs inline.
+ */
+export function generatedSynchronize(
+  bindings: GeneratedHandlerBindings,
+  callback: string,
+  parameter: unknown,
+  references = bindings.referenceCalls,
+): number {
+  if (!callback) {
+    bindings.endTimeslice?.();
+    return 0;
+  }
+  const generatedCallback = references?.[callback];
+  if (!generatedCallback) {
+    noteUnresolvedCall(`synchronize(${callback})`);
+    return 0;
+  }
+  const schedule = bindings.schedule;
+  if (!schedule) return Number(generatedCallback(parameter as GeneratedCallArgument)) || 0;
+  schedule(() => void generatedCallback(parameter as GeneratedCallArgument));
+  return 0;
 }
 
 function timerDelegateName(expression: GeneratedExpression | undefined): string | undefined {

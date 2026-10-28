@@ -8,6 +8,14 @@ export interface GeneratedFrameProcessor {
   enabled?: () => boolean;
   /** MAME abort_timeslice: stop after the instruction in progress. */
   abort?: () => void;
+  /**
+   * Cycles into the running slice where the processor stands, for a core
+   * MAME suspends between the bus cycles of an instruction (the 6502). A
+   * synchronize there ends MAME's round at that cycle, not at the end of the
+   * instruction: a POKEY read is followed by the next opcode's prefetch, and
+   * the POKEY catches up only to the read.
+   */
+  position?: () => number;
 }
 
 /**
@@ -23,6 +31,9 @@ export interface GeneratedFrameProcessor {
  * is already far quieter than MAME's.
  */
 const MAX_QUANTUM_SECONDS = 250e-6;
+
+/** Far below a cycle and far above the rounding of a line-fraction carry. */
+const CARRY_ROUNDING = 1e-6;
 
 
 
@@ -82,6 +93,8 @@ export class GeneratedFrameRunner {
   lockstepping = false;
   /** Work was synchronized during the running slice. */
   private synchronizeRequested = false;
+  /** Where the running processor stood when it synchronized (`position`). */
+  private synchronizedAt?: number;
   /** The round in progress: its first line and its length. */
   private roundFirstLine = 0;
   private roundLines = 1;
@@ -272,6 +285,8 @@ export class GeneratedFrameRunner {
    */
   requestSynchronize(): boolean {
     if (!this.running) return false;
+    // The first synchronize in the slice is where it ended.
+    if (!this.synchronizeRequested) this.synchronizedAt = this.running.processor.position?.();
     this.synchronizeRequested = true;
     this.running.processor.abort?.();
     return true;
@@ -459,19 +474,28 @@ export class GeneratedFrameRunner {
           scheduled.carry += scheduled.cyclesPerLine * lines * (reached - credited[index]!);
           credited[index] = reached;
         }
-        const target = Math.floor(scheduled.carry);
+        // The carry is cycles reached through line fractions, so a whole
+        // number of cycles can arrive a rounding error short of itself: a
+        // POKEY behind a CPU that synchronized was owed 14 cycles, ran 13,
+        // and took the SKCTL write a clock early.
+        const target = Math.floor(scheduled.carry + CARRY_ROUNDING);
         if (target <= 0) continue;
         this.running = scheduled;
         this.runStartLines = credited[index]! * lines - scheduled.carry / scheduled.cyclesPerLine;
         this.synchronizeRequested = false;
+        this.synchronizedAt = undefined;
         const executed = scheduled.processor.run(target);
         this.running = undefined;
         scheduled.carry -= executed;
-        if (this.synchronizeRequested && executed < target) {
-          const stoppedAt = credited[index]! - scheduled.carry / (scheduled.cyclesPerLine * lines);
+        // A core that stops between bus cycles ended the round where it
+        // synchronized; finishing the instruction is its own overrun.
+        const stopped = this.synchronizedAt !== undefined ? Math.min(executed, this.synchronizedAt) : executed;
+        if (this.synchronizeRequested && stopped < target) {
+          const stoppedAt = credited[index]! - (scheduled.carry + executed - stopped) / (scheduled.cyclesPerLine * lines);
           reached = Math.max(done, Math.min(reached, stoppedAt));
         }
         this.synchronizeRequested = false;
+        this.synchronizedAt = undefined;
       }
       this.onSynchronize?.();
       done = reached;

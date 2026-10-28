@@ -454,6 +454,8 @@ class IrBoard implements Board {
    * it, and only the running processor's count is ever read mid-slice.
    */
   private runningSliceCycles = 0;
+  /** Cycles a stall took at the start of the running slice, before the core ran. */
+  private runningStalled = 0;
   /**
    * The latest time each image transport has observed, so its reading never
    * rewinds. Only transports get this: a timer callback must read its own
@@ -855,6 +857,9 @@ class IrBoard implements Board {
           clock: specification.clock,
           tag: specification.tag,
           schedule: run => this.synchronize(run),
+          // As autonomousProcessors picks them.
+          roundScheduled: roundScheduledDevice(machine, specification) &&
+            Boolean(generatedDeviceDefinition(specification.type)?.methods.some(method => method.name === 'execute_run')),
           shares: this.shares,
           inputs,
           members: {
@@ -2544,20 +2549,42 @@ class IrBoard implements Board {
       }];
     });
     // Standalone bus masters expose MAME's execute_run/m_icount pair but have
-    // no firmware host. The Intel 8257 on Donkey Kong is one such processor.
+    // no firmware host: the Intel 8257 on Donkey Kong, a POKEY, the C64's
+    // VIC-II and CIAs. MAME schedules them in the round beside the CPUs,
+    // after them, so inside a CPU's slice such a device stands where the last
+    // round left it: a POKEY read returns RANDOM from there, and the read's
+    // synchronize() ends the slice so the next one finds the chip caught up.
+    // Their own time while they run is their own (machineSeconds), as a
+    // stream update inside step_one_clock needs. Under a perfect quantum
+    // MAME's round is one cycle, which delivery between instructions with an
+    // access catching the device up (deviceAccessLag) already is; those stay
+    // with the hosted processors.
     const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
-      if (
-        specification.hostTag ||
-        machine.execution.cpus.some(cpu => cpu.tag === specification.tag)
-      ) return [];
+      if (!roundScheduledDevice(machine, specification)) return [];
       const device = this.devices.get(specification.tag);
       if (!device?.methodNames().includes('execute_run')) return [];
+      const runner = processorRunner(device);
+      const round = this.roundDevices.get(specification.tag) ?? { cycles: 0, running: undefined };
+      this.roundDevices.set(specification.tag, round);
       return [{
         tag: specification.tag,
         clock: device.cycleClock(),
-        ...processorRunner(device),
+        run: (cycles: number) => {
+          const outer = this.runningRoundDevice;
+          this.runningRoundDevice = specification.tag;
+          round.running = { device, target: cycles };
+          try {
+            const executed = runner.run(cycles);
+            round.cycles += executed;
+            return executed;
+          } finally {
+            round.running = undefined;
+            this.runningRoundDevice = outer;
+          }
+        },
       }];
     });
+    this.roundProcessors = autonomousProcessors;
     // Firmware MCUs and clocked peripherals share elapsed board time with the
     // CPU. A whole-scanline slice leaves counter reads stale and can collapse
     // several input transitions before the peripheral observes any of them.
@@ -2567,7 +2594,18 @@ class IrBoard implements Board {
       clock: number;
       /** Absent for a processor that always runs. */
       enabled?: () => boolean;
-    })[] = [...hostedProcessors, ...autonomousProcessors];
+    })[] = [
+      ...hostedProcessors,
+      // Under a perfect quantum, and a bus master, delivered between
+      // instructions as above (roundScheduledDevice).
+      ...(machine.devices ?? []).flatMap(specification => {
+        if (specification.hostTag || machine.execution.cpus.some(cpu => cpu.tag === specification.tag) ||
+          roundScheduledDevice(machine, specification)) return [];
+        const device = this.devices.get(specification.tag);
+        if (!device?.methodNames().includes('execute_run')) return [];
+        return [{ tag: specification.tag, clock: device.cycleClock(), ...processorRunner(device) }];
+      }),
+    ];
     // The fractional cycles each processor is owed between instruction-time
     // deliveries. Delivered after every instruction -- three times per C64
     // instruction, for the VIC-II and both CIAs -- so the running values live
@@ -2606,11 +2644,15 @@ class IrBoard implements Board {
           : processor.run(target));
       }
     };
+    // Drivers use abort_timeslice after asserting short DMA request pulses so
+    // the autonomous controller observes them before the CPU clears them.
+    // One generous local slice is bounded and covers a complete 8257 burst;
+    // a device the round runs is brought level by ending the slice instead.
+    const hostedTags = new Set(hostedProcessors.map(processor => processor.tag));
+    const delivered = synchronizedProcessors.filter(processor => !hostedTags.has(processor.tag));
     runAutonomousNow = () => {
-      // Drivers use abort_timeslice after asserting short DMA request pulses so
-      // the autonomous controller observes them before the CPU clears them.
-      // One generous local slice is bounded and covers a complete 8257 burst.
-      for (const processor of autonomousProcessors) processor.run(4096);
+      for (const processor of delivered) processor.run(4096);
+      if (this.roundProcessors.length) this.frameRunner?.requestSynchronize();
     };
     // Machine latches drive reset/hold lines at power-on. Hosted processors
     // must be wired before these initial values are emitted.
@@ -2865,6 +2907,12 @@ class IrBoard implements Board {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
+        // A core MAME stops between bus cycles stands, mid-instruction, at
+        // the cycles before this instruction and those it has paid for so far
+        // (the access in progress included, as total_cycles counts it).
+        ...(generatedCpuFacts(specification.type ?? '').suspendsMidInstruction ? {
+          position: () => this.runningStalled + this.runningSliceCycles + (this.cpus.get(specification.tag)?.elapsedCycles?.() ?? 0),
+        } : {}),
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
@@ -2874,6 +2922,7 @@ class IrBoard implements Board {
             const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
             const stalled = Math.min(cycles, pendingStall);
             this.cpuStalls.set(specification.tag, pendingStall - stalled);
+            this.runningStalled = stalled;
             if (specification.tag === timerClockCpu?.tag && stalled > 0) {
               advanceTimedHardware(stalled / timerClockHz());
             }
@@ -2922,7 +2971,9 @@ class IrBoard implements Board {
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
-      }))],
+      })),
+      // MAME's round runs devices in configuration order, the CPUs first.
+      ...this.roundProcessors.map(processor => ({ tag: processor.tag, clock: processor.clock, run: processor.run }))],
       // `scheduler().synchronize()` work runs once the processor that posted
       // it has yielded and the ones behind it have caught up.
       onSynchronize: () => this.drainScheduledWork(),
@@ -3129,6 +3180,15 @@ class IrBoard implements Board {
   }
 
   /** Register a board-composed model's state record; see `hostState`. */
+  /** Devices the round schedules beside the CPUs, by tag, and the cycles each has run. */
+  private readonly roundDevices = this.hostModel('roundDevices', new Map<string, {
+    cycles: number;
+    running: { device: Device; target: number } | undefined;
+  }>());
+  private roundProcessors: { tag: string; clock: number; run(cycles: number): number }[] = [];
+  /** The round device whose slice is executing, if any. */
+  private runningRoundDevice?: string;
+
   private hostModel<T extends object>(name: string, initial: T): T {
     if (this.hostState[name]) throw new Error(`${this.machine.game}: host model "${name}" registered twice`);
     this.hostState[name] = initial;
@@ -3952,8 +4012,14 @@ class IrBoard implements Board {
     // ("pia.read" in a child map becomes "soundbd:pia.read"). The raw map is
     // retained for provenance and cannot identify which concrete nested
     // instance owns an otherwise identical local device tag.
-    for (const cpu of machine.execution.cpus) {
-      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
+    // A bank device's space is as executable as a CPU's (usedHandlers):
+    // Missile Command reaches its POKEY through one.
+    const rangeSets = [
+      ...machine.execution.cpus.map(cpu => [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]),
+      ...(machine.execution.bankDevices ?? []).map(bank => bank.ranges),
+    ];
+    for (const ranges of rangeSets) {
+      for (const range of ranges) {
         for (const [kind, key] of [['read', range.read], ['write', range.write]] as const) {
           if (!key) continue;
           // MAME device tags may themselves contain dots (LS175.3D). Resolve
@@ -4149,6 +4215,8 @@ class IrBoard implements Board {
     // MAME's scheduler has it (see generatedTimerExpiry).
     const expiry = generatedTimerExpiry();
     if (expiry !== undefined) return expiry;
+    // A device running in the round stands at its own local time.
+    if (this.runningRoundDevice) return this.roundDeviceSeconds(this.runningRoundDevice) ?? 0;
     this.catchUpDeviceTime?.();
     // The scheduler stands where the processor it is running stands, so the
     // clock comes from that core -- not from the first one declared, which on
@@ -4157,6 +4225,20 @@ class IrBoard implements Board {
     const cpu = this.machine.execution.cpus.find(candidate => candidate.tag === tag);
     if (!cpu) return 0;
     return Math.max(0, this.cpuSeconds(cpu) - generatedTimerBacklog());
+  }
+
+  /**
+   * Where a device the round schedules (autonomousProcessors) stands: the
+   * cycles it has run, and inside its slice those its execute_run has
+   * already counted off m_icount. Undefined for anything else.
+   */
+  private roundDeviceSeconds(tag: string): number | undefined {
+    const round = this.roundDevices.get(tag);
+    if (!round) return undefined;
+    const running = round.running
+      ? round.running.target - Number(round.running.device.get('m_icount'))
+      : 0;
+    return (round.cycles + running) / Math.max(1, this.devices.get(tag)!.cycleClock());
   }
 
   private totalCycles(cpuTag: string): number {
@@ -5042,7 +5124,7 @@ class IrBoard implements Board {
         registry.read[key] = (_address, offset) => bytes[offset % bytes.length]!;
         continue;
       }
-      if (deviceType === 'POKEY' || deviceType === 'YM3812') {
+      if (deviceType === 'YM3812') {
         registry.read[key] = () => 0xff;
         continue;
       }
@@ -5353,6 +5435,7 @@ class IrBoard implements Board {
       soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
+      deviceTime: tag => this.roundDeviceSeconds(tag),
       bindDeviceCall: (tag, name, callback) => deviceFor(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
         const device = deviceFor(tag);
@@ -6414,6 +6497,29 @@ export function bindGeneratedRegionState(
       state[member] ??= bound;
     }
   }
+}
+
+/**
+ * A device the scheduler runs in its round beside the CPUs, once it is known
+ * to execute: one with no host processor, on a board without a perfect
+ * quantum (see autonomousProcessors). A bus master -- a DMA controller whose
+ * HRQ asks a CPU for its bus -- is not yet: what it does with the bus it is
+ * granted is still run in a burst from abort_timeslice (runAutonomousNow),
+ * and in the round that burst left Donkey Kong's attract further from MAME.
+ */
+function roundScheduledDevice(
+  machine: BoardIr,
+  specification: NonNullable<BoardIr['devices']>[number],
+): boolean {
+  return machine.execution.perfectQuantum !== true &&
+    !specification.hostTag &&
+    !machine.execution.cpus.some(cpu => cpu.tag === specification.tag) &&
+    !busMaster(machine, specification.tag);
+}
+
+/** A device whose HRQ output requests a processor's bus (`out_hrq_cb`). */
+function busMaster(machine: BoardIr, tag: string): boolean {
+  return machine.callbacks.some(callback => callback.ownerTag === tag && callback.signal === 'out_hrq_cb');
 }
 
 function usedHandlers(

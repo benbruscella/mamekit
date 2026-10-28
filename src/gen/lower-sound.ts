@@ -93,7 +93,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const snChips = devices.filter(d =>
     ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
       'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
-  const pokeyChips = devices.filter(d => d.props.type === 'POKEY');
   const dacChips = devices.filter(d =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT']
@@ -107,7 +106,8 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const tiaChip = devices.find(device => device.props.type === 'TIA');
   const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(String(device.props.type)));
   const gameboyApu = devices.find(device => device.props.type === GAMEBOY_APU_TYPE);
-  const speakerDevice = devices.find(device => device.props.type === 'SPEAKER_SOUND' &&
+  // A cassette alone is only heard beside a stream that owns the worklet.
+  const speakerDevice = devices.find(device => device.props.type !== 'CASSETTE' &&
     STREAM_SOUND_TYPES.includes(String(device.props.type)));
   const discreteDevice = devices.some(device => device.props.type === 'DISCRETE')
     ? devices.find(device => {
@@ -207,18 +207,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
                   : {}),
               };
             })()
-          : pokeyChips.length
-            ? {
-                kind: 'pokey',
-                clock: Number(pokeyChips[0]!.props.clock),
-                chips: pokeyChips.length,
-                deviceTags: pokeyChips.map(chip => String(chip.props.tag)),
-                clocks: pokeyChips.map(chip => Number(chip.props.clock)),
-                routes: lowerAudioRoutes(
-                  graph,
-                  pokeyChips.map(chip => ({ id: chip.id, tag: String(chip.props.tag) })),
-                ),
-              }
           : dacChips.length && !(sampleChips.length && dacChips.every(device =>
               device.props.type === 'DAC_1BIT'))
             ? {
