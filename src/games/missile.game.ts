@@ -14,7 +14,7 @@ export const missile = sourceTarget({
   driver: 'src/mame/atari/missile.cpp',
   machine: { className: 'missile_state', name: 'missile' },
   screen: { width: 256, height: 231 },
-  soundKind: 'pokey',
+  soundKind: 'stream',
   frames: 1600,
   minimumFps: 30,
   checkpoints: [1, 60, 300, 600, 1000, 1300, 1600],

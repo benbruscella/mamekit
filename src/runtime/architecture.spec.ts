@@ -159,9 +159,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedDiscreteAudioCore', 'GeneratedDiscreteAudioFrameRenderer',
     'GeneratedDiscreteAudioProcessor',
   ],
-  'mame/pokey-compiler.ts': [
-    'GeneratedPokeyCore', 'GeneratedPokeyFrameRenderer', 'GeneratedPokeyProcessor',
-  ],
   'mame/sn76489-compiler.ts': [
     'GeneratedSn76489Core', 'GeneratedSn76489FrameRenderer', 'GeneratedSn76489Mixer',
     'GeneratedSn76489Processor', 'GeneratedSn76489SamplesCore',

@@ -1,4 +1,4 @@
-import { soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
+import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
 import { STREAM_AUDIO_RATE } from './definition.ts';
 
 /** A stall must not become an unbounded catch-up burst. */
@@ -29,7 +29,10 @@ export function createStreamMixer(
   if (!context.time || !context.bindDeviceCall) throw new Error('stream sound requires scheduler and stream services');
   const time = context.time;
   const driver = context.board.execution.cpus[0]?.tag;
-  const streams = sources.map(source => ({ ...source, rendered: 0, native: 0, pending: [] as number[] }));
+  // `outputGain` is the device's set_output_gain, over its routed gain.
+  const streams = sources.map(source => ({
+    ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
+  }));
   const state = { emitted: 0, streams };
   // MAME's `sound_stream` surface, one output, over `due` samples at `rate`.
   const update = (tag: string, due: number, rate: number): Float64Array => {
@@ -47,6 +50,8 @@ export function createStreamMixer(
         put(Number(index), Number(max) ? Number(value) / Number(max) : 0),
       put_int_clamp: (_channel: number, index: number, value: number, max: number) =>
         put(Number(index), Number(max) ? Math.max(-Number(max), Math.min(Number(max) - 1, Number(value))) / Number(max) : 0),
+      fill: (_channel: number, value: number, start = 0, count = due - Number(start)) =>
+        void samples.fill(Number(value), Number(start), Number(start) + Number(count)),
     });
     return samples;
   };
@@ -61,7 +66,8 @@ export function createStreamMixer(
     while (stream.rendered < target) {
       const due = Math.min(MAX_SAMPLES_PER_UPDATE, target - stream.rendered);
       if (!native) {
-        for (const sample of update(stream.tag, due, STREAM_AUDIO_RATE)) stream.pending.push(sample * stream.gain);
+        const gain = stream.gain * stream.outputGain;
+        for (const sample of update(stream.tag, due, STREAM_AUDIO_RATE)) stream.pending.push(sample * gain);
         stream.rendered += due;
         continue;
       }
@@ -73,7 +79,7 @@ export function createStreamMixer(
         let sum = 0;
         const from = at;
         for (; at < stop && at < samples.length; at++) sum += samples[at]!;
-        stream.pending.push(at > from ? sum / (at - from) * stream.gain : 0);
+        stream.pending.push(at > from ? sum / (at - from) * stream.gain * stream.outputGain : 0);
       }
       stream.native = end;
       stream.rendered += due;
@@ -87,9 +93,25 @@ export function createStreamMixer(
     });
     context.bindDeviceCall(stream.tag, 'stream.end_time', () => stream.rendered / STREAM_AUDIO_RATE);
     context.bindDeviceCall(stream.tag, 'stream.sample_rate', () => STREAM_AUDIO_RATE);
+    // device_sound_interface::set_output_gain. A board's mixer sets it
+    // (Gauntlet's mixer_w on its POKEY); what is already rendered keeps the
+    // gain it had, as MAME updates the stream first.
+    for (const alias of deviceAliases(context.board, stream.tag)) {
+      context.calls[`${alias}.set_output_gain`] = (_output = 0, gain = 1) => {
+        render(stream, now());
+        stream.outputGain = Number(gain);
+        return 0;
+      };
+    }
   }
+  // A device the round runs after the CPUs has not reached their time yet;
+  // what it renders past where it stands would miss the writes still to come.
+  const reached = () => streams.reduce((target, stream) => {
+    const seconds = context.deviceTime?.(stream.tag);
+    return seconds === undefined ? target : Math.min(target, Math.floor(seconds * STREAM_AUDIO_RATE));
+  }, now());
   const mix = () => {
-    const target = now();
+    const target = reached();
     if (target <= state.emitted) return;
     for (const stream of streams) render(stream, target);
     const frac = context.fraction();
@@ -106,6 +128,7 @@ export function createStreamMixer(
     reset: () => {
       state.emitted = 0;
       for (const stream of streams) {
+        stream.outputGain = 1;
         stream.rendered = 0;
         stream.native = 0;
         stream.pending.length = 0;

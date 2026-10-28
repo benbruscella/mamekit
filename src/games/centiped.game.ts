@@ -5,7 +5,7 @@ export const centiped = sourceTarget({
   driver: 'src/mame/atari/centiped.cpp',
   machine: { className: 'centiped_state', name: 'centiped' },
   screen: { width: 256, height: 240 },
-  soundKind: 'pokey',
+  soundKind: 'stream',
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     // The coin routine validates the switch through a ~60-frame timer before

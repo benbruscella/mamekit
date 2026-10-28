@@ -1,5 +1,7 @@
 import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
 import { installAuxiliaryOkim6295Runtime } from '../okim6295/runtime.ts';
+import { createStreamMixer } from '../speaker/runtime.ts';
+import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
 
 interface OpmTimerState {
   tag: string;
@@ -493,26 +495,13 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
     }
   }
 
-  // A POKEY answering the same speaker: the register offset carries the
-  // channel, so unlike the MSM5205 feeder its writes forward the offset too.
-  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
-    if (auxiliary.type !== 'POKEY') continue;
-    const name = `${auxiliary.deviceTag}.write`;
-    context.registry.write[name] = (_address, offset, data) => {
-      context.soundWrite(offset, data, context.fraction(), name);
-    };
-    for (const alias of deviceAliases(context.board, auxiliary.deviceTag)) {
-      context.calls[`${alias}.write`] = (...args: number[]) => {
-        context.soundWrite(
-          Number(args.at(-2) ?? 0) || 0,
-          args.at(-1) ?? 0,
-          context.fraction(),
-          name,
-        );
-        return 0;
-      };
-    }
-  }
+  // Devices beside the FM chips that render their own stream on the main
+  // thread (Gauntlet's and Marble Madness's POKEY): mixed there and handed to
+  // the worklet as one PCM stream at its routed gain.
+  const streams = context.sound.streamDevices?.length
+    ? createStreamMixer(context, context.sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+      (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
+    : undefined;
   for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
     if (auxiliary.type !== 'MSM5205') continue;
     const aliases = [
@@ -539,7 +528,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
   return {
     // The speech chips' sample carries ride along with the timers: a save
     // that lost one put Gauntlet's /READY pin a sample out (machine-state.ts).
-    state: { timers, upd, auxiliaries, speech, samples },
+    state: { timers, upd, auxiliaries, speech, samples, ...(streams ? { streams: streams.state } : {}) },
     reset: () => {
       for (const timer of timers) {
         timer.address = 0;
@@ -553,6 +542,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
       }
       for (const auxiliary of auxiliaries) auxiliary.reset?.();
       for (const chip of upd) chip.reset();
+      streams?.reset?.();
     },
     instructionCpus: new Set(timers.map(timer => timer.ownerCpu)),
     tickInstruction: (cpuTag, cycles) => {
@@ -585,6 +575,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
         }
       }
       for (const auxiliary of auxiliaries) auxiliary.tickCpu?.(cpuTag, cycles);
+      streams?.tickCpu?.(cpuTag, cycles);
       for (const chip of upd) {
         const owner = context.board.execution.cpus.find(candidate => candidate.tag === cpuTag);
         chip.tick(cpuTag, cycles, owner?.cycleClock ?? owner?.clock ?? 1);

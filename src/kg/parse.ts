@@ -235,6 +235,63 @@ function extractFunctionBody(src: string, headerRe: RegExp): { cls: string; name
  */
 const IP_ACTIVE = { IP_ACTIVE_HIGH: 0x00000000, IP_ACTIVE_LOW: 0xffffffff };
 
+/** A `constexpr` function whose body is one `return`: its parameters and that expression. */
+export interface ConstexprFunction {
+  params: string[];
+  body: string;
+}
+
+/**
+ * The `constexpr` functions in `src` that return one expression, by name:
+ * rescap.h's `constexpr double RES_K(double res) { return res * 1e3; }`, which
+ * a machine config hands a device as `set_output_rc(RES_K(10), CAP_U(0.1), 5.0)`.
+ */
+export function parseConstexprFunctions(src: string): Record<string, ConstexprFunction> {
+  const out: Record<string, ConstexprFunction> = {};
+  const re = /\bconstexpr\s+(?:inline\s+)?[\w:]+\s+(\w+)\s*\(([^()]*)\)\s*(?:noexcept\s*)?\{\s*return\s+([^;{}]+);\s*\}/g;
+  for (const match of stripComments(src).matchAll(re)) {
+    const params = match[2]!.trim()
+      ? splitArgs(match[2]!).map(param => /(\w+)\s*(?:=[^,]*)?$/.exec(param.trim())?.[1] ?? '')
+      : [];
+    if (params.some(param => !param)) continue;
+    out[match[1]!] = { params, body: match[3]!.trim() };
+  }
+  return out;
+}
+
+/**
+ * Replace each call to one of `functions` in `expr` with its return
+ * expression, the arguments substituted for the parameters, so evalExpr can
+ * evaluate it. Calls to anything else are left as they are.
+ */
+export function expandConstexprCalls(expr: string, functions: Record<string, ConstexprFunction>): string {
+  const names = Object.keys(functions);
+  if (!names.length) return expr;
+  const call = new RegExp(`\\b(${names.join('|')})\\s*\\(`, 'g');
+  let s = expr;
+  // Bounded, so a function that names itself cannot expand forever.
+  for (let round = 0; round < 16; round++) {
+    call.lastIndex = 0;
+    const match = call.exec(s);
+    if (!match) return s;
+    const open = match.index + match[0].length - 1;
+    let depth = 0;
+    let close = open;
+    for (; close < s.length; close++) {
+      if (s[close] === '(') depth++;
+      else if (s[close] === ')' && --depth === 0) break;
+    }
+    if (close >= s.length) return s;
+    const fn = functions[match[1]!]!;
+    const args = splitArgs(s.slice(open + 1, close));
+    if (args.length !== fn.params.length) return s;
+    const body = fn.params.reduce((text, param, index) =>
+      text.replace(new RegExp(`\\b${param}\\b`, 'g'), `(${args[index]})`), fn.body);
+    s = `${s.slice(0, match.index)}(${body})${s.slice(close + 1)}`;
+  }
+  return s;
+}
+
 /**
  * Evaluate a MAME clock/size arithmetic expression to a number.
  * Handles: hex/dec literals, digit separators (18'432'000), XTAL(n),
@@ -298,7 +355,8 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
     // resistor table with `(!(feature & PSG_HAS_EXPANDED_MODE)) && ...`.
     if (c === '!' && s[pos + 1] !== '=') { pos++; const v = parsePrimary(); return v === null ? null : Number(!v); }
     if (c === '~') { pos++; const v = parsePrimary(); return v === null ? null : (~v) >>> 0; }
-    const m = /^(0[xX][0-9a-fA-F]+|[0-9]+(?:\.[0-9]+)?)/.exec(s.slice(pos));
+    // A float may carry an exponent: rescap.h's RES_K returns `res * 1e3`.
+    const m = /^(0[xX][0-9a-fA-F]+|[0-9]+(?:\.[0-9]*)?(?:[eE][+-]?[0-9]+)?)/.exec(s.slice(pos));
     if (!m) return null;
     pos += m[0].length;
     return Number(m[0]);

@@ -28,7 +28,7 @@ import {
   generatedSubtract,
   resizeGeneratedContainer,
 } from './generated-handler.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
@@ -170,6 +170,8 @@ export interface GeneratedDeviceExecutionContext {
   stringMethod(value: unknown, method: string, ...args: unknown[]): unknown;
   /** The container an indexed write stores into, addressed by member name. */
   writableMember(name: string): unknown;
+  /** MAME `scheduler().synchronize(callback, parameter)`; `''` only ends the slice (execute.ts generatedSynchronize). */
+  synchronize(callback: string, parameter: unknown): number;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
   /** C++ `*pointer = value`, over a generated pointer or plain memory. */
@@ -578,6 +580,12 @@ export interface GeneratedDeviceOptions {
   resourceCache?: Record<string, unknown>;
   /** MAME `scheduler().synchronize()`: run once the processor that asked has yielded. */
   schedule?: (run: () => void) => void;
+  /**
+   * The board runs this device in its round beside the CPUs (an executing
+   * device with no host: a POKEY), so its own `synchronize(callback)` is
+   * deferred as MAME defers it, to when the round has caught it up.
+   */
+  roundScheduled?: boolean;
   /**
    * Hold device_start until the host calls `startDeferred()`: a slot whose
    * card the board composes attaches that card in its own device_start, and
@@ -1082,6 +1090,21 @@ class IrDevice implements Device {
       STRUCT_METHODS.set(definition.structs, Object.fromEntries(Object.entries(definition.structMethods).map(([type, methods]) =>
         [type, Object.fromEntries(methods.map(method => {
           const names = splitParameters(method.parameters).map(parameterName);
+          // Emitted, when the codegen compiled the struct's type as one of the
+          // device's allocations: run against the device's own runtime with
+          // the struct as its members, one runtime per struct, kept. POKEY's
+          // four channels count down through inc_chan and check_borrow once a
+          // clock, and interpreted they were most of a POKEY board's time.
+          const compiled = definition.allocations?.[type]?.compiledMethods?.[method.name];
+          if (compiled) {
+            return [method.name, function (this: Record<string, unknown>, ...args: unknown[]): unknown {
+              let runtime = STRUCT_RUNTIMES.get(this);
+              if (!runtime) {
+                STRUCT_RUNTIMES.set(this, runtime = { ...device.executionContext, members: this, links: undefined });
+              }
+              return compiled(runtime, ...args.map(argument => generatedReferent(argument) as GeneratedCallArgument));
+            }];
+          }
           return [method.name, function (this: Record<string, unknown>, ...args: unknown[]): unknown {
             // `this` is the struct: ymfm's `ymfm_output::clear()` ends `return *this;`.
             const locals: Record<string, unknown> = { this: this };
@@ -1395,16 +1418,21 @@ class IrDevice implements Device {
       getters,
       setters,
       constants: definition.constants,
-      // Only the cross-CPU command latch defers its work: its partner is a
-      // scheduled processor, so MAME's synchronize is what the two agree on.
+      // Only the cross-CPU command latch and a device the round schedules
+      // defer their work: their partner is a scheduled processor, so MAME's
+      // synchronize is what the two agree on.
       // Every other device here talks to hardware this runtime hosts rather
       // than schedules -- Namco's 06xx and its 5xxx MCUs, for one -- and
       // deferring their writes desynchronises that hosting (Xevious went
       // silent). Scheduling those MCUs as processors is what would let the
       // rest of MAME's synchronize semantics apply to them too.
-      ...(options.schedule && definition.type.toUpperCase() === 'GENERIC_LATCH_8'
+      ...(options.schedule && (definition.type.toUpperCase() === 'GENERIC_LATCH_8' || options.roundScheduled)
         ? { schedule: options.schedule }
         : {}),
+      // An empty synchronize posts nothing, so it cannot desynchronise
+      // hosting the way deferred work does; it only ends the slice. POKEY's
+      // read asks for one to "force resync".
+      ...(options.schedule ? { endTimeslice: () => options.schedule!(() => {}) } : {}),
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
@@ -1643,6 +1671,7 @@ class IrDevice implements Device {
       // there; the name-addressed form exists for the board, whose driver
       // members are materialised on first write.
       writableMember: name => this.members[name] ?? 0,
+      synchronize: (callback, parameter) => generatedSynchronize(this.bindings, callback, parameter),
       wide: generatedWideBinary,
       invoke: (name, ...args) => {
         if (name.startsWith('new::') && referenceCalls[name]) return referenceCalls[name]!(...args);
@@ -3594,6 +3623,8 @@ function structTypeName(valueType: string): string {
  */
 /** The bindings a struct's own methods run against, one per struct value. */
 const STRUCT_BINDINGS = new WeakMap<object, GeneratedHandlerBindings>();
+/** The runtime each struct's emitted methods run against (STRUCT_METHODS). */
+const STRUCT_RUNTIMES = new WeakMap<object, GeneratedDeviceExecutionContext>();
 const STRUCT_METHODS = new WeakMap<object, Record<string, Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown>>>();
 
 function structMember(

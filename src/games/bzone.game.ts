@@ -13,7 +13,7 @@ export const bzone = sourceTarget({
   driver: 'src/mame/atari/bzone.cpp',
   machine: { className: 'bzone_state', name: 'bzone' },
   screen: { width: 581, height: 401 },
-  soundKind: 'pokey',
+  soundKind: 'stream',
   frames: 900,
   minimumFps: 30,
   checkpoints: [1, 60, 300, 500, 700, 900],

@@ -17,12 +17,12 @@ export const SPEAKER_PORTS: readonly PortDeclaration[] = [
 export const STREAM_AUDIO_RATE = 48000;
 
 /**
- * Devices that render their own `sound_stream_update` beside the processor at
- * `machine().sample_rate()`, mixed on the main thread by their routed gains
- * (sound kind `stream`): the speaker, and a cassette routed to the speakers
- * so a load is heard.
+ * Devices that render their own `sound_stream_update` beside the processor,
+ * mixed on the main thread by their routed gains (sound kind `stream`): the
+ * speaker, a cassette routed to the speakers so a load is heard, and a POKEY,
+ * which the CPU reads back.
  */
-export const STREAM_SOUND_TYPES: readonly string[] = ['SPEAKER_SOUND', 'CASSETTE'];
+export const STREAM_SOUND_TYPES: readonly string[] = ['SPEAKER_SOUND', 'CASSETTE', 'POKEY'];
 
 /** The shared stream worklet, which only plays what the mix posts. */
 export const STREAM_AUDIO_WORKLET_ARTIFACT = 'audio/stream-worklet.ts';

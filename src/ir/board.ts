@@ -1446,6 +1446,8 @@ export interface GeneratedHandlerRuntime {
   ): (...args: any[]) => unknown;
   /** The container an indexed write stores into, materialised on first use. */
   writableMember(name: string): unknown;
+  /** MAME `scheduler().synchronize(callback, parameter)`; `''` only ends the slice (execute.ts generatedSynchronize). */
+  synchronize(callback: string, parameter: unknown): number;
   /**
    * The board package's own reference-call overrides — the base dictionary the
    * interpreter consults before anything else (a video package's

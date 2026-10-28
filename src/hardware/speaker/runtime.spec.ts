@@ -5,12 +5,22 @@ import type { SoundRuntimeContext } from '../sound-runtime.ts';
 
 // The stream mixer asks each device for the samples elapsed time is worth,
 // through MAME's own `sound_stream` surface, and emits their routed sum.
-type Surface = { samples(): number; sample_rate(): number; put(channel: number, index: number, value: number): number };
-const mixer = (rates: Record<string, number>, render: (tag: string, surface: Surface) => void) => {
+type Surface = {
+  samples(): number; sample_rate(): number; put(channel: number, index: number, value: number): number;
+  fill(channel: number, value: number): void;
+};
+const mixer = (
+  rates: Record<string, number>,
+  render: (tag: string, surface: Surface) => void,
+  deviceTime?: (tag: string) => number | undefined,
+) => {
   let seconds = 0;
   const emitted: number[] = [];
+  const calls: Record<string, (...args: number[]) => unknown> = {};
   const hooks = createStreamMixer({
     board: { execution: { cpus: [{ tag: 'cpu' }] } },
+    calls,
+    deviceTime,
     time: () => seconds,
     fraction: () => 0,
     bindDeviceCall: () => undefined,
@@ -19,6 +29,7 @@ const mixer = (rates: Record<string, number>, render: (tag: string, surface: Sur
   } as unknown as SoundRuntimeContext, Object.keys(rates).map(tag => ({ tag, gain: 0.5 })), sample => emitted.push(sample));
   return {
     emitted,
+    calls,
     advance(by: number) {
       seconds += by;
       hooks.tickCpu!('cpu', 1);
@@ -51,6 +62,28 @@ const mixer = (rates: Record<string, number>, render: (tag: string, surface: Sur
   chip.advance(3 / STREAM_AUDIO_RATE);
   assert.deepEqual(rendered, [{ count: 12, rate: STREAM_AUDIO_RATE * 4 }], 'four native samples per output sample');
   assert.deepEqual(chip.emitted, [0.25, 0.25, 0.25], 'the mean of each four, at the route gain');
+}
+
+// MAME's `stream.fill`, which a POKEY's sound_stream_update uses, and the
+// device's set_output_gain over its route gain (Gauntlet's mixer_w).
+{
+  const pokey = mixer({ pokey: STREAM_AUDIO_RATE }, (_tag, surface) => surface.fill(0, 1));
+  pokey.advance(2 / STREAM_AUDIO_RATE);
+  pokey.calls['m_pokey.set_output_gain']!(-1, 0.5);
+  pokey.advance(2 / STREAM_AUDIO_RATE);
+  assert.deepEqual(pokey.emitted, [0.5, 0.5, 0.25, 0.25]);
+}
+
+// A device the round runs after the CPUs is mixed only as far as it has run:
+// what it has not reached yet may still change.
+{
+  let reached = 0;
+  const pokey = mixer({ pokey: STREAM_AUDIO_RATE }, (_tag, surface) => surface.fill(0, 1), () => reached);
+  pokey.advance(4 / STREAM_AUDIO_RATE);
+  assert.deepEqual(pokey.emitted, [], 'nothing past where the device stands');
+  reached = 3 / STREAM_AUDIO_RATE;
+  pokey.advance(0);
+  assert.equal(pokey.emitted.length, 3);
 }
 
 console.log('speaker/runtime.spec: speaker-rate and native-rate streams mix at their route gains');

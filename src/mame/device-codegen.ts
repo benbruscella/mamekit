@@ -615,6 +615,8 @@ export function supportsMethod(
         supported = true;
       } else if (expression.kind === 'call' && expression.callee.kind === 'index') {
         supported = true;
+      } else if (schedulerSynchronize(expression)) {
+        supported = true;
       } else if (expression.kind === 'call' && expression.callee.kind === 'member') {
         // A member call chained on another call's result — MAME framework
         // service chains such as machine().bookkeeping().coin_counter_w(...) —
@@ -1428,6 +1430,11 @@ function emitCall(
   expression: Extract<GeneratedExpression, { kind: 'call' }>,
   context: EmitContext,
 ): string {
+  const synchronize = schedulerSynchronize(expression);
+  if (synchronize) {
+    return `runtime.synchronize(${JSON.stringify(synchronize.callback ?? '')}, ` +
+      `${synchronize.parameter ? emitExpression(synchronize.parameter, context) : '0'})`;
+  }
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
     // A board package can override a source method with a shape-recognised
@@ -1945,6 +1952,39 @@ function memberChainName(
     return object ? `${object}[${index}]` : undefined;
   }
   return undefined;
+}
+
+/**
+ * MAME `machine().scheduler().synchronize()`, with no callback (end the
+ * running slice) or with `timer_expired_delegate(FUNC(owner::method), ...)`
+ * and its parameter -- also reached through another object's `machine()`, as
+ * POKEY's channel struct does through its `host`. Undefined for anything else,
+ * and for a delegate this cannot name, which then stays interpreted.
+ */
+export function schedulerSynchronize(
+  expression: GeneratedExpression,
+): { callback?: string; parameter?: GeneratedExpression } | undefined {
+  if (expression.kind !== 'call' || expression.callee.kind !== 'member' ||
+    expression.callee.property !== 'synchronize') return undefined;
+  const scheduler = expression.callee.object;
+  if (scheduler.kind !== 'call' || scheduler.args.length || scheduler.callee.kind !== 'member' ||
+    scheduler.callee.property !== 'scheduler') return undefined;
+  const machine = scheduler.callee.object;
+  if (machine.kind !== 'call' || machine.args.length || !(
+    (machine.callee.kind === 'identifier' && machine.callee.name === 'machine') ||
+    (machine.callee.kind === 'member' && machine.callee.property === 'machine')
+  )) return undefined;
+  if (!expression.args.length) return {};
+  const delegate = expression.args[0]!;
+  if (delegate.kind !== 'call' || delegate.callee.kind !== 'identifier' ||
+    delegate.callee.name !== 'timer_expired_delegate') return undefined;
+  const func = delegate.args[0];
+  if (func?.kind !== 'call' || func.callee.kind !== 'identifier' || func.callee.name !== 'FUNC' ||
+    func.args[0]?.kind !== 'identifier') return undefined;
+  return {
+    callback: func.args[0].name.split('::').at(-1)!,
+    ...(expression.args[1] ? { parameter: expression.args[1] } : {}),
+  };
 }
 
 function linkedMemberCallName(
@@ -2521,6 +2561,13 @@ function visitExpression(
   visit: (expression: GeneratedExpression) => void,
 ): void {
   visit(expression);
+  // The scheduler chain and the delegate are emitted as one runtime service
+  // (schedulerSynchronize); only the parameter is code of the method's own.
+  const synchronize = schedulerSynchronize(expression);
+  if (synchronize) {
+    if (synchronize.parameter) visitExpression(synchronize.parameter, visit);
+    return;
+  }
   if (expression.kind === 'unary' || expression.kind === 'cast') {
     visitExpression(expression.operand, visit);
   } else if (expression.kind === 'binary') {

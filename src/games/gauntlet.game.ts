@@ -19,18 +19,14 @@ export const gauntlet = sourceTarget({
   screen: { width: 336, height: 240 },
   soundKind: 'ym2151',
   // The board answers one speaker with three chips, and the YM2151 is only
-  // the one that names the sound kind. Without a gate per chip, a POKEY or a
-  // TMS5220C that silently stopped producing anything would still pass on the
-  // overall RMS, which the music alone is loud enough to carry.
+  // the one that names the sound kind. Without a gate per chip, a TMS5220C
+  // that silently stopped producing anything would still pass on the overall
+  // RMS, which the music alone is loud enough to carry. The POKEY has no gate:
+  // through frames 500-900 of this contract MAME's sound CPU writes it nothing
+  // but AUDCTL and zero AUDC/AUDF (tools/mame-oracle.ts --io, identical on
+  // both sides), so it is silent in MAME too. Its old gate counted register
+  // writes, which AUDCTL alone satisfied.
   audioRequirements: [
-    {
-      // Effects. Volume-only and distortion writes both land here, so the
-      // diversity bound is what distinguishes real effects from a stuck register.
-      method: 'pokey.write',
-      fromFrame: 500,
-      minimumNonzeroWrites: 500,
-      minimumDistinctValues: 8,
-    },
     {
       // Speech. The idle chip drives -1 every sample, so a live stream is not
       // evidence of speech by itself; the value diversity is.

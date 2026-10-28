@@ -4,7 +4,6 @@ import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { readFileSync } from 'node:fs';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedMsm5205Plan, GeneratedUpd7759Plan } from './audio-compiler.ts';
-import { generatedPokeyCoreSource, type GeneratedPokeyPlan } from './pokey-compiler.ts';
 import {
   algorithmOps,
   constant,
@@ -267,13 +266,12 @@ function validate(plan: GeneratedYm2151Plan): void {
  * Emit the generated YM2151 worklet. The engine below is a direct execution of
  * ymfm's OPM algorithm; every table, bitfield offset and constant it consumes
  * comes from `plan`, which is read out of MAME's ymfm sources. An OKIM6295 or
- * MSM5205 bank or POKEY routed into the same speaker is hosted beside the FM
- * chips.
+ * MSM5205 bank routed into the same speaker is hosted beside the FM chips,
+ * and a device rendering its own stream on the main thread arrives as PCM.
  */
 export function generatedYm2151WorkletSource(
   plan: GeneratedYm2151Plan,
   msm5205Plan?: GeneratedMsm5205Plan,
-  pokeyPlanSource?: GeneratedPokeyPlan,
   upd7759Plan?: GeneratedUpd7759Plan,
 ): string {
   return `// GENERATED from ${plan.source.file}:${plan.source.line}; do not edit.
@@ -286,14 +284,6 @@ const updPlan = (${JSON.stringify(upd7759Plan ?? null, null, 2)}) as GeneratedUp
 ${DAC_VALUE_MAP_SOURCE}
 ${LOFI_RESAMPLER_SOURCE}
 const ALL_OUTPUTS = ${DEFAULT_CONSTANTS.ALL_OUTPUTS};
-${pokeyPlanSource ? generatedPokeyCoreSource(pokeyPlanSource) : ''}
-/** Null on a board with no POKEY, so the engine above is only emitted when one exists. */
-const pokeyFactory: ((clock: number, rate: number) => {
-  write(offset: number, data: number): void;
-  sample(): number;
-}) | null = ${pokeyPlanSource
-    ? '(clock, rate) => new GeneratedPokeyCore(clock, rate)'
-    : 'null'};
 
 interface GeneratedMsm5205PlanData {
   indexShift: number[];
@@ -1462,11 +1452,6 @@ export class GeneratedYm2151Mixer {
     core: GeneratedMsm5205Core;
     method: string;
   }>();
-  private readonly pokeyChips: {
-    deviceTag: string;
-    gain: number;
-    core: { write(offset: number, data: number): void; sample(): number };
-  }[];
   private readonly updChips: {
     deviceTag: string;
     gain: number;
@@ -1499,6 +1484,11 @@ export class GeneratedYm2151Mixer {
     resampler: GeneratedLofiResampler;
     source: GeneratedLofiSource;
   }[];
+  /** Streams the main thread renders beside the chips, mixed as one. */
+  private readonly streamQueue: number[] = [];
+  private streamRate = 0;
+  private streamPhase = 0;
+  private streamHeld = 0;
   private readonly routes: GeneratedYmRoute[];
   /** Each YM2151's tag, for set_output_gain, and the gain of its two outputs. */
   private readonly deviceTags: readonly string[];
@@ -1551,15 +1541,6 @@ export class GeneratedYm2151Mixer {
         this.msmWrites.set(device.deviceTag + '.' + method, { core: device.core, method });
       }
     }
-    this.pokeyChips = pokeyFactory
-      ? auxiliaryDevices
-          .filter(device => device.type === 'POKEY')
-          .map(device => ({
-            deviceTag: device.deviceTag,
-            gain: device.gain,
-            core: pokeyFactory(device.clock, outputRate),
-          }))
-      : [];
     this.updChips = updPlan
       ? auxiliaryDevices
           .filter(device => device.type === 'UPD7759')
@@ -1656,11 +1637,13 @@ export class GeneratedYm2151Mixer {
         return;
       }
     }
-    for (const pokey of this.pokeyChips) {
-      if (method === pokey.deviceTag + '.write') {
-        pokey.core.write(offset, data);
-        return;
-      }
+    // A main-thread stream's sample, already at its routed gain, with its
+    // rate in the offset. A stalled consumer must not grow the queue
+    // without bound.
+    if (method === 'stream.pcm') {
+      this.streamRate = offset;
+      if (this.streamQueue.length < 8192) this.streamQueue.push(data);
+      return;
     }
     for (const upd of this.updChips) {
       if (method?.startsWith(upd.deviceTag + '.')) {
@@ -1722,7 +1705,14 @@ export class GeneratedYm2151Mixer {
     let output = this.lastSample / 32768;
     output += (this.oki?.core.sample() ?? 0) * (this.oki?.gain ?? 0);
     for (const device of this.msmChips) output += device.core.sample() * device.gain;
-    for (const device of this.pokeyChips) output += device.core.sample() * device.gain;
+    if (this.streamRate > 0) {
+      this.streamPhase += this.streamRate / this.outputRate;
+      while (this.streamPhase >= 1) {
+        this.streamPhase -= 1;
+        if (this.streamQueue.length) this.streamHeld = this.streamQueue.shift()!;
+      }
+      output += this.streamHeld;
+    }
     for (const dac of this.dacs) output += dac.level * dac.gain;
     for (const device of this.updChips) output += device.core.sample() * device.gain;
     for (const device of this.k007232Chips) output += device.core.sample() * device.gain;
@@ -1758,7 +1748,7 @@ export class GeneratedYm2151Mixer {
     }
     const devices: { deviceTag?: string; tag?: string; gain: number }[] = [
       ...(this.oki ? [this.oki] : []),
-      ...this.msmChips, ...this.pokeyChips, ...this.dacs, ...this.updChips,
+      ...this.msmChips, ...this.dacs, ...this.updChips,
       ...this.k007232Chips, ...this.k053260Chips, ...this.rawSamples, ...this.pcmChips,
     ];
     for (const device of devices) {
