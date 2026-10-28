@@ -26,7 +26,7 @@ export interface CodegenScope {
   /** Struct types the scope declares, so a field store can narrow inline. */
   structs?: Record<string, GeneratedStructField[]>;
   /** Classes the device allocates itself, by type: their objects have methods. */
-  allocations?: Record<string, unknown>;
+  allocations?: Record<string, { members?: GeneratedDeviceMember[] }>;
   callbacks: GeneratedDeviceCallback[];
   /** Machine-config setter -> delegate member used for driver callbacks. */
   delegates?: Record<string, string>;
@@ -1010,6 +1010,23 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
  * so it must stay undefined when the board never bound the member.
  */
 /** A member, or an element of one, that holds a plain class object (`objectType`). */
+/**
+ * A data member of an object the device builds for an element of a member
+ * array (POKEY's `pokey_channel m_channel[4]`). The element is that object's
+ * `self`, whose members are accessors so a foreign store narrows; read
+ * through `$members` instead and the store narrows inline. POKEY touches its
+ * channels' fields a dozen times a clock.
+ */
+function allocatedObjectField(expression: GeneratedExpression, context: EmitContext): GeneratedDeviceMember | undefined {
+  if (context.boardScope || expression.kind !== 'member' || expression.object.kind !== 'index') return undefined;
+  const holder = expression.object.object;
+  if (holder.kind !== 'identifier' || context.locals.has(holder.name)) return undefined;
+  const member = context.definition.members.find(candidate => candidate.name === holder.name);
+  if (!member || member.arrayLength === undefined || member.objectConstructed || member.valueType.includes('*')) return undefined;
+  const allocated = context.definition.allocations?.[member.object ?? member.valueType.trim()];
+  return allocated?.members?.find(candidate => candidate.name === expression.property);
+}
+
 function isObjectReceiver(expression: GeneratedExpression, context: EmitContext): boolean {
   const holder = expression.kind === 'index' ? expression.object : expression;
   if (holder.kind !== 'identifier' || context.locals.has(holder.name)) return false;
@@ -1162,6 +1179,9 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // Resolved by the operand's shape at run time, exactly as the interpreter
     // resolves it — and evaluated once, because the operand can be a call.
     if (expression.operator === '*') {
+      // `*this` is the device's own object, never a pointer or an array:
+      // POKEY hands it to a channel's inc_chan on every clock.
+      if (expression.operand.kind === 'identifier' && expression.operand.name === 'this' && !context.boardScope) return operand;
       return `runtime.dereference(${operand})`;
     }
     return expression.operator === '!' ? `((${operand}) ? 0 : 1)` : `(${expression.operator}${operand})`;
@@ -1306,6 +1326,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     const pointee = expression.object.kind === 'identifier' && context.dereferencedParameters?.get(expression.object.name);
     if (pointee) return `${pointee}.${expression.property}`;
     const object = emitExpression(expression.object, context);
+    if (allocatedObjectField(expression, context)) return `${object}.$members.${expression.property}`;
     // A pointer local of no known struct -- `auto *csect = sect + n` -- may
     // hold a pointer into an array of structs, so `csect->size` reads through
     // it. The D64 loader's sector loop never ended while it read the wrapper.
@@ -2443,7 +2464,7 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     // narrows to it here rather than through a runtime accessor on every
     // field of every struct. The Game Boy's wave channel walks its counters
     // in a loop that runs forty thousand times a frame.
-    const field = structFieldOf(expression, context);
+    const field = structFieldOf(expression, context) ?? allocatedObjectField(expression, context);
     return {
       code: emitExpression(expression, context),
       ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),

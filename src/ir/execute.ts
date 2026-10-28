@@ -3386,6 +3386,9 @@ function modulo(value: number, divisor: number): number {
 }
 
 function indexValue(object: unknown, index: number): unknown {
+  // Memory first: a typed array is never a pointer wrapper or a reference,
+  // and a board's per-pixel row reads (`&bitmap.pix(y)`) land here.
+  if (ArrayBuffer.isView(object)) return (object as Uint8Array)[index] ?? 0;
   if (isGeneratedPointer(object)) return pointerValue(object, index);
   // Finder arrays such as required_device_array and required_memory_bank_array
   // are symbolic runtime references, not JavaScript arrays. Preserve the
@@ -3880,6 +3883,7 @@ function describeGeneratedTarget(expression: unknown): string {
 }
 
 export function dereferenceGeneratedValue(value: unknown): unknown {
+  if (ArrayBuffer.isView(value)) return (value as Uint8Array)[0] ?? 0;
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
   if (isIndexableMemory(value)) return indexValue(value, 0);
   return value;

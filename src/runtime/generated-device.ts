@@ -1099,11 +1099,9 @@ class IrDevice implements Device {
           if (compiled) {
             // Four check_borrow calls a clock: no rest array, no mapped copy.
             const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;
-            return [method.name, function (this: Record<string, unknown>, a?: unknown, b?: unknown, c?: unknown): unknown {
-              let runtime = STRUCT_RUNTIMES.get(this);
-              if (!runtime) {
-                STRUCT_RUNTIMES.set(this, runtime = { ...device.executionContext, members: this, links: undefined });
-              }
+            return [method.name, function (this: Record<string | symbol, unknown>, a?: unknown, b?: unknown, c?: unknown): unknown {
+              const runtime = (this[STRUCT_RUNTIME] as GeneratedDeviceExecutionContext | undefined) ??
+                (this[STRUCT_RUNTIME] = { ...device.executionContext, members: this, links: undefined }) as GeneratedDeviceExecutionContext;
               switch (arguments.length) {
                 case 0: return compiled(runtime);
                 case 1: return compiled(runtime, referent(a));
@@ -1379,6 +1377,9 @@ class IrDevice implements Device {
     // making every generated register access a hash lookup. Do this before
     // publishing the state to either execution context.
     this.members = Object.fromEntries(Object.entries(this.members));
+    // The plain store behind the accessors, for emitted code that narrows its
+    // own stores (allocatedObjectField). Not enumerable: no save state walks it.
+    Object.defineProperty(self, '$members', { value: this.members, enumerable: false, configurable: true });
     // Storage for an uninitialised C++ local kept between calls (`scratch`)
     // carries nothing from one call to the next, so a save state does not
     // walk it: built from its declaration here, it is the same on a machine
@@ -3632,7 +3633,12 @@ function structTypeName(valueType: string): string {
 /** The bindings a struct's own methods run against, one per struct value. */
 const STRUCT_BINDINGS = new WeakMap<object, GeneratedHandlerBindings>();
 /** The runtime each struct's emitted methods run against (STRUCT_METHODS). */
-const STRUCT_RUNTIMES = new WeakMap<object, GeneratedDeviceExecutionContext>();
+/**
+ * A struct's runtime, on the struct itself: a symbol is an inline-cached load
+ * where a WeakMap is a hash lookup, four times a POKEY clock. A save state
+ * walks string keys only.
+ */
+const STRUCT_RUNTIME = Symbol('struct runtime');
 const STRUCT_METHODS = new WeakMap<object, Record<string, Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown>>>();
 
 function structMember(
