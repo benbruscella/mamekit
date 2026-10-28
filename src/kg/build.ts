@@ -740,6 +740,13 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // Qix's three processors share RAM through a handshake that will not
     // survive anything coarser.
     const perfectQuantum = /\bset_perfect_quantum\s*\(/.test(cfg.raw);
+    // MAME `machine_config::set_maximum_quantum(attotime::from_hz(N))`: no
+    // timeslice is longer than 1/N s. Donkey Kong asks for 60 kHz "for
+    // I8257", whose transfers hold the Z80's bus. Only a literal rate is a
+    // fact; System 1's `m_maincpu->clock() / 16` is left unread.
+    const quantumHz = /\bset_maximum_quantum\s*\(\s*attotime::from_hz\s*\(\s*([\d']+)\s*\)\s*\)/
+      .exec(cfg.raw)?.[1];
+    const maximumQuantum = quantumHz ? 1 / Number(quantumHz.replace(/'/g, '')) : undefined;
     // `m_x = timer_alloc(...)` in the machine-start closure: a driver's own
     // emu_timer. The board models `adjust()`/`enabled()` for these, and
     // without them Simpsons' four-cycle NMI block never blocked anything --
@@ -821,6 +828,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
         : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
+      ...(maximumQuantum ? { maximumQuantum } : {}),
       ...(driverTimers.length ? { driverTimers } : {}),
       ...(resetHandlers.length ? { resetHandlers } : {}),
       ...(startHandlers.length ? { startHandlers } : {}),

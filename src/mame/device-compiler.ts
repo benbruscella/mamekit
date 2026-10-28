@@ -17,6 +17,7 @@ import { DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
 import {
   collectFunctionMacros,
   collectDynamicMacros,
+  referenceAccessorMacros,
   expandDynamicMacros,
   collectBitAliasMacros,
   collectMemberAliasMacros,
@@ -843,11 +844,16 @@ function compileMameDeviceSource(
   const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
   const stringMacros: Record<string, string> = Object.assign({},
     ...sources.map(({ source }) => parseTextMacros(stripCppComments(source)).strings));
-  const liveParameters = new Set(ast.units.flatMap(unit => unit.functions)
-    .filter(method => method.className && hierarchy.includes(method.className))
+  const hierarchyFunctions = ast.units.flatMap(unit => unit.functions)
+    .filter(method => method.className && hierarchy.includes(method.className));
+  const liveParameters = new Set(hierarchyFunctions
     .flatMap(method => splitMameArgs(method.parameters).map(parameterName))
     .filter(name => /^\w+$/.test(name)));
-  const dynamicMacros = collectDynamicMacros(sources.map(({ source }) => source).join('\n'), liveParameters);
+  const dynamicMacros = collectDynamicMacros(
+    sources.map(({ source }) => source).join('\n'),
+    liveParameters,
+    referenceAccessorMacros(hierarchyFunctions),
+  );
   // Template tables are often assembled through forwarding macros whose body
   // is another macro call rather than a statement yet. Keep this broader set
   // isolated from executable-body expansion: it exists only to discover the

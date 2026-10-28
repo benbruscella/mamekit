@@ -325,6 +325,9 @@ const HOLD_LINE = 2;
  */
 const PRESENT_MARGIN_SECONDS = 1e-9;
 
+/** A timer due a rounding error past a whole cycle is due on that cycle. */
+const CYCLE_ROUNDING = 1e-6;
+
 /**
  * Apply MAME's special CPU input lines without confusing RESET with NMI.
  *
@@ -2215,6 +2218,26 @@ class IrBoard implements Board {
             tickCardDevices(specification.tag, clamped - timing.previousCycles);
             timing.previousCycles = clamped === target ? 0 : clamped;
           }
+        },
+        // A core parked in its service block (the Z80 holding for BUSREQ)
+        // looks again at MAME's next timeslice, which starts at the next
+        // timer expiry: while the Z80 DMA transfers, its periodic timer is
+        // one DMA clock away, so the Z80 resumes within a clock of the bus
+        // being released, as in MAME. Only the processor whose time drives
+        // the device clock moves a timer; any other waits out its slice.
+        parked: (elapsed, target) => {
+          // A machine's maximum quantum bounds MAME's timeslice too: Donkey
+          // Kong's 60 kHz has its Z80 look again every 16.7 us while the
+          // 8257 holds the bus, whose transfers run on no timer.
+          let soonest = machine.execution.maximumQuantum ?? Infinity;
+          if (specification.tag === timerClockCpu?.tag) {
+            for (const device of this.devices.values()) {
+              soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            }
+          }
+          return Number.isFinite(soonest)
+            ? Math.ceil(soonest * this.cycleClockOf(specification) - CYCLE_ROUNDING)
+            : target - elapsed;
         },
         signal: (signal, state) => {
           // Memoized per signal name: the Namco custom-I/O families emit port
@@ -4557,170 +4580,6 @@ class IrBoard implements Board {
       reset();
       return reset;
     }
-    if (machine.devices?.some(device => device.type === 'Z80DMA')) {
-      // Z8410/Z80DMA programming and transfer core. Mario programs this
-      // through its real I/O port and gates execution with the main LS259's
-      // RDY output. Transfers are completed synchronously at the bus boundary;
-      // their register protocol and byte/address semantics match z80dma.cpp.
-      const dma = this.hostModel('z80dma', {
-        registers: new Uint8Array(50),
-        follow: [] as number[],
-        followIndex: 0,
-        status: 0,
-        ready: 0,
-        forceReady: false,
-        enabled: false,
-        addressA: 0,
-        addressB: 0,
-        count: 0,
-        byteCounter: 0,
-        readIndex: 0,
-      });
-      const registers = dma.registers;
-      const follow = dma.follow;
-
-      const register = (group: number, slot: number) => (group << 3) + slot;
-      const word = (low: number, high: number) =>
-        ((registers[high] ?? 0) << 8) | (registers[low] ?? 0);
-      const isReady = () => dma.forceReady || dma.ready === ((registers[register(5, 0)]! >>> 3) & 1);
-      const reset = () => {
-        registers.fill(0);
-        follow.length = 0;
-        dma.followIndex = 0;
-        dma.status = 0;
-        dma.ready = 0;
-        dma.forceReady = false;
-        dma.enabled = false;
-        dma.addressA = dma.addressB = dma.count = dma.byteCounter = dma.readIndex = 0;
-      };
-      const transfer = () => {
-        if (!dma.enabled || !isReady()) return;
-        const bus = this.cpuBuses.get('maincpu');
-        if (!bus) return;
-        const wr0 = registers[register(0, 0)]!;
-        const wr1 = registers[register(1, 0)]!;
-        const wr2 = registers[register(2, 0)]!;
-        const portASource = Boolean(wr0 & 0x04);
-        const sourceMemory = !((portASource ? wr1 : wr2) & 0x08);
-        const destinationMemory = !((portASource ? wr2 : wr1) & 0x08);
-        // Mario uses memory-to-memory mode; retain open-bus semantics for an
-        // unconnected I/O side so unsupported modes cannot mutate RAM wildly.
-        for (dma.byteCounter = 0; dma.byteCounter <= dma.count && dma.enabled && isReady(); dma.byteCounter++) {
-          const source = portASource ? dma.addressA : dma.addressB;
-          const destination = portASource ? dma.addressB : dma.addressA;
-          const value = sourceMemory ? bus.read(source) : 0xff;
-          if (destinationMemory) bus.write(destination, value);
-          if (!(wr1 & 0x20)) dma.addressA = (dma.addressA + (wr1 & 0x10 ? 1 : -1)) & 0xffff;
-          if (!(wr2 & 0x20)) dma.addressB = (dma.addressB + (wr2 & 0x10 ? 1 : -1)) & 0xffff;
-        }
-        dma.enabled = false;
-        dma.status = 0x19 | (Number(!isReady()) << 1);
-        if (registers[register(5, 0)]! & 0x20) {
-          dma.addressA = word(register(0, 1), register(0, 2));
-          dma.addressB = word(register(4, 1), register(4, 2));
-          dma.count = word(register(0, 3), register(0, 4));
-          dma.byteCounter = 0;
-          dma.enabled = true;
-        }
-      };
-      const enable = () => {
-        dma.enabled = true;
-        transfer();
-      };
-      const write = (data: number) => {
-        data &= 0xff;
-        if (follow.length) {
-          const next = follow[dma.followIndex++]!;
-          registers[next] = data;
-          if (next === register(4, 3)) {
-            follow.length = 0;
-            if (data & 0x08) follow.push(register(4, 5));
-            if (data & 0x10) follow.push(register(4, 4));
-            dma.followIndex = 0;
-          } else if (dma.followIndex >= follow.length) {
-            follow.length = 0;
-            dma.followIndex = 0;
-          }
-          return;
-        }
-        dma.followIndex = 0;
-        if ((data & 0x87) === 0) {
-          registers[register(2, 0)] = data;
-          if (data & 0x40) follow.push(register(2, 1));
-        } else if ((data & 0x87) === 0x04) {
-          registers[register(1, 0)] = data;
-          if (data & 0x40) follow.push(register(1, 1));
-        } else if ((data & 0x80) === 0) {
-          registers[register(0, 0)] = data;
-          if (data & 0x08) follow.push(register(0, 1));
-          if (data & 0x10) follow.push(register(0, 2));
-          if (data & 0x20) follow.push(register(0, 3));
-          if (data & 0x40) follow.push(register(0, 4));
-        } else if ((data & 0x83) === 0x80) {
-          registers[register(3, 0)] = data;
-          if (data & 0x08) follow.push(register(3, 1));
-          if (data & 0x10) follow.push(register(3, 2));
-          if (data & 0x40) enable();
-        } else if ((data & 0x83) === 0x81) {
-          registers[register(4, 0)] = data;
-          if (data & 0x04) follow.push(register(4, 1));
-          if (data & 0x08) follow.push(register(4, 2));
-          if (data & 0x10) follow.push(register(4, 3));
-        } else if ((data & 0xc7) === 0x82) {
-          registers[register(5, 0)] = data;
-        } else if ((data & 0x83) === 0x83) {
-          registers[register(6, 0)] = data;
-          if (data === 0xcf) {
-            dma.forceReady = false;
-            dma.addressA = word(register(0, 1), register(0, 2));
-            dma.addressB = word(register(4, 1), register(4, 2));
-            dma.count = word(register(0, 3), register(0, 4));
-            dma.byteCounter = 0;
-            dma.status |= 0x30;
-          } else if (data === 0x87) enable();
-          else if (data === 0x83) dma.enabled = false;
-          else if (data === 0xb3) { dma.forceReady = true; transfer(); }
-          else if (data === 0xbf) { registers[register(6, 1)] = 1; dma.readIndex = 0; }
-          else if (data === 0xbb) follow.push(register(6, 1));
-          else if (data === 0xc3) {
-            dma.enabled = false;
-            dma.forceReady = false;
-            dma.status = 0x38;
-          }
-        }
-      };
-      const read = () => {
-        const values = [
-          dma.status,
-          dma.byteCounter & 0xff,
-          dma.byteCounter >>> 8,
-          dma.addressA & 0xff,
-          dma.addressA >>> 8,
-          dma.addressB & 0xff,
-          dma.addressB >>> 8,
-        ];
-        const value = values[dma.readIndex] ?? dma.status;
-        const mask = registers[register(6, 1)]!;
-        if (mask && (mask & (mask - 1))) {
-          do dma.readIndex = (dma.readIndex + 1) & 7; while (!(mask & (1 << dma.readIndex)));
-        }
-        return value & 0xff;
-      };
-      const readyWrite = (state: number) => {
-        dma.ready = Number(Boolean(state));
-        dma.status = (dma.status & 0xfd) | (Number(!isReady()) << 1);
-        transfer();
-      };
-      registry.read['z80dma.read'] = read;
-      registry.write['z80dma.write'] = (_address, _offset, data) => write(data);
-      for (const alias of ['z80dma', 'm_z80dma']) {
-        this.bindings.calls![`${alias}.read`] = read;
-        this.bindings.calls![`${alias}.write`] = write;
-        this.bindings.calls![`${alias}.rdy_w`] = readyWrite;
-        this.bindings.calls![`${alias}.bai_w`] = () => 0;
-      }
-      return reset;
-    }
     const taitoSjTag = machine.devices?.find(device => device.type === 'TAITO_SJ_SECURITY_MCU')?.tag;
     if (taitoSjTag && this.devices.has(`${taitoSjTag}:mcu`)) {
       // The security interface runs as its own compiled handlers (data_r,
@@ -5912,11 +5771,25 @@ class IrBoard implements Board {
       perfectQuantum: (seconds: number) => state => {
         if (state) this.frameRunner?.quantumWindow(seconds);
       },
-      cpuLine: (tag, line, delivery) => {
+      cpuLine: (tag, line, delivery, input) => {
         // Validated against the IR, not the live map: a generated CPU can fire
         // a signal from inside its own constructor (the I8039 resets on
         // create), so the target may not be instantiated yet at bind time.
         if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
+        if (line === 'busreq') {
+          // The core's own pin: its execute_set_input takes the request and
+          // its next instruction boundary grants it through busack_cb, which
+          // the machine wired to the bus master (z80dma bai_w, i8257
+          // hlda_w). Held, the core parks (see the cores' run()).
+          return state => {
+            const cpu = this.cpus.get(tag);
+            const inputnum = cpu?.inputLine?.(input!);
+            if (inputnum === undefined) {
+              throw new Error(`${this.machine.game}: CPU "${tag}" has no input line ${input}`);
+            }
+            cpu!.setInputLine(inputnum, state ? 1 : 0);
+          };
+        }
         if (line === 'nmi') {
           // A driver nmi_line_pulse callback is already an edge. A devcb
           // set_inputline connection is a held pin and must reach the CPU as
@@ -5944,24 +5817,10 @@ class IrBoard implements Board {
           };
         }
         if (line === 'halt') {
-          return state => {
-            const held = Boolean(state);
-            this.cpuHeld.set(tag, held);
-            // Z80 bus request is represented by MAME's HALT-class input line.
-            // The CPU's busack callback grants the requesting bus master; if
-            // that acknowledgement is never emitted, an 8257 remains parked
-            // in S0 and no DMA transfer can begin.
-            if (this.machine.callbacks.some(callback =>
-              callback.ownerTag === tag && callback.signal === 'busack_cb')) {
-              dispatchGeneratedCallbacks(
-                this.machine,
-                tag,
-                'busack_cb',
-                Number(held),
-                this.effects,
-              );
-            }
-          };
+          // MAME's INPUT_LINE_HALT suspends the processor in the scheduler.
+          // It acknowledges nothing: a bus request is `busreq`, which the
+          // core grants itself.
+          return state => { this.cpuHeld.set(tag, Boolean(state)); };
         }
         const numberedIrq = /^irq([1-7])$/.exec(line);
         if (numberedIrq) {

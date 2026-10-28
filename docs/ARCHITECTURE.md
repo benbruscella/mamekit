@@ -263,6 +263,22 @@ does not run another processor from inside the caller's instruction stream,
 which would let the far side answer before the caller has finished setting up
 for the answer.
 
+A bus master takes the bus from a processor through the processor's own pin.
+`Z80_INPUT_LINE_BUSREQ` lowers to a `busreq` line naming that constant, and
+the core's own `execute_set_input` takes it. The Z80's service block grants
+the bus at its next instruction boundary through `busack_cb`, which the
+machine wires to the master (the Z80 DMA's `bai_w`, the 8257's `hlda_w`).
+Then it hands back its slice (`m_icount = 0; return;`). Both the emitted and
+the interpreted core park there instead of fetching. A parked core looks
+again at MAME's next timeslice: the soonest device-timer expiry, bounded by
+the machine's `set_maximum_quantum` (`execution.maximumQuantum`), or the end
+of the slice when neither says otherwise (`CpuBus.parked`). While Mario's Z80
+DMA transfers, its periodic timer is one DMA clock away, so the Z80 resumes
+within a clock of the bus coming back, as in MAME. Donkey Kong's 8257 runs on
+no timer, and its machine's 60 kHz quantum has the Z80 look every 16.7 µs.
+Its sprite DMA writes now land at MAME's instants to the nanosecond. Before,
+each transfer ran as one burst while the Z80 kept the bus (#214).
+
 A driver's own `emu_timer`s -- allocated with a real callback in
 `machine_start` and armed there, where no frame event or scanline timer already
 reaches the callback -- are lowered as generic timers and schedule the board by
@@ -570,6 +586,16 @@ as in MAME; only `DERIVED_CLOCK` takes its owner's. A reset follows
 `const` is a constant like a `static` one: `const uint8_t Z80_DAISY_INT =
 0x01;` in `z80daisy.h`, which unread made every daisy device's interrupt
 request 0.
+
+A method that only names a member, by reference, is that member wherever it
+is called. The Z80 DMA declares `u16 &REG(unsigned m, unsigned s) { return
+m_regs[REGNUM(m, s)]; }`, names every register through it (`#define WR0
+REG(0, 0)`), and assigns through it. Such an accessor is inlined like a
+function-like macro (`referenceAccessorMacros`), and a `#define` naming one
+expands with everything built from it. Unexpanded, each register was a bare
+name, and every register read 0 with no diagnostic. Two pointers into one
+array differ by a count in every path, which the DMA's `GET_REGNUM(_r)`,
+`(&(_r) - &(WR0))`, relies on to number its follow bytes.
 
 Compiled device methods are build artifacts, not handwritten runtime ports and
 not runtime `eval`. Colocated specs execute emitted source against the
@@ -895,8 +921,13 @@ up to the cycle the processor stands at, including whatever its previous slice
 overran, which the line settle would otherwise only pay when the line closes.
 Without it the C64's datassette sometimes stopped itself on Play: its read timer
 fired late with an earlier time than the motor write it followed, and MAME's
-cassette refuses a negative position. A core without the fact (MAME's Z80
-finishes its instruction first too) keeps the old order.
+cassette refuses a negative position. A core without the fact keeps the old
+order. Our Z80 is one, though MAME 0.289's is not: `z80make.py` can leave an
+instruction after any of its cycle charges, so MAME's Z80 stops at a frame
+boundary inside an instruction where ours finishes it first. Mario's RAM
+differs from MAME's at frame 19 by one byte, a write 3 cycles past the
+boundary that both make at the same instant and file under different frames,
+and Donkey Kong takes its frame-5 NMI an instruction later (#214).
 
 On such a processor a register access goes further. MAME's scheduler stops the
 core at a timer's expiry, so an access on cycle k finds every timer due before
@@ -1243,13 +1274,13 @@ unchanged for the next generated machine".
 The left-hand column above is the rule, not yet the whole state of the code.
 Some MAME-derived behaviour is still written by hand, in `src/runtime`,
 `src/hardware` and inside some compilers: several sound engines, a set of
-game-named screen renderers, a few board devices (the Z80 DMA, Neo Geo I/O,
+game-named screen renderers, a few board devices (Neo Geo I/O,
 the Taito SJ watchdog and interface start values), compile-time method
 replacements and CPU support layers. Generating an item and deleting its
 hand-written version is tracked in
 [#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU, the
-Z80 PIO and the Z80 CTC went that way, and all three now compile from MAME's
-own source.
+Z80 PIO, the Z80 CTC, POKEY and the Z80 DMA went that way, and all five now
+compile from MAME's own source.
 
 The source of truth for what is left is `src/runtime/architecture.spec.ts`,
 which pins each piece by name in an exact, shrink-only list:

@@ -205,8 +205,42 @@ export function collectBitAliasMacros(source: string): MemberAliasMacro[] {
   });
 }
 
-/** Expressions over live device state cannot be folded as numeric defines. */
-export function collectDynamicMacros(source: string, liveNames: ReadonlySet<string> = new Set()): { aliases: MemberAliasMacro[]; functions: FunctionMacro[] } {
+/**
+ * A method that does nothing but name a member, by reference:
+ * `u16 &REG(unsigned m, unsigned s) noexcept { return m_regs[REGNUM(m, s)]; }`.
+ *
+ * It is an lvalue as much as a member alias is. The Z80 DMA assigns through
+ * it (`REG(WRi, m_reset_pointer) = 0`) and names every register with it
+ * (`#define WR0 REG(0, 0)`), so lowered as a call each assignment went
+ * nowhere and every register read 0. Inlined, the call is its own body.
+ * Each parameter has to appear in the body at most once, so inlining
+ * evaluates each argument as often as the call did.
+ */
+export function referenceAccessorMacros(
+  functions: readonly { name: string; parameters: string; body: string; returnsReference?: true }[],
+): FunctionMacro[] {
+  return functions.flatMap(fn => {
+    if (!fn.returnsReference) return [];
+    const body = /^\s*return\s+([^;]+?)\s*;\s*$/.exec(fn.body)?.[1];
+    if (!body || !MEMBER_ALIAS.test(body)) return [];
+    const parameters = fn.parameters.split(',').map(parameter => parameter.trim()).filter(Boolean)
+      .map(parameter => /(\w+)\s*(?:=[^,]*)?$/.exec(parameter)?.[1] ?? '');
+    if (parameters.some(parameter => !parameter ||
+      (body.match(new RegExp(`\\b${parameter}\\b`, 'g'))?.length ?? 0) > 1)) return [];
+    return [{ name: fn.name, parameters, body }];
+  });
+}
+
+/**
+ * Expressions over live device state cannot be folded as numeric defines.
+ * `accessors` (referenceAccessorMacros) are live state too: a macro naming
+ * one names a member.
+ */
+export function collectDynamicMacros(
+  source: string,
+  liveNames: ReadonlySet<string> = new Set(),
+  accessors: readonly FunctionMacro[] = [],
+): { aliases: MemberAliasMacro[]; functions: FunctionMacro[] } {
   const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
   const candidates = [...joined.matchAll(/^[ \t]*#define[ \t]+(\w+)(\([^\n)]*\))?[ \t]+(.+)$/gm)].flatMap(match => {
     const body = match[3]!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '').trim();
@@ -214,7 +248,7 @@ export function collectDynamicMacros(source: string, liveNames: ReadonlySet<stri
     return [{ name: match[1]!, body, parameters: match[2] === undefined ? undefined
       : match[2].slice(1, -1).split(',').map(value => value.trim()).filter(Boolean) }];
   });
-  const selected = new Set<string>();
+  const selected = new Set<string>(accessors.map(accessor => accessor.name));
   for (const macro of candidates) {
     // A discrete node name the host binds is the interface, whatever its
     // body: `#define NAMCO_52XX_P_DATA(base) (base)` expanded to its argument
@@ -237,7 +271,10 @@ export function collectDynamicMacros(source: string, liveNames: ReadonlySet<stri
   }
   return {
     aliases: candidates.filter(macro => macro.parameters === undefined && selected.has(macro.name)).map(({ name, body }) => ({ name, body })),
-    functions: candidates.filter(macro => macro.parameters !== undefined && selected.has(macro.name)).map(({ name, body, parameters }) => ({ name, body, parameters: parameters! })),
+    functions: [
+      ...candidates.filter(macro => macro.parameters !== undefined && selected.has(macro.name)).map(({ name, body, parameters }) => ({ name, body, parameters: parameters! })),
+      ...accessors,
+    ],
   };
 }
 

@@ -7,12 +7,8 @@ export const mario = {
     runtimeCoverage: {
       generationGaps: [
         'snd_nl:dac:NETLIST_INT_INPUT',
-        'z80dma:Z80DMA',
       ],
-      handlerGaps: [
-        'z80dma.read',
-        'z80dma.write',
-      ],
+      handlerGaps: [],
     },
     driver: 'src/mame/nintendo/mario.cpp',
     machine: { className: 'mario_state', name: 'mario' },

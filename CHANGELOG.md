@@ -30,6 +30,22 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The Z80 DMA compiles from MAME, and a bus master holds the Z80 as MAME's does ([#214](https://github.com/benbruscella/mamekit/issues/214))
+
+**For players:**
+- Mario Bros. plays and sounds as it did, and compares the same against MAME 0.289 on every measure.
+- Donkey Kong and Donkey Kong Junior stop their Z80 while the sprite DMA copies, as the real boards do. Their sprite transfers now happen at MAME's instants, and their played-through pictures are closer to MAME's.
+
+**Under the hood:**
+- The hand-written Z80 DMA in generated-board.ts is deleted. `z80dma.cpp` compiles as an ordinary device: its sequencer, clocked by its own 4 MHz timer, plus search, RR/WR decoding, `rdy_w` through `synchronize()`, and the daisy-chain interface.
+- An in-class method that returns a reference to a member is inlined as a function-like macro, and a `#define` naming one expands. The DMA's every register (`WR0` is `REG(0, 0)`) had lowered to a bare name reading 0.
+- Pointer minus pointer gives the count between them in the interpreter's compiled `-`, as `evaluate()` already did.
+- `Z80_INPUT_LINE_BUSREQ` lowers to a `busreq` pin the core answers itself, numbered from its header. The board no longer holds the CPU and acknowledges for it.
+- A core whose service block hands back its slice parks. It looks again at the next device-timer expiry, bounded by the machine's `set_maximum_quantum`, which is now lowered. The I8257 (Donkey Kong), the Z80 DMA (Mario) and the Taito SJ MCU (Elevator Action) share this path.
+- The `halt` pin no longer fires `busack_cb`. MAME's INPUT_LINE_HALT acknowledges nothing.
+- `DEVICE_TYPE_BRANCHES` loses `Z80DMA`.
+- Mario's one-byte RAM difference at frame 19 is explained in ARCHITECTURE. MAME's Z80 stops mid-instruction at a frame boundary, and ours finishes the instruction first.
+
 ### POKEY compiles from MAME, engine and register reads both ([#200](https://github.com/benbruscella/mamekit/issues/200))
 
 **For players:**

@@ -1663,7 +1663,13 @@ function compileFastExpression(
       return context => {
         const leftValue = left(context);
         const rightValue = right(context);
-        if (isGeneratedPointer(leftValue)) return offsetPointer(leftValue, -toNumber(rightValue));
+        // As evaluate() does it: two pointers into one array are the count
+        // between them. The Z80 DMA numbers its registers that way,
+        // `&(_r) - &(WR0)`, and read as a pointer less nothing, every
+        // follow byte was written into the register array's own slot.
+        if (isGeneratedPointer(leftValue) || isGeneratedPointer(rightValue)) {
+          return generatedSubtract(leftValue, rightValue);
+        }
         if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
           return wideBinary('-', leftValue, rightValue);
         }

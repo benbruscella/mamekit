@@ -138,10 +138,15 @@ export interface GeneratedCallback {
 // compiler cannot resolve fails the build instead of disappearing.
 // ---------------------------------------------------------------------------
 
-/** CPU interrupt/control pins, named as pins rather than as MAME methods. */
+/**
+ * CPU interrupt/control pins, named as pins rather than as MAME methods.
+ * `halt` is MAME's scheduler-level INPUT_LINE_HALT, which suspends the
+ * processor. `busreq` is a bus request the core answers itself, through its
+ * own execute_set_input and BUSACK output, as the Z80's does.
+ */
 export type CpuLine =
   | 'irq' | 'irq1' | 'irq2' | 'irq3' | 'irq4' | 'irq5' | 'irq6' | 'irq7'
-  | 'firq' | 'nmi' | 'reset' | 'halt';
+  | 'firq' | 'nmi' | 'reset' | 'halt' | 'busreq';
 
 /**
  * How a source drives the pin. MAME's driver_device interrupt generators
@@ -152,7 +157,14 @@ export type CpuLineDelivery = 'hold' | 'assert' | 'pulse' | 'level';
 
 export type BoardEffect =
   /** Drive a CPU interrupt or control pin. */
-  | { kind: 'cpu-line'; tag: string; line: CpuLine; delivery: CpuLineDelivery }
+  | {
+    kind: 'cpu-line'; tag: string; line: CpuLine; delivery: CpuLineDelivery;
+    /**
+     * The core's own input-line constant for a pin the core answers itself
+     * (`Z80_INPUT_LINE_BUSREQ`), numbered by the core's header.
+     */
+    input?: string;
+  }
   /**
    * Call a method on a device. `ownerClass` names the MAME class that declares
    * it, because a device may be implemented either as an instantiated
@@ -680,6 +692,12 @@ export interface GeneratedExecutionPlan {
    * through a handshake nothing coarser survives.
    */
   perfectQuantum?: boolean;
+  /**
+   * MAME `machine_config::set_maximum_quantum`, in seconds: no timeslice is
+   * longer. Read where a processor waits on the next timeslice (a core
+   * parked for BUSREQ looks again when it starts).
+   */
+  maximumQuantum?: number;
   /**
    * MAME `space(AS_*).specific(m_x)` / `.cache(m_x)`: a driver member that
    * reads and writes a processor's address space directly.

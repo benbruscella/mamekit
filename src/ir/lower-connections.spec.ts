@@ -104,7 +104,7 @@ check('a CPU input line lowers to the named pin', () => {
   );
   assert.deepEqual(
     effect({ targetTag: 'maincpu', inputLine: 'Z80_INPUT_LINE_BUSREQ' }),
-    { kind: 'cpu-line', tag: 'maincpu', line: 'halt', delivery: 'level' },
+    { kind: 'cpu-line', tag: 'maincpu', line: 'busreq', delivery: 'level', input: 'Z80_INPUT_LINE_BUSREQ' },
   );
   assert.deepEqual(
     effect({ targetTag: 'audiocpu', inputLine: 'Z80_INPUT_LINE_WAIT' }),
