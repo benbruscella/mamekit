@@ -30,6 +30,23 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### POKEY compiles from MAME, engine and register reads both ([#200](https://github.com/benbruscella/mamekit/issues/200))
+
+**For players:**
+- Missile Command's sound and picture are closer to MAME's.
+- Centipede plays at MAME's level; it was 11 dB quiet.
+- Battlezone still lacks its engine, shell and explosion sounds, which come from a discrete network that isn't converted yet.
+
+**Under the hood:**
+- The hand-written POKEY engine, its main-thread read mirror (RANDOM, KBCODE, POT, status) and `pokey-compiler.ts` are deleted. POKEY is an ordinary compiled stream device: sound kind `stream`, or `stream.pcm` into the YM2151 worklet beside it.
+- A non-CPU `device_execute_interface` device runs after the CPUs in each round, as MAME's scheduler does. Perfect-quantum boards, hosted processors and bus masters keep the old delivery.
+- `machine().scheduler().synchronize(...)` compiles. Struct methods compile. Bank-device ranges get device handlers.
+- `constexpr` helpers such as `RES_K` and `CAP_U` expand in device configuration.
+- The frame runner rounds a line-fraction carry a hair up before taking whole cycles. 13.9999… had run 13.
+- A DISCRETE device no longer takes the board's sound plan from a stream device.
+- The stream worklet takes only `*.pcm` writes as samples.
+- Emitted code subscripts local C arrays directly, keeps never-escaping constant integer arrays as plain arrays, and calls allocated struct-array elements without probing them.
+
 ### Eleven device forks become ordinary devices, and the dead System 16B code goes ([#203](https://github.com/benbruscella/mamekit/issues/203))
 
 **For players:** Nothing visible. Every affected machine compares the same against MAME 0.289 as before.
