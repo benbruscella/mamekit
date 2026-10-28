@@ -723,7 +723,10 @@ function preparedHandlerRuntime(
     members: bindings.members ??= {},
     calls,
     links: undefined as GeneratedHandlerRuntime['links'],
-    synchronize: (callback: string, parameter: unknown) => generatedSynchronize(bindings, callback, parameter),
+    // Through the prepared namespace: a board's own handlers (Qix's
+    // deferred_sndpia1_porta_w) are prepared calls, not raw bindings.
+    synchronize: (callback: string, parameter: unknown) =>
+      generatedSynchronize(bindings, callback, parameter, prepared.referenceCalls),
     linksGeneration: undefined as number | undefined,
     // Memory a handler indexes is almost always a typed array (RAM, a ROM
     // region, a share); answer it before the pointer and reference probes,
@@ -4325,12 +4328,13 @@ export function generatedSynchronize(
   bindings: GeneratedHandlerBindings,
   callback: string,
   parameter: unknown,
+  references = bindings.referenceCalls,
 ): number {
   if (!callback) {
     bindings.endTimeslice?.();
     return 0;
   }
-  const generatedCallback = bindings.referenceCalls?.[callback];
+  const generatedCallback = references?.[callback];
   if (!generatedCallback) {
     noteUnresolvedCall(`synchronize(${callback})`);
     return 0;
