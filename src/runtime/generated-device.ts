@@ -1097,12 +1097,20 @@ class IrDevice implements Device {
           // clock, and interpreted they were most of a POKEY board's time.
           const compiled = definition.allocations?.[type]?.compiledMethods?.[method.name];
           if (compiled) {
-            return [method.name, function (this: Record<string, unknown>, ...args: unknown[]): unknown {
+            // Four check_borrow calls a clock: no rest array, no mapped copy.
+            const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;
+            return [method.name, function (this: Record<string, unknown>, a?: unknown, b?: unknown, c?: unknown): unknown {
               let runtime = STRUCT_RUNTIMES.get(this);
               if (!runtime) {
                 STRUCT_RUNTIMES.set(this, runtime = { ...device.executionContext, members: this, links: undefined });
               }
-              return compiled(runtime, ...args.map(argument => generatedReferent(argument) as GeneratedCallArgument));
+              switch (arguments.length) {
+                case 0: return compiled(runtime);
+                case 1: return compiled(runtime, referent(a));
+                case 2: return compiled(runtime, referent(a), referent(b));
+                case 3: return compiled(runtime, referent(a), referent(b), referent(c));
+                default: return compiled(runtime, ...[...arguments].map(referent));
+              }
             }];
           }
           return [method.name, function (this: Record<string, unknown>, ...args: unknown[]): unknown {

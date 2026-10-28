@@ -1098,7 +1098,10 @@ export function lowerGeneratedMachine(
             controlOffset: -1,
           };
         })()
-      : discreteDevice
+      // A netlist a stream feeds (Battlezone's POKEY into its DISCRETE) is
+      // not lowered yet, so the stream is what plays, as the app's plan
+      // (lower-sound.ts) already says; a discrete plan here pumped nothing.
+      : discreteDevice && !streamDevices.length
         ? {
             kind: 'discrete',
             deviceTag: discreteDevice.tag,

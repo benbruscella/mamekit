@@ -25,6 +25,8 @@ export interface CodegenScope {
   members: GeneratedDeviceMember[];
   /** Struct types the scope declares, so a field store can narrow inline. */
   structs?: Record<string, GeneratedStructField[]>;
+  /** Classes the device allocates itself, by type: their objects have methods. */
+  allocations?: Record<string, unknown>;
   callbacks: GeneratedDeviceCallback[];
   /** Machine-config setter -> delegate member used for driver callbacks. */
   delegates?: Record<string, string>;
@@ -54,6 +56,19 @@ interface EmitContext {
   boardScope: boolean;
   compiled: Set<string>;
   locals: Map<string, string | undefined>;
+  /**
+   * Locals declared as an array (`int clock_triggered[3] = {1,0,0}`), which
+   * hold the array itself for their whole life, so a subscript reads it
+   * directly. POKEY's step_one_clock indexes one six times a clock.
+   */
+  arrayLocals?: Set<string>;
+  /**
+   * The array locals built from a constant initializer and only ever
+   * subscripted, by element type: a plain array whose stores wrap to the
+   * element type, as a typed array would. Allocating `new Int32Array` cost
+   * POKEY one typed array a clock.
+   */
+  plainArrayLocals?: Map<string, string>;
   wrappedReferences: Set<string>;
   returnedReference?: string;
   /** See GeneratedDeviceMethod.returnWidth. */
@@ -754,10 +769,7 @@ function emitOperation(
     // byte turns the whole table into 0. Crush Roller's protection read then
     // answered 0 for every entry. The interpreter tests the value's shape at
     // run time (compileValueWrapper); these are the IR's aggregate producers.
-    const allocated = operation.value?.kind === 'call' &&
-      operation.value.callee.kind === 'identifier' &&
-      ['ALLOC', 'ALLOC16', 'ALLOC32', 'ALLOCF', 'make_unique_clear', 'ARRAY']
-        .includes(operation.value.callee.name);
+    const allocated = allocatesAggregate(operation.value);
     // `rectangle draw = cliprect` is a C++ value copy. Aliasing it lets a
     // handler narrow its own clip rectangle and hand the mutated one back to
     // its caller — the interpreter copies here for exactly that reason.
@@ -771,7 +783,7 @@ function emitOperation(
     }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
-        ? wrapAllocatedArray(value, operation.valueType)
+        ? (context.plainArrayLocals?.has(operation.name) ? value : wrapAllocatedArray(value, operation.valueType))
         : wrapType(value, operation.valueType)
     };`;
   }
@@ -1000,8 +1012,12 @@ function stableMemberNames(definition: CodegenScope): Set<string> {
 /** A member, or an element of one, that holds a plain class object (`objectType`). */
 function isObjectReceiver(expression: GeneratedExpression, context: EmitContext): boolean {
   const holder = expression.kind === 'index' ? expression.object : expression;
-  return holder.kind === 'identifier' && !context.locals.has(holder.name) &&
-    Boolean(context.definition.members.find(member => member.name === holder.name)?.objectType);
+  if (holder.kind !== 'identifier' || context.locals.has(holder.name)) return false;
+  const member = context.definition.members.find(candidate => candidate.name === holder.name);
+  // So is an element of a member array of a class the device allocates
+  // itself (POKEY's `pokey_channel m_channel[4]`): the host builds each one.
+  return Boolean(member?.objectType) || (expression.kind === 'index' && member?.arrayLength !== undefined &&
+    !member.valueType.includes('*') && Boolean(context.definition.allocations?.[member.valueType.trim()]));
 }
 
 function emitCallObject(
@@ -1307,6 +1323,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // wrapper or a typed view -- so it is read directly. The Game Boy PPU's
     // per-dot window check reads three of these, twenty-four thousand times a
     // frame, and `runtime.readIndex` has to rule out four other shapes first.
+    // A local's initializer may be shorter than the array (`int a[8] = {0}`),
+    // and past its end C reads zero, as readIndex answers.
+    if (expression.object.kind === 'identifier' && context.arrayLocals?.has(expression.object.name)) {
+      return `(${object}[${index}] ?? 0)`;
+    }
     return context.pointerSafeIndex && !isDirectArray(expression.object, context)
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
@@ -1325,6 +1346,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       .map((name, index) => `${name || `unused${index}`}${annotation}`);
     const inner: EmitContext = {
       ...context,
+      arrayLocals: new Set([...context.arrayLocals ?? []].filter(name => !expression.parameters.includes(name))),
+      plainArrayLocals: new Map([...context.plainArrayLocals ?? []].filter(([name]) => !expression.parameters.includes(name))),
       locals: new Map([
         ...context.locals,
         ...expression.parameters
@@ -2095,7 +2118,8 @@ function emitAssignment(
       const next = operator === '='
         ? right
         : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
-      return `${object}[${index}] = ${next}`;
+      const plain = expression.object.kind === 'identifier' && context.plainArrayLocals?.get(expression.object.name);
+      return `${object}[${index}] = ${plain ? wrapType(next, plain) : next}`;
     }
     const current = `runtime.readIndex(${object}, ${index})`;
     const next = operator === '='
@@ -2344,6 +2368,7 @@ function assignsIdentifier(
  */
 function isDirectArray(expression: GeneratedExpression, context: EmitContext): boolean {
   if (isStructFieldArray(expression, context)) return true;
+  if (expression.kind === 'identifier' && context.arrayLocals?.has(expression.name)) return true;
   // Fixed C arrays are allocated by the device host before any method runs
   // and C++ cannot rebind them to an offset pointer. Driver arrays still use
   // the lazy board-storage ABI, and pointer locals still need shape dispatch.
@@ -2470,13 +2495,63 @@ function collectLocals(
   operations: GeneratedHandlerOperation[],
   context: EmitContext,
 ): void {
+  const arrays = new Set(context.arrayLocals);
+  const others = new Set<string>();
   visitOperations(operations, operation => {
     if (operation.op !== 'declare') return;
     const inferred = operation.valueType === 'auto' && operation.value
       ? expressionValueType(operation.value, context)
       : undefined;
     context.locals.set(operation.name, inferred ?? operation.valueType);
+    (allocatesAggregate(operation.value) ? arrays : others).add(operation.name);
   });
+  // A name declared once as an array and once as anything else, or assigned
+  // afterwards (a unique_ptr can be), keeps the shape dispatch.
+  for (const name of arrays) {
+    if (others.has(name) || assignsIdentifier(operations, name)) arrays.delete(name);
+  }
+  context.arrayLocals = arrays;
+  const plain = new Map<string, string>();
+  visitOperations(operations, operation => {
+    if (operation.op !== 'declare' || !arrays.has(operation.name) || !operation.value) return;
+    const element = operation.valueType?.replace(/\bconst\b/g, '').trim() ?? '';
+    const value = operation.value;
+    if (value.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'ARRAY' &&
+        PLAIN_ARRAY_ELEMENTS.has(element) &&
+        value.args.every(argument => argument.kind === 'number' && narrowed(argument.value, element) === argument.value)) {
+      plain.set(operation.name, element);
+    }
+  });
+  // Anything but a subscript -- an argument, an address, a copy -- may want the typed array.
+  const subscripted = new Set<GeneratedExpression>();
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'index') subscripted.add(expression.object);
+    if (expression.kind === 'lambda') for (const name of plain.keys()) plain.delete(name);
+  }));
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'identifier' && plain.has(expression.name) && !subscripted.has(expression)) {
+      plain.delete(expression.name);
+    }
+  }));
+  context.plainArrayLocals = new Map([...context.plainArrayLocals ?? [], ...plain]);
+}
+
+/** Element types whose store wrapType narrows exactly as their typed array would. */
+const PLAIN_ARRAY_ELEMENTS = new Set(['int', 's32', 'int32_t', 'u32', 'uint32_t', 'u16', 'uint16_t', 's16', 'int16_t', 's8', 'int8_t']);
+
+/** A literal as the element type holds it. */
+function narrowed(value: number, element: string): number {
+  if (['u32', 'uint32_t'].includes(element)) return value >>> 0;
+  if (['u16', 'uint16_t'].includes(element)) return value & 0xffff;
+  if (['s16', 'int16_t'].includes(element)) return value << 16 >> 16;
+  if (['s8', 'int8_t'].includes(element)) return value << 24 >> 24;
+  return value | 0;
+}
+
+/** The IR's aggregate producers: a local C array, or a buffer it owns. */
+function allocatesAggregate(value: GeneratedExpression | undefined): boolean {
+  return value?.kind === 'call' && value.callee.kind === 'identifier' &&
+    ['ALLOC', 'ALLOC16', 'ALLOC32', 'ALLOCF', 'make_unique_clear', 'ARRAY'].includes(value.callee.name);
 }
 
 /**
