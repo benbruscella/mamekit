@@ -319,6 +319,34 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   );
 }
 
+// Every round starts with MAME's apply_suspend_changes, and inside a
+// perfect_quantum window every instruction is a round.
+{
+  const idle: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [{ tag: 'maincpu', type: 'z80', clock: 1_584_000, region: 'maincpu' }],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 264, vbstart: 240, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const order: string[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine: idle,
+    processors: [{ tag: 'maincpu', run: (budget: number) => { order.push(`run ${budget}`); return budget; } }],
+    onRound: () => order.push('round'),
+  });
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(order.slice(0, 4), ['round', 'run 300', 'round', 'run 300'], 'a round starts each slice');
+  order.length = 0;
+  runner.quantumWindow(0.0001);
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(order.slice(0, 5), ['round', 'round', 'run 1', 'round', 'run 1'],
+    'and each instruction of the window');
+}
+
 // A video/DMA device can be a first-class execute participant without being
 // mislabeled as a CPU or supplying its clock through a handwritten adapter.
 {

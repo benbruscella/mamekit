@@ -14,7 +14,6 @@
 
 export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["<expression>.allocate", "elevator junglek"],
-  ["abort_timeslice", "dkong dkongjr"],
   ["cartheader::checksum", "gameboy"],
   ["coin_in", "carnival"],
   ["configured", "arkanoid elevator"],
