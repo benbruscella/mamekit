@@ -44,6 +44,12 @@ export interface MameFunction {
    * initialisation of this type.
    */
   returnType?: string;
+  /**
+   * A definition inside its class body declared to return an lvalue
+   * reference (`u16 &REG(unsigned m, unsigned s)`). Those definitions carry
+   * no `returnType`, and this is the one fact about it a caller needs.
+   */
+  returnsReference?: true;
   parameters: string;
   body: string;
   statements: MameStatement[];
@@ -364,11 +370,13 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
       const templateParameters = im[0].includes('template')
         ? templateParameterNames(/template\s*<([^<>]*)>/.exec(im[0])?.[1] ?? '')
         : classTemplateParameters(bodyMasked, im.index);
+      const head = im[0].slice(0, im[0].search(new RegExp(`\\b${im[1]}\\s*\\(`)));
       functions.push({
         kind: 'function',
         className: declaration.name,
         name: im[1]!,
         ...(templateParameters.length ? { templateParameters } : {}),
+        ...(/(?:^|[^&])&\s*$/.test(head) ? { returnsReference: true } : {}),
         parameters: source.slice(
           masked.indexOf('(', bodyStart + im.index),
           matchPair(masked, masked.indexOf('(', bodyStart + im.index), '(', ')') + 1,

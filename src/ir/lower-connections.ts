@@ -92,7 +92,7 @@ const CPU_INPUT_LINES: Record<string, CpuLine> = {
   M68K_IRQ_IPL1: 'irq1',
   M68K_IRQ_IPL2: 'irq2',
   MCS48_INPUT_EA: 'irq1',
-  Z80_INPUT_LINE_BUSREQ: 'halt',
+  Z80_INPUT_LINE_BUSREQ: 'busreq',
   Z80_INPUT_LINE_WAIT: 'halt',
 };
 
@@ -159,6 +159,7 @@ export function lowerCallbackEffect(
         // pulse rather than remaining asserted after the first tick.
         delivery: callback.delivery ??
           (callback.signal === 'vck_callback' && line === 'nmi' ? 'pulse' : 'level'),
+        ...(line === 'busreq' ? { input: callback.inputLine } : {}),
       };
     }
   }

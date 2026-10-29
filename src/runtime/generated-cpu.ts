@@ -65,6 +65,14 @@ export interface CpuBus {
   };
   /** Instruction boundary within the current scheduler slice. */
   timing?(elapsedCycles: number, targetCycles: number): void;
+  /**
+   * The core handed back its slice from its service block (MAME's
+   * `m_icount = 0; return;`, the Z80 holding for BUSREQ): how many cycles it
+   * stands still before it looks again. MAME's next look is the next
+   * timeslice, which starts at the next timer expiry. Without this hook it
+   * waits out the slice.
+   */
+  parked?(elapsedCycles: number, targetCycles: number): number;
 }
 
 interface CpuAlias {
@@ -179,6 +187,8 @@ export interface Cpu {
   setIrqLine(active: boolean, dataBus?: number | (() => number), hold?: boolean): void;
   /** Drive a generated CPU's numbered input line (RP2A03 keeps APU IRQ separate). */
   setInputLine(inputnum: number, state: number): void;
+  /** The number the core's header gives an input-line constant (`Z80_INPUT_LINE_BUSREQ`). */
+  inputLine?(name: string): number | undefined;
   nmi(): void;
   get(name: string): number;
   /** MAME device_state_interface::state_int, by the CPU's own state index. */
@@ -376,6 +386,11 @@ class IrCpu implements Cpu {
     this.set('m_icount', 1);
     this.execute(this.definition.service);
     if (this.get('cycles') > 0) return this.get('cycles');
+    // The service block handed back the slice: no instruction this time.
+    if (this.get('m_icount') <= 0) {
+      this.parked = true;
+      return 0;
+    }
 
     this.execute(this.definition.fetch);
     let dispatches = 0;
@@ -391,9 +406,15 @@ class IrCpu implements Cpu {
 
   /** MAME abort_timeslice; see the generated cores' run(). */
   private timesliceAborted = false;
+  /** The last step() parked instead of executing (see CpuBus.parked). */
+  private parked = false;
 
   abortTimeslice(): void {
     this.timesliceAborted = true;
+  }
+
+  inputLine(name: string): number | undefined {
+    return this.definition.constants[name];
   }
 
   run(target: number): number {
@@ -402,6 +423,10 @@ class IrCpu implements Cpu {
     while (total < target) {
       this.bus.timing?.(total, target);
       total += this.step();
+      if (this.parked) {
+        this.parked = false;
+        total += Math.max(1, Math.min(target - total, this.bus.parked?.(total, target) ?? target - total));
+      }
       if (this.timesliceAborted) break;
     }
     const settled = Math.min(total, target);

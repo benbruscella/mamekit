@@ -41,9 +41,9 @@ export const trackfld = sourceTarget({
     audio: {
       writes: 179383,
       nonzeroWrites: 14524,
-      writeHash: '5f25472d',
-      pcmHash: '2fdb591f',
-      rms: 0.372861,
+      writeHash: '4d6b3c89',
+      pcmHash: '0f5b46f4',
+      rms: 0.372865,
     },
   },
 });

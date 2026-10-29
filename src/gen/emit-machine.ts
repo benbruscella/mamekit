@@ -666,6 +666,10 @@ export function lowerGeneratedMachine(
   // the request to the whole machine however deep it is set.
   const perfectQuantumBoard = graph.nodes.some(node =>
     node.label === 'MachineConfig' && node.props.perfectQuantum === true);
+  // The shortest asked for anywhere in the chain bounds every slice.
+  const maximumQuantum = Math.min(...graph.nodes
+    .filter(node => node.label === 'MachineConfig' && typeof node.props.maximumQuantum === 'number')
+    .map(node => node.props.maximumQuantum as number));
   const cpuTags = new Set(devices.map(device => device.tag));
   const spaceAccessors = [...new Map(graph.nodes
     .filter(node => node.label === 'MachineConfig' && Array.isArray(node.props.spaceAccessors))
@@ -808,6 +812,7 @@ export function lowerGeneratedMachine(
     ...(startHandlers.length ? { startHandlers } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
+    ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),
     ...(spaceAccessors.length ? { spaceAccessors } : {}),
     ...(memoryBanks.length ? { banks: memoryBanks } : {}),
     ...(accessTaps.length ? { accessTaps } : {}),

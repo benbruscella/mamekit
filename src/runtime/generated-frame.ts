@@ -162,7 +162,7 @@ export class GeneratedFrameRunner {
   constructor(options: GeneratedFrameRunnerOptions) {
     this.machine = options.machine;
     this.video = options.video;
-    this.eventPhase = options.eventPhase ?? 'after-processors';
+    this.eventPhase = options.eventPhase ?? 'before-processors';
     this.onEvent = options.onEvent;
     this.onLine = options.onLine;
     this.onSynchronize = options.onSynchronize;

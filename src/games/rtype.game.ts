@@ -58,9 +58,9 @@ export const rtype = sourceTarget({
     audio: {
       writes: 25916,
       nonzeroWrites: 23770,
-      writeHash: '6268d7cf',
-      pcmHash: '975198a6',
-      rms: 0.048703,
+      writeHash: '650bfdf8',
+      pcmHash: '0b8cb85b',
+      rms: 0.048686,
     },
   },
 });

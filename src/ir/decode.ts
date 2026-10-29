@@ -225,7 +225,7 @@ const EFFECT_KINDS = new Set([
 ]);
 const CPU_LINES = new Set([
   'irq', 'irq1', 'irq2', 'irq3', 'irq4', 'irq5', 'irq6', 'irq7',
-  'firq', 'nmi', 'reset', 'halt',
+  'firq', 'nmi', 'reset', 'halt', 'busreq',
 ]);
 const DELIVERIES = new Set(['hold', 'assert', 'pulse', 'level']);
 const TRANSFORM_KINDS = new Set(['invert', 'mask', 'bit', 'rshift', 'lshift']);
@@ -254,6 +254,8 @@ function decodeConnections(reader: Reader, value: unknown): void {
       if (!CPU_LINES.has(effect.line as string)) {
         reader.fail(`${path}.effect.line`, `unknown CPU line ${describe(effect.line)}`, source);
       }
+      if (effect.line === 'busreq') reader.string(effect.input, `${path}.effect.input`, source);
+      else reader.optionalString(effect.input, `${path}.effect.input`, source);
       if (!DELIVERIES.has(effect.delivery as string)) {
         reader.fail(
           `${path}.effect.delivery`,
@@ -445,6 +447,7 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
   const screen = reader.object(execution.screen, 'execution.screen');
   const screenSource = sourceOf(screen);
   for (const field of ['width', 'height', 'refresh', 'vtotal', 'vbstart', 'rotate']) {

@@ -11,7 +11,7 @@ import type { BoardEffect, BoardIr, BoardTransform, CpuLine, CpuLineDelivery } f
 export type EffectExecutor = (value: number, ...sourceArgs: number[]) => number | void;
 
 export interface EffectBindings {
-  cpuLine(tag: string, line: CpuLine, delivery: CpuLineDelivery): EffectExecutor | undefined;
+  cpuLine(tag: string, line: CpuLine, delivery: CpuLineDelivery, input?: string): EffectExecutor | undefined;
   /** MAME scheduler::perfect_quantum requested by an appended devcb. */
   perfectQuantum(seconds: number): EffectExecutor | undefined;
   deviceMethod(tag: string, method: string, ownerClass?: string): EffectExecutor | undefined;
@@ -41,7 +41,7 @@ function executorFor(effect: BoardEffect, bindings: EffectBindings): EffectExecu
     // MAME .set_nop(): the board declares this output unconnected, so doing
     // nothing is the correct behaviour rather than a gap.
     case 'unconnected': return () => {};
-    case 'cpu-line': return bindings.cpuLine(effect.tag, effect.line, effect.delivery);
+    case 'cpu-line': return bindings.cpuLine(effect.tag, effect.line, effect.delivery, effect.input);
     case 'device-method': return bindings.deviceMethod(effect.tag, effect.method, effect.ownerClass);
     case 'handler': return bindings.handler(effect.handler, effect.deviceTag);
     case 'port-read': return bindings.portRead(effect.port);

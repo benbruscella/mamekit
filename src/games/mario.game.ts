@@ -7,12 +7,8 @@ export const mario = {
     runtimeCoverage: {
       generationGaps: [
         'snd_nl:dac:NETLIST_INT_INPUT',
-        'z80dma:Z80DMA',
       ],
-      handlerGaps: [
-        'z80dma.read',
-        'z80dma.write',
-      ],
+      handlerGaps: [],
     },
     driver: 'src/mame/nintendo/mario.cpp',
     machine: { className: 'mario_state', name: 'mario' },
@@ -41,14 +37,14 @@ export const mario = {
       soundrom: '06b9ff85',
     },
     checkpoints: {
-      1: { video: '9d7c81cb', state: '82d6997a' },
-      300: { video: 'a3913a72', state: 'a7894d8c' },
-      600: { video: '2fe3d933', state: '48af0552' },
-      900: { video: '026875d1', state: '92333ef6' },
-      1200: { video: 'e7380771', state: '2ca3ddc3' },
-      1500: { video: '080dbf8e', state: 'bfec6fb3' },
-      1650: { video: '080dbf8e', state: '4cef68d7' },
-      1840: { video: 'c69c9e03', state: 'a6804b62' },
+      1: { video: '9d7c81cb', state: '266d55dc' },
+      300: { video: 'a3913a72', state: '187ba866' },
+      600: { video: '2fe3d933', state: '39154628' },
+      900: { video: '026875d1', state: '0883e822' },
+      1200: { video: 'e7380771', state: 'cc376ea4' },
+      1500: { video: '080dbf8e', state: 'a4584a14' },
+      1650: { video: '080dbf8e', state: 'baaad637' },
+      1840: { video: 'c69c9e03', state: '3495659b' },
     },
     audio: {
       writes: 375781,

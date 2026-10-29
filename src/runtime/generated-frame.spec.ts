@@ -424,4 +424,29 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.equal(runner.runningFrameLines(0), undefined, 'outside a slice');
 }
 
-console.log('generated-frame.spec: 20 passed');
+// A line's events fire where the beam reaches it, before the processors run
+// the line. MAME raises Donkey Kong's VBLANK NMI at the start of line 240,
+// which under MAME's origin is where each frame begins; delivered after the
+// line instead, every board's VBLANK came 192 cycles late (#214).
+{
+  const timeline: string[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine,
+    origin: 'vbstart',
+    processors: [{ tag: 'maincpu', run: budget => {
+      timeline.push(`cpu ${runner.runningFrameLines(0)}`);
+      return budget;
+    } }],
+    onEvent: event => timeline.push(event.callbackId),
+  });
+  runner.frame(new Uint32Array(1));
+  runner.frame(new Uint32Array(1));
+  // Nothing fires on the origin line at time zero; a frame later VBLANK comes
+  // first, at the frame's start.
+  assert.deepEqual(timeline, [
+    'cpu 0', 'cpu 1', 'cpu 2',
+    'callback:vblank', 'cpu 0', 'cpu 1', 'cpu 2',
+  ]);
+}
+
+console.log('generated-frame.spec: 21 passed');

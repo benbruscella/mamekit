@@ -67,6 +67,7 @@ export const DEVICE_MAME_TYPES = [
   'TTL153',
   'TTL74181',
   'Z80CTC',
+  'Z80DMA',
   'Z80PIO',
   'IREM_M72_AUDIO',
   'K053251',

@@ -41,9 +41,9 @@ export const bnj = sourceTarget({
     audio: {
       writes: 32010,
       nonzeroWrites: 30243,
-      writeHash: '4db15866',
-      pcmHash: 'd3f3c1db',
-      rms: 0.082841,
+      writeHash: '503e033b',
+      pcmHash: 'a46a9494',
+      rms: 0.082955,
     },
   },
 });

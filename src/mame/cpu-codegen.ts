@@ -69,6 +69,12 @@ ${emitProgram(definition.resetInstruction, contextFor(definition, [], 'void'), 6
     this.m_icount = 1;
     this.generatedService();
     if (this.cycles > 0) return this.cycles;
+    // The service block handed back the slice (the Z80 holding for BUSREQ):
+    // no instruction this time.
+    if (this.m_icount <= 0) {
+      this.parked = true;
+      return 0;
+    }
     this.generatedFetch();
     let dispatches = 0;
     while (true) {
@@ -102,6 +108,10 @@ function popcount32(value: number): number {
   value = (value & 0x33333333) + ((value >>> 2) & 0x33333333);
   return (((value + (value >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
 }
+
+/** The core header's input-line constants, for a pin the board names (Cpu.inputLine). */
+const INPUT_LINES: Record<string, number> = ${JSON.stringify(Object.fromEntries(
+    Object.entries(definition.constants).filter(([name]) => /INPUT_LINE/.test(name))))};
 
 /**
  * The byte halves of a Pair16, as a class rather than a per-instance object.
@@ -370,8 +380,15 @@ ${step}
    */
   timesliceAborted = false;
 
+  /** The last step() parked instead of executing (see CpuBus.parked). */
+  parked = false;
+
   abortTimeslice(): void {
     this.timesliceAborted = true;
+  }
+
+  inputLine(name: string): number | undefined {
+    return INPUT_LINES[name];
   }
 
   run(target: number): number {
@@ -391,6 +408,11 @@ ${countsBusCycles ? `      // Cleared before the callback, not after: timing() i
       if (this.stallCycles !== 0) {
         stalled += this.stallCycles;
         this.stallCycles = 0;
+      }
+      if (this.parked) {
+        this.parked = false;
+        const left = target - executed - stalled;
+        stalled += Math.max(1, Math.min(left, this.bus.parked?.(executed + stalled, target) ?? left));
       }
       total = executed + stalled;
       if (this.timesliceAborted) break;

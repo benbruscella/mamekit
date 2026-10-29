@@ -369,6 +369,8 @@ export interface Device {
   postLoad?(): void;
   /** Whether this device or a composed child owns a scheduled timer. */
   needsTick?(): boolean;
+  /** Seconds until the soonest armed timer of this device or one inside it fires. */
+  untilNextTimer?(): number;
   /** Host a device_execute_interface time slice in device cycles. */
   runCycles?(cycles: number): number;
   call(name: string, ...args: number[]): number;
@@ -890,6 +892,11 @@ class IrTimer {
 
   enabled(): boolean {
     return Number.isFinite(this.remainingSeconds);
+  }
+
+  /** Seconds of device time until it fires; Infinity when it is not armed. */
+  untilExpiry(): number {
+    return this.remainingSeconds;
   }
 
   /**
@@ -2053,6 +2060,13 @@ class IrDevice implements Device {
       Boolean(this.slotChild?.needsTick());
   }
 
+  untilNextTimer(): number {
+    let soonest = Infinity;
+    for (const entry of this.timerEntries) soonest = Math.min(soonest, entry.timer.untilExpiry());
+    for (const child of this.children) soonest = Math.min(soonest, child.untilNextTimer());
+    if (this.slotChild) soonest = Math.min(soonest, this.slotChild.untilNextTimer());
+    return soonest;
+  }
 
   call(name: string, ...args: number[]): number {
     return Number(this.preparedCall(name)(...args)) || 0;
