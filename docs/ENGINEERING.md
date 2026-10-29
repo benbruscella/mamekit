@@ -1017,8 +1017,9 @@ by hand) through the oracle twice. The first run has no input, with `--ram` and
 `--audio`. The second has the contract's own input, with `--audio`. The frames
 compared are every 300 (a wider step past 2400 frames, so there are at most
 eight) and the contract's last frame. RAM is compared every frame, up to 256 MB
-a side. It writes `.cache/oracle/baseline/<commit>/<target>.json`. Nothing else
-writes there, so neither a later oracle run nor a generation can change it.
+a side. It writes `.oracle/baseline/<commit>/<target>.json`, outside `.cache`,
+which `npm run clean:all` deletes. Nothing else writes there, so neither a
+later oracle run, a generation nor a clean can change it.
 Each file holds:
 
 - each step's exact arguments;

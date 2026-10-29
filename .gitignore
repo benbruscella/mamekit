@@ -16,6 +16,10 @@ artwork/
 # HEAD revision (see src/gen/driver-history.ts). Never committed.
 /.cache/
 
+# MAME baselines and comparisons (tools/mame-baseline.ts). Local evidence,
+# kept apart from .cache so `npm run clean:all` leaves it. Never committed.
+/.oracle/
+
 # Desktop MAME writes these relative to its working directory when diagnostic
 # runs use the default cfg_directory, snapshot_directory and nvram_directory.
 # They are one machine's local session state, not project source: nvram/ was
