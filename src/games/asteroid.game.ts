@@ -31,8 +31,8 @@ export const asteroid = sourceTarget({
     audio: {
       writes: 1981,
       nonzeroWrites: 1042,
-      writeHash: 'ec6e0c00',
-      pcmHash: '48c9b1de',
+      writeHash: '3764e48d',
+      pcmHash: 'ca6d8521',
       rms: 0.046661,
     },
   },

@@ -42,7 +42,7 @@ export const xevious = sourceTarget({
       600: { video: '00a6db5d', state: 'c5bb0a54' },
       1200: { video: '1ec0a091', state: '6dd7267b' },
       1800: { video: '4c04253a', state: 'b2a02000' },
-      2100: { video: 'ade11a75', state: '2eb0df04' },
+      2100: { video: 'ade11a75', state: 'af10df54' },
       2400: { video: 'c2bb0eb6', state: '6f24e422' },
       2700: { video: '853ec195', state: '49d2d88c' },
       3000: { video: '21f5284d', state: '61fd1060' },
@@ -50,9 +50,9 @@ export const xevious = sourceTarget({
     audio: {
       writes: 692710,
       nonzeroWrites: 20363,
-      writeHash: '3a409b87',
-      pcmHash: 'f2b16a70',
-      rms: 0.107767,
+      writeHash: 'ad2700ca',
+      pcmHash: '8a29237e',
+      rms: 0.107597,
     },
   },
 });

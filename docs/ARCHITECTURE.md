@@ -846,6 +846,16 @@ played their writes out of order. Nothing fires on the origin line in the
 first frame: MAME arms its first VBLANK and its scanline timers a frame out
 from a position the beam already stands on.
 
+A line's events (its `screen_vblank` edges, a scanline TIMER's callback, a
+`set_vblank_int`) fire where the beam reaches the line, before the processors
+run it: MAME's timer for line L expires at L's start. They used to fire after
+the line had run, which put every board's VBLANK one scanline late. Under the
+`vbstart` origin that is a whole line into each frame: Donkey Kong took its
+VBLANK NMI 192 cycles after MAME, one instruction further on, and its attract
+mode parted from MAME's at frame 5. Fixed, its first three NMIs land on MAME's
+cycle, Mr. Do!'s and Popeye's RAM match MAME's at every frame, and Congo Bongo
+is pixel-exact at every compared frame (#214).
+
 Frames running from line 0 put the NES's first VBLANK 2491 cycles ahead of
 MAME's (241 lines in, not 263). Twenty-two lines is no whole number of passes
 of any loop, so Terao no Dosukoi Oozumou's `inc $47` spin loop was interrupted
@@ -926,8 +936,8 @@ order. Our Z80 is one, though MAME 0.289's is not: `z80make.py` can leave an
 instruction after any of its cycle charges, so MAME's Z80 stops at a frame
 boundary inside an instruction where ours finishes it first. Mario's RAM
 differs from MAME's at frame 19 by one byte, a write 3 cycles past the
-boundary that both make at the same instant and file under different frames,
-and Donkey Kong takes its frame-5 NMI an instruction later (#214).
+boundary that both make at the same instant and file under different frames
+(#214).
 
 On such a processor a register access goes further. MAME's scheduler stops the
 core at a timer's expiry, so an access on cycle k finds every timer due before
