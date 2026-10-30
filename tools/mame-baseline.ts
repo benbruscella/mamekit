@@ -36,15 +36,17 @@
  * out once (tools/oracle/baseline.ts) and stored with the baseline, so a
  * comparison re-runs exactly what was recorded, whatever the rules become.
  *
- * `record` writes .cache/oracle/baseline/<commit>/<target>.json. Nothing else
- * writes there: an oracle run rewrites .cache/oracle/<target>.json and its
+ * `record` writes .oracle/baseline/<commit>/<target>.json. It is kept out of
+ * .cache, which `npm run clean:all` deletes: a baseline is evidence that takes
+ * hours of MAME to record, not a cache. Nothing else writes there: an oracle
+ * run rewrites .cache/oracle/<target>.json and its
  * exhibit's oracle.json, and generation rewrites oracle.json, but neither
  * touches a baseline. A measure once recorded is never run again; a failed
  * one is retried by the next `record`, so a stopped run resumes. Every step
  * that fails is run once more before the failure is believed (#190).
  *
  * `compare` re-runs the stored plans on the current tree, writes the runs to
- * .cache/oracle/compare/<target>.json and prints a verdict per measure. It
+ * .oracle/compare/<target>.json and prints a verdict per measure. It
  * exits 1 when any measure is worse.
  */
 
@@ -83,8 +85,8 @@ if (command !== 'record' && command !== 'compare' && command !== 'show') {
   process.exit(2);
 }
 const jobs = Math.max(1, Number(options.get('--jobs') ?? 1));
-const baselineRoot = join(projectRoot, '.cache/oracle/baseline');
-const compareRoot = join(projectRoot, '.cache/oracle/compare');
+const baselineRoot = join(projectRoot, '.oracle/baseline');
+const compareRoot = join(projectRoot, '.oracle/compare');
 const dist = join(projectRoot, 'dist');
 
 // --- identity --------------------------------------------------------------

@@ -1199,7 +1199,6 @@ class IrBoard implements Board {
     }
 
     const calls: NonNullable<GeneratedHandlerBindings['calls']> = {};
-    let runAutonomousNow = (): void => {};
     const timerClockCpu = machine.execution.cpus[0];
     // Read each time: a processor's clock can change as it runs.
     const timerClockHz = (): number => timerClockCpu ? this.cycleClockOf(timerClockCpu) : 1;
@@ -1335,8 +1334,12 @@ class IrBoard implements Board {
       sinks.soundWrite(node, value, this.soundFraction(), 'discrete');
       return 0;
     };
+    // MAME device_scheduler::abort_timeslice: the executing processor's
+    // slice ends after the instruction in progress. Donkey Kong asks for it
+    // straight after raising the 8257's DMA requests, so the controller
+    // starts in the next round rather than at the end of this one.
     calls['machine().scheduler().abort_timeslice'] = () => {
-      runAutonomousNow();
+      this.frameRunner?.requestSynchronize();
       return 0;
     };
     // MAME boosts the scheduler's interleave when a device publishes something
@@ -2667,16 +2670,6 @@ class IrBoard implements Board {
           : processor.run(target));
       }
     };
-    // Drivers use abort_timeslice after asserting short DMA request pulses so
-    // the autonomous controller observes them before the CPU clears them.
-    // One generous local slice is bounded and covers a complete 8257 burst;
-    // a device the round runs is brought level by ending the slice instead.
-    const hostedTags = new Set(hostedProcessors.map(processor => processor.tag));
-    const delivered = synchronizedProcessors.filter(processor => !hostedTags.has(processor.tag));
-    runAutonomousNow = () => {
-      for (const processor of delivered) processor.run(4096);
-      if (this.roundProcessors.length) this.frameRunner?.requestSynchronize();
-    };
     // Machine latches drive reset/hold lines at power-on. Hosted processors
     // must be wired before these initial values are emitted.
     for (const callback of machine.callbacks) {
@@ -2922,6 +2915,8 @@ class IrBoard implements Board {
         };
       }
     }
+    const executeDevices = [...this.devices.values()].filter(device =>
+      device.applySuspendChanges && device.methodNames().includes('execute_run'));
     this.frameRunner = new GeneratedFrameRunner({
       machine,
       // MAME's screen starts at the beginning of VBLANK (#184).
@@ -3000,6 +2995,12 @@ class IrBoard implements Board {
       // `scheduler().synchronize()` work runs once the processor that posted
       // it has yielded and the ones behind it have caught up.
       onSynchronize: () => this.drainScheduledWork(),
+      // A device suspended or triggered during a round changes at the next.
+      ...(executeDevices.length ? {
+        onRound: () => {
+          for (let index = 0; index < executeDevices.length; index++) executeDevices[index]!.applySuspendChanges!();
+        },
+      } : {}),
       // MAME presents at the start of VBLANK, where its devices stand; ours
       // may be a little short of it (held, or behind the processors), so the
       // presentation reads its timers from that instant.
@@ -6362,9 +6363,10 @@ export function bindGeneratedRegionState(
  * A device the scheduler runs in its round beside the CPUs, once it is known
  * to execute: one with no host processor, on a board without a perfect
  * quantum (see autonomousProcessors). A bus master -- a DMA controller whose
- * HRQ asks a CPU for its bus -- is not yet: what it does with the bus it is
- * granted is still run in a burst from abort_timeslice (runAutonomousNow),
- * and in the round that burst left Donkey Kong's attract further from MAME.
+ * HRQ asks a CPU for its bus -- is not yet: it is delivered between the
+ * instructions of the processor it holds, and in the round Donkey Kong's
+ * attract went further from MAME (#200). MAME's round rules, which sit
+ * between the two, are not modelled yet.
  */
 function roundScheduledDevice(
   machine: BoardIr,

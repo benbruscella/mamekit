@@ -46,6 +46,11 @@ export interface GeneratedFrameRunnerOptions {
   onEvent?: (event: GeneratedFrameEvent) => void;
   /** Run the `scheduler().synchronize()` work posted since the last call. */
   onSynchronize?: () => void;
+  /**
+   * A round is starting: MAME's `apply_suspend_changes`, which puts into
+   * force the suspensions and triggers asked for during the round before.
+   */
+  onRound?: () => void;
   /** The frame has just been presented (see `awaitingPresent`). */
   onPresented?: () => void;
   /** Present the frame: `render` draws it, at the instant the board sets up. */
@@ -82,6 +87,7 @@ export class GeneratedFrameRunner {
   private readonly onEvent?: (event: GeneratedFrameEvent) => void;
   private readonly onLine?: GeneratedFrameRunnerOptions['onLine'];
   private readonly onSynchronize?: () => void;
+  private readonly onRound?: () => void;
   private readonly onPresented?: () => void;
   private readonly aroundPresent?: (render: () => void) => void;
 
@@ -166,6 +172,7 @@ export class GeneratedFrameRunner {
     this.onEvent = options.onEvent;
     this.onLine = options.onLine;
     this.onSynchronize = options.onSynchronize;
+    this.onRound = options.onRound;
     this.onPresented = options.onPresented;
     this.aroundPresent = options.aroundPresent;
     this.origin = options.origin ?? 'line0';
@@ -455,6 +462,7 @@ export class GeneratedFrameRunner {
     this.onSynchronize?.();
     let done = 0;
     while (done < 1) {
+      this.onRound?.();
       if (this.permanentLockstep) {
         done = this.lockstep(lines, done, 1);
         continue;
@@ -564,6 +572,8 @@ export class GeneratedFrameRunner {
       }
     }
     for (;;) {
+      // Every instruction in the window is a round of its own.
+      this.onRound?.();
       let behind: GeneratedFrameRunner['processors'][number] | undefined;
       let owed = 0;
       for (const scheduled of processors) {

@@ -373,6 +373,8 @@ export interface Device {
   untilNextTimer?(): number;
   /** Host a device_execute_interface time slice in device cycles. */
   runCycles?(cycles: number): number;
+  /** MAME `apply_suspend_changes` for this device, at the start of a round. */
+  applySuspendChanges?(): void;
   call(name: string, ...args: number[]): number;
   /** Call a method preserving non-numeric results (memory pointers). */
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
@@ -725,6 +727,9 @@ let timerNowAheadSeconds = 0;
  */
 const TIMER_NOW_TOLERANCE_SECONDS = 1e-10;
 
+/** diexec.h: the suspend reason `suspend_until_trigger` sets. */
+const SUSPEND_REASON_TRIGGER = 0x0008;
+
 /**
  * A catch-up is delivering device time: the processor's access (or the poll
  * after its fetch) comes at the end of it, and MAME fires only the timers due
@@ -1040,6 +1045,14 @@ class IrDevice implements Device {
   private readonly clock: number;
   private executedCycles = 0;
   private runningCycles: number | undefined;
+  /**
+   * MAME device_execute_interface's suspension (diexec.cpp): the reasons in
+   * force this round and those the next one starts with, whether a suspended
+   * device is still charged its slice, and the trigger that releases it.
+   * suspend_until_trigger and trigger change only the next round's; the
+   * scheduler applies them when a round starts (applySuspendChanges).
+   */
+  private suspension = { now: 0, next: 0, eat: false, nextEat: false, trigger: 0 };
   private executeEntry?: (...args: GeneratedCallArgument[]) => unknown;
   /** Samples published through `sound_stream::put_int` since the last collection. */
   private streamSamples: number[] = [];
@@ -1716,6 +1729,32 @@ class IrDevice implements Device {
       member: () => 0,
       overrides: {},
     };
+    // A device that executes reaches its own device_execute_interface. A
+    // method of its own of the same name is that method: a Z80 CTC channel's
+    // `trigger` is its trigger input, not the scheduler's.
+    if (definition.methods.some(method => method.name === 'execute_run')) {
+      const execute: Record<string, (...args: number[]) => number> = {
+        abort_timeslice: () => { this.abortTimeslice(); return 0; },
+        suspend_until_trigger: (trigger, eatcycles) => {
+          this.suspension.next |= SUSPEND_REASON_TRIGGER;
+          this.suspension.nextEat = Boolean(eatcycles);
+          this.abortTimeslice();
+          this.suspension.trigger = Number(trigger);
+          return 0;
+        },
+        trigger: trigger => {
+          this.abortTimeslice();
+          if ((this.suspension.next & SUSPEND_REASON_TRIGGER) && this.suspension.trigger === Number(trigger)) {
+            this.suspension.next &= ~SUSPEND_REASON_TRIGGER;
+            this.suspension.trigger = 0;
+          }
+          return 0;
+        },
+      };
+      for (const [name, call] of Object.entries(execute)) {
+        if (!this.methods.has(name) && !options.calls?.[name]) this.bindings.calls![name] = call;
+      }
+    }
     const pendingTimers = [...this.timers.values()];
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
     // A struct local with no initializer, built from its declaration
@@ -1978,6 +2017,8 @@ class IrDevice implements Device {
   reset(): void {
     this.executedCycles = 0;
     this.runningCycles = undefined;
+    // interface_pre_reset: a clocked device resumes, from the next round.
+    if (this.clock !== 0) this.suspension.next = 0;
     // device_t::reset: the device, then its subdevices, then
     // device_reset_after_children, then its interfaces' post-reset work.
     if (this.definition.reset) this.call(this.definition.reset);
@@ -1999,7 +2040,7 @@ class IrDevice implements Device {
    * bindings, listeners and resolved call links are wiring.
    */
   stateKeys(): readonly string[] {
-    return ['members', 'timers', 'spaces', 'executedCycles', 'streamSamples', 'children', 'slotChild', 'executionContext'];
+    return ['members', 'timers', 'spaces', 'executedCycles', 'suspension', 'streamSamples', 'children', 'slotChild', 'executionContext'];
   }
 
   tick(seconds: number): void {
@@ -2073,16 +2114,44 @@ class IrDevice implements Device {
   }
 
   runCycles(cycles: number): number {
+    // Suspended, MAME runs nothing; one that eats cycles is charged anyway.
+    if (this.suspension.now) {
+      const charged = this.suspension.eat ? cycles : 0;
+      this.executedCycles += charged;
+      return charged;
+    }
     if (!this.executeEntry) this.connectCall('execute_run', call => { this.executeEntry = call; });
     this.members.m_icount = cycles;
     this.runningCycles = cycles;
+    let ran = cycles;
     try {
       this.executeEntry!();
     } finally {
-      this.executedCycles += cycles - Number(this.members.m_icount);
+      // An abort_timeslice took back what was left (runningCycles).
+      ran = this.runningCycles! - Number(this.members.m_icount);
+      this.executedCycles += ran;
       this.runningCycles = undefined;
     }
-    return cycles - Number(this.members.m_icount);
+    return ran;
+  }
+
+  applySuspendChanges(): void {
+    this.suspension.now = this.suspension.next;
+    this.suspension.eat = this.suspension.nextEat;
+  }
+
+  /**
+   * MAME device_execute_interface::abort_timeslice: the executing device
+   * swallows what is left of its slice, so the slice ends where it stopped.
+   * Any other device's is not running, and is left alone.
+   */
+  private abortTimeslice(): void {
+    if (this.runningCycles === undefined) return;
+    const left = Number(this.members.m_icount);
+    if (left > 0) {
+      this.runningCycles -= left;
+      this.members.m_icount = 0;
+    }
   }
 
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown {
@@ -3250,9 +3319,10 @@ function splitParameters(parameters: string): string[] {
  * zero-page store vanished, so the audio CPU could not run its service routine
  * and the board was silent — while `ram_r` stayed correct and hid the cause.
  * Allocating here keeps the two execution paths agreeing on one store. This
- * must stay *after* the `values` branch: i8257's `m_channel` is `channel[]`
- * with four initial structs, and claiming it first replaced them with an empty
- * array, so device_reset wrote through undefined and dkong stopped booting.
+ * must stay *after* the `values` branch: a `T[]` member that comes with its
+ * initial structs, claimed first, was replaced with an empty array, so its
+ * device_reset wrote through undefined (Donkey Kong's 8257 once stopped
+ * booting this way).
  */
 function isIndexableMemberType(valueType: string | undefined): boolean {
   if (!valueType) return false;

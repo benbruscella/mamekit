@@ -30,6 +30,18 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The Intel 8257 DMA compiles from MAME, and waits for its trigger as MAME's does ([#216](https://github.com/benbruscella/mamekit/issues/216))
+
+**For players:**
+- Donkey Kong's and Donkey Kong Junior's sprite DMA now starts one scheduler round after the Z80 grants the bus, as MAME's does. Their attract mode and sound change; the comparison against MAME 0.289 is pending.
+
+**Under the hood:**
+- `compileI8257` and its seven hand-restated methods are deleted. `i8257.cpp` compiles whole: 38 methods, 0 diagnostics.
+- `struct { ... } m_name[N];` is an array of N structs. The bound was dropped, and the struct's fields leaked out as members of the device.
+- `suspend_until_trigger`, `trigger` and `abort_timeslice` lower for any device that executes. Suspension changes take effect at the next round start (the frame runner's `onRound`, MAME's `apply_suspend_changes`). A suspended device that eats cycles is charged its slice without running, and an abort throws away the rest of the running device's slice. A device's own method of the same name still wins.
+- `machine().scheduler().abort_timeslice()` ends the executing processor's slice. It had run the delivered processors for a 4096-cycle burst.
+- MAME baselines and comparisons move from `.cache/oracle/` to `.oracle/`, so `npm run clean:all` no longer deletes them.
+
 ### The Z80 DMA compiles from MAME, and a bus master holds the Z80 as MAME's does ([#214](https://github.com/benbruscella/mamekit/issues/214))
 
 **For players:**

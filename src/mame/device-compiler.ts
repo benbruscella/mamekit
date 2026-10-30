@@ -2722,13 +2722,22 @@ export function memberDeclarations(
   // A member declared by an anonymous struct: `struct { bool on; ... }
   // m_snd_control;`. The block has no type name, so the member's own name is
   // the shape's key -- structDeclarations records it under the same one.
+  // Its bound makes it an array of structs: the 8257's four channels are
+  // `struct { ... } m_channel[4];`. Its fields are the struct's, never the
+  // device's, so the block is masked before the patterns below read them as
+  // members of their own.
+  let unmasked = declaration.body;
   for (const block of structBlocks(declaration.body)) {
     // Only an anonymous struct declares a member here; a named one is a type,
     // and its members are picked up by the ordinary patterns below.
     const name = block.declarator;
     if (!name || block.name !== name || members.some(member => member.name === name)) continue;
-    members.push({ valueType: name, name });
+    const arrayLength = block.declaratorBound === undefined ? undefined : arrayBound(block.declaratorBound, constants);
+    members.push({ valueType: name, name,
+      ...(arrayLength !== undefined && Number.isInteger(arrayLength) && arrayLength > 0 ? { arrayLength } : {}) });
+    unmasked = unmasked.replace(`{${block.body}}`, `{${block.body.replace(/[^\r\n]/g, ' ')}}`);
   }
+  declaration = { ...declaration, body: unmasked };
   // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
   // declarator as its own field before the single-declarator patterns below.
   // The names need not carry `m_`: the 64H156 keeps its live and checkpoint
@@ -3966,8 +3975,8 @@ function structMethodsOf(body: string): { name: string; parameters: string; prog
  */
 function structBlocks(
   source: string,
-): { name: string; body: string; declarator?: string }[] {
-  const blocks: { name: string; body: string; declarator?: string }[] = [];
+): { name: string; body: string; declarator?: string; declaratorBound?: string }[] {
+  const blocks: { name: string; body: string; declarator?: string; declaratorBound?: string }[] = [];
   const opener = /\bstruct\s+(\w+)?\s*\{/g;
   let match: RegExpExecArray | null;
   while ((match = opener.exec(source)) !== null) {
@@ -3976,10 +3985,12 @@ function structBlocks(
     if (close < 0) continue;
     // The name after the closing brace declares a member of this struct type;
     // `struct SOUND { ... };` declares none.
-    const declarator = /^\s*(\w+)\s*(?:\[[^\]]*\])?\s*;/.exec(source.slice(close + 1))?.[1];
+    const declared = /^\s*(\w+)\s*(?:\[([^\]]*)\])?\s*;/.exec(source.slice(close + 1));
+    const declarator = declared?.[1];
     const name = match[1] ?? declarator ?? '';
     const body = source.slice(open + 1, close);
-    blocks.push({ name, body, ...(declarator ? { declarator } : {}) });
+    blocks.push({ name, body, ...(declarator ? { declarator } : {}),
+      ...(declared?.[2]?.trim() ? { declaratorBound: declared[2] } : {}) });
     // A struct declared inside another is a type of its own, named as C++
     // names it: nes_defs.h declares `square_t` in both `apu_t` and
     // `mmc5_sound_t`, with different fields, and MMC5's `square_t squ[2]` is
