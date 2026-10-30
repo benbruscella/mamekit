@@ -30,10 +30,19 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### A MAME baseline for the eight machines #219 re-recorded without one ([#221](https://github.com/benbruscella/mamekit/issues/221))
+
+**For players:** Nothing visible.
+
+**Under the hood:**
+- Gauntlet, Juno First, Marble Madness, Mortal Kombat, NBA Jam, Rampage, Shinobi and Spy Hunter have a MAME 0.289 baseline, recorded from `main` at `d4dcb02b` into `.oracle/baseline/d4dcb02b/`. Their goldens changed in #219 with nothing to compare them against; later scheduler work (#220, #222) is judged against this.
+- Against the older `090275cf` baseline (#204), Mortal Kombat, NBA Jam and Shinobi are unchanged, and Gauntlet's, Marble Madness's and Rampage's RAM is closer to MAME's.
+- Spy Hunter's attract mode is silent where MAME's plays sound (-39.5 dB), as it already was in `090275cf`. It plays with input.
+
 ### Scheduler rounds follow MAME's rules: the machine's quantum, whole cycles, configuration order ([#217](https://github.com/benbruscella/mamekit/issues/217))
 
 **For players:**
-- Donkey Kong's main CPU now runs instruction for instruction as MAME's does through its first seven frames, sprite DMA included, and Donkey Kong Junior's RAM first differs from MAME's at frame 11 instead of 8. Wonder Boy's and Galaga's RAM and Bubble Bobble's pictures are closer to MAME's.
+- Donkey Kong's main CPU now runs instruction for instruction as MAME's does through its first seven frames, sprite DMA included, and Donkey Kong Junior's RAM first differs from MAME's at frame 11 instead of 8. Wonder Boy's RAM and Bubble Bobble's pictures are closer to MAME's.
 - Seventeen machines' attract modes shift slightly: Bubble Bobble, Double Dragon, Donkey Kong, Donkey Kong Junior, Gauntlet, Gyruss, Juno First, Marble Madness, Mortal Kombat, NBA Jam, Rampage, Shinobi, Spy Hunter, Up'n Down, Venture, Wardner and Wonder Boy.
 
 **Under the hood:**
