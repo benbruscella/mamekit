@@ -375,6 +375,8 @@ export interface Device {
   runCycles?(cycles: number): number;
   /** MAME `apply_suspend_changes` for this device, at the start of a round. */
   applySuspendChanges?(): void;
+  /** Suspended this round: charged its slice ('eating') or skipped ('waiting'). */
+  suspended?(): 'eating' | 'waiting' | undefined;
   call(name: string, ...args: number[]): number;
   /** Call a method preserving non-numeric results (memory pointers). */
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
@@ -2138,6 +2140,11 @@ class IrDevice implements Device {
   applySuspendChanges(): void {
     this.suspension.now = this.suspension.next;
     this.suspension.eat = this.suspension.nextEat;
+  }
+
+  suspended(): 'eating' | 'waiting' | undefined {
+    if (!this.suspension.now) return undefined;
+    return this.suspension.eat ? 'eating' : 'waiting';
   }
 
   /**

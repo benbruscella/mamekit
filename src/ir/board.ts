@@ -699,6 +699,15 @@ export interface GeneratedExecutionPlan {
    */
   maximumQuantum?: number;
   /**
+   * Every device with a device_execute_interface, in configuration order,
+   * and its execute_min_cycles() where its source states one. MAME's perfect
+   * interleave, the length of a `perfect_quantum` round, is the second
+   * shortest of their cycle times that many cycles (schedule.cpp
+   * compute_perfect_interleave). A device whose execute_min_cycles() reads
+   * its own state (the 6805's) answers it at run time.
+   */
+  executeDevices?: { tag: string; minCycles?: number }[];
+  /**
    * MAME `space(AS_*).specific(m_x)` / `.cache(m_x)`: a driver member that
    * reads and writes a processor's address space directly.
    */

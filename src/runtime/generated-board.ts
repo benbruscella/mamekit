@@ -2227,12 +2227,11 @@ class IrBoard implements Board {
         // timer expiry: while the Z80 DMA transfers, its periodic timer is
         // one DMA clock away, so the Z80 resumes within a clock of the bus
         // being released, as in MAME. Only the processor whose time drives
-        // the device clock moves a timer; any other waits out its slice.
+        // the device clock moves a timer; any other waits out its slice, which
+        // the machine's quantum bounds: Donkey Kong's Z80 looks again every
+        // 16.7 us while the 8257 holds the bus.
         parked: (elapsed, target) => {
-          // A machine's maximum quantum bounds MAME's timeslice too: Donkey
-          // Kong's 60 kHz has its Z80 look again every 16.7 us while the
-          // 8257 holds the bus, whose transfers run on no timer.
-          let soonest = machine.execution.maximumQuantum ?? Infinity;
+          let soonest = Infinity;
           if (specification.tag === timerClockCpu?.tag) {
             for (const device of this.devices.values()) {
               soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
@@ -2595,6 +2594,7 @@ class IrBoard implements Board {
       return [{
         tag: specification.tag,
         clock: device.cycleClock(),
+        ...(device.suspended ? { suspended: () => device.suspended!() } : {}),
         run: (cycles: number) => {
           const outer = this.runningRoundDevice;
           this.runningRoundDevice = specification.tag;
@@ -2622,8 +2622,8 @@ class IrBoard implements Board {
       enabled?: () => boolean;
     })[] = [
       ...hostedProcessors,
-      // Under a perfect quantum, and a bus master, delivered between
-      // instructions as above (roundScheduledDevice).
+      // Under a perfect quantum, delivered between instructions as above
+      // (roundScheduledDevice).
       ...(machine.devices ?? []).flatMap(specification => {
         if (specification.hostTag || machine.execution.cpus.some(cpu => cpu.tag === specification.tag) ||
           roundScheduledDevice(machine, specification)) return [];
@@ -2915,12 +2915,44 @@ class IrBoard implements Board {
         };
       }
     }
+    const configurationOrder = new Map((machine.devices ?? []).map((device, index) => [device.tag, index]));
     const executeDevices = [...this.devices.values()].filter(device =>
       device.applySuspendChanges && device.methodNames().includes('execute_run'));
+    // MAME's rounds are its quantum long, and a perfect_quantum window's its
+    // perfect interleave, only where every device that executes runs in the
+    // round. A processor hosted on device time is not in it yet: Xevious's
+    // Namco MCUs keep their handshakes only in the line-long rounds they
+    // were tuned against, and lose them in shorter ones (#217).
+    const roundTags = new Set([...machine.execution.cpus.map(cpu => cpu.tag), ...this.roundProcessors.map(processor => processor.tag)]);
+    const roundQuantum = (machine.execution.executeDevices ?? []).every(device => roundTags.has(device.tag));
+    // MAME's perfect interleave (schedule.cpp compute_perfect_interleave): the
+    // second shortest cycle time, times its execute_min_cycles(), of every
+    // device that executes. Asked when a window opens, as clocks may change.
+    const perfectInterleave = (): number | undefined => {
+      if (!roundQuantum) return undefined;
+      const quanta: number[] = [];
+      for (const { tag, minCycles } of machine.execution.executeDevices ?? []) {
+        const cpu = [...machine.execution.cpus, ...machine.execution.participants ?? []].find(entry => entry.tag === tag);
+        const device = this.devices.get(tag);
+        const clock = cpu ? cpu.cycleClock ?? cpu.clock : device?.cycleClock() ?? 0;
+        // MAME's minimum_quantum for a device with no clock is a second.
+        if (!(clock > 0)) continue;
+        const cycles = minCycles ?? (device?.methodNames().includes('execute_min_cycles')
+          ? device.call('execute_min_cycles')
+          : undefined);
+        if (!(cycles !== undefined && cycles > 0)) return undefined;
+        quanta.push(cycles / clock);
+      }
+      return quanta.sort((left, right) => left - right)[1];
+    };
     this.frameRunner = new GeneratedFrameRunner({
       machine,
       // MAME's screen starts at the beginning of VBLANK (#184).
       origin: 'vbstart',
+      perfectInterleave,
+      ...(roundQuantum && machine.execution.maximumQuantum !== undefined
+        ? { maximumQuantum: machine.execution.maximumQuantum }
+        : {}),
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
@@ -2990,8 +3022,15 @@ class IrBoard implements Board {
           }
         },
       })),
-      // MAME's round runs devices in configuration order, the CPUs first.
-      ...this.roundProcessors.map(processor => ({ tag: processor.tag, clock: processor.clock, run: processor.run }))],
+      ...this.roundProcessors.map(processor => ({
+        tag: processor.tag, clock: processor.clock, run: processor.run,
+        ...(processor.suspended ? { suspended: processor.suspended } : {}),
+      }))]
+        // MAME's round runs devices in configuration order: Donkey Kong's
+        // maincpu, its 8257, then the sound CPU its audio board adds.
+        .map((processor, index) => ({ processor, index, order: configurationOrder.get(processor.tag) ?? Infinity }))
+        .sort((left, right) => left.order - right.order || left.index - right.index)
+        .map(entry => entry.processor),
       // `scheduler().synchronize()` work runs once the processor that posted
       // it has yielded and the ones behind it have caught up.
       onSynchronize: () => this.drainScheduledWork(),
@@ -3209,7 +3248,12 @@ class IrBoard implements Board {
     cycles: number;
     running: { device: Device; target: number } | undefined;
   }>());
-  private roundProcessors: { tag: string; clock: number; run(cycles: number): number }[] = [];
+  private roundProcessors: {
+    tag: string;
+    clock: number;
+    run(cycles: number): number;
+    suspended?: () => 'eating' | 'waiting' | undefined;
+  }[] = [];
   /** The round device whose slice is executing, if any. */
   private runningRoundDevice?: string;
 
@@ -6362,11 +6406,9 @@ export function bindGeneratedRegionState(
 /**
  * A device the scheduler runs in its round beside the CPUs, once it is known
  * to execute: one with no host processor, on a board without a perfect
- * quantum (see autonomousProcessors). A bus master -- a DMA controller whose
- * HRQ asks a CPU for its bus -- is not yet: it is delivered between the
- * instructions of the processor it holds, and in the round Donkey Kong's
- * attract went further from MAME (#200). MAME's round rules, which sit
- * between the two, are not modelled yet.
+ * quantum (see autonomousProcessors). A bus master is one too: Donkey Kong's
+ * Z80 parks in its BUSREQ service block while the 8257 holds its bus, and
+ * looks again in the round after the one that released it.
  */
 function roundScheduledDevice(
   machine: BoardIr,
@@ -6374,13 +6416,7 @@ function roundScheduledDevice(
 ): boolean {
   return machine.execution.perfectQuantum !== true &&
     !specification.hostTag &&
-    !machine.execution.cpus.some(cpu => cpu.tag === specification.tag) &&
-    !busMaster(machine, specification.tag);
-}
-
-/** A device whose HRQ output requests a processor's bus (`out_hrq_cb`). */
-function busMaster(machine: BoardIr, tag: string): boolean {
-  return machine.callbacks.some(callback => callback.ownerTag === tag && callback.signal === 'out_hrq_cb');
+    !machine.execution.cpus.some(cpu => cpu.tag === specification.tag);
 }
 
 function usedHandlers(

@@ -2093,6 +2093,39 @@ export function mameDeviceShortName(
   return match?.[1];
 }
 
+/**
+ * What a device's own source says about it as a scheduler participant:
+ * whether it has a device_execute_interface, and its execute_min_cycles(),
+ * the instruction length MAME's scheduler measures its perfect interleave in
+ * (diexec.cpp minimum_quantum). A class that does not override it has
+ * diexec.cpp's. `minCycles` is absent when the override returns anything but
+ * a number: the 6805's returns a member its variants set.
+ */
+export function mameExecuteFacts(
+  mameSrc: string,
+  type: string,
+): { executes: boolean; minCycles?: number } | undefined {
+  const definition = indexMameHardware(mameSrc).get(type);
+  if (!definition) return undefined;
+  const className = /^([\w:]+)\s*</.exec(definition.className)?.[1] ?? definition.className;
+  const files = [...localSourceFiles(mameSrc, definition.sourceFile), 'src/emu/diexec.cpp']
+    .filter(file => existsSync(join(mameSrc, file)));
+  const ast = parseMameAst(files.map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') })));
+  const classes = new Map(ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]));
+  const hierarchy = classHierarchy(className, classes);
+  const executes = hierarchy.some(name => (classes.get(name)?.bases ?? []).some(base =>
+    ['device_execute_interface', 'cpu_device'].includes(base.split('::').at(-1)!.replace(/<.*$/, ''))));
+  if (!executes) return { executes };
+  const outOfLine = ast.units.flatMap(unit => unit.functions);
+  const body = [...hierarchy].reverse().concat('device_execute_interface').map(name => {
+    const declaration = classes.get(name);
+    return (declaration ? inlineMethods(declaration) : []).concat(outOfLine.filter(fn => fn.className === name))
+      .find(fn => fn.name === 'execute_min_cycles')?.body;
+  }).find(found => found !== undefined);
+  const minCycles = Number(/^\s*return\s+(\d+)\s*;\s*$/.exec(stripCppComments(body ?? ''))?.[1]);
+  return { executes, ...(Number.isInteger(minCycles) && minCycles > 0 ? { minCycles } : {}) };
+}
+
 function executionClockDivider(source: string): number | undefined {
   const match = /return\s*\(?\s*\w+\s*\*\s*(\d+)\s*\)?\s*;/s
     .exec(source);

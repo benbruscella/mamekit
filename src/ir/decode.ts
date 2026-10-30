@@ -448,6 +448,13 @@ function decodeExecution(reader: Reader, value: unknown): void {
   }
 
   reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
+  if (execution.executeDevices !== undefined) {
+    for (const [index, entry] of reader.array(execution.executeDevices, 'execution.executeDevices').entries()) {
+      const device = reader.object(entry, `execution.executeDevices[${index}]`);
+      reader.string(device.tag, `execution.executeDevices[${index}].tag`);
+      reader.optionalNumber(device.minCycles, `execution.executeDevices[${index}].minCycles`);
+    }
+  }
   const screen = reader.object(execution.screen, 'execution.screen');
   const screenSource = sourceOf(screen);
   for (const field of ['width', 'height', 'refresh', 'vtotal', 'vbstart', 'rotate']) {
