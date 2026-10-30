@@ -535,7 +535,15 @@ export class GeneratedFrameRunner {
         // number of cycles can arrive a rounding error short of itself: a
         // POKEY behind a CPU that synchronized was owed 14 cycles, ran 13,
         // and took the SKCTL write a clock early.
-        const target = Math.floor(scheduled.carry + CARRY_ROUNDING);
+        // A processor credited past this round's target (by an earlier round
+        // it then left early) runs only up to it, from where it stands, as
+        // MAME's does. Rampage's Z80, stopped by a Sounds Good write, ran the
+        // 325 cycles it was still owed in a one-cycle perfect_quantum round
+        // and strobed its next nibble past the 68000.
+        const ahead = credited[index]! > reached
+          ? scheduled.cyclesPerLine * lines * (credited[index]! - reached)
+          : 0;
+        const target = Math.floor(scheduled.carry - ahead + CARRY_ROUNDING);
         if (target <= 0) continue;
         this.running = scheduled;
         this.runStartLines = credited[index]! * lines - scheduled.carry / scheduled.cyclesPerLine;

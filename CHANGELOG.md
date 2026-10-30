@@ -38,7 +38,7 @@ MAMEDEV's release notes (see the README).
 
 **Under the hood:**
 - A round runs processors in configuration order, and a device suspended for the round (`suspend_until_trigger`) after the active ones, as MAME's `rebuild_execute_list` does. Donkey Kong's 8257 waits behind the sound CPU, and runs between the CPUs once a request releases it.
-- Each processor runs whole cycles, and one left short of the target ends the round there for the ones after it (`target = max(m_localtime, m_basetime)`).
+- Each processor runs whole cycles, and one left short of the target ends the round there for the ones after it (`target = max(m_localtime, m_basetime)`). A processor that left a round early runs only to the next round's target, from where it stands: Rampage's Z80 had run 325 owed cycles in a one-cycle round, and its sound board lost a nibble and fell silent.
 - No round is longer than the machine's `set_maximum_quantum`. The parked-core stand-in for it is gone.
 - A `perfect_quantum` window is rounds of MAME's perfect interleave, not one instruction at a time. `execution.executeDevices` lists every device with a `device_execute_interface` and its `execute_min_cycles()`, read from its class's own source (`mameExecuteFacts`); the 6805's comes from the device at run time.
 - A bus master runs in the round like any execute device. The 8257's every DMA byte now lands on MAME's cycle.
