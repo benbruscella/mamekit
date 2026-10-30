@@ -99,6 +99,7 @@ import type { BoardConfig } from '../ir/host-config.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
+import { mameExecuteFacts } from '../mame/device-compiler.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
@@ -670,6 +671,12 @@ export function lowerGeneratedMachine(
   const maximumQuantum = Math.min(...graph.nodes
     .filter(node => node.label === 'MachineConfig' && typeof node.props.maximumQuantum === 'number')
     .map(node => node.props.maximumQuantum as number));
+  const executeDevices = graph.meta.mameSrc ? devices.flatMap(device => {
+    const facts = mameExecuteFacts(String(graph.meta.mameSrc), device.type);
+    return facts?.executes
+      ? [{ tag: device.tag, ...(facts.minCycles !== undefined ? { minCycles: facts.minCycles } : {}) }]
+      : [];
+  }) : [];
   const cpuTags = new Set(devices.map(device => device.tag));
   const spaceAccessors = [...new Map(graph.nodes
     .filter(node => node.label === 'MachineConfig' && Array.isArray(node.props.spaceAccessors))
@@ -813,6 +820,7 @@ export function lowerGeneratedMachine(
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
     ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),
+    ...(executeDevices.length ? { executeDevices } : {}),
     ...(spaceAccessors.length ? { spaceAccessors } : {}),
     ...(memoryBanks.length ? { banks: memoryBanks } : {}),
     ...(accessTaps.length ? { accessTaps } : {}),

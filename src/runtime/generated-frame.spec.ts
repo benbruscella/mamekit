@@ -347,6 +347,55 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     'and each instruction of the window');
 }
 
+// MAME's round rules (schedule.cpp timeslice): no round is longer than the
+// machine's quantum, each processor runs whole cycles and one left short ends
+// the round there for the rest, a suspended device runs after the active
+// ones, and a perfect_quantum window's rounds are the perfect interleave long.
+{
+  // A line is 1/6000 s: 100 cycles of `fast`, 10 of `slow`.
+  const quantumMachine: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [
+        { tag: 'fast', type: 'z80', clock: 600_000, region: 'fast' },
+        { tag: 'slow', type: 'z80', clock: 60_000, region: 'slow' },
+      ],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 100, vbstart: 99, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const slices: string[] = [];
+  let suspended: 'eating' | undefined;
+  const processor = (tag: string) => ({
+    tag,
+    run: (budget: number) => { slices.push(`${tag} ${budget}`); return budget; },
+    ...(tag === 'fast' ? { suspended: () => suspended } : {}),
+  });
+  const runner = new GeneratedFrameRunner({
+    machine: quantumMachine,
+    processors: [processor('fast'), processor('slow')],
+    maximumQuantum: 1 / 24_000,
+    perfectInterleave: () => 1 / 600_000,
+  });
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(slices.slice(0, 4), ['fast 25', 'slow 2', 'fast 20', 'slow 2'],
+    'a quarter-line quantum; slow\'s second whole cycle ends the first round at 0.2 lines');
+
+  slices.length = 0;
+  suspended = 'eating';
+  runner.frame(new Uint32Array(1));
+  assert.equal(slices[0]!.split(' ')[0], 'slow', 'a suspended device runs after the active ones');
+
+  slices.length = 0;
+  suspended = undefined;
+  runner.quantumWindow(1 / 6000);
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(slices.slice(0, 3), ['fast 1', 'fast 1', 'fast 1'],
+    'inside the window a round is the perfect interleave: one fast cycle');
+}
+
 // A video/DMA device can be a first-class execute participant without being
 // mislabeled as a CPU or supplying its clock through a handwritten adapter.
 {

@@ -248,6 +248,27 @@ instruction in progress. The processors after it in the round run only up to
 where it stopped, the posted work runs, and the round resumes, so no processor
 observes the work before the time it was posted.
 
+Inside that interval the round follows MAME's own rules (`timeslice` in
+`schedule.cpp`, #217). Processors run in configuration order, and a device
+suspended for the round (`suspend_until_trigger`) runs after the active ones,
+as `rebuild_execute_list` moves it. Each runs whole cycles, and one left short
+of the target by a fraction of a cycle ends the round there for the ones after
+it (`target = max(m_localtime, m_basetime)`). No round is longer than the
+machine's `set_maximum_quantum` (`execution.maximumQuantum`), and a
+`perfect_quantum` window's rounds last MAME's perfect interleave: the second
+shortest cycle time, times `execute_min_cycles()`, of every device that
+executes (`execution.executeDevices`, read from each class's own source; the
+6805 answers from its own state at run time). Donkey Kong's 400 kHz sound CPU
+decides this way where each of its Z80's 16.7 µs rounds starts, and its Z80
+instruction trace matches MAME's cycle for cycle through frame 7.
+
+The quantum and the window's interleave apply only where every device that
+executes runs in the round. A processor hosted on device time and delivered
+between its host's instructions is not in it: Xevious's Namco MCUs keep their
+handshakes in the line-long rounds they were tuned against and lose them in
+shorter ones, so a board with one keeps those rounds (and lockstep windows)
+until its hosted processors are scheduled too.
+
 That bound is squeezed from both sides. Too coarse and a fast processor runs
 thousands of cycles while the one it is handshaking with waits, which is how
 Gyruss lost half of its sound writes and Juno First a third — both boards
@@ -270,14 +291,14 @@ the bus at its next instruction boundary through `busack_cb`, which the
 machine wires to the master (the Z80 DMA's `bai_w`, the 8257's `hlda_w`).
 Then it hands back its slice (`m_icount = 0; return;`). Both the emitted and
 the interpreted core park there instead of fetching. A parked core looks
-again at MAME's next timeslice: the soonest device-timer expiry, bounded by
-the machine's `set_maximum_quantum` (`execution.maximumQuantum`), or the end
-of the slice when neither says otherwise (`CpuBus.parked`). While Mario's Z80
+again at MAME's next timeslice: the soonest device-timer expiry, or the end
+of the slice, which the machine's quantum bounds (`CpuBus.parked`). While Mario's Z80
 DMA transfers, its periodic timer is one DMA clock away, so the Z80 resumes
 within a clock of the bus coming back, as in MAME. Donkey Kong's 8257 runs on
 no timer, and its machine's 60 kHz quantum has the Z80 look every 16.7 µs.
-Its sprite DMA writes now land at MAME's instants to the nanosecond. Before,
-each transfer ran as one burst while the Z80 kept the bus (#214).
+The 8257 is a bus master in the round like any execute device, so its sprite
+DMA reads and writes land on MAME's cycles and the Z80 takes the bus back in
+the round MAME's does (#214, #217).
 
 A driver's own `emu_timer`s -- allocated with a real callback in
 `machine_start` and armed there, where no frame event or scanline timer already
@@ -746,7 +767,7 @@ POKEY is read back: `RANDOM` is its polynomial counter where the chip stands,
 and the pots, `IRQST` and `SKSTAT` are its registers. So it is compiled whole
 from `pokey.cpp`, an ordinary generated device. It is a
 `device_execute_interface`, and the board runs it as MAME's scheduler does:
-in the round beside the CPUs, after them. Inside a CPU's slice it stands where
+in the round beside the CPUs, in configuration order. Inside a CPU's slice it stands where
 the round last left it, so a read finds `RANDOM` there, and the read's own
 `synchronize()` ends the slice so the next one finds it caught up. While it
 runs, the time is its own, so the stream update its `step_one_clock` forces
