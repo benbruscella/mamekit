@@ -45,14 +45,14 @@ export const qbert = sourceTarget({
       300: { video: '82e9e3bc', state: '048a196f' },
       600: { video: 'c2eb9b01', state: '160f1ce6' },
       900: { video: '9a5e79f5', state: '596f0e69' },
-      1200: { video: '7837d08c', state: 'adebc483' },
+      1200: { video: '7837d08c', state: 'b021b19d' },
     },
     audio: {
       writes: 31441,
       nonzeroWrites: 26941,
-      writeHash: '19718b00',
-      pcmHash: '630f3e80',
-      rms: 0.535978,
+      writeHash: '0367bcfa',
+      pcmHash: '1243062e',
+      rms: 0.535982,
     },
   },
 });

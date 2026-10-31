@@ -70,9 +70,9 @@ export const dkong = sourceTarget({
     audio: {
       writes: 341878,
       nonzeroWrites: 283519,
-      writeHash: 'fc4d9b59',
-      pcmHash: '2715779a',
-      rms: 0.200678,
+      writeHash: '1bd9e966',
+      pcmHash: '0ecc5e5b',
+      rms: 0.200683,
     },
   },
 });

@@ -45,13 +45,18 @@ MAMEDEV's release notes (see the README).
 - `synchronize()` work runs at its posting time, and every device defers it.
 - NMI is a level line, and `cycles_to_attotime` is bound.
 - Every cycle-to-time conversion uses MAME's truncated `HZ_TO_ATTOSECONDS(clock)`.
+- A round asks only the devices that own a timer for the soonest one; asking every device cost Lagrange Point a quarter of its frame.
 - `time_until_pos` keeps MAME's half-pixel "already passed" rule, which ends Metal Slug's intermittent timer runaway.
-- Against the `9b12e8fc` MAME 0.289 baseline, 17 of 36 scenarios are worse on some measure. Each first diverges from MAME on the same frame as `main` does, so all are drift. Better:
+- Against the `9b12e8fc` MAME 0.289 baseline, 18 of 36 scenarios are worse on some measure.
+  - Xevious's and Wardner's contract runs were bad MAME-side recordings: rerun directly, both match MAME's input on every frame and land within 0.3 dB.
+  - Each of the rest first diverges from MAME on the same frame as `main` does, so they are drift.
+- Better:
   - Xevious's RAM differences fall from 173,790 bytes to 13,581.
   - Arkanoid becomes pixel-exact at 300, 900 and 1500.
   - Galaga, Pole Position, Venture and Wardner come closer on RAM.
   - Game Boy Tetris's audio comes closer.
-- The C64 and C64P goldens change with the truncated cycle time and have no MAME baseline yet.
+- The C64 and C64P goldens change only with the truncated cycle time (an A/B build without it passes). No MAME baseline covers them yet; recording one is #220.
+- Every changed acceptance golden is re-recorded.
 
 ### A MAME baseline for the eight machines #219 re-recorded without one ([#221](https://github.com/benbruscella/mamekit/issues/221))
 

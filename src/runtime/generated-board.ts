@@ -2985,6 +2985,10 @@ class IrBoard implements Board {
     const armBase = (): number =>
       this.runningRoundDevice !== undefined && !this.deliveringDeviceTime ? this.roundDelivered : 0;
     const timerRounds = roundQuantum && machine.execution.perfectQuantum !== true;
+    // Asked every round, so only the devices that own a timer: the ones the
+    // device clock ticks. Walking every device cost Lagrange Point a fifth
+    // of its frame.
+    const timerDevices = [...timedDevices, ...cardDeviceSet];
     if (timerRounds) this.deviceClockFollowsProcessors = true;
     // MAME's perfect interleave (schedule.cpp compute_perfect_interleave): the
     // second shortest cycle time, times its execute_min_cycles(), of every
@@ -3018,7 +3022,9 @@ class IrBoard implements Board {
         nextTimerLine: () => {
           const soonestTimer = (): number => {
             let soonest = Infinity;
-            for (const device of this.devices.values()) soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            for (let index = 0; index < timerDevices.length; index++) {
+              soonest = Math.min(soonest, timerDevices[index]!.untilNextTimer?.() ?? Infinity);
+            }
             return soonest;
           };
           let soonest = soonestTimer();

@@ -49,8 +49,8 @@ export const coleco = {
       audio: {
         writes: 3456,
         nonzeroWrites: 3456,
-        writeHash: 'a73ea4d4',
-        pcmHash: '482bd4d7',
+        writeHash: '1ba4dbe4',
+        pcmHash: '47ecf6d9',
         rms: 0.046959,
       },
     },
