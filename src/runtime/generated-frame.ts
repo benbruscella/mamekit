@@ -68,6 +68,13 @@ export interface GeneratedFrameRunnerOptions {
    * (see the board's roundQuantum); no round is longer.
    */
   maximumQuantum?: number;
+  /**
+   * The beam position (as `runningBeam` counts lines) at which the soonest
+   * device timer expires: MAME ends the round there.
+   */
+  nextTimerLine?: () => number;
+  /** Every processor has run the round to `line`: MAME executes its timers now. */
+  onRoundEnd?: (line: number) => void;
   /** The frame has just been presented (see `awaitingPresent`). */
   onPresented?: () => void;
   /** Present the frame: `render` draws it, at the instant the board sets up. */
@@ -106,6 +113,8 @@ export class GeneratedFrameRunner {
   private readonly onSynchronize?: () => void;
   private readonly onRound?: () => void;
   private readonly perfectInterleave?: () => number | undefined;
+  private readonly nextTimerLine?: () => number;
+  private readonly onRoundEnd?: (line: number) => void;
   /** The open window's round length in scanlines, from perfectInterleave. */
   private windowQuantumLines?: number;
   private readonly onPresented?: () => void;
@@ -202,6 +211,8 @@ export class GeneratedFrameRunner {
     this.onSynchronize = options.onSynchronize;
     this.onRound = options.onRound;
     this.perfectInterleave = options.perfectInterleave;
+    this.nextTimerLine = options.nextTimerLine;
+    this.onRoundEnd = options.onRoundEnd;
     this.onPresented = options.onPresented;
     this.aroundPresent = options.aroundPresent;
     this.origin = options.origin ?? 'line0';
@@ -519,6 +530,12 @@ export class GeneratedFrameRunner {
       }
       const quantum = windowed ? this.windowQuantumLines : this.machineQuantumLines;
       let reached = quantum === undefined ? 1 : Math.min(1, done + quantum / lines);
+      // MAME's round ends at the soonest timer, so every processor stands
+      // at its expiry when it fires.
+      if (this.nextTimerLine) {
+        const timer = (this.nextTimerLine() - this.roundFirstLine) / lines;
+        if (timer > done + 1e-9) reached = Math.min(reached, timer);
+      }
       const order = this.roundOrder();
       for (let position = 0; position < order.length; position++) {
         const index = order[position]!;
@@ -576,6 +593,7 @@ export class GeneratedFrameRunner {
         this.synchronizedAt = undefined;
       }
       this.onSynchronize?.();
+      this.onRoundEnd?.(this.roundFirstLine + reached * lines);
       if (windowed) {
         this.fineLines -= (reached - done) * lines;
         if (!(this.fineLines > 1e-9)) this.fineLines = 0;

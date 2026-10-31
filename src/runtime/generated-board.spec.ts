@@ -102,12 +102,13 @@ let resets = 0;
 let nmis = 0;
 let irqs = 0;
 let held = false;
+const lines: string[] = [];
 const lineCpu = {
   reset() { resets++; },
   step() { return 1; },
   run(cycles: number) { return cycles; },
   setIrqLine() { irqs++; },
-  setInputLine() {},
+  setInputLine(line: number, state: number) { lines.push(`${line}=${state}`); },
   nmi() { nmis++; },
   get() { return 0; },
   stateInt() { return 0; },
@@ -125,8 +126,15 @@ applyGeneratedCpuInputLine(lineCpu, -3, 1, state => { held = state; });
 assert.equal(held, true, 'INPUT_LINE_HALT must suspend the CPU');
 applyGeneratedCpuInputLine(lineCpu, -3, 0, state => { held = state; });
 assert.equal(held, false, 'clearing INPUT_LINE_HALT must resume the CPU');
+// NMI is a level the core takes on its rising edge, as MAME's is: asserting
+// it twice is one NMI, and only a clear lets the next assert through.
 applyGeneratedCpuInputLine(lineCpu, -1, 1, state => { held = state; });
-assert.equal(nmis, 1);
+applyGeneratedCpuInputLine(lineCpu, -1, 1, state => { held = state; });
+applyGeneratedCpuInputLine(lineCpu, -1, 0, state => { held = state; });
+assert.deepEqual(lines, ['-1=1', '-1=1', '-1=0']);
+assert.equal(nmis, 0);
+applyGeneratedCpuInputLine(lineCpu, -1, 2, state => { held = state; });
+assert.equal(nmis, 1, 'a HOLD_LINE NMI stays a pulse');
 applyGeneratedCpuInputLine(lineCpu, 0, 2, state => { held = state; });
 assert.equal(irqs, 1);
 pulseGeneratedCpuInputLine(lineCpu, -1);

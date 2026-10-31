@@ -13,6 +13,7 @@ import {
   generatedTimerBacklog,
   generatedTimerExpiry,
   withGeneratedTimerExpiry,
+  setGeneratedTimerArmed,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
   generatedDeviceDefinition,
@@ -347,8 +348,13 @@ export function applyGeneratedCpuInputLine(
     if (active) cpu.reset();
     return;
   }
+  // NMI is a level, and the core takes one NMI on each rising edge. Pulsed
+  // on every assert, The Simpsons' sound Z80 -- whose NMI the K053260 holds
+  // asserted until the Z80 writes $FA00 -- took one every timer tick and
+  // never reached the code that plays music. A HOLD_LINE NMI stays a pulse.
   if (line === INPUT_LINE_NMI) {
-    if (state !== 0) cpu.nmi();
+    if (state === 2) cpu.nmi();
+    else cpu.setInputLine(line, state !== 0 ? 1 : 0);
     return;
   }
   if (line === INPUT_LINE_HALT) {
@@ -560,6 +566,8 @@ class IrBoard implements Board {
    * still land where the deltas put them and no drift accumulates.
    */
   private timedHardwareDelivered = 0;
+  /** Device time the round may still deliver before its soonest timer (nextTimerLine); the rest is dropped. */
+  private roundTimerBudget = Infinity;
   /** Device time held back until the frame is presented (advanceTimedHardware). */
   private heldDeviceSeconds = 0;
   /** A device access or time query is catching device time up (never held). */
@@ -738,9 +746,14 @@ class IrBoard implements Board {
             // Within one frame, however far the device clock stands from the
             // beam's line count: MAME adds frame periods until the target is
             // ahead (`while (targetdelta <= curdelta)`).
+            // Within half a pixel of the target counts as past it, so a
+            // callback re-arming for the position it fired at waits a frame.
+            // Without it, Metal Slug's auto-animation timer, firing at
+            // VSSTART a hair short of it, re-armed for no time 65536 times.
+            const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
             let lines = target - this.deviceBeamPosition();
             lines -= Math.floor(lines / vtotal) * vtotal;
-            if (lines <= 0) lines += vtotal;
+            if (lines <= halfPixel) lines += vtotal;
             return lines / (machine.execution.screen.refresh * vtotal);
           },
           // The same beam the arithmetic above measures against, floored the
@@ -860,9 +873,9 @@ class IrBoard implements Board {
           clock: specification.clock,
           tag: specification.tag,
           schedule: run => this.synchronize(run),
-          // As autonomousProcessors picks them.
-          roundScheduled: roundScheduledDevice(machine, specification) &&
-            Boolean(generatedDeviceDefinition(specification.type)?.methods.some(method => method.name === 'execute_run')),
+          // Every processor runs in the round, hosted MCUs included, except
+          // under a perfect quantum (see autonomousProcessors).
+          deferSynchronize: machine.execution.perfectQuantum !== true,
           shares: this.shares,
           inputs,
           members: {
@@ -967,7 +980,7 @@ class IrBoard implements Board {
                 });
               }
               if (method === 'cycles_to_attotime') {
-                return (cycles: number) => cycles / this.cycleClockOf(cpuSpec);
+                return (cycles: number) => cycles * this.secondsPerCycleOf(cpuSpec);
               }
               if (method === 'total_cycles') {
                 return () => this.totalCycles(cpuSpec.tag);
@@ -980,7 +993,7 @@ class IrBoard implements Board {
               // left 0 and the boot ROM waited for line 0x90 forever.
               if (method === 'attotime_to_cycles') {
                 return (seconds: number) => Math.floor(
-                  Number(seconds) * this.cycleClockOf(cpuSpec),
+                  Number(seconds) / this.secondsPerCycleOf(cpuSpec) + CYCLE_ROUNDING,
                 );
               }
               // device_execute_interface::local_time(): where the processor
@@ -1201,7 +1214,7 @@ class IrBoard implements Board {
     const calls: NonNullable<GeneratedHandlerBindings['calls']> = {};
     const timerClockCpu = machine.execution.cpus[0];
     // Read each time: a processor's clock can change as it runs.
-    const timerClockHz = (): number => timerClockCpu ? this.cycleClockOf(timerClockCpu) : 1;
+    const timerSecondsPerCycle = (): number => timerClockCpu ? this.secondsPerCycleOf(timerClockCpu) : 1;
     // A composed slot card is a machine of its own on the bus: the 1541's VIAs
     // and gate array answer the drive's 6502, never the C64's. Their clock is
     // that processor's, advanced between its instructions by exactly what it
@@ -1229,7 +1242,7 @@ class IrBoard implements Board {
       if (!(cycles > 0)) return;
       const devices = cardClockDevices.get(cpuTag);
       if (!devices) return;
-      const seconds = cycles / this.cycleClockOf(cardClocks.get(cpuTag)!);
+      const seconds = cycles * this.secondsPerCycleOf(cardClocks.get(cpuTag)!);
       const outer = beginGeneratedTimerDelivery();
       try {
         for (let index = 0; index < devices.length; index++) devices[index]!.tick(seconds);
@@ -1283,6 +1296,9 @@ class IrBoard implements Board {
           if (!(seconds > 0)) return;
         }
       }
+      seconds = Math.min(seconds, this.roundTimerBudget);
+      this.roundTimerBudget -= seconds;
+      if (!(seconds > 0)) return;
       deliverTimedHardware(seconds);
       // Precise driver timers come due on the same clock, after the devices
       // have been clocked to it.
@@ -2203,7 +2219,7 @@ class IrBoard implements Board {
             // matching MAME's scheduler instead of batching every edge at the
             // next scanline boundary.
             if (current < timing.previousCycles) timing.previousCycles = 0;
-            advanceTimedHardware((current - timing.previousCycles) / timerClockHz());
+            advanceTimedHardware((current - timing.previousCycles) * timerSecondsPerCycle());
             timing.previousCycles = current === target ? 0 : current;
             // MAME's 6502 polls its interrupt lines after the opcode fetch,
             // past the point where a timeslice ending on that fetch stops it
@@ -2238,7 +2254,7 @@ class IrBoard implements Board {
             }
           }
           return Number.isFinite(soonest)
-            ? Math.ceil(soonest * this.cycleClockOf(specification) - CYCLE_ROUNDING)
+            ? Math.ceil(soonest / this.secondsPerCycleOf(specification) - CYCLE_ROUNDING)
             : target - elapsed;
         },
         signal: (signal, state) => {
@@ -2301,7 +2317,7 @@ class IrBoard implements Board {
           if (this.timerCpuCarriedCycles > 0) {
             const carried = this.timerCpuCarriedCycles;
             this.timerCpuCarriedCycles = 0;
-            advanceTimedHardware(carried / timerClockHz());
+            advanceTimedHardware(carried * timerSecondsPerCycle());
           }
           // Past the slice's target too: the processor really is there, and
           // whatever it overran comes off its next slice (the frame runner's
@@ -2314,7 +2330,7 @@ class IrBoard implements Board {
           // Only the fetch lookahead (a negative lag) is a scheduled delivery
           // that waits for the frame's presentation (advanceTimedHardware).
           this.accessCatchingUp = lag >= 0;
-          withExclusiveTimerDelivery(() => advanceTimedHardware((reach - delivered) / timerClockHz()));
+          withExclusiveTimerDelivery(() => advanceTimedHardware((reach - delivered) * timerSecondsPerCycle()));
           this.accessCatchingUp = false;
           this.deliveredSliceCycles = undefined;
           if (reach <= sliceTarget) {
@@ -2394,7 +2410,12 @@ class IrBoard implements Board {
       calls[`m_${specification.tag}.clocks_to_attotime`] = clocks =>
         Number(clocks) / this.cycleClockOf(specification);
       calls[`m_${specification.tag}.attotime_to_cycles`] = seconds =>
-        Math.floor(Number(seconds) * this.cycleClockOf(specification));
+        Math.floor(Number(seconds) / this.secondsPerCycleOf(specification) + CYCLE_ROUNDING);
+      // Unbound, The Simpsons' four-cycle NMI block lasted no time at all, and
+      // a K053260 tick landing between the $FA00 write and the HALT left the
+      // sound Z80 halted for good under timer-ended rounds.
+      calls[`m_${specification.tag}.cycles_to_attotime`] = cycles =>
+        Number(cycles) * this.secondsPerCycleOf(specification);
       calls[`m_${specification.tag}.local_time`] = () => this.cpuSeconds(specification);
       calls[`m_${specification.tag}.set_unscaled_clock`] = clock => {
         this.setCpuClock(specification, Number(clock));
@@ -2435,7 +2456,7 @@ class IrBoard implements Board {
       const cpuMethodNames = [
         'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
         'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
-        'clocks_to_attotime', 'attotime_to_cycles', 'local_time',
+        'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
         ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
       ];
       this.deviceReferents.set(specification.tag, Object.fromEntries(cpuMethodNames.map(name => [
@@ -2452,7 +2473,7 @@ class IrBoard implements Board {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
           'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
-          'clocks_to_attotime', 'attotime_to_cycles', 'local_time',
+          'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
           ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
         ];
         for (const name of cpuMethods) {
@@ -2584,20 +2605,22 @@ class IrBoard implements Board {
     // MAME's round is one cycle, which delivery between instructions with an
     // access catching the device up (deviceAccessLag) already is; those stay
     // with the hosted processors.
-    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
-      if (!roundScheduledDevice(machine, specification)) return [];
-      const device = this.devices.get(specification.tag);
-      if (!device?.methodNames().includes('execute_run')) return [];
-      const runner = processorRunner(device);
-      const round = this.roundDevices.get(specification.tag) ?? { cycles: 0, running: undefined };
-      this.roundDevices.set(specification.tag, round);
-      return [{
-        tag: specification.tag,
+    const roundProcessor = (
+      tag: string,
+      device: Device,
+      runner: ReturnType<typeof processorRunner>,
+      suspended: (() => 'eating' | 'waiting' | undefined) | undefined,
+    ) => {
+      const round = this.roundDevices.get(tag) ?? { cycles: 0, running: undefined };
+      this.roundDevices.set(tag, round);
+      return {
+        tag,
         clock: device.cycleClock(),
-        ...(device.suspended ? { suspended: () => device.suspended!() } : {}),
+        ...(suspended ? { suspended } : {}),
+        ...(device.abortTimeslice ? { abort: () => device.abortTimeslice!() } : {}),
         run: (cycles: number) => {
           const outer = this.runningRoundDevice;
-          this.runningRoundDevice = specification.tag;
+          this.runningRoundDevice = tag;
           round.running = { device, target: cycles };
           try {
             const executed = runner.run(cycles);
@@ -2608,8 +2631,30 @@ class IrBoard implements Board {
             this.runningRoundDevice = outer;
           }
         },
-      }];
+      };
+    };
+    const autonomousProcessors = (machine.devices ?? []).flatMap(specification => {
+      if (!roundScheduledDevice(machine, specification)) return [];
+      const device = this.devices.get(specification.tag);
+      if (!device?.methodNames().includes('execute_run')) return [];
+      return [roundProcessor(specification.tag, device, processorRunner(device),
+        device.suspended ? () => device.suspended!() : undefined)];
     });
+    // A hosted MCU or DSP is an execute device like any other, and MAME runs
+    // it in the round beside its host. Held in reset it eats its slice, as
+    // MAME's SUSPEND_REASON_RESET does. Under a perfect quantum it stays
+    // delivered between instructions, as the round devices do.
+    const roundHosted = machine.execution.perfectQuantum !== true;
+    for (const processor of roundHosted ? hostedProcessors : []) {
+      const device = this.devices.get(processor.tag)!;
+      const enabled = processor.enabled;
+      // The reset line is the board's (configureHostedProcessor), not the
+      // device's own suspension, so the slice is eaten here. Run while held,
+      // Xevious's 51xx was in its idle loop when MAME's had just left reset.
+      const runner = { run: (cycles: number) => enabled() ? processor.run(cycles) : cycles };
+      autonomousProcessors.push(roundProcessor(processor.tag, device, runner,
+        () => enabled() ? undefined : 'eating'));
+    }
     this.roundProcessors = autonomousProcessors;
     // Firmware MCUs and clocked peripherals share elapsed board time with the
     // CPU. A whole-scanline slice leaves counter reads stale and can collapse
@@ -2621,7 +2666,7 @@ class IrBoard implements Board {
       /** Absent for a processor that always runs. */
       enabled?: () => boolean;
     })[] = [
-      ...hostedProcessors,
+      ...roundHosted ? [] : hostedProcessors,
       // Under a perfect quantum, delivered between instructions as above
       // (roundScheduledDevice).
       ...(machine.devices ?? []).flatMap(specification => {
@@ -2920,11 +2965,19 @@ class IrBoard implements Board {
       device.applySuspendChanges && device.methodNames().includes('execute_run'));
     // MAME's rounds are its quantum long, and a perfect_quantum window's its
     // perfect interleave, only where every device that executes runs in the
-    // round. A processor hosted on device time is not in it yet: Xevious's
-    // Namco MCUs keep their handshakes only in the line-long rounds they
-    // were tuned against, and lose them in shorter ones (#217).
+    // round; only a perfect quantum still hosts MCUs on device time.
     const roundTags = new Set([...machine.execution.cpus.map(cpu => cpu.tag), ...this.roundProcessors.map(processor => processor.tag)]);
     const roundQuantum = (machine.execution.executeDevices ?? []).every(device => roundTags.has(device.tag));
+    // MAME's rounds end at the soonest timer, which needs the devices to
+    // stand where the processors do, not settled a span of lines ahead of
+    // them. Under a perfect quantum every round is already a cycle.
+    const armedTimer = (seconds: number): void => {
+      if (!(seconds + 1e-9 < this.roundTimerBudget)) return;
+      this.roundTimerBudget = Math.max(0, seconds - 1e-9);
+      this.frameRunner?.requestSynchronize();
+    };
+    const timerRounds = roundQuantum && machine.execution.perfectQuantum !== true;
+    if (timerRounds) this.deviceClockFollowsProcessors = true;
     // MAME's perfect interleave (schedule.cpp compute_perfect_interleave): the
     // second shortest cycle time, times its execute_min_cycles(), of every
     // device that executes. Asked when a window opens, as clocks may change.
@@ -2953,6 +3006,37 @@ class IrBoard implements Board {
       ...(roundQuantum && machine.execution.maximumQuantum !== undefined
         ? { maximumQuantum: machine.execution.maximumQuantum }
         : {}),
+      ...(timerRounds ? {
+        nextTimerLine: () => {
+          let soonest = Infinity;
+          for (const device of this.devices.values()) soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+          // No timer fires inside the round: the device clock stops short of
+          // the soonest, and the rest waits for the round's end.
+          this.roundTimerBudget = soonest > 1e-9 ? soonest - 1e-9 : Infinity;
+          // A timer armed inside the round that falls due before its end ends
+          // the running slice and becomes the round's bound, as MAME's
+          // emu_timer::adjust aborts the timeslice for a new soonest timer.
+          setGeneratedTimerArmed(armedTimer);
+          return this.beamPosition() + soonest / this.lineSeconds();
+        },
+        onRoundEnd: line => {
+          setGeneratedTimerArmed(undefined);
+          this.roundTimerBudget = Infinity;
+          // What the processor that drives the device clock ran past the
+          // timer is not delivered here: the round may have ended short of
+          // the timer (a slow MCU's whole cycle pulls it back), and MAME fires
+          // a timer only once every processor stands at it. Released whole,
+          // Galaga's 51xx took the 06xx's chip select two instructions early.
+          // The devices stand at the round's end, as MAME's timers do. A
+          // processor whose last instruction overran the round delivered only
+          // up to its target, and sitting out the rounds its overrun covers
+          // it delivers nothing: Mario's Z80 DMA, clocked a DMA cycle per
+          // round, fell so far behind that the Z80 dropped RDY before the
+          // DMA had asked for the bus.
+          const behind = (line - this.beamPosition()) * this.lineSeconds();
+          if (behind > 1e-12) advanceTimedHardware(behind);
+        },
+      } : {}),
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
@@ -2974,7 +3058,7 @@ class IrBoard implements Board {
             this.cpuStalls.set(specification.tag, pendingStall - stalled);
             this.runningStalled = stalled;
             if (specification.tag === timerClockCpu?.tag && stalled > 0) {
-              advanceTimedHardware(stalled / timerClockHz());
+              advanceTimedHardware(stalled * timerSecondsPerCycle());
             }
             if (stalled > 0) tickCardDevices(specification.tag, stalled);
             this.coreExecuting = true;
@@ -2999,7 +3083,7 @@ class IrBoard implements Board {
             // in three. Deliver the rest now, with the slice booked, so a
             // timer's callback still reads its own expiry as the time.
             if (specification.tag === timerClockCpu?.tag && executed > cycles && this.frameRunner.lockstepping) {
-              advanceTimedHardware((executed - cycles - this.deviceTimeAheadOfSlice) / timerClockHz());
+              advanceTimedHardware((executed - cycles - this.deviceTimeAheadOfSlice) * timerSecondsPerCycle());
             }
             if (specification.tag === timerClockCpu?.tag) {
               // Outside lockstep the overrun stays owed to the line settle;
@@ -3025,6 +3109,7 @@ class IrBoard implements Board {
       ...this.roundProcessors.map(processor => ({
         tag: processor.tag, clock: processor.clock, run: processor.run,
         ...(processor.suspended ? { suspended: processor.suspended } : {}),
+        ...(processor.abort ? { abort: processor.abort } : {}),
       }))]
         // MAME's round runs devices in configuration order: Donkey Kong's
         // maincpu, its 8257, then the sound CPU its audio board adds.
@@ -3253,6 +3338,7 @@ class IrBoard implements Board {
     clock: number;
     run(cycles: number): number;
     suspended?: () => 'eating' | 'waiting' | undefined;
+    abort?: () => void;
   }[] = [];
   /** The round device whose slice is executing, if any. */
   private runningRoundDevice?: string;
@@ -3643,7 +3729,12 @@ class IrBoard implements Board {
    * before the work runs. The frame schedule drains it at the end of the round.
    */
   private synchronize(run: () => void): void {
-    this.scheduledWork.push(run);
+    // The work runs at the time it was posted, as MAME's zero-delay timer
+    // does: the 06xx re-arms its NMI timer for the next clock edge after
+    // `machine().time()`, and read when the drain ran instead, Galaga's
+    // first chip select after a control write came an MCU instruction early.
+    const at = this.machineSeconds();
+    this.scheduledWork.push(() => withGeneratedTimerExpiry(at, run));
     if (this.frameRunner?.requestSynchronize()) return;
     // Outside a slice (a line callback, an event, construction) it is due now;
     // inside a drain the loop below picks it up in order.
@@ -4247,15 +4338,30 @@ class IrBoard implements Board {
   }
 
   /**
+   * How long one of a processor's cycles lasts: HZ_TO_ATTOSECONDS(clock),
+   * truncated, as MAME's m_attoseconds_per_cycle. Every cycle-to-time
+   * conversion uses it, and time-to-cycles divides by it. Xevious's 3.072 MHz
+   * Z80 writes the 06xx exactly on its 48 kHz clock's edges; MAME's time
+   * stands a hair short of each, and the 06xx's NMI timer armed from it
+   * starts an edge earlier. Converted back by the untruncated clock, the
+   * Game Boy PPU's `attotime_to_cycles(now - m_last_updated)` came a cycle
+   * short and Tetris left MAME at frame 341.
+   */
+  private secondsPerCycleOf(cpu: GeneratedExecutionCpu): number {
+    return Math.floor(1e18 / this.cycleClockOf(cpu)) * 1e-18;
+  }
+
+  /**
    * Emulated time on a processor's own cycle count. A clock change starts a
    * new epoch, so the cycles run before it keep the rate they ran at.
    */
   private cpuSeconds(cpu: GeneratedExecutionCpu): number {
     const epoch = this.cpuClocks.epochs[cpu.tag];
     const cycles = this.totalCycles(cpu.tag);
+    const secondsPerCycle = this.secondsPerCycleOf(cpu);
     return epoch
-      ? epoch.seconds + (cycles - epoch.cycles) / this.cycleClockOf(cpu)
-      : cycles / this.cycleClockOf(cpu);
+      ? epoch.seconds + (cycles - epoch.cycles) * secondsPerCycle
+      : cycles * secondsPerCycle;
   }
 
   /** MAME `device_t::set_unscaled_clock` on a processor. */

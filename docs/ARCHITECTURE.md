@@ -262,12 +262,49 @@ executes (`execution.executeDevices`, read from each class's own source; the
 decides this way where each of its Z80's 16.7 µs rounds starts, and its Z80
 instruction trace matches MAME's cycle for cycle through frame 7.
 
-The quantum and the window's interleave apply only where every device that
-executes runs in the round. A processor hosted on device time and delivered
-between its host's instructions is not in it: Xevious's Namco MCUs keep their
-handshakes in the line-long rounds they were tuned against and lose them in
-shorter ones, so a board with one keeps those rounds (and lockstep windows)
-until its hosted processors are scheduled too.
+Hosted MCUs and DSPs (the Namco 5x MB88s, the 68705, the TMS320C10) are round
+processors like any other execute device, run in configuration order beside
+their host (#222). One held in reset eats its slice, as MAME's
+`SUSPEND_REASON_RESET` does. Run while held, Xevious's 51xx stood in its idle
+loop when MAME's had just left reset. Only a `perfect_quantum` board still
+delivers them between its host's instructions, where each slice is a cycle
+already.
+
+A round also ends at the soonest device timer, as `timeslice()` takes
+`min(base + quantum, next timer)`. Device time is held short of that timer while
+the round runs, and the devices are brought to the round's end when it closes,
+so no timer fires before every processor stands at it. Whatever the clock's
+driving processor ran past the timer is dropped rather than released, because a
+slow MCU's whole-cycle pull can end the round short of the timer. Released
+whole, it gave Galaga's 51xx the 06xx's chip select two instructions early.
+
+A timer armed inside the round that becomes the soonest ends the running slice
+and bounds the round, as `emu_timer::adjust` aborts the timeslice.
+
+Work posted with `synchronize()` runs at its posting time, as MAME's zero-delay
+timer does: the 06xx re-arms its NMI timer for the next clock edge after
+`machine().time()`.
+
+A CPU's cycle lasts MAME's truncated `HZ_TO_ATTOSECONDS(clock)`
+(`m_attoseconds_per_cycle`). Every conversion between cycles and time uses that
+period: the processor's local time, the device clock's per-instruction deltas,
+`cycles_to_attotime`, and `attotime_to_cycles`, which divides by it.
+
+Xevious's 3.072 MHz Z80 writes the 06xx exactly on its 48 kHz clock's edges,
+and MAME's time stands a hair short of each. Counted exactly, the 06xx's NMI
+timer started an edge late, the 50xx missed a command, and the game reset in a
+loop. With only the local time truncated, the Game Boy PPU's
+`attotime_to_cycles(now - m_last_updated)` came a cycle short, and Tetris left
+MAME at frame 341.
+
+With all of this, Galaga's, Dig Dug's and Xevious's 06xx traffic matches MAME's
+byte for byte.
+
+One gap remains. MAME's device timers stand at the round's base, but ours
+follow the primary processor, which runs first. A timer a round MCU arms part
+way through its slice therefore fires late, and Pole Position's 52xx reads its
+serial register before its serial timer has shifted SB. That is #220's attotime
+round arithmetic.
 
 That bound is squeezed from both sides. Too coarse and a fast processor runs
 thousands of cycles while the one it is handshaking with waits, which is how
@@ -836,7 +873,11 @@ signed. That invariant is load bearing, not tidiness — device timers are armed
 against raster positions (`screen().time_until_pos`), and a callback that
 re-arms itself for "the next line" one line late gets MAME's answer, a whole
 frame's delay, permanently. `time_until_pos` is answered in the timer clock's
-own fractional line position for the same reason.
+own fractional line position for the same reason. A target within half a pixel of
+the beam counts as passed and lands a frame on, as MAME's
+`targetdelta <= curdelta + m_pixeltime / 2`. Without that rule, Metal Slug's
+auto-animation timer, firing a hair short of VSSTART, re-armed for no time
+until it hit the runtime's firing limit.
 
 A round spanning lines runs on its last line, so at the boundaries before it
 the beam has moved on while no processor has run. Paying those lines would run
@@ -847,9 +888,10 @@ arms a timer against the beam (the NES 2C02, the TMS9928A, Konami's 005849),
 the settle therefore puts the device clock where the primary processor
 actually stands: behind the beam by the lines its round has not run, ahead of
 it by whatever its last slice overran, which an NES OAM DMA makes four lines
-(#155: the 2C02 lost a frame on every round and never reached VBLANK). Elsewhere the beam stays the reference: hosted MCUs and discrete
-networks run on the same clock, and Galaga's 54xx boom moved when it followed
-the processors.
+(#155: the 2C02 lost a frame on every round and never reached VBLANK). A board
+whose rounds end at timers (see SCHEDULING) follows the processors too: span
+pre-pay put Dig Dug's device clock ahead, and its MCU read the 53xx a nibble
+early. Under a perfect quantum, the beam stays the reference.
 
 MAME's screen starts at the beginning of VBLANK: `time_until_pos` measures
 from `m_vblank_start_time`, which is zero at power-on, so the beam stands at
