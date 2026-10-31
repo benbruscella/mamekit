@@ -30,6 +30,15 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Per-cycle device timers cost a little less ([#226](https://github.com/benbruscella/mamekit/issues/226))
+
+**For players:** Nothing visible. NES carts with a per-cycle IRQ timer run slightly faster, and Lagrange Point already plays at a solid 60 fps in the browser on an M3 Pro.
+
+**Under the hood:**
+- A timer that isn't due leaves `IrTimer.tick` at once, the round no longer allocates a closure to find the soonest timer, and the attotime carry has a fast path. CPU time against `main`, three runs each: gradius2 73–75 to 76–80 fps, Lagrange Point 51–52 to 52–53, `smb1` unchanged within noise. No golden changes.
+- Lagrange Point's contract floor stays at 20 fps, because the 30 fps goal is dropped. Its contract takes about 25 fps on a CI runner, estimated from its duration, and the floor guards the test run rather than play.
+- Merging the rounds no processor runs in is ruled out: bounded by the next other timer, it took rounds from 30,000 to 20,000 a frame, gained nothing on gradius2, and changed Lagrange Point's `writeHash`.
+
 ### The frame runner keeps MAME's attosecond time ([#220](https://github.com/benbruscella/mamekit/issues/220))
 
 **For players:** Many arcade machines stay closer to MAME for longer: Donkey Kong's main CPU now runs instruction for instruction with MAME's for at least the 60 frames checked, and Space Invaders' memory matches at every frame compared. Marble Madness drifts further from MAME in its attract demo and in play, and its sound in play is further off.

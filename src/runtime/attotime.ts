@@ -94,11 +94,10 @@ export class Attotime {
   }
 
   private normalize(): void {
+    if (this.attos >= 0 && this.attos < ATTOS_PER_NANO) return;
     const carry = Math.floor(this.attos / ATTOS_PER_NANO);
-    if (carry !== 0) {
-      this.nanos += carry;
-      this.attos -= carry * ATTOS_PER_NANO;
-    }
+    this.nanos += carry;
+    this.attos -= carry * ATTOS_PER_NANO;
   }
 }
 
