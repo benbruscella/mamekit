@@ -29,7 +29,7 @@ import {
 import type { GeneratedCallArgument } from '../ir/execute.ts';
 import { callLinksGeneration, DEFAULT_CONSTANTS, generatedVector, noteCallLinksChanged, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
-import { GeneratedFrameRunner } from './generated-frame.ts';
+import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
 import {
   GeneratedMameVideoPrimitives,
   GeneratedVideoRenderer,
@@ -567,7 +567,9 @@ class IrBoard implements Board {
    * still land where the deltas put them and no drift accumulates.
    */
   private timedHardwareDelivered = 0;
-  /** Device time the round may still deliver before its soonest timer (nextTimerLine); the rest is dropped. */
+  /** MAME's m_scantime in seconds (lineSeconds). */
+  private cachedLineSeconds?: number;
+  /** Device time the round may still deliver before its soonest timer (nextTimerSeconds); the rest is dropped. */
   private roundTimerBudget = Infinity;
   /** Device time delivered since the round began (setGeneratedTimerArmBase). */
   private roundDelivered = 0;
@@ -757,7 +759,7 @@ class IrBoard implements Board {
             let lines = target - this.deviceBeamPosition();
             lines -= Math.floor(lines / vtotal) * vtotal;
             if (lines <= halfPixel) lines += vtotal;
-            return lines / (machine.execution.screen.refresh * vtotal);
+            return lines * this.lineSeconds();
           },
           // The same beam the arithmetic above measures against, floored the
           // way MAME's screen_device::vpos() derives the line from emulated
@@ -767,7 +769,7 @@ class IrBoard implements Board {
           // for the line it is already standing on and gets deferred a frame.
           vpos: () => {
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            return Math.floor(this.deviceBeamPosition()) % vtotal;
+            return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
           },
           hpos: () => this.beamHpos(),
           // screen_device::vblank(): the beam is outside the visible lines.
@@ -1569,7 +1571,6 @@ class IrBoard implements Board {
       const screenMember = (machine.devices ?? [])
         .find(device => device.type === 'SCREEN')?.member ?? 'm_screen';
       const vtotal = Math.max(1, machine.execution.screen.vtotal);
-      const refresh = machine.execution.screen.refresh;
       // Only `time_until_pos`, and only because it demonstrably answered zero:
       // Atari System 1 armed every scanline timer with it and each expired
       // immediately. The rest of the screen's methods already resolve through
@@ -1583,7 +1584,7 @@ class IrBoard implements Board {
           this.lineFractionAt(Number(hpos ?? 0));
         let lines = target - this.beamPosition();
         if (lines <= 0) lines += vtotal;
-        return lines / (refresh * vtotal);
+        return lines * this.lineSeconds();
       };
     }
 
@@ -2135,7 +2136,7 @@ class IrBoard implements Board {
         // device timers use.
         ...(cpuFacts.scanlineTimer ? {
           screen: {
-            vpos: () => Math.floor(this.beamPosition()) % Math.max(1, screenSpec.vtotal),
+            vpos: () => Math.floor(this.beamPosition() + this.halfPixelLines()) % Math.max(1, screenSpec.vtotal),
             hpos: () => Math.floor(this.currentLineFraction * (screenSpec.htotal ?? screenSpec.width)),
             width: () => Math.max(1, screenSpec.htotal ?? screenSpec.width),
             height: () => Math.max(1, screenSpec.vtotal),
@@ -2160,7 +2161,7 @@ class IrBoard implements Board {
               screenSpec.yOffset = visarea.min_y;
             },
             untilNextLine: () =>
-              (1 - this.currentLineFraction) / (screenSpec.refresh * Math.max(1, screenSpec.vtotal)),
+              (1 - this.currentLineFraction) * this.lineSeconds(),
             // palette_device::black_pen(): the entry appended after the
             // palette's own, which is black.
             blackPen: () => machine.video?.ramPalette?.entries ?? 0,
@@ -3019,7 +3020,7 @@ class IrBoard implements Board {
         ? { maximumQuantum: machine.execution.maximumQuantum }
         : {}),
       ...(timerRounds ? {
-        nextTimerLine: () => {
+        nextTimerSeconds: baseLine => {
           const soonestTimer = (): number => {
             let soonest = Infinity;
             for (let index = 0; index < timerDevices.length; index++) {
@@ -3045,7 +3046,11 @@ class IrBoard implements Board {
           setGeneratedTimerArmed(armedTimer);
           this.roundDelivered = 0;
           setGeneratedTimerArmBase(armBase);
-          return this.beamPosition() + soonest / this.lineSeconds();
+          // The devices stand at the round's base, give or take the rounding
+          // of their floating-point clock; a real difference is a presentation
+          // holding them back.
+          const offset = (this.beamPosition() - baseLine) * this.lineSeconds();
+          return Math.abs(offset) < 1e-11 ? soonest : soonest + offset;
         },
         onRoundEnd: line => {
           setGeneratedTimerArmed(undefined);
@@ -3846,8 +3851,8 @@ class IrBoard implements Board {
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.runningSliceCycles)
       : undefined;
-    const fraction = running === undefined ? this.currentLineFraction : running - Math.floor(running);
-    return Math.min(htotal - 1, Math.floor(fraction * htotal));
+    const beam = (running ?? this.currentLineFraction) + this.halfPixelLines();
+    return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
   }
 
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
@@ -3856,14 +3861,23 @@ class IrBoard implements Board {
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.runningSliceCycles)
       : undefined;
-    const line = running === undefined ? this.currentLine : Math.floor(running);
+    const line = running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
     return ((line % vtotal) + vtotal) % vtotal;
+  }
+
+  /**
+   * Half a pixel in lines. MAME's vpos() and hpos() "round to the nearest
+   * pixel": `delta += m_pixeltime / 2` before dividing by the truncated
+   * m_scantime, so a processor a few attoseconds short of a line reads that line.
+   */
+  private halfPixelLines(): number {
+    const screen = this.machine.execution.screen;
+    return 0.5 / Math.max(1, screen.htotal ?? screen.width);
   }
 
   /** One scanline of emulated wall time — the unit both clocks settle in. */
   private lineSeconds(): number {
-    const screen = this.machine.execution.screen;
-    return 1 / (Math.max(1, screen.refresh) * Math.max(1, screen.vtotal));
+    return this.cachedLineSeconds ??= screenPeriods(this.machine.execution.screen).line.total * 1e-18;
   }
 
   /**

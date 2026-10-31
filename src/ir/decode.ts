@@ -463,6 +463,7 @@ function decodeExecution(reader: Reader, value: unknown): void {
   reader.optionalString(screen.ownerTag, 'execution.screen.ownerTag', screenSource);
   reader.optionalString(screen.ownerKind, 'execution.screen.ownerKind', screenSource);
   reader.optionalNumber(screen.pixelClock, 'execution.screen.pixelClock', screenSource);
+  reader.optionalString(screen.frameAttoseconds, 'execution.screen.frameAttoseconds', screenSource);
   reader.optionalString(screen.scanlineCallback, 'execution.screen.scanlineCallback', screenSource);
 
   for (const [index, entry] of reader.array(

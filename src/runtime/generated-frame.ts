@@ -1,5 +1,6 @@
 import type { VideoRenderer } from './types.ts';
-import type { BoardIr, GeneratedFrameEvent } from '../ir/board.ts';
+import type { BoardIr, GeneratedFrameEvent, GeneratedScreen } from '../ir/board.ts';
+import { AttoPeriod, Attotime, hzToAttoseconds, secondsToAttoseconds } from './attotime.ts';
 
 export interface GeneratedFrameProcessor {
   tag: string;
@@ -38,11 +39,24 @@ export interface GeneratedFrameProcessor {
  */
 const MAX_QUANTUM_SECONDS = 250e-6;
 
-/** Far below a cycle and far above the rounding of a line-fraction carry. */
-const CARRY_ROUNDING = 1e-6;
+/**
+ * Attoseconds a device timer's expiry may stand off the time MAME has for it.
+ * Device timers keep floating-point seconds, so a timer armed for a whole number
+ * of a processor's cycles comes back a few attoseconds either side of that cycle
+ * (a cycle is about 1e11): short of it, the processor would stop a cycle early.
+ */
+const TIMER_SLOP = 16;
 
-
-
+/** MAME's screen timing: `m_frame_period`, and `m_scantime` as a period. */
+export function screenPeriods(screen: GeneratedScreen): { frame: Attotime; line: AttoPeriod } {
+  const frame = screen.frameAttoseconds !== undefined
+    ? BigInt(screen.frameAttoseconds)
+    : BigInt(hzToAttoseconds(screen.refresh));
+  return {
+    frame: new Attotime().setExact(frame),
+    line: new AttoPeriod(Number(frame / BigInt(Math.max(1, screen.vtotal)))),
+  };
+}
 
 export interface GeneratedFrameRunnerOptions {
   machine: BoardIr;
@@ -69,10 +83,10 @@ export interface GeneratedFrameRunnerOptions {
    */
   maximumQuantum?: number;
   /**
-   * The beam position (as `runningBeam` counts lines) at which the soonest
-   * device timer expires: MAME ends the round there.
+   * Seconds from the round's base, which stands on line `baseLine`, to the
+   * soonest device timer: MAME ends the round there.
    */
-  nextTimerLine?: () => number;
+  nextTimerSeconds?: (baseLine: number) => number;
   /** Every processor has run the round to `line`: MAME executes its timers now. */
   onRoundEnd?: (line: number) => void;
   /** The frame has just been presented (see `awaitingPresent`). */
@@ -102,9 +116,11 @@ export class GeneratedFrameRunner {
   private readonly machine: BoardIr;
   private readonly processors: {
     processor: GeneratedFrameProcessor;
-    /** Changes only through setClock (MAME set_unscaled_clock). */
+    /** MAME `m_attoseconds_per_cycle`; changes only through setClock (set_unscaled_clock). */
+    cycle: AttoPeriod;
     cyclesPerLine: number;
-    carry: number;
+    /** MAME `m_localtime`: where the processor stands, past the round's end if it overran. */
+    local: Attotime;
   }[];
   private readonly video?: VideoRenderer;
   private readonly eventPhase: 'before-processors' | 'after-processors';
@@ -113,15 +129,26 @@ export class GeneratedFrameRunner {
   private readonly onSynchronize?: () => void;
   private readonly onRound?: () => void;
   private readonly perfectInterleave?: () => number | undefined;
-  private readonly nextTimerLine?: () => number;
+  private readonly nextTimerSeconds?: (baseLine: number) => number;
   private readonly onRoundEnd?: (line: number) => void;
-  /** The open window's round length in scanlines, from perfectInterleave. */
-  private windowQuantumLines?: number;
+  /** The open window's round length in attoseconds, from perfectInterleave. */
+  private windowQuantum?: number;
   private readonly onPresented?: () => void;
   private readonly aroundPresent?: (render: () => void) => void;
 
-  /** How far into the current round each processor has been credited. */
-  private readonly credited: Float64Array;
+  /** MAME `m_frame_period` and `m_scantime`. */
+  private readonly framePeriod: Attotime;
+  private readonly linePeriod: AttoPeriod;
+  /** When the frame in progress began: a whole number of frame periods. */
+  private readonly frameBase = new Attotime();
+  /** MAME `m_basetime`: where the last round ended. */
+  private readonly base = new Attotime();
+  /** Where the lines being paid began, and where they end. */
+  private readonly roundStart = new Attotime();
+  private readonly roundEnd = new Attotime();
+  /** The round in progress's target, which a processor left short pulls back. */
+  private readonly target = new Attotime();
+  private readonly scratch = new Attotime();
   /** The processor whose slice is executing, if any. */
   private running?: GeneratedFrameRunner['processors'][number];
   /** True while a perfect-quantum window runs processors one instruction at a time. */
@@ -133,7 +160,7 @@ export class GeneratedFrameRunner {
   /** The round in progress: its first line and its length. */
   private roundFirstLine = 0;
   private roundLines = 1;
-  /** Where in the round, in lines, the running processor's slice began. */
+  /** Where in the lines being paid the running processor's slice began. */
   private runStartLines = 0;
   private readonly eventsByLine = new Map<number, GeneratedFrameEvent[]>();
   private readonly periodicEvents: {
@@ -159,10 +186,10 @@ export class GeneratedFrameRunner {
   /** Scanlines a processor may run in one slice, from MAX_QUANTUM_SECONDS. */
   private readonly maximumQuantumLines: number;
   /**
-   * The machine's own `set_maximum_quantum`, in scanlines: no MAME round is
+   * The machine's own `set_maximum_quantum`, in attoseconds: no MAME round is
    * longer, so a round of lines is several of them (see runProcessors).
    */
-  private readonly machineQuantumLines?: number;
+  private readonly machineQuantum?: number;
   /** The processors in the order a round runs them (see roundOrder). */
   private readonly order: Int32Array;
   private readonly suspendable: boolean;
@@ -211,7 +238,7 @@ export class GeneratedFrameRunner {
     this.onSynchronize = options.onSynchronize;
     this.onRound = options.onRound;
     this.perfectInterleave = options.perfectInterleave;
-    this.nextTimerLine = options.nextTimerLine;
+    this.nextTimerSeconds = options.nextTimerSeconds;
     this.onRoundEnd = options.onRoundEnd;
     this.onPresented = options.onPresented;
     this.aroundPresent = options.aroundPresent;
@@ -224,16 +251,19 @@ export class GeneratedFrameRunner {
     ]);
     const denominator =
       options.machine.execution.screen.refresh * options.machine.execution.screen.vtotal;
+    const periods = screenPeriods(options.machine.execution.screen);
+    this.framePeriod = periods.frame;
+    this.linePeriod = periods.line;
     this.processors = options.processors.map(processor => {
       const clock = processor.clock ?? clocks.get(processor.tag);
       if (clock === undefined) {
         throw new Error(`generated frame plan has no execute-participant clock for "${processor.tag}"`);
       }
-      return { processor, cyclesPerLine: clock / denominator, carry: 0 };
+      const cycle = new AttoPeriod(hzToAttoseconds(clock));
+      return { processor, cycle, cyclesPerLine: this.linePeriod.total / cycle.total, local: new Attotime() };
     });
     this.permanentLockstep = options.machine.execution.perfectQuantum === true &&
       this.processors.length > 1;
-    this.credited = new Float64Array(this.processors.length);
     this.order = Int32Array.from(this.processors, (_, index) => index);
     this.suspendable = this.processors.some(entry => entry.processor.suspended);
     for (const event of options.machine.execution.frameEvents) {
@@ -288,7 +318,7 @@ export class GeneratedFrameRunner {
       ? scanlineIncrementLines
       : Math.max(1, Math.floor(MAX_QUANTUM_SECONDS * denominator));
     const machineQuantum = options.maximumQuantum;
-    if (machineQuantum !== undefined && machineQuantum > 0) this.machineQuantumLines = machineQuantum * denominator;
+    if (machineQuantum !== undefined && machineQuantum > 0) this.machineQuantum = secondsToAttoseconds(machineQuantum);
     this.boundaryLines = new Set([
       ...this.eventsByLine.keys(),
       ...scanlineTimerLines,
@@ -303,10 +333,10 @@ export class GeneratedFrameRunner {
    * fetches steal, and puts it back at the top of the frame.
    */
   setClock(tag: string, cycleClock: number): void {
-    const denominator =
-      this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
     for (const entry of this.processors) {
-      if (entry.processor.tag === tag) entry.cyclesPerLine = cycleClock / denominator;
+      if (entry.processor.tag !== tag) continue;
+      entry.cycle = new AttoPeriod(hzToAttoseconds(cycleClock));
+      entry.cyclesPerLine = this.linePeriod.total / entry.cycle.total;
     }
   }
 
@@ -325,7 +355,7 @@ export class GeneratedFrameRunner {
       this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
     if (!(this.fineLines > 0)) {
       const interleave = this.perfectInterleave?.();
-      this.windowQuantumLines = interleave !== undefined && interleave > 0 ? interleave * denominator : undefined;
+      this.windowQuantum = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : undefined;
     }
     this.fineLines = Math.max(this.fineLines, Math.max(seconds, 0) * denominator);
   }
@@ -357,21 +387,24 @@ export class GeneratedFrameRunner {
    * earlier boundary the beam has moved on while the processor still stands
    * where the previous round left it: the lines of the round in progress it
    * has not run, less whatever its last slice ran past the end of the round
-   * before (a negative carry). An NES OAM DMA steals 513 cycles inside one
-   * instruction, which leaves the CPU four lines past where its round ended.
+   * before. An NES OAM DMA steals 513 cycles inside one instruction, which
+   * leaves the CPU four lines past where its round ended.
    */
   linesBehind(tag: string): number {
     const scheduled = this.processors.find(entry => entry.processor.tag === tag);
     if (!scheduled) return this.pendingLines;
-    return this.pendingLines + scheduled.carry / scheduled.cyclesPerLine;
+    return this.pendingLines + this.base.since(scheduled.local) / this.linePeriod.total;
   }
 
-  get currentCarry(): readonly number[] {
-    return this.processors.map(processor => processor.carry);
+  /** How far a processor stands past the round's base, in its own cycles. */
+  get cyclesAhead(): readonly number[] {
+    return this.processors.map(entry => entry.local.since(this.base) / entry.cycle.total);
   }
 
   reset(): void {
-    for (const processor of this.processors) processor.carry = 0;
+    for (const processor of this.processors) processor.local.clear();
+    this.frameBase.clear();
+    this.base.clear();
     for (const event of this.periodicEvents) event.carry = 0;
     this.fineLines = 0;
     this.frames = 0;
@@ -389,9 +422,9 @@ export class GeneratedFrameRunner {
     return this.origin === 'vbstart' && screen.vbstart > 0 && screen.vbstart < screen.vtotal ? screen.vbstart : 0;
   }
 
-  /** Save-state roots (machine-state.ts): the carries and counters, never the schedule. */
+  /** Save-state roots (machine-state.ts): the times and counters, never the schedule. */
   stateKeys(): readonly string[] {
-    return ['processors', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin'];
+    return ['processors', 'frameBase', 'base', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin'];
   }
 
   /**
@@ -428,6 +461,7 @@ export class GeneratedFrameRunner {
       rendered = true;
     }
     this.presented();
+    this.frameBase.addTime(this.framePeriod);
     this.frames++;
     // A board whose vbstart sits outside the emulated line range never hit the
     // in-loop presentation above; keep the end-of-frame fallback for it.
@@ -494,6 +528,13 @@ export class GeneratedFrameRunner {
    * Run every enabled processor for `lines` scanlines' worth of cycles: one
    * MAME timeslice, bounded by the next scheduled event.
    *
+   * This is `device_scheduler::timeslice()`, in its attoseconds. Lines fall at
+   * `frame base + index * m_scantime`, and a frame's base is a whole number of
+   * `m_frame_period`s: the two truncate differently, and that is what decides
+   * which instruction a VBLANK lands before. MAME's Donkey Kong takes its NMI
+   * one instruction earlier in frame 8, because VBLANK has fallen about 1e-6 of
+   * a cycle before the cycle that would have started the next one.
+   *
    * A processor that synchronizes stops short, and the round's target drops
    * to where it stopped for every processor after it -- MAME's
    * `if (exec->m_localtime < target) target = exec->m_localtime`. Processors
@@ -508,62 +549,55 @@ export class GeneratedFrameRunner {
    */
   private runProcessors(lines: number, lastLine: number): void {
     const processors = this.processors;
-    const credited = this.credited;
-    credited.fill(0);
+    const base = this.base;
+    const end = this.roundEnd;
+    const target = this.target;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const endIndex = ((lastLine - this.originLine + vtotal) % vtotal) + 1;
+    if (endIndex >= vtotal) end.set(this.frameBase).addTime(this.framePeriod);
+    else end.setPeriodsFrom(this.frameBase, endIndex, this.linePeriod);
+    this.roundStart.set(base);
     this.roundFirstLine = lastLine - lines + 1;
     this.roundLines = lines;
     // Work posted outside any slice (a line callback, an event) is due now.
     this.onSynchronize?.();
-    let done = 0;
-    while (done < 1) {
+    while (base.before(end)) {
       this.onRound?.();
       if (this.permanentLockstep) {
-        done = this.lockstep(lines, done, 1);
+        this.lockstep(end);
         continue;
       }
       // A perfect_quantum window is rounds of the perfect interleave, run by
       // the same rules as any other round.
       const windowed = this.fineLines > 0;
-      if (windowed && this.windowQuantumLines === undefined) {
-        done = this.lockstep(lines, done);
+      if (windowed && this.windowQuantum === undefined) {
+        this.lockstep(this.windowEnd(end));
         continue;
       }
-      const quantum = windowed ? this.windowQuantumLines : this.machineQuantumLines;
-      let reached = quantum === undefined ? 1 : Math.min(1, done + quantum / lines);
+      target.set(end);
+      const quantum = windowed ? this.windowQuantum : this.machineQuantum;
+      if (quantum !== undefined) this.lowerTarget(quantum);
       // MAME's round ends at the soonest timer, so every processor stands
       // at its expiry when it fires.
-      if (this.nextTimerLine) {
-        const timer = (this.nextTimerLine() - this.roundFirstLine) / lines;
-        if (timer > done + 1e-9) reached = Math.min(reached, timer);
+      let slop = 0;
+      if (this.nextTimerSeconds) {
+        const seconds = this.nextTimerSeconds(this.linesAt(base));
+        if (seconds > 0 && Number.isFinite(seconds) && this.lowerTarget(secondsToAttoseconds(seconds))) slop = TIMER_SLOP;
       }
       const order = this.roundOrder();
       for (let position = 0; position < order.length; position++) {
-        const index = order[position]!;
-        const scheduled = processors[index]!;
+        const scheduled = processors[order[position]!]!;
+        const local = scheduled.local;
+        const cycles = scheduled.cycle.within(local, target, slop);
+        // Less than a cycle to the target: MAME neither runs it nor moves on.
+        if (cycles === 0) continue;
         if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
-          credited[index] = 1;
+          local.addPeriods(cycles, scheduled.cycle);
+          this.pullTarget(local, slop);
           continue;
         }
-        if (credited[index]! < reached) {
-          scheduled.carry += scheduled.cyclesPerLine * lines * (reached - credited[index]!);
-          credited[index] = reached;
-        }
-        // The carry is cycles reached through line fractions, so a whole
-        // number of cycles can arrive a rounding error short of itself: a
-        // POKEY behind a CPU that synchronized was owed 14 cycles, ran 13,
-        // and took the SKCTL write a clock early.
-        // A processor credited past this round's target (by an earlier round
-        // it then left early) runs only up to it, from where it stands, as
-        // MAME's does. Rampage's Z80, stopped by a Sounds Good write, ran the
-        // 325 cycles it was still owed in a one-cycle perfect_quantum round
-        // and strobed its next nibble past the 68000.
-        const ahead = credited[index]! > reached
-          ? scheduled.cyclesPerLine * lines * (credited[index]! - reached)
-          : 0;
-        const target = Math.floor(scheduled.carry - ahead + CARRY_ROUNDING);
-        if (target <= 0) continue;
         this.running = scheduled;
-        this.runStartLines = credited[index]! * lines - scheduled.carry / scheduled.cyclesPerLine;
+        this.runStartLines = local.since(this.roundStart) / this.linePeriod.total;
         this.synchronizeRequested = false;
         this.synchronizedAt = undefined;
         // A window's slice is an instruction against a target of a cycle or
@@ -571,35 +605,57 @@ export class GeneratedFrameRunner {
         this.lockstepping = windowed;
         let executed: number;
         try {
-          executed = scheduled.processor.run(target);
+          executed = scheduled.processor.run(cycles);
         } finally {
           this.lockstepping = false;
         }
         this.running = undefined;
-        scheduled.carry -= executed;
         // A core that stops between bus cycles ended the round where it
         // synchronized; finishing the instruction is its own overrun.
         const stopped = this.synchronizedAt !== undefined ? Math.min(executed, this.synchronizedAt) : executed;
-        if (this.synchronizeRequested && stopped < target) {
-          const stoppedAt = credited[index]! - (scheduled.carry + executed - stopped) / (scheduled.cyclesPerLine * lines);
-          reached = Math.max(done, Math.min(reached, stoppedAt));
-        } else if (scheduled.carry > CARRY_ROUNDING && scheduled.processor.suspended?.() !== 'waiting') {
-          // Whole cycles left it short of the target (MAME skips a waiting
-          // device, which then stands wherever it stopped).
-          const local = credited[index]! - scheduled.carry / (scheduled.cyclesPerLine * lines);
-          reached = Math.max(done, Math.min(reached, local));
+        if (this.synchronizeRequested && stopped < cycles) {
+          this.pullTarget(this.scratch.setPeriodsFrom(local, stopped, scheduled.cycle), slop);
         }
+        local.addPeriods(executed, scheduled.cycle);
+        // Whole cycles left it short of the target (MAME skips a waiting
+        // device, which then stands wherever it stopped).
+        if (!this.synchronizeRequested && scheduled.processor.suspended?.() !== 'waiting') this.pullTarget(local, slop);
         this.synchronizeRequested = false;
         this.synchronizedAt = undefined;
       }
       this.onSynchronize?.();
-      this.onRoundEnd?.(this.roundFirstLine + reached * lines);
+      this.onRoundEnd?.(this.linesAt(target));
       if (windowed) {
-        this.fineLines -= (reached - done) * lines;
+        this.fineLines -= target.since(base) / this.linePeriod.total;
         if (!(this.fineLines > 1e-9)) this.fineLines = 0;
       }
-      done = reached;
+      base.set(target);
     }
+  }
+
+  /** Bring the target down to `attos` past the base; answers whether it moved. */
+  private lowerTarget(attos: number): boolean {
+    const candidate = this.scratch.set(this.base).add(attos);
+    if (!candidate.before(this.target)) return false;
+    this.target.set(candidate);
+    return true;
+  }
+
+  /** MAME's `target = max(m_localtime, m_basetime)` for a processor left short. */
+  private pullTarget(reached: Attotime, slop: number): void {
+    if (this.target.since(reached) <= slop) return;
+    this.target.set(reached.before(this.base) ? this.base : reached);
+  }
+
+  /** A time within the lines being paid, as the line it falls on. */
+  private linesAt(time: Attotime): number {
+    return this.roundFirstLine + time.since(this.roundStart) / this.linePeriod.total;
+  }
+
+  /** The end of the open perfect_quantum window, or `end` if that comes first. */
+  private windowEnd(end: Attotime): Attotime {
+    const window = this.scratch.set(this.base).add(Math.floor(this.fineLines * this.linePeriod.total));
+    return window.before(end) ? window : end;
   }
 
   /**
@@ -659,29 +715,19 @@ export class GeneratedFrameRunner {
   }
 
   /**
-   * The `perfect_quantum` window: from `done` to the window's end (or the
-   * round's), the processor furthest behind in emulated time executes one
+   * The `perfect_quantum` window: up to `until`, the window's end or the
+   * round's, the processor furthest behind in emulated time executes one
    * instruction, then any work that instruction synchronized runs.
    */
-  private lockstep(lines: number, done: number, until?: number): number {
+  private lockstep(until: Attotime): void {
     const processors = this.processors;
-    const credited = this.credited;
-    const end = until ?? Math.min(1, done + this.fineLines / lines);
-    // Subtracting spent fractions leaves floating-point residue: a window of
-    // 4e-16 lines advanced the round by nothing, forever. Anything shorter
-    // than a billionth of a line is over.
-    if (end - done < 1e-9) {
+    const base = this.base;
+    const end = this.target.set(until);
+    // Subtracting spent lines leaves floating-point residue: a window of 4e-16
+    // lines advanced the round by nothing, forever. Under an attosecond it is over.
+    if (!base.before(end)) {
       this.fineLines = 0;
-      return done;
-    }
-    for (let index = 0; index < processors.length; index++) {
-      const scheduled = processors[index]!;
-      if (credited[index]! < end) {
-        if (!scheduled.processor.enabled || scheduled.processor.enabled()) {
-          scheduled.carry += scheduled.cyclesPerLine * lines * (end - credited[index]!);
-        }
-        credited[index] = end;
-      }
+      return;
     }
     for (;;) {
       // Every instruction in the window is a round of its own.
@@ -691,21 +737,25 @@ export class GeneratedFrameRunner {
       const order = this.roundOrder();
       for (let position = 0; position < order.length; position++) {
         const scheduled = processors[order[position]!]!;
-        if (scheduled.carry < 1) continue;
-        if (scheduled.processor.enabled && !scheduled.processor.enabled()) continue;
+        const cycles = scheduled.cycle.within(scheduled.local, end);
+        if (cycles === 0) continue;
+        if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
+          scheduled.local.addPeriods(cycles, scheduled.cycle);
+          continue;
+        }
         if (scheduled.processor.suspended?.() === 'waiting') continue;
-        const lineDebt = scheduled.carry / scheduled.cyclesPerLine;
-        if (!behind || lineDebt > owed) {
+        const debt = end.since(scheduled.local);
+        if (!behind || debt > owed) {
           behind = scheduled;
-          owed = lineDebt;
+          owed = debt;
         }
       }
       if (!behind) break;
       this.running = behind;
-      this.runStartLines = end * lines - behind.carry / behind.cyclesPerLine;
+      this.runStartLines = behind.local.since(this.roundStart) / this.linePeriod.total;
       this.lockstepping = true;
       try {
-        behind.carry -= behind.processor.run(1);
+        behind.local.addPeriods(behind.processor.run(1), behind.cycle);
       } finally {
         this.lockstepping = false;
       }
@@ -713,11 +763,11 @@ export class GeneratedFrameRunner {
       this.synchronizeRequested = false;
       this.onSynchronize?.();
     }
-    if (until === undefined) {
-      this.fineLines = this.fineLines - (end - done) * lines;
+    if (this.fineLines > 0 && !this.permanentLockstep) {
+      this.fineLines -= end.since(base) / this.linePeriod.total;
       if (!(this.fineLines > 1e-9)) this.fineLines = 0;
     }
-    return end;
+    base.set(end);
   }
 
   private dispatchLine(line: number, framebuffer: Uint32Array): void {
