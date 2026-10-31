@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
-import { mameArguments, politeCommand, writeLuaPlan } from './mame-side.ts';
+import { mameArguments, mameEnvironment, politeCommand, writeLuaPlan } from './mame-side.ts';
 import { inputTimeline, type OraclePlan, type OursBoot, type TimelineEvent } from './plan.ts';
 
 const config = { game: 'spectrum', software: { dumpsKey: 'computers/spectrum', shelves: [] } } as unknown as ShellConfig;
@@ -46,6 +46,9 @@ assert.ok(value(args, '-autoboot_script')!.endsWith('/tools/oracle/oracle.lua'))
 // --watch shows MAME's picture in an ordinary window.
 const watched = mameArguments(config, 'arcade', boot, undefined, '/mame', '/work', { background: false, watch: true });
 assert.ok(watched.includes('-window') && !watched.includes('-video') && !watched.includes('-nomaximize'));
+// Out of the way means no window at all, unless one was asked for.
+assert.equal(mameEnvironment({ background: false, watch: false }).SDL_VIDEO_DRIVER, 'dummy');
+assert.equal(mameEnvironment({ background: false, watch: true }).SDL_VIDEO_DRIVER, process.env.SDL_VIDEO_DRIVER);
 
 // Every process the oracle starts yields: nice 10, or the efficiency cores on a Mac.
 if (process.platform !== 'win32') {

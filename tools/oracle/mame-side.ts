@@ -35,6 +35,16 @@ export interface Politeness {
 }
 
 /** The command prefix every process the oracle starts runs under. */
+/**
+ * Under `-video none` MAME still starts SDL's Cocoa video, which gives each
+ * process a window on a Mac and takes the cursor from whoever is at it. SDL's
+ * dummy driver never touches the window server, and MAME's results under it
+ * are the same: dkong and marble compare `same` on every measure.
+ */
+export function mameEnvironment(politeness: Politeness): NodeJS.ProcessEnv {
+  return politeness.watch ? { ...process.env } : { ...process.env, SDL_VIDEO_DRIVER: 'dummy' };
+}
+
 export function politeCommand(command: string, args: string[], politeness: Politeness): [string, string[]] {
   if (politeness.background && process.platform === 'darwin') {
     return ['/usr/sbin/taskpolicy', ['-b', command, ...args]];
@@ -191,7 +201,7 @@ export function runMame(
   return new Promise(done => {
     const child = spawn(command, commandArgs, {
       cwd: dirname(binary),
-      env: { ...process.env, MAMEKIT_ORACLE_PLAN: join(dir, 'mame-plan.lua') },
+      env: { ...mameEnvironment(politeness), MAMEKIT_ORACLE_PLAN: join(dir, 'mame-plan.lua') },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
