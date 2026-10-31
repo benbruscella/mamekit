@@ -46,6 +46,7 @@ MAMEDEV's release notes (see the README).
 - NMI is a level line, and `cycles_to_attotime` is bound.
 - Every cycle-to-time conversion uses MAME's truncated `HZ_TO_ATTOSECONDS(clock)`.
 - A round asks only the devices that own a timer for the soonest one; asking every device cost Lagrange Point a quarter of its frame.
+- Lagrange Point's speed floor drops to 20 fps. Its VRC IRQ timer fires every CPU cycle, as MAME's does, so it runs about 30,000 rounds a frame and reaches 27 fps on a CI runner. Running the rounds in which no processor runs as one is #220.
 - `time_until_pos` keeps MAME's half-pixel "already passed" rule, which ends Metal Slug's intermittent timer runaway.
 - Against the `9b12e8fc` MAME 0.289 baseline, 18 of 36 scenarios are worse on some measure.
   - Xevious's and Wardner's contract runs were bad MAME-side recordings: rerun directly, both match MAME's input on every frame and land within 0.3 dB.
