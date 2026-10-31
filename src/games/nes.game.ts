@@ -193,8 +193,9 @@ export const nes = {
     // The VRC IRQ timer fires on every CPU cycle (konami.cpp arms it with a
     // period of clocks_to_attotime(1)), and MAME ends a timeslice at each
     // one, so this cart runs about 30,000 rounds a frame where other carts
-    // run a few hundred. On a CI runner that is 27 fps (#222); running the
-    // empty rounds as one is #220's.
+    // run a few hundred. On a CI runner that is about 25 fps, though it plays
+    // at 60 in a browser on an M3 Pro. Running the empty rounds as one saves
+    // nothing, because firing the timer is the cost (#226).
     minimumFps: 20,
     checkpoints: [1, 300, 600, 900, 1200, 1500, 1800],
     actions: [
