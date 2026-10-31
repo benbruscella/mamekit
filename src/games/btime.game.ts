@@ -33,17 +33,17 @@ export const btime = sourceTarget({
     checkpoints: {
       1: { video: 'd59a8e09', state: '5595e43e' },
       300: { video: '397799b7', state: 'c4017346' },
-      450: { video: '44cb84d3', state: '9513cb2e' },
-      600: { video: '043f8e75', state: 'fe835e1e' },
+      450: { video: '44cb84d3', state: '95aceac6' },
+      600: { video: '043f8e75', state: 'ac5f33bb' },
       900: { video: '6cd1f1f2', state: 'e70096b8' },
       1200: { video: 'c8dba4d3', state: '219e4d9a' },
     },
     audio: {
       writes: 3783,
       nonzeroWrites: 1411,
-      writeHash: '57912946',
-      pcmHash: 'dcf6eab7',
-      rms: 0.118076,
+      writeHash: '3d029125',
+      pcmHash: 'e6162b6d',
+      rms: 0.118054,
     },
   },
 });

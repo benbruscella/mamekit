@@ -60,7 +60,7 @@ export const c64 = {
       audio: {
         writes: 962790,
         nonzeroWrites: 962790,
-        writeHash: 'bd57f705',
+        writeHash: '51524460',
         pcmHash: 'aad35cb7',
         rms: 0.463693,
       },
@@ -95,7 +95,7 @@ export const c64 = {
       audio: {
         writes: 4011626,
         nonzeroWrites: 4011626,
-        writeHash: 'd3e9b5bb',
+        writeHash: 'a760cbdf',
         pcmHash: '379e6250',
         rms: 0.457978,
       },
@@ -129,7 +129,7 @@ export const c64 = {
       audio: {
         writes: 2567441,
         nonzeroWrites: 2567441,
-        writeHash: '0471114b',
+        writeHash: '1ec4fbed',
         pcmHash: 'a6797fc2',
         rms: 0.49341,
       },
@@ -162,7 +162,7 @@ export const c64 = {
       audio: {
         writes: 1444185,
         nonzeroWrites: 1444185,
-        writeHash: '82043bba',
+        writeHash: '1db51957',
         pcmHash: 'd938a7b6',
         rms: 0.469297,
       },

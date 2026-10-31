@@ -259,8 +259,26 @@ machine's `set_maximum_quantum` (`execution.maximumQuantum`), and a
 shortest cycle time, times `execute_min_cycles()`, of every device that
 executes (`execution.executeDevices`, read from each class's own source; the
 6805 answers from its own state at run time). Donkey Kong's 400 kHz sound CPU
-decides this way where each of its Z80's 16.7 µs rounds starts, and its Z80
-instruction trace matches MAME's cycle for cycle through frame 7.
+decides this way where each of its Z80's 16.7 µs rounds starts.
+
+The round keeps time as MAME does (#220). Round bases, targets and each
+processor's local time are whole attoseconds (`src/runtime/attotime.ts`). A
+frame is past what a double holds exactly and a BigInt allocates, so a time is
+two doubles, updated in place. The screen's `m_frame_period` is lowered into
+the IR (`execution.screen.frameAttoseconds`): `HZ_TO_ATTOSECONDS(pixclock) *
+htotal * vtotal` for `set_raw`, the truncated rate for `set_refresh_hz`. Lines
+fall at `frame base + index * m_scantime`, a frame's base is a whole number of
+`m_frame_period`s, and cycles come from `divu_64x32(delta >> m_divshift,
+m_divisor)`. These truncate differently, and that decides which instruction an
+interrupt lands before. Donkey Kong's VBLANK falls about 1e-6 of a cycle before
+Z80 cycle 354816 in frame 8, so MAME's Z80 takes its NMI first. Its instruction
+trace now matches MAME's for all 60 traced frames. Whole cycles can leave a
+processor attoseconds short of a line, so reading the beam adds MAME's half
+pixel (`delta += m_pixeltime / 2`).
+
+Device timers still keep floating-point seconds, so a round bounded by one
+allows 16 attoseconds either way (`TIMER_SLOP`): a timer armed for a whole number
+of cycles has to land on that cycle.
 
 Hosted MCUs and DSPs (the Namco 5x MB88s, the 68705, the TMS320C10) are round
 processors like any other execute device, run in configuration order beside

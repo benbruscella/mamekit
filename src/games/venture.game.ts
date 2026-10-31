@@ -53,7 +53,7 @@ export const venture = sourceTarget({
     audio: {
       writes: 7785,
       nonzeroWrites: 5746,
-      writeHash: '18b71672',
+      writeHash: '12343770',
       pcmHash: '3c66fe0c',
       rms: 0.071232,
     },

@@ -37,7 +37,7 @@ export const centiped = sourceTarget({
     audio: {
       writes: 959953,
       nonzeroWrites: 959953,
-      writeHash: 'a275fff6',
+      writeHash: '5b789d17',
       pcmHash: 'db49c11b',
       rms: 0.068571,
     },

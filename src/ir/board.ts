@@ -550,6 +550,12 @@ export interface GeneratedScreen {
   xOffset?: number;
   yOffset?: number;
   refresh: number;
+  /**
+   * MAME's `m_frame_period`, in attoseconds: `HZ_TO_ATTOSECONDS(pixclock) *
+   * htotal * vtotal` for a raw screen. A decimal string, because a frame is
+   * past what a JSON number holds exactly.
+   */
+  frameAttoseconds?: string;
   /** The whole raster's width, which is what MAME's `screen().width()` is. */
   htotal?: number;
   vtotal: number;

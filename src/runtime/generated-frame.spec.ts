@@ -97,7 +97,7 @@ assert.deepEqual(scanlineTimeline, ['line:0', 'cpu', 'line:1', 'cpu', 'line:2', 
 
 runner.reset();
 assert.equal(runner.frameCount, 0);
-assert.deepEqual(runner.currentCarry, [0]);
+assert.deepEqual(runner.cyclesAhead, [0]);
 
 const periodicMachine: BoardIr = {
   ...machine,
@@ -339,7 +339,9 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     onRound: () => order.push('round'),
   });
   runner.frame(new Uint32Array(1));
-  assert.deepEqual(order.slice(0, 4), ['round', 'run 300', 'round', 'run 300'], 'a round starts each slice');
+  // 300 truncated cycles stop 39 attoseconds short of the lines, which ends
+  // the round there, and the next is under a cycle long: nothing runs in it.
+  assert.deepEqual(order.slice(0, 5), ['round', 'run 300', 'round', 'round', 'run 300'], 'a round starts each slice');
   order.length = 0;
   runner.quantumWindow(0.0001);
   runner.frame(new Uint32Array(1));
@@ -399,10 +401,10 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   // every processor stands once the round is run.
   slices.length = 0;
   const ends: number[] = [];
-  const timerRunner: GeneratedFrameRunner = new GeneratedFrameRunner({
+  const timerRunner = new GeneratedFrameRunner({
     machine: quantumMachine,
     processors: [processor('fast')],
-    nextTimerLine: (): number => (ends.at(-1) ?? (timerRunner as unknown as { roundFirstLine: number }).roundFirstLine) + 0.15,
+    nextTimerSeconds: () => 0.15 / (quantumMachine.execution.screen.refresh * quantumMachine.execution.screen.vtotal),
     onRoundEnd: line => ends.push(line),
   });
   timerRunner.frame(new Uint32Array(1));
@@ -525,7 +527,8 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     machine,
     origin: 'vbstart',
     processors: [{ tag: 'maincpu', run: budget => {
-      timeline.push(`cpu ${runner.runningFrameLines(0)}`);
+      // Truncated cycles stand a few attoseconds either side of a line.
+      timeline.push(`cpu ${Math.round(runner.runningFrameLines(0)! * 1e6) / 1e6}`);
       return budget;
     } }],
     onEvent: event => timeline.push(event.callbackId),

@@ -54,7 +54,7 @@ export const nes = {
       audio: {
         writes: 9466,
         nonzeroWrites: 8471,
-        writeHash: '371e1fe4',
+        writeHash: '346e0dd6',
         pcmHash: '62e275d5',
         rms: 0.096985,
       },
@@ -90,7 +90,7 @@ export const nes = {
       audio: {
         writes: 5003,
         nonzeroWrites: 4201,
-        writeHash: '05f16609',
+        writeHash: '7e9f1550',
         pcmHash: 'a5088f65',
         rms: 0.078903,
       },
@@ -132,7 +132,7 @@ export const nes = {
       audio: {
         writes: 1579,
         nonzeroWrites: 1517,
-        writeHash: 'f858ac7a',
+        writeHash: '94fec4d4',
         pcmHash: '243748b1',
         rms: 0.129845,
       },
@@ -174,7 +174,7 @@ export const nes = {
       audio: {
         writes: 3664,
         nonzeroWrites: 3663,
-        writeHash: 'e2a608e3',
+        writeHash: '9f944128',
         pcmHash: '9f28573e',
         rms: 0.094951,
       },
@@ -227,7 +227,7 @@ export const nes = {
       audio: {
         writes: 1438273,
         nonzeroWrites: 355267,
-        writeHash: 'e2fe64f4',
+        writeHash: '1b924a08',
         pcmHash: '2fc5fb28',
         rms: 0.023802,
       },

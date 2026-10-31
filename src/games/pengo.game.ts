@@ -26,7 +26,7 @@ export const pengo = sourceTarget({
       1: { video: '1556d338', state: '08a7e045' },
       60: { video: '68c04acf', state: '2fffc8ad' },
       180: { video: '03392f1f', state: 'e873be8c' },
-      300: { video: 'e61ef7b4', state: 'c0ce10e8' },
+      300: { video: 'e61ef7b4', state: 'd2aa9c9e' },
       600: { video: 'af2bf6d7', state: '8f337d0a' },
       900: { video: '8959914d', state: 'c8c4a516' },
       1200: { video: 'a317143a', state: 'f5c3a994' },
@@ -34,9 +34,9 @@ export const pengo = sourceTarget({
     audio: {
       writes: 5740,
       nonzeroWrites: 4460,
-      writeHash: '860f89ad',
-      pcmHash: 'eb6df771',
-      rms: 0.114218,
+      writeHash: 'abc43704',
+      pcmHash: '568a0c05',
+      rms: 0.114181,
     },
   },
 });

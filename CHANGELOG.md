@@ -30,6 +30,19 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The frame runner keeps MAME's attosecond time ([#220](https://github.com/benbruscella/mamekit/issues/220))
+
+**For players:** Many arcade machines stay closer to MAME for longer: Donkey Kong's main CPU now runs instruction for instruction with MAME's for at least the 60 frames checked, and Space Invaders' memory matches at every frame compared. Marble Madness drifts further from MAME in its attract demo and in play, and its sound in play is further off.
+
+**Under the hood:**
+- Round bases, targets and each processor's local time are whole attoseconds (`src/runtime/attotime.ts`), with cycles worked out as `timeslice()` does, `m_divshift` included. A time is two doubles updated in place: a frame is past what one double holds exactly, and a BigInt would allocate on every round.
+- Each screen's `m_frame_period` is in the IR (`execution.screen.frameAttoseconds`), from its `set_raw` or `set_refresh_hz` values. Lines fall at `frame base + index * m_scantime`. This is the only semantic change: with the field removed, all 92 boards match their previous hashes.
+- `vpos()` and `hpos()` add MAME's half pixel before dividing, because whole cycles can leave a processor attoseconds short of a line.
+- Device timers still keep floating-point seconds, so a round bounded by one allows 16 attoseconds either way (`TIMER_SLOP`).
+- dkong's Z80 trace is identical to MAME's across all 60 traced frames (305,910 instructions), past frame 8's NMI where the previous build parted from it.
+- Against the `105af76f` MAME 0.289 baseline, 24 of 107 scenarios are worse on some measure. Marble, Rampage, Spy Hunter and Frisky Tom were run old against new: each first differs from MAME at the same frames, so what changed is the drift after it. Pengo's and Gun.Smoke's RAM first differ earlier, by one byte, while their totals fall (Pengo's from 6,285 bytes to 31). The goldens in 88 files are re-recorded with this evidence, C64 and C64P included.
+- Oracle and baseline MAME runs set `SDL_VIDEO_DRIVER=dummy`. Under `-video none`, SDL's Cocoa video still gave each process a window and took the cursor on a Mac. `compare dkong marble` under it is `same` on all five measures. `--watch` keeps its real window.
+
 ### Hosted MCUs and DSPs run in MAME's round ([#222](https://github.com/benbruscella/mamekit/issues/222))
 
 **For players:**

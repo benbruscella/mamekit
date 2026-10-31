@@ -35,7 +35,7 @@ export const rygar = sourceTarget({
       180: { video: '74f6cf8c', state: '3fc8c750' },
       300: { video: '3b29d407', state: 'd9be2ad7' },
       600: { video: '40b8eb29', state: '809dd27b' },
-      900: { video: 'eee2f88f', state: 'ba570bb3' },
+      900: { video: 'eee2f88f', state: 'c7080edc' },
       1200: { video: 'eed2db24', state: 'd38e72c3' },
       1500: { video: 'eee48af4', state: '0880fc92' },
       1800: { video: '8b0305e4', state: '54b1a125' },
@@ -44,9 +44,9 @@ export const rygar = sourceTarget({
     audio: {
       writes: 334220,
       nonzeroWrites: 327535,
-      writeHash: '35116a9b',
-      pcmHash: 'b3c4d47f',
-      rms: 0.070903,
+      writeHash: '0c83eef4',
+      pcmHash: '1fde3c31',
+      rms: 0.070909,
     },
   },
 });

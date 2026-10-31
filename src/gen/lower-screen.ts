@@ -72,6 +72,9 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
   // device that claimed it, so the geometry arrives here like any other.
   const raw = screenDev?.props.screenRaw as number[] | undefined;
   let pixclock: number, htotal: number, hbend: number, hbstart: number, vtotal: number, vbend: number, vbstart: number;
+  // MAME's m_refresh, truncated as it does: set_raw divides by a u32 pixel
+  // clock and multiplies back; set_refresh_hz divides by the rate it was given.
+  let frameAttoseconds: bigint;
   if (raw) {
     [pixclock, htotal, hbend, hbstart, vtotal, vbend, vbstart] = raw;
     // `set_raw` sets the visible rectangle as well as the timing, and a later
@@ -84,6 +87,7 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
       hbend = x0; hbstart = x1 + 1;
       vbend = y0; vbstart = y1 + 1;
     }
+    frameAttoseconds = 1_000_000_000_000_000_000n / BigInt(Math.trunc(pixclock)) * BigInt(htotal) * BigInt(vtotal);
   } else if (screenDev?.props.screenRefreshHz && screenDev.props.screenVisarea) {
     const [x0, x1, y0, y1] = screenDev.props.screenVisarea as number[];
     // A vector device has no blanking interval, so the visible rectangle bounds
@@ -93,7 +97,11 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
     hbend = x0; hbstart = x1 + 1;
     vbend = y0; vbstart = y1 + 1;
     htotal = w; vtotal = h;
-    pixclock = Number(screenDev.props.screenRefreshHz) * htotal * vtotal;
+    const refreshHz = Number(screenDev.props.screenRefreshHz);
+    pixclock = refreshHz * htotal * vtotal;
+    frameAttoseconds = Number.isSafeInteger(refreshHz)
+      ? 1_000_000_000_000_000_000n / BigInt(refreshHz)
+      : BigInt(Math.floor(1e18 / refreshHz));
   } else {
     throw new Error('screen raw params missing');
   }
@@ -135,6 +143,7 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
     xOffset: hbend / xscale,
     yOffset: vbend,
     refresh: pixclock / (htotal * vtotal),
+    frameAttoseconds: String(frameAttoseconds),
     // The whole raster, not the visible part. MAME's `screen().width()` is
     // this, and a device that allocates its own bitmap from it addresses that
     // bitmap in raster coordinates -- the TIA composites its scanlines from

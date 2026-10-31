@@ -192,6 +192,7 @@ const mameResult = spawnSync(command, commandArgs, {
   env: {
     ...process.env,
     SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? 'dummy',
+    SDL_VIDEO_DRIVER: process.env.SDL_VIDEO_DRIVER ?? 'dummy',
     SDL_AUDIODRIVER: process.env.SDL_AUDIODRIVER ?? 'dummy',
   },
   encoding: 'utf8',

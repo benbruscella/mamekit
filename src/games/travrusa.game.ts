@@ -26,7 +26,7 @@ export const travrusa = sourceTarget({
       tiles: 'd5ba7b9c',
     },
     checkpoints: {
-      1: { video: '07673647', state: '76c66adc' },
+      1: { video: '07673647', state: 'fa25c7e8' },
       120: { video: '3758d352', state: 'eea64dbe' },
       300: { video: '9657c3e0', state: '7f7b0133' },
       600: { video: '52108858', state: '3d5e6dbe' },
@@ -38,7 +38,7 @@ export const travrusa = sourceTarget({
     audio: {
       writes: 422021,
       nonzeroWrites: 419136,
-      writeHash: '206f16fb',
+      writeHash: '057ffbfd',
       pcmHash: '1f319aaa',
       rms: 0.169466,
     },
