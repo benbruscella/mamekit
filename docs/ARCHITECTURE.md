@@ -300,11 +300,17 @@ MAME at frame 341.
 With all of this, Galaga's, Dig Dug's and Xevious's 06xx traffic matches MAME's
 byte for byte.
 
-One gap remains. MAME's device timers stand at the round's base, but ours
-follow the primary processor, which runs first. A timer a round MCU arms part
-way through its slice therefore fires late, and Pole Position's 52xx reads its
-serial register before its serial timer has shifted SB. That is #220's attotime
-round arithmetic.
+A round device measures the timers it arms from the round's base, where
+MAME's `machine().time()` stands through the timeslice. Ours otherwise stands
+where the processor driving the device clock has reached, and that processor
+ran first. A timer armed this way can be overdue already, so the next round
+starts by firing every due timer (`execute_timers`), and a periodic one catches
+up the periods it missed.
+
+Pole Position's 52xx enables its MB88 serial timer, one tick per MCU cycle,
+partway through its slice, and reads SB nine instructions later. Measured from
+the device clock, no bit had shifted in, and the 52xx took the wrong boot path;
+its speech came out of step with the game.
 
 That bound is squeezed from both sides. Too coarse and a fast processor runs
 thousands of cycles while the one it is handshaking with waits, which is how

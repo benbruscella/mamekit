@@ -14,6 +14,7 @@ import {
   generatedTimerExpiry,
   withGeneratedTimerExpiry,
   setGeneratedTimerArmed,
+  setGeneratedTimerArmBase,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
   generatedDeviceDefinition,
@@ -568,6 +569,8 @@ class IrBoard implements Board {
   private timedHardwareDelivered = 0;
   /** Device time the round may still deliver before its soonest timer (nextTimerLine); the rest is dropped. */
   private roundTimerBudget = Infinity;
+  /** Device time delivered since the round began (setGeneratedTimerArmBase). */
+  private roundDelivered = 0;
   /** Device time held back until the frame is presented (advanceTimedHardware). */
   private heldDeviceSeconds = 0;
   /** A device access or time query is catching device time up (never held). */
@@ -1299,6 +1302,7 @@ class IrBoard implements Board {
       seconds = Math.min(seconds, this.roundTimerBudget);
       this.roundTimerBudget -= seconds;
       if (!(seconds > 0)) return;
+      this.roundDelivered += seconds;
       deliverTimedHardware(seconds);
       // Precise driver timers come due on the same clock, after the devices
       // have been clocked to it.
@@ -2976,6 +2980,10 @@ class IrBoard implements Board {
       this.roundTimerBudget = Math.max(0, seconds - 1e-9);
       this.frameRunner?.requestSynchronize();
     };
+    // A round device arms from the round's base, where MAME's machine time
+    // stands through the timeslice (timerArmBase).
+    const armBase = (): number =>
+      this.runningRoundDevice !== undefined && !this.deliveringDeviceTime ? this.roundDelivered : 0;
     const timerRounds = roundQuantum && machine.execution.perfectQuantum !== true;
     if (timerRounds) this.deviceClockFollowsProcessors = true;
     // MAME's perfect interleave (schedule.cpp compute_perfect_interleave): the
@@ -3008,8 +3016,20 @@ class IrBoard implements Board {
         : {}),
       ...(timerRounds ? {
         nextTimerLine: () => {
-          let soonest = Infinity;
-          for (const device of this.devices.values()) soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+          const soonestTimer = (): number => {
+            let soonest = Infinity;
+            for (const device of this.devices.values()) soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            return soonest;
+          };
+          let soonest = soonestTimer();
+          // A timeslice starts by firing every timer due at its base
+          // (execute_timers): one a round device armed overdue last round
+          // fires, and catches up its missed periods, before anything runs.
+          for (let fired = 0; soonest <= 1e-10 && fired < 64; fired++) {
+            this.roundTimerBudget = Infinity;
+            advanceTimedHardware(1e-12);
+            soonest = soonestTimer();
+          }
           // No timer fires inside the round: the device clock stops short of
           // the soonest, and the rest waits for the round's end.
           this.roundTimerBudget = soonest > 1e-9 ? soonest - 1e-9 : Infinity;
@@ -3017,10 +3037,13 @@ class IrBoard implements Board {
           // the running slice and becomes the round's bound, as MAME's
           // emu_timer::adjust aborts the timeslice for a new soonest timer.
           setGeneratedTimerArmed(armedTimer);
+          this.roundDelivered = 0;
+          setGeneratedTimerArmBase(armBase);
           return this.beamPosition() + soonest / this.lineSeconds();
         },
         onRoundEnd: line => {
           setGeneratedTimerArmed(undefined);
+          setGeneratedTimerArmBase(undefined);
           this.roundTimerBudget = Infinity;
           // What the processor that drives the device clock ran past the
           // timer is not delivered here: the round may have ended short of

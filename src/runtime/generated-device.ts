@@ -720,6 +720,24 @@ export function setGeneratedTimerPreFire(hook: ((overshoot: number) => void) | u
  */
 let timerArmed: ((seconds: number) => void) | undefined;
 
+/**
+ * How much device time the round has delivered since its base, when a round
+ * device is the one arming a timer. MAME's `machine().time()` stands at the
+ * round's base for the whole timeslice, so a timer is measured from there;
+ * ours stands where the processor driving the device clock has reached, which
+ * ran first. Measured from there, Pole Position's 52xx enabled its serial
+ * timer partway through its slice and read SB before a bit had shifted in;
+ * MAME's, armed overdue, had caught up five ticks before the next round.
+ */
+let timerArmBase: (() => number) | undefined;
+
+/** Install the round-base hook (see timerArmBase); returns the one it replaced. */
+export function setGeneratedTimerArmBase(hook: (() => number) | undefined): (() => number) | undefined {
+  const outer = timerArmBase;
+  timerArmBase = hook;
+  return outer;
+}
+
 /** Install the arming hook (see timerArmed); returns the one it replaced. */
 export function setGeneratedTimerArmed(hook: ((seconds: number) => void) | undefined): ((seconds: number) => void) | undefined {
   const outer = timerArmed;
@@ -874,6 +892,14 @@ class IrTimer {
       this.creditedDelivery = timerDeliveryOpen ? timerDelivery : -1;
     } else {
       this.creditedDelivery = -1;
+      // Possibly overdue already: the round's next timeslice fires it, and a
+      // periodic timer catches up every period it missed, as MAME's
+      // execute_timers does at the round's base.
+      const since = Number.isFinite(this.remainingSeconds) ? timerArmBase?.() ?? 0 : 0;
+      if (since > 0) {
+        this.remainingSeconds -= since;
+        this.expiry -= since;
+      }
     }
     if (Number.isFinite(this.remainingSeconds)) timerArmed?.(this.remainingSeconds);
   }

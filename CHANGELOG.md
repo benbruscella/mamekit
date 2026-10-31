@@ -36,11 +36,12 @@ MAMEDEV's release notes (see the README).
 - Xevious no longer resets itself in a loop: its pictures match MAME at every checkpoint.
 - Galaga and Dig Dug play as MAME does: the main CPU's traffic with their Namco I/O chips matches MAME byte for byte.
 - The Simpsons' sound CPU no longer halts.
-- Pole Position's speech still plays out of sync with the game; that moves to #220.
+- Pole Position's speech chip boots as MAME's does, so its speech no longer plays out of step with the game.
 
 **Under the hood:**
 - The Namco 5x MB88s, the 68705 and the TMS320C10 run as round processors beside their host on every board without a perfect quantum. One held in reset eats its slice.
 - Rounds end at the soonest device timer (`min(base + quantum, next timer)`). A timer armed mid-round that becomes the soonest aborts the running slice.
+- A round device measures the timers it arms from the round's base, as MAME's `machine().time()` does. The next round fires any that are overdue first, and a periodic timer catches up the periods it missed.
 - `synchronize()` work runs at its posting time, and every device defers it.
 - NMI is a level line, and `cycles_to_attotime` is bound.
 - Every cycle-to-time conversion uses MAME's truncated `HZ_TO_ATTOSECONDS(clock)`.
