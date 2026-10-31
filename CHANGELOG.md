@@ -30,6 +30,14 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### MAME comparison runs stay off the screen, and an attotime type for #220 ([#220](https://github.com/benbruscella/mamekit/issues/220))
+
+**For players:** Nothing visible.
+
+**Under the hood:**
+- Oracle and baseline MAME runs set `SDL_VIDEO_DRIVER=dummy`. Under `-video none`, SDL's Cocoa video still gave each process a window and took the cursor on a Mac. `compare dkong marble` under it is `same` on all five measures. `--watch` keeps its real window.
+- `src/runtime/attotime.ts` keeps time in whole attoseconds and divides as MAME's `timeslice()` does. Nothing uses it yet: moving the frame runner onto it is the rest of #220.
+
 ### Hosted MCUs and DSPs run in MAME's round ([#222](https://github.com/benbruscella/mamekit/issues/222))
 
 **For players:**
