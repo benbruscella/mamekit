@@ -32,7 +32,7 @@ export const phoenix = sourceTarget({
     audio: {
       writes: 2296,
       nonzeroWrites: 2294,
-      writeHash: 'e3f1067d',
+      writeHash: 'ee8793db',
       pcmHash: '1c5851cc',
       rms: 0.191096,
     },

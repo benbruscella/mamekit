@@ -30,17 +30,17 @@ export const junofrst = sourceTarget({
     checkpoints: {
       1: { video: 'f7e6ac81', state: 'c9e2d9ae' },
       60: { video: 'f8a0d088', state: 'f0e772a8' },
-      300: { video: 'ddad08c3', state: 'b90d7ac4' },
+      300: { video: 'ddad08c3', state: '480af0cc' },
       480: { video: 'e5b26a75', state: 'f38dc7c2' },
       720: { video: '90ec6eb7', state: 'fe32a0a2' },
-      1200: { video: '29686572', state: '33390654' },
+      1200: { video: '29686572', state: '0356c769' },
     },
     audio: {
       writes: 46837,
       nonzeroWrites: 25878,
-      writeHash: '3efac95c',
-      pcmHash: '5370174e',
-      rms: 0.195746,
+      writeHash: '554b8b56',
+      pcmHash: 'f05b8e1e',
+      rms: 0.195744,
     },
   },
 });

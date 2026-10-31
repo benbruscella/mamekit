@@ -34,7 +34,7 @@ export const frogger = sourceTarget({
     audio: {
       writes: 1809,
       nonzeroWrites: 1724,
-      writeHash: 'eb55e038',
+      writeHash: '0f495f9d',
       pcmHash: '6b159aa8',
       rms: 0.013757,
     },

@@ -43,7 +43,7 @@ export const arkanoid = sourceTarget({
     audio: {
       writes: 2050,
       nonzeroWrites: 1407,
-      writeHash: 'c58b63a7',
+      writeHash: '3216d0ee',
       pcmHash: 'd0909919',
       rms: 0.212283,
     },

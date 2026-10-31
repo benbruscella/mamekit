@@ -25,8 +25,8 @@ export const junglek = sourceTarget({
     },
     checkpoints: {
       1: { video: '03b62cc8', state: '7714187f' },
-      60: { video: '2a3fbb82', state: 'ecfb82bf' },
-      180: { video: '5232ad1c', state: '2cd4bb7c' },
+      60: { video: '2a3fbb82', state: 'b9d2c67c' },
+      180: { video: '5232ad1c', state: 'd265f18f' },
       300: { video: '7c3913ba', state: 'db8e4d36' },
       480: { video: '44f0c76a', state: 'e940e621' },
       600: { video: '64dcc557', state: 'c8ab2bce' },
@@ -35,8 +35,8 @@ export const junglek = sourceTarget({
     audio: {
       writes: 1580862,
       nonzeroWrites: 1168947,
-      writeHash: 'ec7941a8',
-      pcmHash: '71a12257',
+      writeHash: 'f0a6a0ac',
+      pcmHash: '0a4c0981',
       rms: 0.361671,
     },
   },

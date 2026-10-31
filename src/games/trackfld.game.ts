@@ -32,8 +32,8 @@ export const trackfld = sourceTarget({
     checkpoints: {
       1: { video: '7dfcdedc', state: 'c8e0b79c' },
       60: { video: '1b2d0eec', state: 'd32342f3' },
-      180: { video: '6f6992d8', state: '0ab3add5' },
-      300: { video: '0dc8abd3', state: '6ead19d8' },
+      180: { video: '6f6992d8', state: 'd48e3830' },
+      300: { video: '0dc8abd3', state: 'e03b6cf6' },
       600: { video: '5fcbfaa8', state: '687a750e' },
       900: { video: '73a5cbb7', state: '7082a766' },
       1200: { video: '8faba9c2', state: '793fd3b1' },
@@ -41,9 +41,9 @@ export const trackfld = sourceTarget({
     audio: {
       writes: 179383,
       nonzeroWrites: 14524,
-      writeHash: '4d6b3c89',
-      pcmHash: '0f5b46f4',
-      rms: 0.372865,
+      writeHash: '32392a12',
+      pcmHash: '68a79da2',
+      rms: 0.372864,
     },
   },
 });

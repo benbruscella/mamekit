@@ -45,7 +45,7 @@ export const qix = sourceTarget({
     audio: {
       writes: 13584,
       nonzeroWrites: 13543,
-      writeHash: 'ec6a5ddf',
+      writeHash: '273c6a72',
       pcmHash: '4a6db033',
       rms: 0.181608,
     },

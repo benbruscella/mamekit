@@ -62,7 +62,7 @@ export const c64p = {
       audio: {
         writes: 1149137,
         nonzeroWrites: 1149137,
-        writeHash: '7c36839c',
+        writeHash: '75f1ca76',
         pcmHash: 'eb1a3688',
         rms: 0.46087,
       },
@@ -97,7 +97,7 @@ export const c64p = {
       audio: {
         writes: 4309264,
         nonzeroWrites: 4309264,
-        writeHash: '8b448c6e',
+        writeHash: 'dc172713',
         pcmHash: 'fb49e5ea',
         rms: 0.4554,
       },
@@ -133,7 +133,7 @@ export const c64p = {
       audio: {
         writes: 2489797,
         nonzeroWrites: 2489797,
-        writeHash: 'cc42b9c9',
+        writeHash: '1da2e4e7',
         pcmHash: '40751e4e',
         rms: 0.495094,
       },
@@ -169,7 +169,7 @@ export const c64p = {
       audio: {
         writes: 2298274,
         nonzeroWrites: 2298274,
-        writeHash: 'c2b7ad67',
+        writeHash: '8a47f679',
         pcmHash: '72307f89',
         rms: 0.5,
       },
@@ -204,7 +204,7 @@ export const c64p = {
       audio: {
         writes: 1723705,
         nonzeroWrites: 1723705,
-        writeHash: '654bc220',
+        writeHash: '29bfc91f',
         pcmHash: '2c67194c',
         rms: 0.45116,
       },
@@ -236,7 +236,7 @@ export const c64p = {
       audio: {
         writes: 574568,
         nonzeroWrites: 574568,
-        writeHash: '8e530c1e',
+        writeHash: 'c741a530',
         pcmHash: '914896f2',
         rms: 0.5,
       },

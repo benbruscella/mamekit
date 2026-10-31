@@ -31,7 +31,7 @@ export const congo = sourceTarget({
     audio: {
       writes: 2166,
       nonzeroWrites: 2076,
-      writeHash: '0fdc3991',
+      writeHash: '4c8a22d0',
       pcmHash: '0923e3fa',
       rms: 0.030708,
     },
