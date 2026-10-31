@@ -394,6 +394,20 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   runner.frame(new Uint32Array(1));
   assert.deepEqual(slices.slice(0, 3), ['fast 1', 'fast 1', 'fast 1'],
     'inside the window a round is the perfect interleave: one fast cycle');
+
+  // A round also ends at the soonest device timer, and the board hears where
+  // every processor stands once the round is run.
+  slices.length = 0;
+  const ends: number[] = [];
+  const timerRunner: GeneratedFrameRunner = new GeneratedFrameRunner({
+    machine: quantumMachine,
+    processors: [processor('fast')],
+    nextTimerLine: (): number => (ends.at(-1) ?? (timerRunner as unknown as { roundFirstLine: number }).roundFirstLine) + 0.15,
+    onRoundEnd: line => ends.push(line),
+  });
+  timerRunner.frame(new Uint32Array(1));
+  assert.deepEqual(slices.slice(0, 3), ['fast 15', 'fast 15', 'fast 15'], 'a round ends at a timer 0.15 lines on');
+  assert.ok(Math.abs(ends[1]! - ends[0]! - 0.15) < 1e-9, 'and the board is told the round\'s end line');
 }
 
 // A video/DMA device can be a first-class execute participant without being

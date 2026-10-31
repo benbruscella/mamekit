@@ -377,6 +377,8 @@ export interface Device {
   applySuspendChanges?(): void;
   /** Suspended this round: charged its slice ('eating') or skipped ('waiting'). */
   suspended?(): 'eating' | 'waiting' | undefined;
+  /** MAME abort_timeslice, from the scheduler: end the running slice after this instruction. */
+  abortTimeslice?(): void;
   call(name: string, ...args: number[]): number;
   /** Call a method preserving non-numeric results (memory pointers). */
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
@@ -587,11 +589,11 @@ export interface GeneratedDeviceOptions {
   /** MAME `scheduler().synchronize()`: run once the processor that asked has yielded. */
   schedule?: (run: () => void) => void;
   /**
-   * The board runs this device in its round beside the CPUs (an executing
-   * device with no host: a POKEY), so its own `synchronize(callback)` is
-   * deferred as MAME defers it, to when the round has caught it up.
+   * Every processor this device talks to runs in the board's round, so its
+   * own `synchronize(callback)` is deferred as MAME defers it, to when the
+   * round has caught every processor up to the call.
    */
-  roundScheduled?: boolean;
+  deferSynchronize?: boolean;
   /**
    * Hold device_start until the host calls `startDeferred()`: a slot whose
    * card the board composes attaches that card in its own device_start, and
@@ -708,6 +710,38 @@ let timerPreFire: ((overshoot: number) => void) | undefined;
 export function setGeneratedTimerPreFire(hook: ((overshoot: number) => void) | undefined): ((overshoot: number) => void) | undefined {
   const outer = timerPreFire;
   timerPreFire = hook;
+  return outer;
+}
+
+/**
+ * Told the delay of every device timer armed (`adjust`). MAME's scheduler
+ * ends the running timeslice when a timer armed now becomes the soonest, so
+ * the round ends at it rather than running past (emu_timer::adjust).
+ */
+let timerArmed: ((seconds: number) => void) | undefined;
+
+/**
+ * How much device time the round has delivered since its base, when a round
+ * device is the one arming a timer. MAME's `machine().time()` stands at the
+ * round's base for the whole timeslice, so a timer is measured from there;
+ * ours stands where the processor driving the device clock has reached, which
+ * ran first. Measured from there, Pole Position's 52xx enabled its serial
+ * timer partway through its slice and read SB before a bit had shifted in;
+ * MAME's, armed overdue, had caught up five ticks before the next round.
+ */
+let timerArmBase: (() => number) | undefined;
+
+/** Install the round-base hook (see timerArmBase); returns the one it replaced. */
+export function setGeneratedTimerArmBase(hook: (() => number) | undefined): (() => number) | undefined {
+  const outer = timerArmBase;
+  timerArmBase = hook;
+  return outer;
+}
+
+/** Install the arming hook (see timerArmed); returns the one it replaced. */
+export function setGeneratedTimerArmed(hook: ((seconds: number) => void) | undefined): ((seconds: number) => void) | undefined {
+  const outer = timerArmed;
+  timerArmed = hook;
   return outer;
 }
 
@@ -858,7 +892,16 @@ class IrTimer {
       this.creditedDelivery = timerDeliveryOpen ? timerDelivery : -1;
     } else {
       this.creditedDelivery = -1;
+      // Possibly overdue already: the round's next timeslice fires it, and a
+      // periodic timer catches up every period it missed, as MAME's
+      // execute_timers does at the round's base.
+      const since = Number.isFinite(this.remainingSeconds) ? timerArmBase?.() ?? 0 : 0;
+      if (since > 0) {
+        this.remainingSeconds -= since;
+        this.expiry -= since;
+      }
     }
+    if (Number.isFinite(this.remainingSeconds)) timerArmed?.(this.remainingSeconds);
   }
 
   /**
@@ -1449,15 +1492,12 @@ class IrDevice implements Device {
       getters,
       setters,
       constants: definition.constants,
-      // Only the cross-CPU command latch and a device the round schedules
-      // defer their work: their partner is a scheduled processor, so MAME's
-      // synchronize is what the two agree on.
-      // Every other device here talks to hardware this runtime hosts rather
-      // than schedules -- Namco's 06xx and its 5xxx MCUs, for one -- and
-      // deferring their writes desynchronises that hosting (Xevious went
-      // silent). Scheduling those MCUs as processors is what would let the
-      // rest of MAME's synchronize semantics apply to them too.
-      ...(options.schedule && (definition.type.toUpperCase() === 'GENERIC_LATCH_8' || options.roundScheduled)
+      // MAME's synchronize posts its work for when every processor has
+      // caught up to the call. The cross-CPU command latch always defers;
+      // any other device does where its partners all run in the round
+      // (deferSynchronize). Deferred for Namco's 06xx while its 5xxx MCUs
+      // were hosted on device time instead, Xevious went silent.
+      ...(options.schedule && (definition.type.toUpperCase() === 'GENERIC_LATCH_8' || options.deferSynchronize)
         ? { schedule: options.schedule }
         : {}),
       // An empty synchronize posts nothing, so it cannot desynchronise
@@ -2152,7 +2192,7 @@ class IrDevice implements Device {
    * swallows what is left of its slice, so the slice ends where it stopped.
    * Any other device's is not running, and is left alone.
    */
-  private abortTimeslice(): void {
+  abortTimeslice(): void {
     if (this.runningCycles === undefined) return;
     const left = Number(this.members.m_icount);
     if (left > 0) {

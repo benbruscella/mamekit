@@ -30,6 +30,35 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Hosted MCUs and DSPs run in MAME's round ([#222](https://github.com/benbruscella/mamekit/issues/222))
+
+**For players:**
+- Xevious no longer resets itself in a loop: its pictures match MAME at every checkpoint.
+- Galaga and Dig Dug play as MAME does: the main CPU's traffic with their Namco I/O chips matches MAME byte for byte.
+- The Simpsons' sound CPU no longer halts.
+- Pole Position's speech chip boots as MAME's does, so its speech no longer plays out of step with the game.
+
+**Under the hood:**
+- The Namco 5x MB88s, the 68705 and the TMS320C10 run as round processors beside their host on every board without a perfect quantum. One held in reset eats its slice.
+- Rounds end at the soonest device timer (`min(base + quantum, next timer)`). A timer armed mid-round that becomes the soonest aborts the running slice.
+- A round device measures the timers it arms from the round's base, as MAME's `machine().time()` does. The next round fires any that are overdue first, and a periodic timer catches up the periods it missed.
+- `synchronize()` work runs at its posting time, and every device defers it.
+- NMI is a level line, and `cycles_to_attotime` is bound.
+- Every cycle-to-time conversion uses MAME's truncated `HZ_TO_ATTOSECONDS(clock)`.
+- A round asks only the devices that own a timer for the soonest one; asking every device cost Lagrange Point a quarter of its frame.
+- Lagrange Point's speed floor drops to 20 fps. Its VRC IRQ timer fires every CPU cycle, as MAME's does, so it runs about 30,000 rounds a frame and reaches 27 fps on a CI runner. Running the rounds in which no processor runs as one is #220.
+- `time_until_pos` keeps MAME's half-pixel "already passed" rule, which ends Metal Slug's intermittent timer runaway.
+- Against the `9b12e8fc` MAME 0.289 baseline, 18 of 36 scenarios are worse on some measure.
+  - Xevious's and Wardner's contract runs were bad MAME-side recordings: rerun directly, both match MAME's input on every frame and land within 0.3 dB.
+  - Each of the rest first diverges from MAME on the same frame as `main` does, so they are drift.
+- Better:
+  - Xevious's RAM differences fall from 173,790 bytes to 13,581.
+  - Arkanoid becomes pixel-exact at 300, 900 and 1500.
+  - Galaga, Pole Position, Venture and Wardner come closer on RAM.
+  - Game Boy Tetris's audio comes closer.
+- The C64 and C64P goldens change only with the truncated cycle time (an A/B build without it passes). No MAME baseline covers them yet; recording one is #220.
+- Every changed acceptance golden is re-recorded.
+
 ### A MAME baseline for the eight machines #219 re-recorded without one ([#221](https://github.com/benbruscella/mamekit/issues/221))
 
 **For players:** Nothing visible.
