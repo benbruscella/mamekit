@@ -970,6 +970,9 @@ class IrTimer {
   tick(seconds: number, callback: (parameter: number) => void): void {
     if (!Number.isFinite(this.remainingSeconds)) return;
     if (this.creditedDelivery !== timerDelivery) this.remainingSeconds -= seconds;
+    // Every armed timer comes through here once per round, and on a board with
+    // a per-cycle timer that is tens of thousands of times a frame.
+    if (this.remainingSeconds > TIMER_NOW_TOLERANCE_SECONDS) return;
     let firings = 0;
     // Due within the clocks' rounding is due: MAME fires a timer whose expiry
     // the processor's slice ends exactly on before the next instruction, and
@@ -2094,7 +2097,6 @@ class IrDevice implements Device {
       const entry = entries[index]!;
       const timer = entry.timer;
       if (!timer.enabled()) continue;
-      const name = entry.name;
       let fire = entry.fire;
       if (!fire) {
         fire = noTimerCallback;
@@ -2111,7 +2113,7 @@ class IrDevice implements Device {
         timer.tick(seconds, fire);
       } catch (error) {
         if (error instanceof Error && error.message.includes('firings')) {
-          throw new Error(`${this.definition.type} timer ${name}: ${error.message}`, { cause: error });
+          throw new Error(`${this.definition.type} timer ${entry.name}: ${error.message}`, { cause: error });
         }
         throw error;
       }
@@ -2121,7 +2123,8 @@ class IrDevice implements Device {
     // coprocessor sits two levels down -- cartridge slot, then mounted PCB --
     // and its 18400 Hz oscillator drives the chip's random-number and music
     // counters, so without this it is frozen while everything else runs.
-    for (const child of this.children) child.tick(seconds);
+    const children = this.children;
+    for (let index = 0; index < children.length; index++) children[index]!.tick(seconds);
     this.slotChild?.tick(seconds);
   }
 
@@ -2145,9 +2148,20 @@ class IrDevice implements Device {
 
   untilNextTimer(): number {
     let soonest = Infinity;
-    for (const entry of this.timerEntries) soonest = Math.min(soonest, entry.timer.untilExpiry());
-    for (const child of this.children) soonest = Math.min(soonest, child.untilNextTimer());
-    if (this.slotChild) soonest = Math.min(soonest, this.slotChild.untilNextTimer());
+    const entries = this.timerEntries;
+    for (let index = 0; index < entries.length; index++) {
+      const until = entries[index]!.timer.untilExpiry();
+      if (until < soonest) soonest = until;
+    }
+    const children = this.children;
+    for (let index = 0; index < children.length; index++) {
+      const until = children[index]!.untilNextTimer();
+      if (until < soonest) soonest = until;
+    }
+    if (this.slotChild) {
+      const until = this.slotChild.untilNextTimer();
+      if (until < soonest) soonest = until;
+    }
     return soonest;
   }
 

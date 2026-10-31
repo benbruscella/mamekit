@@ -2991,6 +2991,14 @@ class IrBoard implements Board {
     // of its frame.
     const timerDevices = [...timedDevices, ...cardDeviceSet];
     if (timerRounds) this.deviceClockFollowsProcessors = true;
+    const soonestTimer = (): number => {
+      let soonest = Infinity;
+      for (let index = 0; index < timerDevices.length; index++) {
+        const until = timerDevices[index]!.untilNextTimer?.() ?? Infinity;
+        if (until < soonest) soonest = until;
+      }
+      return soonest;
+    };
     // MAME's perfect interleave (schedule.cpp compute_perfect_interleave): the
     // second shortest cycle time, times its execute_min_cycles(), of every
     // device that executes. Asked when a window opens, as clocks may change.
@@ -3021,13 +3029,6 @@ class IrBoard implements Board {
         : {}),
       ...(timerRounds ? {
         nextTimerSeconds: baseLine => {
-          const soonestTimer = (): number => {
-            let soonest = Infinity;
-            for (let index = 0; index < timerDevices.length; index++) {
-              soonest = Math.min(soonest, timerDevices[index]!.untilNextTimer?.() ?? Infinity);
-            }
-            return soonest;
-          };
           let soonest = soonestTimer();
           // A timeslice starts by firing every timer due at its base
           // (execute_timers): one a round device armed overdue last round
