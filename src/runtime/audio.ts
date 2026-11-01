@@ -36,8 +36,6 @@ export interface WorkletCoreConfig {
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** Total routed gain of main-thread streams the worklet mixes in. */
   readonly streamGain?: number;
-  /** What takes a stream back above the family's master gain, where the worklet needs it. */
-  readonly streamLevel?: number;
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   readonly filterChain?: GeneratedBiquadStage[];
   readonly discreteMixer?: GeneratedDiscreteMixerPlan;
@@ -133,7 +131,6 @@ export class AudioOutput {
       auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,
       streamGain: core.streamGain,
-      streamLevel: core.streamLevel,
       filterChain: core.filterChain,
       discreteMixer: core.discreteMixer,
       resistorLoads: core.resistorLoads,

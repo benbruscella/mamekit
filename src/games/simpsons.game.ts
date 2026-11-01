@@ -28,8 +28,8 @@ export const simpsons = sourceTarget({
       writes: 57268,
       nonzeroWrites: 55544,
       writeHash: 'e35f7571',
-      pcmHash: 'e61b0974',
-      rms: 0.033478,
+      pcmHash: 'ff3e30ea',
+      rms: 0.016739,
     },
   },
   actions: [

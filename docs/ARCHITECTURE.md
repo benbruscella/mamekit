@@ -834,6 +834,10 @@ A family's post-mix master gain is declared by its capability package and
 written into the generated config, so the shell applies whatever the family
 states rather than holding a table keyed by sound kind.
 
+The YM2151's mix has none: its routes are MAME's, so it matches MAME's level as
+it stands. A route to one channel of a stereo target counts half, because the
+browser plays one channel, the average of MAME's two.
+
 A board is rarely one chip. The chip that decides `sound.kind` owns the
 worklet; every other chip routed to the same speaker is lowered as an entry in
 `sound.auxiliaryDevices`, carrying its tag, clock and the gain its own

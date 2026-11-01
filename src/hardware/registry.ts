@@ -117,7 +117,6 @@ import { extractSamples } from './samples/extract.ts';
 import {
   YM2151_ID,
   YM2151_MAME_TYPES,
-  YM2151_MASTER_GAIN,
   YM2151_PORTS,
 } from './ym2151/definition.ts';
 import { extractYm2151 } from './ym2151/extract.ts';
@@ -267,7 +266,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: YM2151_MAME_TYPES,
     ports: YM2151_PORTS,
     extract: extractYm2151,
-    masterGain: YM2151_MASTER_GAIN,
   },
   {
     id: TMS5220_ID,
