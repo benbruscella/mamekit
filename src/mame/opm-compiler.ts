@@ -1429,6 +1429,8 @@ export class GeneratedYm2151Mixer {
     queue: number[];
     held: number;
     resampler: GeneratedLofiResampler;
+    rate: number;
+    configuredRate: number;
     source: GeneratedLofiSource;
   }[];
   /** Streams the main thread renders beside the chips, mixed as one. */
@@ -1533,6 +1535,8 @@ export class GeneratedYm2151Mixer {
           held: 0,
           // tms5220_device::device_start: stream_alloc(0, 1, clock() / 80).
           resampler: new GeneratedLofiResampler(Math.floor(Math.floor(device.clock) / 80), outputRate),
+          rate: Math.floor(Math.floor(device.clock) / 80),
+          configuredRate: Math.floor(Math.floor(device.clock) / 80),
           source: { next: () => 0 } as GeneratedLofiSource,
         };
         // An empty queue repeats the last sample, as the held path did.
@@ -1573,6 +1577,14 @@ export class GeneratedYm2151Mixer {
     }
     for (const pcm of this.pcmChips) {
       if (method === pcm.deviceTag + '.pcm') {
+        // The chip's live rate, when it has moved from the configured one:
+        // Gauntlet's speech squeak runs it 22% faster, and pulled at the old
+        // rate the sentence fell behind until its closing mute cut 300 ms off.
+        const rate = offset || pcm.configuredRate;
+        if (rate !== pcm.rate) {
+          pcm.rate = rate;
+          pcm.resampler.setSourceRate(rate);
+        }
         // Never let a stalled consumer grow the queue without bound; a
         // quarter second of speech is already far more than the sink is behind.
         if (pcm.queue.length < 4096) pcm.queue.push(data / 32768);

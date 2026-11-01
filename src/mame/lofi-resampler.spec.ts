@@ -10,6 +10,7 @@ const { GeneratedLofiResampler } = await import(
 ) as {
   GeneratedLofiResampler: new (sourceRate: number, targetRate: number) => {
     sample(source: { next(): number }): number;
+    setSourceRate(sourceRate: number): void;
   };
 };
 
@@ -67,4 +68,19 @@ const decibels = (ratio: number): number => 20 * Math.log10(ratio);
   assert.ok(Math.abs(read - 1_789_772) < 38 * 2, `one second reads ${read} source samples`);
 }
 
-console.log('lofi-resampler.spec: unity gain, interpolated images and decimation passed');
+// A stream that changes rate is pulled at the new one from then on: Gauntlet's
+// speech squeak runs its chip 22% faster, and at the old rate each sentence fell
+// behind until its closing mute cut the end off.
+{
+  const resampler = new GeneratedLofiResampler(8_135, 48_000);
+  let pulled = 0;
+  const source = { next: () => { pulled++; return 0; } };
+  for (let index = 0; index < 48_000; index++) resampler.sample(source);
+  assert.ok(Math.abs(pulled - 8_135) <= 1, `pulled ${pulled} at 8135 Hz`);
+  resampler.setSourceRate(9_943);
+  pulled = 0;
+  for (let index = 0; index < 48_000; index++) resampler.sample(source);
+  assert.ok(Math.abs(pulled - 9_943) <= 1, `pulled ${pulled} at 9943 Hz`);
+}
+
+console.log('lofi-resampler.spec: unity gain, interpolated images, decimation and rate changes passed');

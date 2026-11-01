@@ -533,7 +533,8 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
           const generate = context.calls[`${chip.deviceTag}.sound_stream_update`];
           if (!generate) continue;
           for (let index = 0; index < due; index++) {
-            context.soundWrite(0, Number(generate()), context.fraction(), `${chip.deviceTag}.pcm`);
+            // 0 is the configured rate; the worklet follows any other.
+            context.soundWrite(live > 0 && live !== Math.floor(chip.rate) ? live : 0, Number(generate()), context.fraction(), `${chip.deviceTag}.pcm`);
           }
         }
       }

@@ -27,8 +27,9 @@ interface GeneratedLofiSource {
 }
 
 class GeneratedLofiResampler {
-  private readonly divide: number;
-  private readonly step: number;
+  private divide = 1;
+  private step = 0;
+  private readonly targetRate: number;
   private phase = 0;
   private s0 = 0;
   private s1 = 0;
@@ -36,9 +37,15 @@ class GeneratedLofiResampler {
   private s3 = 0;
 
   constructor(sourceRate: number, targetRate: number) {
+    this.targetRate = targetRate;
+    this.setSourceRate(sourceRate);
+  }
+
+  /** The stream changed rate (set_sample_rate). What it already rendered stays in the window. */
+  setSourceRate(sourceRate: number): void {
     // Both rates are u32 in MAME.
     const fs = Math.max(1, Math.floor(sourceRate));
-    const ft = Math.max(1, Math.floor(targetRate));
+    const ft = Math.max(1, Math.floor(this.targetRate));
     this.divide = fs <= ft ? 1 : 1 + Math.floor(fs / ft);
     this.step = Math.floor(Math.floor(fs * 0x1000000 / ft) / this.divide);
   }
