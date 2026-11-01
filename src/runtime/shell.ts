@@ -1008,7 +1008,11 @@ export async function runShell(
   if (missingSamples.length) {
     const names = missingSamples.map(set => `${set}.zip`).join(', ');
     ui.toast(`Its sample set (${names}) is missing, so those sounds stay silent. Drop it on this page to keep it.`);
+    // Without this the browser takes the drop itself and opens the zip: a page
+    // that booted from a kept ROM set has no drop screen listening for it.
+    addEventListener('dragover', ev => ev.preventDefault());
     addEventListener('drop', ev => {
+      ev.preventDefault();
       for (const file of Array.from(ev.dataTransfer?.files ?? [])) {
         void file.arrayBuffer().then(async buffer => {
           const raw = new Uint8Array(buffer);
