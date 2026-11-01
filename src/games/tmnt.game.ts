@@ -30,8 +30,8 @@ export const tmnt = sourceTarget({
       writes: 1001934,
       nonzeroWrites: 403998,
       writeHash: '1b61c891',
-      pcmHash: 'f31fdffd',
-      rms: 0.062269,
+      pcmHash: 'e1ee515b',
+      rms: 0.043588,
     },
   },
   actions: [

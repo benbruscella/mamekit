@@ -175,7 +175,6 @@ export interface SoundSpec {
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** Total routed gain of the main-thread streams posted beside the owning chip. */
   streamGain?: number;
-  streamLevel?: number;
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
@@ -1354,7 +1353,6 @@ export async function runShell(
         })),
         filterChain: cfg.sound.filterChain,
         ...(cfg.sound.streamGain ? { streamGain: cfg.sound.streamGain } : {}),
-        ...(cfg.sound.streamLevel ? { streamLevel: cfg.sound.streamLevel } : {}),
         discreteMixer: cfg.sound.discreteMixer,
         resistorLoads: cfg.sound.resistorLoads,
         discreteDac: cfg.sound.discreteDac,

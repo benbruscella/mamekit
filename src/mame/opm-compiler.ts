@@ -307,6 +307,8 @@ export interface GeneratedYmRoute {
   channel: number;
   gain: number;
   target: string;
+  /** The channel of a stereo target this route feeds; absent on a mono one. */
+  targetInput?: number;
 }
 
 export interface GeneratedYm2151Write {
@@ -325,6 +327,7 @@ export interface GeneratedAuxiliaryAudioDevice {
   initialMode?: string;
   gain: number;
   target: string;
+  targetInput?: number;
   writeMethods?: string[];
   /** A DAC's resolution, coding and ladder gain, from dac.h. */
   dac?: { bits: number; mapper: string; gain: number };
@@ -1441,8 +1444,6 @@ export class GeneratedYm2151Mixer {
   private readonly routes: GeneratedYmRoute[];
   /** Each YM2151's tag, for set_output_gain, and the gain of its two outputs. */
   private readonly deviceTags: readonly string[];
-  /** What takes a main-thread stream's sample back above the family's master gain. */
-  private readonly streamLevel: number;
   private readonly outputGains: number[][];
   /** An auxiliary device's route gain before any set_output_gain. */
   private readonly routeGains = new Map<object, number>();
@@ -1461,9 +1462,7 @@ export class GeneratedYm2151Mixer {
     auxiliaryDevices: readonly GeneratedAuxiliaryAudioDevice[] = [],
     routes?: GeneratedYmRoute[],
     deviceTags: readonly string[] = [],
-    streamLevel = 1,
   ) {
-    this.streamLevel = streamLevel;
     this.chips = Array.from(
       { length: Math.max(1, chips) },
       () => new GeneratedYm2151Chip(),
@@ -1516,7 +1515,9 @@ export class GeneratedYm2151Mixer {
       .filter(device => device.type === 'K053260')
       .map(device => ({
         deviceTag: device.deviceTag,
-        gain: device.gain,
+        // Its two outputs reach a stereo target's channels apart, and the core
+        // returns their sum, so the one channel played here is half that.
+        gain: device.targetInput === undefined || device.targetInput === null ? device.gain : device.gain / 2,
         core: new GeneratedK053260Core(
           device.sampleRom ?? new Uint8Array(), device.clock, outputRate,
         ),
@@ -1546,8 +1547,13 @@ export class GeneratedYm2151Mixer {
     this.chipRate = clock / plan.sampleRateDivider;
     this.outputRate = outputRate;
     this.held = this.chips.map(() => new Int32Array(2));
+    // MAME keeps a stereo target's channels apart, and this mixes one channel,
+    // their average: a route to one of the two counts half. Summed at full gain,
+    // Marble Madness's music played 6 dB over its mono-routed share.
     this.routes = routes?.length
-      ? routes
+      ? routes.map(route => route.targetInput === undefined || route.targetInput === null
+        ? route
+        : { ...route, gain: route.gain / 2 })
       : this.chips.flatMap((_chip, chip) =>
           [0, 1].map(channel => ({ chip, channel, gain: 1, target: 'mono' })));
   }
@@ -1659,7 +1665,7 @@ export class GeneratedYm2151Mixer {
         this.streamPhase -= 1;
         if (this.streamQueue.length) this.streamHeld = this.streamQueue.shift()!;
       }
-      output += this.streamHeld * this.streamLevel;
+      output += this.streamHeld;
     }
     for (const dac of this.dacs) output += dac.level * dac.gain;
     for (const device of this.updChips) output += device.core.sample() * device.gain;
@@ -1799,7 +1805,6 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
         routes?: GeneratedYmRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         deviceTags?: string[];
-        streamLevel?: number;
         sampleRom?: Uint8Array;
         refresh?: number;
         offset?: number;
@@ -1816,7 +1821,6 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
           message.auxiliaryDevices,
           message.routes,
           message.deviceTags,
-          message.streamLevel,
         );
         this.renderer = new GeneratedYm2151FrameRenderer(
           this.mixer,

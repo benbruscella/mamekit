@@ -75,8 +75,8 @@ export const marble = sourceTarget({
       writes: 2041128,
       nonzeroWrites: 98560,
       writeHash: '25d3c211',
-      pcmHash: '774ecff6',
-      rms: 0.058694,
+      pcmHash: '472e7f1e',
+      rms: 0.029347,
     },
   },
 });

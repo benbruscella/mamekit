@@ -30,6 +30,15 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### YM2151 boards play at MAME's level ([#230](https://github.com/benbruscella/mamekit/issues/230))
+
+**For players:** Thirteen machines with a YM2151 change level. Most get about 3 dB louder, matching MAME. On Gauntlet, the music comes down against the voice and effects, which were about 6 dB too quiet beside it. Marble Madness's music is about 2 dB quieter.
+
+**Under the hood:**
+- The YM2151 family's master gain of 0.7 is gone, because MAME's mix has nothing like it. `streamLevel`, which only existed to climb back above it, is gone too.
+- A YM2151 route to one channel of a stereo target counts half, and so does a K053260 on one, because the browser plays one channel, the average of MAME's two.
+- Goldens are measured before the master gain, so only Gauntlet, Marble Madness, The Simpsons and TMNT re-recorded.
+
 ### Machines with sample sets play the real recordings ([#228](https://github.com/benbruscella/mamekit/issues/228))
 
 **For players:**

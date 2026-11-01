@@ -304,8 +304,11 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   )[0]?.gain;
   // A stream mix is already at its routes' gains, whatever else the board holds:
   // Space Panic's unplayed DAC_1BIT took 6 dB off its samples.
+  // So is a YM2151 mix: its routes are MAME's, and MAME has no gain on top.
   const soundGain = sound.kind === 'stream'
     ? undefined
+    : sound.kind === 'ym2151'
+    ? 1
     : sound.kind === 'ay8910' && auxiliaryAudioDevices.some(device =>
     (device.referenceLevels?.length ?? 0) > 0)
     ? 1
@@ -398,14 +401,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     // on top, which can't weigh a stream against them. Beside a stream they sum
     // at their routes' gains, which is MAME's mix, and need no master gain.
     if (streamGain > 0 && (sound.kind === 'dac' || sound.kind === 'sn76489')) Object.assign(sound, { masterGain: 1 });
-    // The YM2151's mix keeps its master gain, and a samples stream arrives at
-    // MAME's own level, so it comes in above that gain: TMNT's title music sat
-    // 3 dB low. A POKEY stays under it with the speech beside it, which keeps
-    // their balance MAME's: on Gauntlet both sit about 3 dB under MAME, while
-    // its music sits about 3 dB over, a separate question of the master gain.
-    if (streamGain > 0 && sound.kind === 'ym2151' && soundGain && devices.some(device => device.props.type === 'SAMPLES')) {
-      Object.assign(sound, { streamLevel: 1 / soundGain });
-    }
   }
 
   return { clocks, sound, nesApu };
