@@ -104,12 +104,6 @@ export interface HardwareCapability {
    * promise; one with nothing to do still answers undefined at once.
    */
   extract(input: CapabilityInput): CapabilityExtraction | Promise<CapabilityExtraction | undefined> | undefined;
-  /**
-   * Browser master gain for a generated audio core. MAME route gains set the
-   * relative mix; this is the single post-mix level the shell applies, and it
-   * belongs with the family rather than in a table in the shell.
-   */
-  masterGain?: number;
 }
 
 /** Find the capability that claims a MAME device type. */

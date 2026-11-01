@@ -96,8 +96,8 @@ export interface AudioProbeContext {
     auxiliaryDevices?: unknown;
     filterChain?: unknown;
     discreteMixer?: unknown;
-    resistorLoads?: number[][];
-    streamGain?: number;
+    chipOutputs?: unknown;
+    netlist?: unknown;
     discreteDac?: unknown;
     discreteEffects?: unknown;
   };

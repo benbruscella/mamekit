@@ -60,8 +60,8 @@ export const joust = sourceTarget({
       writes: 24425,
       nonzeroWrites: 20003,
       writeHash: '06b097c9',
-      pcmHash: '361d20cb',
-      rms: 0.861981,
+      pcmHash: '5be7dc84',
+      rms: 0.215495,
     },
   },
 });

@@ -45,10 +45,10 @@ const mixer = compileDiscreteMixer(
 );
 assert.ok(mixer);
 assert.equal(mixer.streamInputs.length, 15);
-assert.equal(mixer.dataInputs[0]?.node, 16);
-assert.equal(mixer.filters.length, 6);
-assert.deepEqual(mixer.adders.map(adder => adder.node), [40, 41, 42]);
-assert.deepEqual(mixer.mixers.map(output => output.resistances), [
+assert.equal(mixer.graph?.filter(step => step.op === 'data').length, 7);
+assert.equal(mixer.graph?.filter(step => step.op === 'rcFilterSwitch').length, 6);
+assert.deepEqual(mixer.graph?.flatMap(step => step.op === 'adder' ? [step.node] : []), [40, 41, 42]);
+assert.deepEqual(mixer.graph?.flatMap(step => step.op === 'mixer' ? [step.resistances] : []), [
   [2200, 2200, 2200, 1100, 1100],
   [2200, 2200, 2200, 1100, 4700],
 ]);

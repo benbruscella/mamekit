@@ -4,12 +4,9 @@ import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 
 import { lowerAudioRoutes, lowerAuxiliaryAudioDevices, lowerBiquadFilterChain, lowerDacChips } from './emit-machine.ts';
 
-import { analogValue, compileDiscreteDacAttenuator, compileDiscreteDacReferenceLevels, compileDiscreteEffects, compileDiscreteMixer, compileMameSpeakerFilter, compileNamco54Discrete, compilePoleposDiscrete } from '../mame/audio-compiler.ts';
+import { ayChipOutput, compileDiscreteDacAttenuator, compileDiscreteDacReferenceLevels, compileDiscreteEffects, compileDiscreteMixer, compileMameSpeakerFilter, compileNamco54Discrete, compilePoleposDiscrete } from '../mame/audio-compiler.ts';
 
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
-import { splitMameArgs } from '../mame/ast.ts';
-
-import { capabilityForType, HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
 
 import { GAMEBOY_APU_TYPE, GAMEBOY_OUTPUT_RATE } from '../hardware/gameboy/definition.ts';
 import { C64_AUDIO_RATE } from '../hardware/c64/definition.ts';
@@ -19,6 +16,7 @@ import type { GenerateOptions } from './generate.ts';
 
 import { Graph } from '../kg/query.ts';
 import { configuredDeviceMember } from './machine-source.ts';
+import { lowerNetlistSound } from './lower-netlist.ts';
 
 export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph: KnowledgeGraph, opts: GenerateOptions, g: Graph, romset: KGNode, cpus: readonly { tag: string; clock: number }[]) {
   // --- clocks + sound -------------------------------------------------------------
@@ -33,28 +31,11 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     graph,
     ayChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
   );
-  // `set_resistors_load(r0, r1, r2)`: the load each output pin drives, which
-  // is one term of MAME's build_single_table voltage divider. MAME defaults
-  // every pin to 1k; Bump 'n' Jump loads its first AY with 5k on all three.
-  // build_mixer_table reads the loads through build_single_table only for a
-  // per-channel AY8910_DISCRETE_OUTPUT chip. RESISTOR_OUTPUT takes MAME's
-  // MOSFET table and SINGLE_OUTPUT its 3D table, neither of which the core
-  // models, so those keep the default table rather than a wrong curve.
-  const ayResistorLoads = ayChips.map(chip => {
-    const config = (chip.props.config as string[] | undefined) ?? [];
-    const flags = config.find(candidate => /\bset_flags\s*\(/.test(candidate)) ?? '';
-    if (
-      !/\bAY8910_DISCRETE_OUTPUT\b/.test(flags) ||
-      /\bAY8910_(?:RESISTOR|SINGLE)_OUTPUT\b/.test(flags)
-    ) return undefined;
-    const line = config
-      .find(candidate => /\bset_resistors_load\s*\(/.test(candidate));
-    const args = line
-      ? splitMameArgs(line.slice(line.indexOf('(', line.indexOf('set_resistors_load')) + 1, line.lastIndexOf(')')))
-      : [];
-    const loads = args.map(arg => analogValue(arg));
-    return loads.length === 3 && loads.every(load => load > 0) ? loads : undefined;
-  });
+  // Each chip's flags and pin loads pick the table it streams.
+  const ayChipOutputs = ayChips.map(chip => ayChipOutput(
+    opts.mameSrc,
+    Array.isArray(chip.props.config) ? chip.props.config.map(String) : [],
+  ));
   let auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
     graph,
     devices.map(device => ({
@@ -177,9 +158,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
             clock: Number(ayChips[0].props.clock),
             chips: ayChips.length,
             deviceTags: ayChips.map(chip => String(chip.props.tag)),
-            ...(ayResistorLoads.some(Boolean)
-              ? { resistorLoads: ayResistorLoads.map(loads => loads ?? [1000, 1000, 1000]) }
-              : {}),
+            chipOutputs: ayChipOutputs,
             ...(ayRoutes.length ? { routes: ayRoutes } : {}),
             ...(auxiliaryAudioDevices.length
               ? { auxiliaryDevices: auxiliaryAudioDevices }
@@ -285,7 +264,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
                 // exactly as tia_device::device_start allocates it.
                 clock: Number(tiaChip.props.clock),
                 deviceTag: String(tiaChip.props.tag),
-                ...(routes[0]?.gain !== undefined ? { masterGain: routes[0].gain } : {}),
+                ...(routes[0]?.gain !== undefined ? { outputGain: routes[0].gain } : {}),
               };
             })()
         : speakerDevice
@@ -294,30 +273,20 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
           ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: String(speakerDevice.props.tag) }
     : { kind: 'none' };
   const nesApu = sound.kind === 'nes' ? compileNesApu(opts.mameSrc) : undefined;
-  // The post-mix level belongs to the sound family's capability package, so
-  // the shell reads it from the generated config instead of keeping a table
-  // that every new family would have to be added to.
-  const poleposWsgDevices = devices.filter(device => device.props.type === 'POLEPOS_WSG');
-  const routedWsgGain = lowerAudioRoutes(
+  // A mix that goes through one gain carries MAME's route here, for the shell to
+  // apply after the worklet: a WSG's, or the APU's route out of the RP2A03.
+  const singleRoute = (types: readonly string[]): number | undefined => lowerAudioRoutes(
     graph,
-    poleposWsgDevices.map(device => ({ id: device.id, tag: String(device.props.tag) })),
+    devices
+      .filter(device => types.some(type => String(device.props.type).startsWith(type)))
+      .map(device => ({ id: device.id, tag: String(device.props.tag) })),
   )[0]?.gain;
-  // A stream mix is already at its routes' gains, whatever else the board holds:
-  // Space Panic's unplayed DAC_1BIT took 6 dB off its samples.
-  // So is a YM2151 mix: its routes are MAME's, and MAME has no gain on top.
-  const soundGain = sound.kind === 'stream'
-    ? undefined
-    : sound.kind === 'ym2151'
-    ? 1
-    : sound.kind === 'ay8910' && auxiliaryAudioDevices.some(device =>
-    (device.referenceLevels?.length ?? 0) > 0)
-    ? 1
-    : routedWsgGain !== undefined
-    ? routedWsgGain
-    : devices
-    .map(device => capabilityForType(HARDWARE_CAPABILITIES, String(device.props.type)))
-    .find(capability => capability?.masterGain !== undefined)?.masterGain;
-  if (soundGain !== undefined) Object.assign(sound, { masterGain: soundGain });
+  const outputGain = sound.kind === 'wsg'
+    ? singleRoute(['NAMCO', 'POLEPOS_WSG'])
+    : sound.kind === 'nes'
+      ? singleRoute(['RP2A03'])
+      : undefined;
+  if (outputGain !== undefined) Object.assign(sound, { outputGain });
 
   const discreteNetlist = devices
     .filter(device => device.props.type === 'DISCRETE')
@@ -383,25 +352,34 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     );
     if (discreteMixer) Object.assign(sound, { discreteMixer });
   }
+  // MAME keeps a stereo target's channels apart, and the browser plays one
+  // channel, their average: a route to one of the two counts half. The YM2151
+  // does this in its worklet.
+  const stereoTargets = new Set(devices
+    .filter(device => device.props.type === 'SPEAKER' &&
+      (Array.isArray(device.props.config) ? device.props.config.join('\n') : '').match(/SPEAKER\s*\(\s*config\s*,[^,]+,\s*[2-9]/))
+    .map(device => String(device.props.tag)));
+  const mixRoutes = (sound as { routes?: { target: string; targetInput?: number; gain: number }[] }).routes;
+  if (sound.kind !== 'ym2151' && mixRoutes) {
+    Object.assign(sound, {
+      routes: mixRoutes.map(route => route.targetInput !== undefined && stereoTargets.has(route.target)
+        ? { ...route, gain: route.gain / 2 }
+        : route),
+    });
+  }
+  if (sound.kind === 'ay8910') {
+    const netlistDevice = devices.find(device => device.props.type === 'NETLIST_SOUND');
+    const routeGain = netlistDevice
+      ? lowerAudioRoutes(graph, [{ id: netlistDevice.id, tag: String(netlistDevice.props.tag) }])[0]?.gain ?? 1
+      : 1;
+    const netlist = lowerNetlistSound(graph, devices, opts.mameSrc, routeGain);
+    if (netlist.error) throw new Error(`${opts.game ?? graph.meta.driverFile}: ${netlist.error}`);
+    if (netlist.plan) Object.assign(sound, { netlist: netlist.plan });
+  }
   if (sound.kind !== 'none') {
     Object.assign(sound, {
       speakerFilter: compileMameSpeakerFilter(opts.mameSrc),
     });
   }
-  // Streams the main thread mixes and posts beside the owning chip (the
-  // Spectrum 128's beeper and cassette beside its AY): their total routed
-  // gain, so the worklet weighs them against its own chips as MAME does.
-  if (sound.kind !== 'none' && sound.kind !== 'stream') {
-    const streamGain = devices
-      .filter(device => STREAM_SOUND_TYPES.includes(String(device.props.type)))
-      .flatMap(device => lowerAudioRoutes(graph, [{ id: device.id, tag: String(device.props.tag) }]).slice(0, 1))
-      .reduce((total, route) => total + route.gain, 0);
-    if (streamGain > 0) Object.assign(sound, { streamGain });
-    // These two mixes are scaled to their own chips, with a family master gain
-    // on top, which can't weigh a stream against them. Beside a stream they sum
-    // at their routes' gains, which is MAME's mix, and need no master gain.
-    if (streamGain > 0 && (sound.kind === 'dac' || sound.kind === 'sn76489')) Object.assign(sound, { masterGain: 1 });
-  }
-
   return { clocks, sound, nesApu };
 }

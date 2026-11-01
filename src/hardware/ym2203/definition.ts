@@ -33,7 +33,6 @@ export const YM2203_PORTS_PER_CHIP = 2;
  * lives with the family rather than in a table the shell has to be edited to
  * extend.
  */
-export const YM2203_MASTER_GAIN = 0.7;
 
 export const YM2203_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: 'address/data port pair per chip' },

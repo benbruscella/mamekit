@@ -36,8 +36,8 @@ export const friskyt = sourceTarget({
       writes: 144139,
       nonzeroWrites: 143798,
       writeHash: 'be230652',
-      pcmHash: '12eeeccd',
-      rms: 0.077158,
+      pcmHash: '39a35017',
+      rms: 0.118103,
     },
   },
 });

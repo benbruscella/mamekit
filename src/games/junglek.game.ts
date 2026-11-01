@@ -36,8 +36,8 @@ export const junglek = sourceTarget({
       writes: 1580862,
       nonzeroWrites: 1168947,
       writeHash: 'f0a6a0ac',
-      pcmHash: '0a4c0981',
-      rms: 0.361671,
+      pcmHash: 'c6e7fd85',
+      rms: 0.295112,
     },
   },
 });

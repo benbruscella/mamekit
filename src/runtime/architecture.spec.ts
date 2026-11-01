@@ -53,6 +53,17 @@ const HOST_BOUNDARIES = {
       StreamingFrameResampler: "resamples any renderer's frames to the probe rate, so " +
         'offline audio checks compare like with like',
     },
+    'mame/netlist-compiler.ts': {
+      Setup: "reads MAME's netlist setup language into a device list, as nlparse_t does; " +
+        'it runs nothing',
+    },
+    'mame/netlist-solver.ts': {
+      GeneratedNetlistDiode: "MAME's generic_diode, which the solver's diode and BJT " +
+        'elements share; every parameter comes from the netlist\'s own model',
+      GeneratedNetlistGroup: 'one sparse LU over whatever nodes a netlist gives it',
+      GeneratedNetlistSolver: 'steps any compiled netlist with the stamps of its MAME ' +
+        'devices; the circuit is all generated, and no machine or chip is named here',
+    },
     'mame/stream-worklet.ts': {
       GeneratedStreamFrameRenderer: 'queues and resamples samples a generated device ' +
         'already rendered; it models no chip',
@@ -221,7 +232,7 @@ const engineSources = [
     .filter(file => file.endsWith('.ts') && !file.endsWith('.spec.ts'))
     .map(file => `hardware/${file}`),
   ...readdirSync(join(src, 'mame'))
-    .filter(file => /-(?:compiler|worklet)\.ts$/.test(file))
+    .filter(file => /-(?:compiler|solver|worklet)\.ts$/.test(file))
     .map(file => `mame/${file}`),
 ];
 const classDeclaration = /^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s+(\w+)/gm;

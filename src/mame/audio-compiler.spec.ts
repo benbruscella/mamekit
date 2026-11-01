@@ -220,8 +220,10 @@ assert.deepEqual(ayPlan.noiseTaps, [0, 3]);
 assert.deepEqual(ayPlan.readMasks.slice(0, 8), [
   0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x1f, 0xff,
 ]);
-assert.equal(ayPlan.volumeTable.length, 16);
-assert.ok(ayPlan.volumeTable[0]! > 0 && ayPlan.volumeTable[15]! < 0.5);
+assert.equal(ayPlan.singleOutput.resistances.length, 16);
+assert.equal(ayPlan.mosfet.kn.length, 16);
+assert.equal(ayPlan.outputFlags.AY8910_LEGACY_OUTPUT, 1);
+assert.equal(ayPlan.outputFlags.AY8910_RESISTOR_OUTPUT, 8);
 assert.deepEqual(ayPlan.filterTypes, { lowpass3r: 0, lowpass: 2, highpass: 3, ac: 4 });
 const taitosjReference = compileDiscreteDacReferenceLevels(
   mameSrc,

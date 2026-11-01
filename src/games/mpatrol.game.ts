@@ -58,8 +58,8 @@ export const mpatrol = sourceTarget({
       writes: 429083,
       nonzeroWrites: 429033,
       writeHash: 'efb5c5c1',
-      pcmHash: '40ea9571',
-      rms: 0.157584,
+      pcmHash: '1729bf5e',
+      rms: 0.073945,
     },
   },
 });

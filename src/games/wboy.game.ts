@@ -31,8 +31,8 @@ export const wboy = sourceTarget({
       writes: 52764,
       nonzeroWrites: 48483,
       writeHash: '53df3031',
-      pcmHash: 'fa10fe41',
-      rms: 0.046349,
+      pcmHash: '4a40f109',
+      rms: 0.092697,
     },
   },
 });

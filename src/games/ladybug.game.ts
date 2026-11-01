@@ -34,8 +34,8 @@ export const ladybug = sourceTarget({
       writes: 865,
       nonzeroWrites: 865,
       writeHash: '4c14f8e3',
-      pcmHash: 'db346b0e',
-      rms: 0.036092,
+      pcmHash: 'fe8596a1',
+      rms: 0.072184,
     },
   },
 });
