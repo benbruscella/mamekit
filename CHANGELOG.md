@@ -30,6 +30,14 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Kept ROM sets are checked against what a machine now requires ([#232](https://github.com/benbruscella/mamekit/issues/232))
+
+**For players:** If a machine's requirements have changed since this browser kept its set, and the set no longer meets them, the set is cleared and the drop screen says why. Try web search there also fetches sample sets, so Carnival with a kept ROM can now reach its samples. Sets kept before this are checked once on their next boot, and any that doesn't fully match is deleted from the browser, including any kept ROM for Carnival, Congo, Panic, Q\*bert or Zaxxon whose sample set isn't kept. A set kept after this stays until the requirements change, even without its samples or short of a chip.
+
+**Under the hood:**
+- `RomRecord.requires` records the machine's dumped chip CRCs and sample sets when a set is kept, and `clearOutdatedRomSet` compares them at boot. A mismatch alone doesn't clear a set, or a set accepted short would be asked for on every boot.
+- Media slot and card firmware don't count as requirements, so a C64 tape title's kept set survives a disk title, which asks for `c1541.zip` alone.
+
 ### YM2151 boards play at MAME's level ([#230](https://github.com/benbruscella/mamekit/issues/230))
 
 **For players:** Thirteen machines with a YM2151 change level. Most get about 3 dB louder, matching MAME. On Gauntlet, the music comes down against the voice and effects, which were about 6 dB too quiet beside it. Marble Madness's music is about 2 dB quieter.
