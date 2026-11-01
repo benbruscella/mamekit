@@ -400,8 +400,9 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     if (streamGain > 0 && (sound.kind === 'dac' || sound.kind === 'sn76489')) Object.assign(sound, { masterGain: 1 });
     // The YM2151's mix keeps its master gain, and a samples stream arrives at
     // MAME's own level, so it comes in above that gain: TMNT's title music sat
-    // 3 dB low. A POKEY stays where it was: nothing has measured it as better
-    // raised, and doing so would move Gauntlet's and Marble Madness's goldens.
+    // 3 dB low. A POKEY stays under it with the speech beside it, which keeps
+    // their balance MAME's: on Gauntlet both sit about 3 dB under MAME, while
+    // its music sits about 3 dB over, a separate question of the master gain.
     if (streamGain > 0 && sound.kind === 'ym2151' && soundGain && devices.some(device => device.props.type === 'SAMPLES')) {
       Object.assign(sound, { streamLevel: 1 / soundGain });
     }

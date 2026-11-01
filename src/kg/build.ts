@@ -8,7 +8,7 @@ import {
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
-import { collectBitAliasMacros, collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -2484,6 +2484,7 @@ function handlerProps(
     // subscript before lowering -- unexpanded, the Game Boy's joypad register
     // was never written and every button read as held down.
     body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
+    body = expandFunctionMacros(body, collectParameterCallMacros(source));
     // A library's free function is a handler like any helper, under its own
     // name: `ymfm::decode_fp(...)`.
     body = body.replace(/\b\w+::(\w+)(?=\s*\()/g, (all, name: string) =>

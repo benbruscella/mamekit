@@ -1844,6 +1844,11 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
       // so a discarded key-on would simply never sound.
       while (this.frames.length > 3) {
         for (const stale of this.frames.shift()!) {
+          // Finished samples, though, go with the time being skipped. Queued
+          // with no time to play in, every stall left a main-thread stream
+          // further behind the rest of the mix, up to half a second, and
+          // Gauntlet's closing mute cut the ends off its speech.
+          if (stale.method?.endsWith('.pcm')) continue;
           this.mixer?.write(stale.offset, stale.data, stale.method);
         }
       }
