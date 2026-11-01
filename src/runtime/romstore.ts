@@ -29,6 +29,11 @@ export interface RomRecord {
   /** every zip that took part in the accepted set, in the order supplied */
   zips: StoredZip[];
   addedAt: number;
+  /**
+   * What the machine required when this was kept (romRequirements in shell.ts).
+   * Absent on a set kept before this was recorded, and on a sample set.
+   */
+  requires?: number;
 }
 
 /**

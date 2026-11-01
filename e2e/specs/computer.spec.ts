@@ -224,6 +224,53 @@ test.describe('software room', () => {
     expect(faults.errors).toEqual([]);
   });
 
+  // A tape title keeps a set with no c1541.zip on purpose. That is no outdated
+  // set (issue #232): a disk title asks for the drive alone, and the firmware
+  // the tape title kept is still there.
+  test('firmware kept by a tape title is not cleared by a disk title', async ({ page }) => {
+    const tape = localTitle('cassette');
+    const disk = localTitle('floppy');
+    test.skip(!tape || !disk, 'no local tape and disk sets with firmware under .data/roms');
+    await playLocalSet(page, tape!.set, tape!.firmware);
+    const game = await page.evaluate(() => (window as unknown as { mamekit: { config: { game: string } } }).mamekit.config.game);
+    // As a set kept before requirements were recorded, the case that is graded.
+    await page.evaluate(async (name: string) => {
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open('mamekit-roms');
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+      const store = db.transaction('roms', 'readwrite').objectStore('roms');
+      const record = await new Promise<Record<string, unknown>>(resolve => {
+        const get = store.get(name);
+        get.onsuccess = () => resolve(get.result);
+      });
+      delete record.requires;
+      await new Promise(resolve => { store.put(record).onsuccess = resolve; });
+      db.close();
+    }, game);
+    // By hand: the shelf now holds the tape too, and playLocalSet plays its first set.
+    await page.goto(`/app/g/${MACHINE}/`);
+    await page.locator('[data-software-room]').waitFor({ state: 'visible' });
+    const owned = page.locator('[data-owned-set]');
+    await expect(owned).toHaveCount(1, { timeout: 30_000 });
+    const tapeId = await owned.getAttribute('data-owned-set');
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: /insert your own/i }).first().click();
+    await (await chooser).setFiles(disk!.set);
+    await expect(owned).toHaveCount(2, { timeout: 30_000 });
+    await page.locator(`[data-owned-set]:not([data-owned-set="${tapeId}"])`).locator('[data-play]').click();
+    await page.locator('[data-dropzone]').waitFor({ state: 'visible' });
+    await expect(page.locator('[data-zone-note]')).toContainText('c1541.zip');
+    await expect(page.locator('[data-zone-note]')).toContainText('this browser already keeps the rest');
+    // A corner: the kept set's verdict has the chip list open in the middle.
+    const firmwareChooser = page.waitForEvent('filechooser');
+    await page.locator('[data-overlay]').click({ position: { x: 4, y: 4 } });
+    await (await firmwareChooser).setFiles(disk!.firmware.filter(path => path.includes('c1541')));
+    await page.waitForFunction(() => Boolean((window as unknown as { mamekit?: unknown }).mamekit), undefined, { timeout: 60_000 });
+    expect(await page.evaluate(() => (window as unknown as { mamekit: { config: { game: string } } }).mamekit.config.game)).toBe(game);
+  });
+
   // One-click play (issue #161): Play on a title starts it. The machine types
   // its shelf's command through MAME's natural keyboard once it is up, a tape
   // has PLAY pressed when that is typed, and the load runs warped.

@@ -2,11 +2,16 @@ import assert from 'node:assert/strict';
 import {
   applyRomTransforms,
   assembleRegions,
+  clearOutdatedRomSet,
   dependencyRomSets,
   requiredRomRegions,
+  romRequirements,
   unresolvedDependencyRomSets,
+  type RomRegionSpec,
 } from './shell.ts';
+import { sampleSetKey, type RomRecord, type RomStore } from './romstore.ts';
 import { crc32 } from './zip.ts';
+import { writeZip } from '../../tools/rom-library/library.ts';
 import type { Regions } from './types.ts';
 
 const regions = assembleRegions(
@@ -178,3 +183,81 @@ assert.deepEqual([...splitOpcodes.maincpu], [0x80, 0x02, 0x11]);
 assert.deepEqual([...splitOpcodes.decrypted_opcodes!], [0x80, 0x20, 0x11]);
 
 console.log('shell.spec: MAME ROM region fill and driver-init transform semantics passed');
+
+// --- a kept set against what the machine requires (issue #232) ---------------
+
+const chip = (file: string, bytes: number[]): RomRegionSpec['loads'][number] => ({
+  file, offset: 0, size: bytes.length, crc: crc32(new Uint8Array(bytes)).toString(16).padStart(8, '0'),
+} as RomRegionSpec['loads'][number]);
+const CODE = [1, 2], PROM = [3, 4], DRIVE = [5, 6];
+const base: RomRegionSpec[] = [
+  { region: 'maincpu', size: 2, loads: [chip('code.bin', CODE)] },
+  { region: 'proms', size: 2, loads: [chip('prom.bin', PROM)] },
+];
+const withDrive: RomRegionSpec[] = [...base, { region: 'iec8:c1541:drive', size: 2, romSet: 'c1541', loads: [chip('drive.bin', DRIVE)] }];
+const samples = [{ tag: 'samples', set: 'carnival', names: ['bear'] }];
+
+function keptStore(members: Record<string, number[]>, requires?: number): RomStore & { map: Map<string, RomRecord> } {
+  const bytes = writeZip(new Map(Object.entries(members).map(([name, chipBytes]) => [name, new Uint8Array(chipBytes)])));
+  const map = new Map<string, RomRecord>([['game', {
+    game: 'game',
+    zips: [{ name: 'game.zip', bytes: new Uint8Array(bytes).buffer as ArrayBuffer }],
+    addedAt: 0,
+    ...(requires === undefined ? {} : { requires }),
+  }]]);
+  return {
+    map,
+    persistent: true,
+    get: async game => map.get(game) ?? null,
+    put: async record => { map.set(record.game, record); },
+    remove: async game => { map.delete(game); },
+    games: async () => [...map.keys()],
+  };
+}
+const whole = { 'code.bin': CODE, 'prom.bin': PROM };
+const requires = romRequirements(base, undefined, []);
+
+// The number moves with the chips and sample sets, not with their order or a media slot.
+assert.equal(romRequirements([...base].reverse(), undefined, []), requires);
+assert.equal(romRequirements(withDrive, undefined, ['iec8']), requires, 'a slot a title may leave empty is no requirement');
+assert.notEqual(romRequirements(withDrive, undefined, []), requires);
+assert.notEqual(romRequirements(base, samples, []), requires);
+
+// Unchanged requirements: a set accepted short stays, or it is asked for on every boot.
+{
+  const store = keptStore({ 'code.bin': CODE }, requires);
+  assert.equal(await clearOutdatedRomSet(store, 'game', base, undefined, []), false);
+  assert.ok(store.map.has('game'));
+}
+// Changed, and the set does not meet them: a chip missing, or one unlike the dump.
+for (const members of [{ 'code.bin': CODE }, { 'code.bin': CODE, 'prom.bin': [9, 9] }] as Record<string, number[]>[]) {
+  const store = keptStore(members, requires + 1);
+  assert.equal(await clearOutdatedRomSet(store, 'game', base, undefined, []), true);
+  assert.equal(store.map.has('game'), false);
+}
+// Changed, and the set still meets them: kept, and recorded against them.
+{
+  const store = keptStore(whole);
+  assert.equal(await clearOutdatedRomSet(store, 'game', base, undefined, []), false);
+  assert.equal(store.map.get('game')!.requires, requires);
+}
+// Carnival: kept before the machine played samples, and no sample set here.
+{
+  const store = keptStore(whole);
+  assert.equal(await clearOutdatedRomSet(store, 'game', base, samples, []), true);
+  // Kept again without the optional samples: not cleared a second time.
+  const again = keptStore(whole, romRequirements(base, samples, []));
+  assert.equal(await clearOutdatedRomSet(again, 'game', base, samples, []), false);
+  // With the sample set kept, the ROM stays through the change.
+  const held = keptStore(whole);
+  held.map.set(sampleSetKey('carnival'), { game: sampleSetKey('carnival'), zips: [], addedAt: 0 });
+  assert.equal(await clearOutdatedRomSet(held, 'game', base, samples, []), false);
+}
+// The C64: firmware kept by a tape title survives a disk title asking for its drive.
+{
+  const store = keptStore(whole);
+  assert.equal(await clearOutdatedRomSet(store, 'game', withDrive, undefined, ['iec8']), false);
+  assert.ok(store.map.has('game'));
+}
+
+console.log('shell.spec: a kept set is cleared only when the machine moved past it');
