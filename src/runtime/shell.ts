@@ -966,6 +966,8 @@ export async function runShell(
     // nes.zip that does not exist.
     const ownSet = cfg.roms.some(spec => !spec.romSet && spec.loads.some(load => !load.romSet && isDumpedRom(load)));
     const wanted = [...(ownSet || !dependencies.length ? [cfg.game] : []), ...dependencies];
+    const mediaSlots = cfg.software?.shelves.flatMap(shelf => shelf.slots ?? []) ?? [];
+    const outdated = await clearOutdatedRomSet(romStore, cfg.game, cfg.roms, cfg.samples, mediaSlots, cfg.firmwareFrom);
     const kept = await storedRomFiles(romStore, cfg.game, cfg.roms, critical, cfg.firmwareFrom);
     if (kept?.complete) {
       ui.status(`Booting ${cfg.title} from the ${wanted[0]}.zip kept in this browser…`);
@@ -979,14 +981,15 @@ export async function runShell(
       const companionText = wanted.slice(1).length
         ? ` plus ${wanted.slice(1).map(set => `${set}.zip`).join(', ')}`
         : '';
-      ui.status(short.length
+      ui.status(`${outdated ? `${cfg.title} requires different files since this browser kept its set, so that set was cleared. ` : ''}${short.length
         ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
-        : `ROMs are not distributed with mamekit — drop your own ${wanted[0]}.zip${companionText} (kept only in this browser).`);
+        : `ROMs are not distributed with mamekit — drop your own ${wanted[0]}.zip${companionText} (kept only in this browser).`}`);
+      if (outdated) ui.toast('This machine changed: its kept set was cleared');
       const { files, zips, searched } = await waitForZip(ui, zone, cfg.roms, critical, wanted, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined,
         (incoming, raw, name) => keepDroppedSampleSet(romStore, cfg.samples, incoming, raw, name, ui.toast));
       searchedWeb = searched;
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
-      keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast, wanted[0]);
+      keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast, wanted[0], romRequirements(cfg.roms, cfg.samples, mediaSlots));
     }
     // The cartridge the console room already resolved wins over anything of
     // the same name in the machine set.
@@ -1320,7 +1323,7 @@ export async function runShell(
 
   // debug/testing handle (also the hook for the future live KG-viewer overlay)
   (window as unknown as Record<string, unknown>).mamekit = {
-    board, input, pads, pointer, config: cfg, audio, regions, memory, netplay,
+    board, input, pads, pointer, config: cfg, audio, regions, memory, netplay, samplePath,
     framebuffer: fb,
     step: stepFrames,
     qaDrive,
@@ -3079,6 +3082,58 @@ export async function storedRomFiles(
   return { files, zips, complete: !checkRomSet(specs, files, critical).missingCritical.length };
 }
 
+/**
+ * What a machine requires of the sets kept for it, as one number kept beside
+ * them: its dumped chips and its sample sets. A media slot's firmware is left
+ * out, and so is a card's: which of those a boot fills depends on the title, so
+ * they would read as the machine changing every time the title did.
+ */
+export function romRequirements(
+  specs: readonly RomRegionSpec[],
+  samples: ShellConfig['samples'],
+  mediaSlots: readonly string[],
+): number {
+  const chips = withoutSlotFirmware(specs, mediaSlots)
+    .filter(spec => !spec.cards)
+    .flatMap(spec => spec.loads.filter(isDumpedRom).map(load => load.crc.toLowerCase()))
+    .sort();
+  const sets = [...new Set((samples ?? []).map(entry => entry.set))].sort();
+  return crc32(new TextEncoder().encode(JSON.stringify([chips, sets])));
+}
+
+/**
+ * Clear a kept set when what the machine requires has changed since it was kept
+ * and the set does not meet it, so the player goes back through the drop
+ * screen; true if it was cleared. Both conditions matter. A set accepted short
+ * of something, or a machine played without its optional sample set, stays kept
+ * until the requirements move, or it would be asked for on every boot. A set
+ * that still meets new requirements is simply recorded against them.
+ */
+export async function clearOutdatedRomSet(
+  store: RomStore,
+  game: string,
+  specs: RomRegionSpec[],
+  samples: ShellConfig['samples'],
+  mediaSlots: readonly string[],
+  also: readonly string[] = [],
+): Promise<boolean> {
+  const record = await store.get(game).catch(() => null);
+  const requires = romRequirements(specs, samples, mediaSlots);
+  if (!record || record.requires === requires) return false;
+  const required = withoutSlotFirmware(specs, mediaSlots).filter(spec => !spec.cards);
+  const kept = await storedRomFiles(store, game, required, new Set(), also);
+  if (!kept) return false;
+  const sampleSets = await Promise.all([...new Set((samples ?? []).map(entry => entry.set))]
+    .map(set => store.get(sampleSetKey(set)).catch(() => null)));
+  const check = checkRomSet(required, kept.files, new Set());
+  if (!check.missingOther.length && !check.crcMismatch.length && sampleSets.every(Boolean)) {
+    await store.put({ ...record, requires }).catch(() => undefined);
+    return false;
+  }
+  await store.remove(game).catch(() => undefined);
+  return true;
+}
+
 /** The sets that still hold a boot-critical chip `files` lacks, as the drop screen names them. */
 export function missingRomSets(
   specs: RomRegionSpec[], files: Map<string, Uint8Array>, critical: Set<string>, game: string,
@@ -3094,9 +3149,9 @@ export function missingRomSets(
 }
 
 /** Keep an accepted set for next time; says so, or says why it could not. */
-async function keepRomSet(store: RomStore, game: string, zips: StoredZip[], toast: (text: string) => void, label = game): Promise<boolean> {
+async function keepRomSet(store: RomStore, game: string, zips: StoredZip[], toast: (text: string) => void, label = game, requires?: number): Promise<boolean> {
   try {
-    await store.put({ game, zips, addedAt: Date.now() });
+    await store.put({ game, zips, addedAt: Date.now(), ...(requires === undefined ? {} : { requires }) });
   } catch (error) {
     toast(`This browser could not keep ${label}.zip: ${(error as Error).message}`);
     return false;

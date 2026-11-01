@@ -1437,8 +1437,12 @@ copied by hand have no list yet, and nothing may be added to them either.
    machine (`romstore.ts`, graded against the manifest exactly as a drop is),
    or request a user-supplied ROM zip and validate every required chip
    against graph-derived names and CRCs, keeping the accepted zips for next
-   time. The machine's NVRAM and hiscore.dat bytes go back in before the
-   first frame (`machine-memory.ts`).
+   time. A kept set records what the machine required when it was kept. If
+   that has changed and the set no longer meets it, the set is cleared and the
+   player is back at the drop screen, whose web search also finds sample sets.
+   Media slot firmware doesn't count, because a title may leave its slot empty.
+   The machine's NVRAM and hiscore.dat bytes go back in before the first frame
+   (`machine-memory.ts`).
 6. Console targets open their cartridge room instead: the generated softlist
    catalog identifies a dropped or fetched dump by chip CRC, and `mountCart`
    (`src/runtime/cart-mount.ts`) mounts it. A console whose config names a
