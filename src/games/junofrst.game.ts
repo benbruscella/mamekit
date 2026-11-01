@@ -39,8 +39,8 @@ export const junofrst = sourceTarget({
       writes: 46837,
       nonzeroWrites: 25878,
       writeHash: '554b8b56',
-      pcmHash: 'f05b8e1e',
-      rms: 0.195744,
+      pcmHash: 'f8b587cf',
+      rms: 0.318362,
     },
   },
 });

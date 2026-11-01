@@ -13,6 +13,8 @@ export interface AudioComparison {
   rms: { ours: number; ref: number; ratioDb: number };
   bands: { hz: number; ours: number; ref: number; diffDb: number }[];
   onsets: { ours: number; ref: number };
+  /** The largest sample, and the share of samples at full scale. */
+  peak?: { ours: { peak: number; over: number }; ref: { peak: number; over: number } };
 }
 
 export interface RunReport {

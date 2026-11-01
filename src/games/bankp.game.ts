@@ -46,8 +46,8 @@ export const bankp = sourceTarget({
       writes: 1308,
       nonzeroWrites: 1228,
       writeHash: '7cf49e6e',
-      pcmHash: '82b1adbf',
-      rms: 0.08249,
+      pcmHash: 'ab98b70a',
+      rms: 0.125298,
     },
   },
 });

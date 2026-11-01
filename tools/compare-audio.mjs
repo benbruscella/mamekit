@@ -118,6 +118,19 @@ const rms = (samples, rate) => {
   return Math.sqrt(sum / count);
 };
 const rmsOurs = rms(ours.samples, ours.rate), rmsRef = rms(ref.samples, ref.rate);
+// A sample at or past full scale is what a speaker would clip. MAME's WAV stops
+// at full scale, and ours is float, so it can read past it.
+const peak = (samples) => {
+  let highest = 0;
+  let over = 0;
+  for (let index = 0; index < samples.length; index++) {
+    const size = Math.abs(samples[index]);
+    if (size > highest) highest = size;
+    if (size >= 0.999) over++;
+  }
+  return { peak: highest, over: over / (samples.length || 1) };
+};
+const peakOurs = peak(ours.samples), peakRef = peak(ref.samples);
 const db = value => (20 * Math.log10(value + 1e-12)).toFixed(1);
 console.log(`rms: ours ${rmsOurs.toFixed(4)} (${db(rmsOurs)} dBFS) | ref ${rmsRef.toFixed(4)} (${db(rmsRef)} dBFS) | ours/ref ${db(rmsOurs / (rmsRef || 1e-12))} dB`);
 
@@ -161,6 +174,7 @@ writeFileSync(join(outDir, 'compare.json'), `${JSON.stringify({
   rms: { ours: rmsOurs, ref: rmsRef, ratioDb: 20 * Math.log10(rmsOurs / (rmsRef || 1e-12) + 1e-12) },
   bands: bandDiffs,
   onsets: { ours: onsetsOurs, ref: onsetsRef },
+  peak: { ours: peakOurs, ref: peakRef },
 }, null, 2)}\n`);
 
 // stacked spectrogram image (ours on top, ref below, same 0-8kHz scale)

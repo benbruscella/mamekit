@@ -28,8 +28,8 @@ export const matmania = sourceTarget({
       writes: 13742,
       nonzeroWrites: 12772,
       writeHash: '7911172c',
-      pcmHash: 'c790b8da',
-      rms: 0.041098,
+      pcmHash: 'd99cb6e2',
+      rms: 0.19498,
     },
   },
 });

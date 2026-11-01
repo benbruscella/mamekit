@@ -30,6 +30,20 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Every sound family plays at MAME's level, from its routes ([#234](https://github.com/benbruscella/mamekit/issues/234))
+
+**For players:** Most machines change level, and most now match MAME: with contract input, 51 of 70 measured scenarios are within 1 dB, up from 8. Many get louder, some by a lot: Frogger and Scramble by about 16 dB, Moon Patrol by 13. Some get quieter: Joust and Defender by about 6 dB, NES games by about 4. Frogger, Scramble, 1942, Popeye and Kung-Fu Master now play through their real analog sound circuits, so their filters and, on Kung-Fu Master, the drums come from the board's own netlist. Gyruss and Moon Patrol play through their discrete networks the same way.
+
+**Under the hood:**
+- Every `*_MASTER_GAIN` and the `masterGain` capability are gone, along with the engines' own rescaling: the SN76489's division by chip count, the DAC's and AY's division by their total route gain, the AY's doubled swing and the NES APU's `OUT_GAIN`. Each engine now outputs what its MAME stream does, and only routes set the level.
+- `src/mame/netlist-compiler.ts` compiles MAME's netlist language, and `netlist-solver.ts` steps the result: sparse LU per solver group, backward Euler, and Newton only where a diode or transistor is. Kidniki, the largest here, took 6.5 us a sample on the development Mac with a MAME sweep running. The solver is hand-written but generic, and pinned in `HOST_BOUNDARIES`. Mario's netlist isn't compiled: its VCOs and TTL need a digital simulator, and it had no master gain to delete.
+- An AY plays the table its `set_flags` selects (`sound.chipOutputs`), including `AY8910_RESISTOR_OUTPUT`'s MOSFET table.
+- `reset_routes` and `add_route` in a derived configuration now take effect, down through a device's own config (Popeye's netlist, Q\*bert's DAC at 0.20). A route through a chip's owner or an RC filter takes that device's route too, a stereo target's route counts half, and a Spectrum AY card's base config joins the machine.
+- Every compiled mix, the netlist and DAC paths included, clamps its raw sum to full scale, where MAME's speaker stage clamps to 16 bits. Without it Bank Panic read 5 dB over MAME. With it Kung-Fu Master moves from +3.1 to +2.5 dB, and Popeye, Scramble and Time Pilot, which also reach it, stay within 0.25 dB.
+- `DISCRETE` lowering drops nodes that reach no output and adds `DIVIDE`, `RCFILTER`, `RCFILTER_SW` and data inputs, which retires the linear mixer path. Qix's `fullScale` normalization is gone, and a YM2610's three MAME outputs map to the engine's channels.
+- 41 acceptance contracts changed, in sound values only: no checkpoint's picture or state hash moved. `tools/compare-audio.mjs` reports peaks.
+- Against the `ad2b8f85` MAME 0.289 baseline, pixels and RAM are `same` on all 70 scenarios. 24 read worse on some audio measure, and #234 explains them.
+
 ### Kept ROM sets are checked against what a machine now requires ([#232](https://github.com/benbruscella/mamekit/issues/232))
 
 **For players:** If a machine's requirements have changed since this browser kept its set, and the set no longer meets them, the set is cleared and the drop screen says why. Try web search there also fetches sample sets, so Carnival with a kept ROM can now reach its samples. Sets kept before this are checked once on their next boot, and any that doesn't fully match is deleted from the browser, including any kept ROM for Carnival, Congo, Panic, Q\*bert or Zaxxon whose sample set isn't kept. A set kept after this stays until the requirements change, even without its samples or short of a chip.

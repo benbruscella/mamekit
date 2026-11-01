@@ -60,9 +60,6 @@ function tndMix(triangle: number, noise: number, dmc: number): number {
 /** DC blocker corner (Hz) — see header; also sets the output centering. */
 const DC_CUTOFF_HZ = 10;
 
-/** Full-scale mix is ~1.0 unipolar; x2 after centering spans roughly ±1. */
-const OUT_GAIN = 2.0;
-
 // --- frame counter ----------------------------------------------------------
 // Event positions in CPU cycles (2x the nesdev APU-cycle table: quarters at
 // APU 3728.5 / 7456.5 / 11185.5 / 14914.5 [/ 18640.5]). The same table
@@ -528,7 +525,7 @@ export class NesApu {
       const x = NES_PULSE_MIX[p1.output() + p2.output()] +
         tndMix(tri.output(), noi.output(), dmc.level);
       this.dc += (x - this.dc) * this.dcK;
-      out[i] = (x - this.dc) * OUT_GAIN;
+      out[i] = x - this.dc;
     }
   }
 

@@ -64,8 +64,8 @@ export const kungfum = sourceTarget({
       writes: 934626,
       nonzeroWrites: 926040,
       writeHash: '16861a5a',
-      pcmHash: '6bc7ea9c',
-      rms: 0.035005,
+      pcmHash: 'bb03b014',
+      rms: 0.059496,
     },
   },
 });

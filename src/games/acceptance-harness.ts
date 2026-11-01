@@ -1191,7 +1191,7 @@ function applyBrowserOutputStage(
       y1 = y0;
     }
   }
-  const gain = sound.masterGain ?? 1;
+  const gain = sound.outputGain ?? 1;
   if (gain !== 1) {
     for (let index = 0; index < output.length; index++) output[index] = output[index]! * gain;
   }

@@ -302,14 +302,13 @@ export function compileDiscreteMixer(
     .find(candidate => markerPattern.test(candidate.source));
   if (!sourceEntry) return undefined;
   const { file: sourceFile, source } = sourceEntry;
-  const body = discreteSoundBody(source, netlist);
-  if (!body) return undefined;
+  const fullBody = discreteSoundBody(source, netlist);
+  if (!fullBody) return undefined;
+  const body = liveDiscreteBody(fullBody);
   const allOperations = [...body.matchAll(/\b(DISCRETE_[A-Z0-9_]+)\s*\(/g)]
     .map(match => match[1]!);
-  const graphOperation = /^DISCRETE_(?:MULTIPLY|CRFILTER|OP_AMP_FILTER)$/;
   const operations = allOperations.filter(operation =>
-    !graphOperation.test(operation) &&
-    !/^DISCRETE_(?:INPUTX?_STREAM|INPUTX?_DATA|RCFILTER_SW|ADDER[2-8]|MIXER[2-8]|OUTPUT)$/
+    !/^DISCRETE_(?:INPUTX?_STREAM|INPUTX?_DATA|MULTIPLY|DIVIDE|CRFILTER|RCFILTER|RCFILTER_SW|OP_AMP_FILTER|ADDER[2-8]|MIXER[2-8]|OUTPUT)$/
       .test(operation));
   if (operations.length) return undefined;
   const marker = markerPattern.exec(source)!;
@@ -328,32 +327,17 @@ export function compileDiscreteMixer(
     }
     return requiredAnalog(expanded);
   };
-  const node = (expression: string | undefined): number => {
-    const match = /\bNODE_(\d+)\b/.exec(expression ?? '');
-    if (!match) throw new Error(`${netlist}: unsupported discrete node ${expression}`);
-    return Number(match[1]);
-  };
   const sourceLocation = {
     file: sourceFile,
     line: source.slice(0, marker.index).split('\n').length,
     netlist,
   };
-  const mixerTypeOf = (expression: string | undefined): number => analog(expression);
-  const needsGraph = allOperations.some(operation => graphOperation.test(operation)) ||
-    Array.from({ length: 7 }, (_, index) => index + 2)
-      .flatMap(count => callArgs(body, `DISCRETE_MIXER${count}`))
-      .some(args => {
-        const descriptor = symbolName(args.at(-1));
-        const type = descriptor ? structFields(source, descriptor)[0] : undefined;
-        return type !== undefined && analogValue(type) !== 0 &&
-          mixerTypeOf(type) !== analog('DISC_MIXER_IS_RESISTOR');
-      });
-  if (needsGraph) {
+  {
     // A component expression outside what analog() reads leaves the network
     // unlowered, exactly as an unmodelled node does.
     let graph: GeneratedDiscreteGraphNode[] | undefined;
     try {
-      graph = compileDiscreteGraph(body, source, analog, discreteHeader);
+      graph = compileDiscreteGraph(body, source, analog, discreteHeader, readFileSync(join(mameSrc, 'src/devices/sound/disc_flt.hxx'), 'utf8'));
     } catch {
       graph = undefined;
     }
@@ -378,78 +362,6 @@ export function compileDiscreteMixer(
       source: sourceLocation,
     };
   }
-  const streamInputs = callArgs(body, 'DISCRETE_INPUTX_STREAM').map(args => ({
-    node: node(args[0]),
-    input: Number(args[1]),
-    gain: analog(args[2]),
-    offset: analog(args[3]),
-  }));
-  const dataInputs = callArgs(body, 'DISCRETE_INPUTX_DATA').map(args => ({
-    node: node(args[0]),
-    gain: analog(args[1]),
-    offset: analog(args[2]),
-  }));
-  const controlInputs = callArgs(body, 'DISCRETE_INPUT_DATA').map(args => node(args[0]));
-  const filters = callArgs(body, 'DISCRETE_RCFILTER_SW').map(args => ({
-    node: node(args[0]),
-    input: node(args[2]),
-    control: node(args[3]),
-    resistance: analog(args[4]),
-    capacitors: args.slice(5).map(analog).filter(value => value > 0),
-  }));
-  const adders = Array.from({ length: 7 }, (_, index) => index + 2)
-    .flatMap(count => callArgs(body, `DISCRETE_ADDER${count}`).map(args => ({
-      node: node(args[0]),
-      inputs: args.slice(2, 2 + count).map(node),
-    })));
-  const mixers = Array.from({ length: 7 }, (_, index) => index + 2)
-    .flatMap(count => callArgs(body, `DISCRETE_MIXER${count}`).map(args => {
-      const descriptor = symbolName(args.at(-1));
-      const values = descriptor ? structValues(source, descriptor) : undefined;
-      const resistances = values
-        ? values.firstArray.slice(0, count).map(analog)
-        : [];
-      if (resistances.length !== count || resistances.some(value => !(value > 0))) {
-        throw new Error(`${netlist}: incomplete ${count}-input resistor mixer`);
-      }
-      // discrete_mixer_desc trails its three arrays with rI, rF, cF, cAmp,
-      // vRef and gain. cF low-passes the summing node and cAmp is the
-      // AC-coupling capacitor that strips its DC; a resistor ladder's output
-      // is unipolar, so dropping cAmp leaves every level change as a thump.
-      const scalars = values?.scalars ?? [];
-      return {
-        node: node(args[0]),
-        inputs: args.slice(2, 2 + count).map(node),
-        resistances,
-        filterCapacitance: scalars[6] && scalars[6] > 0 ? scalars[6] : 0,
-        couplingCapacitance: scalars[7] && scalars[7] > 0 ? scalars[7] : 0,
-        referenceVoltage: scalars[8] && Number.isFinite(scalars[8]) ? scalars[8] : 0,
-        gain: scalars[9] && Number.isFinite(scalars[9]) && scalars[9] !== 0 ? scalars[9] : 1,
-      };
-    }));
-  const outputs = callArgs(body, 'DISCRETE_OUTPUT').map(args => ({
-    node: node(args[0]),
-    gain: analog(args[1]),
-  }));
-  if (!streamInputs.length || !mixers.length || !outputs.length) {
-    throw new Error(`${netlist}: unsupported discrete stream mixer topology`);
-  }
-  return {
-    schemaVersion: 1,
-    type: 'DISCRETE_MIXER',
-    streamInputs,
-    dataInputs,
-    controlInputs,
-    filters,
-    adders,
-    mixers,
-    outputs,
-    source: {
-      file: sourceFile,
-      line: source.slice(0, marker.index).split('\n').length,
-      netlist,
-    },
-  };
 }
 
 /** The raw initializer fields of a C struct constant, comments removed. */
@@ -478,11 +390,13 @@ function compileDiscreteGraph(
   source: string,
   analog: (expression: string | undefined) => number,
   discreteHeader: string,
+  discreteFilters: string,
 ): GeneratedDiscreteGraphNode[] | undefined {
   const clean = body.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   const railOffset = requiredAnalog(
     /^#define\s+OP_AMP_VP_RAIL_OFFSET\s+([^\s/]+)/m.exec(discreteHeader)?.[1],
   );
+  const cd4066OnResistance = /^#define\s+CD4066_ON_RES\s+\(?(\d+)\)?/m.exec(discreteFilters)?.[1];
   const operand = (expression: string | undefined): GeneratedDiscreteOperand => {
     const text = expression?.trim() ?? '';
     if (/^NODE_NC$/.test(text)) return { value: 0 };
@@ -521,12 +435,34 @@ function compileDiscreteGraph(
       graph.push({
         op: 'stream', node, input: Number(args[1]), gain: analog(args[2]), offset: analog(args[3]),
       });
+    } else if (op === 'DISCRETE_INPUT_DATA' || op === 'DISCRETE_INPUTX_DATA') {
+      // DISCRETE_INPUT_DATA(NODE) is INPUTX_DATA at gain 1, offset 0, init 0.
+      graph.push({
+        op: 'data', node,
+        gain: args[1] !== undefined ? analog(args[1]) : 1,
+        offset: args[2] !== undefined ? analog(args[2]) : 0,
+        init: args[3] !== undefined ? analog(args[3]) : 0,
+      });
+    } else if (op === 'DISCRETE_RCFILTER_SW') {
+      graph.push({
+        op: 'rcFilterSwitch', node, enable: operand(args[1]), input: operand(args[2]), control: operand(args[3]),
+        resistance: analog(args[4]),
+        capacitors: args.slice(5, 9).map(arg => analog(arg)),
+        onResistance: requiredAnalog(cd4066OnResistance),
+      });
     } else if (op.startsWith('DISCRETE_ADDER') && count) {
       graph.push({
         op: 'adder', node, enable: operand(args[1]), inputs: args.slice(2, 2 + count).map(operand),
       });
     } else if (op === 'DISCRETE_MULTIPLY') {
       graph.push({ op: 'multiply', node, inputs: args.slice(1, 3).map(operand) });
+    } else if (op === 'DISCRETE_DIVIDE') {
+      graph.push({ op: 'divide', node, enable: operand(args[1]), inputs: args.slice(2, 4).map(operand) });
+    } else if (op === 'DISCRETE_RCFILTER') {
+      graph.push({
+        op: 'rcFilter', node, input: operand(args[1]),
+        resistance: analog(args[2]), capacitance: analog(args[3]),
+      });
     } else if (op === 'DISCRETE_CRFILTER') {
       graph.push({
         op: 'crFilter', node, input: operand(args[1]),
@@ -579,6 +515,44 @@ function compileDiscreteGraph(
     }
   }
   return graph;
+}
+
+/**
+ * A netlist's statements without the nodes nothing reads on the way to an
+ * output: Moon Patrol's Sallen-Key stage is built and never mixed, and a node
+ * that reaches no output cannot change what is heard.
+ */
+function liveDiscreteBody(body: string): string {
+  const clean = body.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const statements: { text: string; op: string; node?: string; reads: string[] }[] = [];
+  const pattern = /\b(DISCRETE_[A-Z0-9_]+)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(clean)) !== null) {
+    const open = clean.indexOf('(', match.index);
+    const close = matchingDelimiter(clean, open, '(', ')');
+    if (close < 0) return body;
+    pattern.lastIndex = close + 1;
+    const args = splitMameArgs(clean.slice(open + 1, close));
+    const output = match[1] === 'DISCRETE_OUTPUT';
+    statements.push({
+      text: clean.slice(match.index, close + 1),
+      op: match[1]!,
+      ...(output ? {} : { node: /NODE_\d+/.exec(args[0] ?? '')?.[0] }),
+      reads: (output ? args : args.slice(1)).flatMap(arg => arg.match(/\bNODE_\d+\b/g) ?? []),
+    });
+  }
+  const live = new Set(statements.filter(statement => statement.op === 'DISCRETE_OUTPUT').flatMap(statement => statement.reads));
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const statement of statements) {
+      if (!statement.node || !live.has(statement.node)) continue;
+      for (const read of statement.reads) {
+        if (!live.has(read)) { live.add(read); grew = true; }
+      }
+    }
+  }
+  const dead = statements.filter(statement => statement.op !== 'DISCRETE_OUTPUT' && statement.node && !live.has(statement.node));
+  return dead.reduce((text, statement) => text.replace(statement.text, ''), clean);
 }
 
 /**
@@ -1169,14 +1143,14 @@ export interface GeneratedAy8910Plan {
   envelopeStep: number;
   noiseTaps: [number, number];
   readMasks: number[];
-  volumeTable: number[];
-  /** Compatibility curve for stream packages not yet lowered as analog nets. */
-  legacyVolumeTable: number[];
-  /** AY outputs tied together through their real shared resistor load. */
+  /** ay8910_mosfet_param, for AY8910_RESISTOR_OUTPUT. */
+  mosfet: { vg: number; vth: number; kn: number[] };
+  /** The flag bits ay8910.h defines. */
+  outputFlags: Record<string, number>;
+  /** The resistor network of ay8910_param that build_single_table and build_3D_table read. */
   singleOutput: {
     rDown: number;
     rUp: number;
-    load: number;
     resistances: number[];
     zeroIsOff: boolean;
   };
@@ -2056,6 +2030,30 @@ function discreteVoiceModel(body: string): GeneratedDiscreteAudioVoice['model'] 
   throw new Error('unsupported MAME discrete voice topology');
 }
 
+/** The AY8910_*_OUTPUT flag bits, as ay8910.h defines them. */
+function ayOutputFlagValues(header: string): Record<string, number> {
+  return Object.fromEntries([...header.matchAll(/#define\s+(AY8910_\w+_OUTPUT|YM2149_PIN26_\w+)\s+\((0x[\da-f]+)\)/gi)]
+    .map(match => [match[1]!, Number(match[2])]));
+}
+
+/**
+ * What `set_flags` and `set_resistors_load` configure on one AY: the chip's own
+ * m_flags default to AY8910_LEGACY_OUTPUT and every pin's load to 1k.
+ */
+export function ayChipOutput(mameSrc: string, config: readonly string[]): { flags: number; loads: number[] } {
+  const values = ayOutputFlagValues(readFileSync(join(mameSrc, 'src/devices/sound/ay8910.h'), 'utf8'));
+  const argumentsOf = (method: string): string | undefined => {
+    const line = config.filter(candidate => new RegExp(`\\b${method}\\s*\\(`).test(candidate)).at(-1);
+    return line?.slice(line.indexOf('(', line.indexOf(method)) + 1, line.lastIndexOf(')'));
+  };
+  const flags = argumentsOf('set_flags');
+  const loads = splitMameArgs(argumentsOf('set_resistors_load') ?? '').map(arg => analogValue(arg));
+  return {
+    flags: flags === undefined ? values.AY8910_LEGACY_OUTPUT! : evalExpr(flags, values) ?? values.AY8910_LEGACY_OUTPUT!,
+    loads: loads.length === 3 && loads.every(Number.isFinite) ? loads : [1000, 1000, 1000],
+  };
+}
+
 export function compileAy8910(
   mameSrc: string,
   definition: MameHardwareDefinition,
@@ -2107,26 +2105,8 @@ export function compileAy8910(
   const rDown = Number(params[1]);
   const rUp = Number(params[2]);
   const levels = Number(params[3]);
-  const load = 1000;
-  const raw = resistances.slice(0, levels).map((resistance, index) => {
-    let total = 1 / rDown + 1 / load + 1 / resistance;
-    let high = 1 / resistance;
-    if (index !== 0) {
-      total += 1 / rUp;
-      high += 1 / rUp;
-    }
-    return high / total;
-  });
-  const minimum = Math.min(...raw);
-  const maximum = Math.max(...raw);
-  const legacyVolumeTable = raw.map(value =>
-    (((value - minimum) / (maximum - minimum)) - 0.25) * 0.5);
-  // MAME only normalizes this table for AY8910_LEGACY_OUTPUT. Normal AY
-  // devices expose the resistor network's unipolar voltage, and the speaker's
-  // AC coupling removes its DC component later. Normalizing/bipolarizing here
-  // makes separately routed channels over four times louder than tied-output
-  // chips and changes their balance against a routed DAC.
-  const volumeTable = raw;
+  const mosfet = /ay8910_device::mosfet_param\s+ay8910_mosfet_param\s*=\s*\{\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*(\d+)\s*,\s*\{([^}]+)\}/.exec(cpp);
+  if (!mosfet) throw new Error('AY8910: ay8910_mosfet_param is not in the shape the audio compiler reads');
   return {
     schemaVersion: 1,
     type: 'AY8910',
@@ -2138,12 +2118,15 @@ export function compileAy8910(
     envelopeStep,
     noiseTaps: [Number(noise[1]), Number(noise[2])],
     readMasks: splitMameArgs(masks[1]!).map(value => Number(value)),
-    volumeTable,
-    legacyVolumeTable,
+    mosfet: {
+      vth: Number(mosfet[1]),
+      vg: Number(mosfet[2]),
+      kn: splitMameArgs(mosfet[4]!).map(Number).filter(Number.isFinite).slice(0, Number(mosfet[3])),
+    },
+    outputFlags: ayOutputFlagValues(header),
     singleOutput: {
       rDown,
       rUp,
-      load,
       resistances: resistances.slice(0, levels),
       zeroIsOff: true,
     },
@@ -2769,6 +2752,8 @@ registerProcessor(plan.processorName, GeneratedDiscreteAudioProcessor);
 `;
 }
 
+const NETLIST_SOLVER_SOURCE = readFileSync(new URL('./netlist-solver.ts', import.meta.url), 'utf8');
+
 export function generatedAy8910WorkletSource(
   plan: GeneratedAy8910Plan,
   msm5205?: GeneratedMsm5205Plan,
@@ -2798,6 +2783,13 @@ interface GeneratedMsm5205PlanData {
   sourceFiles: string[];
   source: { file: string; line: number };
 }
+
+export interface GeneratedAyChipOutput {
+  flags: number;
+  loads: number[];
+}
+
+${NETLIST_SOLVER_SOURCE}
 
 export interface GeneratedAyRoute {
   chip: number;
@@ -2841,7 +2833,10 @@ export interface GeneratedDiscreteMixerPlanData {
 type GeneratedDiscreteOperandData = { node: number } | { value: number };
 
 interface GeneratedDiscreteGraphNodeData {
-  op: 'stream' | 'adder' | 'multiply' | 'crFilter' | 'opAmpFilter' | 'mixer' | 'output';
+  op: 'stream' | 'data' | 'adder' | 'multiply' | 'divide' | 'crFilter' | 'rcFilter' | 'rcFilterSwitch' | 'opAmpFilter' | 'mixer' | 'output';
+  init?: number;
+  control?: GeneratedDiscreteOperandData;
+  onResistance?: number;
   node: number;
   input?: number | GeneratedDiscreteOperandData;
   inputs?: GeneratedDiscreteOperandData[];
@@ -2878,6 +2873,9 @@ interface GeneratedDiscreteGraphStep {
   state: number[];
   rTotal: number;
   filterGain: number;
+  factor?: number;
+  f1?: number[];
+  f2?: number[];
   a1: number;
   a2: number;
   b0: number;
@@ -2930,22 +2928,58 @@ export class GeneratedAy8910Core {
   private envelopeHolding = false;
   private readonly mixedSamples = [0, 0, 0];
   private singleOutput = 0;
-  /** Each pin's volume curve: MAME's build_single_table for its own load. */
+  /** Each pin's table, as ay8910_device::build_mixer_table builds it for this chip's flags. */
   private readonly volumeTables: number[][];
+  private readonly tiedLoad: number;
+  private readonly tiedMinimum: number;
+  private readonly tiedScale: number;
 
-  constructor(clock: number, resistorLoads?: readonly number[]) {
+  constructor(clock: number, output: GeneratedAyChipOutput = { flags: plan.outputFlags.AY8910_LEGACY_OUTPUT!, loads: [1000, 1000, 1000] }) {
     this.nativeRate = clock / plan.clockDivider;
-    const table = (load: number): number[] => plan.singleOutput.resistances.map((resistance, index) => {
-      let total = 1 / plan.singleOutput.rDown + 1 / load + 1 / resistance;
-      let high = 1 / resistance;
-      if (index !== 0) {
-        total += 1 / plan.singleOutput.rUp;
-        high += 1 / plan.singleOutput.rUp;
-      }
-      return high / total;
+    const legacy = (output.flags & plan.outputFlags.AY8910_LEGACY_OUTPUT!) !== 0;
+    const resistor = (output.flags & plan.outputFlags.AY8910_RESISTOR_OUTPUT!) !== 0;
+    // build_single_table
+    const single = (load: number): number[] => {
+      const raw = plan.singleOutput.resistances.map((resistance, index) => {
+        let total = 1 / plan.singleOutput.rDown + 1 / load + 1 / resistance;
+        let high = 1 / resistance;
+        if (index !== 0) {
+          total += 1 / plan.singleOutput.rUp;
+          high += 1 / plan.singleOutput.rUp;
+        }
+        return high / total;
+      });
+      if (!legacy) return raw;
+      const minimum = Math.min(...raw);
+      const maximum = Math.max(...raw);
+      return raw.map(value => ((value - minimum) / (maximum - minimum) - 0.25) * 0.5);
+    };
+    // build_mosfet_resistor_table: the stream carries a resistance for a netlist.
+    const mosfet = (rd: number): number[] => plan.mosfet.kn.map(k => {
+      const vg = plan.mosfet.vg - plan.mosfet.vth;
+      const kn = k / 1e6;
+      const p2 = 1 / (2 * kn * rd) + vg;
+      const vs = p2 - Math.sqrt(p2 * p2 - vg * vg);
+      return rd * (5 / vs - 1);
     });
-    this.volumeTables = Array.from({ length: plan.channels }, (_, channel) =>
-      resistorLoads?.[channel] ? table(resistorLoads[channel]!) : plan.volumeTable);
+    this.volumeTables = Array.from({ length: plan.channels }, (_, channel) => {
+      const load = output.loads[channel] ?? 1000;
+      return resistor ? mosfet(load) : single(load);
+    });
+    // build_3D_table: a legacy tied chip spans 0 to 3 between its lowest and highest mix.
+    this.tiedLoad = output.loads[0] ?? 1000;
+    const low = this.tied(0, 3 / plan.singleOutput.resistances[0]!);
+    const high = this.tied(3, 3 / plan.singleOutput.resistances.at(-1)!);
+    this.tiedMinimum = legacy ? low : 0;
+    this.tiedScale = legacy ? 3 / (high - low) : 1;
+  }
+
+  private tied(pullups: number, conductance: number): number {
+    const pullup = pullups / plan.singleOutput.rUp;
+    return (conductance + pullup) / (
+      conductance + pullup +
+      plan.channels / plan.singleOutput.rDown + 1 / this.tiedLoad
+    );
   }
 
   write(reg: number, data: number): void {
@@ -2980,7 +3014,7 @@ export class GeneratedAy8910Core {
     return this.regs[reg] & plan.readMasks[reg];
   }
 
-  sampleChannels(output: number[], analogOutputs = true): void {
+  sampleChannels(output: number[]): void {
     for (let channel = 0; channel < plan.channels; channel++) {
       if (++this.toneCount[channel] >= this.tonePeriod[channel]) {
         this.toneCount[channel] = 0;
@@ -3017,7 +3051,6 @@ export class GeneratedAy8910Core {
     const enable = this.regs[7];
     let pullups = 0;
     let conductance = 0;
-    let drivenConductance = 0;
     for (let channel = 0; channel < plan.channels; channel++) {
       const toneGate = this.toneOutput[channel] | ((enable >> channel) & 1);
       const noiseGate = (this.rng & 1) | ((enable >> (channel + 3)) & 1);
@@ -3025,27 +3058,16 @@ export class GeneratedAy8910Core {
       const envelopeEnabled = (volume & 0x10) !== 0;
       const level = envelopeEnabled ? envelope : volume & 0x0f;
       const gate = toneGate & noiseGate;
-      if (analogOutputs) {
-        output[channel] = this.volumeTables[channel]![gate ? level : 0]!;
-      } else {
-        const amplitude = plan.legacyVolumeTable[level] - plan.legacyVolumeTable[0];
-        output[channel] = gate ? amplitude : -amplitude;
-      }
+      output[channel] = this.volumeTables[channel]![gate ? level : 0]!;
 
       // MAME's AY8910_SINGLE_OUTPUT does not average three independent
       // streams: the physical pins share one resistor load. Reproduce its
       // build_3D_table conductance equation from the source-derived values.
       const tiedLevel = gate ? level : 0;
       if (!plan.singleOutput.zeroIsOff || tiedLevel !== 0 || envelopeEnabled) pullups++;
-      const levelConductance = 1 / plan.singleOutput.resistances[tiedLevel];
-      conductance += levelConductance;
-      drivenConductance += levelConductance;
+      conductance += 1 / plan.singleOutput.resistances[tiedLevel];
     }
-    const pullupConductance = pullups / plan.singleOutput.rUp;
-    this.singleOutput = (drivenConductance + pullupConductance) / (
-      conductance + pullupConductance +
-      plan.channels / plan.singleOutput.rDown + 1 / plan.singleOutput.load
-    );
+    this.singleOutput = (this.tied(pullups, conductance) - this.tiedMinimum) * this.tiedScale;
   }
 
   sampleTiedOutput(): number {
@@ -3196,12 +3218,11 @@ export class GeneratedAy8910Mixer {
   private readonly routes: GeneratedAyRoute[];
   private readonly filters: GeneratedFilterState[];
   private readonly outputGains: number[][];
-  private readonly sourceAnalogMix: boolean;
-  private readonly gainTotal: number;
   private readonly auxiliary: {
     deviceTag: string;
     gain: number;
     outputGain: number;
+    targetInput?: number;
     core: GeneratedMsm5205Core | GeneratedDac8Core;
   }[];
   private readonly auxiliaryWrites = new Map<string, {
@@ -3209,8 +3230,6 @@ export class GeneratedAy8910Mixer {
     method: string;
   }>();
   private readonly timedWrites = new Set<string>();
-  private readonly auxiliaryGainTotal: number;
-  private readonly discreteMixer?: GeneratedDiscreteMixerPlanData;
   private readonly discreteValues = new Map<number, number>();
   private readonly discreteFilterMemory = new Map<number, number>();
   private discreteGraph?: GeneratedDiscreteGraphStep[];
@@ -3219,12 +3238,12 @@ export class GeneratedAy8910Mixer {
   private readonly outputRate: number;
   private readonly deviceTags: string[];
   private muted = false;
+  private netlist?: GeneratedNetlistSolver;
+  private netlistStreams?: Float64Array;
   /**
    * Streams the main thread renders beside the chips (a beeper, a cassette)
-   * arrive as stream.pcm at their own rate, already weighted by their
-   * routes; streamGain is that weight's total, so the mix stays MAME's.
+   * arrive as stream.pcm at their own rate, already weighted by their routes.
    */
-  private readonly streamGain: number;
   private readonly streamQueue: number[] = [];
   private streamRate = 0;
   private streamPhase = 0;
@@ -3238,15 +3257,18 @@ export class GeneratedAy8910Mixer {
     auxiliaryDevices: GeneratedAuxiliaryAudioDevice[] = [],
     discreteMixer?: GeneratedDiscreteMixerPlanData,
     deviceTags: string[] = [],
-    resistorLoads: readonly (readonly number[])[] = [],
-    streamGain = 0,
+    chipOutputs: readonly GeneratedAyChipOutput[] = [],
+    netlist?: GeneratedNetlistPlanData,
   ) {
     this.outputRate = outputRate;
     this.deviceTags = deviceTags;
-    this.streamGain = streamGain;
+    if (netlist) {
+      this.netlist = new GeneratedNetlistSolver(netlist, outputRate);
+      this.netlistStreams = new Float64Array(netlist.inputs.reduce((most, input) => Math.max(most, input.channel + 1), 0));
+    }
     const count = Math.max(1, chips);
     this.cores = Array.from({ length: count }, (_, chip) =>
-      new GeneratedAy8910Core(clock, resistorLoads[chip]));
+      new GeneratedAy8910Core(clock, chipOutputs[chip]));
     this.phases = this.cores.map(() => 0);
     this.channelSamples = this.cores.map(() => [0, 0, 0]);
     this.nativeSamples = this.cores.map(() => [0, 0, 0]);
@@ -3271,22 +3293,6 @@ export class GeneratedAy8910Mixer {
             target: 'mono',
           })));
     this.outputGains = this.cores.map(() => [1, 1, 1]);
-    // Taito SJ's AY bank and moving-reference DAC are one explicit analog
-    // mixer. Preserve source voltages for that topology; other generated AY
-    // packages retain their established normalized stream protocol until
-    // their downstream netlists are compiled to the same level of fidelity.
-    //
-    // A lowered DISCRETE_SOUND network is exactly that fidelity: its
-    // DISCRETE_INPUTX_STREAM nodes expect the resistor ladder's own unipolar
-    // voltages, which is what MAME feeds them (build_mixer_table only
-    // normalizes for AY8910_LEGACY_OUTPUT). Handing such a netlist the
-    // normalized bipolar curve instead makes every AY channel about four
-    // times too loud, which is inaudible on its own but silently buries
-    // anything else mixed alongside them — Gyruss's i8039 percussion sat
-    // ~4.4x under its true weight against the AYs for exactly this reason.
-    this.sourceAnalogMix = auxiliaryDevices.some(device =>
-      (device.referenceLevels?.length ?? 0) > 0) ||
-      (discreteMixer?.streamInputs?.length ?? 0) > 0;
     const filterCount = this.routes.reduce(
       (maximum, route) => Math.max(maximum, (route.filter?.index ?? -1) + 1),
       0,
@@ -3300,11 +3306,11 @@ export class GeneratedAy8910Mixer {
       k: 1,
       memory: 0,
     }));
-    this.gainTotal = this.routes.reduce((sum, route) => sum + route.gain, 0) || 1;
     this.auxiliary = auxiliaryDevices.flatMap<{
       deviceTag: string;
       gain: number;
       outputGain: number;
+      targetInput?: number;
       core: GeneratedMsm5205Core | GeneratedDac8Core;
     }>(device =>
       device.type === 'MSM5205' && msmPlan
@@ -3312,6 +3318,7 @@ export class GeneratedAy8910Mixer {
             deviceTag: device.deviceTag,
             gain: device.gain,
             outputGain: 1,
+            ...(device.targetInput !== undefined && netlist ? { targetInput: device.targetInput } : {}),
             core: new GeneratedMsm5205Core(device.initialMode),
           }]
         : device.type === 'DAC_4BIT_R2R' || device.type === 'DAC_8BIT_R2R'
@@ -3339,23 +3346,16 @@ export class GeneratedAy8910Mixer {
         if (device.core instanceof GeneratedDac8Core) this.timedWrites.add(key);
       }
     }
-    this.auxiliaryGainTotal = this.auxiliary.reduce(
-      (sum, device) => sum + device.gain,
-      0,
-    );
-    this.discreteMixer = discreteMixer;
     if (discreteMixer?.graph) this.resetDiscreteGraph(discreteMixer.graph);
-    for (const input of discreteMixer?.dataInputs ?? []) {
-      this.discreteValues.set(input.node, 0);
-    }
-    for (const node of discreteMixer?.controlInputs ?? []) {
-      this.discreteValues.set(node, 0);
-    }
   }
 
   write(offset: number, data: number, method?: string): void {
     if (method === 'discrete') {
       this.discreteValues.set(offset, data);
+      return;
+    }
+    if (method === 'netlist.logic') {
+      this.netlist?.writeLogic(offset, data);
       return;
     }
     // A main-thread stream's sample, its rate in the offset. A stalled
@@ -3441,7 +3441,7 @@ export class GeneratedAy8910Mixer {
       this.phases[chip]! += core.nativeRate / this.outputRate;
       while (this.phases[chip]! >= 1) {
         this.phases[chip]! -= 1;
-        core.sampleChannels(native, this.sourceAnalogMix);
+        core.sampleChannels(native);
         for (let channel = 0; channel < plan.channels; channel++) {
           lowpass1[channel]! += (native[channel]! - lowpass1[channel]!) * k;
           lowpass2[channel]! += (lowpass1[channel]! - lowpass2[channel]!) * k;
@@ -3462,7 +3462,7 @@ export class GeneratedAy8910Mixer {
       }
     }
     if (this.discreteGraph) return this.sampleDiscreteGraph();
-    if (this.discreteMixer) return this.sampleDiscreteMixer();
+    if (this.netlist) return this.sampleNetlist();
     let mixed = 0;
     for (const route of this.routes) {
       const samples = this.channelSamples[route.chip];
@@ -3484,12 +3484,23 @@ export class GeneratedAy8910Mixer {
       }
       mixed += this.streamHeld;
     }
-    // A fully source-compiled analog mixer uses MAME's physical add_route
-    // gains. Legacy stream packages retain their established weighted mix.
-    const output = this.sourceAnalogMix
-      ? mixed
-      : mixed / (this.gainTotal + this.auxiliaryGainTotal + this.streamGain);
-    return Math.max(-1, Math.min(1, output));
+    return Math.max(-1, Math.min(1, mixed));
+  }
+
+  // Each route carries its stream to a NETLIST_STREAM_INPUT channel, at its
+  // gain, as a sound_stream input does.
+  private sampleNetlist(): number {
+    const streams = this.netlistStreams!;
+    for (const route of this.routes) {
+      if (route.targetInput === undefined) continue;
+      streams[route.targetInput] = (route.channel === -1
+        ? this.singleSamples[route.chip] ?? 0
+        : this.channelSamples[route.chip]?.[route.channel] ?? 0) * route.gain;
+    }
+    for (const device of this.auxiliary) {
+      if (device.targetInput !== undefined) streams[device.targetInput] = device.core.sample() * device.gain * device.outputGain;
+    }
+    return Math.max(-1, Math.min(1, this.netlist!.step(streams)));
   }
 
   // DISCRETE_RESET for each node class in the graph (disc_flt.hxx,
@@ -3505,7 +3516,25 @@ export class GeneratedAy8910Mixer {
       };
       if (spec.op === 'stream') {
         step.route = this.routes.find(candidate => candidate.targetInput === spec.input);
-      } else if (spec.op === 'crFilter') {
+      } else if (spec.op === 'rcFilterSwitch') {
+        // dst_rcfilter_sw's reset: each cap's own exponent through the switch,
+        // the two fast cases' through the series R too, and the mix per pattern.
+        const on = spec.onResistance!;
+        const r = spec.resistance!;
+        const caps = spec.capacitors!;
+        step.exponents = [...caps.map(cap => charge(on * cap)), charge((on + r) * caps[0]!), charge((on + r) * caps[1]!)];
+        step.factor = on / (r + on);
+        step.f1 = Array.from({ length: 16 }, (_, bits) => {
+          let rs = 0;
+          for (let bit = 0; bit < 4; bit++) if (bits & (1 << bit)) rs += r;
+          return on / (rs + on);
+        });
+        step.f2 = Array.from({ length: 16 }, (_, bits) => {
+          let rs = 0;
+          for (let bit = 0; bit < 4; bit++) if (bits & (1 << bit)) rs += r;
+          return r / (on + rs);
+        });
+      } else if (spec.op === 'crFilter' || spec.op === 'rcFilter') {
         step.exponents = [charge(spec.resistance! * spec.capacitance!)];
       } else if (spec.op === 'opAmpFilter') {
         let conductance = 1 / spec.r1!;
@@ -3598,6 +3627,44 @@ export class GeneratedAy8910Mixer {
         case 'multiply':
           values.set(spec.node, read(spec.inputs![0]) * read(spec.inputs![1]));
           break;
+        case 'data':
+          // dss_input_data: the last write, or its init, through gain and offset.
+          values.set(spec.node, (this.discreteValues.get(spec.node) ?? spec.init!) * spec.gain! + spec.offset!);
+          break;
+        case 'rcFilterSwitch': {
+          if (!read(spec.enable)) {
+            values.set(spec.node, 0);
+            break;
+          }
+          const bits = read(spec.control) | 0;
+          const vIn = read(spec.input as GeneratedDiscreteOperandData);
+          let vOut: number;
+          if (bits === 0) {
+            vOut = vIn;
+          } else if (bits === 1 || bits === 2) {
+            const cap = bits - 1;
+            state[cap] = state[cap]! + (vIn - state[cap]!) * step.exponents[4 + cap]!;
+            vOut = state[cap]! + (vIn - state[cap]!) * step.factor!;
+          } else {
+            let us = 0;
+            for (let bit = 0; bit < 4; bit++) if (bits & (1 << bit)) us += state[bit]!;
+            vOut = step.f1![bits]! * vIn + step.f2![bits]! * us;
+            for (let bit = 0; bit < 4; bit++) {
+              if (bits & (1 << bit)) state[bit] = state[bit]! + (vOut - state[bit]!) * step.exponents[bit]!;
+            }
+          }
+          values.set(spec.node, vOut);
+          break;
+        }
+        case 'divide':
+          // dst_divide: DBL_MAX on a zero divisor, which no lowered netlist has.
+          values.set(spec.node, read(spec.enable) ? read(spec.inputs![0]) / read(spec.inputs![1]) : 0);
+          break;
+        case 'rcFilter':
+          // dst_rcfilter's fast path: no vRef, no RC from a node.
+          state[0] = state[0]! + (read(spec.input as GeneratedDiscreteOperandData) - state[0]!) * step.exponents[0]!;
+          values.set(spec.node, state[0]!);
+          break;
         case 'crFilter': {
           const vOut = read(spec.input as GeneratedDiscreteOperandData) - state[0]!;
           values.set(spec.node, vOut);
@@ -3679,90 +3746,6 @@ export class GeneratedAy8910Mixer {
       }
     }
     return Math.max(-1, Math.min(1, output / this.discreteGraphOutputs));
-  }
-
-  private sampleDiscreteMixer(): number {
-    const mixer = this.discreteMixer!;
-    const values = new Map(this.discreteValues);
-    for (const input of mixer.streamInputs) {
-      const route = this.routes.find(candidate => candidate.targetInput === input.input);
-      const samples = route ? this.channelSamples[route.chip] : undefined;
-      const value = route?.channel === -1
-        ? this.singleSamples[route.chip] ?? 0
-        : samples?.[route?.channel ?? -1] ?? 0;
-      values.set(input.node, value * (route?.gain ?? 1) * input.gain + input.offset);
-    }
-    for (const input of mixer.dataInputs) {
-      const raw = this.discreteValues.get(input.node) ?? 0;
-      const maximum = Math.abs(input.gain) * 255 || 1;
-      values.set(input.node, (raw * input.gain + input.offset) / maximum);
-    }
-    for (const filter of mixer.filters) {
-      const control = values.get(filter.control) ?? 0;
-      const capacitance = filter.capacitors.reduce(
-        (sum, value, index) => sum + ((control >> index) & 1 ? value : 0),
-        0,
-      );
-      const input = values.get(filter.input) ?? 0;
-      if (capacitance === 0) {
-        values.set(filter.node, input);
-        this.discreteFilterMemory.set(filter.node, input);
-        continue;
-      }
-      const k = 1 - Math.exp(-1 / (filter.resistance * capacitance) / this.outputRate);
-      const memory = this.discreteFilterMemory.get(filter.node) ?? input;
-      const output = memory + (input - memory) * k;
-      this.discreteFilterMemory.set(filter.node, output);
-      values.set(filter.node, output);
-    }
-    for (const adder of mixer.adders) {
-      values.set(adder.node, adder.inputs.reduce(
-        (sum, input) => sum + (values.get(input) ?? 0),
-        0,
-      ));
-    }
-    for (const stage of mixer.mixers) {
-      const conductance = stage.resistances.reduce(
-        (sum, resistance) => sum + 1 / resistance,
-        0,
-      );
-      // Millman's theorem, exactly as MAME's DISC_MIXER_IS_RESISTOR sums.
-      let value = stage.inputs.reduce(
-        (sum, input, index) =>
-          sum + (values.get(input) ?? 0) / stage.resistances[index]!,
-        0,
-      ) / conductance;
-      const memory = this.discreteFilterMemory;
-      const step = 1 / this.outputRate;
-      if (stage.filterCapacitance > 0) {
-        const key = stage.node * 2;
-        const exponent = 1 - Math.exp(-step / ((1 / conductance) * stage.filterCapacitance));
-        const held = (memory.get(key) ?? 0) +
-          (value - stage.referenceVoltage - (memory.get(key) ?? 0)) * exponent;
-        memory.set(key, held);
-        value = held;
-      }
-      if (stage.couplingCapacitance > 0) {
-        // MAME fixes this stage's resistance at 100k (disc_mth.hxx).
-        const key = stage.node * 2 + 1;
-        const exponent = 1 - Math.exp(-step / (100_000 * stage.couplingCapacitance));
-        const held = (memory.get(key) ?? 0) + (value - (memory.get(key) ?? 0)) * exponent;
-        memory.set(key, held);
-        value -= held;
-      }
-      values.set(stage.node, value * stage.gain);
-    }
-    // Each DISCRETE_OUTPUT is one speaker channel carrying its own source gain
-    // (Gyruss routes NODE_50 right and NODE_51 left). Folding them to this
-    // mono sink averages the CHANNELS, so divide by how many there are — not,
-    // as before, by the sum of their gains, which cancelled the very gain that
-    // lifts a discrete network into the stream's range and left the whole mix
-    // an output-gain quieter than the hardware.
-    const output = mixer.outputs.reduce(
-      (sum, candidate) => sum + (values.get(candidate.node) ?? 0) * candidate.gain,
-      0,
-    ) / Math.max(1, mixer.outputs.length);
-    return Math.max(-1, Math.min(1, output));
   }
 
   private recalculate(filter: GeneratedFilterState): void {
@@ -3890,8 +3873,8 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
         routes?: GeneratedAyRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         discreteMixer?: GeneratedDiscreteMixerPlanData;
-        resistorLoads?: number[][];
-        streamGain?: number;
+        chipOutputs?: GeneratedAyChipOutput[];
+        netlist?: GeneratedNetlistPlanData;
         refresh?: number;
         offset?: number;
         data?: number;
@@ -3907,8 +3890,8 @@ class GeneratedAy8910Processor extends AudioWorkletProcessor {
           message.auxiliaryDevices,
           message.discreteMixer,
           message.deviceTags,
-          message.resistorLoads,
-          message.streamGain,
+          message.chipOutputs,
+          message.netlist,
         );
         this.renderer = new GeneratedAy8910FrameRenderer(
           this.mixer,

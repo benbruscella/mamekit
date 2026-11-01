@@ -35,11 +35,11 @@ export const scramble = sourceTarget({
       900: { video: '9565486f', state: '572150c6' },
     },
     audio: {
-      writes: 7003,
-      nonzeroWrites: 6119,
-      writeHash: 'c32cdeb6',
-      pcmHash: '99af80c9',
-      rms: 0.034364,
+      writes: 7279,
+      nonzeroWrites: 6238,
+      writeHash: '33d48d84',
+      pcmHash: 'fb504b53',
+      rms: 0.157937,
     },
   },
 });

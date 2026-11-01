@@ -46,8 +46,8 @@ export const qix = sourceTarget({
       writes: 13584,
       nonzeroWrites: 13543,
       writeHash: '273c6a72',
-      pcmHash: '4a6db033',
-      rms: 0.181608,
+      pcmHash: '6b6b4841',
+      rms: 0.090804,
     },
   },
 });

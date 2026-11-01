@@ -35,8 +35,8 @@ export const carnival = sourceTarget({
       writes: 960189,
       nonzeroWrites: 41146,
       writeHash: '4b5be68b',
-      pcmHash: '4b50de8e',
-      rms: 0.068204,
+      pcmHash: '529ab806',
+      rms: 0.099109,
     },
   },
 });

@@ -34,8 +34,8 @@ export const jumpbug = sourceTarget({
       writes: 2928,
       nonzeroWrites: 1366,
       writeHash: 'a5d974af',
-      pcmHash: '191b91c7',
-      rms: 0.111433,
+      pcmHash: '7ef9abe5',
+      rms: 0.18385,
     },
   },
 });

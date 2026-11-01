@@ -61,8 +61,8 @@ export const robotron = sourceTarget({
       writes: 270220,
       nonzeroWrites: 266505,
       writeHash: 'db593a0b',
-      pcmHash: 'bcfdd989',
-      rms: 0.850458,
+      pcmHash: '906497bc',
+      rms: 0.212614,
     },
   },
 });

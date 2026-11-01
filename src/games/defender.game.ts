@@ -70,8 +70,8 @@ export const defender = sourceTarget({
       writes: 69623,
       nonzeroWrites: 63647,
       writeHash: '180209d4',
-      pcmHash: '8f40b826',
-      rms: 0.76958,
+      pcmHash: 'ecff8e8a',
+      rms: 0.192395,
     },
   },
 });

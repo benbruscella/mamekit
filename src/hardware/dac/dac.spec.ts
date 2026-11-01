@@ -106,14 +106,18 @@ oneBit.write(0, 1);
 assert.equal(oneBit.sample(), 1);
 
 // Binary-weighted ladders carry twice the R-2R gain, so MAME's own value map
-// runs past full scale — dac_gain_bw is 2.0 against a -1..1 range.
-const weighted = new GeneratedDacMixer(1, [], [], [table.DAC_4BIT_BINARY_WEIGHTED!]);
+// runs past full scale — dac_gain_bw is 2.0 against a -1..1 range. Only the
+// routed sum meets full scale, where MAME's speaker stage clamps it.
+const weighted = new GeneratedDacMixer(1, [{ chip: 0, gain: 0.25 }], [], [table.DAC_4BIT_BINARY_WEIGHTED!]);
 weighted.write(0, 0);
-assert.equal(weighted.sample(), -1);
+assert.equal(weighted.sample(), -0.25);
 weighted.write(0, 8);
-assert.equal(weighted.sample(), 1);
+assert.equal(weighted.sample(), 0.25);
 weighted.write(0, 15);
-assert.ok(Math.abs(weighted.sample() - 2.75) < 1e-9);
+assert.ok(Math.abs(weighted.sample() - 2.75 * 0.25) < 1e-9);
+const clipped = new GeneratedDacMixer(1, [], [], [table.DAC_4BIT_BINARY_WEIGHTED!]);
+clipped.write(0, 15);
+assert.equal(clipped.sample(), 1);
 
 // Twos-complement coding flips the top bit before mapping.
 const twos = new GeneratedDacMixer(1, [], [], [table.DAC_8BIT_R2R_TWOS_COMPLEMENT!]);

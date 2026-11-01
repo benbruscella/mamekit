@@ -28,8 +28,8 @@ export const popeye = sourceTarget({
       writes: 2538,
       nonzeroWrites: 1855,
       writeHash: '86124e3b',
-      pcmHash: '9463e1c2',
-      rms: 0.088221,
+      pcmHash: 'fa1fd8c0',
+      rms: 0.247205,
     },
   },
 });

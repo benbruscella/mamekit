@@ -820,23 +820,58 @@ Norton op-amp stages are lowered to stable browser component models; MAMEKIT
 does not yet implement MAME's complete analog discrete solver. The generated
 IR records that boundary instead of hiding it in a checked-in game sound class.
 
-An AY8910 routed into a `DISCRETE` network gets `sound.discreteMixer`. A
-network of streams, adders and resistor mixers keeps its linear sections. One
-that carries an op-amp filter or mixer, a CR filter or a multiply lowers to
-`discreteMixer.graph`: every node in MAME's step order with the equations of
-its MAME node class, in real volts, so op-amp rails clip where the circuit
-does. Any node or variant outside that set leaves the network unlowered rather
-than approximated. A per-channel `AY8910_DISCRETE_OUTPUT` chip also carries
-its `set_resistors_load` values as `sound.resistorLoads`, which shape each
-pin's volume curve as `build_single_table` does.
+An AY8910 routed into a `DISCRETE` network gets `sound.discreteMixer`, whose
+`graph` holds every node that reaches an output, in MAME's step order, with the
+equations of its MAME node class, in real volts, so op-amp rails clip where the
+circuit does. Any node or variant outside that set leaves the network unlowered
+rather than approximated. 
+A board's level is MAME's routes and nothing else: no family carries a gain of
+its own. Each engine outputs what its MAME stream outputs at route 1.0, and the
+worklet sums the routes as MAME's mixer does, without dividing by their total
+or by the number of chips. An AY plays the table its flags select
+(`sound.chipOutputs`, from `set_flags` and `set_resistors_load`):
+`AY8910_LEGACY_OUTPUT`, MAME's default, the normalized `build_single_table`;
+`AY8910_DISCRETE_OUTPUT` the resistor network's own voltages;
+`AY8910_RESISTOR_OUTPUT` a resistance, for a netlist. A route through a chip's
+owner or an `RC` filter takes that device's own route too, and `reset_routes` and
+`add_route` in a derived configuration (`routeEdits` on a device patch) replace
+what the base configured, down through a device's own config.
 
-A family's post-mix master gain is declared by its capability package and
-written into the generated config, so the shell applies whatever the family
-states rather than holding a table keyed by sound kind.
+A mix that goes through one gain carries it as `sound.outputGain`, which the
+shell applies after the worklet: a WSG's route, the TIA's, the APU's. A route to
+one channel of a stereo target counts half, because the browser plays one
+channel, the average of MAME's two. The summed mix clamps to full scale where
+MAME's speaker stage clamps it to 16 bits (`sound.cpp`): on the raw sum, DC and
+all, with no filter in front. Boards that sum past it clip as MAME's do; removing
+the clamp left bankp 5 dB over. The hand models that are still waiting to be
+compiled (`berzerk-sound`, `discrete-effects`, Phoenix) keep their own gains.
 
-The YM2151's mix has none: its routes are MAME's, so it matches MAME's level as
-it stands. A route to one channel of a stereo target counts half, because the
-browser plays one channel, the average of MAME's two.
+### NETLISTS
+
+A `NETLIST_SOUND` is compiled from its netlist. `src/mame/netlist-compiler.ts`
+reads MAME's setup language as `nlparse_t` does (`NETLIST_START`, `SUBMODEL`,
+`INCLUDE`, `NET_C`, `ALIAS`, `DIPPINS`, `PARAM`, `NET_MODEL`, `OPTIMIZE_FRONTIER`
+and the macro library under `src/lib/netlist/macro`), elaborates it into nets,
+and lowers each device to the elements of its MAME class: `RES`, `CAP`, `POT`,
+`DIODE`, `QBJT_EB`, a type 3 `OPAMP` as `nld_opamp` builds it, `CD4066_GATE`, a
+frontier, logic outputs through `nld_d_to_a_proxy`, and a one-input `TRUTH_TABLE`
+inverter. A device outside that set stops the compile, so generation fails rather
+than playing an approximation. Mario's netlist is one: its VCOs and TTL need a
+digital simulator that doesn't exist yet, and the board stays on its DAC path.
+
+`src/mame/netlist-solver.ts`, emitted into the worklet, steps the plan once a
+sample: a sparse LU per solver group with its elimination fixed once, backward
+Euler capacitors as `NL_USE_BACKWARD_EULER` selects, and Newton-Raphson to MAME's
+`RELTOL`, `VNTOL` and `NR_LOOPS` only in a group with a diode or a transistor.
+Rails and frontiers cut a netlist into small groups, as they cut MAME's matrices.
+It is the one hand-written piece, and it names no chip or machine; it is pinned
+in `HOST_BOUNDARIES` in `architecture.spec.ts`.
+
+A chip's routes carry its stream to `NETLIST_STREAM_INPUT` channels. An AY set to
+`AY8910_RESISTOR_OUTPUT` streams `build_mosfet_resistor_table`'s resistances,
+which drive a resistor; an MSM5205's stream is volts through its
+`set_mult_offset`. A driver's `NETLIST_LOGIC_INPUT` writes reach the worklet as
+`netlist.logic` (Frogger's filter capacitors, Kung-Fu Master's drums).
 
 A board is rarely one chip. The chip that decides `sound.kind` owns the
 worklet; every other chip routed to the same speaker is lowered as an entry in

@@ -38,13 +38,8 @@ export class GeneratedDiscreteAudioCore {
   sample(): number {
     const plan = this.plan;
     if (!plan) return 0;
-    const raw = this.dac * plan.dac.gain + plan.dac.offset;
-    const fullScale = Math.max(
-      1,
-      Math.abs(plan.dac.offset),
-      Math.abs(255 * plan.dac.gain + plan.dac.offset),
-    );
-    const input = raw / fullScale;
+    // dso_output hands the node's value over at 1/32768 of it.
+    const input = (this.dac * plan.dac.gain + plan.dac.offset) / 32768;
     let mixed = 0;
     for (let index = 0; index < plan.channels.length; index++) {
       const channel = plan.channels[index]!;

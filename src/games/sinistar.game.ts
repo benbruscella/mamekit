@@ -65,8 +65,8 @@ export const sinistar = sourceTarget({
       writes: 48169,
       nonzeroWrites: 29045,
       writeHash: '7b9203ee',
-      pcmHash: '1e9cd80c',
-      rms: 0.21084,
+      pcmHash: '883534a8',
+      rms: 0.221382,
     },
   },
 });

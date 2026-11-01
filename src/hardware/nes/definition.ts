@@ -18,8 +18,6 @@ export const NES_CPU_TYPES = ['RP2A03', 'RP2A03G'] as const;
 export const NES_APU_IR_ARTIFACT = 'audio/nes-apu.audio.ir.json';
 export const NES_APU_WORKLET_ARTIFACT = 'audio/nes-worklet.ts';
 
-/** The console output is mixed hot by the passive NES audio network. */
-export const NES_MASTER_GAIN = 0.75;
 
 export const NES_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: 'CPU-visible generated device methods' },

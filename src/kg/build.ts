@@ -3107,8 +3107,11 @@ function processorSlotCards(
         hierarchy.push(cls);
         cls = classes.get(cls)?.bases.map(base => base.split('::').at(-1)!).find(base => classes.has(base));
       }
-      const mconfig = hierarchy.map(cls => parsed.flatMap(unit => unit.functions)
-        .find(fn => fn.className === cls && fn.name === 'device_add_mconfig')).find(Boolean);
+      const mconfigs = hierarchy.map(cls => parsed.flatMap(unit => unit.functions)
+        .find(fn => fn.className === cls && fn.name === 'device_add_mconfig')).filter(fn => fn !== undefined);
+      const mconfig = mconfigs[0];
+      // A card's config calls its base's, which routes the chip the card built.
+      const configFiles = mconfigs.map(fn => fn.span.file);
       // A card that runs a program (the 1541), or one that carries a sound
       // chip (the Spectrum 128's AY8912 behind its AY slot): either is part
       // of the machine MAME builds and has to run with it.
@@ -3124,7 +3127,7 @@ function processorSlotCards(
         // cbmiec.h, the bus it plugs into, which is no part of the card and
         // must not join the machine's own source.
         files: units.filter((file, index) =>
-          index === 0 || file === header || file.endsWith(mconfig.span.file))
+          index === 0 || file === header || configFiles.some(config => file.endsWith(config)))
           .map(file => file.slice(mameSrc.length + 1)),
       });
     }
@@ -3219,6 +3222,7 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
           pixclock: number; htotal: number; hbend: number; hbstart: number;
           vtotal: number; vbend: number; vbstart: number;
         };
+        routeEdits?: ('reset' | { output: string; target: string; gain: number; input?: number; raw: string })[];
       };
       const deviceIds = new Set(configOrder.flatMap(id => edges
         .filter(edge => edge.from === id && edge.rel === 'HAS_DEVICE')
@@ -3253,6 +3257,63 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         ? device.props.config.map(String)
         : [];
       device.props.config = [...raw, ...patch.config];
+      for (const edit of patch.routeEdits ?? []) {
+        if (edit === 'reset') {
+          edges = edges.filter(edge => !(edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE'));
+          continue;
+        }
+        const count = edges.filter(edge => edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE').length;
+        const id = `audioroute:${device.id}/${configId}/${count}`;
+        const { raw: routeRaw, ...route } = edit;
+        nodes.push({ id, label: 'AudioRoute', props: { ...route, raw: routeRaw } });
+        edges.push({ from: device.id, to: id, rel: 'HAS_AUDIO_ROUTE' });
+      }
+    }
+  }
+  // A device's own config rewires what its base config built: Q*bert's speech
+  // board resets the DAC route of the sound board it derives from. Its tags are
+  // its own, so only the configs it calls are searched.
+  const reachedConfigs = new Set(configOrder);
+  for (const hosted of reachedConfigs) {
+    for (const held of edges.filter(edge => edge.from === hosted && edge.rel === 'HAS_DEVICE')) {
+      for (const call of edges.filter(edge => edge.from === held.to && edge.rel === 'CALLS')) {
+        if (!reachedConfigs.has(call.to)) {
+          reachedConfigs.add(call.to);
+          applyHostedRouteEdits(call.to);
+        }
+      }
+    }
+  }
+  function applyHostedRouteEdits(configId: string): void {
+    const closure = [configId];
+    for (const id of closure) {
+      for (const call of edges.filter(edge => edge.from === id && edge.rel === 'CALLS')) {
+        if (!closure.includes(call.to)) closure.push(call.to);
+      }
+    }
+    // The base's edits first, as MAME runs the base's config before the rest.
+    for (const id of [...closure].reverse()) {
+      const config = nodes.find(node => node.id === id);
+      const encoded = Array.isArray(config?.props.devicePatches) ? config.props.devicePatches.map(String) : [];
+      for (const value of encoded) {
+        const patch = JSON.parse(value) as { tag: string; routeEdits?: ('reset' | { output: string; target: string; gain: number; input?: number; raw: string })[] };
+        if (!patch.routeEdits?.length) continue;
+        const device = closure.flatMap(owner => edges
+          .filter(edge => edge.from === owner && edge.rel === 'HAS_DEVICE')
+          .map(edge => nodes.find(node => node.id === edge.to)))
+          .find(node => node?.label === 'Device' && node.props.tag === patch.tag);
+        if (!device) continue;
+        for (const edit of patch.routeEdits) {
+          if (edit === 'reset') {
+            edges = edges.filter(edge => !(edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE'));
+            continue;
+          }
+          const count = edges.filter(edge => edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE').length;
+          const routeId = `audioroute:${device.id}/${id}/${count}`;
+          nodes.push({ id: routeId, label: 'AudioRoute', props: { ...edit } });
+          edges.push({ from: device.id, to: routeId, rel: 'HAS_AUDIO_ROUTE' });
+        }
+      }
     }
   }
 
