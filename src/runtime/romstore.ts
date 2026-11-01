@@ -31,13 +31,21 @@ export interface RomRecord {
   addedAt: number;
 }
 
+/**
+ * A sample set's record: filed by set, because its zip often shares a name with
+ * the machine's ROM set, and clones share one set.
+ */
+export function sampleSetKey(set: string): string {
+  return `samples:${set}`;
+}
+
 export interface RomStore {
   /** false => in-memory fallback; the set lasts only this session */
   persistent: boolean;
   get(game: string): Promise<RomRecord | null>;
   put(record: RomRecord): Promise<void>;
   remove(game: string): Promise<void>;
-  /** every machine with a stored set, for the menu */
+  /** every machine with a stored ROM set, for the menu */
   games(): Promise<string[]>;
 }
 

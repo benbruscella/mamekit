@@ -1195,6 +1195,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // Emitting the bare byte array stored each half-word at the word index
     // and dropped every high byte.
     if (expression.pointer) {
+      if (isBytePointerType(expression.valueType)) return `runtime.byteView(${operand})`;
       const view = packedPointerView(expression.valueType);
       return view === undefined ? operand : `runtime.packedView(${operand}, ${view})`;
     }
@@ -1260,7 +1261,9 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       if (
         (expression.operator === '==' || expression.operator === '!=') &&
         (leftType?.includes('*') || rightType?.includes('*') || iterator(expression.left) || iterator(expression.right) ||
-          rectangle)
+          // Objects, as the compiler marked them: as numbers both sides of
+          // `&stream == m_channel[channel].stream` were NaN, and no channel rendered.
+          rectangle || expression.identity)
       ) {
         const isNull = (value: GeneratedExpression): boolean =>
           (value.kind === 'number' && value.value === 0) ||
@@ -2714,6 +2717,10 @@ function wrapBits(value: string, bits?: 1 | 8 | 16 | 32, signed = false): string
  * Whether a pointee type reinterprets byte memory as 16-bit, and with which
  * sign. Undefined for every other pointer cast, which stays an identity.
  */
+function isBytePointerType(valueType: string | undefined): boolean {
+  return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
+}
+
 function packedPointerView(valueType: string | undefined): boolean | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
   if (/^(?:u16|uint16_t)$/.test(pointee)) return false;

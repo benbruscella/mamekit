@@ -5,9 +5,8 @@ export const panic = sourceTarget({
   driver: 'src/mame/universal/cosmic.cpp',
   machine: { className: 'cosmic_state', name: 'panic' },
   screen: { width: 256, height: 192 },
-  soundKind: 'samples',
+  soundKind: 'stream',
   // Existing synthesized effects do not reproduce the original sample pack.
-  acceptedAudioLimitations: ['synthesized-samples'],
   minimumAudioRms: 0.02,
   golden: {
     regions: {
@@ -17,20 +16,20 @@ export const panic = sourceTarget({
       user1: '7da0b321',
     },
     checkpoints: {
-      1: { video: '6087f1e5', state: '9816df37' },
-      60: { video: '7c352156', state: '28c0aa9c' },
-      180: { video: '46a419c9', state: '5970ced7' },
-      300: { video: '1236025c', state: 'dbd316bb' },
-      600: { video: '2019d643', state: '3a0bfcd1' },
-      900: { video: 'ab7b492d', state: '14878cfa' },
-      1200: { video: 'e73caa97', state: '6c96a30f' },
+      1: { video: '6087f1e5', state: '02fdb96d' },
+      60: { video: '7c352156', state: '712a24a9' },
+      180: { video: '46a419c9', state: '74d14f9b' },
+      300: { video: '1236025c', state: 'aeeeb857' },
+      600: { video: '2019d643', state: 'dcf02d8d' },
+      900: { video: 'ab7b492d', state: 'e39923b9' },
+      1200: { video: 'e73caa97', state: '61556cdd' },
     },
     audio: {
-      writes: 623,
-      nonzeroWrites: 0,
-      writeHash: '3e00e336',
-      pcmHash: '3c45d9e1',
-      rms: 0.066605,
+      writes: 982267,
+      nonzeroWrites: 101578,
+      writeHash: 'dc10088a',
+      pcmHash: 'd34a69e4',
+      rms: 0.02276,
     },
   },
 });

@@ -125,102 +125,6 @@ export interface GeneratedSn76489AuxiliaryDevice {
   writeMethods: string[];
 }
 
-interface GeneratedSn76489SampleVoice {
-  active: boolean;
-  loop: boolean;
-  sample: number;
-  phase: number;
-  age: number;
-  volume: number;
-  noise: number;
-}
-
-// samples_device selects external WAVs in MAME. The generated runtime cannot
-// redistribute those packs, so it uses the same deterministic, role-based
-// fallback as the standalone SAMPLES capability. Crucially, these commands
-// remain a separate stream: feeding them to chip zero as SN register bytes
-// corrupts both PSG state and the acceptance signal.
-class GeneratedSn76489SamplesCore {
-  private readonly voices: GeneratedSn76489SampleVoice[] = Array.from(
-    { length: 16 },
-    () => ({
-      active: false, loop: false, sample: 0, phase: 0, age: 0, volume: 1, noise: 1,
-    }),
-  );
-  private random = 0x5a17c9e3;
-  private readonly outputRate: number;
-
-  constructor(outputRate: number) {
-    this.outputRate = outputRate;
-  }
-
-  write(offset: number, data: number, method: string): void {
-    const voice = this.voices[offset & 15]!;
-    if (method === 'stop') {
-      voice.active = false;
-      return;
-    }
-    if (method === 'set_volume') {
-      voice.volume = (data & 0xff) / 255;
-      return;
-    }
-    if (method !== 'start') return;
-    voice.sample = data & 0x7f;
-    voice.loop = Boolean(data & 0x80);
-    voice.active = true;
-    voice.phase = 0;
-    voice.age = 0;
-  }
-
-  sampleValue(): number {
-    const durations = [1.4, 0.75, 1.2, 2.0, 0.42, 0.95, 0.18, 0.16, 0.55, 0.8, 9, 9];
-    let mixed = 0;
-    for (const voice of this.voices) {
-      if (!voice.active) continue;
-      const duration = durations[voice.sample] ?? 0.35;
-      const elapsed = voice.age / this.outputRate;
-      if (!voice.loop && elapsed >= duration) {
-        voice.active = false;
-        continue;
-      }
-      const envelope = voice.loop ? 1 : Math.max(0, 1 - elapsed / duration);
-      mixed += this.signal(voice, elapsed) * envelope * voice.volume * 0.22;
-      voice.age++;
-    }
-    return Math.max(-1, Math.min(1, mixed));
-  }
-
-  private signal(voice: GeneratedSn76489SampleVoice, elapsed: number): number {
-    const id = voice.sample;
-    let frequency = 90;
-    let noiseMix = 0;
-    if (id === 0) frequency = 720 - Math.min(500, elapsed * 360);
-    else if (id === 1) { frequency = 180 + elapsed * 460; noiseMix = 0.35; }
-    else if (id === 2) frequency = 1050 + Math.sin(elapsed * 31) * 190;
-    else if (id === 3) frequency = 58 + Math.sin(elapsed * 7) * 8;
-    else if (id === 4 || id === 5) { frequency = id === 4 ? 72 : 48; noiseMix = 0.9; }
-    else if (id === 6) { frequency = 135; noiseMix = 0.75; }
-    else if (id === 7) frequency = 620 - elapsed * 900;
-    else if (id === 8) frequency = 880;
-    else if (id === 9) frequency = Math.floor(elapsed * 7) & 1 ? 430 : 650;
-    else if (id === 10) { frequency = 46 + Math.sin(elapsed * 2.3) * 5; noiseMix = 0.18; }
-    else if (id === 11) { frequency = 32; noiseMix = 0.72; }
-    else frequency = 110 + id * 37;
-    voice.phase = (voice.phase + Math.max(1, frequency) / this.outputRate) % 1;
-    let tone = id === 2 || id === 8 || id === 9
-      ? (voice.phase < 0.5 ? 1 : -1)
-      : Math.sin(voice.phase * Math.PI * 2);
-    if (noiseMix) {
-      this.random ^= this.random << 13;
-      this.random ^= this.random >>> 17;
-      this.random ^= this.random << 5;
-      voice.noise += (((this.random & 1) ? 1 : -1) - voice.noise) * 0.16;
-      tone = tone * (1 - noiseMix) + voice.noise * noiseMix;
-    }
-    return tone;
-  }
-}
-
 class GeneratedSn76489Core {
   private readonly registers = new Int32Array(8);
   private readonly volumes = new Float64Array(4);
@@ -328,11 +232,6 @@ export class GeneratedSn76489Mixer {
   private readonly phases: Float64Array;
   private readonly stepsPerSample: Float64Array;
   private readonly gains: Float64Array;
-  private readonly samples: {
-    deviceTag: string;
-    gain: number;
-    core: GeneratedSn76489SamplesCore;
-  }[];
   /**
    * Secondary chips rendered on the main thread (a speech chip whose pin a CPU
    * polls) stream finished PCM in as <tag>.pcm, with their native rate in
@@ -349,6 +248,7 @@ export class GeneratedSn76489Mixer {
   /** DACs on the same speaker: each holds the level its last code maps to. */
   private readonly dacs: { deviceTag: string; gain: number; map: Float64Array; level: number }[];
   private readonly outputRate: number;
+  private readonly streamGain: number;
 
   /**
    * deviceTypes and clocks are per chip: a machine config may fit two
@@ -363,7 +263,9 @@ export class GeneratedSn76489Mixer {
     deviceTypes: readonly (string | undefined)[] = [],
     clocks: readonly (number | undefined)[] = [],
     auxiliaryDevices: readonly GeneratedSn76489AuxiliaryDevice[] = [],
+    streamGain = 0,
   ) {
+    this.streamGain = streamGain;
     const chipPlan = (chip: number) => generatedSn76489Plan(deviceTypes[chip]);
     this.cores = Array.from(
       { length: chips },
@@ -388,13 +290,6 @@ export class GeneratedSn76489Mixer {
       const map = dacValueMap(device.dac!);
       return { deviceTag: device.deviceTag, gain: device.gain, map, level: map[0]! };
     });
-    this.samples = auxiliaryDevices
-      .filter(device => device.type === 'SAMPLES')
-      .map(device => ({
-        deviceTag: device.deviceTag,
-        gain: device.gain,
-        core: new GeneratedSn76489SamplesCore(outputRate),
-      }));
   }
 
   write(chip: number, data: number, method?: string): void {
@@ -419,8 +314,6 @@ export class GeneratedSn76489Mixer {
         if (stream.queue.length < 4096) stream.queue.push(data);
         return;
       }
-      const samples = this.samples.find(device => device.deviceTag === deviceTag);
-      samples?.core.write(chip, data, deviceMethod);
       return;
     }
     this.cores[chip]?.write(data);
@@ -436,10 +329,8 @@ export class GeneratedSn76489Mixer {
       }
       mixed += this.cores[chip]!.sample() * this.gains[chip]!;
     }
-    mixed /= Math.max(1, this.cores.length);
-    for (const device of this.samples) {
-      mixed += device.core.sampleValue() * device.gain;
-    }
+    // Beside a stream the mix is MAME's plain sum, at no master gain (lower-sound.ts).
+    if (!this.streamGain) mixed /= Math.max(1, this.cores.length);
     for (const dac of this.dacs) mixed += dac.level * dac.gain;
     for (const stream of this.pcm.values()) {
       stream.phase += stream.rate / this.outputRate;
@@ -513,6 +404,7 @@ class GeneratedSn76489Processor extends AudioWorkletProcessor {
         deviceTypes?: string[];
         clocks?: number[];
         auxiliaryDevices?: GeneratedSn76489AuxiliaryDevice[];
+        streamGain?: number;
         routes?: GeneratedSn76489Route[];
         refresh?: number;
         writes?: GeneratedSn76489Write[];
@@ -526,6 +418,7 @@ class GeneratedSn76489Processor extends AudioWorkletProcessor {
           message.deviceTypes,
           message.clocks,
           message.auxiliaryDevices,
+          message.streamGain,
         );
         this.renderer = new GeneratedSn76489FrameRenderer(
           mixer,

@@ -322,7 +322,6 @@ export interface GeneratedAuxiliaryAudioDevice {
   clock: number;
   sampleRegion?: string;
   sampleRom?: Uint8Array;
-  sampleRate?: number;
   initialMode?: string;
   gain: number;
   target: string;
@@ -1386,53 +1385,6 @@ export class GeneratedK007232Core {
   }
 }
 
-/** Raw PCM player used by MAME's samples_device::start_raw path. */
-export class GeneratedRawSamplesCore {
-  private readonly rom: Uint8Array;
-  private readonly sourceStep: number;
-  private playing = false;
-  private phase = 0;
-  private cursor = 0;
-  private held = 0;
-
-  constructor(rom: Uint8Array, outputRate: number, sourceRate = 20_000) {
-    this.rom = rom;
-    this.sourceStep = sourceRate / outputRate;
-  }
-
-  write(method: string): void {
-    if (method.endsWith('.start_raw')) {
-      this.playing = true;
-      this.phase = 0;
-      this.cursor = 0;
-      this.held = 0;
-    } else if (method.endsWith('.stop')) {
-      this.playing = false;
-      this.held = 0;
-    }
-  }
-
-  sample(): number {
-    if (!this.playing) return 0;
-    this.phase += this.sourceStep;
-    while (this.phase >= 1) {
-      this.phase -= 1;
-      if (this.cursor * 2 + 1 >= this.rom.length) {
-        this.playing = false;
-        this.held = 0;
-        break;
-      }
-      const packed = (this.rom[this.cursor * 2]! |
-        (this.rom[this.cursor * 2 + 1]! << 8)) >>> 3;
-      const floating = packed ^ 0x1e00;
-      const shifted = (floating << 6) << 16 >> 16;
-      this.held = (shifted >> ((floating >>> 10) & 7)) / 32768;
-      this.cursor++;
-    }
-    return this.held;
-  }
-}
-
 /**
  * Hosts the machine's YM2151 bank, resampling each chip's native ymfm rate to
  * the host output rate and mixing the driver's add_route gains.
@@ -1467,11 +1419,6 @@ export class GeneratedYm2151Mixer {
     gain: number;
     core: GeneratedK053260Core;
   }[];
-  private readonly rawSamples: {
-    deviceTag: string;
-    gain: number;
-    core: GeneratedRawSamplesCore;
-  }[];
   // A speech chip whose engine runs on the main thread streams finished PCM
   // in rather than register writes; all this side does is resample it, with
   // MAME's LOFI resampler. Holding each 8 kHz sample instead left images of
@@ -1482,6 +1429,8 @@ export class GeneratedYm2151Mixer {
     queue: number[];
     held: number;
     resampler: GeneratedLofiResampler;
+    rate: number;
+    configuredRate: number;
     source: GeneratedLofiSource;
   }[];
   /** Streams the main thread renders beside the chips, mixed as one. */
@@ -1492,6 +1441,8 @@ export class GeneratedYm2151Mixer {
   private readonly routes: GeneratedYmRoute[];
   /** Each YM2151's tag, for set_output_gain, and the gain of its two outputs. */
   private readonly deviceTags: readonly string[];
+  /** What takes a main-thread stream's sample back above the family's master gain. */
+  private readonly streamLevel: number;
   private readonly outputGains: number[][];
   /** An auxiliary device's route gain before any set_output_gain. */
   private readonly routeGains = new Map<object, number>();
@@ -1510,7 +1461,9 @@ export class GeneratedYm2151Mixer {
     auxiliaryDevices: readonly GeneratedAuxiliaryAudioDevice[] = [],
     routes?: GeneratedYmRoute[],
     deviceTags: readonly string[] = [],
+    streamLevel = 1,
   ) {
+    this.streamLevel = streamLevel;
     this.chips = Array.from(
       { length: Math.max(1, chips) },
       () => new GeneratedYm2151Chip(),
@@ -1568,15 +1521,6 @@ export class GeneratedYm2151Mixer {
           device.sampleRom ?? new Uint8Array(), device.clock, outputRate,
         ),
       }));
-    this.rawSamples = auxiliaryDevices
-      .filter(device => device.type === 'SAMPLES')
-      .map(device => ({
-        deviceTag: device.deviceTag,
-        gain: device.gain,
-        core: new GeneratedRawSamplesCore(
-          device.sampleRom ?? new Uint8Array(), outputRate, device.sampleRate,
-        ),
-      }));
     this.dacs = auxiliaryDevices.filter(device => device.dac).map(device => {
       const map = dacValueMap(device.dac!);
       return { deviceTag: device.deviceTag, gain: device.gain, map, level: map[0]! };
@@ -1591,6 +1535,8 @@ export class GeneratedYm2151Mixer {
           held: 0,
           // tms5220_device::device_start: stream_alloc(0, 1, clock() / 80).
           resampler: new GeneratedLofiResampler(Math.floor(Math.floor(device.clock) / 80), outputRate),
+          rate: Math.floor(Math.floor(device.clock) / 80),
+          configuredRate: Math.floor(Math.floor(device.clock) / 80),
           source: { next: () => 0 } as GeneratedLofiSource,
         };
         // An empty queue repeats the last sample, as the held path did.
@@ -1631,6 +1577,14 @@ export class GeneratedYm2151Mixer {
     }
     for (const pcm of this.pcmChips) {
       if (method === pcm.deviceTag + '.pcm') {
+        // The chip's live rate, when it has moved from the configured one:
+        // Gauntlet's speech squeak runs it 22% faster, and pulled at the old
+        // rate the sentence fell behind until its closing mute cut 300 ms off.
+        const rate = offset || pcm.configuredRate;
+        if (rate !== pcm.rate) {
+          pcm.rate = rate;
+          pcm.resampler.setSourceRate(rate);
+        }
         // Never let a stalled consumer grow the queue without bound; a
         // quarter second of speech is already far more than the sink is behind.
         if (pcm.queue.length < 4096) pcm.queue.push(data / 32768);
@@ -1660,12 +1614,6 @@ export class GeneratedYm2151Mixer {
     for (const chip of this.k053260Chips) {
       if (method === chip.deviceTag + '.write') {
         chip.core.write(offset, data);
-        return;
-      }
-    }
-    for (const device of this.rawSamples) {
-      if (method?.startsWith(device.deviceTag + '.')) {
-        device.core.write(method);
         return;
       }
     }
@@ -1711,13 +1659,12 @@ export class GeneratedYm2151Mixer {
         this.streamPhase -= 1;
         if (this.streamQueue.length) this.streamHeld = this.streamQueue.shift()!;
       }
-      output += this.streamHeld;
+      output += this.streamHeld * this.streamLevel;
     }
     for (const dac of this.dacs) output += dac.level * dac.gain;
     for (const device of this.updChips) output += device.core.sample() * device.gain;
     for (const device of this.k007232Chips) output += device.core.sample() * device.gain;
     for (const device of this.k053260Chips) output += device.core.sample() * device.gain;
-    for (const device of this.rawSamples) output += device.core.sample() * device.gain;
     for (const device of this.pcmChips) output += device.resampler.sample(device.source) * device.gain;
     return Math.max(-1, Math.min(1, output));
   }
@@ -1749,7 +1696,7 @@ export class GeneratedYm2151Mixer {
     const devices: { deviceTag?: string; tag?: string; gain: number }[] = [
       ...(this.oki ? [this.oki] : []),
       ...this.msmChips, ...this.dacs, ...this.updChips,
-      ...this.k007232Chips, ...this.k053260Chips, ...this.rawSamples, ...this.pcmChips,
+      ...this.k007232Chips, ...this.k053260Chips, ...this.pcmChips,
     ];
     for (const device of devices) {
       if ((device.deviceTag ?? device.tag) !== tag) continue;
@@ -1852,6 +1799,7 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
         routes?: GeneratedYmRoute[];
         auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
         deviceTags?: string[];
+        streamLevel?: number;
         sampleRom?: Uint8Array;
         refresh?: number;
         offset?: number;
@@ -1868,6 +1816,7 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
           message.auxiliaryDevices,
           message.routes,
           message.deviceTags,
+          message.streamLevel,
         );
         this.renderer = new GeneratedYm2151FrameRenderer(
           this.mixer,
@@ -1895,6 +1844,11 @@ class GeneratedYm2151Processor extends AudioWorkletProcessor {
       // so a discarded key-on would simply never sound.
       while (this.frames.length > 3) {
         for (const stale of this.frames.shift()!) {
+          // Finished samples, though, go with the time being skipped. Queued
+          // with no time to play in, every stall left a main-thread stream
+          // further behind the rest of the mix, up to half a second, and
+          // Gauntlet's closing mute cut the ends off its speech.
+          if (stale.method?.endsWith('.pcm')) continue;
           this.mixer?.write(stale.offset, stale.data, stale.method);
         }
       }

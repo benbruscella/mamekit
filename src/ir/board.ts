@@ -395,7 +395,7 @@ export type GeneratedExpression =
       pointer?: boolean;
       operand: GeneratedExpression;
     }
-  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression; precision?: 64 }
+  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression; precision?: 64; identity?: true }
   | {
       kind: 'assignment';
       target: GeneratedExpression;
@@ -1432,6 +1432,7 @@ export interface GeneratedHandlerRuntime {
    * copied, so the wider view writes through to the same shared bytes.
    */
   packedView(value: unknown, signed: boolean): unknown;
+  byteView(value: unknown): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
   /** A std::string method over the JS string that stands for one. */

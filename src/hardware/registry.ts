@@ -111,7 +111,6 @@ import { extractPhoenixSound } from './phoenix-sound/extract.ts';
 import {
   SAMPLES_ID,
   SAMPLES_MAME_TYPES,
-  SAMPLES_MASTER_GAIN,
   SAMPLES_PORTS,
 } from './samples/definition.ts';
 import { extractSamples } from './samples/extract.ts';
@@ -262,7 +261,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: SAMPLES_MAME_TYPES,
     ports: SAMPLES_PORTS,
     extract: extractSamples,
-    masterGain: SAMPLES_MASTER_GAIN,
   },
   {
     id: YM2151_ID,

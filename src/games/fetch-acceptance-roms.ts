@@ -12,10 +12,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ShellConfig } from '../runtime/shell.ts';
 import { romSystemKey, unresolvedDependencyRomSets } from '../runtime/shell.ts';
-import { ROM_BUCKET_BASE, encodeRomKey, machineSetDir, machineSetKeys } from '../runtime/rom-source.ts';
+import { ROM_BUCKET_BASE, SAMPLE_BUCKET_BASE, encodeRomKey, machineSetDir, machineSetKeys } from '../runtime/rom-source.ts';
 import { readZip } from '../runtime/zip.ts';
 import { gameOutputDir } from '../gen/output-layout.ts';
-import { romsDir } from '../paths.ts';
+import { romsDir, samplesDir } from '../paths.ts';
 import { loadCandidateGameContracts, loadGameContracts } from './contracts.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -98,6 +98,20 @@ async function downloadMissing(requirements: RomRequirement[]): Promise<Map<stri
   return downloaded;
 }
 
+/** MAME's sample sets, which a contract's machine plays as MAME's run does. */
+async function downloadMissingSampleSets(sets: readonly string[]): Promise<void> {
+  const base = (process.env.MAMEKIT_ACCEPTANCE_SAMPLE_BASE ?? SAMPLE_BUCKET_BASE).replace(/\/$/, '');
+  for (const set of sets) {
+    const path = join(samplesDir(projectRoot), `${set}.zip`);
+    if (existsSync(path)) continue;
+    const response = await fetch(`${base}/${encodeURIComponent(`${set}.zip`)}`);
+    if (!response.ok) throw new Error(`samples/${set}.zip: HTTP ${response.status}`);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, new Uint8Array(await response.arrayBuffer()));
+    console.log(`fetched samples/${set}.zip`);
+  }
+}
+
 /** `candidates` fetches the candidate contracts' closure instead (`test:candidates`). */
 export async function fetchAcceptanceRoms(candidates = false): Promise<void> {
   const contracts = await (candidates ? loadCandidateGameContracts() : loadGameContracts());
@@ -177,10 +191,12 @@ export async function fetchAcceptanceRoms(candidates = false): Promise<void> {
     }
   }
   await downloadMissing(dependencies);
+  const sampleSets = [...new Set([...configs.values()].flatMap(config => (config.samples ?? []).map(entry => entry.set)))];
+  await downloadMissingSampleSets(sampleSets);
   console.log(
     `acceptance ROM closure ready: ${primary.length} primary set(s), ` +
     `${cartridges.length} cartridge(s), ${titles.length} software title(s), ` +
-    `${new Set(dependencies.map(key)).size} dependency set(s)`,
+    `${new Set(dependencies.map(key)).size} dependency set(s), ${sampleSets.length} sample set(s)`,
   );
 }
 

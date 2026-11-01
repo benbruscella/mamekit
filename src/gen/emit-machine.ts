@@ -585,6 +585,13 @@ export function lowerGeneratedMachine(
   const startHandlers = Array.isArray(selectedMachine?.props.startHandlers)
     ? selectedMachine.props.startHandlers.map(String)
     : [];
+  // What the selected game's init leaves in driver state runs first, as MAME
+  // runs the init before machine_start (build.ts).
+  for (const node of graph.nodes) {
+    if (node.label === 'Game' && node.props.name === game) {
+      startHandlers.unshift(...((node.props.initHandlers as string[] | undefined) ?? []));
+    }
+  }
   // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: a one-shot the
   // driver arms itself. Atari System 1's scanline-interrupt chain is three of
   // them, and with no model for `->adjust()` the board took its vblank
@@ -937,7 +944,6 @@ export function lowerGeneratedMachine(
   const dacDevices = devices.filter(device =>
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT'].includes(device.type));
-  const sampleDevices = devices.filter(device => device.type === 'SAMPLES');
   const berzerkSound = devices.find(device =>
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const discreteDevice = devices.find(device => device.type === 'DISCRETE');
@@ -1051,7 +1057,7 @@ export function lowerGeneratedMachine(
             : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
-    : dacDevices.length && !(sampleDevices.length && dacDevices.every(device =>
+    : dacDevices.length && !(devices.some(device => device.type === 'SAMPLES') && dacDevices.every(device =>
         device.type === 'DAC_1BIT'))
       ? {
           kind: 'dac',
@@ -1083,16 +1089,6 @@ export function lowerGeneratedMachine(
           writeMethods: berzerkSound.type === 'EXIDY_VENTURE'
             ? ['sh8253_w', 'sh6840_w', 'sfxctrl_w']
             : ['sh6840_w', 'sfxctrl_w'],
-          enableMethods: [],
-          controlOffset: -1,
-        }
-    : sampleDevices.length
-      ? {
-          kind: 'samples',
-          deviceTag: sampleDevices[0]!.tag,
-          deviceTags: sampleDevices.map(device => device.tag),
-          deviceType: 'SAMPLES',
-          writeMethods: ['start', 'stop', 'set_volume'],
           enableMethods: [],
           controlOffset: -1,
         }
@@ -1795,7 +1791,6 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
   K007232: ['write', 'read', 'set_volume', 'set_bank'],
   K053260: ['write'],
-  SAMPLES: ['start', 'start_raw', 'stop', 'set_volume'],
   TMS5220: ['data_w'],
   TMS5220C: ['data_w'],
 };
@@ -1864,7 +1859,7 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516', 'SAMPLES'].includes(device.type)
+      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516'].includes(device.type)
         ? 0
         : device.type === 'UPD7759'
           ? 640_000
@@ -1886,28 +1881,7 @@ export function lowerAuxiliaryAudioDevices(
     const targetInput = Number(route.props.input);
     const directSampleRegion = graph.nodes.find(node =>
       node.label === 'RomRegion' && node.props.tag === device.tag);
-    const rawSampleHandler = device.type === 'SAMPLES'
-      ? graph.nodes.find(node =>
-          node.label === 'Handler' &&
-          String(node.props.sourceBody ?? '').includes('start_raw'))
-      : undefined;
-    const soundDeviceTags = new Set(devices
-      .filter(candidate => candidate.type !== 'SAMPLES')
-      .map(candidate => candidate.tag.toLowerCase()));
-    const sampleRegion = directSampleRegion ?? (rawSampleHandler
-      ? graph.nodes.find(node =>
-          node.label === 'RomRegion' &&
-          !soundDeviceTags.has(String(node.props.tag).toLowerCase()) &&
-          String(rawSampleHandler.props.sourceBody).toLowerCase()
-            .includes(String(node.props.tag).toLowerCase()))
-      : undefined);
-    const rawSampleRateExpression = rawSampleHandler
-      ? /start_raw\s*\(\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*([^)]+)\)/
-          .exec(String(rawSampleHandler.props.sourceBody))?.[1]
-      : undefined;
-    const rawSampleRate = rawSampleRateExpression
-      ? evalExpr(rawSampleRateExpression)
-      : undefined;
+    const sampleRegion = directSampleRegion;
     const referenceDevice = devices.find(candidate => {
       if (candidate.type !== 'DISCRETE') return false;
       return graph.edges.some(edge => {
@@ -1932,7 +1906,6 @@ export function lowerAuxiliaryAudioDevices(
       ...(dac ? { dac: { bits: dac.bits, mapper: dac.mapper, gain: dac.gain } } : {}),
       clock,
       ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
-      ...(Number.isFinite(rawSampleRate) ? { sampleRate: Number(rawSampleRate) } : {}),
       ...(initialMode ? { initialMode } : {}),
       gain,
       target: String(route.props.target),
@@ -2045,6 +2018,13 @@ function deviceConfiguration(
   const encoded = Array.isArray(props.configCalls)
     ? props.configCalls.map(String)
     : [];
+  // `set_samples_names(table)`: the table as MAME declares it, `*set` first and
+  // null-terminated, which the graph read out of the array's declaration.
+  if (Array.isArray(props.sampleNames)) {
+    encoded.push(`set_samples_names(${JSON.stringify([
+      ...(props.sampleSet ? [`*${String(props.sampleSet)}`] : []), ...props.sampleNames, 0,
+    ])})`);
+  }
   const member = deviceMember(props);
   if (member && Array.isArray(props.config)) {
     const escaped = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

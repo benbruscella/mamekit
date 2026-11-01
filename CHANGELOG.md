@@ -30,6 +30,21 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Machines with sample sets play the real recordings ([#228](https://github.com/benbruscella/mamekit/issues/228))
+
+**For players:**
+- Zaxxon, Space Panic, Congo Bongo, Carnival and Q*bert play MAME's recorded samples instead of invented tones, from the sample set you add, kept only in your browser. Zaxxon, Space Panic and Congo Bongo now match MAME's level to within 0.2 dB.
+- A machine without its set runs as MAME does, silent on those channels, and its page and details say which set is missing.
+- TMNT's title music is now decoded from MAME's source and matches MAME's level.
+
+**Under the hood:**
+- `samples.cpp` compiles whole as a stream device, because a driver reads `playing` back. `GeneratedSamplesCore`, its copy in `sn76489-compiler.ts`, the OPM worklet's raw player and the `synthesized-samples` limitation are deleted.
+- The stream mixer renders a device with several streams channel by channel, each at its recording's rate, through MAME's `audio_resampler_lofi`.
+- Sample sets reach the board as `BoardConfig.samplePath`, read through a host `emu_file`. `flac_decoder` is answered in `runtime/sample-path.ts`, since libFLAC is no MAME source. Sets count towards machine identity.
+- A driver init's helper that writes driver state runs as a start handler, and a bundled library's free function lowers as a handler (`ymfm::decode_fp`).
+- A board handler's default argument no longer loses its parameter: `int length = 1` was read as a parameter named `1`.
+- Beside a stream, the DAC and SN76489 mixes sum at their routes' gains. A samples stream comes in above the YM2151's master gain.
+
 ### Per-cycle device timers cost a little less ([#226](https://github.com/benbruscella/mamekit/issues/226))
 
 **For players:** Nothing visible. NES carts with a per-cycle IRQ timer run slightly faster, and Lagrange Point already plays at a solid 60 fps in the browser on an M3 Pro.

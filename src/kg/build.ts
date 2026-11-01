@@ -8,7 +8,7 @@ import {
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
-import { collectBitAliasMacros, collectMemberAliasMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -93,7 +93,11 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   for (let familyIndex = 0; familyIndex < family.length; familyIndex++) {
     const file = family[familyIndex]!;
     for (const inc of parseIncludes(readFileSync(file, 'utf8'))) {
-      if (inc.includes('/')) continue; // same-directory includes only
+      // A header from a bundled library the driver calls directly (tmnt.cpp's
+      // "ymfm/src/ymfm.h", for decode_fp), for its free functions.
+      const bundled = join(mameSrc, '3rdparty', inc);
+      if (inc.includes('/') && existsSync(bundled) && !family.includes(bundled)) family.push(bundled);
+      if (inc.includes('/')) continue; // otherwise same-directory includes only
       // MAME's build puts src/mame/shared on every driver's include path
       // (rocnrope.cpp includes "timeplt_a.h" which lives there)
       const incDir = existsSync(join(dir, inc)) ? dir : join(mameSrc, 'src/mame/shared');
@@ -368,6 +372,16 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       annotateInputHandlerClosure(g, handlerId, ioportMembers, textMacros.strings);
       g.edge(id, handlerId, 'CALLS_HANDLER');
     }
+    // A helper of the init that fills driver state rather than ROM: tmnt's
+    // tmnt_decode_sample decodes the title music into m_sampledata, for
+    // start_raw to play. MAME runs the init before machine_start.
+    const initHandlers = [...(initFunction?.body ?? '').matchAll(/^\s*(\w+)\s*\(\s*\)\s*;/gm)].flatMap(call => {
+      const helper = ast.findFunctionInHierarchy(gm.cls, call[1]!);
+      if (!helper?.className || !/\bm_\w+\s*\[[^\]]*\]\s*=[^=]/.test(helper.body)) return [];
+      g.edge(id, emitSourceHandlerClosure(g, ast, helper.className, helper.name, consts, helper.span), 'CALLS_HANDLER');
+      return [`${helper.className}.${helper.name}`];
+    });
+    if (initHandlers.length) g.node('Game', id, { initHandlers });
   }
 
   // --- rom sets ---
@@ -2470,6 +2484,11 @@ function handlerProps(
     // subscript before lowering -- unexpanded, the Game Boy's joypad register
     // was never written and every button read as held down.
     body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
+    body = expandFunctionMacros(body, collectParameterCallMacros(source));
+    // A library's free function is a handler like any helper, under its own
+    // name: `ymfm::decode_fp(...)`.
+    body = body.replace(/\b\w+::(\w+)(?=\s*\()/g, (all, name: string) =>
+      ast.findUniqueFunction(name)?.className === '' ? name : all);
     for (const table of source.matchAll(
       /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
     )) {
@@ -2805,6 +2824,10 @@ function emitSourceHandlerClosure(
   for (const match of fn.body.matchAll(/[(,]\s*([A-Za-z_]\w*)\s*(?=[,)])/g)) {
     const named = ast.findUniqueFunction(match[1]!);
     if (named && named.className === '') callNames.add(match[1]!);
+  }
+  // A library's free function, called by its namespace: `ymfm::decode_fp(...)`.
+  for (const match of fn.body.matchAll(/\b\w+::(\w+)\s*\(/g)) {
+    if (ast.findUniqueFunction(match[1]!)?.className === '') callNames.add(match[1]!);
   }
   for (const callName of accessorNames) {
     if (callNames.has(callName)) continue;

@@ -762,6 +762,7 @@ function preparedHandlerRuntime(
     // written a half-word at a time (wardner's wardner_sprite_w) stored the
     // low byte at the word index and lost every high byte.
     packedView: generatedPackedView,
+    byteView: generatedByteView,
     container: generatedContainerAccessor,
     stringMethod: generatedStringCall,
     pointerStore: generatedPointerStore,
@@ -1591,6 +1592,7 @@ function compileFastExpression(
   }
   if (expression.kind === 'cast') {
     const operand = compileFastExpression(expression.operand, bindings, locals);
+    if (expression.pointer && isBytePointerType(expression.valueType)) return context => generatedByteView(operand(context));
     const view = expression.pointer ? packedCastView(expression.valueType) : undefined;
     if (view !== undefined) return context => packedByteView(operand(context), view);
     const wrap = valueWrapper(expression.valueType);
@@ -1883,6 +1885,9 @@ function parameterNames(parameters: string | undefined): string[] {
   let names = PARAMETER_NAMES.get(key);
   if (!names) {
     names = splitParameters(key)
+      // `int length = 1` names `length`, not its default. Read as `1`, ymfm's
+      // bitfield masked with `(1 << 0) - 1` and answered 0 for every field.
+      .map(parameter => parameter.replace(/=[\s\S]*$/, ''))
       .map(parameter => /\(\s*\*\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
       .filter((name): name is string => Boolean(name));
     PARAMETER_NAMES.set(key, names);
@@ -2047,6 +2052,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     return value;
   }
   if (expression.kind === 'cast') {
+    if (expression.pointer && isBytePointerType(expression.valueType)) return generatedByteView(evaluate(expression.operand, context));
     const view = expression.pointer ? packedCastView(expression.valueType) : undefined;
     if (view !== undefined) return packedByteView(evaluate(expression.operand, context), view);
     return wrapValue(expression.valueType, evaluate(expression.operand, context));
@@ -3227,6 +3233,10 @@ function valueWrapper(valueType: string | undefined): (value: unknown) => unknow
  * through the wider type reach the same shared bytes. Undefined for any other
  * pointer cast, which stays an identity.
  */
+function isBytePointerType(valueType: string | undefined): boolean {
+  return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
+}
+
 function packedCastView(valueType: string | undefined): boolean | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
   if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
@@ -3406,6 +3416,8 @@ function indexValue(object: unknown, index: number): unknown {
   if (isReference(object)) return reference(`${object.reference}[${index}]`);
   if (ArrayBuffer.isView(object)) return (object as Uint8Array)[index] ?? 0;
   if (Array.isArray(object)) return object[index] ?? 0;
+  // A C string's characters are its bytes: `names()[0][0] == '*'`.
+  if (typeof object === 'string') return object.charCodeAt(index) || 0;
   return 0;
 }
 
@@ -3872,6 +3884,26 @@ function resizeGeneratedMemory(
  * `runtime.packedView` call, and without it the Neo Geo sprite core stopped on
  * "runtime.packedView is not a function".
  */
+/**
+ * `reinterpret_cast<uint8_t *>` over wider memory: its bytes, little-endian, at
+ * the same place. samples_device reads an 8-bit file into its 16-bit vector and
+ * then walks it by the byte.
+ */
+export function generatedByteView(value: unknown): unknown {
+  const bytes = (memory: unknown): Uint8Array | undefined => {
+    const view = memory as Uint16Array;
+    return ArrayBuffer.isView(memory) && view.BYTES_PER_ELEMENT > 1
+      ? new Uint8Array(view.buffer as ArrayBuffer, view.byteOffset, view.byteLength)
+      : undefined;
+  };
+  if (isGeneratedPointer(value)) {
+    const source = bytes(value.source);
+    if (!source) return value;
+    return { ...value, source, offset: value.offset * (value.source as Uint16Array).BYTES_PER_ELEMENT };
+  }
+  return bytes(value) ?? value;
+}
+
 export function generatedPackedView(value: unknown, signed: boolean): unknown {
   if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
   const bytes: Uint8Array | Int8Array = value;
@@ -4139,6 +4171,8 @@ function isLValue(value: unknown): value is GeneratedLValue {
 function callArgument(value: unknown): number {
   if (typeof value === 'object' && value !== null) return value as unknown as number;
   if (typeof value === 'function') return value as unknown as number;
+  // A C string stays one: `file.open(util::string_format("%s/%s.wav", ...))`.
+  if (typeof value === 'string') return value as unknown as number;
   return toNumber(value);
 }
 

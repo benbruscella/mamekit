@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 /**
  * MAME's default stream resampler, `audio_resampler_lofi` in
  * src/emu/resampler.cpp, as emitted worklet source.
@@ -14,35 +16,20 @@
  * update; streaming it here accumulates the same integer step, which drifts by
  * under 1/2^24 of a group per sample.
  */
-export const LOFI_RESAMPLER_SOURCE = `// audio_resampler_lofi in src/emu/resampler.cpp.
-const LOFI_INTERPOLATION = (() => {
-  const f0 = new Float32Array(0x1001);
-  const f1 = new Float32Array(0x1001);
-  for (let i = 1; i !== 4096; i++) {
-    const p = Math.fround(i / 4096);
-    f0[i] = (p - p * p * p) / 6;
-  }
-  for (let i = 1; i !== 2049; i++) {
-    const p = Math.fround(i / 4096);
-    f1[i] = p + (p * p - p * p * p) / 2;
-  }
-  // When interpolating, f1 is added and f0 is subtracted, and the total must be 1.
-  for (let i = 2049; i !== 4096; i++) f1[i] = 1 + f0[i]! + f0[4096 - i]! - f1[4096 - i]!;
-  f0[0] = 0;
-  f0[0x1000] = 0;
-  f1[0] = 0;
-  f1[0x1000] = 1;
-  return { f0, f1 };
-})();
+const INTERPOLATION_SOURCE = readFileSync(new URL('../hardware/speaker/lofi-interpolation.ts', import.meta.url), 'utf8')
+  .replace(/^(?:\/\/.*\n)+/, '').replace('export const', 'const');
 
+export const LOFI_RESAMPLER_SOURCE = `// audio_resampler_lofi in src/emu/resampler.cpp.
+${INTERPOLATION_SOURCE}
 /** A source the resampler pulls one sample at a time, at the source rate. */
 interface GeneratedLofiSource {
   next(): number;
 }
 
 class GeneratedLofiResampler {
-  private readonly divide: number;
-  private readonly step: number;
+  private divide = 1;
+  private step = 0;
+  private readonly targetRate: number;
   private phase = 0;
   private s0 = 0;
   private s1 = 0;
@@ -50,9 +37,15 @@ class GeneratedLofiResampler {
   private s3 = 0;
 
   constructor(sourceRate: number, targetRate: number) {
+    this.targetRate = targetRate;
+    this.setSourceRate(sourceRate);
+  }
+
+  /** The stream changed rate (set_sample_rate). What it already rendered stays in the window. */
+  setSourceRate(sourceRate: number): void {
     // Both rates are u32 in MAME.
     const fs = Math.max(1, Math.floor(sourceRate));
-    const ft = Math.max(1, Math.floor(targetRate));
+    const ft = Math.max(1, Math.floor(this.targetRate));
     this.divide = fs <= ft ? 1 : 1 + Math.floor(fs / ft);
     this.step = Math.floor(Math.floor(fs * 0x1000000 / ft) / this.divide);
   }

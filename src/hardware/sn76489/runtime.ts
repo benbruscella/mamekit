@@ -4,6 +4,8 @@ import {
   type SoundRuntimeContext,
   type SoundRuntimeHooks,
 } from '../sound-runtime.ts';
+import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
+import { createStreamMixer } from '../speaker/runtime.ts';
 import { MAIN_THREAD_STREAM_DEVICES, pumpStreamDevices } from '../stream-device-pump.ts';
 
 export function installSn76489Runtime(context: SoundRuntimeContext): SoundRuntimeHooks | void {
@@ -33,39 +35,25 @@ export function installSn76489Runtime(context: SoundRuntimeContext): SoundRuntim
         context.soundWrite(offset, data, context.fraction(), name);
       };
       for (const alias of aliases) {
-        if (auxiliary.type === 'SAMPLES' && method === 'start') {
-          context.calls[`${alias}.${method}`] = (channel = 0, sample = 0, loop = 0) => {
-            context.soundWrite(
-              channel & 0xff,
-              (sample & 0x7f) | (loop ? 0x80 : 0),
-              context.fraction(),
-              name,
-            );
-            return 0;
-          };
-        } else if (auxiliary.type === 'SAMPLES' && method === 'stop') {
-          context.calls[`${alias}.${method}`] = (channel = 0) => {
-            context.soundWrite(channel & 0xff, 0, context.fraction(), name);
-            return 0;
-          };
-        } else if (auxiliary.type === 'SAMPLES' && method === 'set_volume') {
-          context.calls[`${alias}.${method}`] = (channel = 0, volume = 0) => {
-            context.soundWrite(
-              channel & 0xff,
-              Math.max(0, Math.min(255, Math.round(Number(volume) * 255))),
-              context.fraction(),
-              name,
-            );
-            return 0;
-          };
-        } else {
-          context.calls[`${alias}.${method}`] = (...args: number[]) => {
-            context.soundWrite(0, args.at(-1) ?? 0, context.fraction(), name);
-            return 0;
-          };
-        }
+        context.calls[`${alias}.${method}`] = (...args: number[]) => {
+          context.soundWrite(0, args.at(-1) ?? 0, context.fraction(), name);
+          return 0;
+        };
       }
     }
   }
-  return pumpStreamDevices(context, MAIN_THREAD_STREAM_DEVICES);
+  // Devices beside the chips that render their own stream on the main thread
+  // (Congo Bongo's samples): mixed there and handed to the worklet as one PCM
+  // stream.
+  const streams = context.sound.streamDevices?.length
+    ? createStreamMixer(context, context.sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+      (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
+    : undefined;
+  const pumped = pumpStreamDevices(context, MAIN_THREAD_STREAM_DEVICES);
+  if (!streams) return pumped;
+  return {
+    state: { streams: streams.state, ...(pumped ? { pumped: pumped.state } : {}) },
+    reset: () => { streams.reset?.(); pumped?.reset?.(); },
+    tickCpu: (cpu, cycles) => { streams.tickCpu?.(cpu, cycles); pumped?.tickCpu?.(cpu, cycles); },
+  };
 }

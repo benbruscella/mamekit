@@ -1562,6 +1562,21 @@ function compileMameDeviceSource(
       text => specialize(definition.className, text));
     methods.splice(0, methods.length, ...result.methods);
   }
+  // A local object of a helper class declared beside the device
+  // (`samples_iterator iter(*this);`), built as a `new` would build it. The
+  // declaration parses as a functional cast, and answering its methods as
+  // unresolved calls would load no sample.
+  for (const method of methods) walkOperations(method.program.operations, operation => {
+    if (operation.op !== 'declare' || operation.value?.kind !== 'cast' || operation.valueType !== operation.value.valueType) return;
+    const type = operation.valueType;
+    // lib/util/flac.h wraps libFLAC, which is no MAME source; the host answers it.
+    if (type === 'flac_decoder') {
+      operation.value = { kind: 'call', callee: { kind: 'identifier', name: type }, args: [operation.value.operand] };
+      return;
+    }
+    if (!classes.has(type) || hierarchy.includes(type) || /_device$/.test(type) || structFields.has(type) || !constructorOf(type)) return;
+    operation.value = { kind: 'call', callee: { kind: 'identifier', name: `new::${type}` }, args: [operation.value.operand] };
+  });
   for (const method of methods) walkExpressions(method.program.operations, expression => {
     if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
     const allocated = expression.callee.name.slice(5);
@@ -1760,8 +1775,37 @@ function resolveArityOverloads(device: GeneratedDeviceDefinition): void {
   }
 }
 
+/** A C++ scalar, which a reference parameter's address must keep as a slot. */
+const SCALAR_PARAMETER_TYPE = /^(?:(?:const|unsigned|signed|long|short)\s+)*(?:u?int\d+_t|[us]\d+|int|char|bool|float|double|long|short|unsigned|size_t|offs_t)$/;
+
+/**
+ * The address of a reference to an object is that object: samples_device finds
+ * its channel with `&stream == m_channel[channel].stream`, and a pointer to the
+ * parameter's slot compares equal to nothing.
+ */
+function lowerObjectReferenceAddresses(device: GeneratedDeviceDefinition): void {
+  for (const method of device.methods) {
+    const objects = new Set(splitMameArgs(method.parameters).flatMap(parameter => {
+      const match = /^\s*(.+?)\s*&\s*(\w+)\s*$/.exec(parameter.replace(/=.*$/, ''));
+      return match && !SCALAR_PARAMETER_TYPE.test(match[1]!) ? [match[2]!] : [];
+    }));
+    if (!objects.size) continue;
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'binary' || !['==', '!='].includes(expression.operator)) return;
+      for (const side of ['left', 'right'] as const) {
+        const operand = expression[side];
+        if (operand.kind === 'unary' && operand.operator === '&' && operand.operand.kind === 'identifier' && objects.has(operand.operand.name)) {
+          expression[side] = operand.operand;
+          expression.identity = true;
+        }
+      }
+    });
+  }
+}
+
 export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
   resolveArityOverloads(device);
+  lowerObjectReferenceAddresses(device);
   // `this->method(...)` on the device's own method is the same call as
   // `method(...)`, and only the plain form passes reference parameters by
   // reference: d64_format::load takes its track's size back through

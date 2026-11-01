@@ -751,8 +751,8 @@ audio IR. Worklets live under
 `dist/runtime/generated/audio` and import shared operations from
 `dist/runtime/core` when required.
 
-Generated configs select one of fifteen `sound.kind` values: `ay8910` (with
-generated RC routing), `sn76489`, `ym2203`, `ym2151`, `wsg` (Namco WSG), `dac`, `samples`, `sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy`,
+Generated configs select one of fourteen `sound.kind` values: `ay8910` (with
+generated RC routing), `sn76489`, `ym2203`, `ym2151`, `wsg` (Namco WSG), `dac`, `sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy`,
 `stream`, and `discrete` for MAME `DISCRETE` soundboards, including SN76477 and
 counter/LFSR topologies. Discrete plans emit port wiring, method roles, control nodes, LFSR parameters,
 component values, mixer resistances and route gains from MAME. Every such board
@@ -769,6 +769,28 @@ routed mix is played by the shared stream worklet. A board with a chip as well
 (the 128K's AY-3-8912, Gauntlet's YM2151) keeps the chip's worklet and adds
 the streams to its mix (`streamDevices`). A device's `set_output_gain` scales
 its stream there, as Gauntlet's mixer does to its POKEY.
+
+A `SAMPLES` device is a stream device too, compiled whole from `samples.cpp`,
+because a driver reads it back (`playing` decides whether Zaxxon restarts a
+sample). Zaxxon and Space Panic are `sound.kind = "stream"`; Congo Bongo,
+Carnival, Q*bert and TMNT mix it beside their chip through `streamDevices`.
+It allocates one stream a channel and moves each to the rate of the recording
+it starts (`set_sample_rate`), so the mixer renders such a device channel by
+channel at those rates, keeps each channel's absolute source index, and reads
+the speaker's samples through MAME's `audio_resampler_lofi`, with the tables
+in `hardware/speaker/lofi-interpolation.ts` that the worklets share. A device
+with one stream at the speaker's rate, or above it, keeps the plain path.
+
+The recordings are the player's own. `load_samples` runs from MAME's source
+against a host `emu_file` over `BoardConfig.samplePath` (`runtime/sample-path.ts`),
+which the shell fills from the sets this browser keeps, and the acceptance
+harness from `.data/samples/<set>.zip`, the same sets the MAME oracle passes as
+`-samplepath`. `flac_decoder` wraps libFLAC, which is no MAME source, so that
+format is answered there, for the mono 16-bit files `read_flac_sample` takes. A
+missing set leaves its samples empty and the machine runs, silent on those
+channels, as MAME does; the game's page and its details say which set is
+missing. Because `playing` then answers differently, the sets count towards the
+machine's identity, so a save or a netplay room tells the two apart.
 
 A cartridge can carry a sound chip of its own: the MMC5's pulse and PCM
 channels, the VRC6, the Namco 163. The card builds it in its own

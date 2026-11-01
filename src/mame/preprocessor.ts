@@ -70,6 +70,21 @@ export function collectFunctionMacros(
   return macros;
 }
 
+/**
+ * A function-like macro that only calls a method on one of its own parameters:
+ * `#define PLAY(samp,id,loop) samp->start(id, id, loop)` in vicdual.cpp. It has
+ * no `;` for the statement rule above and no symbol for a runtime to route, and
+ * forwarded by name it answered 0, so Carnival never started a sample.
+ */
+export function collectParameterCallMacros(source: string): FunctionMacro[] {
+  const macros: FunctionMacro[] = [];
+  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)\(([^)]*)\)[ \t]+(\w+)[ \t]*->[ \t]*(\w+\(.*\))[ \t]*$/gm)) {
+    const parameters = match[2]!.split(',').map(parameter => parameter.trim()).filter(Boolean);
+    if (parameters.includes(match[3]!)) macros.push({ name: match[1]!, parameters, body: `${match[3]}->${match[4]}` });
+  }
+  return macros;
+}
+
 /** The argument list of a call at `open`, split on top-level commas. */
 function callArguments(source: string, open: number): { args: string[]; end: number } | undefined {
   let depth = 0;

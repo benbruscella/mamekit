@@ -64,7 +64,6 @@ const HOST_BOUNDARIES = {
 
 // A branch on a MAME device type selects code written for that chip or board.
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
-  'audio-fidelity.ts': ['SAMPLES'],
   'generated-board.ts': [
     'ATARI_MOTION_OBJECTS', 'DISCRETE', 'DVG', 'I8243', 'M58715',
     'NEOGEO_CONTROL_PORT', 'NEOGEO_CTRL_EDGE_CONNECTOR', 'NEOGEO_SPRITE_OPTIMZIED',
@@ -127,9 +126,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedOkim6295Core', 'GeneratedOkim6295FrameRenderer', 'GeneratedOkim6295Processor',
     'OkiVoice',
   ],
-  'hardware/samples/samples-worklet.ts': [
-    'GeneratedSamplesCore', 'GeneratedSamplesFrameRenderer', 'GeneratedSamplesProcessor',
-  ],
   'hardware/ym2151/runtime.ts': ['Upd7759Runtime'],
   'mame/audio-compiler.ts': [
     'GeneratedAy8910Core', 'GeneratedAy8910FrameRenderer', 'GeneratedAy8910Mixer',
@@ -143,7 +139,7 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
   'mame/nes-apu-compiler.ts': ['NesProcessor', 'Resampler'],
   'mame/opm-compiler.ts': [
     'GeneratedK007232Core', 'GeneratedK053260Core', 'GeneratedMsm5205Core',
-    'GeneratedRawSamplesCore', 'GeneratedSampleSpace', 'GeneratedUpd7759Core',
+    'GeneratedSampleSpace', 'GeneratedUpd7759Core',
     'GeneratedYm2151Chip', 'GeneratedYm2151FrameRenderer', 'GeneratedYm2151Mixer',
     'GeneratedYm2151Processor', 'OkiCore', 'OkiVoice',
   ],
@@ -158,7 +154,7 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
   ],
   'mame/sn76489-compiler.ts': [
     'GeneratedSn76489Core', 'GeneratedSn76489FrameRenderer', 'GeneratedSn76489Mixer',
-    'GeneratedSn76489Processor', 'GeneratedSn76489SamplesCore',
+    'GeneratedSn76489Processor',
   ],
   'mame/tms5220-compiler.ts': ['GeneratedTms5220Core'],
 };

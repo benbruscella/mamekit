@@ -14,6 +14,9 @@
 /** Bucket prefix holding the rom sets, matching BUCKET_ROOT in .data/Makefile. */
 export const ROM_BUCKET_BASE = 'https://mamekit.s3.us-east-005.dream.io/roms';
 
+/** Bucket prefix holding MAME's sample sets, matching SAMPLES_ROOT in .data/Makefile. */
+export const SAMPLE_BUCKET_BASE = 'https://mamekit.s3.us-east-005.dream.io/samples';
+
 /** Per-segment encoding: console dumps carry spaces, brackets and parentheses. */
 export function encodeRomKey(key: string): string {
   return key.split('/').map(encodeURIComponent).join('/');
@@ -53,6 +56,18 @@ export function machineSetKeys(game: string, category: string, system?: string):
 /** Fetch bytes for a bucket key, or null when no source had it. */
 export async function fetchRomBytes(key: string): Promise<Uint8Array | null> {
   for (const url of romSourceUrls(key)) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return new Uint8Array(await res.arrayBuffer());
+    } catch { /* CORS, offline or no proxy — try the next source */ }
+  }
+  return null;
+}
+
+/** Fetch a sample set by name from the same two kinds of source, or null. */
+export async function fetchSampleSetBytes(set: string): Promise<Uint8Array | null> {
+  const encoded = encodeURIComponent(`${set}.zip`);
+  for (const url of [`/samplesearch/${encoded}`, `${SAMPLE_BUCKET_BASE}/${encoded}`]) {
     try {
       const res = await fetch(url);
       if (res.ok) return new Uint8Array(await res.arrayBuffer());

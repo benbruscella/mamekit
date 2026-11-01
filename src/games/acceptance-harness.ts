@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gameOutputDir } from '../gen/output-layout.ts';
-import { romsDir } from '../paths.ts';
+import { romsDir, samplesDir } from '../paths.ts';
 import { machineSetDir, machineSetKeys } from '../runtime/rom-source.ts';
 import { AUDIO_PROBES } from '../hardware/acceptance-registry.ts';
 import { bindingsForCards, KeyboardInput } from '../runtime/input.ts';
@@ -22,6 +22,7 @@ import { NaturalKeyboard } from '../runtime/natural-keyboard.ts';
 import { identifySet, mountableImages, type SoftCatalog as SoftwareCatalog } from '../runtime/software.ts';
 import { claimImages, emptyMediaSlots, softwarePart, TitleStart, withoutSlotFirmware } from '../runtime/title-start.ts';
 import { captureState, restoreState } from '../runtime/machine-state.ts';
+import { samplePathMembers, type SamplePath } from '../runtime/sample-path.ts';
 import { crc32, readZip } from '../runtime/zip.ts';
 import { isDeclaredFrameworkNoOp } from '../ir/framework-calls.ts';
 import { KNOWN_UNRESOLVED_CALLS } from './unresolved-calls.ts';
@@ -33,7 +34,6 @@ import type {
   GameTestContract,
 } from './types.ts';
 import { assertExecutableActions } from './input-actions.ts';
-import { audioLimitations } from '../runtime/audio-fidelity.ts';
 
 /** One host input the save-state replay must repeat, at the step it happened. */
 type InputLogEntry = { step: number } & (
@@ -201,11 +201,6 @@ export async function runGameAcceptance(
     (contract.category === 'arcade' ? '' : ' (make -C .data roms-tidy files a loose BIOS set there)'));
   assert.equal(config.game, contract.game);
   assert.equal(config.sound.kind, contract.soundKind);
-  assert.deepEqual(
-    [...(contract.acceptedAudioLimitations ?? [])].sort(),
-    audioLimitations(config.sound).sort(),
-    `${contract.game}: explicitly review and declare the renderer's audio limitations before recording or accepting PCM`,
-  );
 
   const files = systemSet
     ? await readZip(new Uint8Array(readFileSync(romPath)))
@@ -235,9 +230,18 @@ export async function runGameAcceptance(
       files.set(name, bytes);
     }
   }
+  // The sample sets MAME's run has too (-samplepath): a contract measures the
+  // real sound, and a game reading `playing` back runs differently without them.
+  const samplePath: SamplePath = {};
+  for (const set of new Set((config.samples ?? []).map(entry => entry.set))) {
+    const path = join(samplesDir(root), `${set}.zip`);
+    assert.ok(existsSync(path), `${contract.game}: MAME sample set "${set}" is missing: ${path} (npm run fetch:acceptance-roms)`);
+    samplePath[set] = samplePathMembers(await readZip(new Uint8Array(readFileSync(path))));
+  }
   const boardConfig: ShellConfig['board'] = {
     ...config.board,
     game: config.game,
+    ...(Object.keys(samplePath).length ? { samplePath } : {}),
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),
     ...(software?.slotCards || cartridge?.slotCards

@@ -104,13 +104,25 @@ export class GeneratedDacMixer {
   private readonly gains: Float64Array;
   private readonly cvsd = new GeneratedHc55516Core();
   private readonly cvsdGain: number;
+  /**
+   * What the main thread's stream mixer posts (Q*bert's knocker): finished
+   * samples at their rate, already weighted by their routes, held to this rate.
+   */
+  private readonly stream = { queue: [] as number[], rate: 0, phase: 0, held: 0 };
+  private readonly outputRate: number;
+  /** Those streams' total routed gain: beside them, the mix is MAME's plain sum. */
+  private readonly streamGain: number;
 
   constructor(
     chips = 1,
     routes: readonly { chip: number; gain: number }[] = [],
     auxiliary: readonly { type: string; gain: number }[] = [],
     dacs: readonly { bits: number; mapper: string; gain: number }[] = [],
+    outputRate = 48000,
+    streamGain = 0,
   ) {
+    this.outputRate = outputRate;
+    this.streamGain = streamGain;
     this.values = new Float64Array(chips);
     this.seen = new Uint8Array(chips);
     // One value map per chip, because a board may mix DAC resolutions. A chip
@@ -129,6 +141,12 @@ export class GeneratedDacMixer {
   }
 
   write(chip: number, data: number, method?: string): void {
+    if (method === 'stream.pcm') {
+      this.stream.rate = chip;
+      // A stalled consumer must not grow the queue without bound.
+      if (this.stream.queue.length < 8192) this.stream.queue.push(data);
+      return;
+    }
     if (method?.includes('cvsd.')) {
       this.cvsd.write(method, data);
       return;
@@ -152,6 +170,12 @@ export class GeneratedDacMixer {
       mixed += this.cvsd.sample() * this.cvsdGain;
       gain += this.cvsdGain;
     }
+    this.stream.phase += this.stream.rate / this.outputRate;
+    while (this.stream.phase >= 1) {
+      this.stream.phase -= 1;
+      if (this.stream.queue.length) this.stream.held = this.stream.queue.shift()!;
+    }
+    if (this.streamGain) return mixed + this.stream.held;
     return gain ? mixed / gain : 0;
   }
 }
@@ -267,6 +291,7 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
         type: string; chips?: number; routes?: { chip: number; gain: number }[];
         auxiliaryDevices?: { type: string; gain: number }[];
         dacs?: { bits: number; mapper: string; gain: number }[];
+        streamGain?: number;
         filterChain?: { type: string; frequency: number; q: number; gain: number }[];
         refresh?: number; writes?: GeneratedDacWrite[];
       };
@@ -277,6 +302,8 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
             message.routes,
             message.auxiliaryDevices,
             message.dacs,
+            sampleRate,
+            message.streamGain,
           ),
           sampleRate,
           message.refresh ?? 60,

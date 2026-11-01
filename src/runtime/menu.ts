@@ -15,7 +15,7 @@
 // generated config.json, the ROM bytes, and user-supplied art files.
 
 import { readZip, crc32 } from './zip.ts';
-import { openRomStore } from './romstore.ts';
+import { openRomStore, sampleSetKey } from './romstore.ts';
 import { decodeGfx, type GfxLayout } from './gfx.ts';
 import { loadArtwork } from './artwork.ts';
 import { artworkSources, loadArtworkImage } from './artwork-source.ts';
@@ -94,7 +94,6 @@ interface GameEntry {
   historyCredit?: string;
 }
 
-import { audioLimitations, SYNTHESIZED_SAMPLES_NOTE } from './audio-fidelity.ts';
 import { oracleFacet, oracleLines, type OracleCheck } from './oracle-check.ts';
 
 export type MenuTab = 'arcade' | 'console' | 'computer';
@@ -695,7 +694,11 @@ export async function runMenu(): Promise<void> {
       const soundFact = `${s.kind === 'none' ? 'Discrete analog board' : String(s.kind).toUpperCase()}${s.chips ? ` × ${s.chips}` : ''}`;
       const soundDetail = `${soundFact}${s.clock ? ` @ ${(s.clock / 1e6).toFixed(3)} MHz` : ''}`;
       row(hw, 'Sound', soundDetail, browseUrl('sound', soundFact));
-      if (audioLimitations(s).length) row(hw, 'Sound accuracy', SYNTHESIZED_SAMPLES_NOTE);
+      const store = await openRomStore().catch(() => undefined);
+      for (const set of new Set<string>((cfg.samples ?? []).map((entry: { set: string }) => entry.set))) {
+        const kept = await store?.get(sampleSetKey(set)).catch(() => null);
+        row(hw, 'Sample set', kept ? `${set}.zip, kept in this browser` : `${set}.zip is missing, so those sounds stay silent. Drop it on the game's page.`);
+      }
       const sc = cfg.board.screen;
       const screenFact = `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`;
       row(hw, 'Screen', screenFact, browseUrl('screen', screenFact));

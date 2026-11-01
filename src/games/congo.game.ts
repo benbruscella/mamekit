@@ -8,7 +8,6 @@ export const congo = sourceTarget({
   soundKind: 'sn76489',
   // PSG routing is corrected; the sample effects still use synthesized
   // approximations, not MAME's gorilla/drum recordings. PCM guards stability.
-  acceptedAudioLimitations: ['synthesized-samples'],
   golden: {
     regions: {
       audiocpu: '5024e673',
@@ -20,20 +19,20 @@ export const congo = sourceTarget({
       tilemap_dat: 'c54ca74c',
     },
     checkpoints: {
-      1: { video: '111c0df1', state: '1d0baaed' },
-      60: { video: 'd4df64f8', state: '4e2c02f1' },
-      180: { video: 'd4df64f8', state: 'ae77cc6d' },
-      300: { video: '5109e673', state: '675b95ee' },
-      600: { video: 'bcf82611', state: '6864aa89' },
-      900: { video: 'c705eff3', state: 'd2e70f99' },
-      1200: { video: '285890b6', state: '753ef9fc' },
+      1: { video: '111c0df1', state: 'faa5e61d' },
+      60: { video: 'd4df64f8', state: '5e577877' },
+      180: { video: 'd4df64f8', state: 'bf9f4cc8' },
+      300: { video: '5109e673', state: 'ea304434' },
+      600: { video: 'bcf82611', state: '4b29680d' },
+      900: { video: 'c705eff3', state: '17636bfa' },
+      1200: { video: '285890b6', state: 'e525966b' },
     },
     audio: {
-      writes: 2166,
-      nonzeroWrites: 2076,
-      writeHash: '4c8a22d0',
-      pcmHash: '0923e3fa',
-      rms: 0.030708,
+      writes: 962004,
+      nonzeroWrites: 92278,
+      writeHash: '7f3e9652',
+      pcmHash: '68b79c05',
+      rms: 0.072049,
     },
   },
 });

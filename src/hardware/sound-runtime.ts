@@ -11,6 +11,13 @@
 
 import type { BoardIr } from '../ir/board.ts';
 
+/** The `sound_stream` a device allocated, which the mixer renders. */
+export interface SoundStreamSurface {
+  rate: number;
+  samples: () => number;
+  put: (channel: number, index: number, value: number) => number;
+}
+
 export interface SoundRuntimeContext {
   board: BoardIr;
   /** Loaded ROMs for sound devices with a device-local sample region. */
@@ -50,6 +57,8 @@ export interface SoundRuntimeContext {
   deviceStream(tag: string): readonly number[];
   /** The native rate a main-thread device gave `stream_alloc`, once started. */
   deviceStreamRate?(tag: string): number | undefined;
+  /** Every stream the device allocated, in `stream_alloc` order. */
+  deviceStreams?(tag: string): readonly SoundStreamSurface[];
   /**
    * Where a device the scheduler runs in its round beside the CPUs (a POKEY)
    * stands, in seconds; undefined for any other. It is behind the CPUs until
