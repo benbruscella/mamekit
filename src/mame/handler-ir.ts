@@ -34,6 +34,12 @@ const FRAMEWORK_TYPE_ALIASES: Record<string, string> = {
   'sound_stream::sample_t': 'float',
 };
 
+/** String macros MAME's framework headers define, by what each expands to. */
+const FRAMEWORK_STRING_MACROS: Record<string, string> = {
+  // osd/osdfile.h, on the POSIX side the sample paths are filed under.
+  PATH_SEPARATOR: '/',
+};
+
 const BINARY_PRECEDENCE: Record<string, number> = {
   '||': 1,
   '&&': 2,
@@ -1465,7 +1471,16 @@ class HandlerParser {
       // compared 78 with NaN and never recognised an iNES header.
       const character = token.text.startsWith("'") ? characterLiteral(token.text) : undefined;
       if (character !== undefined) return { kind: 'number', value: character };
-      return { kind: 'string', value: unquote(token.text) };
+      // Adjacent literals are one literal, and a string macro is a literal:
+      // `"%s" PATH_SEPARATOR "%s.flac"` in samples_device::load_samples.
+      let value = unquote(token.text);
+      for (;;) {
+        const next = this.peek();
+        if (next.kind === 'string' && !next.text.startsWith("'")) value += unquote(this.take().text);
+        else if (next.kind === 'identifier' && FRAMEWORK_STRING_MACROS[next.text] !== undefined) value += FRAMEWORK_STRING_MACROS[this.take().text];
+        else break;
+      }
+      return { kind: 'string', value };
     }
     if (token.kind === 'identifier') {
       if (token.text === 'true') return { kind: 'number', value: 1 };

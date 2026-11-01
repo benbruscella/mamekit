@@ -59,6 +59,12 @@ export interface BoardConfig {
    * as the software-list part its expansion port loads by area name.
    */
   images?: Record<string, BoardImage>;
+  /**
+   * MAME's -samplepath: the sample sets the host found, by set, each a table
+   * of its members by lower-case file name. A machine with none runs with
+   * its samples empty, as MAME does.
+   */
+  samplePath?: Record<string, Record<string, Uint8Array>>;
 }
 
 /** A software-list part as a slot reads it: each dataarea's bytes, and the part's features. */

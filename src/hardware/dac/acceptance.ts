@@ -11,7 +11,7 @@ export async function createDacProbe(context: AudioProbeContext): Promise<AudioF
     DAC_WORKLET_ARTIFACT.replace(/\.ts$/, '.js'),
   )).href) as {
     GeneratedDacMixer: new (
-      chips?: number, routes?: unknown, auxiliary?: unknown, dacs?: unknown,
+      chips?: number, routes?: unknown, auxiliary?: unknown, dacs?: unknown, outputRate?: number, streamGain?: number,
     ) => unknown;
     GeneratedDacFrameRenderer: new (
       mixer: unknown, outputRate: number, refresh: number, filterChain?: unknown,
@@ -24,6 +24,8 @@ export async function createDacProbe(context: AudioProbeContext): Promise<AudioF
       context.sound.routes,
       context.sound.auxiliaryDevices,
       context.sound.dacs,
+      context.outputRate,
+      context.sound.streamGain,
     ),
     context.outputRate,
     context.refresh,

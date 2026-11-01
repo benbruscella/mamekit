@@ -27,7 +27,8 @@ export function romsDir(projectRoot: string): string {
 /**
  * MAME's sample sets, one `<set>.zip` of .wav files each: what MAME plays
  * where a board's sound is recordings (Zaxxon's, Space Panic's). The MAME
- * oracle passes it as -samplepath; the app plays none of them yet.
+ * oracle passes it as -samplepath, and the acceptance harness mounts the same
+ * sets, so a contract measures what MAME's run plays.
  */
 export function samplesDir(projectRoot: string): string {
   return join(projectRoot, DATA_DIR, 'samples');

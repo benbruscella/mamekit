@@ -1,30 +1,13 @@
-import { readFileSync } from 'node:fs';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
-import {
-  SAMPLES_IR_ARTIFACT,
-  SAMPLES_WORKLET_ARTIFACT,
-} from './definition.ts';
+import { extractStreamDevice } from '../speaker/extract.ts';
+import { SAMPLES_MAME_TYPES } from './definition.ts';
 
+/**
+ * samples_device compiled whole from samples.cpp. A driver reads it back
+ * (`playing`), so it runs beside the processor as a generated device: it loads
+ * its recordings from the machine's sample path as MAME does, and renders one
+ * stream a channel at the rate of what that channel is playing.
+ */
 export function extractSamples(input: CapabilityInput): CapabilityExtraction | undefined {
-  const entry = input.entries.find(candidate => candidate.type === 'SAMPLES');
-  if (!entry?.definition) return undefined;
-  const sourceFile = 'src/devices/sound/samples.cpp';
-  const worklet = readFileSync(new URL('./samples-worklet.ts', import.meta.url), 'utf8');
-  const plan = {
-    schemaVersion: 1,
-    type: 'SAMPLES',
-    methods: ['start', 'stop', 'set_volume', 'playing'],
-    sourceFiles: [sourceFile, 'src/devices/sound/samples.h'],
-  };
-  return {
-    executableTypes: ['SAMPLES'],
-    executable: {
-      SAMPLES: { kind: 'audio', artifact: SAMPLES_WORKLET_ARTIFACT },
-    },
-    artifacts: [
-      { path: SAMPLES_IR_ARTIFACT, contents: JSON.stringify(plan, null, 2) },
-      { path: SAMPLES_WORKLET_ARTIFACT, contents: worklet },
-    ],
-    entrySourceFiles: { SAMPLES: plan.sourceFiles },
-  };
+  return extractStreamDevice(input, SAMPLES_MAME_TYPES);
 }

@@ -98,6 +98,7 @@ export interface AudioProbeContext {
     discreteMixer?: unknown;
     resistorLoads?: number[][];
     streamGain?: number;
+    streamLevel?: number;
     discreteDac?: unknown;
     discreteEffects?: unknown;
   };

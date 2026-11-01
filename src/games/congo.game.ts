@@ -8,7 +8,6 @@ export const congo = sourceTarget({
   soundKind: 'sn76489',
   // PSG routing is corrected; the sample effects still use synthesized
   // approximations, not MAME's gorilla/drum recordings. PCM guards stability.
-  acceptedAudioLimitations: ['synthesized-samples'],
   golden: {
     regions: {
       audiocpu: '5024e673',

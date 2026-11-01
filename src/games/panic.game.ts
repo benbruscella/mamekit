@@ -5,9 +5,8 @@ export const panic = sourceTarget({
   driver: 'src/mame/universal/cosmic.cpp',
   machine: { className: 'cosmic_state', name: 'panic' },
   screen: { width: 256, height: 192 },
-  soundKind: 'samples',
+  soundKind: 'stream',
   // Existing synthesized effects do not reproduce the original sample pack.
-  acceptedAudioLimitations: ['synthesized-samples'],
   minimumAudioRms: 0.02,
   golden: {
     regions: {

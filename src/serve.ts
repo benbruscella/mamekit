@@ -6,7 +6,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { CANDIDATE_TARGETS } from './gen/targets.ts';
 import { buildClosureFailures, readBuildManifest } from './gen/build-manifest.ts';
-import { ROM_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
+import { ROM_BUCKET_BASE, SAMPLE_BUCKET_BASE, encodeRomKey } from './runtime/rom-source.ts';
 import {
   GAME_CATEGORIES,
   gameDataPath,
@@ -126,7 +126,6 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
             playableWithoutSound?: boolean;
             silentGaps?: string[];
             generationGaps?: string[];
-            audioLimitations?: string[];
           }, () => null);
         const generationGaps = hardware === null
           ? ['hardware-manifest.json missing or unreadable']
@@ -147,7 +146,6 @@ export async function gamesManifest(outRoot: string, artDir: string): Promise<st
         meta.silent = report?.playable !== true && report?.playableWithoutSound === true;
         if (report?.silentGaps?.length) meta.silentGaps = report.silentGaps;
         meta.generationGaps = generationGaps;
-        meta.audioLimitations = report?.audioLimitations ?? [];
         // The machine's latest comparison with MAME (src/gen/oracle-result.ts).
         const oracle = await readFile(join(dir, 'oracle.json'), 'utf8').then(text => JSON.parse(text) as unknown, () => null);
         if (oracle) meta.oracle = oracle;
@@ -200,6 +198,16 @@ export function serve(rootDirs: Record<string, string>, port: number): Promise<n
           'content-type': json ? MIME['.json'] : MIME['.zip'],
           'cache-control': json ? 'max-age=300' : 'no-store',
         });
+        res.end(Buffer.from(await upstream.arrayBuffer()));
+        return;
+      }
+      if (path.startsWith('samplesearch/')) {
+        // The same-origin route to a sample set, as /romsearch/ is to a ROM set.
+        const key = path.slice('samplesearch/'.length);
+        if (!/^[\w.-]{1,128}\.zip$/i.test(key)) { res.writeHead(400).end(); return; }
+        const upstream = await fetch(`${SAMPLE_BUCKET_BASE}/${encodeURIComponent(key)}`).catch(() => null);
+        if (!upstream?.ok) { res.writeHead(upstream?.status === 404 ? 404 : 502).end(); return; }
+        res.writeHead(200, { 'content-type': MIME['.zip'], 'cache-control': 'no-store' });
         res.end(Buffer.from(await upstream.arrayBuffer()));
         return;
       }

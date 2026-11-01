@@ -97,7 +97,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT']
       .includes(String(d.props.type)));
-  const sampleChips = devices.filter(d => d.props.type === 'SAMPLES');
   const berzerkSound = devices.find(d =>
     d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
   // The Atari TIA's sound half. It is the only chip on the board, so it owns
@@ -207,7 +206,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
                   : {}),
               };
             })()
-          : dacChips.length && !(sampleChips.length && dacChips.every(device =>
+          : dacChips.length && !(devices.some(device => device.props.type === 'SAMPLES') && dacChips.every(device =>
               device.props.type === 'DAC_1BIT'))
             ? {
                 kind: 'dac',
@@ -252,12 +251,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
               ...(devices.some(device => device.props.type === 'S14001A')
                 ? { sampleRegion: 'speech' }
                 : {}),
-            }
-        : sampleChips.length
-          ? {
-              kind: 'samples',
-              clock: cpus[0].clock,
-              chips: sampleChips.length,
             }
         : discreteDevice
           ? {
@@ -309,7 +302,11 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
     graph,
     poleposWsgDevices.map(device => ({ id: device.id, tag: String(device.props.tag) })),
   )[0]?.gain;
-  const soundGain = sound.kind === 'ay8910' && auxiliaryAudioDevices.some(device =>
+  // A stream mix is already at its routes' gains, whatever else the board holds:
+  // Space Panic's unplayed DAC_1BIT took 6 dB off its samples.
+  const soundGain = sound.kind === 'stream'
+    ? undefined
+    : sound.kind === 'ay8910' && auxiliaryAudioDevices.some(device =>
     (device.referenceLevels?.length ?? 0) > 0)
     ? 1
     : routedWsgGain !== undefined
@@ -397,6 +394,17 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
       .flatMap(device => lowerAudioRoutes(graph, [{ id: device.id, tag: String(device.props.tag) }]).slice(0, 1))
       .reduce((total, route) => total + route.gain, 0);
     if (streamGain > 0) Object.assign(sound, { streamGain });
+    // These two mixes are scaled to their own chips, with a family master gain
+    // on top, which can't weigh a stream against them. Beside a stream they sum
+    // at their routes' gains, which is MAME's mix, and need no master gain.
+    if (streamGain > 0 && (sound.kind === 'dac' || sound.kind === 'sn76489')) Object.assign(sound, { masterGain: 1 });
+    // The YM2151's mix keeps its master gain, and a samples stream arrives at
+    // MAME's own level, so it comes in above that gain: TMNT's title music sat
+    // 3 dB low. A POKEY stays where it was: nothing has measured it as better
+    // raised, and doing so would move Gauntlet's and Marble Madness's goldens.
+    if (streamGain > 0 && sound.kind === 'ym2151' && soundGain && devices.some(device => device.props.type === 'SAMPLES')) {
+      Object.assign(sound, { streamLevel: 1 / soundGain });
+    }
   }
 
   return { clocks, sound, nesApu };

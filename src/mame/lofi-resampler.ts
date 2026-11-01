@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 /**
  * MAME's default stream resampler, `audio_resampler_lofi` in
  * src/emu/resampler.cpp, as emitted worklet source.
@@ -14,27 +16,11 @@
  * update; streaming it here accumulates the same integer step, which drifts by
  * under 1/2^24 of a group per sample.
  */
-export const LOFI_RESAMPLER_SOURCE = `// audio_resampler_lofi in src/emu/resampler.cpp.
-const LOFI_INTERPOLATION = (() => {
-  const f0 = new Float32Array(0x1001);
-  const f1 = new Float32Array(0x1001);
-  for (let i = 1; i !== 4096; i++) {
-    const p = Math.fround(i / 4096);
-    f0[i] = (p - p * p * p) / 6;
-  }
-  for (let i = 1; i !== 2049; i++) {
-    const p = Math.fround(i / 4096);
-    f1[i] = p + (p * p - p * p * p) / 2;
-  }
-  // When interpolating, f1 is added and f0 is subtracted, and the total must be 1.
-  for (let i = 2049; i !== 4096; i++) f1[i] = 1 + f0[i]! + f0[4096 - i]! - f1[4096 - i]!;
-  f0[0] = 0;
-  f0[0x1000] = 0;
-  f1[0] = 0;
-  f1[0x1000] = 1;
-  return { f0, f1 };
-})();
+const INTERPOLATION_SOURCE = readFileSync(new URL('../hardware/speaker/lofi-interpolation.ts', import.meta.url), 'utf8')
+  .replace(/^(?:\/\/.*\n)+/, '').replace('export const', 'const');
 
+export const LOFI_RESAMPLER_SOURCE = `// audio_resampler_lofi in src/emu/resampler.cpp.
+${INTERPOLATION_SOURCE}
 /** A source the resampler pulls one sample at a time, at the source rate. */
 interface GeneratedLofiSource {
   next(): number;

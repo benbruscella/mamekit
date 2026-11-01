@@ -18,14 +18,15 @@ import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, His
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
-import { fetchRomBytes, machineSetKeys } from './rom-source.ts';
+import { fetchRomBytes, fetchSampleSetBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
 import {
   DECK_GOLD, deckButton, deckPanel, deckVent, paintTitleButton, setDeckButtonState,
   setTitleButtonText, titleButton, toolbarDivider,
 } from './controls.ts';
-import { openRomStore, type RomStore, type StoredZip } from './romstore.ts';
+import { openRomStore, sampleSetKey, type RomStore, type StoredZip } from './romstore.ts';
+import { samplePathMembers, type SamplePath } from './sample-path.ts';
 import { openMemoryStore } from './memorystore.ts';
 import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
 
@@ -174,6 +175,7 @@ export interface SoundSpec {
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** Total routed gain of the main-thread streams posted beside the owning chip. */
   streamGain?: number;
+  streamLevel?: number;
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
@@ -334,8 +336,8 @@ export interface ShellConfig {
   hiscore?: HiscoreTable;
   /**
    * The sample sets MAME's samples devices load, by name: `set` is the zip
-   * (`sampleof`), `names` the `.wav`/`.flac` files in it. Nothing plays them
-   * yet; the ROM library files them and audit:facts checks them.
+   * (`sampleof`), `names` the `.wav`/`.flac` files in it. The device loads them
+   * from the sample path the shell mounts, and plays those it finds.
    */
   samples?: { tag: string; set: string; names: string[] }[];
   bindings: FieldBinding[];
@@ -945,6 +947,7 @@ export async function runShell(
     return null;
   });
   let keptRom = false;
+  let searchedWeb = false;
   // A cartridge is the whole machine only when the machine needs no ROM files
   // of its own. The NES declares a maincpu region with nothing in it -- the
   // cartridge fills it -- while the ColecoVision declares a real BIOS, so its
@@ -980,7 +983,9 @@ export async function runShell(
       ui.status(short.length
         ? `ROMs are not distributed with mamekit — drop your own ${short.map(set => `${set}.zip`).join(', ')}; this browser already keeps the rest.`
         : `ROMs are not distributed with mamekit — drop your own ${wanted[0]}.zip${companionText} (kept only in this browser).`);
-      const { files, zips } = await waitForZip(ui, zone, cfg.roms, critical, wanted, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined);
+      const { files, zips, searched } = await waitForZip(ui, zone, cfg.roms, critical, wanted, romCategory(cfg.dataPath), romSystemKey(cfg), kept ?? undefined,
+        (incoming, raw, name) => keepDroppedSampleSet(romStore, cfg.samples, incoming, raw, name, ui.toast));
+      searchedWeb = searched;
       regions = assembleRegions(cfg.roms, files, ui.status, critical);
       keptRom = await keepRomSet(romStore, cfg.game, zips, ui.toast, wanted[0]);
     }
@@ -995,6 +1000,28 @@ export async function runShell(
     if (region && p.offset < region.length) region[p.offset] = p.value;
   }
   applyRomTransforms(regions, cfg.romTransforms ?? []);
+
+  // --- sample sets (MAME's -samplepath) ---------------------------------------
+  // The player's own, like ROMs, and optional: MAME runs a machine without its
+  // samples, silent on those channels, and so does this.
+  const { samplePath, missing: missingSamples } = await loadSamplePath(romStore, cfg.samples, searchedWeb);
+  if (missingSamples.length) {
+    const names = missingSamples.map(set => `${set}.zip`).join(', ');
+    ui.toast(`Its sample set (${names}) is missing, so those sounds stay silent. Drop it on this page to keep it.`);
+    addEventListener('drop', ev => {
+      for (const file of Array.from(ev.dataTransfer?.files ?? [])) {
+        void file.arrayBuffer().then(async buffer => {
+          const raw = new Uint8Array(buffer);
+          const incoming = await readZip(raw).catch(() => undefined);
+          if (incoming) await keepDroppedSampleSet(romStore, cfg.samples, incoming, raw, file.name, ui.toast);
+        });
+      }
+    });
+  }
+  // What the machine is built from, sample sets included: a game that reads
+  // `playing` back runs differently without them, so a save or a room's
+  // identity has to tell the two apart.
+  const bootBoard = { ...cfg.board, ...(samplePath ? { samplePath } : {}) };
 
   // --- machine ----------------------------------------------------------------
   const input = new KeyboardInput(cfg.bindings, cfg.dipDefaults, cfg.ports);
@@ -1049,7 +1076,7 @@ export async function runShell(
   // A slot whose cards ship as modules of their own (the NES's 390 boards)
   // fetches the one this machine holds before it is built.
   await loadBoardSlotCards({ ...cfg.board, game: cfg.game });
-  const board = createBoard({ ...cfg.board, game: cfg.game }, regions, input, {
+  const board = createBoard({ ...bootBoard, game: cfg.game }, regions, input, {
     soundWrite: (offset, data, frac, method) => {
       soundWrites.total++;
       if (offset >= 0 && data !== 0) soundWrites.nonzero++;
@@ -1202,7 +1229,7 @@ export async function runShell(
   const netplay: Netplay = createNetplay({
     input,
     bindings: cfg.bindings,
-    identity: { game: cfg.game, identity: machineIdentity(cfg.game, cfg.board, regions) },
+    identity: { game: cfg.game, identity: machineIdentity(cfg.game, bootBoard, regions) },
     refresh: cfg.board.screen.refresh,
     coldBoot: () => board.load(coldMachine),
     freezeMemory: () => memory.disable(),
@@ -1323,6 +1350,7 @@ export async function runShell(
         })),
         filterChain: cfg.sound.filterChain,
         ...(cfg.sound.streamGain ? { streamGain: cfg.sound.streamGain } : {}),
+        ...(cfg.sound.streamLevel ? { streamLevel: cfg.sound.streamLevel } : {}),
         discreteMixer: cfg.sound.discreteMixer,
         resistorLoads: cfg.sound.resistorLoads,
         discreteDac: cfg.sound.discreteDac,
@@ -1549,7 +1577,7 @@ export async function runShell(
   // keeps its function keys, so it has the deck buttons only.
   const saves = saveStateDeck({
     cfg,
-    identity: machineIdentity(cfg.game, cfg.board, regions),
+    identity: machineIdentity(cfg.game, bootBoard, regions),
     save: () => board.save(),
     load: state => { input.releaseAll(); board.load(state); audio.discard(); },
     media: () => recordMedia(transportImages),
@@ -1598,7 +1626,7 @@ export async function runShell(
   // the same machine, in place of starting it again.
   if (cfg.kind === 'computer' && cfg.titleKey && !joinCode) {
     const resumeId = `resume:${cfg.game}:${cfg.titleKey}`;
-    const identity = machineIdentity(cfg.game, cfg.board, regions);
+    const identity = machineIdentity(cfg.game, bootBoard, regions);
     const store = openSaveStore();
     const keep = async (): Promise<void> => {
       // A title just booted has nothing worth coming back to yet.
@@ -2817,7 +2845,9 @@ function waitForZip(
   category: string,
   systemKey?: string,
   kept?: KeptRomSet,
-): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[] }> {
+  /** A zip that was the machine's sample set, not its ROMs: true if so. */
+  sampleSet?: (incoming: Map<string, Uint8Array>, raw: Uint8Array, name: string) => Promise<boolean>,
+): Promise<{ files: Map<string, Uint8Array>; zips: StoredZip[]; searched: boolean }> {
   const primary = wanted[0]!;
   return new Promise(resolve => {
     const pick = document.createElement('input');
@@ -2837,6 +2867,11 @@ function waitForZip(
       let incoming: Map<string, Uint8Array>;
       try { incoming = await readZip(raw); }
       catch { zone.error(`${name} isn’t a readable zip — try the original romset.`); return false; }
+      // Often the same file name as the ROM set, which it must not replace.
+      if (await sampleSet?.(incoming, raw, name)) {
+        zone.verdict(checkRomSet(specs, files, critical), true);
+        return false;
+      }
       mergeRomFiles(files, incoming);
       // A kept zip of the same name is the one this drop replaces.
       const stale = zips.findIndex(zip => zip.name === name);
@@ -2848,7 +2883,7 @@ function waitForZip(
       zone.verdict(check);
       if (check.missingCritical.length) return false; // stay in the loop for a retry
       accepted = true;
-      setTimeout(() => resolve({ files, zips }), 1100); // let the verdict land before the screen lights up
+      setTimeout(() => resolve({ files, zips, searched }), 1100); // let the verdict land before the screen lights up
       return true;
     };
     const handle = async (file: File) => ingest(file.name, new Uint8Array(await file.arrayBuffer()));
@@ -2866,9 +2901,11 @@ function waitForZip(
     // little theatre — it crawls toward 92% on its own and only lands at
     // 100% when the fetch really returned bytes.
     let searching = false;
+    let searched = false;
     zone.search.button.addEventListener('click', () => {
       if (searching || accepted) return;
       searching = true;
+      searched = true;
       zone.search.start();
       const started = performance.now();
       let frac = 0;
@@ -2925,6 +2962,61 @@ function waitForZip(
       else zone.idle();
     });
   });
+}
+
+/** The set of the machine's a zip holds recordings of, by the names MAME loads. */
+export function sampleSetOf(
+  incoming: Map<string, Uint8Array>,
+  samples: ShellConfig['samples'],
+): string | undefined {
+  const members = new Set([...incoming.keys()].map(name => name.split('/').pop()!.toLowerCase()));
+  return samples?.find(entry => entry.names.some(sample =>
+    members.has(`${sample.toLowerCase()}.wav`) || members.has(`${sample.toLowerCase()}.flac`)))?.set;
+}
+
+/** Keep a dropped zip if it is one of the machine's sample sets; true if it was. */
+async function keepDroppedSampleSet(
+  store: RomStore,
+  samples: ShellConfig['samples'],
+  incoming: Map<string, Uint8Array>,
+  raw: Uint8Array,
+  name: string,
+  toast: (text: string) => void,
+): Promise<boolean> {
+  const set = sampleSetOf(incoming, samples);
+  if (!set) return false;
+  try {
+    await store.put({ game: sampleSetKey(set), zips: [{ name, bytes: raw.slice().buffer }], addedAt: Date.now() });
+    toast(`${set}'s samples are kept in this browser, and play from the next time this machine starts`);
+  } catch (error) {
+    toast(`This browser could not keep ${set}'s samples: ${(error as Error).message}`);
+  }
+  return true;
+}
+
+/**
+ * The sample path for a machine's sets: what this browser keeps, and, when the
+ * player asked the web for the ROMs, what the mirror has of the rest.
+ */
+export async function loadSamplePath(
+  store: RomStore,
+  samples: ShellConfig['samples'],
+  searchWeb: boolean,
+): Promise<{ samplePath?: SamplePath; missing: string[] }> {
+  const samplePath: SamplePath = {};
+  const missing: string[] = [];
+  for (const set of new Set((samples ?? []).map(entry => entry.set))) {
+    const kept = await store.get(sampleSetKey(set)).catch(() => null);
+    let bytes: Uint8Array | null = kept?.zips[0] ? new Uint8Array(kept.zips[0].bytes) : null;
+    if (!bytes && searchWeb) {
+      bytes = await fetchSampleSetBytes(set);
+      if (bytes) await store.put({ game: sampleSetKey(set), zips: [{ name: `${set}.zip`, bytes: bytes.slice().buffer as ArrayBuffer }], addedAt: Date.now() }).catch(() => {});
+    }
+    const members = bytes ? await readZip(bytes).catch(() => undefined) : undefined;
+    if (members) samplePath[set] = samplePathMembers(members);
+    else missing.push(set);
+  }
+  return { ...(Object.keys(samplePath).length ? { samplePath } : {}), missing };
 }
 
 /**

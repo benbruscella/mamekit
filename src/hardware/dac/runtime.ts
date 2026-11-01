@@ -1,6 +1,8 @@
-import { deviceAliases, soundTags, type SoundRuntimeContext } from '../sound-runtime.ts';
+import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
+import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
+import { createStreamMixer } from '../speaker/runtime.ts';
 
-export function installDacRuntime(context: SoundRuntimeContext): void {
+export function installDacRuntime(context: SoundRuntimeContext): SoundRuntimeHooks | void {
   for (const [chip, tag] of soundTags(context.sound).entries()) {
     const write = (data: number): void => {
       context.soundWrite(chip, data, context.fraction());
@@ -110,4 +112,11 @@ export function installDacRuntime(context: SoundRuntimeContext): void {
       context.calls[`${alias}.reset_write`] = resetWrite;
     }
   }
+
+  // A samples device beside the DAC (Q*bert's knocker) renders its own stream
+  // on the main thread and hands the worklet its mix.
+  return context.sound.streamDevices?.length
+    ? createStreamMixer(context, context.sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+      (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
+    : undefined;
 }

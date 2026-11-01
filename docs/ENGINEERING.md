@@ -35,7 +35,7 @@ hidden, gitignored tree:
 .data/roms/computers/<family>/<list>/ software per software list, BIOS in <family>/bios/
 .data/roms/_new/                      the ROM library's inbox (make roms-import)
 .data/roms/_quarantine/               what no supported machine uses, with the reason logged
-.data/samples/<set>.zip               MAME's sample sets (.wav), read by the MAME oracle
+.data/samples/<set>.zip               MAME's sample sets, played by the contracts and the MAME oracle
 .data/samples/_new/                   the sample inbox (make samples-import)
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
 .data/release-notes/raw/              MAMEDEV's published whatsnew/messnew notes
@@ -125,8 +125,9 @@ from the `set_samples_names` array, and `audit:facts` checks it against
 `samples-import` identifies a zip by the `.wav`/`.flac` names it covers. It
 files the zip as `.data/samples/<set>.zip` with the samples at the root, where
 MAME looks, and uses the same outcome folders and reports as `roms-import`.
-`roms-status` gives the sets a row, and `make sync-samples` backs them up to
-the bucket privately, since the app plays none of them yet.
+`roms-status` gives the sets a row, and `make sync-samples` uploads them
+public-read: the app fetches one when the player asks the web for the ROMs, and
+`npm run fetch:acceptance-roms` supplies them to CI's contracts.
 
 MAME source discovery order is implemented by the CLI. Override automatic
 discovery with:

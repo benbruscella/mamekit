@@ -97,7 +97,7 @@ export interface GameAcceptanceGolden {
 
 export type GameSoundKind =
   | 'sid' | 'stream' | 'wsg' | 'ay8910' | 'dac' | 'discrete' | 'sn76489'
-  | 'ym2203' | 'ym2151' | 'samples' | 'berzerk' | 'exidy' | 'nes' | 'gameboy'
+  | 'ym2203' | 'ym2151' | 'berzerk' | 'exidy' | 'nes' | 'gameboy'
   | 'tia' | 'none';
 
 export type MediaKind =
@@ -135,8 +135,6 @@ export interface MachineTargetDefinition {
 
 /** One deterministic way to exercise a target and its selected media. */
 export interface GameAcceptanceScenario {
-  /** Reviewed renderer limitations; these goldens verify stability, not fidelity to MAME PCM. */
-  acceptedAudioLimitations?: string[];
   id?: string;
   kind?: 'cold-boot' | 'gameplay' | 'keyboard' | 'media' | 'peripheral';
   /**
@@ -171,7 +169,6 @@ export interface MachineTargetContract {
  * It contains no emulation behavior; the shared harness executes `dist`.
  */
 export interface GameTestContract extends MachineTargetDefinition {
-  acceptedAudioLimitations?: string[];
   /** Stable key when one machine has more than one deterministic scenario. */
   scenarioId?: string;
   /** See GameAcceptanceScenario.cartridge. */

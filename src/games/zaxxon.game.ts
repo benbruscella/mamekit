@@ -5,9 +5,8 @@ export const zaxxon = sourceTarget({
   driver: 'src/mame/sega/zaxxon.cpp',
   machine: { className: 'zaxxon_state', name: 'zaxxon' },
   screen: { width: 256, height: 224 },
-  soundKind: 'samples',
+  soundKind: 'stream',
   // Existing synthesized effects do not reproduce the original sample pack.
-  acceptedAudioLimitations: ['synthesized-samples'],
   // Its renderer is emitted rather than interpreted; the interpreted form
   // managed 36 fps on the machine that recorded this.
   minimumFps: 45,

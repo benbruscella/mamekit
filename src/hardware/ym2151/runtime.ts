@@ -413,43 +413,6 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
       };
     }
   }
-  /** Channels each samples device is playing, by tag (state a save carries). */
-  const samples = new Map<string, Set<number>>();
-  for (const auxiliary of context.sound.auxiliaryDevices ?? []) {
-    if (auxiliary.type !== 'SAMPLES') continue;
-    const tag = auxiliary.deviceTag;
-    const playing = new Set<number>();
-    samples.set(tag, playing);
-    for (const alias of deviceAliases(context.board, tag)) {
-      const originalStart = context.calls[`${alias}.start`];
-      context.calls[`${alias}.start`] = (...args: number[]) => {
-        const result = originalStart?.(...args);
-        const channel = Number(args.at(-3) ?? args.at(-2) ?? 0);
-        playing.add(channel);
-        context.soundWrite(channel, Number(args.at(-2) ?? args.at(-1) ?? 0),
-          context.fraction(), `${tag}.start`);
-        return result;
-      };
-      const originalRaw = context.calls[`${alias}.start_raw`];
-      context.calls[`${alias}.start_raw`] = (...args: number[]) => {
-        const result = originalRaw?.(...args);
-        const channel = Number(args.at(-4) ?? 0);
-        playing.add(channel);
-        context.soundWrite(channel, 1, context.fraction(), `${tag}.start_raw`);
-        return result;
-      };
-      const originalStop = context.calls[`${alias}.stop`];
-      context.calls[`${alias}.stop`] = (...args: number[]) => {
-        const result = originalStop?.(...args);
-        const channel = Number(args.at(-1) ?? 0);
-        playing.delete(channel);
-        context.soundWrite(channel, 0, context.fraction(), `${tag}.stop`);
-        return result;
-      };
-      context.calls[`${alias}.playing`] = (...args: number[]) =>
-        playing.has(Number(args.at(-1) ?? 0)) ? 1 : 0;
-    }
-  }
   // MSM5205 ADPCM chips mixed by the worklet: the board never instantiates
   // them, so driver calls (m_adpcm[0]->data_w from the vck feeder) and mapped
   // writes go straight to the sink, tagged by device and method name.
@@ -528,7 +491,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
   return {
     // The speech chips' sample carries ride along with the timers: a save
     // that lost one put Gauntlet's /READY pin a sample out (machine-state.ts).
-    state: { timers, upd, auxiliaries, speech, samples, ...(streams ? { streams: streams.state } : {}) },
+    state: { timers, upd, auxiliaries, speech, ...(streams ? { streams: streams.state } : {}) },
     reset: () => {
       for (const timer of timers) {
         timer.address = 0;

@@ -902,6 +902,8 @@ class IrBoard implements Board {
             ? { deferStart: true }
             : {}),
           selectors: cartSelectors(config.cart),
+          machineName: config.game,
+          ...(config.samplePath ? { samplePath: config.samplePath } : {}),
           // An image held from power-on (BoardConfig.images): a C64 cartridge
           // is the expansion port's from before the machine starts.
           ...(config.images?.[specification.tag] ? { image: config.images[specification.tag] } : {}),
@@ -5503,6 +5505,7 @@ class IrBoard implements Board {
       },
       deviceStream: tag => deviceFor(tag)?.takeStreamSamples?.() ?? [],
       deviceStreamRate: tag => deviceFor(tag)?.streamRate?.(),
+      deviceStreams: tag => deviceFor(tag)?.streams?.() ?? [],
       streamDescendants: () => streamDescendants,
       runCallbackHandler: callbackId =>
         executeGeneratedCallbackHandler(machine, callbackId, this.bindings),

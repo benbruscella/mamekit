@@ -160,12 +160,9 @@ generates and publishes candidates as preview (EXPERIMENTAL) entries; the
 real-ROM acceptance sweep (`npm run test:games` and the CI ROM job) leaves them
 out. Promotion rebases the moved pair's relative imports.
 
-Sample-based effects currently use synthesized approximations in the SAMPLES
-and SN76489/SAMPLES renderers. Their contracts must explicitly acknowledge
-`acceptedAudioLimitations: ['synthesized-samples']` before recording or accepting
-PCM. These goldens check deterministic behavior, not agreement with MAME's
-original sample recordings. The runtime report and game's sound details show
-the same limitation; it does not change machine playability.
+A machine with a `SAMPLES` device records against its real sample set, from
+`.data/samples/<set>.zip` (`make -C .data samples-status`), so its golden is the
+recordings MAME plays. The harness refuses to run without the set.
 
 Review every golden change. Region changes imply ROM or patch changes; early
 state changes imply execution/lifecycle changes; framebuffer changes imply

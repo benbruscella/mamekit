@@ -6,6 +6,7 @@ import {
   applyGeneratedShiftRight,
   generatedMacroCall,
   dereferenceGeneratedValue,
+  generatedByteView,
   generatedPackedView,
   generatedContainerAccessor,
   generatedVectorMethod,
@@ -31,6 +32,7 @@ import {
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
+import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
 import type { GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { inheritCardInterface, type CardInterface } from '../ir/card-interface.ts';
@@ -162,6 +164,7 @@ export interface GeneratedDeviceExecutionContext {
    * copied, so the wider view writes through to the same shared bytes.
    */
   packedView(value: unknown, signed: boolean): unknown;
+  byteView(value: unknown): unknown;
   /** A MAME memory container's own accessor (`m_vram.get()`), from the array. */
   container(value: unknown, method: string): unknown;
   /** std::vector `insert`/`erase` at an iterator, or the object's own method of that name. */
@@ -415,6 +418,8 @@ export interface Device {
   takeStreamSamples?(): readonly number[];
   /** Stream-rendering sound devices this one and its slot's card are built out of. */
   streamDescendants?(): { tag: string; device: Device; gain: number }[];
+  /** Every stream the device allocated, in `stream_alloc` order. */
+  streams?(): readonly IrSoundStream[];
   /** The rate the device passed to `stream_alloc`, once it has started. */
   streamRate?(): number | undefined;
   arity(name: string): number;
@@ -583,6 +588,10 @@ export interface GeneratedDeviceOptions {
    */
   finder?: (tag: string, member?: string, kind?: 'space') => unknown;
   regions?: Record<string, Uint8Array>;
+  /** MAME's `machine().basename()`: the machine's short name. */
+  machineName?: string;
+  /** MAME's -samplepath: the sample sets the host found (BoardConfig.samplePath). */
+  samplePath?: SamplePath;
   configuration?: unknown;
   banks?: Record<string, GeneratedMemoryBank>;
   resourceCache?: Record<string, unknown>;
@@ -835,6 +844,43 @@ const noTimerCallback = (): void => {};
 function unitInLastPlace(value: number): number {
   const magnitude = Math.abs(value);
   return magnitude < Number.MIN_VALUE * 2 ** 52 ? Number.MIN_VALUE : 2 ** (Math.floor(Math.log2(magnitude)) - 52);
+}
+
+/**
+ * One `sound_stream` a device allocated. The host's stream mixer renders it:
+ * it lays the update's window on before calling `sound_stream_update`, on this
+ * same object, because a device with several streams finds which one it was
+ * handed by identity (`&stream == m_channel[channel].stream`).
+ */
+export class IrSoundStream {
+  rate: number;
+  onRate?: (rate: number) => void;
+  samples: () => number = () => 0;
+  put: (channel: number, index: number, value: number) => number = () => 0;
+  private readonly bindings: { calls?: Record<string, (...args: any[]) => unknown> };
+
+  constructor(rate: number, bindings: { calls?: Record<string, (...args: any[]) => unknown> }) {
+    this.rate = rate;
+    this.bindings = bindings;
+  }
+
+  // Bound in the host's mixer; the speaker places each edge against end_time.
+  update(): unknown { return this.bindings.calls?.['stream.update']?.(this) ?? 0; }
+  end_time(): unknown { return this.bindings.calls?.['stream.end_time']?.(this) ?? 0; }
+  sample_rate(): number { return Number(this.bindings.calls?.['stream.sample_rate']?.(this) ?? this.rate); }
+  // `sound_stream::set_sample_rate`: the AY-3-8910 allocates at clock/8 and
+  // then halves it for a chip with an internal divider (the Sunsoft 5B).
+  // Ignored, the 5B played an octave high.
+  set_sample_rate(next: unknown): number {
+    const rate = Number(next);
+    if (rate > 0 && rate !== this.rate) {
+      this.bindings.calls?.['stream.rate_changing']?.(this, rate);
+      this.rate = rate;
+      this.onRate?.(rate);
+    }
+    return 0;
+  }
+  stateKeys(): readonly string[] { return ['rate']; }
 }
 
 class IrTimer {
@@ -1104,6 +1150,7 @@ class IrDevice implements Device {
   private executeEntry?: (...args: GeneratedCallArgument[]) => unknown;
   /** Samples published through `sound_stream::put_int` since the last collection. */
   private streamSamples: number[] = [];
+  private readonly soundStreams: IrSoundStream[] = [];
   private slotChild?: IrDevice;
   /** The option the slot selected, whether or not its card is held. */
   slotOption?: string;
@@ -1524,6 +1571,14 @@ class IrDevice implements Device {
         clock: () => clock,
         'machine().sample_rate': () => 48000,
         'machine().phase': () => DEFAULT_CONSTANTS['machine_phase::RUNNING']!,
+        // What samples_device::load_samples asks the framework: the option
+        // that turns samples on (the default) and the path they are filed on.
+        'machine().options().samples': () => 1,
+        'machine().options().sample_path': () => 0,
+        'machine().basename': () => options.machineName ?? '',
+        emu_file: () => new IrEmuFile(options.samplePath ?? {}) as unknown as number,
+        flac_decoder: file => new IrFlacDecoder(file as unknown as IrEmuFile) as unknown as number,
+        'util::string_format': (format, ...args) => mameStringFormat(format, ...args) as unknown as number,
         // `device().subtag(tag)`, resolved as MAME's device_t::subtag does:
         // `^` climbs to the owner, a leading `:` is absolute, anything else
         // is below this device. An NES card allocates its PRG as
@@ -1558,23 +1613,15 @@ class IrDevice implements Device {
         } : {}),
         // `stream_alloc(inputs, outputs, sample_rate)`: the rate is the device's
         // own native output rate (VLM5030 asks for clock()/440), kept so the
-        // host pumping it knows how many samples elapsed time is worth.
+        // host pumping it knows how many samples elapsed time is worth. A device
+        // may allocate several: samples_device takes one for each channel, and
+        // finds which one is updating by comparing the stream it is handed.
         stream_alloc: (_inputs, _outputs, rate) => {
           if (Number(rate) > 0) this.members.__stream_rate = Number(rate);
-          // The host answers how far the stream has rendered (`end_time`):
-          // the speaker places each edge against it.
-          return {
-            update: () => this.bindings.calls?.['stream.update']?.() ?? 0,
-            end_time: () => this.bindings.calls?.['stream.end_time']?.() ?? 0,
-            sample_rate: () => this.bindings.calls?.['stream.sample_rate']?.() ?? Number(this.members.__stream_rate ?? rate),
-            // `sound_stream::set_sample_rate`: the AY-3-8910 allocates at
-            // clock/8 and then halves it for a chip with an internal divider
-            // (the Sunsoft 5B). Ignored, the 5B played an octave high.
-            set_sample_rate: (next: number) => {
-              if (Number(next) > 0) this.members.__stream_rate = Number(next);
-              return 0;
-            },
-          };
+          const stream = new IrSoundStream(Number(rate), this.bindings);
+          stream.onRate = next => { this.members.__stream_rate = next; };
+          this.soundStreams.push(stream);
+          return stream as unknown as number;
         },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
           ? 0 : this.runningCycles - Number(this.members.m_icount)),
@@ -1709,6 +1756,8 @@ class IrDevice implements Device {
         if (isGeneratedPointer(value)) {
           return value.source[value.offset + index] ?? 0;
         }
+        // A C string's characters are its bytes: `names()[0][0] == '*'`.
+        if (typeof value === 'string') return value.charCodeAt(index) || 0;
         return (value as ArrayLike<unknown> | undefined)?.[index] ?? 0;
       },
       writeIndex: (value, index, next) => {
@@ -1733,6 +1782,7 @@ class IrDevice implements Device {
       dereference: dereferenceGeneratedValue,
       copyStruct: copyGeneratedStruct,
       packedView: generatedPackedView,
+      byteView: generatedByteView,
       container: generatedContainerAccessor,
       vectorMethod: generatedVectorMethod,
       stringMethod: generatedStringCall,
@@ -2337,6 +2387,11 @@ class IrDevice implements Device {
 
   methodNames(): readonly string[] {
     return [...this.methods.keys()];
+  }
+
+  /** Every stream the device allocated, in `stream_alloc` order. */
+  streams(): readonly IrSoundStream[] {
+    return this.soundStreams;
   }
 
   streamRate(): number | undefined {
@@ -3803,7 +3858,12 @@ function structMember(
     // A vector field (floppy_image's per-track `cell_data`) is a vector.
     const vector = /^std::vector<\s*(.+?)\s*>$/.exec(field.valueType ?? '');
     if (vector) {
-      value[field.name] = generatedVector(vectorElement(vector[1], structs));
+      // Signed 16-bit PCM is storage a file is read into by the byte, and whose
+      // values are read back signed (samples_device::sample_t), so it is that
+      // memory rather than an array of integers.
+      value[field.name] = /^(?:int16_t|s16)$/.test(vector[1]!)
+        ? new Int16Array(0)
+        : generatedVector(vectorElement(vector[1], structs));
       continue;
     }
     // A field that is itself a struct, and commonly an array of them: the
