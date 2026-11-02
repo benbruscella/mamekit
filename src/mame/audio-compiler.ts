@@ -3239,7 +3239,10 @@ export class GeneratedAy8910Mixer {
   private readonly deviceTags: string[];
   private muted = false;
   private netlist?: GeneratedNetlistSolver;
-  private netlistStreams?: Float64Array;
+  /** Seconds of netlist time at the start of the next output sample. */
+  private netlistTime = 0;
+  /** Each chip's next native sample, in output samples from the current one's start. */
+  private netlistTicks: number[] = [];
   /**
    * Streams the main thread renders beside the chips (a beeper, a cassette)
    * arrive as stream.pcm at their own rate, already weighted by their routes.
@@ -3264,7 +3267,6 @@ export class GeneratedAy8910Mixer {
     this.deviceTags = deviceTags;
     if (netlist) {
       this.netlist = new GeneratedNetlistSolver(netlist, outputRate);
-      this.netlistStreams = new Float64Array(netlist.inputs.reduce((most, input) => Math.max(most, input.channel + 1), 0));
     }
     const count = Math.max(1, chips);
     this.cores = Array.from({ length: count }, (_, chip) =>
@@ -3355,7 +3357,7 @@ export class GeneratedAy8910Mixer {
       return;
     }
     if (method === 'netlist.logic') {
-      this.netlist?.writeLogic(offset, data);
+      this.netlist?.writeLogic(offset, data, this.netlistTime);
       return;
     }
     // A main-thread stream's sample, its rate in the offset. A stalled
@@ -3428,6 +3430,7 @@ export class GeneratedAy8910Mixer {
 
   sample(): number {
     if (this.muted) return 0;
+    if (this.netlist) return this.sampleNetlist();
     for (let chip = 0; chip < this.cores.length; chip++) {
       const core = this.cores[chip]!;
       const native = this.nativeSamples[chip]!;
@@ -3462,7 +3465,6 @@ export class GeneratedAy8910Mixer {
       }
     }
     if (this.discreteGraph) return this.sampleDiscreteGraph();
-    if (this.netlist) return this.sampleNetlist();
     let mixed = 0;
     for (const route of this.routes) {
       const samples = this.channelSamples[route.chip];
@@ -3487,20 +3489,42 @@ export class GeneratedAy8910Mixer {
     return Math.max(-1, Math.min(1, mixed));
   }
 
-  // Each route carries its stream to a NETLIST_STREAM_INPUT channel, at its
-  // gain, as a sound_stream input does.
+  // The netlist takes each chip's stream at the chip's own sample times, as
+  // NETLIST_STREAM_INPUT's SAMPLE_RATE_INPUT_ADAPTIVE stream does: MAME never
+  // resamples a resistance, so neither does this. Each native sample lands at
+  // its time and the netlist is read at the output sample's.
   private sampleNetlist(): number {
-    const streams = this.netlistStreams!;
-    for (const route of this.routes) {
-      if (route.targetInput === undefined) continue;
-      streams[route.targetInput] = (route.channel === -1
-        ? this.singleSamples[route.chip] ?? 0
-        : this.channelSamples[route.chip]?.[route.channel] ?? 0) * route.gain;
+    const solver = this.netlist!;
+    const period = 1 / this.outputRate;
+    const start = this.netlistTime;
+    const ticks = this.netlistTicks;
+    const cores = this.cores;
+    if (ticks.length !== cores.length) {
+      for (let chip = 0; chip < cores.length; chip++) ticks[chip] = this.outputRate / cores[chip]!.nativeRate;
     }
     for (const device of this.auxiliary) {
-      if (device.targetInput !== undefined) streams[device.targetInput] = device.core.sample() * device.gain * device.outputGain;
+      if (device.targetInput !== undefined) solver.set(device.targetInput, device.core.sample() * device.gain * device.outputGain, start);
     }
-    return Math.max(-1, Math.min(1, this.netlist!.step(streams)));
+    const native = this.nativeSamples;
+    for (;;) {
+      let chip = -1;
+      for (let index = 0; index < cores.length; index++) {
+        if (ticks[index]! <= 1 && (chip < 0 || ticks[index]! < ticks[chip]!)) chip = index;
+      }
+      if (chip < 0) break;
+      const core = cores[chip]!;
+      const at = start + ticks[chip]! * period;
+      core.sampleChannels(native[chip]!);
+      for (const route of this.routes) {
+        if (route.chip !== chip || route.targetInput === undefined) continue;
+        const value = route.channel === -1 ? core.sampleTiedOutput() : native[chip]![route.channel]!;
+        solver.set(route.targetInput, value * route.gain, at);
+      }
+      ticks[chip]! += this.outputRate / core.nativeRate;
+    }
+    for (let chip = 0; chip < cores.length; chip++) ticks[chip]! -= 1;
+    this.netlistTime = start + period;
+    return Math.max(-1, Math.min(1, solver.read(this.netlistTime)));
   }
 
   // DISCRETE_RESET for each node class in the graph (disc_flt.hxx,

@@ -1,6 +1,6 @@
 // MAME's netlist solver in the form the worklets run it: one sparse LU per
-// group, a backward Euler step per sample, and Newton-Raphson only for the
-// groups a diode or BJT is in. This file is read and emitted into the generated
+// group, each group on its own clock as MAME's matrix solvers are, backward
+// Euler, and Newton-Raphson only for the groups a diode or BJT is in. This file is read and emitted into the generated
 // worklet (src/mame/netlist-compiler.ts), so it imports nothing.
 
 const NETLIST_T0_VT = 300 * 1.38064852e-23 / 1.6021765314e-19;
@@ -71,10 +71,16 @@ interface GeneratedNetlistPlanData {
   reltol: number;
   vntol: number;
   nrLoops: number;
+  frequency?: number;
   inputs: { channel: number; kind: 'resistor' | 'volts'; element?: number; node?: number; mult: number; offset: number }[];
   logicInputs: string[];
   output: { node: number; mult: number; offset: number };
 }
+
+/** matrix_solver_params_t's MIN_TS_TS: a changed input is solved this long after it lands. */
+const NETLIST_MIN_TS_TS = 1e-9;
+/** Below a netlist_time quantum a group is already up to date (matrix_solver_t::solve). */
+const NETLIST_QUANTUM = 1e-15;
 
 /** One group's matrix, its elimination fixed once from its sparsity. */
 class GeneratedNetlistGroup {
@@ -222,7 +228,7 @@ interface GeneratedNetlistTwoTerminal {
   bb: number;
 }
 
-interface GeneratedNetlistCapacitor extends GeneratedNetlistTwoTerminal { g: number; ieq: number }
+interface GeneratedNetlistCapacitor extends GeneratedNetlistTwoTerminal { c: number; g: number; h: number; ieq: number }
 interface GeneratedNetlistStreamR extends GeneratedNetlistTwoTerminal { input: number }
 interface GeneratedNetlistDiodeStamp extends GeneratedNetlistTwoTerminal { diode: GeneratedNetlistDiode }
 interface GeneratedNetlistBjtStamp {
@@ -245,6 +251,7 @@ interface GeneratedNetlistDrive {
   vLow: number;
   vHigh: number;
   state: number;
+  group: number;
 }
 interface GeneratedNetlistSwitch extends GeneratedNetlistTwoTerminal {
   ctl: number;
@@ -252,6 +259,7 @@ interface GeneratedNetlistSwitch extends GeneratedNetlistTwoTerminal {
   vss: number;
   baseR: number;
   closed: boolean;
+  group: number;
 }
 interface GeneratedNetlistGate { input: number; vdd: number; vss: number; ivl: number; ivh: number; drive: GeneratedNetlistDrive }
 
@@ -266,6 +274,9 @@ interface GeneratedNetlistGroupState {
   diodes: GeneratedNetlistDiodeStamp[];
   bjts: GeneratedNetlistBjtStamp[];
   frontiers: { from: number; to: number }[];
+  /** When it last solved and when it next solves unless something changes first. */
+  lastStep: number;
+  next: number;
 }
 
 export class GeneratedNetlistSolver {
@@ -282,8 +293,17 @@ export class GeneratedNetlistSolver {
   private readonly reltol: number;
   private readonly vntol: number;
   private readonly nrLoops: number;
+  private readonly maxStep: number;
+  private readonly rate: number;
+  /** Each input's groups: the ones `change_state` solves when it moves. */
+  private readonly inputGroups: number[][];
+  private readonly inputValues: Float64Array;
+  /** Seconds: the time the last read was taken at. */
+  private now = 0;
 
   constructor(plan: GeneratedNetlistPlanData, rate: number) {
+    this.rate = rate;
+    this.maxStep = 1 / (plan.frequency ?? 48000);
     this.inputs = plan.inputs;
     this.output = plan.output;
     this.gmin = plan.gmin;
@@ -297,6 +317,7 @@ export class GeneratedNetlistSolver {
       rail[entry.node] = 1;
     }
     this.inputG = new Float64Array(plan.inputs.length);
+    this.inputValues = new Float64Array(plan.inputs.length).fill(NaN);
     const groupOf = new Map<number, number>();
     plan.groups.forEach((group, index) => group.forEach(node => groupOf.set(node, index)));
     // The matrix's shape first: every element's pins couple to one another.
@@ -317,7 +338,19 @@ export class GeneratedNetlistSolver {
       diodes: [],
       bjts: [],
       frontiers: plan.frontiers.filter(frontier => nodes.includes(frontier.from)),
+      lastStep: 0,
+      next: this.maxStep,
     }));
+    const homes = plan.elements.map(element =>
+      netlistElementPins(element).map(pin => groupOf.get(pin)).find(group => group !== undefined));
+    this.inputGroups = plan.inputs.map(input => {
+      if (input.kind === 'resistor') return homes[input.element!] === undefined ? [] : [homes[input.element!]!];
+      const touched = new Set<number>();
+      plan.elements.forEach((element, index) => {
+        if (homes[index] !== undefined && netlistElementPins(element).includes(input.node!)) touched.add(homes[index]!);
+      });
+      return [...touched];
+    });
     const place = (state: GeneratedNetlistGroupState, a: number, b: number): GeneratedNetlistTwoTerminal => {
       const { local, size } = state.matrix;
       const la = rail[a] ? -1 : local.get(a) ?? -1;
@@ -349,12 +382,13 @@ export class GeneratedNetlistSolver {
         rp: place(state, vcc, element.output),
         rLow: element.rLow, rHigh: element.rHigh, vLow: element.vLow, vHigh: element.vHigh,
         state: element.state,
+        group: this.groups.indexOf(state),
       };
       state.drives.push(made);
       return made;
     };
-    for (const element of plan.elements) {
-      const home = netlistElementPins(element).map(pin => groupOf.get(pin)).find(group => group !== undefined);
+    for (const [index, element] of plan.elements.entries()) {
+      const home = homes[index];
       if (home === undefined) {
         continue;
       }
@@ -362,12 +396,11 @@ export class GeneratedNetlistSolver {
       switch (element.kind) {
         case 'r': resistor(state, element.a, element.b, element.g); break;
         case 'streamR': state.streams.push({ ...place(state, element.a, element.b), input: element.input }); break;
-        case 'c': {
-          const g = element.c * rate + plan.gmin;
-          resistor(state, element.a, element.b, g);
-          state.capacitors.push({ ...place(state, element.a, element.b), g, ieq: 0 });
+        // generic_capacitor_const: G = C / h + gmin, stamped each solve because
+        // h is the time since the group last solved.
+        case 'c':
+          state.capacitors.push({ ...place(state, element.a, element.b), c: element.c, g: 0, h: 0, ieq: 0 });
           break;
-        }
         case 'vccs': {
           // nld_VCCS and nld_VCVS::reset: 1/RI across the input, the output
           // current m_G * gfac from the input's difference, and 1/RO on a VCVS.
@@ -382,7 +415,7 @@ export class GeneratedNetlistSolver {
           break;
         }
         case 'switch': {
-          const made = { ...place(state, element.a, element.b), ctl: element.ctl, vdd: element.vdd, vss: element.vss, baseR: element.baseR, closed: false };
+          const made = { ...place(state, element.a, element.b), ctl: element.ctl, vdd: element.vdd, vss: element.vss, baseR: element.baseR, closed: false, group: home };
           state.switches.push(made);
           this.switches.push(made);
           break;
@@ -420,10 +453,138 @@ export class GeneratedNetlistSolver {
     }
   }
 
-  /** A `NETLIST_LOGIC_INPUT`'s value (`m_filter_ctl[n]->write(bit)`). */
-  writeLogic(index: number, value: number): void {
+  /** A `NETLIST_LOGIC_INPUT`'s value (`m_filter_ctl[n]->write(bit)`), from `at` seconds. */
+  writeLogic(index: number, value: number, at = this.now): void {
     const entry = this.logics[index];
-    if (entry) entry.state = value ? 1 : 0;
+    const state = value ? 1 : 0;
+    if (!entry || entry.state === state) return;
+    this.advance(at);
+    this.changeState(entry.group, at, () => { entry.state = state; });
+  }
+
+  /**
+   * A stream input's sample landing at `at` seconds, as a NETLIST_STREAM_INPUT
+   * sets its parameter at each of the source's own sample times: MAME feeds
+   * the netlist at the source's rate (SAMPLE_RATE_INPUT_ADAPTIVE), not at 48 kHz.
+   */
+  set(channel: number, sample: number, at: number): void {
+    const { inputs, inputValues } = this;
+    for (let index = 0; index < inputs.length; index++) {
+      const input = inputs[index]!;
+      if (input.channel !== channel) continue;
+      const value = sample * input.mult + input.offset;
+      if (value === inputValues[index]) continue;
+      inputValues[index] = value;
+      this.advance(at);
+      const apply = input.kind === 'resistor'
+        ? () => { this.inputG[index] = 1 / Math.max(value, this.gmin); }
+        : () => { this.v[input.node!] = value; };
+      const groups = this.inputGroups[index]!;
+      if (!groups.length) apply();
+      for (let g = 0; g < groups.length; g++) this.changeState(groups[g]!, at, g === 0 ? apply : () => {});
+    }
+  }
+
+  /** The output as it stands at `at` seconds: every solve due by then, then the node. */
+  read(at: number): number {
+    this.advance(at);
+    this.now = at;
+    return this.v[this.output.node]! * this.output.mult + this.output.offset;
+  }
+
+  /** One sample at the constructor's rate, every stream landing at its start. */
+  step(streams: ArrayLike<number>): number {
+    for (let index = 0; index < this.inputs.length; index++) {
+      const channel = this.inputs[index]!.channel;
+      this.set(channel, streams[channel]!, this.now);
+    }
+    return this.read(this.now + 1 / this.rate);
+  }
+
+  /** Each group's time-stepped solves due by `at`, earliest first (the solver queue). */
+  private advance(at: number): void {
+    const groups = this.groups;
+    for (;;) {
+      let due = -1;
+      for (let index = 0; index < groups.length; index++) {
+        if (groups[index]!.next <= at + NETLIST_QUANTUM && (due < 0 || groups[index]!.next < groups[due]!.next)) due = index;
+      }
+      if (due < 0) return;
+      // Rescheduled before solving: a switch the solve flips may bring its own
+      // group back sooner (change_state).
+      const state = groups[due]!;
+      const time = state.next;
+      state.next = time + this.maxStep;
+      this.solve(due, time);
+    }
+  }
+
+  /**
+   * matrix_solver_t::change_state: bring the group up to `at` on the old
+   * value, apply the change, and solve again MIN_TS_TS later.
+   */
+  private changeState(group: number, at: number, apply: () => void): void {
+    const state = this.groups[group]!;
+    this.solve(group, at);
+    apply();
+    state.next = at + NETLIST_MIN_TS_TS;
+  }
+
+  /** matrix_solver_t::solve at `at`: one backward Euler step since the group's last. */
+  private solve(group: number, at: number): void {
+    const state = this.groups[group]!;
+    const h = at - state.lastStep;
+    if (h < NETLIST_QUANTUM) return;
+    state.lastStep = at;
+    const v = this.v;
+    const { gmin, reltol, vntol, nrLoops } = this;
+    const matrix = state.matrix;
+    const nonlinear = state.diodes.length > 0 || state.bjts.length > 0;
+    const loops = nonlinear ? nrLoops : 1;
+    const { nodes, x, size } = matrix;
+    const capacitors = state.capacitors;
+    for (let c = 0; c < capacitors.length; c++) {
+      const capacitor = capacitors[c]!;
+      if (capacitor.h !== h) {
+        capacitor.h = h;
+        capacitor.g = capacitor.c / h + gmin;
+      }
+      capacitor.ieq = capacitor.g * (v[capacitor.a]! - v[capacitor.b]!);
+    }
+    for (let loop = 0; loop < loops; loop++) {
+      this.fill(state);
+      if (nonlinear) this.stampNonlinear(state);
+      matrix.solve();
+      let moved = false;
+      for (let row = 0; row < size; row++) {
+        const node = nodes[row]!;
+        const vnew = x[row]!;
+        const vold = v[node]!;
+        if (!moved && Math.abs(vnew - vold) > vntol + reltol * Math.max(Math.abs(vnew), Math.abs(vold))) moved = true;
+        v[node] = vnew;
+      }
+      if (!moved) break;
+    }
+    const frontiers = state.frontiers;
+    for (let f = 0; f < frontiers.length; f++) v[frontiers[f]!.to] = v[frontiers[f]!.from]!;
+    // Controls read the nets as they now stand: nld_4066's handler, and each
+    // gate's a_to_d proxy with its family's thresholds. A change is the
+    // switched group's own change_state, at this time.
+    for (let index = 0; index < this.switches.length; index++) {
+      const s = this.switches[index]!;
+      const supply = v[s.vdd]! - v[s.vss]!;
+      const control = v[s.ctl]! - v[s.vss]!;
+      const closed = control < 0.45 * supply ? false : control > 0.55 * supply ? true : s.closed;
+      if (closed !== s.closed) this.changeState(s.group, at, () => { s.closed = closed; });
+    }
+    for (let index = 0; index < this.gates.length; index++) {
+      const gate = this.gates[index]!;
+      const supply = v[gate.vdd]! - v[gate.vss]!;
+      const input = v[gate.input]! - v[gate.vss]!;
+      const drive = gate.drive;
+      const next = input > supply * gate.ivh ? 0 : input < supply * gate.ivl ? 1 : drive.state;
+      if (next !== drive.state) this.changeState(drive.group, at, () => { drive.state = next; });
+    }
   }
 
   // set_G_V_I(g, 0, i), the rail's side of g moving to the right.
@@ -454,11 +615,10 @@ export class GeneratedNetlistSolver {
       const term = railTerms[index]!;
       rhs[term.row]! += term.coef * v[term.node]!;
     }
-    // The capacitors' G is in the base; time_step fixed their Ieq for the step.
+    // time_step fixed each capacitor's G and Ieq for this step.
     for (let index = 0; index < capacitors.length; index++) {
       const c = capacitors[index]!;
-      if (c.la >= 0) rhs[c.la]! += c.ieq;
-      if (c.lb >= 0) rhs[c.lb]! -= c.ieq;
+      this.stamp(a, rhs, c, c.g, -c.ieq);
     }
     for (let index = 0; index < streams.length; index++) {
       const stream = streams[index]!;
@@ -523,62 +683,5 @@ export class GeneratedNetlistSolver {
         rhs[local]! += sum;
       }
     }
-  }
-
-  /** One step at the solver's rate, with this sample of each stream. */
-  step(streams: ArrayLike<number>): number {
-    const v = this.v;
-    const { inputs, groups, gmin, reltol, vntol, nrLoops } = this;
-    for (let index = 0; index < inputs.length; index++) {
-      const input = inputs[index]!;
-      const value = streams[input.channel]! * input.mult + input.offset;
-      if (input.kind === 'resistor') this.inputG[index] = 1 / Math.max(value, gmin);
-      else v[input.node!] = value;
-    }
-    for (let index = 0; index < groups.length; index++) {
-      const state = groups[index]!;
-      const matrix = state.matrix;
-      const nonlinear = state.diodes.length > 0 || state.bjts.length > 0;
-      const loops = nonlinear ? nrLoops : 1;
-      const { nodes, x, size } = matrix;
-      const capacitors = state.capacitors;
-      for (let c = 0; c < capacitors.length; c++) {
-        const capacitor = capacitors[c]!;
-        capacitor.ieq = capacitor.g * (v[capacitor.a]! - v[capacitor.b]!);
-      }
-      for (let loop = 0; loop < loops; loop++) {
-        this.fill(state);
-        if (nonlinear) this.stampNonlinear(state);
-        matrix.solve();
-        let moved = false;
-        for (let row = 0; row < size; row++) {
-          const node = nodes[row]!;
-          const vnew = x[row]!;
-          const vold = v[node]!;
-          if (!moved && Math.abs(vnew - vold) > vntol + reltol * Math.max(Math.abs(vnew), Math.abs(vold))) moved = true;
-          v[node] = vnew;
-        }
-        if (!moved) break;
-      }
-      const frontiers = state.frontiers;
-      for (let f = 0; f < frontiers.length; f++) v[frontiers[f]!.to] = v[frontiers[f]!.from]!;
-    }
-    // Controls read the nets as they now stand: nld_4066's handler, and each
-    // gate's a_to_d proxy with its family's thresholds.
-    for (let index = 0; index < this.switches.length; index++) {
-      const s = this.switches[index]!;
-      const supply = v[s.vdd]! - v[s.vss]!;
-      const control = v[s.ctl]! - v[s.vss]!;
-      if (control < 0.45 * supply) s.closed = false;
-      else if (control > 0.55 * supply) s.closed = true;
-    }
-    for (let index = 0; index < this.gates.length; index++) {
-      const gate = this.gates[index]!;
-      const supply = v[gate.vdd]! - v[gate.vss]!;
-      const input = v[gate.input]! - v[gate.vss]!;
-      if (input > supply * gate.ivh) gate.drive.state = 0;
-      else if (input < supply * gate.ivl) gate.drive.state = 1;
-    }
-    return v[this.output.node]! * this.output.mult + this.output.offset;
   }
 }

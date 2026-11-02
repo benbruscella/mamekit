@@ -38,8 +38,8 @@ export const scramble = sourceTarget({
       writes: 7279,
       nonzeroWrites: 6238,
       writeHash: '33d48d84',
-      pcmHash: 'fb504b53',
-      rms: 0.157937,
+      pcmHash: '0f7040a4',
+      rms: 0.158084,
     },
   },
 });

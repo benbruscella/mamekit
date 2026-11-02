@@ -61,10 +61,12 @@ export interface GeneratedNetlistPlan {
   reltol: number;
   vntol: number;
   nrLoops: number;
-  inputs: { channel: number; kind: 'resistor' | 'volts'; element?: number; node?: number; mult: number; offset: number }[];
+  /** `SOLVER(Solver, FREQ)`: a group with nothing changing solves once per 1/FREQ. */
+  frequency: number;
+  inputs: { channel: number; param: string; kind: 'resistor' | 'volts'; element?: number; node?: number; mult: number; offset: number }[];
   /** The `.IN` parameters driver writes reach, in the order they name them. */
   logicInputs: string[];
-  output: { node: number; mult: number; offset: number };
+  output: { node: number; name: string; mult: number; offset: number };
   source: { file: string; netlist: string };
 }
 
@@ -491,9 +493,9 @@ function elaborate(setup: Setup, file: string, config: NetlistConfig, gates: Map
       const resistor = elements[element]!;
       if (resistor.kind !== 'r') throw new Error('netlist: stream R on non-resistor');
       elements[element] = { kind: 'streamR', a: resistor.a, b: resistor.b, g: resistor.g, input: inputs.length };
-      inputs.push({ channel: input.channel, kind: 'resistor', element, mult: input.mult, offset: input.offset });
+      inputs.push({ channel: input.channel, param: input.param, kind: 'resistor', element, mult: input.mult, offset: input.offset });
     } else if (input.param.endsWith('.IN')) {
-      inputs.push({ channel: input.channel, kind: 'volts', node: node(input.param.slice(0, -3)), mult: input.mult, offset: input.offset });
+      inputs.push({ channel: input.channel, param: input.param, kind: 'volts', node: node(input.param.slice(0, -3)), mult: input.mult, offset: input.offset });
     } else {
       throw new Error(`netlist: stream input to ${input.param}`);
     }
@@ -521,9 +523,10 @@ function elaborate(setup: Setup, file: string, config: NetlistConfig, gates: Map
     reltol: setup.param('Solver.RELTOL', '1e-3'),
     vntol: setup.param('Solver.VNTOL', '1e-7'),
     nrLoops: setup.param('Solver.NR_LOOPS', '250'),
+    frequency: setup.param('Solver.FREQ', [...setup.devices.values()].find(device => device.type === 'SOLVER')?.args[0] ?? '48000'),
     inputs,
     logicInputs: config.logicInputs.map(input => input.param),
-    output: { node: outputNode, mult: config.output.mult, offset: config.output.offset },
+    output: { node: outputNode, name: config.output.node, mult: config.output.mult, offset: config.output.offset },
     source: { file, netlist: config.source },
   };
 }

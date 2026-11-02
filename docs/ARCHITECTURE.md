@@ -859,19 +859,35 @@ inverter. A device outside that set stops the compile, so generation fails rathe
 than playing an approximation. Mario's netlist is one: its VCOs and TTL need a
 digital simulator that doesn't exist yet, and the board stays on its DAC path.
 
-`src/mame/netlist-solver.ts`, emitted into the worklet, steps the plan once a
-sample: a sparse LU per solver group with its elimination fixed once, backward
-Euler capacitors as `NL_USE_BACKWARD_EULER` selects, and Newton-Raphson to MAME's
-`RELTOL`, `VNTOL` and `NR_LOOPS` only in a group with a diode or a transistor.
-Rails and frontiers cut a netlist into small groups, as they cut MAME's matrices.
-It is the one hand-written piece, and it names no chip or machine; it is pinned
-in `HOST_BOUNDARIES` in `architecture.spec.ts`.
+`src/mame/netlist-solver.ts`, emitted into the worklet, runs the plan as MAME's
+solver does: a sparse LU per solver group with its elimination fixed once,
+backward Euler capacitors as `NL_USE_BACKWARD_EULER` selects, and Newton-Raphson
+to MAME's `RELTOL`, `VNTOL` and `NR_LOOPS` only in a group with a diode or a
+transistor. Each group keeps its own clock. It solves once per `1/FREQ`
+(`SOLVER(Solver, FREQ)`) while nothing changes. When an input, a logic line or a
+switch it holds changes, it does what `matrix_solver_t::change_state` does:
+solves up to that moment on the old value, takes the new one, and solves again
+`MIN_TS_TS` (1 ns) later. Rails and frontiers cut a netlist into small groups,
+as they cut MAME's matrices. It is the one hand-written piece, and it names no
+chip or machine; it is pinned in `HOST_BOUNDARIES` in `architecture.spec.ts`.
 
-A chip's routes carry its stream to `NETLIST_STREAM_INPUT` channels. An AY set to
-`AY8910_RESISTOR_OUTPUT` streams `build_mosfet_resistor_table`'s resistances,
-which drive a resistor; an MSM5205's stream is volts through its
-`set_mult_offset`. A driver's `NETLIST_LOGIC_INPUT` writes reach the worklet as
-`netlist.logic` (Frogger's filter capacitors, Kung-Fu Master's drums).
+A chip's routes carry its stream to `NETLIST_STREAM_INPUT` channels at the
+chip's own sample times. MAME allocates those inputs `SAMPLE_RATE_INPUT_ADAPTIVE`
+and never resamples them, and that matters: an AY set to `AY8910_RESISTOR_OUTPUT`
+streams `build_mosfet_resistor_table`'s resistances, a few kilohms on and
+hundreds of megohms off, and averaging a resistance down to 48 kHz reads almost
+every edge as off. That cut fast AY noise, Kung-Fu Master's snare and hi-hat,
+by more than 10 dB. An MSM5205's stream is volts through its `set_mult_offset`.
+A driver's `NETLIST_LOGIC_INPUT` writes reach the worklet as `netlist.logic`
+(Frogger's filter capacitors). Kung-Fu Master's `I_BD0`…`I_OH0` drum lines exist,
+but in MAME its sound program never writes them.
+
+`npm run test:netlists` (`tools/netlist-reference.ts`) checks every compiled
+netlist against MAME's own engine. It builds `nltool` from the MAME checkout's
+`src/lib/netlist`, drives MAME's netlist and ours with the same events
+(native-rate resistance streams, MSM-like staircases, logic toggles), and fails
+when the level or any third-octave band from 50 Hz to 16 kHz is more than
+1.5 dB off.
 
 A board is rarely one chip. The chip that decides `sound.kind` owns the
 worklet; every other chip routed to the same speaker is lowered as an entry in

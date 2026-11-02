@@ -35,8 +35,8 @@ export const frogger = sourceTarget({
       writes: 4905,
       nonzeroWrites: 1724,
       writeHash: 'a94e2906',
-      pcmHash: '14f33cd9',
-      rms: 0.065763,
+      pcmHash: 'e45a3f70',
+      rms: 0.067525,
     },
   },
 });
