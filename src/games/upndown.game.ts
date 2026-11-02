@@ -45,8 +45,8 @@ export const upndown = sourceTarget({
       writes: 25201,
       nonzeroWrites: 25156,
       writeHash: 'aa5b0501',
-      pcmHash: '5075960e',
-      rms: 0.035801,
+      pcmHash: '48c9a139',
+      rms: 0.071601,
     },
   },
 });

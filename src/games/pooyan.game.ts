@@ -33,8 +33,8 @@ export const pooyan = sourceTarget({
       writes: 2295,
       nonzeroWrites: 1976,
       writeHash: '7192f612',
-      pcmHash: 'f527279a',
-      rms: 0.020793,
+      pcmHash: '76e594f3',
+      rms: 0.427559,
     },
   },
 });

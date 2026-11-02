@@ -110,6 +110,20 @@ all supported targets. Source locations are excluded from the semantic digest;
 callbacks, frame events, devices, handlers, maps, palette configuration and
 the rest of executable BoardIR are not.
 
+### COMPILED NETLISTS AGAINST MAME'S ENGINE
+
+`test:netlists` runs every `NETLIST_SOUND` a generated machine carries beside
+MAME's own netlist engine. It builds `nltool` from the MAME checkout's
+`src/lib/netlist` once per checkout revision (under `.cache/nltool`), drives
+both with the same events, and fails when the level is more than 0.5 dB off or
+any third-octave band from 50 Hz to 16 kHz is more than 1.5 dB off. Ours runs
+through the solver API the worklet uses, at each input's own sample time, so
+it checks the browser's scheduling, not a test-only path. Run it after `gen:all`
+whenever the netlist compiler, the solver or a board's netlist routing changes.
+Comparing whole machines against MAME (`oracle:baseline compare`) can't do this
+job: the runs diverge and its level is one RMS figure, so a missing snare reads
+as a fraction of a dB.
+
 ### ALL-TARGET GENERATION
 
 `test:generation` retains the wider all-target compiler contract. It is
@@ -211,10 +225,14 @@ npm run test:games:matrix -- --shard 3/16 --durations contract-durations.json
 The Actions job uploads `.cache/acceptance-report.json` even on failure, so a
 focused local pass cannot masquerade as the required full-suite check.
 
-The throughput measurement includes CPU execution, generated video, checkpoint
-hashing and deterministic audio probing. It is not the browser's presentation
-counter, but it catches runtime complexity regressions before they make a game
-miss real time. Each contract sets its own `minimumFps`, from 10 to 60, and
+The throughput measurement includes CPU execution, generated video and
+checkpoint hashing. It is not the browser's presentation counter, but it
+catches runtime complexity regressions before they make a game miss real time.
+Sound rendering is timed apart and printed as its own share of real time
+(`sound 28% of real time`): in the browser it runs on the AudioWorklet's
+thread, so charging it to the emulation's fps floor would fail a game for work
+its emulation thread never does. A share that approaches 100% is a game whose
+sound would crackle. Each contract sets its own `minimumFps`, from 10 to 60, and
 one that sets none gets 10 (`src/games/source-contract.ts`). Of the current
 101 contracts, 41 require 10 fps, 21 require 30, 26 require 45 and the other 13
 sit at 20, 25, 40, 50 or 60. Time Pilot's 40 fps floor leaves enough host-load

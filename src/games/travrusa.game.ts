@@ -39,8 +39,8 @@ export const travrusa = sourceTarget({
       writes: 422021,
       nonzeroWrites: 419136,
       writeHash: '057ffbfd',
-      pcmHash: '1f319aaa',
-      rms: 0.169466,
+      pcmHash: '7b2b23cc',
+      rms: 0.073136,
     },
   },
 });

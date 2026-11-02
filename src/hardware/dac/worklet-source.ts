@@ -110,8 +110,6 @@ export class GeneratedDacMixer {
    */
   private readonly stream = { queue: [] as number[], rate: 0, phase: 0, held: 0 };
   private readonly outputRate: number;
-  /** Those streams' total routed gain: beside them, the mix is MAME's plain sum. */
-  private readonly streamGain: number;
 
   constructor(
     chips = 1,
@@ -119,10 +117,8 @@ export class GeneratedDacMixer {
     auxiliary: readonly { type: string; gain: number }[] = [],
     dacs: readonly { bits: number; mapper: string; gain: number }[] = [],
     outputRate = 48000,
-    streamGain = 0,
   ) {
     this.outputRate = outputRate;
-    this.streamGain = streamGain;
     this.values = new Float64Array(chips);
     this.seen = new Uint8Array(chips);
     // One value map per chip, because a board may mix DAC resolutions. A chip
@@ -134,7 +130,9 @@ export class GeneratedDacMixer {
       return dacValueMap(generator);
     });
     this.gains = Float64Array.from({ length: chips }, (_unused, chip) =>
-      Math.max(0, ...routes.filter(route => route.chip === chip).map(route => route.gain)) || 1);
+      routes.some(route => route.chip === chip)
+        ? Math.max(0, ...routes.filter(route => route.chip === chip).map(route => route.gain))
+        : 1);
     this.cvsdGain = Math.max(0, ...auxiliary
       .filter(device => device.type === 'HC55516')
       .map(device => device.gain));
@@ -160,23 +158,16 @@ export class GeneratedDacMixer {
 
   sample(): number {
     let mixed = 0;
-    let gain = 0;
     for (let chip = 0; chip < this.values.length; chip++) {
-      if (!this.seen[chip]) continue;
-      mixed += this.values[chip]! * this.gains[chip]!;
-      gain += this.gains[chip]!;
+      if (this.seen[chip]) mixed += this.values[chip]! * this.gains[chip]!;
     }
-    if (this.cvsdGain) {
-      mixed += this.cvsd.sample() * this.cvsdGain;
-      gain += this.cvsdGain;
-    }
+    if (this.cvsdGain) mixed += this.cvsd.sample() * this.cvsdGain;
     this.stream.phase += this.stream.rate / this.outputRate;
     while (this.stream.phase >= 1) {
       this.stream.phase -= 1;
       if (this.stream.queue.length) this.stream.held = this.stream.queue.shift()!;
     }
-    if (this.streamGain) return mixed + this.stream.held;
-    return gain ? mixed / gain : 0;
+    return Math.max(-1, Math.min(1, mixed + this.stream.held));
   }
 }
 
@@ -291,7 +282,6 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
         type: string; chips?: number; routes?: { chip: number; gain: number }[];
         auxiliaryDevices?: { type: string; gain: number }[];
         dacs?: { bits: number; mapper: string; gain: number }[];
-        streamGain?: number;
         filterChain?: { type: string; frequency: number; q: number; gain: number }[];
         refresh?: number; writes?: GeneratedDacWrite[];
       };
@@ -303,7 +293,6 @@ class GeneratedDacProcessor extends AudioWorkletProcessor {
             message.auxiliaryDevices,
             message.dacs,
             sampleRate,
-            message.streamGain,
           ),
           sampleRate,
           message.refresh ?? 60,

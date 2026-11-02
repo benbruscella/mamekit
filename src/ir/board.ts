@@ -1300,6 +1300,10 @@ export interface GeneratedSoundBinding {
   routes?: GeneratedAudioRoute[];
   /** Index rank inferred from MAME handler IR for the routed filter member. */
   filterLayout?: 'flat' | 'matrix';
+  /** A netlist's `NETLIST_LOGIC_INPUT` lines, as handlers reach them. */
+  netlistLogicInputs?: { deviceTag: string; param: string; shift: number; members: string[] }[];
+  /** The bound finders a handler can test on a netlist board. */
+  netlistFinders?: string[];
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** RP2A03 internal APU plan, present only for the NES sound capability. */
   nesApu?: GeneratedNesApuPlan;

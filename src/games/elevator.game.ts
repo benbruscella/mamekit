@@ -42,8 +42,8 @@ export const elevator = sourceTarget({
       writes: 13793,
       nonzeroWrites: 12835,
       writeHash: '6c09a7cc',
-      pcmHash: '1482a151',
-      rms: 0.379381,
+      pcmHash: '2abc46aa',
+      rms: 0.298524,
     },
   },
 });

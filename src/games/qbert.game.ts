@@ -51,8 +51,8 @@ export const qbert = sourceTarget({
       writes: 969261,
       nonzeroWrites: 26941,
       writeHash: 'f2955deb',
-      pcmHash: '6554d415',
-      rms: 0.133967,
+      pcmHash: '144ecb57',
+      rms: 0.107173,
     },
   },
 });

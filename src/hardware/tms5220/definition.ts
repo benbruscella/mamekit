@@ -2,7 +2,6 @@ import type { PortDeclaration } from '../ports.ts';
 
 export const TMS5220_ID = 'tms5220';
 export const TMS5220_MAME_TYPES = ['TMS5220C', 'TMS5220'] as const;
-export const TMS5220_MASTER_GAIN = 1;
 export const TMS5220_PORTS: readonly PortDeclaration[] = [
   { name: 'data', kind: 'registers', note: 'FIFO data bus, strobed by /WS' },
   { name: 'ready', kind: 'interrupt-out', note: '/READY and /INT pins' },

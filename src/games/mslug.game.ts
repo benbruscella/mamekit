@@ -63,8 +63,8 @@ export const mslug = sourceTarget({
       writes: 87142,
       nonzeroWrites: 79471,
       writeHash: 'a8fa0331',
-      pcmHash: '35796a96',
-      rms: 0.084118,
+      pcmHash: 'dc44a446',
+      rms: 0.081786,
     },
   },
 });

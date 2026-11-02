@@ -26,8 +26,8 @@ export const cavenger = sourceTarget({
       writes: 12120,
       nonzeroWrites: 12071,
       writeHash: 'efc0bc33',
-      pcmHash: 'c2511475',
-      rms: 0.055534,
+      pcmHash: 'bd4e04d9',
+      rms: 0.111068,
     },
   },
 });

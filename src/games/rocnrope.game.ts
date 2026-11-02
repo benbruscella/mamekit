@@ -36,8 +36,8 @@ export const rocnrope = sourceTarget({
       writes: 1423,
       nonzeroWrites: 1292,
       writeHash: 'c9cbc91a',
-      pcmHash: 'a34a4303',
-      rms: 0.019389,
+      pcmHash: '7707bafc',
+      rms: 0.405744,
     },
   },
 });

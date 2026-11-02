@@ -1282,6 +1282,8 @@ export interface MachineConfigDef {
     /** A replaced slot's option table and default card ('' for none). */
     slotOptions?: string;
     slotDefault?: string;
+    /** `reset_routes` and `add_route` on the patched device, in order. */
+    routeEdits?: ('reset' | NonNullable<DeviceDef['audioRoutes']>[number])[];
   }[];
   /** set_info(...) changes to a GFXDECODE device instantiated by a called config. */
   gfxDecodePatches: { tag: string; name: string; raw: string }[];
@@ -2196,6 +2198,10 @@ export function parseMachineConfigs(
             cfg.devicePatches.push(patch);
           }
           patch.config.push(s);
+          // A derived config rewires the base's device: Popeye's tpp2_state
+          // resets the AY's route to the speaker and routes it into a netlist.
+          if (method === 'reset_routes') (patch.routeEdits ??= []).push('reset');
+          else if (method === 'add_route') (patch.routeEdits ??= []).push(...statementAudioRoutes(s, consts));
           const open = s.indexOf('(', s.indexOf(method));
           const close = matchParen(s, open);
           const args = splitArgs(s.slice(open + 1, close));
@@ -2234,6 +2240,9 @@ export function parseMachineConfigs(
             const close = matchParen(s, open);
             const mm = /&\s*\w+::(\w+)/.exec(s.slice(open + 1, close));
             if (mm) dev.addrMaps.AS_PROGRAM = mm[1]!;
+          } else if (method === 'reset_routes') {
+            // device_sound_interface::reset_routes: every route so far is gone.
+            dev.audioRoutes = [];
           } else if (method === 'add_route') {
             // `m_ay0->add_route(0, ...).add_route(1, ...).add_route(2, ...)`:
             // every route in the chain, not the first.

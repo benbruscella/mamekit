@@ -44,8 +44,8 @@ export const arkanoid = sourceTarget({
       writes: 2050,
       nonzeroWrites: 1407,
       writeHash: '3216d0ee',
-      pcmHash: 'd0909919',
-      rms: 0.212283,
+      pcmHash: 'd9586cab',
+      rms: 0.140107,
     },
   },
 });

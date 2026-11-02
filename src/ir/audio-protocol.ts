@@ -2,6 +2,12 @@
 export const AY_FILTER_CONTROL_BASE = 0x100;
 export const AY_FILTER_CONTROL_STRIDE = 5;
 
+/** What `set_flags` and `set_resistors_load` configure on one AY chip. */
+export interface GeneratedAyChipOutput {
+  flags: number;
+  loads: number[];
+}
+
 /** MAME's default post-mix speaker effect, extracted during generation. */
 export interface GeneratedSpeakerFilterPlan {
   type: 'highpass';
@@ -119,8 +125,21 @@ export type GeneratedDiscreteOperand = { node: number } | { value: number };
 
 export type GeneratedDiscreteGraphNode =
   | { op: 'stream'; node: number; input: number; gain: number; offset: number }
+  | { op: 'data'; node: number; gain: number; offset: number; init: number }
+  | {
+    op: 'rcFilterSwitch';
+    node: number;
+    enable: GeneratedDiscreteOperand;
+    input: GeneratedDiscreteOperand;
+    control: GeneratedDiscreteOperand;
+    resistance: number;
+    capacitors: number[];
+    onResistance: number;
+  }
   | { op: 'adder'; node: number; enable: GeneratedDiscreteOperand; inputs: GeneratedDiscreteOperand[] }
   | { op: 'multiply'; node: number; inputs: GeneratedDiscreteOperand[] }
+  | { op: 'divide'; node: number; enable: GeneratedDiscreteOperand; inputs: GeneratedDiscreteOperand[] }
+  | { op: 'rcFilter'; node: number; input: GeneratedDiscreteOperand; resistance: number; capacitance: number }
   | {
     op: 'crFilter';
     node: number;

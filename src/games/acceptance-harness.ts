@@ -393,6 +393,12 @@ export async function runGameAcceptance(
   let debugNext: MachineState | undefined;
   /** Time the harness spends on its own round-trip bookkeeping, excluded from throughput. */
   let bookkeepingMs = 0;
+  /**
+   * Time rendering sound, also excluded: in the browser it runs on the
+   * AudioWorklet's own thread, so the fps floor measures emulation alone and
+   * the sound engine is reported as its own share of real time.
+   */
+  let audioMs = 0;
   let debugTrace: string[] = [];
   const traceLog: string[] = [];
   if (process.env.MAMEKIT_STATE_DEBUG === '1' && process.env.MAMEKIT_TRACE_CPU) {
@@ -489,7 +495,9 @@ export async function runGameAcceptance(
       }
       requiredAudioValues.set(index, values);
     }
+    const audioStarted = performance.now();
     audio.render(pendingWrites, diagnosticCapture || snapshot.frame >= 120, pendingMutes);
+    audioMs += performance.now() - audioStarted;
     pendingWrites.length = 0;
     pendingMutes.length = 0;
     // First occurrence wins. A contract may soft-reset mid-replay (Qix's
@@ -585,8 +593,9 @@ export async function runGameAcceptance(
   // Throughput is the machine's own run: the save-state round trip below
   // replays part of it again, and the per-step hashing that feeds it is the
   // harness's bookkeeping, so neither counts against the floor.
-  const elapsedSeconds = (performance.now() - startedAt - bookkeepingMs) / 1000;
+  const elapsedSeconds = (performance.now() - startedAt - bookkeepingMs - audioMs) / 1000;
   const emulatedFps = framesToRun / elapsedSeconds;
+  const audioShare = audioMs / 1000 / (framesToRun / config.board.screen.refresh);
   if (roundTrip) {
     if (process.env.MAMEKIT_STATE_REPORT === '1') {
       const bytes = roundTrip.state.shares && Object.values(roundTrip.state.shares).reduce((t, b) => t + b.length, 0);
@@ -924,7 +933,7 @@ export async function runGameAcceptance(
   }
   console.log(
     `${contract.game}: ${emulatedFps.toFixed(1)} emulated fps ` +
-      `(minimum ${contract.minimumFps})`,
+      `(minimum ${contract.minimumFps}); sound ${(audioShare * 100).toFixed(0)}% of real time`,
   );
   const handlerCounts = (globalThis as {
     __mamekitHandlerCounts?: Map<string, number>;
@@ -1191,7 +1200,7 @@ function applyBrowserOutputStage(
       y1 = y0;
     }
   }
-  const gain = sound.masterGain ?? 1;
+  const gain = sound.outputGain ?? 1;
   if (gain !== 1) {
     for (let index = 0; index < output.length; index++) output[index] = output[index]! * gain;
   }

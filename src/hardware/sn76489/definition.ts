@@ -15,7 +15,6 @@ export const SN76489_MAME_TYPES = [
 
 export const SN76489_IR_ARTIFACT = 'audio/sn76489.audio.ir.json';
 export const SN76489_WORKLET_ARTIFACT = 'audio/sn76489-worklet.ts';
-export const SN76489_MASTER_GAIN = 0.7;
 
 export const SN76489_PORTS: readonly PortDeclaration[] = [
   { name: 'write', kind: 'registers', note: 'latched data bus write' },

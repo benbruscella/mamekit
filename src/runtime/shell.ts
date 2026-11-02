@@ -17,7 +17,7 @@ import { missingMedia, putMedia, recordMedia, transportImage, type TransportImag
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes, fetchSampleSetBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
@@ -174,23 +174,22 @@ export interface SoundSpec {
   /** Source-routed secondary stream devices mixed by the generated worklet. */
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** Total routed gain of the main-thread streams posted beside the owning chip. */
-  streamGain?: number;
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
   discreteMixer?: GeneratedDiscreteMixerPlan;
   /** Per AY chip, the load each of its three pins drives (set_resistors_load). */
-  resistorLoads?: number[][];
+  chipOutputs?: GeneratedAyChipOutput[];
+  netlist?: unknown;
   discreteDac?: GeneratedDiscreteDacPlan;
   discreteEffects?: GeneratedDiscreteEffectsPlan;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
   /**
-   * Post-mix level for this sound family, from its capability package. MAME's
-   * add_route gains set the relative mix between chips; this is the single
-   * master level the shell applies.
+   * The route of a board whose whole mix goes through one gain (a WSG, a TIA,
+   * the NES APU): MAME's own, applied after the worklet.
    */
-  masterGain?: number;
+  outputGain?: number;
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
@@ -1355,9 +1354,9 @@ export async function runShell(
           ...(device.sampleRegion ? { sampleRom: regions[device.sampleRegion] } : {}),
         })),
         filterChain: cfg.sound.filterChain,
-        ...(cfg.sound.streamGain ? { streamGain: cfg.sound.streamGain } : {}),
         discreteMixer: cfg.sound.discreteMixer,
-        resistorLoads: cfg.sound.resistorLoads,
+        chipOutputs: cfg.sound.chipOutputs,
+        netlist: cfg.sound.netlist,
         discreteDac: cfg.sound.discreteDac,
         discreteEffects: cfg.sound.discreteEffects,
         speakerFilter: cfg.sound.speakerFilter,
@@ -1367,10 +1366,7 @@ export async function runShell(
       `${cfg.runtimeUrl}${cfg.sound.worklet ?? cfg.sound.kind}-worklet.js`,
       cfg.sound.kind,
     ).then(() => {
-      // The post-mix level belongs to the sound family, so it is generated
-      // from its capability package rather than kept in a table here that
-      // every new family would have to be added to.
-      audio.setVolume(cfg.sound.masterGain ?? 1);
+      audio.setVolume(cfg.sound.outputGain ?? 1);
     }).catch(err => console.warn('audio unavailable:', err));
     const resumeAudio = () => audio.resume();
     addEventListener('pointerdown', resumeAudio, { once: true });
@@ -1394,7 +1390,7 @@ export async function runShell(
   // blit all still happen -- it is the pacing that changes, nothing else.
   // Sound is muted while it runs, because a machine at several times speed is
   // a screech rather than a fast tune.
-  const masterVolume = cfg.sound.masterGain ?? 1;
+  const masterVolume = cfg.sound.outputGain ?? 1;
   const setFastForward = (on: boolean): void => {
     fastForward = on;
     audio.setVolume(fastForward || warping ? 0 : masterVolume);

@@ -87,7 +87,6 @@ const generated = await import(
     deviceTypes?: string[],
     clocks?: number[],
     auxiliaryDevices?: unknown[],
-    streamGain?: number,
   ) => { write(chip: number, data: number, method?: string): void; sample(): number };
 };
 const plainMixer = new generated.GeneratedSn76489Mixer(
@@ -107,7 +106,7 @@ for (let index = 0; index < 32; index++) {
 // A main-thread stream (Congo Bongo's samples) reaches the mix at its rate and
 // the gain it arrived with, with the chips silenced so only it is heard.
 const streamMixer = new generated.GeneratedSn76489Mixer(
-  4_000_000, 2, 48_000, [], ['SN76489A', 'SN76489A'], [4_000_000, 4_000_000], [], 0.25,
+  4_000_000, 2, 48_000, [], ['SN76489A', 'SN76489A'], [4_000_000, 4_000_000], [],
 );
 for (const chip of [0, 1]) for (const mute of [0x9f, 0xbf, 0xdf, 0xff]) streamMixer.write(chip, mute);
 assert.equal(streamMixer.sample(), 0);

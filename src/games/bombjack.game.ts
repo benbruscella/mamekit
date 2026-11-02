@@ -44,8 +44,8 @@ export const bombjack = sourceTarget({
       writes: 115200,
       nonzeroWrites: 31363,
       writeHash: '3704be96',
-      pcmHash: '98fef6cc',
-      rms: 0.063642,
+      pcmHash: '08888c32',
+      rms: 0.115322,
     },
   },
 });

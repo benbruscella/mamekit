@@ -2,6 +2,7 @@ import { lowerVideoExecution } from '../mame/video-execution.ts';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
+import { lowerNetlistFinders, lowerNetlistLogicInputs } from './lower-netlist.ts';
 import { evalExpr } from '../kg/parse.ts';
 import type {
   BoardIr,
@@ -971,6 +972,11 @@ export function lowerGeneratedMachine(
   const audioRoutes = lowerAudioRoutes(graph, ayDevices);
   const filterRank = inferredMemberIndexRank(handlers, 'm_filter');
   const auxiliaryDevices = lowerAuxiliaryAudioDevices(graph, devices);
+  const netlistLogicInputs = lowerNetlistLogicInputs(
+    graph,
+    reachableDevices.map(({ node }) => node),
+    String(graph.meta.mameSrc),
+  );
   const sound = nesCpu
     ? {
         kind: 'nes',
@@ -1042,6 +1048,8 @@ export function lowerGeneratedMachine(
             filterLayout: filterRank === 1 ? 'flat' as const : 'matrix' as const,
           } : {}),
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
+          ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
+          ...(netlistLogicInputs.length ? { netlistFinders: lowerNetlistFinders(graph, reachableDevices.map(({ node }) => node), String(graph.meta.mameSrc)) } : {}),
         }
     : snDevices.length
       ? {
@@ -1576,14 +1584,17 @@ export function lowerAudioRoutes(
       // Which of the chip's outputs this route carries is the chip's own
       // route's to say, wherever the signal goes on from there.
       const chipOutput = String(node.props.output);
-      // A chip routed into its owner (a slot card's AY) reaches the speaker
-      // through the owner's own route, at the product of the gains.
-      if (node.props.target === '^^') {
-        const owner = routeOwner(graph, device.id, true);
-        const onward = owner ? resolvedAudioRoute(graph, byId, owner.id) : undefined;
-        if (!onward) continue;
-        gain *= onward.gain;
-        node = onward.route;
+      // A chip routed into its owner (a slot card's AY, the SSIO's two AYs)
+      // reaches the speaker through the owner's own route, at the product of
+      // the gains: the owner's input N comes out of its output N.
+      if (node.props.target === '^' || node.props.target === '^^') {
+        const owner = routeOwner(graph, device.id, node.props.target === '^^');
+        const onward = owner ? resolvedAudioRoute(graph, byId, owner.id, Number(node.props.input)) : undefined;
+        if (!onward && node.props.target === '^^') continue;
+        if (onward) {
+          gain *= onward.gain;
+          node = onward.route;
+        }
       }
       const target = String(node.props.target);
       const targetInput = Number(node.props.input);
@@ -1599,6 +1610,10 @@ export function lowerAudioRoutes(
       const match = /^filter\.(\d+)\.(\d+)$/.exec(target);
       let filter: GeneratedAudioRoute['filter'];
       if (match) {
+        // The filter's own route is the rest of the way to the speaker.
+        const stage = graph.nodes.find(candidate => candidate.label === 'Device' && candidate.props.tag === target);
+        const onward = stage ? resolvedAudioRoute(graph, byId, stage.id) : undefined;
+        if (onward) gain *= onward.gain;
         let index = filters.get(target);
         if (index === undefined) {
           index = filters.size;
@@ -1610,12 +1625,18 @@ export function lowerAudioRoutes(
           channel: Number(match[2]),
         };
       }
-      for (const channel of outputChannels) {
+      // MAME's YM2610 streams are [SSG, FM left, FM right], the SSG write_to_output
+      // folding its three channels at 2/3; the engine holds them as the YM2203's.
+      const opnb = sourceDevice?.props.type === 'YM2610';
+      const opnbOutput = opnb && rawOutput !== 'ALL_OUTPUTS' ? Number(rawOutput) : undefined;
+      const channels = opnbOutput === undefined ? outputChannels : opnbOutput === 0 ? [0, 1, 2] : [3];
+      const channelGain = opnbOutput === 0 ? gain * 2 / 3 : gain;
+      for (const channel of channels) {
         if (!Number.isInteger(channel) || channel < -1) continue;
         routes.push({
           chip,
           channel,
-          gain,
+          gain: channelGain,
           target,
           ...(Number.isInteger(targetInput) ? { targetInput } : {}),
           ...(filter ? { filter } : {}),
@@ -1809,12 +1830,16 @@ function resolvedAudioRoute(
   graph: KnowledgeGraph,
   byId: ReadonlyMap<string, KGNode>,
   deviceId: string,
+  firstOutput?: number,
 ): { route: KGNode; gain: number } | undefined {
   let gain = 1;
   let current = deviceId;
   for (let depth = 0; depth < 8; depth++) {
-    const edge = graph.edges.find(candidate =>
+    const edges = graph.edges.filter(candidate =>
       candidate.from === current && candidate.rel === 'HAS_AUDIO_ROUTE');
+    const edge = depth === 0 && Number.isInteger(firstOutput)
+      ? edges.find(candidate => Number(byId.get(candidate.to)?.props.output) === firstOutput) ?? edges[0]
+      : edges[0];
     const route = edge ? byId.get(edge.to) : undefined;
     if (!route) return undefined;
     gain *= Number(route.props.gain);

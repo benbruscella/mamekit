@@ -28,8 +28,8 @@ export const mrdo = sourceTarget({
       writes: 13836,
       nonzeroWrites: 13836,
       writeHash: 'ef15309b',
-      pcmHash: '0e2cbed6',
-      rms: 0.04779,
+      pcmHash: '0a7da086',
+      rms: 0.095579,
     },
   },
 });

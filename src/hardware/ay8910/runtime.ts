@@ -127,6 +127,30 @@ export function installAy8910Runtime(context: SoundRuntimeContext): SoundRuntime
       };
     }
   }
+  // The lines a driver writes into the netlist the AY's routes land in. A finder
+  // is live once it is bound, which is what `if (m_audio_BD)` asks.
+  (sound.netlistLogicInputs ?? []).forEach((input, index) => {
+    const send = (value: number): void =>
+      context.soundWrite(index, value, context.fraction(), 'netlist.logic');
+    const device = {
+      write: (data: number) => send((data >> input.shift) & 1),
+      write_line: (data: number) => send(data ? 1 : 0),
+    };
+    for (const alias of [input.deviceTag, ...input.members]) {
+      calls[`${alias}.write`] = device.write;
+      calls[`${alias}.write_line`] = device.write_line;
+      const element = /^(\w+)\[(\d+)\]$/.exec(alias);
+      if (element) ((state[element[1]!] ??= []) as unknown[])[Number(element[2])] = device;
+      else state[alias] = device;
+    }
+  });
+
+  for (const finder of sound.netlistFinders ?? []) {
+    const element = /^(\w+)\[(\d+)\]$/.exec(finder);
+    if (element) ((state[element[1]!] ??= []) as unknown[])[Number(element[2])] ??= 1;
+    else state[finder] ??= 1;
+  }
+
   // Devices beside the AY that render their own stream on the main thread
   // (the Spectrum 128's beeper and its cassette): mixed there and handed to
   // the worklet as one PCM stream, which it resamples into the AY's mix.

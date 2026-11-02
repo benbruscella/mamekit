@@ -33,8 +33,8 @@ export const tutankhm = sourceTarget({
       writes: 17323,
       nonzeroWrites: 11316,
       writeHash: '514f822a',
-      pcmHash: '5f919781',
-      rms: 0.010241,
+      pcmHash: 'b5c115eb',
+      rms: 0.426765,
     },
   },
 });

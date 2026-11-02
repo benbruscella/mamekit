@@ -37,8 +37,8 @@ export const zigzagb = sourceTarget({
       writes: 6132,
       nonzeroWrites: 5361,
       writeHash: 'e3abf5d1',
-      pcmHash: '0f6c1f15',
-      rms: 0.100748,
+      pcmHash: 'e04bc05a',
+      rms: 0.167995,
     },
   },
 });

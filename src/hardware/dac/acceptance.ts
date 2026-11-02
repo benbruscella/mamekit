@@ -25,7 +25,6 @@ export async function createDacProbe(context: AudioProbeContext): Promise<AudioF
       context.sound.auxiliaryDevices,
       context.sound.dacs,
       context.outputRate,
-      context.sound.streamGain,
     ),
     context.outputRate,
     context.refresh,

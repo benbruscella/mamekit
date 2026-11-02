@@ -248,7 +248,6 @@ export class GeneratedSn76489Mixer {
   /** DACs on the same speaker: each holds the level its last code maps to. */
   private readonly dacs: { deviceTag: string; gain: number; map: Float64Array; level: number }[];
   private readonly outputRate: number;
-  private readonly streamGain: number;
 
   /**
    * deviceTypes and clocks are per chip: a machine config may fit two
@@ -263,9 +262,7 @@ export class GeneratedSn76489Mixer {
     deviceTypes: readonly (string | undefined)[] = [],
     clocks: readonly (number | undefined)[] = [],
     auxiliaryDevices: readonly GeneratedSn76489AuxiliaryDevice[] = [],
-    streamGain = 0,
   ) {
-    this.streamGain = streamGain;
     const chipPlan = (chip: number) => generatedSn76489Plan(deviceTypes[chip]);
     this.cores = Array.from(
       { length: chips },
@@ -279,10 +276,9 @@ export class GeneratedSn76489Mixer {
     );
     this.gains = Float64Array.from(
       { length: chips },
-      (_unused, chip) => Math.max(
-        0,
-        ...routes.filter(route => route.chip === chip).map(route => route.gain),
-      ) || 1,
+      (_unused, chip) => routes.some(route => route.chip === chip)
+        ? Math.max(0, ...routes.filter(route => route.chip === chip).map(route => route.gain))
+        : 1,
     );
     this.outputRate = outputRate;
     this.auxiliaryGains = new Map(auxiliaryDevices.map(device => [device.deviceTag, device.gain]));
@@ -329,8 +325,6 @@ export class GeneratedSn76489Mixer {
       }
       mixed += this.cores[chip]!.sample() * this.gains[chip]!;
     }
-    // Beside a stream the mix is MAME's plain sum, at no master gain (lower-sound.ts).
-    if (!this.streamGain) mixed /= Math.max(1, this.cores.length);
     for (const dac of this.dacs) mixed += dac.level * dac.gain;
     for (const stream of this.pcm.values()) {
       stream.phase += stream.rate / this.outputRate;
@@ -404,7 +398,6 @@ class GeneratedSn76489Processor extends AudioWorkletProcessor {
         deviceTypes?: string[];
         clocks?: number[];
         auxiliaryDevices?: GeneratedSn76489AuxiliaryDevice[];
-        streamGain?: number;
         routes?: GeneratedSn76489Route[];
         refresh?: number;
         writes?: GeneratedSn76489Write[];
@@ -418,7 +411,6 @@ class GeneratedSn76489Processor extends AudioWorkletProcessor {
           message.deviceTypes,
           message.clocks,
           message.auxiliaryDevices,
-          message.streamGain,
         );
         this.renderer = new GeneratedSn76489FrameRenderer(
           mixer,

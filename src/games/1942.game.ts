@@ -47,8 +47,8 @@ export const _1942 = sourceTarget({
       writes: 53580,
       nonzeroWrites: 32732,
       writeHash: '2014b897',
-      pcmHash: '276537e2',
-      rms: 0.04821,
+      pcmHash: '77905197',
+      rms: 0.054126,
     },
   },
 });
