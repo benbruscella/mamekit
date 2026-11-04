@@ -64,6 +64,13 @@ interface EmitContext {
    * DISCRETE's per-sample `step_nodes` read each one five times.
    */
   rangeElements?: Map<string, string>;
+  /**
+   * Temporaries the method declares once, for an expression that has to hold
+   * a value between two uses: a postfix `p++`'s previous value, and the object
+   * a member call reads twice. Each used to be a closure built per evaluation.
+   * Shared with a lambda's context, so the method declares them all.
+   */
+  temps?: { count: number };
   definition: CodegenScope;
   boardScope: boolean;
   compiled: Set<string>;
@@ -731,6 +738,7 @@ function emitMethod(
     constantTables,
     structCopiers,
     links: new Set<string>(),
+    temps: { count: 0 },
   };
   context.dereferencedParameters = new Map(parameters.filter(parameter =>
     parameter.valueType.includes('*') &&
@@ -764,8 +772,11 @@ function emitMethod(
   // harness, or an older host), so the emitted code never depends on it.
   for (const name of context.links ?? []) links.add(name);
   const linked = context.links?.size ? '\n    const __l = runtime.links ?? runtime.calls;' : '';
+  const temps = context.temps?.count
+    ? `\n    let ${Array.from({ length: context.temps.count }, (_unused, index) => `__t${index}${annotation}`).join(', ')};`
+    : '';
   const emitted = `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
-    const members = runtime.members;${linked}
+    const members = runtime.members;${linked}${temps}
 ${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
 ${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   }`;
@@ -773,9 +784,33 @@ ${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   // so a single shared dereference saw every object shape of every method
   // and probed each megamorphically (a quarter of DISCRETE's time). This one
   // sees only this method's pointers; any other shape still goes to the host.
-  if (!emitted.includes('runtime.dereference(')) return emitted;
+  // `p + n` the same way: DISCRETE steps every buffer pointer each sample.
+  let source = emitted;
+  let helpers = '';
+  if (source.includes('runtime.add(')) {
+    const add = `__add_${safeName(method.name)}`;
+    source = source.replaceAll('runtime.add(', `${add}(runtime, `);
+    helpers += `
+  function ${add}(runtime${annotation}, a${annotation}, b${annotation})${annotation} {
+    if (typeof a === 'number' && typeof b === 'number') return a + b;
+    if (a !== null && typeof a === 'object' && a.generatedPointer === true && a.target === undefined && typeof b === 'number') {
+      return { generatedPointer: true, source: a.source, offset: a.offset + b };
+    }
+    return runtime.add(a, b);
+  }`;
+  }
+  if (source.includes('runtime.addressOf(')) {
+    const address = `__addr_${safeName(method.name)}`;
+    source = source.replaceAll('runtime.addressOf(', `${address}(runtime, `);
+    helpers += `
+  function ${address}(runtime${annotation}, v${annotation}, i${annotation})${annotation} {
+    if (Array.isArray(v) || ArrayBuffer.isView(v)) return { generatedPointer: true, source: v, offset: i };
+    return runtime.addressOf(v, i);
+  }`;
+  }
+  if (!source.includes('runtime.dereference(')) return `${source}${helpers}`;
   const helper = `__deref_${safeName(method.name)}`;
-  return `${emitted.replaceAll('runtime.dereference(', `${helper}(runtime, `)}
+  return `${source.replaceAll('runtime.dereference(', `${helper}(runtime, `)}${helpers}
   function ${helper}(runtime${annotation}, p${annotation})${annotation} {
     if (p !== null && typeof p === 'object') {
       if (p.generatedPointer === true) {
@@ -1394,7 +1429,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // The value before the store, read as any read of the target is: through
     // a reference parameter's get() (ymfm's `lfo_am_counter++` on a
     // `uint16_t &` captured the wrapper, and the AM LFO never moved).
-    return `(() => { const previous = ${emitExpression(expression.target, context)}; ${assignment}; return previous; })()`;
+    const previous = methodTemp(context);
+    return `(${previous} = ${emitExpression(expression.target, context)}, ${assignment}, ${previous})`;
   }
   if (expression.kind === 'conditional') {
     return `((${emitExpression(expression.condition, context)}) ? ` +
@@ -2001,7 +2037,8 @@ function valueMemberCallCode(
   const directObject = finder || /^bitmap_(?:rgb32|ind16|ind8)$/.test(member?.valueType ?? '') ||
     (receiver.kind === 'call' && receiver.callee.kind === 'identifier' &&
       receiver.callee.name === 'space' && Boolean(context.definition.spaces?.length));
-  const access = directObject ? `(${object}).${property}` : `(runtime.dereference(${object})).${property}`;
+  const accessed = directObject ? `(${object})` : `runtime.dereference(${object})`;
+  const access = `${accessed}.${property}`;
   // Resolved device finders expose source methods as functions. They cannot
   // be a pointer into an array or a numeric framework property. A finder the
   // board serves itself -- a hosted MCU, whose `m_cpu->set_input_line` is a
@@ -2046,15 +2083,20 @@ function valueMemberCallCode(
       ? { code: `(${access}?.(${args.join(', ')}) ?? 0)`, generic: { direct: directObject } }
       // A void method answers undefined, which is no reason to ask the
       // container too: DISCRETE's per-sample `node->step()` did, every call.
-      : `(typeof ${access} === 'function' ? (${access}() ?? 0) : runtime.container(${object}, ${JSON.stringify(property)}))`;
+      : (() => {
+          const held = methodTemp(context);
+          return `(${held} = ${accessed}, typeof ${held}.${property} === 'function' ? (${held}.${property}() ?? 0) : ` +
+            `runtime.container(${object}, ${JSON.stringify(property)}))`;
+        })();
   }
   // A MAME memory container answers its own accessors from the container: a
   // `std::unique_ptr<u8[]>` is a plain array at run time, so `m_vram.get()` has
   // no method to call and the pointer it would return *is* the array. Falling
   // through to 0 made the Game Boy PPU fetch every tile from address zero.
+  const held = methodTemp(context);
   return {
-    code: `(typeof ${access} === 'function' ? ${access}() : ` +
-      `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : ` +
+    code: `(${held} = ${accessed}, typeof ${held}.${property} === 'function' ? ${held}.${property}() : ` +
+      `typeof ${held}.${property} === 'number' || typeof ${held}.${property} === 'boolean' ? ${held}.${property} : ` +
       `runtime.container(${object}, ${JSON.stringify(property)}))`,
     generic: { direct: directObject },
   };
@@ -2471,6 +2513,11 @@ function rangeLoopElement(operation: Extract<GeneratedHandlerOperation, { op: 'f
     sequence: sequence.name,
     element: { kind: 'index', object: { kind: 'identifier', name: sequence.name }, index: { kind: 'identifier', name: counter.name } },
   };
+}
+
+function methodTemp(context: EmitContext): string {
+  const temps = context.temps ??= { count: 0 };
+  return `__t${temps.count++}`;
 }
 
 function structPointerField(name: string, context: EmitContext): boolean {

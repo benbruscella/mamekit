@@ -1859,7 +1859,10 @@ class IrDevice implements Device {
         }
         return next;
       },
-      addressOf: (value, index) => isGeneratedPointer(value)
+      // An array first: probing it for a pointer's tag is the slow case.
+      addressOf: (value, index) => Array.isArray(value) || ArrayBuffer.isView(value)
+        ? { generatedPointer: true, source: value as ArrayLike<number> & { [index: number]: number }, offset: index }
+        : isGeneratedPointer(value)
         ? {
           generatedPointer: true,
           source: value.source,

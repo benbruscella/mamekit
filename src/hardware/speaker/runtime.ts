@@ -163,6 +163,9 @@ export function createStreamMixer(
   ): { mixed: Float64Array; lanes: Float64Array[] } => {
     // One lane per output: put() sets a sample of its own output, and the
     // speaker sums the outputs routed to it, each at its route's gain.
+    // Each input's routes, found once an update rather than on every sample.
+    const byInput: StreamInput[][] = [];
+    for (const source of inputs ?? []) (byInput[source.input] ??= []).push(source);
     const lanes: Float64Array[] = [];
     const lane = (channel: number): Float64Array => lanes[Number(channel) || 0] ??= new Float64Array(due);
     const put = (channel: number, index: number, value: number): number => {
@@ -177,8 +180,7 @@ export function createStreamMixer(
       input_count: () => inputs?.length ?? 0,
       get: (input: number, index: number) => {
         let sum = 0;
-        for (const source of inputs ?? []) {
-          if (source.input !== Number(input)) continue;
+        for (const source of byInput[Number(input)] ?? []) {
           const feeder = byTag.get(source.tag);
           if (!feeder) continue;
           // The feeders' samples are kept at the speaker's rate, by output.
@@ -315,13 +317,11 @@ export function createStreamMixer(
         spans.push([at, Math.max(at, stop)]);
         at = Math.max(at, stop);
       }
-      const mean = function* (values: Float64Array) {
-        for (const [from, to] of spans) {
-          let sum = 0;
-          for (let at = from; at < to; at++) sum += values[at]!;
-          yield to > from ? sum / (to - from) : 0;
-        }
-      };
+      const mean = (values: Float64Array): number[] => spans.map(([from, to]) => {
+        let sum = 0;
+        for (let at = from; at < to; at++) sum += values[at]!;
+        return to > from ? sum / (to - from) : 0;
+      });
       for (const sample of mean(mixed)) stream.pending.push(sample * stream.outputGain * stream.gain);
       if (stream.feeds) keep(stream, lanes, due, mean);
       stream.native = end;
