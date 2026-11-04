@@ -72,11 +72,11 @@ export const marble = sourceTarget({
       2400: { video: '7d1f2e8d', state: '2e530b71' },
     },
     audio: {
-      writes: 2041128,
+      writes: 2041137,
       nonzeroWrites: 98560,
-      writeHash: '25d3c211',
-      pcmHash: '472e7f1e',
-      rms: 0.029347,
+      writeHash: 'f09a3f1e',
+      pcmHash: 'b38a4932',
+      rms: 0.029172,
     },
   },
 });

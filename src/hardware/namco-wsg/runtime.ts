@@ -71,6 +71,6 @@ export function installNamcoWsgRuntime(
     : undefined;
   return {
     state: { registers, ...(streams ? { streams: streams.state } : {}) },
-    ...(streams ? { reset: streams.reset, tickCpu: streams.tickCpu } : {}),
+    ...(streams ? { reset: streams.reset, tickCpu: streams.tickCpu, endFrame: streams.endFrame } : {}),
   };
 }

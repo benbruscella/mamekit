@@ -113,6 +113,8 @@ export interface SoundRuntimeHooks {
    */
   tickInstruction?(cpuTag: string, cycles: number): void;
   instructionCpus?: ReadonlySet<string>;
+  /** The board finished a frame: anything still to render for it renders now. */
+  endFrame?(): void;
   reset?(): void;
   /** What the hooks carry between calls, so a save state can take it (machine-state.ts). */
   state?: Record<string, unknown>;

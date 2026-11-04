@@ -40,10 +40,10 @@ export const elevator = sourceTarget({
     },
     audio: {
       writes: 740993,
-      nonzeroWrites: 41691,
-      writeHash: '5eb02f59',
-      pcmHash: 'fab45e76',
-      rms: 0.298685,
+      nonzeroWrites: 41687,
+      writeHash: 'fd643020',
+      pcmHash: '72da3c46',
+      rms: 0.298539,
     },
   },
 });

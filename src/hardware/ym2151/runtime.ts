@@ -507,6 +507,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
       for (const chip of upd) chip.reset();
       streams?.reset?.();
     },
+    endFrame: () => streams?.endFrame?.(),
     instructionCpus: new Set(timers.map(timer => timer.ownerCpu)),
     tickInstruction: (cpuTag, cycles) => {
       instructionCycles.set(cpuTag, (instructionCycles.get(cpuTag) ?? 0) + cycles);

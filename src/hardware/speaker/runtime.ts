@@ -2,6 +2,15 @@ import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHo
 import { STREAM_AUDIO_RATE, streamRouteGains } from './definition.ts';
 import { LOFI_INTERPOLATION } from './lofi-interpolation.ts';
 
+/**
+ * How many samples the mix waits for between the board's frame ends. A
+ * device renders whenever it updates itself (a write updates its stream
+ * first), so a later mix renders the same samples; rendering them a few at a
+ * time each CPU slice paid DISCRETE's per-update task setup fifteen thousand
+ * times a second.
+ */
+const MIX_BATCH = 256;
+
 /** A stall must not become an unbounded catch-up burst. */
 const MAX_SAMPLES_PER_UPDATE = 4096;
 
@@ -428,7 +437,8 @@ export function createStreamMixer(
         stream.channels.length = 0;
       }
     },
-    tickCpu: cpu => { if (cpu === driver) mix(); },
+    tickCpu: cpu => { if (cpu === driver && reached() - state.emitted >= MIX_BATCH) mix(); },
+    endFrame: mix,
   };
 }
 

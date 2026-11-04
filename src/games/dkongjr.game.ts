@@ -34,11 +34,11 @@ export const dkongjr = sourceTarget({
       1800: { video: 'c29c8a06', state: 'a4aea450' },
     },
     audio: {
-      writes: 1425599,
-      nonzeroWrites: 1425599,
-      writeHash: '247af2cd',
-      pcmHash: '71837069',
-      rms: 0.053914,
+      writes: 1425600,
+      nonzeroWrites: 1425600,
+      writeHash: '3dc1d3e3',
+      pcmHash: '865c5c88',
+      rms: 0.053916,
     },
   },
 });

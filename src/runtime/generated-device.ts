@@ -6,6 +6,7 @@ import {
   applyGeneratedShiftRight,
   generatedMacroCall,
   dereferenceGeneratedValue,
+  dereferenceGeneratedFast,
   generatedByteView,
   generatedPackedView,
   generatedContainerAccessor,
@@ -1841,6 +1842,8 @@ class IrDevice implements Device {
         // A typed array first: the pointer probe on one is a prototype-chain
         // miss, and device memory is almost always typed.
         if (ArrayBuffer.isView(value)) return (value as Uint8Array)[index] ?? 0;
+        // A vector of objects: DISCRETE walks its node and buffer lists so.
+        if (Array.isArray(value)) return value[index] ?? 0;
         if (isGeneratedPointer(value)) {
           return value.source[value.offset + index] ?? 0;
         }
@@ -1867,7 +1870,7 @@ class IrDevice implements Device {
           source: value as ArrayLike<number> & { [index: number]: number },
           offset: index,
         },
-      dereference: dereferenceGeneratedValue,
+      dereference: dereferenceGeneratedFast,
       copyStruct: copyGeneratedStruct,
       packedView: generatedPackedView,
       byteView: generatedByteView,

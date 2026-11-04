@@ -43,11 +43,11 @@ export const mpatrol = sourceTarget({
       1800: { video: '4e862096', state: '2c58e45c' },
     },
     audio: {
-      writes: 1522799,
-      nonzeroWrites: 1522799,
-      writeHash: '993e7e81',
-      pcmHash: 'fe64f010',
-      rms: 0.072967,
+      writes: 1522800,
+      nonzeroWrites: 1522800,
+      writeHash: '583fdf93',
+      pcmHash: '5d0bff81',
+      rms: 0.072965,
     },
   },
 });

@@ -36,11 +36,11 @@ export const travrusa = sourceTarget({
       1800: { video: '7097e9cb', state: '9b535d63' },
     },
     audio: {
-      writes: 1522799,
-      nonzeroWrites: 1522799,
-      writeHash: '34014668',
-      pcmHash: '92cca972',
-      rms: 0.080504,
+      writes: 1522800,
+      nonzeroWrites: 1522800,
+      writeHash: '1fd49474',
+      pcmHash: '3e7a805c',
+      rms: 0.080435,
     },
   },
 });

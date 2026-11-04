@@ -73,6 +73,7 @@ export function installNesRuntime(context: SoundRuntimeContext): SoundRuntimeHoo
       updateIrq();
       streams?.tickCpu?.(tag, cycles);
     },
+    endFrame: () => streams?.endFrame?.(),
     reset: () => {
       apu.reset();
       updateIrq();

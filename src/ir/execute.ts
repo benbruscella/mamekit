@@ -4022,6 +4022,26 @@ function cString(text: string): Uint8Array {
   return bytes;
 }
 
+/**
+ * `*pointer` for emitted code: small enough for V8 to inline at every call
+ * site, it answers a pointer into an array and an object that is its own
+ * pointee at once, and hands every other shape to dereferenceGeneratedValue.
+ * DISCRETE reads each node input this way, millions of times a second.
+ */
+export function dereferenceGeneratedFast(value: unknown): unknown {
+  if (value !== null && typeof value === 'object') {
+    if ((value as GeneratedPointer).generatedPointer === true) {
+      if ((value as GeneratedPointer).target === undefined) {
+        const read = ((value as GeneratedPointer).source as ArrayLike<unknown>)[(value as GeneratedPointer).offset];
+        if (read !== undefined && read !== null) return read;
+      }
+    } else if (!Array.isArray(value) && !ArrayBuffer.isView(value)) {
+      return value;
+    }
+  }
+  return dereferenceGeneratedValue(value);
+}
+
 export function dereferenceGeneratedValue(value: unknown): unknown {
   // The common case first, a pointer into an array: every DISCRETE node reads
   // each input as `*(m_input[n])`, millions of times a second.
@@ -4035,6 +4055,9 @@ export function dereferenceGeneratedValue(value: unknown): unknown {
     }
   }
   if (ArrayBuffer.isView(value)) return (value as Uint8Array)[0] ?? 0;
+  // An object that is neither a pointer nor memory is its own pointee: a
+  // struct or device a pointer member names (`m_device->`, `info->`).
+  if (value !== null && typeof value === 'object' && (value as GeneratedPointer).generatedPointer !== true && !Array.isArray(value)) return value;
   // `*text` is its first character; an empty string is its NUL.
   if (typeof value === 'string') return value.length ? value.charCodeAt(0) & 0xff : 0;
   if (isGeneratedPointer(value)) return pointerValue(value, 0);

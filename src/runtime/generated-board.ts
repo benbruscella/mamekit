@@ -3659,6 +3659,7 @@ class IrBoard implements Board {
     this.inFrame = true;
     try {
       this.frameRunner.frame(framebuffer);
+      this.soundRuntime?.endFrame?.();
     } finally {
       this.inFrame = false;
     }

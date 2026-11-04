@@ -58,6 +58,12 @@ interface EmitContext {
    * through a dozen times a sample, five chips at 224 kHz on Gyruss.
    */
   dereferencedLocals?: Map<string, string>;
+  /**
+   * The element a range-for stands for, read once an iteration: the IR spells
+   * the loop variable `__range0[__range0_index]` everywhere it is used, and
+   * DISCRETE's per-sample `step_nodes` read each one five times.
+   */
+  rangeElements?: Map<string, string>;
   definition: CodegenScope;
   boardScope: boolean;
   compiled: Set<string>;
@@ -758,10 +764,30 @@ function emitMethod(
   // harness, or an older host), so the emitted code never depends on it.
   for (const name of context.links ?? []) links.add(name);
   const linked = context.links?.size ? '\n    const __l = runtime.links ?? runtime.calls;' : '';
-  return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
+  const emitted = `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
     const members = runtime.members;${linked}
 ${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
 ${hoisted}${hoisted ? '\n' : ''}${body}${returned}
+  }`;
+  // `*p` through a copy of its own: V8 keeps one feedback vector a function,
+  // so a single shared dereference saw every object shape of every method
+  // and probed each megamorphically (a quarter of DISCRETE's time). This one
+  // sees only this method's pointers; any other shape still goes to the host.
+  if (!emitted.includes('runtime.dereference(')) return emitted;
+  const helper = `__deref_${safeName(method.name)}`;
+  return `${emitted.replaceAll('runtime.dereference(', `${helper}(runtime, `)}
+  function ${helper}(runtime${annotation}, p${annotation})${annotation} {
+    if (p !== null && typeof p === 'object') {
+      if (p.generatedPointer === true) {
+        if (p.target === undefined) {
+          const read = p.source[p.offset];
+          if (read !== undefined && read !== null) return read;
+        }
+      } else if (!Array.isArray(p) && !ArrayBuffer.isView(p)) {
+        return p;
+      }
+    }
+    return runtime.dereference(p);
   }`;
 }
 
@@ -842,6 +868,29 @@ function emitOperation(
     return lines.filter(Boolean).join('\n');
   }
   if (operation.op === 'for') {
+    const range = rangeLoopElement(operation);
+    if (range) {
+      const element = `${localName(range.sequence)}_item`;
+      const read = emitExpression(range.element, context);
+      const previous = context.rangeElements?.get(range.sequence);
+      (context.rangeElements ??= new Map()).set(range.sequence, element);
+      const body = emitOperations(operation.body, context, indentation + 2);
+      if (previous === undefined) context.rangeElements.delete(range.sequence);
+      else context.rangeElements.set(range.sequence, previous);
+      const initialize = operation.initialize
+        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+        .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
+        .join(', ');
+      const iterate = operation.iterate
+        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+        .join(', ');
+      return [
+        `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
+        `${pad}  const ${element}${context.typescript ? ': any' : ''} = ${read};`,
+        body,
+        `${pad}}`,
+      ].filter(Boolean).join('\n');
+    }
     const initialize = operation.initialize
       .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
       .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
@@ -1375,6 +1424,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       : `${object}.${expression.property}`;
   }
   if (expression.kind === 'index') {
+    if (expression.object.kind === 'identifier' && expression.index.kind === 'identifier' &&
+        expression.index.name === `${expression.object.name}_index`) {
+      const element = context.rangeElements?.get(expression.object.name);
+      if (element) return element;
+    }
     const object = emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
     // A declared array *inside a struct* is always the plain JavaScript array
@@ -1990,7 +2044,9 @@ function valueMemberCallCode(
     // The optional call costs nothing when the method is there.
     return args.length
       ? { code: `(${access}?.(${args.join(', ')}) ?? 0)`, generic: { direct: directObject } }
-      : `(${access}?.() ?? runtime.container(${object}, ${JSON.stringify(property)}))`;
+      // A void method answers undefined, which is no reason to ask the
+      // container too: DISCRETE's per-sample `node->step()` did, every call.
+      : `(typeof ${access} === 'function' ? (${access}() ?? 0) : runtime.container(${object}, ${JSON.stringify(property)}))`;
   }
   // A MAME memory container answers its own accessors from the container: a
   // `std::unique_ptr<u8[]>` is a plain array at run time, so `m_vram.get()` has
@@ -2385,6 +2441,36 @@ function usesIdentifier(operations: GeneratedHandlerOperation[], name: string): 
     if (expression.kind === 'identifier' && expression.name === name) used = true;
   }));
   return used;
+}
+
+/**
+ * A handler-IR range-for (`for (auto &x : seq)`, lowered to an index loop over
+ * `__rangeN`) whose body never stores to the element itself or takes its
+ * address: the element can be read once an iteration. Its fields can still
+ * be written, since it is the same object.
+ */
+function rangeLoopElement(operation: Extract<GeneratedHandlerOperation, { op: 'for' }>):
+  { sequence: string; element: GeneratedExpression } | undefined {
+  const [sequence, counter] = operation.initialize;
+  if (sequence?.op !== 'declare' || !/^__range\d+$/.test(sequence.name)) return undefined;
+  if (counter?.op !== 'declare' || counter.name !== `${sequence.name}_index`) return undefined;
+  const isElement = (expression: GeneratedExpression) =>
+    expression.kind === 'index' && expression.object.kind === 'identifier' && expression.object.name === sequence.name &&
+    expression.index.kind === 'identifier' && expression.index.name === counter.name;
+  let stored = false;
+  visitOperations(operation.body, inner => {
+    if (inner.op === 'assign' && isElement(inner.target)) stored = true;
+    if ((inner.op === 'assign' && inner.target.kind === 'identifier' && [sequence.name, counter.name].includes(inner.target.name)) ||
+        (inner.op === 'declare' && [sequence.name, counter.name].includes(inner.name))) stored = true;
+    visitOperationExpressions(inner, expression => {
+      if (expression.kind === 'assignment' && isElement(expression.target)) stored = true;
+      if (expression.kind === 'unary' && expression.operator === '&' && isElement(expression.operand)) stored = true;
+    });
+  });
+  return stored ? undefined : {
+    sequence: sequence.name,
+    element: { kind: 'index', object: { kind: 'identifier', name: sequence.name }, index: { kind: 'identifier', name: counter.name } },
+  };
 }
 
 function structPointerField(name: string, context: EmitContext): boolean {

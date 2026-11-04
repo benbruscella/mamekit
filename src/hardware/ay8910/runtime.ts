@@ -150,7 +150,7 @@ export function installAy8910Runtime(context: SoundRuntimeContext): SoundRuntime
   // resumes the same write stream (machine-state.ts).
   return {
     state: { addresses, registers, filters, ...(streams ? { streams: streams.state } : {}) },
-    ...(streams ? { reset: streams.reset, tickCpu: streams.tickCpu } : {}),
+    ...(streams ? { reset: streams.reset, tickCpu: streams.tickCpu, endFrame: streams.endFrame } : {}),
   };
 }
 

@@ -30,12 +30,33 @@ const mixer = (
   return {
     emitted,
     calls,
+    // A CPU slice that ends the frame, which mixes whatever it brought.
     advance(by: number) {
+      seconds += by;
+      hooks.tickCpu!('cpu', 1);
+      hooks.endFrame!();
+    },
+    // A slice within a frame, which mixes once a batch is due.
+    slice(by: number) {
       seconds += by;
       hooks.tickCpu!('cpu', 1);
     },
   };
 };
+
+// Within a frame the mix waits for a batch; the frame's end takes the rest.
+// A device updating itself renders either way, so the samples are the same.
+{
+  const speaker = mixer({ speaker: STREAM_AUDIO_RATE }, (_tag, surface) => {
+    for (let index = 0; index < surface.samples(); index++) surface.put(0, index, 1);
+  });
+  speaker.slice(10 / STREAM_AUDIO_RATE);
+  assert.deepEqual(speaker.emitted, [], 'ten samples are not a batch');
+  speaker.slice(300 / STREAM_AUDIO_RATE);
+  assert.equal(speaker.emitted.length, 310, 'a batch mixes everything due');
+  speaker.advance(5 / STREAM_AUDIO_RATE);
+  assert.equal(speaker.emitted.length, 315, 'the frame end mixes the rest');
+}
 
 // A device at the speaker's rate renders one sample per output sample.
 {

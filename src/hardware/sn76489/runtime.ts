@@ -55,5 +55,6 @@ export function installSn76489Runtime(context: SoundRuntimeContext): SoundRuntim
     state: { streams: streams.state, ...(pumped ? { pumped: pumped.state } : {}) },
     reset: () => { streams.reset?.(); pumped?.reset?.(); },
     tickCpu: (cpu, cycles) => { streams.tickCpu?.(cpu, cycles); pumped?.tickCpu?.(cpu, cycles); },
+    endFrame: () => { streams.endFrame?.(); pumped?.endFrame?.(); },
   };
 }

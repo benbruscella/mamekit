@@ -34,10 +34,10 @@ export const junglek = sourceTarget({
     },
     audio: {
       writes: 1532170,
-      nonzeroWrites: 610501,
-      writeHash: 'dd7074f9',
-      pcmHash: 'bff02578',
-      rms: 0.295741,
+      nonzeroWrites: 610499,
+      writeHash: '40f52b2c',
+      pcmHash: '102fe3df',
+      rms: 0.295705,
     },
   },
 });

@@ -48,11 +48,11 @@ export const xevious = sourceTarget({
       3000: { video: '6b69e101', state: '11340137' },
     },
     audio: {
-      writes: 2465407,
-      nonzeroWrites: 2397289,
-      writeHash: '19b163ab',
-      pcmHash: 'fec2258e',
-      rms: 0.110151,
+      writes: 2465408,
+      nonzeroWrites: 2397290,
+      writeHash: 'ad70d996',
+      pcmHash: '449340c3',
+      rms: 0.11004,
     },
   },
 });

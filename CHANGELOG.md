@@ -42,7 +42,13 @@ MAMEDEV's release notes (see the README).
 - The hand models are gone: `discrete-effects`, `discrete-dac`, `phoenix-audio-compiler.ts`, `discrete-counter-lfsr` and `discrete-sn76477`, the Namco 54xx/52xx filter cores, the AY worklet's discrete mixer, the DAC reference levels, and the `discrete` sound kind.
 - The mono fold is the mean of every speaker channel (Pole Position has four), a stream's `put()` keeps each output, and `ALL_OUTPUTS` from a stream device sums all of them.
 - Device compiler gaps fixed on the way: constructors whose parameters default in the header, inline constructors, and classes a macro declares (`DAC_GENERATOR`); function-pointer members; vectors sized by their constructor; tables zero-padded to their declared length; pointer-to-table tables; table entries that are macros; and qualified enumerators in machine configuration.
-- Codegen hoists a struct-pointer local's pointee. Gyruss goes from 18.6 to 56.5 fps, Bump 'n' Jump from 47 to 139, and Elevator Action from 12 to 53.
+- The compiled tables run fast enough for the slowest CI runners. The stream mix renders when 256 samples are due and at each frame end, not on every CPU slice. A device still renders whenever it updates itself, so each frame keeps its samples and only frame-edge timing moves: 29 audio goldens change by under 0.06 dB, and Galaga by 0.2 dB, toward MAME.
+- Several codegen changes help too:
+  - each emitted method gets its own dereference helper, so it sees only its own pointer shapes rather than every method's;
+  - a range-for reads its element once an iteration;
+  - a struct-pointer local hoists its pointee;
+  - a void method's result no longer also asks the container.
+- On the development Mac, Donkey Kong goes from 50 to 104 fps, Gyruss from 19 to 84, Space Invaders to 91, and Elevator Action from 12 to 62.
 - Against the `adc376b9` MAME 0.289 baseline, pixels and RAM are `same` on all 18 machines. #236 explains each audio measure that reads worse, or leaves it open: Phoenix's bands and some contract onsets.
 
 ### Every sound family plays at MAME's level, from its routes ([#234](https://github.com/benbruscella/mamekit/issues/234))

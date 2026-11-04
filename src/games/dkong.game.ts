@@ -39,11 +39,11 @@ export const dkong = sourceTarget({
       1800: { video: '8a54420d', state: 'af9196ad' },
     },
     audio: {
-      writes: 1425599,
-      nonzeroWrites: 1425599,
-      writeHash: 'e9dbafc7',
-      pcmHash: '07d6a5b3',
-      rms: 0.181776,
+      writes: 1425600,
+      nonzeroWrites: 1425600,
+      writeHash: '1e8cb055',
+      pcmHash: 'fc44eafa',
+      rms: 0.181778,
     },
   },
 });
