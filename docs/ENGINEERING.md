@@ -11,10 +11,14 @@ boundaries.
 - Node.js 23.6 or newer;
 - npm dependencies installed with `npm ci`;
 - this repository at any path;
-- a MAME checkout, normally at sibling path `../mame`;
+- a MAME checkout, normally at sibling path `../mame`, at a release tag
+  (`mame0289`). The compiler only reads its source, so nothing needs to be
+  built there;
 - local ROMs only for acceptance and manual browser validation;
 - optionally a MAME **binary** of the same release as that checkout, named by
-  `MAME_BIN`, for `npm run audit:facts` and reference captures.
+  `MAME_BIN`, for `npm run audit:facts`, `npm run oracle:baseline`,
+  `tools/mame-oracle.ts` and reference captures. A prebuilt release binary kept
+  outside the checkout is the usual setup.
 
 The binary must be the same release as the source checkout. A dump from another
 release describes a different MAME, so every difference it reports is noise;

@@ -43,7 +43,16 @@ documentation set.
 
 ## ENVIRONMENT AND GATES
 
-- MAME source is normally at `../mame`.
+- MAME source is at `../mame` (`/Users/benbruscella/Projects/Github/mame`),
+  checked out at the release tag (`mame0289`). It is source only: no binary
+  is built there.
+- The MAME binary is the prebuilt release of the same version, kept apart from
+  the source:
+  `/Users/benbruscella/Google Drive/My Drive/Emulators/mame/mame0289-arm64/mame`.
+  Pass it as `MAME_BIN` for `audit:facts`, `oracle:baseline` and
+  `tools/mame-oracle.ts`. No other MAME is installed (none on `PATH`, no
+  Homebrew), and when the source moves to a new release, the binary moves to
+  the matching `mame0*-arm64` directory beside it.
 - Node.js 23.6+ runs repository TypeScript directly. `.nvmrc` pins the version
   development and CI both use; `nvm use` / `fnm use` picks it up, and the CI
   workflow reads the same file so the two cannot drift.
