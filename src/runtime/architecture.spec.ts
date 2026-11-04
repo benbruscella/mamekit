@@ -76,7 +76,7 @@ const HOST_BOUNDARIES = {
 // A branch on a MAME device type selects code written for that chip or board.
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
   'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS', 'DISCRETE', 'DVG', 'I8243', 'M58715',
+    'ATARI_MOTION_OBJECTS', 'DVG', 'I8243', 'M58715',
     'NEOGEO_CONTROL_PORT', 'NEOGEO_CTRL_EDGE_CONNECTOR', 'NEOGEO_SPRITE_OPTIMZIED',
     'SEGA_SYS16A_SPRITES', 'TAITO_SJ_SECURITY_MCU',
   ],
@@ -112,9 +112,7 @@ const SPECIALIZED_COMPILERS = [
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
 // processor that host it, or a chip model under another name. Paths are
-// relative to src. audio-compiler.ts emits
-// two discrete worklets, the counter/LFSR board and the SN76477, so its
-// discrete classes appear twice.
+// relative to src.
 const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
   'hardware/berzerk-sound/berzerk-sound-worklet.ts': [
     'BerzerkProcessor', 'ExidyPit8253Core', 'ExidySoundCore', 'GeneratedBerzerkSoundCore',
@@ -124,14 +122,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedBiquadFilter', 'GeneratedDacFrameRenderer', 'GeneratedDacMixer',
     'GeneratedDacProcessor', 'GeneratedHc55516Core',
   ],
-  'hardware/discrete-dac/discrete-dac-worklet.ts': [
-    'GeneratedDiscreteAudioCore', 'GeneratedDiscreteAudioFrameRenderer',
-    'GeneratedDiscreteDacProcessor',
-  ],
-  'hardware/discrete-effects/discrete-effects-worklet.ts': [
-    'GeneratedDiscreteAudioCore', 'GeneratedDiscreteAudioFrameRenderer',
-    'GeneratedDiscreteEffectsProcessor',
-  ],
   'hardware/nes/apu.ts': ['Dmc', 'Envelope', 'NesApu', 'Noise', 'Pulse', 'Triangle'],
   'hardware/okim6295/okim6295-worklet.ts': [
     'GeneratedOkim6295Core', 'GeneratedOkim6295FrameRenderer', 'GeneratedOkim6295Processor',
@@ -140,10 +130,7 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
   'hardware/ym2151/runtime.ts': ['Upd7759Runtime'],
   'mame/audio-compiler.ts': [
     'GeneratedAy8910Core', 'GeneratedAy8910FrameRenderer', 'GeneratedAy8910Mixer',
-    'GeneratedAy8910Processor', 'GeneratedDac8Core', 'GeneratedDacFilterCore',
-    'GeneratedDiscreteAudioCore', 'GeneratedDiscreteAudioCore',
-    'GeneratedDiscreteAudioFrameRenderer', 'GeneratedDiscreteAudioFrameRenderer',
-    'GeneratedDiscreteAudioProcessor', 'GeneratedDiscreteAudioProcessor',
+    'GeneratedAy8910Processor', 'GeneratedDac8Core',
     'GeneratedMsm5205Core', 'GeneratedNamcoWsgCore', 'GeneratedNamcoWsgFrameRenderer',
     'GeneratedNamcoWsgProcessor', 'GeneratedPoleposEngineCore',
   ],
@@ -158,10 +145,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedMsm5205Core', 'GeneratedYm2203Chip', 'GeneratedYm2203FrameRenderer',
     'GeneratedYm2203Mixer', 'GeneratedYm2203Processor', 'GeneratedYm2610AdpcmA',
     'GeneratedYm3526Chip',
-  ],
-  'mame/phoenix-audio-compiler.ts': [
-    'GeneratedDiscreteAudioCore', 'GeneratedDiscreteAudioFrameRenderer',
-    'GeneratedDiscreteAudioProcessor',
   ],
   'mame/sn76489-compiler.ts': [
     'GeneratedSn76489Core', 'GeneratedSn76489FrameRenderer', 'GeneratedSn76489Mixer',

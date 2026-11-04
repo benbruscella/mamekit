@@ -61,7 +61,7 @@ export const gauntlet = sourceTarget({
     audio: {
       writes: 1700630,
       nonzeroWrites: 252594,
-      writeHash: 'bae1c6c7',
+      writeHash: '53e3e25d',
       pcmHash: 'cc560cfe',
       rms: 0.045817,
     },

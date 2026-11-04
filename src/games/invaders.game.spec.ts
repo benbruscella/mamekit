@@ -1,11 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import * as ts from 'typescript';
-import {
-  compileDiscreteSn76477,
-  generatedDiscreteSn76477WorkletSource,
-} from '../mame/audio-compiler.ts';
 import { compileMameI8080 } from '../mame/cpu-compiler.ts';
 import { compileMameDevice } from '../mame/device-compiler.ts';
 import { deviceDefinitionsFromSource } from '../mame/hardware.ts';
@@ -88,53 +83,10 @@ const audioText = readFileSync(join(mameSrc, audioSource), 'utf8');
 const audioDefinition = deviceDefinitionsFromSource(audioSource, audioText)
   .find(definition => definition.type === 'INVADERS_AUDIO');
 assert.ok(audioDefinition);
-const audio = compileDiscreteSn76477(mameSrc, audioDefinition);
-assert.equal(audio.processorName, 'discrete');
-assert.equal(audio.workletName, 'invaders-audio');
-assert.deepEqual(audio.ports, [
-  { method: 'p1_w', offset: 0 },
-  { method: 'p2_w', offset: 1 },
-]);
-assert.deepEqual(audio.lfsr, {
-  clock: 7515,
-  bits: 17,
-  reset: 0x1ffff,
-  tap0: 4,
-  tap1: 16,
-  outputBit: 12,
-});
-assert.deepEqual(audio.voices.map(voice => voice.model), [
-  'warble',
-  'parallel-555',
-  'gated-555',
-  'swept-square',
-  'filtered-noise',
-  'swept-square',
-]);
-assert.equal(audio.sn76477.vcoResistance, 8200);
-assert.equal(audio.sn76477.slfResistance, 120_000);
+// The sound board is its MAME class compiled whole, holding the SN76477
+// and DISCRETE its latches write.
+const audio = compileMameDevice(mameSrc, audioDefinition);
+assert.equal(audio.summary.diagnostics, 0);
+assert.deepEqual(audio.children?.map(child => child.type), ['SN76477', 'DISCRETE']);
 
-const source = generatedDiscreteSn76477WorkletSource(audio);
-const javaScript = ts.transpileModule(source, {
-  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
-}).outputText;
-const globals = globalThis as Record<string, unknown>;
-globals.AudioWorkletProcessor = class {};
-globals.sampleRate = 48_000;
-globals.registerProcessor = () => {};
-const generated = await import(
-  `data:text/javascript;base64,${Buffer.from(javaScript).toString('base64')}`
-) as {
-  GeneratedDiscreteAudioCore: new (rate: number) => {
-    write(offset: number, data: number): void;
-    render(output: Float32Array): void;
-  };
-};
-const core = new generated.GeneratedDiscreteAudioCore(48_000);
-core.write(0, 0x22);
-const samples = new Float32Array(4096);
-core.render(samples);
-assert.ok(samples.some(sample => sample !== 0));
-assert.ok(samples.every(sample => Number.isFinite(sample) && Math.abs(sample) <= 1));
-
-console.log('invaders.spec: CPU, bitmap, shifter and synthesized audio lowering passed');
+console.log('invaders.spec: CPU, bitmap, shifter and compiled sound board passed');

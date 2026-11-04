@@ -86,21 +86,10 @@ export function compileMameHandler(
   // C++ pointer-to-member invocation has no distinct runtime value in the IR.
   // Preserve it as a normal call through the member slot; the surrounding
   // source null check still controls whether the call is reached.
-  const executable = listReturns
+  const executable = lowerNamedCasts(listReturns)
     .replace(
       /\(\s*this\s*->\s*\*\s*(m_\w+)\s*\)\s*\(/g,
       '$1(',
-    )
-    // Named C++ casts carry the same numeric/view semantics as an ordinary
-    // cast in handler IR: reinterpret_cast appears in byte-backed sprite RAM,
-    // and every slot device recovers its card with
-    // `dynamic_cast<interface *>(get_card_device())`. Left unrecognised the
-    // whole cast lowered as a call to an unknown function, whose placeholder
-    // return then OVERWROTE the card the slot had just resolved -- so every
-    // Atari 2600 joystick read came back as an empty port.
-    .replace(
-      /\b(?:reinterpret|dynamic|static|const)_cast\s*<([^>]+)>\s*\(([^;]+)\)/g,
-      '($1)($2)',
     )
     // A delegate that names a *template* member has to name the specialization
     // the compiler actually generated. `specializeFunctionTemplate` emits
@@ -116,6 +105,10 @@ export function compileMameHandler(
         .map(argument => argument.trim().replace(/^true$/, '1').replace(/^false$/, '0'))
         .join('_')})`,
     )
+    // osdcomm.h's branch hints, `#define EXPECTED(exp) (exp)` where the
+    // compiler has no __builtin_expect: the condition itself. Unanswered, the
+    // discrete tasks took their profiling branch on every sample.
+    .replace(/\b(?:UN)?EXPECTED(?=\s*\()/g, '')
     // MAME's frequency literal macros are preprocessing tokens whose leading
     // digit otherwise looks like a number followed by a stray identifier.
     .replace(/\b(\d+(?:\.\d+)?)_MHz_XTAL\b/g, (_all, mhz) =>
@@ -151,6 +144,55 @@ function markFloatingLocals(operations: GeneratedHandlerOperation[]): void {
       expression.floating = true;
     }
   });
+}
+
+/**
+ * C++'s named casts, read as the IR reads a cast. Named casts carry the same
+ * numeric/view semantics as an ordinary cast: reinterpret_cast appears in
+ * byte-backed sprite RAM, and every slot device recovers its card with
+ * `dynamic_cast<interface *>(get_card_device())`. Left unrecognised the whole
+ * cast lowered as a call to an unknown function, whose placeholder return then
+ * OVERWROTE the card the slot had just resolved -- so every Atari 2600
+ * joystick read came back as an empty port.
+ *
+ * A dynamic_cast to a class pointer is `DYNAMIC_CAST(value, "T")`, which
+ * answers the value when it is a T and null when it is not: DISCRETE picks its
+ * stream inputs out of every node with
+ * `dynamic_cast<discrete_dss_input_stream_node *>(node.get())`, and read as a
+ * plain cast every node was one. The type may nest angle brackets once an
+ * alias is resolved (`const std::vector<std::unique_ptr<discrete_task>> *`).
+ */
+function lowerNamedCasts(source: string): string {
+  let out = source;
+  const cast = /\b(reinterpret|dynamic|static|const)_cast\s*</g;
+  for (let found; (found = cast.exec(out));) {
+    let close = found.index + found[0].length;
+    for (let depth = 1; close < out.length && depth; close++) {
+      if (out[close] === '<') depth++;
+      else if (out[close] === '>') depth--;
+    }
+    const type = out.slice(found.index + found[0].length, close - 1).trim();
+    let open = close;
+    while (/\s/.test(out[open] ?? '')) open++;
+    if (out[open] !== '(') continue;
+    let end = open;
+    for (let depth = 0; end < out.length; end++) {
+      if (out[end] === '(') depth++;
+      else if (out[end] === ')' && --depth === 0) break;
+    }
+    if (end >= out.length) continue;
+    const operand = out.slice(open + 1, end);
+    const pointee = /^(?:const\s+)?([\w:]+)\s*\*$/.exec(type);
+    // A pointer to a class is the object itself, as `(tia *)_chip` is; a
+    // template or qualified class type has no C-cast spelling the parser reads.
+    const classPointer = /[<:]/.test(type) && /[*&]\s*$/.test(type);
+    const replacement = found[1] === 'dynamic' && pointee
+      ? `DYNAMIC_CAST(${operand}, ${JSON.stringify(pointee[1]!.split('::').at(-1))})`
+      : classPointer ? `(${operand})` : `(${type})(${operand})`;
+    out = `${out.slice(0, found.index)}${replacement}${out.slice(end + 1)}`;
+    cast.lastIndex = found.index;
+  }
+  return out;
 }
 
 class HandlerParser {
@@ -359,6 +401,17 @@ class HandlerParser {
     }
     if (this.atText('do')) return this.parseDoWhile();
     if (this.isDeclaration()) return this.parseDeclaration();
+    // `(void)task;` discards a value to quiet an unused-variable warning;
+    // only a call in it does anything.
+    if (this.atText('(') && this.tokens[this.index + 1]?.text === 'void' && this.tokens[this.index + 2]?.text === ')') {
+      this.index += 3;
+      const discarded = this.parseExpression();
+      if (!discarded || !this.consume(';')) {
+        this.unsupportedStatement('invalid discarded expression');
+        return undefined;
+      }
+      return discarded.kind === 'call' ? { op: 'call', expression: discarded } : undefined;
+    }
 
     const start = this.peek();
     const expression = this.parseExpression();
@@ -491,7 +544,12 @@ class HandlerParser {
       this.unsupportedStatement('invalid if condition');
       return undefined;
     }
+    // `if (0)`, which a disabled debug switch leaves after the preprocessor
+    // (discrete.cpp's `if (DISCRETE_DEBUGLOG)` writes to a log stream), never
+    // runs: what its body could not lower is no gap.
+    const before = this.diagnostics.length;
     const then = this.parseStatementAsBlock();
+    if (condition.kind === 'number' && condition.value === 0) this.diagnostics.length = before;
     let otherwise: GeneratedHandlerOperation[] | undefined;
     if (this.consume('else')) otherwise = this.parseStatementAsBlock();
     const statement: GeneratedHandlerOperation = {
@@ -1173,7 +1231,8 @@ class HandlerParser {
       // pointer form, and a pointer to a class narrows nothing, so the name is
       // consumed and left out of valueType: what matters is `pointer`, which
       // tells generated code the cast is an identity.
-      if (!valueType.length && this.peek().kind === 'identifier') {
+      if (valueType.every(word => word === 'const' || word === 'volatile') && this.peek().kind === 'identifier') {
+        valueType.length = 0;
         this.index = this.skipQualifiedName(this.index);
       }
       // Recorded, not discarded. The interpreter can tell a pointer from a
@@ -1253,6 +1312,10 @@ class HandlerParser {
   private isCast(): boolean {
     let cursor = this.index + 1;
     if (this.tokens[cursor]?.kind !== 'identifier') return false;
+    // `(const discrete_sound_device::task_list_t *)param`: a qualifier ahead
+    // of a class type.
+    while ((this.tokens[cursor]?.text === 'const' || this.tokens[cursor]?.text === 'volatile') &&
+      this.tokens[cursor + 1]?.kind === 'identifier' && !TYPE_WORDS.has(this.tokens[cursor + 1]!.text)) cursor++;
     if (!TYPE_WORDS.has(this.tokens[cursor]!.text)) {
       // A cast to a class type -- `(tia *)_chip`, how MAME's C-style sound
       // modules recover their own state from a void pointer. Only a pointer or
@@ -1319,6 +1382,17 @@ class HandlerParser {
         expression = castType
           ? { kind: 'cast', valueType: castType, operand: args[0]! }
           : { kind: 'call', callee: expression, args };
+      } else if (expression.kind === 'identifier' && this.atText('{')) {
+        // A braced temporary, `input_buffer{ nullptr, pbuf, 0.0 }`: the
+        // device compiler names its fields from the struct (AGGREGATE_OF).
+        this.take();
+        const fields = this.parseDelimitedExpressions('}');
+        if (!fields) return undefined;
+        expression = {
+          kind: 'call',
+          callee: { kind: 'identifier', name: 'AGGREGATE_OF' },
+          args: [{ kind: 'string', value: expression.name }, ...fields],
+        };
       } else if (this.consume('[')) {
         const index = this.parseExpression();
         if (!index || !this.consume(']')) return undefined;

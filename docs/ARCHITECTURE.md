@@ -444,10 +444,11 @@ supported set is a compile-time fact that type-checks, with no dynamic loading.
 `registry.spec.ts` reads the directory and fails when a package exists but is
 not registered, so the convention does not depend on remembering.
 
-Families whose MAME class is named per driver — a discrete soundboard is
-`GALAXIAN_SOUND` in one driver and `INVADERS_AUDIO` in another — declare no
-`mameTypes` and recognise the board by shape inside `extract()`. Recognition is
-never by game or board name.
+A sound board whose MAME class is named per driver -- `GALAXIAN_SOUND` in one
+driver, `INVADERS_AUDIO` in another -- is a plain device holding the chips its
+latches write, and compiles through the generic device capability like any
+other; the chips are their own packages. Recognition is never by game or board
+name.
 The shared runtime does not branch on a machine's game or family either:
 `src/runtime/architecture.spec.ts` fails on any such conditional, so a special
 case has to become extracted IR or a capability selected by a MAME device type
@@ -751,14 +752,10 @@ audio IR. Worklets live under
 `dist/runtime/generated/audio` and import shared operations from
 `dist/runtime/core` when required.
 
-Generated configs select one of fourteen `sound.kind` values: `ay8910` (with
-generated RC routing), `sn76489`, `ym2203`, `ym2151`, `wsg` (Namco WSG), `dac`, `sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy`,
-`stream`, and `discrete` for MAME `DISCRETE` soundboards, including SN76477 and
-counter/LFSR topologies. Discrete plans emit port wiring, method roles, control nodes, LFSR parameters,
-component values, mixer resistances and route gains from MAME. Every such board
-uses the runtime capability `sound.kind = "discrete"`; `sound.worklet` selects
-the generated MAME-device artifact in `dist`. Runtime and QA code must never
-branch on a game or board-family name.
+Generated configs select one of thirteen `sound.kind` values: `ay8910` (with
+generated RC routing), `sn76489`, `ym2203`, `ym2151`, `wsg` (Namco WSG), `dac`,
+`sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy` and `stream`. Runtime and QA
+code must never branch on a game or board-family name.
 
 A board whose only sound is MAME's own stream devices -- the Spectrum's
 `SPEAKER_SOUND` beeper and its `CASSETTE`, routed to the speakers, or a POKEY
@@ -769,6 +766,33 @@ routed mix is played by the shared stream worklet. A board with a chip as well
 (the 128K's AY-3-8912, Gauntlet's YM2151) keeps the chip's worklet and adds
 the streams to its mix (`streamDevices`). A device's `set_output_gain` scales
 its stream there, as Gauntlet's mixer does to its POKEY.
+
+MAME's `DISCRETE` device is a stream device too, compiled whole from
+`discrete.cpp`, its node classes (`disc_*.hxx`, each a `DISCRETE_CLASS_*`
+macro, so only the preprocessed source has them) and the node classes a driver
+defines itself (`dkong_custom_mixer`). A board's table is data:
+`src/mame/static-aggregate.ts` preprocesses the driver with discrete.h and
+lowers `DISCRETE_SOUND_START(...)` to its `discrete_block` array, which reaches
+the device as configuration (`set_intf`), and each block's
+`discrete_node_factory<C>::create` builds that node. A driver writes its
+inputs as MAME does, `m_discrete->write(NODE, data)` and the latch's
+`write_line<NODE>`, to the generated device. The SN76477, the TMS36xx and
+Phoenix's own effects board, mixed with a table on the same speaker, are
+stream devices compiled the same way.
+
+A stream routed into another one is that one's input: Battlezone's POKEY feeds
+its table's `DISCRETE_INPUTX_STREAM`. The mixer renders a feeder before the
+device reading it, keeps what the feeder rendered output by output, and answers
+the reader's `stream.get(input, n)` with it, at the route's gain. A chip whose
+own capability plays it in a worklet elsewhere renders as a stream on the
+machines that route it into a stream device, or that route a stream into it
+(`streamRoutedDevices`): Burger Time's AY-3-8910s into its table, Elevator
+Action's DAC, whose range its `dacvol` table sets. Such a type is also compiled
+whole, as its stream variant (`devices/<type>.stream.ts`, registered under
+`<TYPE>:STREAM`), and the board's device says `stream: true`. A device's
+outputs are summed into the mix each at its route's gain; `ALL_OUTPUTS` from a
+stream device sums however many it has. A child the board holds itself (a
+sound board's DISCRETE) is that board device, not a second copy built inside.
 
 A `SAMPLES` device is a stream device too, compiled whole from `samples.cpp`,
 because a driver reads it back (`playing` decides whether Zaxxon restarts a
@@ -816,15 +840,6 @@ that need it (`cards: ["vrc7"]`), at the tag MAME gives it
 cartridge on one of those boards, so a VRC7 cartridge asks for `ds1001.zip`
 the way the ColecoVision asks for its BIOS, and no other cartridge does.
 
-Norton op-amp stages are lowered to stable browser component models; MAMEKIT
-does not yet implement MAME's complete analog discrete solver. The generated
-IR records that boundary instead of hiding it in a checked-in game sound class.
-
-An AY8910 routed into a `DISCRETE` network gets `sound.discreteMixer`, whose
-`graph` holds every node that reaches an output, in MAME's step order, with the
-equations of its MAME node class, in real volts, so op-amp rails clip where the
-circuit does. Any node or variant outside that set leaves the network unlowered
-rather than approximated. 
 A board's level is MAME's routes and nothing else: no family carries a gain of
 its own. Each engine outputs what its MAME stream outputs at route 1.0, and the
 worklet sums the routes as MAME's mixer does, without dividing by their total
@@ -838,13 +853,15 @@ owner or an `RC` filter takes that device's own route too, and `reset_routes` an
 what the base configured, down through a device's own config.
 
 A mix that goes through one gain carries it as `sound.outputGain`, which the
-shell applies after the worklet: a WSG's route, the TIA's, the APU's. A route to
-one channel of a stereo target counts half, because the browser plays one
-channel, the average of MAME's two. The summed mix clamps to full scale where
+shell applies after the worklet: a WSG's route, the TIA's, the APU's; a stream
+mixed beside it is relative to that gain. The browser plays one channel, the
+mean of every speaker channel MAME has, so a route to one channel counts that
+share: half on a stereo speaker, a quarter on Pole Position's front and rear
+pairs. The summed mix clamps to full scale where
 MAME's speaker stage clamps it to 16 bits (`sound.cpp`): on the raw sum, DC and
 all, with no filter in front. Boards that sum past it clip as MAME's do; removing
-the clamp left bankp 5 dB over. The hand models that are still waiting to be
-compiled (`berzerk-sound`, `discrete-effects`, Phoenix) keep their own gains.
+the clamp left bankp 5 dB over. The hand model still waiting to be compiled
+(`berzerk-sound`) keeps its own gains.
 
 ### NETLISTS
 

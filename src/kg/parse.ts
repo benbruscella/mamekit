@@ -313,6 +313,9 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
     for (const [name, val] of Object.entries(consts)) {
       if (name.includes('::')) s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
     }
+    // A scoped enumerator no table holds by its qualified name is its leaf:
+    // Phoenix's `set_subtype(tms36xx_device::subtype::MM6221AA)`.
+    s = s.replace(/\b(?:\w+::)+(\w+)\b/g, (whole, leaf: string) => consts[leaf] !== undefined ? leaf : whole);
   }
   for (const [name, val] of Object.entries(consts)) {
     s = s.replace(new RegExp(`\\b${name}\\b`, 'g'), String(val));
@@ -2412,7 +2415,7 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
     const body = expandPortMacros(m[2], macros);
     let port: PortDef | null = null;
     let dip: PortFieldDef | null = null;
-    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE_NO_TOGGLE|PORT_SERVICE_DIPLOC|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_DIPUNUSED|PORT_DIPUNKNOWN_DIPLOC|PORT_DIPUNKNOWN|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
+    const tokRe = /(PORT_START|PORT_MODIFY|PORT_INCLUDE|PORT_BIT|PORT_ADJUSTER|PORT_DIPNAME|PORT_DIPSETTING|PORT_SERVICE_NO_TOGGLE|PORT_SERVICE_DIPLOC|PORT_SERVICE|PORT_DIPLOCATION|PORT_DIPUNUSED_DIPLOC|PORT_DIPUNUSED|PORT_DIPUNKNOWN_DIPLOC|PORT_DIPUNKNOWN|PORT_CONDITION|PORT_CONFNAME|PORT_CONFSETTING)\s*\(/g;
     let tm: RegExpExecArray | null;
     while ((tm = tokRe.exec(body)) !== null) {
       const open = body.indexOf('(', tm.index + tm[1].length - 1);
@@ -2453,6 +2456,16 @@ export function parseInputPorts(src: string, macros: TextMacros = { ports: {}, s
             ...(bitDefault === null ? {} : { defaultValue: (bitDefault & bitMask) >>> 0 }),
             modifiers: mods.length ? mods : undefined,
           });
+          dip = null;
+          break;
+        }
+        // An operator's trim pot: ioport.h's `field_alloc(IPT_ADJUSTER,
+        // default, 0xff)`, read through the port as its setting out of 100.
+        // Donkey Kong's DISCRETE_ADJUSTMENT takes its DAC volume from VR2.
+        case 'PORT_ADJUSTER': {
+          if (!port) break;
+          const adjusted = evalExpr(args[0] ?? '') ?? 0;
+          port.fields.push({ kind: 'bit', mask: 0xff, activeLow: false, type: 'IPT_ADJUSTER', defaultValue: adjusted & 0xff });
           dip = null;
           break;
         }

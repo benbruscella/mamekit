@@ -92,10 +92,8 @@ export interface AudioProbeContext {
     waveRegion?: string;
     sampleRegion?: string;
     routes?: unknown;
-    auxiliary?: unknown;
     auxiliaryDevices?: unknown;
     filterChain?: unknown;
-    discreteMixer?: unknown;
     chipOutputs?: unknown;
     netlist?: unknown;
     discreteDac?: unknown;

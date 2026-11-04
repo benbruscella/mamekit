@@ -50,6 +50,13 @@ export interface MameFunction {
    * no `returnType`, and this is the one fact about it a caller needs.
    */
   returnsReference?: true;
+  /**
+   * The type a definition inside its class body is declared to return
+   * (`inline double input(int n)`), kept apart from `returnType`: it tells a
+   * caller the call's arithmetic, a DISCRETE node's `input(n) / input(m)`
+   * being a double division.
+   */
+  inlineReturnType?: string;
   parameters: string;
   body: string;
   statements: MameStatement[];
@@ -377,6 +384,11 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
         name: im[1]!,
         ...(templateParameters.length ? { templateParameters } : {}),
         ...(/(?:^|[^&])&\s*$/.test(head) ? { returnsReference: true } : {}),
+        ...((() => {
+          const declared = head.replace(/template\s*<[^<>]*>/g, ' ')
+            .replace(/\b(?:inline|static|virtual|constexpr|explicit|friend|const|ATTR_COLD)\b/g, ' ').replace(/\s+/g, ' ').trim();
+          return declared && declared !== 'void' ? { inlineReturnType: declared } : {};
+        })()),
         parameters: source.slice(
           masked.indexOf('(', bodyStart + im.index),
           matchPair(masked, masked.indexOf('(', bodyStart + im.index), '(', ')') + 1,

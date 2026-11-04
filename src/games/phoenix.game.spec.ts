@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { compilePhoenixSound } from '../mame/phoenix-audio-compiler.ts';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { phoenix } from './phoenix.game.ts';
 import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
@@ -14,15 +15,11 @@ const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.equal(video?.plan.palette?.colorCount, 256);
 assert.equal(video?.plan.tilemaps?.length, 2);
 
-const sound = compilePhoenixSound(mameSourceRoot(), {
-  type: 'PHOENIX_SOUND',
-  className: 'phoenix_sound_device',
-  sourceFile: 'src/mame/phoenix/phoenix_a.cpp',
-  sourceLine: 51,
-  sourceColumn: 1,
-  macro: 'DEFINE_DEVICE_TYPE',
-});
-assert.deepEqual(sound.melody.tunes.map(tune => tune.length), [0, 576, 576, 576, 78]);
-assert.deepEqual(sound.routes, { melody: 0.5, custom: 0.4, effects: 0.6 });
-assert.deepEqual(sound.methods, { controlA: 'control_a_w', controlB: 'control_b_w' });
-console.log('phoenix.spec: PROM palette, two-page video and source audio passed');
+// The effects board and the MM6221AA are their MAME classes compiled whole.
+// The melodies are tms36xx.cpp's `tunes`, a table of pointers to note tables
+// that the compiler reads row by row.
+const index = indexMameHardware(mameSourceRoot());
+for (const type of ['PHOENIX_SOUND', 'TMS36XX']) {
+  assert.equal(compileMameDevice(mameSourceRoot(), index.get(type)!, type).summary.diagnostics, 0, type);
+}
+console.log('phoenix.spec: PROM palette, two-page video and compiled sound passed');

@@ -1,5 +1,5 @@
 import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks, type SoundStreamSurface } from '../sound-runtime.ts';
-import { STREAM_AUDIO_RATE } from './definition.ts';
+import { STREAM_AUDIO_RATE, streamRouteGains } from './definition.ts';
 import { LOFI_INTERPOLATION } from './lofi-interpolation.ts';
 
 /** A stall must not become an unbounded catch-up burst. */
@@ -9,6 +9,43 @@ const MAX_SAMPLES_PER_UPDATE = 4096;
 export interface StreamSource {
   tag: string;
   gain: number;
+  /**
+   * A device with several outputs routed apart (a DISCRETE table's
+   * DISCRETE_OUTPUT nodes): each output's gain, by output. The outputs are
+   * summed into the mix, each at its own route's gain.
+   */
+  outputGains?: readonly number[];
+  /**
+   * Streams routed into this device's inputs (Battlezone's POKEY into its
+   * DISCRETE's DISCRETE_INPUTX_STREAM), each at its route's gain. The device
+   * reads them with `stream.get(input, sample)` over the window it renders.
+   */
+  inputs?: readonly StreamInput[];
+}
+
+/** One route into a stream device's input: which feeder output (-1, all of them), at what gain. */
+export interface StreamInput {
+  tag: string;
+  output: number;
+  input: number;
+  gain: number;
+}
+
+/**
+ * The streams a worklet's runtime mixes beside its chip, as the sound plan
+ * lists them, each at its route's gain over `over`: the gain the shell already
+ * applies after the worklet (a WSG's own route).
+ */
+export function streamDeviceSources(
+  devices: readonly { deviceTag: string; gain: number; outputGains?: readonly number[]; inputs?: readonly StreamInput[] }[],
+  over = 1,
+): StreamSource[] {
+  return devices.map(device => ({
+    tag: device.deviceTag,
+    gain: device.gain / over,
+    ...(device.outputGains ? { outputGains: device.outputGains } : {}),
+    ...(device.inputs ? { inputs: device.inputs } : {}),
+  }));
 }
 
 /** MAME's ALL_OUTPUTS, as `set_output_gain` takes it. */
@@ -102,30 +139,73 @@ export function createStreamMixer(
   // `outputGain` is the device's set_output_gain, over its routed gain.
   const streams = sources.map(source => ({
     ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
+    // What a stream routed into another renders before its speaker gain, from
+    // absolute sample `rawBase`, kept until every reader has passed it.
+    feeds: sources.some(other => other.inputs?.some(input => input.tag === source.tag)), raw: [] as number[][], rawBase: 0,
     // Set once the device takes a stream below the speaker's rate.
     resampled: false, channels: [] as StreamChannel[],
   }));
   const state = { emitted: 0, streams };
   // MAME's `sound_stream` surface, one output, over `due` samples at `rate`.
-  const update = (tag: string, due: number, rate: number): Float64Array => {
-    const samples = new Float64Array(due);
-    const put = (index: number, value: number): number => {
-      if (index >= 0 && index < due) samples[index] = value;
+  const byTag = new Map(streams.map(stream => [stream.tag, stream]));
+  const update = (
+    tag: string, due: number, rate: number, outputGains?: readonly number[],
+    inputs?: StreamSource['inputs'], start = 0,
+  ): { mixed: Float64Array; lanes: Float64Array[] } => {
+    // One lane per output: put() sets a sample of its own output, and the
+    // speaker sums the outputs routed to it, each at its route's gain.
+    const lanes: Float64Array[] = [];
+    const lane = (channel: number): Float64Array => lanes[Number(channel) || 0] ??= new Float64Array(due);
+    const put = (channel: number, index: number, value: number): number => {
+      const at = Number(index);
+      if (at >= 0 && at < due) lane(channel)[at] = Number(value);
       return 0;
     };
     context.callDevice(tag, 'sound_stream_update', {
       samples: () => due,
       sample_rate: () => rate,
-      output_count: () => 1,
-      put: (_channel: number, index: number, value: number) => put(Number(index), Number(value)),
-      put_int: (_channel: number, index: number, value: number, max: number) =>
-        put(Number(index), Number(max) ? Number(value) / Number(max) : 0),
-      put_int_clamp: (_channel: number, index: number, value: number, max: number) =>
-        put(Number(index), Number(max) ? Math.max(-Number(max), Math.min(Number(max) - 1, Number(value))) / Number(max) : 0),
-      fill: (_channel: number, value: number, start = 0, count = due - Number(start)) =>
-        void samples.fill(Number(value), Number(start), Number(start) + Number(count)),
+      output_count: () => outputGains?.length ?? 1,
+      input_count: () => inputs?.length ?? 0,
+      get: (input: number, index: number) => {
+        let sum = 0;
+        for (const source of inputs ?? []) {
+          if (source.input !== Number(input)) continue;
+          const feeder = byTag.get(source.tag);
+          if (!feeder) continue;
+          // The feeders' samples are kept at the speaker's rate, by output.
+          const at = Math.floor((start + Number(index)) * STREAM_AUDIO_RATE / rate) - feeder.rawBase;
+          if (source.output >= 0) sum += (feeder.raw[source.output]?.[at] ?? 0) * source.gain;
+          else for (const lane of feeder.raw) sum += (lane?.[at] ?? 0) * source.gain;
+        }
+        return sum;
+      },
+      put,
+      put_int: (channel: number, index: number, value: number, max: number) =>
+        put(channel, index, Number(max) ? Number(value) / Number(max) : 0),
+      put_int_clamp: (channel: number, index: number, value: number, max: number) =>
+        put(channel, index, Number(max) ? Math.max(-Number(max), Math.min(Number(max) - 1, Number(value))) / Number(max) : 0),
+      fill: (channel: number, value: number, start = 0, count = due - Number(start)) =>
+        void lane(channel).fill(Number(value), Number(start), Number(start) + Number(count)),
     });
-    return samples;
+    if (!outputGains && lanes.length <= 1) return { mixed: lanes[0] ?? new Float64Array(due), lanes };
+    const samples = new Float64Array(due);
+    lanes.forEach((values, channel) => {
+      const gain = outputGains ? outputGains[channel] ?? 0 : 1;
+      if (gain) for (let index = 0; index < due; index++) samples[index]! += values[index]! * gain;
+    });
+    return { mixed: samples, lanes };
+  };
+  // What a feeder rendered, kept by output for the devices reading it.
+  // An output the device left unwritten this time is silence there.
+  const keep = (stream: typeof streams[number], lanes: readonly Float64Array[], count: number, read: (values: Float64Array) => Iterable<number>) => {
+    const length = stream.rendered - stream.rawBase;
+    for (let output = 0; output < Math.max(lanes.length, stream.raw.length); output++) {
+      const kept = stream.raw[output] ??= [];
+      while (kept.length < length) kept.push(0);
+      const values = lanes[output];
+      if (values) for (const value of read(values)) kept.push(value * stream.outputGain);
+      else for (let index = 0; index < count; index++) kept.push(0);
+    }
   };
   const surfaces = (tag: string): readonly SoundStreamSurface[] => context.deviceStreams?.(tag) ?? [];
   // A device with several streams, or one that moved its stream below the
@@ -191,6 +271,11 @@ export function createStreamMixer(
   };
   const render = (stream: typeof streams[number], target: number) => {
     if (!Number.isFinite(target)) return;
+    // What a device reads from its inputs must exist before it renders.
+    for (const input of stream.inputs ?? []) {
+      const feeder = byTag.get(input.tag);
+      if (feeder && feeder !== stream) render(feeder, target);
+    }
     const channels = channelsOf(stream);
     if (channels) {
       if (target > stream.rendered) renderChannels(stream, channels, target);
@@ -206,20 +291,30 @@ export function createStreamMixer(
       const due = Math.min(MAX_SAMPLES_PER_UPDATE, target - stream.rendered);
       if (!native) {
         const gain = stream.gain * stream.outputGain;
-        for (const sample of update(stream.tag, due, STREAM_AUDIO_RATE)) stream.pending.push(sample * gain);
+        const { mixed, lanes } = update(stream.tag, due, STREAM_AUDIO_RATE, stream.outputGains, stream.inputs, stream.rendered);
+        for (const sample of mixed) stream.pending.push(sample * gain);
+        if (stream.feeds) keep(stream, lanes, due, values => values);
         stream.rendered += due;
         continue;
       }
       const end = Math.floor((stream.rendered + due) * native / STREAM_AUDIO_RATE);
-      const samples = update(stream.tag, Math.max(0, end - stream.native), native);
-      let at = 0;
-      for (let index = stream.rendered; index < stream.rendered + due; index++) {
-        const stop = Math.floor((index + 1) * native / STREAM_AUDIO_RATE) - stream.native;
-        let sum = 0;
-        const from = at;
-        for (; at < stop && at < samples.length; at++) sum += samples[at]!;
-        stream.pending.push(at > from ? sum / (at - from) * stream.gain * stream.outputGain : 0);
+      const { mixed, lanes } = update(stream.tag, Math.max(0, end - stream.native), native, stream.outputGains, stream.inputs, stream.native);
+      // Each output sample is the mean of the native ones it spans.
+      const spans: [number, number][] = [];
+      for (let index = stream.rendered, at = 0; index < stream.rendered + due; index++) {
+        const stop = Math.min(mixed.length, Math.floor((index + 1) * native / STREAM_AUDIO_RATE) - stream.native);
+        spans.push([at, Math.max(at, stop)]);
+        at = Math.max(at, stop);
       }
+      const mean = function* (values: Float64Array) {
+        for (const [from, to] of spans) {
+          let sum = 0;
+          for (let at = from; at < to; at++) sum += values[at]!;
+          yield to > from ? sum / (to - from) : 0;
+        }
+      };
+      for (const sample of mean(mixed)) stream.pending.push(sample * stream.outputGain * stream.gain);
+      if (stream.feeds) keep(stream, lanes, due, mean);
       stream.native = end;
       stream.rendered += due;
     }
@@ -300,13 +395,23 @@ export function createStreamMixer(
     if (target <= state.emitted) return;
     for (const stream of streams) render(stream, target);
     const frac = context.fraction();
+    const muted = context.systemMuted?.() ?? false;
     for (let index = 0; index < target - state.emitted; index++) {
       let sum = 0;
       for (const stream of streams) sum += stream.pending[index] ?? 0;
-      emit(sum, frac);
+      emit(muted ? 0 : sum, frac);
     }
     for (const stream of streams) stream.pending.splice(0, target - state.emitted);
     state.emitted = target;
+    // A feeder's samples are read again only by readers that have not passed them.
+    for (const stream of streams) {
+      if (!stream.feeds) continue;
+      const read = streams.reduce((least, reader) =>
+        reader.inputs?.some(input => input.tag === stream.tag) ? Math.min(least, reader.rendered) : least, stream.rendered);
+      if (read <= stream.rawBase) continue;
+      for (const lane of stream.raw) lane?.splice(0, read - stream.rawBase);
+      stream.rawBase = read;
+    }
   };
   return {
     state,
@@ -317,6 +422,8 @@ export function createStreamMixer(
         stream.rendered = 0;
         stream.native = 0;
         stream.pending.length = 0;
+        stream.raw.length = 0;
+        stream.rawBase = 0;
         stream.resampled = false;
         stream.channels.length = 0;
       }
@@ -327,9 +434,17 @@ export function createStreamMixer(
 
 /** Sound kind `stream`: the streams are the whole mix, played by the shared stream worklet. */
 export function installStreamAudioRuntime(context: SoundRuntimeContext): SoundRuntimeHooks {
-  const sources = soundTags(context.sound).map((tag, chip) => ({
-    tag,
-    gain: context.sound.routes?.find(route => route.chip === chip)?.gain ?? 1,
-  }));
+  const tags = soundTags(context.sound);
+  const sources = tags.map((tag, chip): StreamSource => {
+    // A route into another of the streams (POKEY into Battlezone's DISCRETE)
+    // is that device's input, not the speaker's.
+    const routes = (context.sound.routes ?? []).filter(route => route.chip === chip && !tags.includes(route.target));
+    const inputs = (context.sound.routes ?? []).filter(route => route.target === tag && tags[route.chip] !== undefined)
+      .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain }));
+    const source = routes.length
+      ? { tag, ...streamRouteGains(routes) }
+      : { tag, gain: context.sound.routes?.some(route => route.chip === chip) ? 0 : 1 };
+    return inputs.length ? { ...source, inputs } : source;
+  });
   return createStreamMixer(context, sources, (sample, frac) => context.soundWrite(0, sample, frac, 'stream.pcm'));
 }

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { compileDiscreteMixer } from '../mame/audio-compiler.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { gyruss } from './gyruss.game.ts';
@@ -38,25 +37,6 @@ assert.deepEqual(video.plan.palette?.banks.map(bank => ({
 ]);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
-const mixer = compileDiscreteMixer(
-  mameSrc,
-  gyruss.driver,
-  'sound_discrete',
-);
-assert.ok(mixer);
-assert.equal(mixer.streamInputs.length, 15);
-assert.equal(mixer.graph?.filter(step => step.op === 'data').length, 7);
-assert.equal(mixer.graph?.filter(step => step.op === 'rcFilterSwitch').length, 6);
-assert.deepEqual(mixer.graph?.flatMap(step => step.op === 'adder' ? [step.node] : []), [40, 41, 42]);
-assert.deepEqual(mixer.graph?.flatMap(step => step.op === 'mixer' ? [step.resistances] : []), [
-  [2200, 2200, 2200, 1100, 1100],
-  [2200, 2200, 2200, 1100, 4700],
-]);
-assert.deepEqual(mixer.outputs, [
-  { node: 50, gain: 11 },
-  { node: 51, gain: 11 },
-]);
-
 const timer = graph.nodes.find(node =>
   node.label === 'Handler' &&
   node.props.ownerClass === 'gyruss_state' &&
@@ -68,4 +48,4 @@ assert.deepEqual(
   'file-scope MAME timer table must lower to executable handler IR',
 );
 
-console.log('gyruss.spec: CPUs, tile groups, timer table and discrete mixer passed');
+console.log('gyruss.spec: CPUs, tile groups, timer table passed');

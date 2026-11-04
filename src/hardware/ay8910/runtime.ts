@@ -9,7 +9,7 @@ import {
   type SoundRuntimeContext,
   type SoundRuntimeHooks,
 } from '../sound-runtime.ts';
-import { createStreamMixer } from '../speaker/runtime.ts';
+import { createStreamMixer, streamDeviceSources } from '../speaker/runtime.ts';
 import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
 
 /** Registers 14 and 15 are the general-purpose I/O ports. */
@@ -113,19 +113,6 @@ export function installAy8910Runtime(context: SoundRuntimeContext): SoundRuntime
         };
       }
     }
-    const reference = auxiliary.referenceControl;
-    if (reference?.member) {
-      state[reference.member] = {
-        write: (...args: number[]) => {
-          context.soundWrite(
-            0,
-            args.at(-1) ?? 0,
-            context.fraction(),
-            `${auxiliary.deviceTag}.reference_w`,
-          );
-        },
-      };
-    }
   }
   // The lines a driver writes into the netlist the AY's routes land in. A finder
   // is live once it is bound, which is what `if (m_audio_BD)` asks.
@@ -155,7 +142,7 @@ export function installAy8910Runtime(context: SoundRuntimeContext): SoundRuntime
   // (the Spectrum 128's beeper and its cassette): mixed there and handed to
   // the worklet as one PCM stream, which it resamples into the AY's mix.
   const streams = sound.streamDevices?.length
-    ? createStreamMixer(context, sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+    ? createStreamMixer(context, streamDeviceSources(sound.streamDevices),
       (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
     : undefined;
   // The selected register per chip, the register file the worklet mirrors,

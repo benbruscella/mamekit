@@ -28,12 +28,13 @@ import {
   cppDefaultArgument,
   generatedSubtract,
   resizeGeneratedContainer,
+  resizeGeneratedVector,
 } from './generated-handler.ts';
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
-import type { GeneratedHandlerProgram } from '../ir/board.ts';
+import { STREAM_VARIANT_SUFFIX, type GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
 import { inheritCardInterface, type CardInterface } from '../ir/card-interface.ts';
 
@@ -126,6 +127,17 @@ type DeviceResource =
   | { kind: 'missing-region-number'; name: string; missing: number; present: number }
   | { kind: 'config-map'; path: string; values: Record<string, number>; fallback?: number }
   | { kind: 'bank-array'; name: string; count: number };
+
+/**
+ * An object a device allocates, which carries its classes for DYNAMIC_CAST.
+ * Not enumerable: a save state walks members, not this.
+ */
+function allocatedObject(self: unknown, definition: GeneratedDeviceDefinition): unknown {
+  Object.defineProperty(self as object, '$hierarchy', {
+    value: definition.hierarchy ?? [definition.type], enumerable: false, configurable: true,
+  });
+  return self;
+}
 
 interface GeneratedPointer {
   generatedPointer: true;
@@ -472,13 +484,23 @@ export interface GeneratedDeviceLink {
 
 const DEFINITIONS = new Map<string, GeneratedDeviceDefinition>();
 
-export function registerGeneratedDevice(definition: GeneratedDeviceDefinition): void {
+export function registerGeneratedDevice(definition: GeneratedDeviceDefinition, key = definition.type): void {
   if (definition.summary.diagnostics) {
     throw new Error(
       `cannot register ${definition.type}: ${definition.summary.diagnostics} compiler diagnostics`,
     );
   }
-  DEFINITIONS.set(definition.type.toUpperCase(), definition);
+  DEFINITIONS.set(key.toUpperCase(), definition);
+}
+
+/** A type compiled whole as a stream, for the machines that render it so. */
+export function registerGeneratedStreamDevice(definition: GeneratedDeviceDefinition): void {
+  registerGeneratedDevice(definition, `${definition.type}${STREAM_VARIANT_SUFFIX}`);
+}
+
+/** What a board's device is built from: its type, or its type's stream variant. */
+export function generatedDeviceKey(device: { type: string; stream?: true }): string {
+  return device.stream ? `${device.type}${STREAM_VARIANT_SUFFIX}` : device.type;
 }
 
 /**
@@ -555,6 +577,10 @@ export function mameSubtag(own: string, tag: string): string {
 
 export interface GeneratedDeviceOptions {
   owner?: unknown;
+  /** A child of this device the board holds itself, by full tag: its handle there. */
+  heldChild?: (tag: string) => object | undefined;
+  /** device_sound_interface::get_sound_requested_inputs_mask: the inputs routed into it. */
+  soundInputsMask?: number;
   constructorArgs?: GeneratedCallArgument[];
   clock?: number;
   /** Device tag, resolving MAME's DEVICE_SELF memory share binding. */
@@ -1400,8 +1426,26 @@ class IrDevice implements Device {
       sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000),
       rand: () => Number(this.bindings.calls?.['machine().rand']?.() ?? 0),
       phase: () => Number(this.bindings.calls?.['machine().phase']?.() ?? DEFAULT_CONSTANTS['machine_phase::RUNNING']),
+      // The machine's input ports by tag: a DISCRETE_ADJUSTMENT node reads
+      // its pot as `machine().root_device().ioport(siblingtag(tag))`. A port
+      // the machine lacks is null, as MAME answers it.
+      root_device: () => ({
+        ioport: (tag: unknown) => {
+          const name = String(tag).replace(/^:+/, '');
+          return options.inputs && options.inputs.has?.(name) !== false
+            ? { read: () => options.inputs!.read(name) }
+            : 0;
+        },
+      }),
     });
-    self.interface = (type: string) => definition.hierarchy?.includes(type) ? self : 0;
+    // device_t::siblingtag: the tag beside this device, under its owner.
+    self.siblingtag ??= (tag: unknown) => {
+      const owner = this.ownTag.includes(':') ? this.ownTag.slice(0, this.ownTag.lastIndexOf(':')) : '';
+      return owner ? `${owner}:${String(tag)}` : String(tag);
+    };
+    // device_t::interface<T>, never in place of a class's own method of that
+    // name: discrete_base_node declares three.
+    self.interface ??= (type: string) => definition.hierarchy?.includes(type) ? self : 0;
     // device_execute_interface::set_input_line, for a device that is a CPU: the
     // line reaches its own execute_set_input. An object the CPU holds raises
     // its interrupts this way -- the 6805's timer calls
@@ -1516,7 +1560,7 @@ class IrDevice implements Device {
         /^\*?\s*this$/.test(argument) ? self
           : Number.isFinite(Number(argument)) ? Number(argument)
           : this.members[argument] ?? 0);
-      const build = () => new IrDevice(allocated, clock, { constructorArgs: args as GeneratedCallArgument[] }).members.this;
+      const build = () => allocatedObject(new IrDevice(allocated, clock, { constructorArgs: args as GeneratedCallArgument[] }).members.this, allocated);
       this.members[member.name] = member.arrayLength ? Array.from({ length: member.arrayLength }, build) : build();
     }
 
@@ -1531,8 +1575,7 @@ class IrDevice implements Device {
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {};
     for (const [name, allocated] of Object.entries(definition.allocations ?? {})) {
       referenceCalls[`new::${name}`] = (...args) => {
-        const instance = new IrDevice(allocated, clock, { constructorArgs: args });
-        return instance.members.this;
+        return allocatedObject(new IrDevice(allocated, clock, { constructorArgs: args }).members.this, allocated);
       };
     }
     const callParameters: NonNullable<GeneratedHandlerBindings['callParameters']> = {};
@@ -1561,6 +1604,44 @@ class IrDevice implements Device {
         // name (member-pointers.ts): the T-Unit blitter's dma_draw tables.
         CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>
           this.invoke(String(name), ...args),
+        // MAME stops on a fatal error; carrying on past one ran on garbage.
+        fatalerror: (format: unknown, ...args: unknown[]) => {
+          const message = String(format).replace(/%[-+ #0]*\d*(?:\.\d+)?[sdiuxXfgc]/g, () => String(args.shift() ?? '')).trim();
+          throw new Error(`${definition.type}: fatalerror: ${message}`);
+        },
+        // MAME's work queues (osdsync.h) run their items on other threads;
+        // MAMEKIT runs one, so an item runs when it is queued and a wait finds
+        // the queue done. DISCRETE steps its tasks this way, and in MAME's
+        // own single-threaded builds they run in the same order. The
+        // callback is a static method, named as the source names it.
+        osd_work_queue_alloc: () => 1,
+        osd_work_queue_free: () => 0,
+        osd_work_queue_wait: () => 1,
+        // The host's tick rate, which DISCRETE only scales a wait's timeout by.
+        osd_ticks_per_second: () => 1_000_000_000,
+        osd_work_item_queue: (_queue: unknown, callback: unknown, parameter: unknown) => {
+          if (typeof callback === 'function') {
+            callback(parameter, 0);
+            return 0;
+          }
+          const name = callback && typeof callback === 'object' && 'reference' in callback
+            ? String((callback as { reference: unknown }).reference) : String(callback);
+          this.invoke(name, parameter as GeneratedCallArgument, 0);
+          return 0;
+        },
+        // A fence orders one thread's stores for another's; with one thread
+        // there is nothing to order.
+        'std::atomic_thread_fence': () => 0,
+        // No environment: MAME reads DISCRETE_PROFILING from one.
+        osd_getenv: () => 0,
+        // An object a device allocates knows its classes (`$hierarchy`); any
+        // other value -- a device, a slot's card -- passes as it always has.
+        DYNAMIC_CAST: (value: unknown, type: unknown) => {
+          const classes = value && typeof value === 'object'
+            ? (value as { $hierarchy?: readonly string[] }).$hierarchy
+            : undefined;
+          return !classes || classes.includes(String(type)) ? value : 0;
+        },
         logerror: () => 0,
         // A device method runs in its caller's time, and the synchronize MAME
         // would post from inside a processor's slice runs at once here (see
@@ -1616,6 +1697,13 @@ class IrDevice implements Device {
         // host pumping it knows how many samples elapsed time is worth. A device
         // may allocate several: samples_device takes one for each channel, and
         // finds which one is updating by comparing the stream it is handed.
+        get_sound_requested_inputs_mask: () => options.soundInputsMask ?? 0,
+        // device_t::notify_clock_changed: the device's own device_clock_changed,
+        // which the MSM5205 restarts its VCLK timer from.
+        notify_clock_changed: () => this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0,
+        // device_t::type: the number its own DECLARE_DEVICE_TYPE name compiled to.
+        type: () => definition.constants?.[definition.type] ?? 0,
+        name: () => definition.description ?? definition.type,
         stream_alloc: (_inputs, _outputs, rate) => {
           if (Number(rate) > 0) this.members.__stream_rate = Number(rate);
           const stream = new IrSoundStream(Number(rate), this.bindings);
@@ -1856,7 +1944,12 @@ class IrDevice implements Device {
     // (device-compiler lowerStructLocals): `cbm_crt_header header;`.
     const structOf = (type: unknown): unknown => {
       const fields = definition.structs?.[String(type)];
-      return fields ? structMember(fields, definition.structs, String(type)) : 0;
+      if (!fields) return 0;
+      const struct = structMember(fields, definition.structs, String(type));
+      // What its constructor sets up (device-compiler structMethodsOf).
+      const construct = (struct as { __construct?: () => unknown }).__construct;
+      if (typeof construct === 'function') construct.call(struct);
+      return struct;
     };
     this.bindings.calls!.STRUCT_OF = structOf as (...args: number[]) => unknown;
     referenceCalls.STRUCT_OF = structOf;
@@ -1987,6 +2080,14 @@ class IrDevice implements Device {
       // A `required_device_array` is one child per element, the member the
       // array of them: the Z80 CTC's four channels.
       const tags = child.tags ?? [child.tag ?? child.member.replace(/^m_/, '')];
+      // A child the board holds as a device of its own is that device, not a
+      // second copy: Galaxian's sound board finds the DISCRETE the board
+      // built with its table and mixes on the speaker.
+      const held = !child.tags ? options.heldChild?.(`${this.ownTag}:${tags[0]}`) : undefined;
+      if (held) {
+        this.members[child.member] = held;
+        continue;
+      }
       const handles = tags.map((tag, index) => {
         const instance = new IrDevice(child.definition, child.clock ?? clock, {
           ...resourceOptions,
@@ -3378,8 +3479,10 @@ function memoryMember(
   structs?: Readonly<Record<string, readonly StructField[]>>,
 ): ArrayLike<unknown> {
   const memory = member.memory!;
-  if (memory.kind === 'owned') return generatedMemoryArray(memory.elementBytes);
-  if (memory.kind === 'growable') return generatedVector(vectorElement(memory.element, structs));
+  // A vector its constructor sizes (`m_value_map(1 << bits)`) starts that long.
+  const length = typeof member.initial === 'number' && member.initial > 0 ? member.initial : 0;
+  if (memory.kind === 'owned') return length ? resizeGeneratedContainer(generatedMemoryArray(memory.elementBytes), length) as ArrayLike<unknown> : generatedMemoryArray(memory.elementBytes);
+  if (memory.kind === 'growable') return resizeGeneratedVector(generatedVector(vectorElement(memory.element, structs)), length);
   const tag = (memory.share === 'self' ? options.tag : memory.share)
     ?.replace(/^\^+/, '')
     .replace(/^:/, '');

@@ -214,10 +214,28 @@ export interface BoardConnection {
   source?: BoardSourceRef;
 }
 
+/** A constant table lowered from a driver, as JSON holds it. */
+export type GeneratedTableValue = number | string | GeneratedTableValue[] | { [field: string]: GeneratedTableValue };
+
+/** The key a type's rendered-as-a-stream variant is registered under. */
+export const STREAM_VARIANT_SUFFIX = ':STREAM';
+
 export interface GeneratedDevice {
   id: string;
   tag: string;
   type: string;
+  /**
+   * This machine renders the device as a compiled stream, its type's stream
+   * variant, because its sound is routed into a stream device or a stream
+   * device's into it; elsewhere a worklet may play the same type.
+   */
+  stream?: true;
+  /**
+   * The inputs other sound devices route into, as a bit mask:
+   * device_sound_interface::get_sound_requested_inputs_mask, which a DAC
+   * reads to know whether its range is streamed (DAC_INPUT_RANGE_HI/LO).
+   */
+  soundInputs?: number;
   /** C++ class DEFINE_DEVICE_TYPE binds to this device type. */
   className?: string;
   /** That class and its MAME base classes, most derived first. */
@@ -255,7 +273,11 @@ export interface GeneratedDevice {
   /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
   callbackHz?: number;
   /** Setter calls from the machine config: numbers, and tags as strings. */
-  configuration?: { method: string; args: (number | string | (number | string)[] | { rectangle: number[] })[] }[];
+  /**
+   * A table the constructor took is data of its own shape: DISCRETE's node
+   * blocks (src/mame/static-aggregate.ts AggregateValue).
+   */
+  configuration?: { method: string; args: (number | string | (number | string)[] | { rectangle: number[] } | GeneratedTableValue)[] }[];
   /**
    * Delegates the machine configuration binds on this device, by setter:
    * `m_maincpu->set_scanline_ind16_callback(m_video,
@@ -311,20 +333,6 @@ export interface GeneratedHandler {
  * declined by codegen and runs interpreted: the TMS9928A's `update_line` calls
  * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
  */
-/**
- * MAME discrete-sound node macros the host binds BY NAME to its compact
- * four-channel audio protocol (NODE_01..NODE_04 -> inputs 0..3). Shared by
- * both sides of the compiler boundary on purpose: the runtime binds these
- * names, and the preprocessor must never expand them -- an expanded
- * `NAMCO_52XX_P_DATA(base)` is just `base`, a raw node identity the protocol
- * does not route, and Pole Position's sample player wrote into silence.
- */
-export const DISCRETE_INPUT_CALLS: Readonly<Record<string, number>> = {
-  NAMCO_54XX_0_DATA: 0,
-  NAMCO_54XX_1_DATA: 1,
-  NAMCO_54XX_2_DATA: 2,
-  NAMCO_52XX_P_DATA: 3,
-};
 
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',
@@ -1295,8 +1303,6 @@ export interface GeneratedSoundBinding {
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;
-  /** Symbolic discrete-node constants normalized to worklet input offsets. */
-  writeOffsets?: Record<string, number>;
   routes?: GeneratedAudioRoute[];
   /** Index rank inferred from MAME handler IR for the routed filter member. */
   filterLayout?: 'flat' | 'matrix';
@@ -1315,7 +1321,13 @@ export interface GeneratedSoundBinding {
    * their route reaches the speaker at: the Spectrum 128's beeper and
    * cassette, beside its AY.
    */
-  streamDevices?: { deviceTag: string; gain: number }[];
+  streamDevices?: {
+    deviceTag: string;
+    gain: number;
+    outputGains?: number[];
+    /** The streams routed into this one's inputs, by feeder output (-1, all of them). */
+    inputs?: { tag: string; output: number; input: number; gain: number }[];
+  }[];
 }
 
 export interface GeneratedAudioRoute {

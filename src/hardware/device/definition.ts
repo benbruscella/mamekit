@@ -15,6 +15,10 @@ export const DEVICE_ID = 'device';
  */
 export const DEVICE_MAME_TYPES = [
   'ADC0804',
+  // Sound boards that are plain devices holding a DISCRETE (and an SN76477)
+  // their latches write: the chips render as streams beside them.
+  'GALAXIAN_SOUND',
+  'INVADERS_AUDIO',
   // MAME's 6805 core and the 68705's ports, timer and EPROM, read after the C
   // preprocessor (compileMameDevice).
   'M68705P5',

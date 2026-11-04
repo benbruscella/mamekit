@@ -1,6 +1,6 @@
 import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks } from '../sound-runtime.ts';
 import { installAuxiliaryOkim6295Runtime } from '../okim6295/runtime.ts';
-import { createStreamMixer } from '../speaker/runtime.ts';
+import { createStreamMixer, streamDeviceSources } from '../speaker/runtime.ts';
 import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
 
 interface OpmTimerState {
@@ -462,7 +462,7 @@ export function installYm2151Runtime(context: SoundRuntimeContext): SoundRuntime
   // thread (Gauntlet's and Marble Madness's POKEY): mixed there and handed to
   // the worklet as one PCM stream at its routed gain.
   const streams = context.sound.streamDevices?.length
-    ? createStreamMixer(context, context.sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+    ? createStreamMixer(context, streamDeviceSources(context.sound.streamDevices),
       (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
     : undefined;
   for (const auxiliary of context.sound.auxiliaryDevices ?? []) {

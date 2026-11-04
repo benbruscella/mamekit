@@ -10,9 +10,11 @@ import {
 } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
+import { streamRoutedDevices } from '../hardware/speaker/definition.ts';
 import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { aggregateFunctionReferences, deviceTables } from './static-aggregate.ts';
 import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
 
 export interface HardwareUse {
@@ -32,6 +34,17 @@ export interface HardwareUse {
    * Compile-time only; not in the manifest.
    */
   references?: string[];
+  /**
+   * Driver files that define classes a table of this use names: dkong_a.cpp
+   * declares `dkong_custom_mixer`, a node of its own DISCRETE table.
+   */
+  sources?: string[];
+  /**
+   * In this game the device renders as a compiled stream, because its sound
+   * is routed into a stream device or a stream device's into it (see
+   * streamRoutedTags), whatever capability plays its type elsewhere.
+   */
+  stream?: true;
 }
 
 export interface MameHardwareDefinition {
@@ -331,6 +344,8 @@ export function buildHardwareClosure(
   const uses = new Map<string, Map<string, Set<string>>>();
   const configurations = new Map<string, Map<string, Set<string>>>();
   const references = new Map<string, Map<string, Set<string>>>();
+  const tableSources = new Map<string, Map<string, Set<string>>>();
+  const streamUses = new Map<string, Set<string>>();
   // Device-node ids encode where the device was declared:
   //   device:<class>.device_add_mconfig/<tag> — inside another device
   //   device:<machineConfig>/<tag>            — at board level
@@ -344,6 +359,37 @@ export function buildHardwareClosure(
       const games = references.get(type) ?? new Map<string, Set<string>>();
       games.set(game, named);
       references.set(type, games);
+    }
+    // The class-template instances a constructor table names: each block of
+    // a DISCRETE table builds its node through `discrete_node_factory<C>::create`.
+    for (const device of devices) {
+      const type = String(device.props.type);
+      const deviceSource = definitions.get(type)?.sourceFile;
+      if (!deviceSource || !device.props.sourceFile || (!device.props.constructorAggregate && !Array.isArray(device.props.config))) continue;
+      const tables = deviceTables(mameSrc, device.props, deviceSource);
+      if (!tables.length) continue;
+      const games = references.get(type) ?? new Map<string, Set<string>>();
+      // A template argument the table's driver names by a constant only its
+      // preprocessor knows (`write_line<ASTEROID_SAUCER_SND_EN>`, a NODE_xx)
+      // is that constant's value, as the device compiles the instance.
+      const constants = Object.assign({}, ...tables.filter(table => table.value !== undefined).map(table => table.constants ?? {}));
+      const instances = new Set([...games.get(game) ?? []].map(name => name.replace(/<([A-Z_][A-Z0-9_]*)>/g,
+        (whole, constant: string) => constants[constant] !== undefined ? `<${constants[constant]}>` : whole)));
+      for (const table of tables) for (const instance of aggregateFunctionReferences(table.value)) instances.add(instance);
+      const files = tableSources.get(type) ?? new Map<string, Set<string>>();
+      const sourced = files.get(game) ?? new Set<string>();
+      for (const table of tables) if (table.file && table.value !== undefined) sourced.add(table.file);
+      files.set(game, sourced);
+      tableSources.set(type, files);
+      games.set(game, instances);
+      references.set(type, games);
+    }
+    const streamed = streamRoutedDevices(graph);
+    for (const device of devices) {
+      if (!streamed.has(device.id)) continue;
+      const games = streamUses.get(String(device.props.type)) ?? new Set<string>();
+      games.add(game);
+      streamUses.set(String(device.props.type), games);
     }
     const nodesById = new Map(graph.nodes.map(node => [node.id, node]));
     const outgoing = new Map<string, typeof graph.edges>();
@@ -395,11 +441,14 @@ export function buildHardwareClosure(
         .map(([game, tags]) => {
           const configuration = [...configurations.get(type)?.get(game) ?? []];
           const named = [...references.get(type)?.get(game) ?? []].sort();
+          const sources = [...tableSources.get(type)?.get(game) ?? []].sort();
           return {
             game,
             tags: [...tags].sort(),
             ...(configuration.length ? { configuration } : {}),
             ...(named.length ? { references: named } : {}),
+            ...(sources.length ? { sources } : {}),
+            ...(streamUses.get(type)?.has(game) ? { stream: true as const } : {}),
           };
         });
       if (!definition || isDeclarativeHostHardwareType(type)) {
@@ -673,6 +722,9 @@ export async function emitHardwareClosure(
   const capabilityExecutable = new Map(
     extracted.flatMap(({ result }) => Object.entries(result.executable)),
   );
+  const streamVariants = new Map(
+    extracted.flatMap(({ result }) => Object.entries(result.streamVariants ?? {})),
+  );
   // A capability that lowered a device through MAME's inheritance knows its
   // real method set; the closure's first pass over the class does not.
   for (const { result } of extracted) {
@@ -726,6 +778,7 @@ export async function emitHardwareClosure(
       ...compactEntry(entry),
       executable: executableTypes.has(entry.type),
       ...(hostedBy(entry) ? { hostedBy: hostedBy(entry) } : {}),
+      ...(streamVariants.has(entry.type) ? { streamArtifact: streamVariants.get(entry.type) } : {}),
       ...(capabilityExecutable.has(entry.type)
         ? {
             executableKind: capabilityExecutable.get(entry.type)!.kind,

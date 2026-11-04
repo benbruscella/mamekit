@@ -103,6 +103,7 @@ export async function buildApp(
   const hardwareImports: string[] = [];
   const cpuBindings: string[] = [];
   const deviceBindings: string[] = [];
+  const streamBindings: string[] = [];
   const hardwareManifestPath = join(outRoot, 'runtime/generated/hardware-manifest.json');
   if (existsSync(hardwareManifestPath)) {
     // The generated hardware tree is hundreds of MB; copyTree clones on APFS.
@@ -113,9 +114,15 @@ export async function buildApp(
         executable?: boolean;
         executableKind?: 'cpu' | 'device' | 'audio' | 'composition';
         executableArtifact?: string;
+        streamArtifact?: string;
       }[];
     };
     for (const hardware of manifest.hardware ?? []) {
+      if (hardware.streamArtifact) {
+        const binding = `stream_${streamBindings.length}`;
+        hardwareImports.push(`import ${binding} from '../runtime/generated/${hardware.streamArtifact}';`);
+        streamBindings.push(binding);
+      }
       if (!hardware.executable) continue;
       const slug = hardware.type.toLowerCase();
       if (!['cpu', 'device'].includes(hardware.executableKind ?? '')) continue;
@@ -136,7 +143,7 @@ export async function buildApp(
 import { registerGeneratedMachine } from '../runtime/core/generated-machine.ts';
 import { registerGeneratedBoard } from '../runtime/core/generated-board.ts';
 import { registerGeneratedCpu } from '../runtime/core/generated-cpu.ts';
-import { registerGeneratedDevice } from '../runtime/core/generated-device.ts';
+import { registerGeneratedDevice, registerGeneratedStreamDevice } from '../runtime/core/generated-device.ts';
 ${hardwareImports.join('\n')}
 ${generatedImports.join('\n')}
 
@@ -148,6 +155,7 @@ ${generatedEntries.map(entry =>
 export function registerGeneratedMachines(): void {
   for (const cpu of [${cpuBindings.join(', ')}]) registerGeneratedCpu(cpu);
   for (const device of [${deviceBindings.join(', ')}]) registerGeneratedDevice(device);
+  for (const device of [${streamBindings.join(', ')}]) registerGeneratedStreamDevice(device);
   for (const { board } of games) {
     registerGeneratedMachine(board.machine);
     registerGeneratedBoard(board.machine.game, board.createBoard);

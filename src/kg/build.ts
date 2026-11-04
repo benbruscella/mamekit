@@ -7,6 +7,7 @@ import {
   type MameClass, type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
 import {
@@ -195,6 +196,20 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // inside the state class -- and without them every such test was an
   // unresolved reference: the Game Boy's serial control bits resolved to
   // nothing, and the handler that reads them could not be compiled either.
+  // An enum a header builds with its own macros has no enumerators until the
+  // preprocessor runs: discrete.h declares NODE_00 ... NODE_299_07 through
+  // NODE_DEF, and a driver configures its Namco 54xx with
+  // `set_basenote(NODE_01)`. Only the names the driver spells are kept.
+  for (const source of externalSources) {
+    const builders = new Set([...source.matchAll(/^\s*#\s*define\s+(\w+)\(/gm)].map(match => match[1]!));
+    const enums = [...stripComments(source).matchAll(/\benum\b[^{;]*\{([^}]*)\}/g)].map(match => match[1]!);
+    if (!enums.some(body => [...body.matchAll(/\b(\w+)\s*\(/g)].some(call => builders.has(call[1]!)))) continue;
+    const expanded = new CPreprocessor({ read: () => undefined }).run('header.h', source);
+    const named = new Set(combined.match(/\b[A-Z_][A-Z0-9_]*\b/g) ?? []);
+    for (const [name, value] of Object.entries(parseEnumConstants(expanded, {}))) {
+      if (named.has(name) && extConsts[name] === undefined) extConsts[name] = value;
+    }
+  }
   const consts = parseEnumConstants(combined, parseDefines(combined, extConsts));
   // One-expression constexpr helpers a config hands a device its values
   // through: rescap.h's RES_K and CAP_U.
@@ -1194,6 +1209,19 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         : { calls: [], clockConsumed: false };
       configCalls.push(...constructed.calls);
 
+      // A table the constructor hands a setter: `DISCRETE(config, m_discrete,
+      // qix_discrete)` is `set_intf(qix_discrete)`, a file-scope aggregate
+      // the generator lowers to data (src/mame/static-aggregate.ts).
+      const aggregateClass = deviceClass ?? (addedWith === 3 && /^\s*[A-Za-z_]\w*\s*$/.test(addedArgs[2] ?? '') &&
+        evalExpr(addedArgs[2]!, consts) === null
+        ? (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.className : undefined);
+      const aggregate = aggregateClass
+        ? constructorAggregate(dev.config[0] ?? '', aggregateClass, [combined, ...externalSources, ...deviceClassSources(mameSrc, (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.sourceFile)], consts)
+        : undefined;
+      if (aggregate) {
+        props.constructorAggregate = [aggregate.setter, aggregate.name];
+        if (dev.clockExpr === aggregate.name) delete dev.clockExpr;
+      }
       if (configCalls.length) props.configCalls = configCalls;
       // A third argument a setter took is the constructor's, not a clock: the
       // quickload's is its extension list. The OKI6295's constructor passes
@@ -2672,6 +2700,65 @@ export function constructorConfigCalls(
     }
   }
   return none;
+}
+
+/**
+ * The setter a constructor hands a table argument to: an identifier, not a
+ * value, bound to a pointer parameter the body passes on whole. Chosen by
+ * arity, since `discrete_sound_device` declares `(…, clock, intf)` and
+ * `(…, intf)` beside `(…, clock = 0)`.
+ */
+export function constructorAggregate(
+  addStatement: string,
+  className: string,
+  sources: readonly string[],
+  constants: Record<string, number>,
+): { setter: string; name: string } | undefined {
+  // The device-add call, which may be wrapped to keep a reference:
+  // `discrete_sound_device &discrete(DISCRETE(config, "discrete", polepos_discrete))`.
+  const added = /\b[A-Z][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
+  const open = added ? addStatement.indexOf('(', added.index) : addStatement.indexOf('(');
+  if (open < 0) return undefined;
+  let close = -1;
+  for (let index = open, depth = 0; index < addStatement.length; index++) {
+    if (addStatement[index] === '(') depth++;
+    else if (addStatement[index] === ')' && --depth === 0) { close = index; break; }
+  }
+  const extra = splitMameArgs(addStatement.slice(open + 1, close < 0 ? undefined : close)).slice(2).map(argument => argument.trim());
+  if (!extra.length) return undefined;
+  for (const source of sources) {
+    const declared = new RegExp(`\\bclass\\s+${className}\\b[^;{]*\\{`).exec(source);
+    if (!declared) continue;
+    const body = source.slice(declared.index + declared[0].length);
+    for (const constructor of body.matchAll(new RegExp(`\\b${className}\\s*\\(`, 'g'))) {
+      const start = constructor.index + constructor[0].length;
+      let end = start;
+      for (let level = 1; end < body.length && level; end++) {
+        if (body[end] === '(') level++;
+        else if (body[end] === ')') level--;
+      }
+      const parameters = splitMameArgs(body.slice(start, end - 1)).map(parameter => parameter.trim());
+      const own = parameters.slice(3);
+      if (!/machine_config/.test(parameters[0] ?? '') || own.length < extra.length ||
+        own.slice(extra.length).some(parameter => !parameter.includes('='))) continue;
+      const after = /^\s*(?::[^{;]*)?\{([^{}]*)\}/.exec(body.slice(end));
+      if (!after) continue;
+      for (const [position, argument] of extra.entries()) {
+        const parameter = own[position]!;
+        const name = /(\w+)\s*(?:=.*)?$/.exec(parameter)?.[1];
+        if (!name || !/\*/.test(parameter) || !/^[A-Za-z_]\w*$/.test(argument) || evalExpr(argument, constants) !== null) continue;
+        const setter = new RegExp(`(?:^|;)\\s*(\\w+)\\s*\\(\\s*${name}\\s*\\)\\s*;`).exec(after[1]!)?.[1];
+        if (setter) return { setter, name: argument };
+      }
+    }
+  }
+  return undefined;
+}
+
+/** The header of a framework device's class, from MAME's hardware index. */
+function deviceClassSources(mameSrc: string, sourceFile: string | undefined): string[] {
+  const header = sourceFile?.replace(/\.cpp$/, '.h');
+  return header && existsSync(join(mameSrc, header)) ? [readFileSync(join(mameSrc, header), 'utf8')] : [];
 }
 
 /** A config argument as a setter takes it: a string literal, or a number (an attotime as seconds). */

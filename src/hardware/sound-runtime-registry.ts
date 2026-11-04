@@ -54,21 +54,13 @@ export function installSoundRuntime(context: SoundRuntimeContext): SoundRuntimeH
       (_address, offset, data) => {
         context.soundWrite(offset, data, context.fraction(), method);
       };
-    // A driver callback may reach the same sound device without a bus map,
-    // e.g. Qix's PIA handlers call m_discrete->write(node, data). Bind every
-    // source spelling emitted for the device member as well as the map key.
+    // A driver callback may reach the same sound device without a bus map.
+    // Bind every source spelling emitted for the device member as well as
+    // the map key.
     for (const alias of deviceAliases(context.board, context.sound.deviceTag)) {
       context.calls[`${alias}.${method}`] = (...args: number[]) => {
-        const data = args.at(-1) ?? 0;
-        const rawOffset: unknown = args.length >= 2 ? args.at(-2) ?? 0 : 0;
-        const reference = rawOffset && typeof rawOffset === 'object' &&
-          'reference' in rawOffset
-          ? String((rawOffset as { reference: unknown }).reference)
-          : undefined;
-        const offset = reference
-          ? context.sound.writeOffsets?.[reference] ?? 0
-          : Number(rawOffset) || 0;
-        context.soundWrite(offset, data, context.fraction(), method);
+        const offset = args.length >= 2 ? Number(args.at(-2)) || 0 : 0;
+        context.soundWrite(offset, args.at(-1) ?? 0, context.fraction(), method);
         return 0;
       };
     }

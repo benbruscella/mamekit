@@ -28,7 +28,7 @@ export interface CapabilityEntry {
   /** Methods lowered from the device's MAME class. */
   methods: readonly { name: string }[];
   /** Targets that use this device type, with the config each use was given. */
-  uses?: readonly { game: string; configuration?: readonly string[]; references?: readonly string[] }[];
+  uses?: readonly { game: string; configuration?: readonly string[]; references?: readonly string[]; sources?: readonly string[]; stream?: true }[];
 }
 
 /** A file the capability emits into dist/runtime/generated. */
@@ -75,6 +75,12 @@ export interface CapabilityExtraction {
    * class, which the initial scrape does not see.
    */
   entrySourceFiles?: Record<string, readonly string[]>;
+  /**
+   * Device types compiled whole as streams for the machines that render them
+   * so (HardwareUse.stream), beside whatever capability plays the type
+   * elsewhere: the emitted device artifact, by type.
+   */
+  streamVariants?: Record<string, string>;
 }
 
 export interface LoweredMethod {

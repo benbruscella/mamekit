@@ -100,6 +100,11 @@ export class CPreprocessor {
     return this.macros.has(name);
   }
 
+  /** The object-like macros defined when the last file ended. */
+  objectMacros(): string[] {
+    return [...this.macros].filter(([, macro]) => !macro.parameters).map(([name]) => name);
+  }
+
   /** Preprocess one file, following the includes the caller can resolve. */
   run(path: string, source: string): string {
     return this.file(path, source, 0);
@@ -284,8 +289,13 @@ export class CPreprocessor {
     const result: Token[] = [];
     for (let index = 0; index < body.length; index++) {
       const token = body[index]!;
-      if (token.text === '#' && body[index + 1]?.kind === 'identifier' && named.has(body[index + 1]!.text)) {
-        const text = trimTokens(named.get(body[++index]!.text)!).map(part => part.text).join('');
+      // `#` and its parameter may be apart: discrete.h's DSC_SND_ENTRY
+      // stringises its class as `# _class`.
+      let operand = index + 1;
+      while (token.text === '#' && body[operand]?.kind === 'space') operand++;
+      if (token.text === '#' && body[operand]?.kind === 'identifier' && named.has(body[operand]!.text)) {
+        index = operand;
+        const text = trimTokens(named.get(body[index]!.text)!).map(part => part.text).join('');
         result.push({ kind: 'other', text: JSON.stringify(text) });
         continue;
       }

@@ -5,7 +5,7 @@ export const asteroid = sourceTarget({
   driver: 'src/mame/atari/asteroid.cpp',
   machine: { className: 'asteroid_state', name: 'asteroid' },
   screen: { width: 1045, height: 789 },
-  soundKind: 'discrete',
+  soundKind: 'stream',
   actions: [
     // The original coin circuit validates a pulse for about half a second;
     // do not press Start until the ROM has actually awarded the credit.
@@ -20,20 +20,20 @@ export const asteroid = sourceTarget({
       maincpu: '37f7b0f7',
     },
     checkpoints: {
-      1: { video: '84953b31', state: '63518711' },
-      60: { video: 'aa79a33a', state: '1e56f74e' },
-      180: { video: '02b609f9', state: '4ea422a3' },
-      300: { video: '8dd8f0ad', state: '9770df96' },
-      600: { video: 'a5c4f35f', state: '56c8e29b' },
-      900: { video: '15bc4bf2', state: '805aea72' },
-      1200: { video: 'c73a859f', state: 'ce6a3449' },
+      1: { video: '84953b31', state: '5a369561' },
+      60: { video: 'aa79a33a', state: '7a0aed7a' },
+      180: { video: '02b609f9', state: '3f1b6854' },
+      300: { video: '8dd8f0ad', state: 'e3ede628' },
+      600: { video: 'a5c4f35f', state: '5c724be5' },
+      900: { video: '15bc4bf2', state: 'a0067f21' },
+      1200: { video: 'c73a859f', state: '5d22b750' },
     },
     audio: {
-      writes: 1981,
-      nonzeroWrites: 1042,
-      writeHash: 'd500f491',
-      pcmHash: 'ca6d8521',
-      rms: 0.046661,
+      writes: 936228,
+      nonzeroWrites: 304913,
+      writeHash: 'e484adad',
+      pcmHash: '2ea49f98',
+      rms: 0.044815,
     },
   },
 });

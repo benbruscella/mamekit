@@ -3,8 +3,9 @@
 // draws. The mathbox was checked result for result against MAME 0.289 (3508
 // reads over 70 frames, no mismatch), and attract frames 60 and 300 draw the
 // same picture MAME does, less MAME's colour overlay artwork. Engine, shell and
-// explosion sounds come from a DISCRETE network this build does not lower, so
-// only the POKEY is heard.
+// explosion sounds are its DISCRETE table compiled from bzone_a.cpp, with the
+// POKEY routed into it through DISCRETE_INPUTX_STREAM; the attract mode is
+// silent, as MAME's is (#236).
 
 import { sourceTarget } from "./source-contract.ts";
 
@@ -33,19 +34,19 @@ export const bzone = sourceTarget({
       user3: '092af601',
     },
     checkpoints: {
-      1: { video: '71e4b2e8', state: 'a0e26ec3' },
-      60: { video: '5552575c', state: '8103bb88' },
-      300: { video: '2923b40e', state: 'c5cc5537' },
-      500: { video: '1547c858', state: '00dc5ceb' },
-      700: { video: 'e4736fef', state: '1faf7a4d' },
-      900: { video: '9703242a', state: '808050e4' },
+      1: { video: '71e4b2e8', state: '7af3509f' },
+      60: { video: '5552575c', state: 'a28c28e2' },
+      300: { video: '2923b40e', state: '264b9a75' },
+      500: { video: '1547c858', state: 'b8d80a57' },
+      700: { video: 'e4736fef', state: '4d402be7' },
+      900: { video: '9703242a', state: '0e03d401' },
     },
     audio: {
-      writes: 1058653,
-      nonzeroWrites: 1053253,
-      writeHash: '1c1e09d2',
-      pcmHash: 'd3d0c592',
-      rms: 0.776849,
+      writes: 1053253,
+      nonzeroWrites: 584926,
+      writeHash: '2ad0301b',
+      pcmHash: 'eacc4742',
+      rms: 0.102611,
     },
   },
 });
