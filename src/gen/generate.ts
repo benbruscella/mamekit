@@ -3,7 +3,6 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../ir/host-config.ts';
-import type { GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan } from '../ir/audio-protocol.ts';
 import { lowerMachine } from './lower-machine.ts';
 import { writeExhibit } from './exhibit.ts';
 import { emitGeneratedMachine } from './emit-machine.ts';
@@ -30,9 +29,6 @@ export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Pr
   const { config, family, sound, compiledVideo, nesApu, inputChangedHandlers } = data;
   emitGeneratedMachine(graph, opts.game, family, opts.outDir,
     config.board as unknown as BoardConfig, compiledVideo, nesApu,
-    'discreteDac' in sound ? sound.discreteDac as GeneratedDiscreteDacPlan
-      : 'discreteEffects' in sound ? sound.discreteEffects as GeneratedDiscreteEffectsPlan
-        : undefined,
     inputChangedHandlers);
   writeFileSync(join(opts.outDir, 'config.json'), JSON.stringify(config, null, 2));
   const report = buildRuntimeReport(graph, config as unknown as RuntimeConfigShape);

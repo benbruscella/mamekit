@@ -30,6 +30,7 @@ import { indexMameHardware, type MameHardwareDefinition } from './hardware.ts';
 import { monomorphizeFunctionTemplate } from './function-template.ts';
 import { renameShadowedLocals } from '../ir/scope.ts';
 import { preprocessedDeviceTransform } from './preprocessed-device.ts';
+import { CPreprocessor } from './c-preprocessor.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -444,11 +445,58 @@ export function compileMameDevice(
   options: DeviceCompileOptions = {},
 ): GeneratedDeviceDefinition {
   const device = compileMameDeviceSource(mameSrc, definition, type, compiling, options);
-  if (!device.summary.diagnostics || options.transformSource) return device;
+  if (options.transformSource) return device;
+  // A device whose classes a macro declares has none until the preprocessor
+  // runs: DISCRETE's ~80 node classes are DISCRETE_CLASS_STEP_RESET(...) and
+  // friends, and read as written it compiled with no node at all.
+  const declaresClasses = macroDeclaresClasses(mameSrc, device.sourceFiles);
   const transformSource = preprocessedSources(mameSrc, device);
+  // Or one whose code names a macro only another directory's header defines:
+  // the Namco 54xx writes `NAMCO_54XX_0_DATA(base)`, which is discrete.h's
+  // NODE_RELATIVE, a node number only once expanded.
+  // Or calls one itself, which as written is a call naming no function:
+  // Galaxian's sound board writes `m_discrete->write(NODE_RELATIVE(GAL_INP_BG_DAC,
+  // offset), data)`.
+  const foreignNames = transformSource?.foreignNames ?? new Set<string>();
+  let callsForeign = false;
+  for (const method of foreignNames.size ? device.methods : []) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' && foreignNames.has(expression.callee.name)) callsForeign = true;
+    });
+  }
+  const callsForeignMacros = transformSource?.foreignMacros === true || callsForeign;
+  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros) return device;
   if (!transformSource) return device;
   const preprocessed = compileMameDeviceSource(mameSrc, definition, type, compiling, { ...options, transformSource });
-  return preprocessed.summary.diagnostics < device.summary.diagnostics ? preprocessed : device;
+  return preprocessed.summary.diagnostics < device.summary.diagnostics ||
+    ((declaresClasses || callsForeignMacros) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
+}
+
+/**
+ * Each device type a source declares, as a number: MAME compares `type()`
+ * against them (`chip_type == AY8914` in the AY-3-8910's register read), and
+ * the device's own `type()` answers the number of its own name.
+ */
+export function deviceTypeToken(name: string): number {
+  let hash = 0x811c9dc5;
+  for (const char of name) hash = Math.imul(hash ^ char.charCodeAt(0), 0x01000193) >>> 0;
+  return hash;
+}
+
+function deviceTypeTokens(sources: readonly { source: string }[]): Record<string, number> {
+  return Object.fromEntries(sources.flatMap(({ source }) =>
+    [...source.matchAll(/\bDECLARE_DEVICE_TYPE\s*\(\s*(\w+)\s*,/g)].map(match => [match[1]!, deviceTypeToken(match[1]!)])));
+}
+
+/** Whether a function-like macro in these files declares a class with a body. */
+function macroDeclaresClasses(mameSrc: string, files: readonly string[]): boolean {
+  return files.some(file => {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) return false;
+    const text = stripCppComments(readFileSync(path, 'utf8')).replace(/\\\r?\n/g, ' ');
+    return [...text.matchAll(/^\s*#\s*define\s+\w+\([^)]*\)([^\n]*)$/gm)]
+      .some(match => /\bclass\s+[\w ()]+:?[^;{]*\{/.test(match[1]!));
+  });
 }
 
 /**
@@ -463,7 +511,7 @@ export function compileMameDevice(
 function preprocessedSources(
   mameSrc: string,
   device: GeneratedDeviceDefinition,
-): ((file: string, source: string) => string) | undefined {
+): (((file: string, source: string) => string) & { foreignMacros?: boolean; foreignNames?: ReadonlySet<string> }) | undefined {
   const text = new Map<string, string>();
   const read = (file: string) => {
     if (!text.has(file)) text.set(file, existsSync(join(mameSrc, file)) ? readFileSync(join(mameSrc, file), 'utf8') : '');
@@ -476,7 +524,9 @@ function preprocessedSources(
   const hierarchy = device.hierarchy ?? [device.className];
   const entries = device.sourceFiles.filter(file =>
     file.endsWith('.cpp') && hierarchy.some(className => read(file).includes(`${className}::`)));
-  if (!entries.some(entry => includes(entry).some(path => !path.endsWith('.h')))) return undefined;
+  const nonHeader = entries.some(entry => includes(entry).some(path => !path.endsWith('.h')));
+  let foreignMacros = false;
+  const calledForeign = new Set<string>();
   const transforms = entries.map(entry => {
     const own = dirname(entry);
     const ownFiles = [entry];
@@ -496,13 +546,22 @@ function preprocessedSources(
     const macroHeaders = new Set([...elsewhere].filter(header =>
       [...read(header).matchAll(/^\s*#\s*define\s+(\w+)\(/gm)].some(match =>
         new RegExp(`\\b${match[1]}\\s*\\(`).test(ownText))));
+    // An own macro whose body calls one of those headers' macros only means
+    // something preprocessed.
+    const foreignNames = [...macroHeaders].flatMap(header =>
+      [...read(header).matchAll(/^\s*#\s*define\s+(\w+)\(/gm)].map(match => match[1]!));
+    if ([...stripCppComments(ownText).matchAll(/^\s*#\s*define\s+\w+\([^)]*\)([^\n]*)$/gm)]
+      .some(match => foreignNames.some(name => new RegExp(`\\b${name}\\s*\\(`).test(match[1]!)))) foreignMacros = true;
+    for (const name of foreignNames) calledForeign.add(name);
     return preprocessedDeviceTransform(mameSrc, {
       entry,
       allow: file => dirname(file) === own || macroHeaders.has(file),
       classes: hierarchy,
     });
   });
-  return (file, source) => transforms.reduce((current, transform) => transform(file, current), source);
+  if (!nonHeader && !foreignMacros && !calledForeign.size) return undefined;
+  const transform = (file: string, source: string) => transforms.reduce((current, step) => step(file, current), source);
+  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign });
 }
 
 interface DeviceCompileOptions {
@@ -528,6 +587,60 @@ interface DeviceCompileOptions {
    * otherwise (`input_merger_device::in_set<0>`, any class's).
    */
   references?: readonly string[];
+  /**
+   * Driver files declaring classes the device builds from a table: the
+   * DISCRETE_CUSTOMn nodes (`dkong_custom_mixer` in dkong_a.cpp). Only the
+   * classes the device's own sources lack, and their methods, are read.
+   */
+  classSources?: readonly string[];
+}
+
+/**
+ * The classes `file` declares that `known` lacks, with their out-of-line
+ * methods, as source of their own. The driver is read through the device's
+ * headers, which declare its node macros (DISCRETE_CLASS_STEP_RESET).
+ */
+const DRIVER_CLASS_SOURCES = new Map<string, string>();
+
+function driverClassSource(mameSrc: string, file: string, deviceSourceFile: string, known: ReadonlySet<string>): string {
+  // Each allocated class compiles with the same options, so the same driver
+  // is asked for again and again.
+  const key = `${mameSrc}\0${file}\0${deviceSourceFile}\0${known.size}`;
+  const cached = DRIVER_CLASS_SOURCES.get(key);
+  if (cached !== undefined) return cached;
+  const source = driverClassSourceUncached(mameSrc, file, deviceSourceFile, known);
+  DRIVER_CLASS_SOURCES.set(key, source);
+  return source;
+}
+
+function driverClassSourceUncached(mameSrc: string, file: string, deviceSourceFile: string, known: ReadonlySet<string>): string {
+  const own = dirname(deviceSourceFile);
+  const driver = dirname(file);
+  const header = join(mameSrc, deviceSourceFile.replace(/\.cpp$/, '.h'));
+  const included = new Set(existsSync(header)
+    ? [...readFileSync(header, 'utf8').matchAll(/^\s*#\s*include\s+"([^"]+)"/gm)].map(match => join('src/devices', match[1]!))
+    : []);
+  const preprocessor = new CPreprocessor({
+    read: (path, from) => {
+      for (const full of [join(dirname(from), path), join(mameSrc, 'src/devices', path), join(mameSrc, 'src/mame', path)]) {
+        const candidate = relative(mameSrc, full);
+        if (!existsSync(full) || !/\.(?:h|hxx|ipp)$/.test(candidate)) continue;
+        if (dirname(candidate) !== own && dirname(candidate) !== driver && !included.has(candidate)) continue;
+        return { path: full, source: readFileSync(full, 'utf8') };
+      }
+      return undefined;
+    },
+  });
+  const text = preprocessor.run(join(mameSrc, file), readFileSync(join(mameSrc, file), 'utf8'))
+    .replace(/\b(\w+)[ \t]+::[ \t]*(?=[A-Za-z_~])|\b(\w+)::[ \t]+(?=[A-Za-z_~])/g, (_all, left?: string, right?: string) => `${left ?? right}::`);
+  const unit = parseMameAst([{ file, source: text }]);
+  const classes = unit.units.flatMap(entry => entry.classes).filter(declaration => !known.has(declaration.name));
+  const names = new Set(classes.map(declaration => declaration.name));
+  return [
+    ...classes.map(declaration => `class ${declaration.name}${declaration.bases.length ? ` : ${declaration.bases.map(base => `public ${base}`).join(', ')}` : ''}\n{${declaration.body}};`),
+    ...unit.units.flatMap(entry => entry.functions).filter(method => names.has(method.className))
+      .map(method => `${method.returnType ?? 'void'} ${method.className}::${method.name}(${method.parameters})\n{${method.body}}`),
+  ].join('\n\n');
 }
 
 function compileMameDeviceSource(
@@ -543,6 +656,14 @@ function compileMameDeviceSource(
   const instance = /^([\w:]+)\s*<([\s\S]+)>$/.exec(definition.className);
   if (instance) definition = { ...definition, className: instance[1]! };
   const sourceFiles = localSourceFiles(mameSrc, definition.sourceFile);
+  // A generator macro invoked in a header has its bodies in the header's own
+  // source: DAC_GENERATOR's classes run dac.cpp's dac_device_base.
+  const generatorSource = definition.macro && definition.sourceFile.endsWith('.h')
+    ? definition.sourceFile.replace(/\.h$/, '.cpp')
+    : undefined;
+  if (generatorSource && existsSync(join(mameSrc, generatorSource))) {
+    for (const file of localSourceFiles(mameSrc, generatorSource)) if (!sourceFiles.includes(file)) sourceFiles.push(file);
+  }
   // Defines carry from file to file in include order, as the preprocessor
   // sees them.
   const defines = new Map<string, string>();
@@ -556,6 +677,31 @@ function compileMameDeviceSource(
   for (const library of formatLibrarySources(mameSrc, sources)) {
     sources.push(library);
     sourceFiles.push(library.file);
+  }
+  // A class a macro declares exists only once that macro is expanded:
+  // dac.h's DAC_GENERATOR(DAC_8BIT_R2R, dac_8bit_r2r_device, ...) is the whole
+  // class, a constructor handing its bits, mapper and gain to the base.
+  if (definition.macro && !parseMameAst(sources).units.some(unit =>
+    unit.classes.some(declaration => declaration.name === definition.className))) {
+    const header = sources.find(({ file }) => file === definition.sourceFile);
+    // The generator as it stands where the header invokes it: the header
+    // #undefs it at the end. Only this class is added; the header as written
+    // keeps its bases and the #defines (DAC_INPUT_RANGE_LO) the code names.
+    const generator = /^\s*(\w+)\s*\(/.exec(definition.macro)?.[1];
+    if (header && generator) {
+      const preprocessor = new CPreprocessor({ read: () => undefined });
+      preprocessor.run(join(mameSrc, header.file),
+        header.source.replace(new RegExp(`^\\s*#\\s*undef\\s+${generator}\\b.*$`, 'gm'), ''));
+      sources.push({ file: header.file, source: preprocessor.expand(definition.macro) });
+    }
+  }
+  if (options.classSources?.length && options.transformSource) {
+    const known = new Set(parseMameAst(sources).units.flatMap(unit => unit.classes).map(declaration => declaration.name));
+    for (const file of options.classSources) {
+      if (!existsSync(join(mameSrc, file))) continue;
+      const source = driverClassSource(mameSrc, file, definition.sourceFile, known);
+      if (source) sources.push({ file, source });
+    }
   }
   const ast = parseMameAst(sources);
   const classes = new Map(
@@ -672,9 +818,11 @@ function compileMameDeviceSource(
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
     coreEnumerators(mameSrc, sources),
+    coreOsdDefines(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
     ...sources.map(({ source }) => numericConstants(stripCppComments(source))),
+    deviceTypeTokens(sources),
   );
   // A class template's members name their argument's constants
   // (`RegisterType::OUTPUTS`), which are read as the instance spells them.
@@ -755,6 +903,8 @@ function compileMameDeviceSource(
       });
       scope.constants = numericConstants(qualified, scope.constants);
       for (const alias of body.matchAll(/\busing\s+(\w+)\s*=\s*([^;]+);/g)) scope.aliases.set(alias[1]!, alias[2]!.trim());
+      // The older spelling: discrete_device's `typedef std::vector<...> node_list_t;`.
+      for (const alias of body.matchAll(/\btypedef\s+([^;()]+?)\s*\b(\w+)\s*;/g)) scope.aliases.set(alias[2]!, alias[1]!.trim());
     }
     scopes.set(key, scope);
     return scope;
@@ -831,13 +981,22 @@ function compileMameDeviceSource(
     return resolved.replace(/(?<![\w:.>])(\w+)(?![\w:(])/g, (name: string) =>
       scope.aliases.has(name) ? resolveType(scope, name) : name);
   };
-  const sourceTables = Object.assign(
+  const sourceTables: Record<string, ConstantTable> = Object.assign(
     {},
     // Comments out first: the 1541 formats annotate their zone tables row by
     // row (`21, 21, ... //  1-17`), and kept in, every inlined value after the
     // first comment was the comment.
     ...sources.map(({ source }) => constantTables(stripCppComments(source))),
   );
+  // An entry can be a function-like macro the sources define: the TMS36xx's
+  // tunes are notes, `C(3)`, each a frequency step once expanded.
+  if (Object.values(sourceTables).some(table => table.values.some(value => /\w\s*\(/.test(value)))) {
+    const tablePreprocessor = new CPreprocessor({ read: () => undefined });
+    for (const { file, source } of sources) tablePreprocessor.run(join(mameSrc, file), source);
+    for (const table of Object.values(sourceTables)) {
+      table.values = table.values.map(value => /\w\s*\(/.test(value) ? tablePreprocessor.expand(value).trim() : value);
+    }
+  }
   // Statement macros the device's own sources define. These have to be
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
@@ -1043,6 +1202,29 @@ function compileMameDeviceSource(
   const constructorText = options.nestedClass
     ? hierarchy.map(className => specialize(className, constructorOf(className)?.body ?? '')).join('\n')
     : '';
+  // A class template's static function, named with its type argument where
+  // a table points at it: each block of a DISCRETE sound table builds its
+  // node through `&discrete_node_factory<C>::create`, which the machine
+  // configuration hands the device as data (static-aggregate.ts). Each named
+  // instance is the template's body with the argument in place of the
+  // parameter, so its `std::make_unique<C>()` allocates that class.
+  // The device's own: a class it allocates is compiled with the same options.
+  for (const reference of new Set(options.nestedClass ? [] : options.references ?? [])) {
+    const named = /^(\w+)<([\w:]+)>::(\w+)$/.exec(reference);
+    const declaration = named ? classes.get(named[1]!) : undefined;
+    const [parameter] = declaration?.templateParameters ?? [];
+    if (!named || !declaration || !parameter || methods.some(candidate => candidate.name === reference)) continue;
+    if (!new RegExp(`\\bstatic\\b[^;{}]*\\b${named[3]}\\s*\\(`).test(declaration.body)) continue;
+    const helper = inlineMethods(declaration).find(method => method.name === named[3]);
+    if (!helper) continue;
+    const bind = (text: string) => text.replace(new RegExp(`\\b${parameter}\\b`, 'g'), named[2]!);
+    replaceOrAppend({ ...helper, name: reference, className: '', body: bind(helper.body), parameters: bind(helper.parameters) });
+  }
+  // A free function handed to a constructor as a value (`dac_mapper_unsigned`
+  // in DAC_GENERATOR's base call), which a function-pointer member then calls.
+  const sourceText = sources.map(({ source }) => source).join('\n');
+  const handedOn = new Set(sourceMethods.filter(helper => helper.className === '' &&
+    new RegExp(`(?<=[(,]\\s*)${helper.name}(?=\\s*[,)])`).test(sourceText)).map(helper => helper.name));
   const staticCalls = new Set<string>();
   for (let added = true; added;) {
     added = false;
@@ -1050,11 +1232,17 @@ function compileMameDeviceSource(
     for (const helper of sourceMethods) {
       if (helper.className !== '') continue;
       if (methods.some(candidate => candidate.name === helper.name)) continue;
-      if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(called)) continue;
+      if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(called) && !handedOn.has(helper.name)) continue;
       replaceOrAppend(helper);
       added = true;
     }
-    for (const call of new Set([...called.matchAll(/(?<![\w:])(\w+)::(\w+)\s*\(/g)].map(match => `${match[1]}::${match[2]}`))) {
+    // Called, or handed on as a function: discrete.cpp queues its tasks with
+    // `osd_work_item_queue(m_queue, discrete_task::task_callback, ...)`.
+    const named = [
+      ...called.matchAll(/(?<![\w:])(\w+)::(\w+)\s*\(/g),
+      ...called.matchAll(/(?<=[(,]\s*)(\w+)::(\w+)(?=\s*[,)])/g),
+    ];
+    for (const call of new Set(named.map(match => `${match[1]}::${match[2]}`))) {
       const [className, name] = call.split('::') as [string, string];
       const declaration = classes.get(className);
       if (!declaration || hierarchy.includes(className) || staticCalls.has(call)) continue;
@@ -1590,6 +1778,19 @@ function compileMameDeviceSource(
     if (!classes.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
     compileNestedClass(name, qualified);
   });
+  // A struct with methods and a constructor of its own, so the methods run
+  // emitted: discrete's transform node pushes and pops a `double_stack` for
+  // every term of its expression, every sample. Its values stay plain structs
+  // (STRUCT_OF); only its methods come from the allocation.
+  // Only where this class's own methods declare one, so each struct is
+  // compiled beside the code that calls it.
+  const ownBodies = [...methodBodies.values()].join('\n');
+  for (const type of Object.keys(structMethods)) {
+    if (allocations[type] || compiling.has(type) || !classes.has(type) || hierarchy.includes(type) || !constructorOf(type)) continue;
+    if (!structMethods[type]!.some(method => method.name === '__construct')) continue;
+    if (!new RegExp(`\\b${type}\\s+\\w+\\s*;`).test(ownBodies)) continue;
+    compileNestedClass(type, type);
+  }
   if (Object.keys(allocations).length) result.allocations = allocations;
   annotateMemberCallReferences(result, classes, sourceMethods, hierarchy);
   for (const member of result.members) {
@@ -1600,20 +1801,35 @@ function compileMameDeviceSource(
     if (/_device$/.test(held) || structFields.has(held) || !constructorOf(held)) continue;
     member.objectType = held;
   }
+  lowerStructLocals(result, sources);
   result.summary = {
     methods: result.methods.length,
     compiledMethods: result.methods.filter(method => !method.program.diagnostics.length).length,
     diagnostics: result.methods.reduce((sum, method) => sum + method.program.diagnostics.length, 0)
       + Object.values(allocations).reduce((sum, child) => sum + child.summary.diagnostics, 0),
   };
-  lowerStructLocals(result);
   // C++ block scope: a local that shadows a parameter or an outer local gets a
   // name of its own (src/ir/scope.ts), before either executor reads the IR.
   for (const method of result.methods) {
     renameShadowedLocals(method.program.operations,
       splitMameArgs(method.parameters).filter(parameter => parameter.trim() && parameter.trim() !== 'void').map(parameterName));
   }
-  markFloatingNames(result);
+  const declaredFloating = (method: MameFunction) => /\b(?:float|double)\b/.test(method.returnType ?? method.inlineReturnType ?? '') &&
+    !/[*&]/.test(method.returnType ?? method.inlineReturnType ?? '');
+  const everyMethod = [...sourceMethods, ...[...classes.values()].flatMap(declaration => inlineMethods(declaration))];
+  const ownFloating = new Set(everyMethod.filter(method => hierarchy.includes(method.className) && declaredFloating(method)).map(method => method.name));
+  // Free functions too, rescap.h's `constexpr double RES_K(double res)` among
+  // them: dkong's `RES_2_PARALLEL(RES_K(5), RES_K(10))` is 3333.33 ohms, and
+  // divided as integers it was 3333.
+  for (const { source } of sources) {
+    for (const match of stripCppComments(source).matchAll(/^[ \t]*(?:(?:static|inline|constexpr)\s+)*(?:float|double)\s+(\w+)\s*\([^;{}()]*\)\s*(?:noexcept\s*)?\{/gm)) {
+      ownFloating.add(match[1]!);
+    }
+  }
+  // Another object's method only where no class declares the name otherwise.
+  const otherwise = new Set(everyMethod.filter(method => !declaredFloating(method)).map(method => method.name));
+  const other = new Set(everyMethod.filter(method => declaredFloating(method) && !otherwise.has(method.name)).map(method => method.name));
+  markFloatingNames(result, { own: ownFloating, other });
   return result;
 }
 
@@ -1625,16 +1841,69 @@ function compileMameDeviceSource(
  * receiver's class is the member's declared type: `m_regs` is an
  * `opll_registers &`, `m_channel[i]` a `std::unique_ptr<fm_channel<...>>`.
  */
+/** A parameter's type with its name, default and qualifiers gone: `discrete_step_interface`. */
+function parameterBaseType(parameter: string): string {
+  const declared = parameter.replace(/=.*$/s, '').trim();
+  const name = /(\w+)\s*(?:\[[^\]]*\])?$/.exec(declared)?.[1];
+  const type = name && !/^(?:const|unsigned|signed)$/.test(name) && declared.slice(0, -name.length).trim()
+    ? declared.slice(0, declared.lastIndexOf(name)) : declared;
+  return type.replace(/\b(?:const|volatile)\b/g, '').replace(/[*&\s]+/g, ' ').trim();
+}
+
+/**
+ * The name an overload chosen by its parameter types is emitted under. C++
+ * tells `interface(discrete_step_interface *&)` from
+ * `interface(discrete_input_interface *&)` by type; the IR names methods, so
+ * overloads of one arity that differ only in type each get their own.
+ */
+function typedOverloadName(name: string, parameters: string): string {
+  const types = splitMameArgs(parameters).map(parameter => parameter.trim()).filter(parameter => parameter && parameter !== 'void')
+    .map(parameter => parameterBaseType(parameter).replace(/\W+/g, '_'));
+  return `${name}__${types.join('__')}`;
+}
+
+/** Methods of one name and arity that differ in their parameters' types. */
+function typedOverloads<T extends { name: string; parameters: string }>(methods: readonly T[]): Set<T> {
+  const arity = (parameters: string) => splitMameArgs(parameters).filter(parameter => parameter.trim() && parameter.trim() !== 'void').length;
+  const groups = new Map<string, T[]>();
+  for (const method of methods) {
+    const key = `${method.name}/${arity(method.parameters)}`;
+    groups.set(key, [...groups.get(key) ?? [], method]);
+  }
+  // Only overloads told apart by the class a pointer points at. Others the
+  // compiler already chooses between its own way: an XTAL setter before its
+  // arithmetic twin (#203), a screen update's bitmap by which one is used.
+  const pointers = (parameters: string) => splitMameArgs(parameters).map(parameter => parameter.trim())
+    .filter(parameter => parameter && parameter !== 'void');
+  const overloaded = new Set<T>();
+  for (const group of groups.values()) {
+    const signatures = new Set(group.map(method => typedOverloadName(method.name, method.parameters)));
+    if (signatures.size < 2) continue;
+    const lists = group.map(method => pointers(method.parameters));
+    const differing = lists[0]!.map((_unused, index) => new Set(lists.map(list => list[index] ? parameterBaseType(list[index]!) : '')).size > 1);
+    const byPointer = lists.every(list => list.every((parameter, index) => !differing[index] || /\*/.test(parameter)));
+    if (byPointer) for (const method of group) overloaded.add(method);
+  }
+  return overloaded;
+}
+
 function annotateMemberCallReferences(
   device: GeneratedDeviceDefinition,
   classes: Map<string, MameClass>,
   sourceMethods: readonly MameFunction[],
   hierarchy: readonly string[],
 ): void {
-  const classOf = (valueType: string): string | undefined => {
-    const held = valueType.replace(/\bconst\b/g, '')
-      .replace(/^\s*std::(?:unique_ptr|shared_ptr|array)\s*<\s*([\s\S]+?)\s*(?:,\s*\d+\s*)?>\s*$/, '$1')
-      .replace(/[*&]/g, '').trim().replace(/\s*<[\s\S]*>$/, '');
+  // What a value of the type is an object of. An element of a container is
+  // one too, which is how a range-for over `std::vector<std::unique_ptr<
+  // discrete_base_node>>` reaches each node.
+  const classOf = (valueType: string, element = false): string | undefined => {
+    let held = valueType.replace(/\bconst\b/g, '').trim();
+    for (let previous = ''; previous !== held;) {
+      previous = held;
+      held = held.replace(/^\s*std::(?:unique_ptr|shared_ptr|array)\s*<\s*([\s\S]+?)\s*(?:,\s*\d+\s*)?>\s*$/, '$1');
+      if (element) held = held.replace(/^\s*std::vector\s*<\s*([\s\S]+?)\s*>\s*$/, '$1');
+    }
+    held = held.replace(/[*&]/g, '').trim().replace(/\s*<[\s\S]*>$/, '');
     return classes.has(held) && !hierarchy.includes(held) ? held : undefined;
   };
   const cache = new Map<string, number[] | undefined>();
@@ -1666,15 +1935,70 @@ function annotateMemberCallReferences(
     return found;
   };
   const members = new Map(device.members.map(member => [member.name, member.valueType]));
-  for (const method of device.methods) walkExpressions(method.program.operations, expression => {
-    if (expression.kind !== 'call' || expression.callee.kind !== 'member') return;
-    const receiver = expression.callee.object.kind === 'index' ? expression.callee.object.object : expression.callee.object;
-    if (receiver.kind !== 'identifier') return;
-    const valueType = members.get(receiver.name);
-    const className = valueType ? classOf(valueType) : undefined;
-    const references = className ? positions(className, expression.callee.property, expression.args.length) : undefined;
-    if (references) (expression as { references?: number[] }).references = references;
-  });
+  const returnTypes = new Map(sourceMethods
+    .filter(method => method.returnType && hierarchy.includes(method.className))
+    .map(method => [method.name, method.returnType!]));
+  // The overload of `method` on `className` the arguments' declared types pick.
+  const typedOverload = (className: string, method: string, argumentTypes: readonly (string | undefined)[]) => {
+    for (const owner of [...classHierarchy(className, classes)].reverse()) {
+      const candidates = [...sourceMethods.filter(candidate => candidate.className === owner), ...inlineMethods(classes.get(owner)!)]
+        .filter(candidate => candidate.name === method);
+      if (!candidates.length) continue;
+      if (typedOverloads(candidates).size < 2) return undefined;
+      return candidates.find(candidate => {
+        const parameters = splitMameArgs(candidate.parameters).map(parameter => parameter.trim()).filter(Boolean);
+        return parameters.length === argumentTypes.length &&
+          parameters.every((parameter, index) => parameterBaseType(parameter) === argumentTypes[index]);
+      });
+    }
+    return undefined;
+  };
+  for (const method of device.methods) {
+    // What each name is declared as here: a member, shadowed by a parameter
+    // or local (`discrete_base_node &node = *m_node_list.back();`).
+    const types = new Map(members);
+    for (const parameter of splitMameArgs(method.parameters)) {
+      const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1];
+      if (name && parameter.trim() !== 'void') types.set(name, parameter.replace(/=.*$/s, '').trim().slice(0, -name.length));
+    }
+    walkOperations(method.program.operations, operation => {
+      if (operation.op !== 'declare') return;
+      // A range-for's sequence is the member it was declared from, and an
+      // `auto` local is what initialises it: `auto *node =
+      // discrete_find_node(offset)` is the `discrete_base_node *` that
+      // method is declared to return.
+      const untyped = !operation.valueType || /^auto\b/.test(operation.valueType);
+      const value = operation.value;
+      const from = !untyped ? undefined
+        : value?.kind === 'identifier' ? types.get(value.name)
+        : value?.kind === 'call' && value.callee.kind === 'identifier'
+          ? returnTypes.get(value.callee.name.split('::').at(-1)!)
+          : undefined;
+      if (from) types.set(operation.name, from);
+      else if (operation.valueType) types.set(operation.name, operation.valueType);
+    });
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'member') return;
+      const indexed = expression.callee.object.kind === 'index';
+      const receiver = indexed ? (expression.callee.object as { object: GeneratedExpression }).object : expression.callee.object;
+      if (receiver.kind !== 'identifier') return;
+      const valueType = types.get(receiver.name);
+      const className = valueType ? classOf(valueType, indexed) : undefined;
+      if (!className) return;
+      const argumentTypes = expression.args.map(argument => argument.kind === 'identifier' && types.has(argument.name)
+        ? parameterBaseType(`${types.get(argument.name)} ${argument.name}`) : undefined);
+      const chosen = typedOverload(className, expression.callee.property, argumentTypes);
+      if (chosen) {
+        const parameters = splitMameArgs(chosen.parameters).map(parameter => parameter.trim()).filter(Boolean);
+        const references = parameters.flatMap((parameter, index) => /&(?!&)/.test(parameter.replace(/=.*$/, '')) && !/\bconst\b/.test(parameter) ? [index] : []);
+        (expression.callee as { property: string }).property = typedOverloadName(chosen.name, chosen.parameters);
+        if (references.length) (expression as { references?: number[] }).references = references;
+        return;
+      }
+      const references = positions(className, expression.callee.property, expression.args.length);
+      if (references) (expression as { references?: number[] }).references = references;
+    });
+  }
 }
 
 /**
@@ -1684,9 +2008,42 @@ function annotateMemberCallReferences(
  * `m_rev_time = attotime::from_double(60/m_rpm)` is 0.2 s; divided as two
  * integers it was 0, and the index pulse loop never left its first turn.
  */
-function markFloatingNames(device: GeneratedDeviceDefinition): void {
+function markFloatingNames(
+  device: GeneratedDeviceDefinition,
+  /** Methods declared to return float or double: own, and any other class's. */
+  floatingMethods: { own: ReadonlySet<string>; other: ReadonlySet<string> } = { own: new Set(), other: new Set() },
+): void {
   const floatingType = (valueType?: string) => /\b(?:float|double)\b/.test(valueType ?? '') && !/[*&[]/.test(valueType ?? '');
   const members = device.members.filter(member => floatingType(member.valueType)).map(member => member.name);
+  // A struct field declared float or double, by a name no struct declares
+  // otherwise: DISCRETE's one-shot divides `info->r3 / (info->r3 + info->r4)`,
+  // two whole-ohm resistors, and as integers that ratio was 0.
+  const fieldTypes = new Map<string, Set<boolean>>();
+  for (const fields of Object.values(device.structs ?? {})) {
+    for (const field of fields) {
+      if (field.fields || field.length) continue;
+      const kinds = fieldTypes.get(field.name) ?? new Set<boolean>();
+      kinds.add(floatingType(field.valueType));
+      fieldTypes.set(field.name, kinds);
+    }
+  }
+  const floatingFields = new Set([...fieldTypes].filter(([, kinds]) => kinds.size === 1 && kinds.has(true)).map(([name]) => name));
+  if (floatingFields.size) for (const method of device.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'member' && floatingFields.has(expression.property)) (expression as { floating?: boolean }).floating = true;
+    });
+  }
+  // A call answers what its method is declared to: `input(n) / input(m)` in
+  // a DISCRETE node divides doubles, whatever values the inputs hold.
+  if (floatingMethods.own.size || floatingMethods.other.size) for (const method of device.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call') return;
+      const floating = expression.callee.kind === 'identifier'
+        ? floatingMethods.own.has(expression.callee.name)
+        : expression.callee.kind === 'member' && floatingMethods.other.has(expression.callee.property);
+      if (floating) (expression as { floating?: boolean }).floating = true;
+    });
+  }
   for (const method of device.methods) {
     const names = new Set(members);
     for (const parameter of method.parameters.split(',')) {
@@ -1803,7 +2160,16 @@ function lowerObjectReferenceAddresses(device: GeneratedDeviceDefinition): void 
   }
 }
 
-export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
+export function lowerStructLocals(device: GeneratedDeviceDefinition, sources: readonly { source: string }[] = []): void {
+  // Overloads told apart by type, each under its own name (typedOverloadName);
+  // a qualified alias (`discrete_base_node::interface`) is renamed with them.
+  const leafOverloads = typedOverloads(device.methods.map(method => ({ ...method, name: method.name.split('::').at(-1)! })));
+  const renamed = new Set([...leafOverloads].map(method => `${method.name}/${method.parameters}`));
+  for (const method of device.methods) {
+    const leaf = method.name.split('::').at(-1)!;
+    if (!renamed.has(`${leaf}/${method.parameters}`)) continue;
+    method.name = `${method.name.slice(0, method.name.length - leaf.length)}${typedOverloadName(leaf, method.parameters)}`;
+  }
   resolveArityOverloads(device);
   lowerObjectReferenceAddresses(device);
   // `this->method(...)` on the device's own method is the same call as
@@ -1845,6 +2211,100 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
         : { ...value, callee: { kind: 'identifier', name: 'ARRAY' } }];
     }),
   });
+  // `std::atomic<T>` is a T on one thread: discrete_task locks itself with
+  // `m_threadid.compare_exchange_strong(expected, threadid)` and steps its
+  // buffers through `ptr.load()`/`ptr.store(v)`. Each becomes what it does
+  // to the value, the exchange writing `expected` back when it fails.
+  const atomics = new Set([
+    ...device.members.filter(member => /^std::atomic\s*</.test(member.valueType)).map(member => member.name),
+    ...Object.values(structs).flatMap(fields => fields.filter(field => /^std::atomic\s*</.test(field.valueType ?? '')).map(field => field.name)),
+  ]);
+  const atomicReceiver = (expression: GeneratedExpression) =>
+    (expression.kind === 'identifier' && atomics.has(expression.name)) ||
+    (expression.kind === 'member' && atomics.has(expression.property));
+  if (atomics.size) for (const method of device.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'member' || !atomicReceiver(expression.callee.object)) return;
+      const value = expression.callee.object;
+      const [first, second] = expression.args;
+      const property = expression.callee.property;
+      if (property === 'load') {
+        for (const key of ['callee', 'args']) delete (expression as Record<string, unknown>)[key];
+        Object.assign(expression, structuredClone(value));
+        return;
+      } else if (property === 'store' && first) Object.assign(expression, { kind: 'assignment', target: value, operator: '=', value: first });
+      else if (/^compare_exchange_(?:strong|weak)$/.test(property) && first && second) Object.assign(expression, {
+        kind: 'conditional',
+        condition: { kind: 'binary', operator: '==', left: value, right: first },
+        whenTrue: { kind: 'binary', operator: '||', left: { kind: 'assignment', target: value, operator: '=', value: second }, right: { kind: 'number', value: 1 } },
+        whenFalse: { kind: 'binary', operator: '&&', left: { kind: 'assignment', target: first, operator: '=', value }, right: { kind: 'number', value: 0 } },
+      });
+      else return;
+      for (const key of ['callee', 'args']) delete (expression as Record<string, unknown>)[key];
+    });
+  }
+  // The address of a reference to a class object is that object, which is
+  // all a pointer to one is here: init_nodes indexes each node it builds with
+  // `discrete_base_node &node = *m_node_list.back(); ... = &node;`.
+  const builtin = /^(?:(?:unsigned|signed|long|short)\s*)*(?:u?int(?:8|16|32|64)?(?:_t)?|[us](?:8|16|32|64)|bool|char|short|long|unsigned|signed|float|double|offs_t|pen_t|auto|attotime)$/;
+  for (const method of device.methods) {
+    const objectReferences = new Set<string>();
+    walkOperations(method.program.operations, operation => {
+      if (operation.op !== 'declare' || !operation.valueType || !/&\s*$/.test(operation.valueType)) return;
+      const base = operation.valueType.replace(/\bconst\b/g, '').replace(/&\s*$/, '').trim();
+      if (!/[*&]/.test(base) && !builtin.test(base) && !structs[base]) objectReferences.add(operation.name);
+    });
+    if (!objectReferences.size) continue;
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'unary' || expression.operator !== '&' || expression.operand.kind !== 'identifier' ||
+          !objectReferences.has(expression.operand.name)) return;
+      const operand = expression.operand;
+      for (const key of ['operator', 'operand']) delete (expression as Record<string, unknown>)[key];
+      Object.assign(expression, operand);
+    });
+  }
+  // A call through a struct's function-pointer field (`block.factory(*this,
+  // block)`) calls the function the field names: the IR has no function
+  // values, so a pointer is its name, and CALL_METHOD dispatches by it.
+  const functionFields = new Set(Object.values(structs).flatMap(fields =>
+    fields.filter(field => field.valueType === 'function*').map(field => field.name)));
+  // And through a member whose type is a function-pointer alias:
+  // `using dac_mapper_callback = sample_t (*)(u32 input, u8 bits);`.
+  const functionTypes = new Set(sources.flatMap(({ source }) => [
+    ...[...source.matchAll(/\busing\s+(\w+)\s*=\s*[^;=]*\(\s*\*\s*\)\s*\(/g)].map(match => match[1]!),
+    ...[...source.matchAll(/\btypedef\s+[^;]*\(\s*\*\s*(\w+)\s*\)\s*\(/g)].map(match => match[1]!),
+  ]));
+  const functionMembers = new Set(device.members.filter(member =>
+    functionTypes.has(member.valueType.replace(/\bconst\b/g, '').trim())).map(member => member.name));
+  // A braced temporary (`input_buffer{ nullptr, pbuf, 0.0 }`) is that struct,
+  // field by field. A type with no known shape is a gap, not a zero.
+  for (const method of device.methods) {
+    walkExpressions(method.program.operations, expression => {
+      const throughMember = expression.kind === 'call' && expression.callee.kind === 'identifier' && functionMembers.has(expression.callee.name);
+      if (expression.kind !== 'call' || (!throughMember && (expression.callee.kind !== 'member' || !functionFields.has(expression.callee.property)))) return;
+      Object.assign(expression, {
+        callee: { kind: 'identifier', name: 'CALL_METHOD' },
+        args: [expression.callee, ...expression.args],
+      });
+    });
+    // `T()` of a struct is that struct value-initialised: Phoenix resets its
+    // capacitors with `m_c24_state = c_state();`.
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || expression.args.length) return;
+      const fields = structs[expression.callee.name];
+      if (fields) Object.assign(expression, structValue(fields, []));
+    });
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || expression.callee.name !== 'AGGREGATE_OF') return;
+      const type = expression.args[0]?.kind === 'string' ? expression.args[0].value : '';
+      const fields = fieldsOf(type);
+      if (!fields) {
+        method.program.diagnostics.push(`braced temporary of unknown struct ${type}`);
+        return;
+      }
+      Object.assign(expression, structValue(fields, expression.args.slice(1)));
+    });
+  }
   for (const method of device.methods) {
     // A scalar static is one storage for every call, so its uses name the
     // member itself; a local copy would take `counter++` and lose it.
@@ -1903,6 +2363,32 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition): void {
       // carry.
       if (fields && !value && !operation.static) {
         const leaf = operation.valueType!.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1)!;
+        // One whose type has a constructor sets itself up there, and every
+        // other field is indeterminate in C++: one storage kept from call to
+        // call, constructed again on each, is the same value without a new
+        // struct every time (discrete's `double_stack stack;`, every sample).
+        // Only one that never leaves the call: every use reads a field or
+        // calls a method on it. One handed on (`emplace_back(std::move(buf))`)
+        // must be a struct of its own each time.
+        const escapes = (() => {
+          let all = 0;
+          let received = 0;
+          walkExpressions(method.program.operations, expression => {
+            if (expression.kind === 'identifier' && expression.name === operation.name) all++;
+            if (expression.kind === 'member' && expression.object.kind === 'identifier' && expression.object.name === operation.name) received++;
+          });
+          return all !== received;
+        })();
+        if (!/[*&]/.test(operation.valueType!) && !escapes && device.structMethods?.[leaf]?.some(method => method.name === '__construct')) {
+          const member = `__local_${method.name.replace(/\W+/g, '_')}_${operation.name}`;
+          if (!device.members.some(candidate => candidate.name === member)) {
+            device.members.push({ name: member, valueType: leaf, fields, scratch: true });
+          }
+          return [
+            { op: 'declare', name: operation.name, ...(operation.valueType ? { valueType: operation.valueType } : {}), value: { kind: 'identifier', name: member } },
+            { op: 'call', expression: { kind: 'call', callee: { kind: 'member', object: { kind: 'identifier', name: operation.name }, property: '__construct' }, args: [] } },
+          ];
+        }
         if (!/[*&]/.test(operation.valueType!)) {
           value = { kind: 'call', callee: { kind: 'identifier', name: 'STRUCT_OF' }, args: [string(leaf)] };
         }
@@ -2094,7 +2580,10 @@ function templateInstanceName(type: string): string {
 }
 
 function methodSignature(name: string, parameters: string): string {
-  return `${name}(${parameters.replace(/\s+/g, ' ').trim()})`;
+  // `reset(void)` overrides `reset()`: every DISCRETE node defines its methods
+  // through DISCRETE_RESET, which spells the empty list as `(void)`.
+  const list = parameters.replace(/\s+/g, ' ').trim();
+  return `${name}(${list === 'void' ? '' : list})`;
 }
 
 export function mameDeviceRomSet(
@@ -2699,6 +3188,10 @@ function compileMethod(
           (_entry, row: string, column: string) =>
             `TABLE((${row}) * ${table.columns} + (${column}), ${table.values.join(', ')})`,
         );
+    if (table.rows) {
+      body = body.replace(new RegExp(`\\b${name}\\s*\\[${subscript}\\]`, 'g'),
+        (_entry, row: string) => `TABLE(${row}, ${table.rows!.join(', ')})`);
+    }
   }
   // A table's entries can be macros themselves (the CRT format's UNSUPPORTED).
   body = expandStringMacros(body, stringMacros);
@@ -2792,7 +3285,12 @@ export function memberDeclarations(
 ): { name: string; valueType: string; arrayLength?: number; arrayShape?: number[] }[] {
   // `mutable` lets a const method write the member; it is still a member
   // (ymfm's channel keeps its next feedback input as `mutable int16_t`).
-  declaration = { ...declaration, body: maskNestedClasses(declaration.body).replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1') };
+  // An access specifier ends its line: a class a macro writes (discrete's
+  // DISCRETE_CLASS_STEP_RESET) is one line, and the member after `private:`
+  // otherwise starts mid-line, where no pattern below looks.
+  declaration = { ...declaration, body: maskNestedClasses(declaration.body)
+    .replace(/\b(public|protected|private)\s*:(?!:)/g, '$1:\n')
+    .replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1') };
   const members: {
     name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
   }[] = [];
@@ -3165,10 +3663,30 @@ export function constructorInitialValues(
   chain?: ConstructorChainValues,
 ): Record<string, number> {
   const constructors = new Map<string, Constructor[]>();
-  const pattern = /\b(\w+)::\1\s*\(/g;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(source)) !== null) {
-    const open = source.indexOf('(', match.index);
+  // Out of line (`ay8910_device::ay8910_device(`) and inline in the class's
+  // own body: DAC_GENERATOR's `dac_8bit_r2r_device(...) : dac_byte_device_base(...) {}`.
+  const heads: { index: number; className: string }[] = [...source.matchAll(/\b(\w+)::\1\s*\(/g)]
+    .map(found => ({ index: found.index!, className: found[1]! }));
+  for (const declaration of source.matchAll(/\b(?:class|struct)\s+(\w+)\b[^;{()]*\{/g)) {
+    const className = declaration[1]!;
+    const open = declaration.index! + declaration[0].length - 1;
+    const close = matchingBrace(source, open);
+    if (close < 0) continue;
+    const body = source.slice(open, close);
+    for (const found of body.matchAll(new RegExp(`(?<![\\w~:.>])${className}\\s*\\(`, 'g'))) {
+      // Not a delegating call in another constructor's initializer list,
+      // which follows its `:` or a `,`; an access specifier's `public:` is
+      // where a constructor stands.
+      const before = body.slice(0, found.index!).trimEnd();
+      if (before.endsWith(',') || (before.endsWith(':') && !/\b(?:public|protected|private)\s*:$/.test(before))) continue;
+      heads.push({ index: open + found.index!, className });
+    }
+  }
+  heads.sort((left, right) => left.index - right.index);
+  for (const head of heads) {
+    const match = [source.slice(head.index), head.className] as unknown as RegExpExecArray;
+    match.index = head.index;
+    const open = source.indexOf('(', head.index);
     const close = matchingPair(source, open, '(', ')');
     if (close < 0) continue;
     const brace = constructorBodyBrace(source, close + 1);
@@ -3192,10 +3710,11 @@ export function constructorInitialValues(
     const overloads = constructors.get(match[1]!) ?? [];
     overloads.push(constructor);
     constructors.set(match[1]!, overloads);
-    pattern.lastIndex = brace + 1;
   }
   const result: Record<string, number> = {};
   const activeConstructors = new Set<Constructor>();
+  const definesFunction = (name: string) =>
+    new RegExp(`(?:^|[\\s*&])${name}\\s*\\([^;{}]*\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?\\{`, 'm').test(source);
   // Structs the sources declare, which a parameter can be one of, and each
   // one's inline constructors: `configuration_params(ops, cycles, ...) : m_ops(ops), ...`.
   const structNames = new Set([...source.matchAll(/\bstruct\s+(\w+)\b[^;{()]*\{/g)].map(found => found[1]!));
@@ -3230,8 +3749,23 @@ export function constructorInitialValues(
     }
     return fields;
   };
+  // Each parameter's default, from a class's declaration of a constructor of
+  // that many parameters: undefined where it has none.
+  const defaultsFor = (className: string, arity: number): (number | undefined)[] | undefined => {
+    for (const declaration of source.matchAll(new RegExp(`(?<![:~\\w])${className}\\s*\\(([^;{}]*)\\)\\s*;`, 'g'))) {
+      const parameters = splitMameArgs(declaration[1]!);
+      if (parameters.length !== arity) continue;
+      return parameters.map(parameter => {
+        const value = /=\s*([^=]+)$/.exec(parameter)?.[1];
+        return value === undefined ? undefined : constantValue(value.trim(), constants);
+      });
+    }
+    return undefined;
+  };
   const visit = (className: string, values: number[] = [], texts: (string | undefined)[] = []): void => {
-    const overloads = constructors.get(className) ?? [];
+    // A constructor delegating to another of its class's (a template overload
+    // handing on `(mconfig, tag, owner, 0)`) never reaches itself again.
+    const overloads = (constructors.get(className) ?? []).filter(candidate => !activeConstructors.has(candidate));
     // Chosen as C++ chooses: by count, then by type -- only a brace list
     // binds a struct parameter (the 6805's two seven-argument constructors).
     // A struct parameter takes text (a brace list, or a struct passed on); a
@@ -3239,11 +3773,22 @@ export function constructorInitialValues(
     const fits = (declaration: string, text: string | undefined) =>
       structOf(declaration) ? text !== undefined : !isBrace(text);
     const sameArity = overloads.filter(candidate => values.length > 0 && candidate.parameters.length === values.length);
+    // Or one taking more, whose declaration in the class gives the rest
+    // defaults: the AY-3-8910 delegates eight arguments to a constructor whose
+    // ninth, `int feature = 0`, only the header defaults.
+    const defaulted = values.length > 0
+      ? overloads.find(candidate => candidate.parameters.length > values.length &&
+        defaultsFor(className, candidate.parameters.length)?.slice(values.length).every(value => value !== undefined))
+      : undefined;
     const constructor = sameArity.find(candidate =>
       candidate.declared.every((declaration, index) => fits(declaration, texts[index]))) ??
-      sameArity[0] ??
+      sameArity[0] ?? defaulted ??
       [...overloads].sort((left, right) =>
         left.parameters.length - right.parameters.length)[0];
+    if (constructor && constructor === defaulted) {
+      const defaults = defaultsFor(className, constructor.parameters.length)!;
+      values = [...values, ...defaults.slice(values.length).map(value => value ?? 0)];
+    }
     if (!constructor) return;
     if (activeConstructors.has(constructor)) return;
     activeConstructors.add(constructor);
@@ -3276,7 +3821,12 @@ export function constructorInitialValues(
       if (constructors.has(initializer.name)) visit(initializer.name, args, argTexts);
       else if (initializer.name.startsWith('m_') && args.length === 1) {
         const member = memberName(className, initializer.name);
-        const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1];
+        // A function handed down the constructors as a value is its name, as
+        // CALL_METHOD dispatches by: dac_device_base's `m_mapper(mapper)`,
+        // which DAC_GENERATOR passes `dac_mapper_unsigned`.
+        const passed = argTexts[0] === undefined ? '' : substitute(initializer.args[0]!.trim());
+        const text = /^"((?:[^"\\]|\\.)*)"$/.exec(initializer.args[0]!.trim())?.[1] ??
+          (/^[A-Za-z_]\w*$/.test(passed) && !/^(?:nullptr|NULL|true|false|this)$/.test(passed) && definesFunction(passed) ? passed : undefined);
         const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
         const struct = structArguments[initializer.args[0]!.trim()];
         if (struct && chain) chain.structs[member] = struct;
@@ -3428,6 +3978,24 @@ function coreLineStates(mameSrc: string): Record<string, number> {
   return states;
 }
 
+/**
+ * The OSD layer's constant defines (osdcore.h) a device's source names, read
+ * from MAME: DISCRETE allocates its task queue with
+ * `osd_work_queue_alloc(WORK_QUEUE_FLAG_MULTI | WORK_QUEUE_FLAG_HIGH_FREQ)`.
+ */
+function coreOsdDefines(mameSrc: string, sources: readonly { source: string }[]): Record<string, number> {
+  const header = join(mameSrc, 'src/osd/osdcore.h');
+  if (!existsSync(header)) return {};
+  const named = new Set(sources.flatMap(({ source }) => stripCppComments(source).match(/\b[A-Z_][A-Z0-9_]*\b/g) ?? []));
+  const defines: Record<string, number> = {};
+  for (const match of stripCppComments(readFileSync(header, 'utf8')).matchAll(/^\s*#define\s+([A-Z_][A-Z0-9_]*)\s+([^\r\n]+)$/gm)) {
+    if (!named.has(match[1]!)) continue;
+    const value = evalExpr(match[2]!.trim(), defines);
+    if (value !== null && Number.isFinite(value)) defines[match[1]!] = value;
+  }
+  return defines;
+}
+
 const CORE_ENUMERATORS = new Map<string, Record<string, number>>();
 
 /**
@@ -3574,6 +4142,14 @@ function foreignClassConstants(
     }
     frontier = next;
   }
+  // The emulator core is on every device's include path through emu.h, which
+  // the walk above never follows: discrete.cpp sizes its task buffers by
+  // `sound_manager::STREAMS_UPDATE_FREQUENCY`, which sound.h declares.
+  const core = join(mameSrc, 'src/emu');
+  for (const file of existsSync(core) ? readdirSync(core).filter(name => name.endsWith('.h')).sort() : []) {
+    const text = readFileSync(join(core, file), 'utf8');
+    if ([...wanted.keys()].some(owner => new RegExp(`\\bclass\\s+${owner}\\b`).test(text))) headers.add(join(core, file));
+  }
   for (const header of headers) {
     const unit = parseMameAst([{ file: relative(mameSrc, header), source: readFileSync(header, 'utf8') }]);
     for (const declaration of unit.units.flatMap(entry => entry.classes)) {
@@ -3591,7 +4167,7 @@ function foreignClassConstants(
   return found;
 }
 
-function numericConstants(
+export function numericConstants(
   source: string,
   /** Constants already known, which the source's own values may be spelled in. */
   seed: Record<string, number> = {},
@@ -3612,6 +4188,13 @@ function numericConstants(
     /\b(?:static\s+)?constexpr\s+(?:[\w:]+\s+)+(\w+)\s*=\s*([^;]+);/g,
   )) {
     expressions.set(match[1]!, match[2]!.trim());
+  }
+  // Direct initialisation: galaxian.h's
+  // `static constexpr XTAL GALAXIAN_MASTER_CLOCK(18.432_MHz_XTAL);`.
+  for (const match of source.matchAll(
+    /\b(?:static\s+)?constexpr\s+(?:[\w:]+\s+)+(\w+)\s*\(([^;{}]+)\)\s*;/g,
+  )) {
+    if (!expressions.has(match[1]!)) expressions.set(match[1]!, match[2]!.trim());
   }
   // A pre-C++17 in-class constant is spelled `static const`, not `constexpr`.
   // MAME's Game Boy APU declares its frame-sequencer period that way, and
@@ -3666,7 +4249,10 @@ function numericConstants(
   // an OPL3 header left in the seed.
   const constants: Record<string, number> = { ...seed };
   for (const name of expressions.keys()) delete constants[name];
-  for (let pass = 0; pass <= expressions.size; pass++) {
+  // Until a pass resolves nothing more: the rest name what this source never
+  // defines, and another pass over thousands of them changes nothing.
+  for (let pass = 0, resolved = 1; pass <= expressions.size && resolved; pass++) {
+    resolved = 0;
     for (const [name, expression] of expressions) {
       if (constants[name] !== undefined) continue;
       // A leaf inside a qualified name (`opll_registers::CHANNELS`) is that
@@ -3676,8 +4262,14 @@ function numericConstants(
         token => token === 'true' ? '1' : token === 'false' ? '0'
           : constants[token] !== undefined ? String(constants[token]) : token,
       );
-      const value = evalExpr(substituted, constants);
-      if (value !== null && Number.isFinite(value)) constants[name] = value;
+      // evalExpr substitutes every constant it is given, one by one: with
+      // discrete.h's 2,700 node enumerators that is quadratic, so an
+      // expression with no names left is evaluated alone.
+      const value = evalExpr(substituted, /[A-Za-z_]/.test(substituted) ? constants : {});
+      if (value !== null && Number.isFinite(value)) {
+        constants[name] = value;
+        resolved++;
+      }
     }
   }
   return constants;
@@ -3731,6 +4323,11 @@ function fixedMemberArrays(
 interface ConstantTable {
   values: string[];
   columns?: number;
+  /**
+   * A table of pointers to other tables, by row: whether each row points at
+   * one, which is what the table indexed once answers (`if (!tunes[n])`).
+   */
+  rows?: string[];
 }
 
 function constantTables(source: string): Record<string, ConstantTable> {
@@ -3745,7 +4342,7 @@ function constantTables(source: string): Record<string, ConstantTable> {
     tables[match[1]!] = { values, columns };
   }
   for (const match of source.matchAll(
-    /\bstatic\s+(?:const\s+)?\w+\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+    /\bstatic\s+(?:const\s+)?\w+\s+(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/g,
   )) {
     if (!/^static\s+const\b/.test(match[0])) {
       const uses = source.replace(match[0], '');
@@ -3754,9 +4351,12 @@ function constantTables(source: string): Record<string, ConstantTable> {
           new RegExp(`(?:&|\\+\\+|--)\\s*${name}\\b`).test(uses) ||
           new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(uses)) continue;
     }
-    tables[match[1]!] = {
-      values: splitMameArgs(match[2]!).map(value => value.trim()),
-    };
+    // Zero past the last initializer, to the declared length: the TMS36xx's
+    // `tune1[96*6]` writes 192 of its 576 entries.
+    const values = splitMameArgs(match[3]!).map(value => value.trim());
+    const declared = match[2]!.trim() ? evalExpr(match[2]!, {}) : null;
+    if (declared !== null && declared > values.length) values.push(...Array.from({ length: declared - values.length }, () => '0'));
+    tables[match[1]!] = { values };
   }
   // A table of C strings: the CRT format's `static char const *const
   // CRT_C64_SLOT_NAMES[] = { "standard", UNSUPPORTED, "final3", ... }`, the
@@ -3767,6 +4367,26 @@ function constantTables(source: string): Record<string, ConstantTable> {
   )) {
     tables[match[1]!] ??= {
       values: splitMameArgs(match[2]!).map(value => value.trim()).filter(Boolean),
+    };
+  }
+  // A table of pointers to tables is those tables, row by row, a null row
+  // all zeros: the TMS36xx's `tunes[] = {nullptr,tune1,...}`,
+  // which it reads as `tunes[m_tune_num][m_tune_ofs*6+n]`.
+  for (const match of source.matchAll(
+    /\bstatic\s+const\s+\w+\s*\*\s*const\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{([^{}]+)\}\s*;/g,
+  )) {
+    const entries = splitMameArgs(match[2]!).map(value => value.trim()).filter(Boolean);
+    const columns = Math.max(0, ...entries.map(entry => tables[entry]?.values.length ?? 0));
+    if (!columns || !entries.every(entry => /^(?:nullptr|NULL|0)$/.test(entry) || tables[entry])) continue;
+    // A shorter row reads zeros past its end. MAME reads on into whatever
+    // follows it (its tune4 has 13 notes and m_tune_max is a fixed 96).
+    tables[match[1]!] = {
+      values: entries.flatMap(entry => {
+        const row = tables[entry]?.values ?? [];
+        return [...row, ...Array.from({ length: columns - row.length }, () => '0')];
+      }),
+      columns,
+      rows: entries.map(entry => tables[entry] ? '1' : '0'),
     };
   }
   // A class's static table is declared in the header and defined out of line,
@@ -4020,7 +4640,7 @@ function structMethodDeclarations(
   for (const { source } of sources) {
     for (const declaration of structBlocks(stripCppComments(source))) {
       if (!declaration.name || methods[declaration.name]) continue;
-      const found = structMethodsOf(declaration.body);
+      const found = structMethodsOf(declaration.body, declaration.name);
       if (found.length) methods[declaration.name] = found;
     }
   }
@@ -4028,8 +4648,25 @@ function structMethodDeclarations(
 }
 
 /** The inline methods one struct body defines. */
-function structMethodsOf(body: string): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+function structMethodsOf(body: string, name?: string): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
   const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  // Its default constructor, as `__construct`, which building the struct
+  // runs: discrete's `double_stack() : p(&stk[0]) { }` points its stack at
+  // its own storage, and built as zeros the first push wrote through null.
+  const leaf = name?.split('::').at(-1);
+  const constructor = leaf ? new RegExp(`(?:^|[;{}]|(?<!:):)\\s*${leaf}\\s*\\(\\s*(?:void\\s*)?\\)\\s*(?::([^{;]*))?\\{`).exec(body) : null;
+  if (constructor) {
+    const open = constructor.index + constructor[0].length - 1;
+    const close = matchingBrace(body, open);
+    const initializers = splitMameArgs(constructor[1] ?? '').flatMap(initializer => {
+      const parsed = /^\s*(\w+)\s*[({]([\s\S]*)[)}]\s*$/.exec(initializer);
+      return parsed ? [`${parsed[1]} = ${parsed[2]!.trim() || '0'};`] : [];
+    });
+    if (close > open) {
+      const program = compileMameHandler(normalizeMameExecutionSource(`${initializers.join('\n')}\n${body.slice(open + 1, close)}`));
+      if (!program.diagnostics.length && program.operations.length) found.push({ name: '__construct', parameters: '', program });
+    }
+  }
   // The first method may open the body: `ymfm_output &clear()`.
   const header = /(?:^\s*|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+(\w+)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g;
   for (const match of body.matchAll(header)) {
@@ -4105,6 +4742,13 @@ function structFieldList(
     nested.lastIndex = cursor;
     const start = nested.exec(body);
     const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
+    // Fields in declaration order, which is what an aggregate initializer
+    // assigns by: a function pointer (discrete_block's `factory`) sits
+    // between plain fields, and the other pattern does not read it.
+    const found: { at: number; field: GeneratedStructField }[] = [];
+    for (const pointer of scalars.matchAll(/(?:^|(?<=[;}]))[^;{}()]*\(\s*\*\s*([A-Za-z_]\w*)\s*\)\s*\([^;{}]*\)\s*;/gm)) {
+      found.push({ at: pointer.index, field: { name: pointer[1]!, valueType: 'function*' } });
+    }
     for (const statement of scalars.matchAll(
       // A builtin may take several words (`unsigned short energytable[...]`)
       // and a table several bounds (`int ktable[MAX_K][MAX_SCALE]`); the LPC
@@ -4141,13 +4785,14 @@ function structFieldList(
         // A pointer field (desc_s's `const uint8_t *data`) is an address, never
         // narrowed to its pointee's width.
         const pointer = Boolean(field[1]);
-        fields.push({
+        found.push({ at: statement.index, field: {
           name: field[2]!,
           ...(length !== undefined ? { length } : {}),
           ...(integral && !pointer ? { bits, ...(signed ? { signed } : {}) } : { valueType: pointer ? `${qualified(valueType)}*` : qualified(valueType) }),
-        });
+        } });
       }
     }
+    fields.push(...found.sort((a, b) => a.at - b.at).map(({ field }) => field));
     if (!start) break;
     const open = body.indexOf('{', start.index);
     const close = matchingBrace(body, open);

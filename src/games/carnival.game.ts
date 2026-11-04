@@ -32,11 +32,11 @@ export const carnival = sourceTarget({
       1200: { video: 'b2ee3af8', state: 'e02d8124' },
     },
     audio: {
-      writes: 960189,
+      writes: 960190,
       nonzeroWrites: 41146,
-      writeHash: '4b5be68b',
-      pcmHash: '529ab806',
-      rms: 0.099109,
+      writeHash: 'e2087e92',
+      pcmHash: '1c99f282',
+      rms: 0.099139,
     },
   },
 });

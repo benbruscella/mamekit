@@ -28,6 +28,7 @@ export {
   generatedMacroCall,
   compileGeneratedMachineHandler,
   dereferenceGeneratedValue,
+  dereferenceGeneratedFast,
   executeGeneratedCallbackHandler,
   executeGeneratedHandler,
   executeGeneratedMachineDelegate,

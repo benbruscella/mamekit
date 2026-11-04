@@ -43,6 +43,8 @@ export interface SoundRuntimeContext {
   time?(): number;
   /** Bind a framework service on an already composed generated device. */
   bindDeviceCall?(tag: string, name: string, callback: (...args: any[]) => unknown): void;
+  /** sound_manager::system_mute, as a device last set it. */
+  systemMuted?(): boolean;
   /** Call a method on an instantiated generated device, if it has one. */
   // A stream-rendering chip is handed MAME's own `sound_stream` surface, so
   // the argument is not always a number.
@@ -111,6 +113,8 @@ export interface SoundRuntimeHooks {
    */
   tickInstruction?(cpuTag: string, cycles: number): void;
   instructionCpus?: ReadonlySet<string>;
+  /** The board finished a frame: anything still to render for it renders now. */
+  endFrame?(): void;
   reset?(): void;
   /** What the hooks carry between calls, so a save state can take it (machine-state.ts). */
   state?: Record<string, unknown>;

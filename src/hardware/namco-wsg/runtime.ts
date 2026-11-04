@@ -1,3 +1,5 @@
+import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
+import { createStreamMixer, streamDeviceSources } from '../speaker/runtime.ts';
 import {
   deviceAliases,
   soundTags,
@@ -5,7 +7,7 @@ import {
   type SoundRuntimeHooks,
 } from '../sound-runtime.ts';
 
-/** Wire shared WSG RAM, enable lines, and source-routed secondary streams. */
+/** Wire shared WSG RAM, enable lines, and the streams mixed beside the voices. */
 export function installNamcoWsgRuntime(
   context: SoundRuntimeContext,
 ): SoundRuntimeHooks | void {
@@ -59,5 +61,16 @@ export function installNamcoWsgRuntime(
       }
     }
   }
-  return { state: { registers } };
+  // A stream routed to the same speaker (the DISCRETE the 54xx drives on
+  // Galaga, Xevious and Pole Position) renders on the main thread and is added
+  // in the worklet beside the voices, at its route's gain over the WSG's own.
+  const wsgGain = context.sound.routes?.[0]?.gain || 1;
+  const streams = context.sound.streamDevices?.length
+    ? createStreamMixer(context, streamDeviceSources(context.sound.streamDevices, wsgGain),
+      (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
+    : undefined;
+  return {
+    state: { registers, ...(streams ? { streams: streams.state } : {}) },
+    ...(streams ? { reset: streams.reset, tickCpu: streams.tickCpu, endFrame: streams.endFrame } : {}),
+  };
 }

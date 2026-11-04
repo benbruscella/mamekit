@@ -59,10 +59,10 @@ export const gauntlet = sourceTarget({
       1800: { video: '1431540d', state: 'e0031418' },
     },
     audio: {
-      writes: 1700630,
+      writes: 1700676,
       nonzeroWrites: 252594,
-      writeHash: 'bae1c6c7',
-      pcmHash: 'cc560cfe',
+      writeHash: '29cda880',
+      pcmHash: '0694eb49',
       rms: 0.045817,
     },
   },

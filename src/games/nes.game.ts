@@ -228,7 +228,7 @@ export const nes = {
       audio: {
         writes: 1438273,
         nonzeroWrites: 355267,
-        writeHash: '1b924a08',
+        writeHash: '9148250d',
         pcmHash: '9343389e',
         rms: 0.01516,
       },

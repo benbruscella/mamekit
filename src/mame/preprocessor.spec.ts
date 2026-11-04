@@ -163,14 +163,16 @@ check('caller locals do not expand symbolic audio interfaces through their forma
   assert.doesNotMatch(result, /BITMAPADDR|NODE_00/);
 });
 
-check('a host-bound discrete node name stays symbolic; any other identity macro expands', () => {
+check('an identity macro is arithmetic and expands', () => {
   const macros = collectDynamicMacros(`
 #define NAMCO_52XX_P_DATA(base)     (base)
 #define VIC6569_X_2_EMU(a)  (a)
 #define DOUBLE(x) ((x) * 2)
 `);
   const result = expandDynamicMacros('m_discrete->write(NAMCO_52XX_P_DATA(m_basenode), DOUBLE(data) & 15); x = VIC6569_X_2_EMU(m_graphic_x);', macros);
-  assert.match(result, /NAMCO_52XX_P_DATA\(m_basenode\)/, 'the host binds this name to a discrete input offset');
+  // The 52XX's discrete input is a node number the compiled DISCRETE reads,
+  // not a name the host maps.
+  assert.match(result, /m_discrete->write\(\(\(m_basenode\)\)/);
   assert.match(result, /x = \(\(m_graphic_x\)\);/, 'an identity macro the host does not bind is arithmetic and expands');
   assert.doesNotMatch(result, /VIC6569_X_2_EMU/);
   assert.match(result, /\(data\)\) \* 2\)/, 'a real arithmetic macro still expands');

@@ -2,11 +2,8 @@ import assert from 'node:assert/strict';
 import * as ts from 'typescript';
 import {
   compileAy8910,
-  compileDiscreteDacReferenceLevels,
   compileMameSpeakerFilter,
-  compileDiscreteMixer,
   compileMsm5205,
-  compileNamco54Discrete,
   compileNamcoWsg,
   generatedAy8910WorkletSource,
   generatedNamcoWsgWorkletSource,
@@ -95,10 +92,8 @@ const module = await import(
   GeneratedNamcoWsgCore: new (
     waveRom: Uint8Array,
     clock: number,
-    auxiliary?: ReturnType<typeof compileNamco54Discrete>,
   ) => {
     sampleRate: number;
-    writeDiscrete(channel: number, data: number): void;
     render(output: Float32Array): void;
     renderFrame(
       output: Float32Array,
@@ -132,69 +127,32 @@ assert.equal(
 );
 assert.match(source, /this\.step = this\.core\.sampleRate \/ sampleRate/);
 
-const galagaDiscrete = compileNamco54Discrete(
-  mameSrc,
-  'src/mame/namco/galaga.cpp',
-  'galaga_discrete',
+// A stream mixed beside the voices (the DISCRETE the 54XX drives) arrives as
+// `stream.pcm` writes, one sample each at the rate in the offset, and is added
+// to the voices across the frame it arrives with.
+const streamRenderer = new module.GeneratedNamcoWsgFrameRenderer(
+  new module.GeneratedNamcoWsgCore(new Uint8Array(0x100), 96_000),
+  60,
 );
-assert.deepEqual(galagaDiscrete.channels.map(channel => channel.input), [2, 1, 0]);
-assert.equal(galagaDiscrete.source.file, 'src/mame/namco/galaga_a.cpp');
-assert.deepEqual(
-  galagaDiscrete.channels.map(channel => Math.round(channel.frequency)),
-  [2_521, 450, 167],
-  '54XX filters must use MAME multiple-feedback resistance and capacitance equations',
-);
-assert.deepEqual(
-  galagaDiscrete.channels.map(channel => Number(channel.q.toFixed(2))),
-  [1.74, 2.12, 2.47],
-);
-assert.equal(galagaDiscrete.levels[0], 0);
-assert.equal(galagaDiscrete.levels[15], 1);
-const galagaAudio = new module.GeneratedNamcoWsgCore(
-  new Uint8Array(0x100),
-  96_000,
-  galagaDiscrete,
-);
-galagaAudio.writeDiscrete(0, 0x0f);
-const galagaSamples = new Float32Array(4096);
-galagaAudio.render(galagaSamples);
-assert.ok(galagaSamples.some(sample => sample !== 0));
-const timedGalagaAudio = new module.GeneratedNamcoWsgCore(
-  new Uint8Array(0x100),
-  96_000,
-  galagaDiscrete,
-);
-const galagaRenderer = new module.GeneratedNamcoWsgFrameRenderer(timedGalagaAudio, 60);
-const timedGalagaSamples = galagaRenderer.render([
-  { offset: 0, data: 0x0f, frac: 0, method: 'discrete' },
-  { offset: 0, data: 0, frac: 0.5, method: 'discrete' },
-]);
-assert.equal(timedGalagaSamples.length, 3_200);
-assert.ok(timedGalagaSamples.slice(0, 1_600).some(sample => sample !== 0));
-assert.ok(
-  timedGalagaSamples.slice(0, 1_600).some((sample, index) =>
-    sample !== timedGalagaSamples[index + 1]!),
-  'timestamped 54XX transitions must survive frame rendering',
-);
+const streamSamples = streamRenderer.render(Array.from({ length: 800 }, (_unused, index) => ({
+  offset: 48_000,
+  data: index < 400 ? 0.25 : -0.25,
+  frac: index / 800,
+  method: 'stream.pcm',
+})));
+assert.equal(streamSamples.length, 3_200);
+assert.ok(Math.abs(streamSamples[100]! - 0.25) < 1e-6);
+assert.ok(Math.abs(streamSamples[3_000]! + 0.25) < 1e-6);
 assert.match(source, /write\.frac/);
 assert.ok(registeredWsgProcessor);
 const processor = new registeredWsgProcessor();
 processor.port.onmessage?.({
-  data: {
-    type: 'init',
-    waveRom: new Uint8Array(0x100),
-    clock: 96_000,
-    refresh: 60,
-    auxiliary: galagaDiscrete,
-  },
+  data: { type: 'init', waveRom: new Uint8Array(0x100), clock: 96_000, refresh: 60 },
 });
 processor.port.onmessage?.({
   data: {
     type: 'batch',
-    writes: [
-      { offset: 0, data: 0x0f, frac: 0, method: 'discrete' },
-      { offset: 0, data: 0, frac: 0.5, method: 'discrete' },
-    ],
+    writes: Array.from({ length: 800 }, () => ({ offset: 48_000, data: 0.25, frac: 0, method: 'stream.pcm' })),
   },
 });
 const workletSamples = new Float32Array(800);
@@ -204,7 +162,7 @@ for (let offset = 0; offset < workletSamples.length; offset += 128) {
 }
 assert.ok(
   workletSamples.some(sample => sample !== 0),
-  'generated WSG worklet must preserve timestamped 54XX transitions',
+  'generated WSG worklet must play the streams mixed beside it',
 );
 
 const ayPlan = compileAy8910(mameSrc, {
@@ -225,15 +183,6 @@ assert.equal(ayPlan.mosfet.kn.length, 16);
 assert.equal(ayPlan.outputFlags.AY8910_LEGACY_OUTPUT, 1);
 assert.equal(ayPlan.outputFlags.AY8910_RESISTOR_OUTPUT, 8);
 assert.deepEqual(ayPlan.filterTypes, { lowpass3r: 0, lowpass: 2, highpass: 3, ac: 4 });
-const taitosjReference = compileDiscreteDacReferenceLevels(
-  mameSrc,
-  'src/mame/taito/taitosj.cpp',
-  'taitosj_dacvol_discrete',
-);
-assert.equal(taitosjReference?.length, 256);
-assert.equal(taitosjReference?.[0], 0);
-assert.ok(Math.abs((taitosjReference?.[255] ?? 0) - 1) < 1e-12);
-
 const msmPlan = compileMsm5205(mameSrc, {
   ...definition,
   type: 'MSM5205',
@@ -283,7 +232,6 @@ const ayModule = await import(
       target: string;
       writeMethods: string[];
     }[],
-    discreteMixer?: unknown,
     deviceTags?: string[],
   ) => { write(offset: number, data: number, method?: string): void; sample(): number };
   GeneratedAy8910FrameRenderer: new (
@@ -392,7 +340,6 @@ const gainControlled = new ayModule.GeneratedAy8910Mixer(
   48_000,
   [{ chip: 0, channel: 0, gain: 1, target: 'speaker' }],
   [],
-  undefined,
   ['ay1'],
 );
 gainControlled.write(0, 16);
@@ -410,7 +357,6 @@ const allOutputs = new ayModule.GeneratedAy8910Mixer(
   48_000,
   [0, 1, 2].map(channel => ({ chip: 0, channel, gain: 1, target: 'speaker' })),
   [],
-  undefined,
   ['ay1'],
 );
 allOutputs.write(2, 16);
@@ -510,58 +456,4 @@ assert.ok(
   Math.abs(integrated[0]! - dacBaseline[0]!) < 0.01,
   `sub-sample DAC writes must integrate instead of aliasing (${integrated[0]})`,
 );
-const fullReference = dacRenderer.render([
-  { offset: 0, data: 0xff, frac: 0, method: 'dac.data_w' },
-]);
-dacMixer.write(0, 0x80, 'dac.reference_w');
-const halfReference = dacRenderer.render([]);
-assert.ok(
-  Math.abs(halfReference[0]!) < Math.abs(fullReference[0]!) * 0.6,
-  'the generated DAC reference input must control output amplitude',
-);
-
-// BurgerTime's network carries an op-amp band-pass, an op-amp mixer and two
-// CR filters, so it lowers node by node in MAME's own step order.
-const btimeDiscrete = compileDiscreteMixer(mameSrc, 'src/mame/dataeast/btime.cpp', 'btime_sound_discrete');
-assert.ok(btimeDiscrete?.graph, 'btime_sound_discrete must lower as a discrete graph');
-assert.deepEqual(
-  btimeDiscrete.graph.map(node => node.op),
-  [
-    'stream', 'stream', 'stream', 'stream', 'stream', 'stream',
-    'adder', 'adder', 'multiply', 'opAmpFilter', 'mixer', 'crFilter', 'crFilter', 'output',
-  ],
-);
-assert.deepEqual(btimeDiscrete.graph[9], {
-  op: 'opAmpFilter', node: 30, enable: { value: 1 }, inputs: [{ node: 4 }, { value: 0 }],
-  filterType: 'bandPass1M', r1: 5000, r2: 0, r3: 10000, rF: 47000, c1: 6.8e-8, c2: 6.8e-8,
-  vRef: 0, vMax: 3.5, vMin: -5,
-});
-const btimeMixer = btimeDiscrete.graph[10];
-assert.ok(btimeMixer?.op === 'mixer');
-assert.equal(btimeMixer.mixerType, 'opAmp');
-assert.deepEqual([btimeMixer.rF, btimeMixer.cF, btimeMixer.gain], [10000, 1.5e-10, 1]);
-assert.equal(btimeDiscrete.graph[13]?.op === 'output' && btimeDiscrete.graph[13].gain, 32767 / 5 * 35);
-const btimeNetwork = new ayModule.GeneratedAy8910Mixer(
-  1_500_000,
-  2,
-  48_000,
-  Array.from({ length: 6 }, (_, input) => ({
-    chip: input >= 3 ? 1 : 0,
-    channel: input % 3,
-    gain: 1,
-    target: 'discrete',
-    targetInput: input,
-  })),
-  [],
-  btimeDiscrete,
-);
-btimeNetwork.write(16 + 0, 0x40);
-btimeNetwork.write(16 + 7, 0x3e);
-btimeNetwork.write(16 + 8, 0x0f);
-const toned = Array.from({ length: 4800 }, () => btimeNetwork.sample());
-assert.ok(toned.some(sample => Math.abs(sample) > 0.01), 'a tone into the band-pass input must be heard');
-btimeNetwork.write(16 + 8, 0);
-for (let index = 0; index < 48_000; index++) btimeNetwork.sample();
-assert.ok(Math.abs(btimeNetwork.sample()) < 1e-4, 'the output CR filters must settle to zero');
-
 console.log('audio-compiler.spec: generated audio cores passed');

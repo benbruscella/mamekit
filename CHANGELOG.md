@@ -30,6 +30,27 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Discrete sound circuits play from MAME's own tables ([#236](https://github.com/benbruscella/mamekit/issues/236))
+
+**For players:** Eighteen machines with analog sound circuits now play them as MAME does: Asteroids, Battlezone, Bump 'n' Jump, Burger Time, Donkey Kong, Donkey Kong Jr., Elevator Action, Galaga, Galaxian, Gyruss, Jungle King, Moon Patrol, Phoenix, Pole Position, Qix, Space Invaders, Traverse USA and Xevious. Battlezone now has its engine, shell and explosion sounds; before, only its POKEY played. Xevious's attract mode was silent and now plays. Galaxian, Space Invaders and Battlezone were 40 dB or more from MAME with no input and are now within 2 dB. Pole Position, Donkey Kong and Donkey Kong Jr. come within 0.1 dB with contract input. Phoenix's level now matches, but its 250 and 500 Hz bands are still 9 to 14 dB low.
+
+**Under the hood:**
+- `DISCRETE` is compiled whole from `discrete.cpp`, its `disc_*.hxx` node classes (only the preprocessed source has them) and the drivers' own custom nodes. Each board's table is lowered as data from the driver (`src/mame/static-aggregate.ts`) and handed to the device as `set_intf` configuration.
+- A stream routed into another one is its input. Battlezone's POKEY feeds the table's `DISCRETE_INPUTX_STREAM`, and the mixer answers `stream.get(input, n)` output by output.
+- A chip routed into a stream device, or out of one, renders on that machine as its MAME class compiled whole (`devices/<type>.stream.ts`). This covers the AY-3-8910s and MSM5205s on Bump 'n' Jump, Burger Time, Gyruss, Moon Patrol and Traverse USA, and the DAC whose range Elevator Action's and Jungle King's `dacvol` table sets. Every other board keeps its worklet.
+- Galaxian's and Space Invaders' sound boards compile as generic devices holding the board's own DISCRETE. The SN76477, TMS36xx and Phoenix's effects board are stream devices.
+- The hand models are gone: `discrete-effects`, `discrete-dac`, `phoenix-audio-compiler.ts`, `discrete-counter-lfsr` and `discrete-sn76477`, the Namco 54xx/52xx filter cores, the AY worklet's discrete mixer, the DAC reference levels, and the `discrete` sound kind.
+- The mono fold is the mean of every speaker channel (Pole Position has four), a stream's `put()` keeps each output, and `ALL_OUTPUTS` from a stream device sums all of them.
+- Device compiler gaps fixed on the way: constructors whose parameters default in the header, inline constructors, and classes a macro declares (`DAC_GENERATOR`); function-pointer members; vectors sized by their constructor; tables zero-padded to their declared length; pointer-to-table tables; table entries that are macros; and qualified enumerators in machine configuration.
+- The compiled tables run fast enough for the slowest CI runners. The stream mix renders when 256 samples are due and at each frame end, not on every CPU slice. A device still renders whenever it updates itself, so each frame keeps its samples and only frame-edge timing moves: 29 audio goldens change by under 0.06 dB, and Galaga by 0.2 dB, toward MAME.
+- Several codegen changes help too:
+  - each emitted method gets its own dereference helper, so it sees only its own pointer shapes rather than every method's;
+  - a range-for reads its element once an iteration;
+  - a struct-pointer local hoists its pointee;
+  - a void method's result no longer also asks the container.
+- On the development Mac, Donkey Kong goes from 50 to 104 fps, Gyruss from 19 to 84, Space Invaders to 91, and Elevator Action from 12 to 62.
+- Against the `adc376b9` MAME 0.289 baseline, pixels and RAM are `same` on all 18 machines. #236 explains each audio measure that reads worse, or leaves it open: Phoenix's bands and some contract onsets.
+
 ### Every sound family plays at MAME's level, from its routes ([#234](https://github.com/benbruscella/mamekit/issues/234))
 
 **For players:** Most machines change level, and most now match MAME: with contract input, 51 of 70 measured scenarios are within 1 dB, up from 8. Many get louder, some by a lot: Frogger and Scramble by about 16 dB, Moon Patrol by 13. Some get quieter: Joust and Defender by about 6 dB, NES games by about 4. Frogger, Scramble, 1942, Popeye and Kung-Fu Master now play through their real analog sound circuits, so their filters, and the snare and hi-hat that Kung-Fu Master's AY noise makes, come from the board's own netlist. Gyruss and Moon Patrol play through their discrete networks the same way.

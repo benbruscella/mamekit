@@ -12,7 +12,7 @@
  * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
  */
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
@@ -32,17 +32,13 @@ export interface WorkletCoreConfig {
   /** Resolution, coding and gain of each DAC, lowered from MAME source. */
   readonly dacs?: GeneratedDacChip[];
   readonly routes?: GeneratedAudioRoute[];
-  readonly auxiliary?: GeneratedDacFilterPlan;
   readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   readonly filterChain?: GeneratedBiquadStage[];
-  readonly discreteMixer?: GeneratedDiscreteMixerPlan;
   /** Per AY chip, what its set_flags and set_resistors_load configure. */
   readonly chipOutputs?: GeneratedAyChipOutput[];
   /** The NETLIST_SOUND its routes land in, compiled from MAME's netlist. */
   readonly netlist?: unknown;
-  readonly discreteDac?: GeneratedDiscreteDacPlan;
-  readonly discreteEffects?: GeneratedDiscreteEffectsPlan;
   readonly speakerFilter?: GeneratedSpeakerFilterPlan;
   /** video refresh rate (Hz) — paces the worklet's write scheduler */
   readonly refresh?: number;
@@ -128,14 +124,10 @@ export class AudioOutput {
       clocks: core.clocks,
       dacs: core.dacs,
       routes: core.routes,
-      auxiliary: core.auxiliary,
       auxiliaryDevices: core.auxiliaryDevices,
       filterChain: core.filterChain,
-      discreteMixer: core.discreteMixer,
       chipOutputs: core.chipOutputs,
       netlist: core.netlist,
-      discreteDac: core.discreteDac,
-      discreteEffects: core.discreteEffects,
       refresh: core.refresh,
       debug: core.debug,
     });

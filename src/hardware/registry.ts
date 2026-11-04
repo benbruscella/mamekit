@@ -23,16 +23,6 @@ import {
 } from './ay8910/definition.ts';
 import { extractAy8910 } from './ay8910/extract.ts';
 import {
-  DISCRETE_COUNTER_LFSR_ID,
-  DISCRETE_COUNTER_LFSR_PORTS,
-} from './discrete-counter-lfsr/definition.ts';
-import { extractDiscreteCounterLfsr } from './discrete-counter-lfsr/extract.ts';
-import {
-  DISCRETE_SN76477_ID,
-  DISCRETE_SN76477_PORTS,
-} from './discrete-sn76477/definition.ts';
-import { extractDiscreteSn76477 } from './discrete-sn76477/extract.ts';
-import {
   NAMCO_WSG_ID,
   NAMCO_WSG_MAME_TYPES,
   NAMCO_WSG_PORTS,
@@ -61,7 +51,13 @@ import { extractC64 } from './c64/extract.ts';
 import { SPECTRUM_ID, SPECTRUM_MAME_TYPES, SPECTRUM_PORTS } from './spectrum/definition.ts';
 import { extractSpectrum } from './spectrum/extract.ts';
 import { SPEAKER_ID, SPEAKER_MAME_TYPES, SPEAKER_PORTS } from './speaker/definition.ts';
+import { DISCRETE_ID, DISCRETE_MAME_TYPES, DISCRETE_PORTS } from './discrete/definition.ts';
+import { extractDiscrete } from './discrete/extract.ts';
 import { extractSpeaker } from './speaker/extract.ts';
+import { SN76477_ID, SN76477_MAME_TYPES, SN76477_PORTS } from './sn76477/definition.ts';
+import { extractSn76477 } from './sn76477/extract.ts';
+import { TMS36XX_ID, TMS36XX_MAME_TYPES, TMS36XX_PORTS } from './tms36xx/definition.ts';
+import { extractTms36xx } from './tms36xx/extract.ts';
 import { CASSETTE_ID, CASSETTE_MAME_TYPES, CASSETTE_PORTS } from './cassette/definition.ts';
 import { extractCassette } from './cassette/extract.ts';
 import { FLOPPY_ID, FLOPPY_MAME_TYPES, FLOPPY_PORTS } from './floppy/definition.ts';
@@ -248,6 +244,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     extract: extractSamples,
   },
   {
+    id: DISCRETE_ID,
+    mameTypes: DISCRETE_MAME_TYPES,
+    ports: DISCRETE_PORTS,
+    extract: extractDiscrete,
+  },
+  {
     id: YM2151_ID,
     mameTypes: YM2151_MAME_TYPES,
     ports: YM2151_PORTS,
@@ -271,19 +273,8 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: BERZERK_SOUND_PORTS,
     extract: extractBerzerkSound,
   },
-  // Recognised by shape: their MAME classes are named per driver.
-  {
-    id: DISCRETE_SN76477_ID,
-    mameTypes: [],
-    ports: DISCRETE_SN76477_PORTS,
-    extract: extractDiscreteSn76477,
-  },
-  {
-    id: DISCRETE_COUNTER_LFSR_ID,
-    mameTypes: [],
-    ports: DISCRETE_COUNTER_LFSR_PORTS,
-    extract: extractDiscreteCounterLfsr,
-  },
+  { id: SN76477_ID, mameTypes: SN76477_MAME_TYPES, ports: SN76477_PORTS, extract: extractSn76477 },
+  { id: TMS36XX_ID, mameTypes: TMS36XX_MAME_TYPES, ports: TMS36XX_PORTS, extract: extractTms36xx },
 ];
 
 export { capabilityForType } from './contract.ts';

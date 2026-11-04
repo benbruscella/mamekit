@@ -3880,6 +3880,16 @@ export function normalizeMameExecutionSource(source: string): string {
     '',
   );
 
+  // An object-like #define inside a body names its value from there on:
+  // Phoenix's update_c24 opens with `#define C24 6.8e-6` and three more.
+  for (let define = /^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)[ \t]+([^\n]*)$/m.exec(source); define;
+    define = /^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)[ \t]+([^\n]*)$/m.exec(source)) {
+    const [line, name, value] = define;
+    const after = source.slice(define.index + line.length).replace(new RegExp(`\\b${name}\\b`, 'g'), `(${value!.trim()})`);
+    source = source.slice(0, define.index) + after;
+  }
+  source = source.replace(/^[ \t]*#[ \t]*undef[ \t]+\w+[ \t]*$/gm, '');
+
   // C++ attributes (`[[maybe_unused]] int endskip`) change no behaviour.
   source = source.replace(/\[\[\s*\w+(?:::\w+)?(?:\([^)]*\))?\s*\]\]\s*/g, '');
 
@@ -3940,6 +3950,13 @@ export function normalizeMameExecutionSource(source: string): string {
       /\bmake_unique_clear\s*<\s*([A-Za-z_][A-Za-z_0-9:]*)\s*\[\s*\]\s*>\s*\(/g,
       (_, type: string) => `${allocIntrinsic(type)}(`,
     )
+    // <cmath>'s HUGE_VAL is a double's infinity, which C spells 1.0 / 0.0 and
+    // a JSON IR cannot hold as a literal: discrete's transform node starts
+    // its stack's top at it.
+    .replace(/\bHUGE_VAL\b/g, '(1.0 / 0.0)')
+    // An array of pointers holds objects, not bytes: DISCRETE indexes its
+    // nodes in `make_unique_clear<discrete_base_node * []>(DISCRETE_MAX_NODES)`.
+    .replace(/\b(?:std::)?make_unique(?:_clear)?\s*<\s*(?:const\s+)?[\w:]+\s*\*\s*\[\s*\]\s*>\s*\(/g, 'ALLOC_OBJECTS(')
     .replace(/\bmake_unique_clear\s*<[^>]*\[\]>\s*\(/g, 'ALLOC(')
     // A local constructed with a size holds that many value-initialized
     // elements, of its own kind (the device runtime's VECTOR_OF), rather than
@@ -3957,7 +3974,13 @@ export function normalizeMameExecutionSource(source: string): string {
       /\bstd::vector\s*<[^;{}>]+>\s+(\w+)\s*;/g,
       'auto $1 = ARRAY();',
     )
-    .replace(/\.push_back\s*\(/g, '.push(');
+    .replace(/\.push_back\s*\(/g, '.push(')
+    // A move hands over its operand, which is all a value here is:
+    // `m_buffers.emplace_back(std::move(buf))`.
+    .replace(/\bstd::move\s*\(/g, '(')
+    // Built in place or copied in, a vector's new last element is the same:
+    // discrete's tasks buffer their outputs with `emplace_back(std::move(buf))`.
+    .replace(/\.emplace_back\s*\(/g, '.push(');
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {

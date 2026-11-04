@@ -47,6 +47,10 @@ const NO_EFFECT_METHODS = new Set([
   'save_restore',
   // Cabinet coin meters: an electromechanical counter, not machine state.
   'coin_counter_w',
+  // DISCRETE's log, a variadic template that hands discrete_vlog its
+  // arguments, through the device itself or a node's `m_device`;
+  // discrete_vlog writes only when DISCRETE_DEBUGLOG, which is 0.
+  'discrete_log',
 ]);
 
 /**

@@ -53,7 +53,12 @@ export function preprocessedDeviceTransform(
     },
   });
   const entry = join(mameSrc, options.entry);
-  const expanded = preprocessor.run(entry, readFileSync(entry, 'utf8'));
+  // A macro may paste a qualified name with space around its `::`:
+  // discrete.h defines every node method as
+  // `DISCRETE_CLASS_NAME(_class) :: _func`, which the source readers would
+  // not take for a definition. The spacing means nothing to C++.
+  const expanded = preprocessor.run(entry, readFileSync(entry, 'utf8'))
+    .replace(/\b(\w+)[ \t]+::[ \t]*(?=[A-Za-z_~])|\b(\w+)::[ \t]+(?=[A-Za-z_~])/g, (_all, left?: string, right?: string) => `${left ?? right}::`);
   const enumSource = [...(options.enumHeaders ?? []).map(header => readFileSync(join(mameSrc, header), 'utf8')), expanded].join('\n');
   const constants = parseEnumConstants(enumSource, {});
   // A scoped enumerator is spelled with its enum's name (`addr_mode::DI`), and

@@ -21,29 +21,9 @@ export const galaga = sourceTarget({
     { atFrame: 1250, code: 'Space', heldFrames: 10, releasedFrames: 10 },
     { atFrame: 1350, code: 'Space', heldFrames: 10, releasedFrames: 10 },
   ],
-  // The 54xx boot boom at the end of the self-test starts at frame 715, the
-  // frame MAME 0.289's own -wavwrite starts it on (#184). It comes before any
-  // input, so it is the same on both sides; the explosion this guarded at
-  // frame 2456 belonged to how the scripted play happened to run.
-  audioRequirements: [
-    {
-      method: 'discrete',
-      fromFrame: 660,
-      toFrame: 714,
-      minimumNonzeroWrites: 0,
-      maximumNonzeroWrites: 0,
-    },
-    {
-      method: 'discrete',
-      fromFrame: 715,
-      toFrame: 730,
-      minimumNonzeroWrites: 100,
-    },
-  ],
-  // The checkpoint state hashes from frame 900 on record a maincpu cycle/PC
-  // shift of a few cycles, from fixing NMI delivery: releasing the Namco 06xx
-  // NMI used to fall through and clear maincpu's IRQ0 as well. Every video and
-  // audio hash is unchanged, so no frame or sample moved.
+  // The 54xx's noise is heard through galaga_discrete, compiled from MAME
+  // source and mixed beside the WSG (#236); the boot boom at the end of the
+  // self-test starts on frame 715, as MAME 0.289's own -wavwrite does.
   golden: {
     regions: {
       '51xx:mcu': 'c2f57ef8',
@@ -57,23 +37,23 @@ export const galaga = sourceTarget({
       sub2: '6d220ddd',
     },
     checkpoints: {
-      1: { video: '967206d7', state: 'a74b01ec' },
-      300: { video: '8fa90953', state: 'abac4fb5' },
-      720: { video: '972b5194', state: '60d64dec' },
-      760: { video: '21864713', state: 'b8c61f31' },
-      900: { video: 'd4ed5a0c', state: '3c6db965' },
-      1050: { video: 'a73831d1', state: 'cdeb2335' },
-      1300: { video: '58820032', state: '5ce89c60' },
-      1600: { video: '561a18f2', state: '37066f24' },
-      2456: { video: '1d4c9f1b', state: '2242bb22' },
-      2600: { video: '2baad20f', state: 'ed929572' },
+      1: { video: '967206d7', state: '43bc1d11' },
+      300: { video: '8fa90953', state: '00c312cc' },
+      720: { video: '972b5194', state: '4e66eeac' },
+      760: { video: '21864713', state: 'c3bd5fde' },
+      900: { video: 'd4ed5a0c', state: 'bc2c2dd3' },
+      1050: { video: 'a73831d1', state: 'd059517a' },
+      1300: { video: '58820032', state: '633e7767' },
+      1600: { video: '561a18f2', state: 'e4a31f7a' },
+      2456: { video: '1d4c9f1b', state: '908d2c8d' },
+      2600: { video: '2baad20f', state: 'fa780800' },
     },
     audio: {
-      writes: 552031,
-      nonzeroWrites: 32371,
-      writeHash: '1396bdd5',
-      pcmHash: 'dc9bc918',
-      rms: 0.079077,
+      writes: 2130924,
+      nonzeroWrites: 2079627,
+      writeHash: '234194c7',
+      pcmHash: 'd49fed94',
+      rms: 0.091256,
     },
   },
 });

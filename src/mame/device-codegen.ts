@@ -52,6 +52,25 @@ export interface CodegenScope {
 
 interface EmitContext {
   dereferencedParameters?: Map<string, string>;
+  /**
+   * Struct-pointer locals only ever set by a plain `=`, each with its pointee
+   * read once per assignment: the AY-3-8910's `tone = &m_tone[chan]` is read
+   * through a dozen times a sample, five chips at 224 kHz on Gyruss.
+   */
+  dereferencedLocals?: Map<string, string>;
+  /**
+   * The element a range-for stands for, read once an iteration: the IR spells
+   * the loop variable `__range0[__range0_index]` everywhere it is used, and
+   * DISCRETE's per-sample `step_nodes` read each one five times.
+   */
+  rangeElements?: Map<string, string>;
+  /**
+   * Temporaries the method declares once, for an expression that has to hold
+   * a value between two uses: a postfix `p++`'s previous value, and the object
+   * a member call reads twice. Each used to be a closure built per evaluation.
+   * Shared with a lambda's context, so the method declares them all.
+   */
+  temps?: { count: number };
   definition: CodegenScope;
   boardScope: boolean;
   compiled: Set<string>;
@@ -105,6 +124,8 @@ interface Target {
   valueType?: string;
   bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
+  /** A field `+=` steps as a pointer would: its type is one, or unknown. */
+  pointerArithmetic?: boolean;
 }
 
 const SAFE_BINARY_OPERATORS = new Set([
@@ -234,7 +255,14 @@ export function generatedDeviceMethodsSource(
     .filter(method => codegenWrappedParameters(method).length === 0)
     .map(method =>
       `${JSON.stringify(method.name)}: method_${safeName(method.name)}`).join(',\n    ');
+  // std::min and std::max as <algorithm> defines them: the first argument
+  // unless the second compares less (or greater). Math.min answers NaN for a
+  // NaN argument where C++ answers the other one -- DISCRETE's RC integrator
+  // clamps a 0/0 that way on every discharging sample.
+  const operand = typescript ? ': number' : '';
   const source = `(() => {
+  const cppMin = (a${operand}, b${operand}) => (b < a ? b : a);
+  const cppMax = (a${operand}, b${operand}) => (a < b ? b : a);
 ${[...constantTables].map(([values, name]) => `  const ${name} = [${values}];`).join('\n')}
 ${[...structCopiers.values()].join('\n')}
 ${functions}
@@ -710,6 +738,7 @@ function emitMethod(
     constantTables,
     structCopiers,
     links: new Set<string>(),
+    temps: { count: 0 },
   };
   context.dereferencedParameters = new Map(parameters.filter(parameter =>
     parameter.valueType.includes('*') &&
@@ -717,6 +746,11 @@ function emitMethod(
     !assignsIdentifier(method.program.operations, parameter.name))
     .map(parameter => [parameter.name, `__pointee_${safeName(parameter.name)}`]));
   collectLocals(method.program.operations, context);
+  context.dereferencedLocals = new Map([...context.locals].filter(([name, valueType]) =>
+    !parameters.some(parameter => parameter.name === name) && Boolean(valueType?.includes('*')) &&
+    Boolean(definition.structs?.[valueType!.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim()]) &&
+    plainlyAssigned(method.program.operations, name))
+    .map(([name]) => [name, `__pointee_${safeName(name)}`]));
   const annotation = typescript ? ': any' : '';
   // A C++ default argument stands in when an emitted caller leaves it out,
   // as the interpreter's own defaults do (see cppDefaultArgument).
@@ -738,10 +772,57 @@ function emitMethod(
   // harness, or an older host), so the emitted code never depends on it.
   for (const name of context.links ?? []) links.add(name);
   const linked = context.links?.size ? '\n    const __l = runtime.links ?? runtime.calls;' : '';
-  return `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
-    const members = runtime.members;${linked}
+  const temps = context.temps?.count
+    ? `\n    let ${Array.from({ length: context.temps.count }, (_unused, index) => `__t${index}${annotation}`).join(', ')};`
+    : '';
+  const emitted = `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
+    const members = runtime.members;${linked}${temps}
 ${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
 ${hoisted}${hoisted ? '\n' : ''}${body}${returned}
+  }`;
+  // `*p` through a copy of its own: V8 keeps one feedback vector a function,
+  // so a single shared dereference saw every object shape of every method
+  // and probed each megamorphically (a quarter of DISCRETE's time). This one
+  // sees only this method's pointers; any other shape still goes to the host.
+  // `p + n` the same way: DISCRETE steps every buffer pointer each sample.
+  let source = emitted;
+  let helpers = '';
+  if (source.includes('runtime.add(')) {
+    const add = `__add_${safeName(method.name)}`;
+    source = source.replaceAll('runtime.add(', `${add}(runtime, `);
+    helpers += `
+  function ${add}(runtime${annotation}, a${annotation}, b${annotation})${annotation} {
+    if (typeof a === 'number' && typeof b === 'number') return a + b;
+    if (a !== null && typeof a === 'object' && a.generatedPointer === true && a.target === undefined && typeof b === 'number') {
+      return { generatedPointer: true, source: a.source, offset: a.offset + b };
+    }
+    return runtime.add(a, b);
+  }`;
+  }
+  if (source.includes('runtime.addressOf(')) {
+    const address = `__addr_${safeName(method.name)}`;
+    source = source.replaceAll('runtime.addressOf(', `${address}(runtime, `);
+    helpers += `
+  function ${address}(runtime${annotation}, v${annotation}, i${annotation})${annotation} {
+    if (Array.isArray(v) || ArrayBuffer.isView(v)) return { generatedPointer: true, source: v, offset: i };
+    return runtime.addressOf(v, i);
+  }`;
+  }
+  if (!source.includes('runtime.dereference(')) return `${source}${helpers}`;
+  const helper = `__deref_${safeName(method.name)}`;
+  return `${source.replaceAll('runtime.dereference(', `${helper}(runtime, `)}${helpers}
+  function ${helper}(runtime${annotation}, p${annotation})${annotation} {
+    if (p !== null && typeof p === 'object') {
+      if (p.generatedPointer === true) {
+        if (p.target === undefined) {
+          const read = p.source[p.offset];
+          if (read !== undefined && read !== null) return read;
+        }
+      } else if (!Array.isArray(p) && !ArrayBuffer.isView(p)) {
+        return p;
+      }
+    }
+    return runtime.dereference(p);
   }`;
 }
 
@@ -781,14 +862,17 @@ function emitOperation(
       return `${pad}let ${localName(operation.name)}${annotation} = ` +
         `((value) => Object.assign(Object.create(Object.getPrototypeOf(value)), value))(${value});`;
     }
+    const pointee = context.dereferencedLocals?.get(operation.name);
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
         ? (context.plainArrayLocals?.has(operation.name) ? value : wrapAllocatedArray(value, operation.valueType))
         : wrapType(value, operation.valueType)
-    };`;
+    };${pointee ? ` let ${pointee}${annotation} = runtime.dereference(${localName(operation.name)});` : ''}`;
   }
   if (operation.op === 'assign') {
-    return `${pad}${emitAssignment(operation.target, operation.operator, operation.value, context)};`;
+    const pointee = operation.target.kind === 'identifier' ? context.dereferencedLocals?.get(operation.target.name) : undefined;
+    return `${pad}${emitAssignment(operation.target, operation.operator, operation.value, context)};` +
+      (pointee ? ` ${pointee} = runtime.dereference(${localName((operation.target as { name: string }).name)});` : '');
   }
   if (operation.op === 'call') {
     return `${pad}${emitExpression(operation.expression, context)};`;
@@ -819,6 +903,29 @@ function emitOperation(
     return lines.filter(Boolean).join('\n');
   }
   if (operation.op === 'for') {
+    const range = rangeLoopElement(operation);
+    if (range) {
+      const element = `${localName(range.sequence)}_item`;
+      const read = emitExpression(range.element, context);
+      const previous = context.rangeElements?.get(range.sequence);
+      (context.rangeElements ??= new Map()).set(range.sequence, element);
+      const body = emitOperations(operation.body, context, indentation + 2);
+      if (previous === undefined) context.rangeElements.delete(range.sequence);
+      else context.rangeElements.set(range.sequence, previous);
+      const initialize = operation.initialize
+        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+        .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
+        .join(', ');
+      const iterate = operation.iterate
+        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+        .join(', ');
+      return [
+        `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
+        `${pad}  const ${element}${context.typescript ? ': any' : ''} = ${read};`,
+        body,
+        `${pad}}`,
+      ].filter(Boolean).join('\n');
+    }
     const initialize = operation.initialize
       .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
       .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
@@ -1237,7 +1344,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // may be a pointer the types cannot show (`it - buf.begin()`).
     if (expression.operator === '-' && !isKnownNumericType(leftType) && !isKnownNumericType(rightType) &&
         (expression.left.kind === 'call' || expression.right.kind === 'call' ||
-          leftType?.includes('*') || rightType?.includes('*') || leftType === 'auto' || rightType === 'auto')) {
+          leftType?.includes('*') || rightType?.includes('*') || leftType === 'auto' || rightType === 'auto' ||
+          // Two fields of no type it can follow: discrete's task counts what a
+          // source has buffered as `linked_outbuf->ptr - sn.ptr`.
+          (leftType === undefined && rightType === undefined &&
+            (expression.left.kind === 'member' || expression.right.kind === 'member')))) {
       return `runtime.subtract(${left}, ${right})`;
     }
     if (expression.operator === '&&' || expression.operator === '||') {
@@ -1318,7 +1429,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // The value before the store, read as any read of the target is: through
     // a reference parameter's get() (ymfm's `lfo_am_counter++` on a
     // `uint16_t &` captured the wrapper, and the AM LFO never moved).
-    return `(() => { const previous = ${emitExpression(expression.target, context)}; ${assignment}; return previous; })()`;
+    const previous = methodTemp(context);
+    return `(${previous} = ${emitExpression(expression.target, context)}, ${assignment}, ${previous})`;
   }
   if (expression.kind === 'conditional') {
     return `((${emitExpression(expression.condition, context)}) ? ` +
@@ -1326,20 +1438,33 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       `(${emitExpression(expression.whenFalse, context)}))`;
   }
   if (expression.kind === 'member') {
-    const pointee = expression.object.kind === 'identifier' && context.dereferencedParameters?.get(expression.object.name);
+    const pointee = expression.object.kind === 'identifier' &&
+      (context.dereferencedParameters?.get(expression.object.name) ?? context.dereferencedLocals?.get(expression.object.name));
     if (pointee) return `${pointee}.${expression.property}`;
     const object = emitExpression(expression.object, context);
     if (allocatedObjectField(expression, context)) return `${object}.$members.${expression.property}`;
+    // Through a struct field every struct that declares it declares as a
+    // pointer to a struct: DISCRETE's `sn.linked_outbuf->node_buf`, an
+    // `output_buffer *` into another task's buffers.
+    if (expression.object.kind === 'member' && structPointerField(expression.object.property, context)) {
+      return `runtime.dereference(${object}).${expression.property}`;
+    }
     // A pointer local of no known struct -- `auto *csect = sect + n` -- may
     // hold a pointer into an array of structs, so `csect->size` reads through
     // it. The D64 loader's sector loop never ended while it read the wrapper.
-    const pointerLocal = expression.object.kind === 'identifier' && context.locals.has(expression.object.name);
+    const pointerLocal = (expression.object.kind === 'identifier' && context.locals.has(expression.object.name)) ||
+      expression.object.kind === 'index';
     return expressionValueType(expression.object, context)?.includes('*') &&
       (structFieldsOf(expression.object, context) || pointerLocal)
       ? `runtime.dereference(${object}).${expression.property}`
       : `${object}.${expression.property}`;
   }
   if (expression.kind === 'index') {
+    if (expression.object.kind === 'identifier' && expression.index.kind === 'identifier' &&
+        expression.index.name === `${expression.object.name}_index`) {
+      const element = context.rangeElements?.get(expression.object.name);
+      if (element) return element;
+    }
     const object = emitExpression(expression.object, context);
     const index = emitExpression(expression.index, context);
     // A declared array *inside a struct* is always the plain JavaScript array
@@ -1435,6 +1560,11 @@ function expressionValueType(
     if (member?.bits && (member.arrayLength !== undefined || member.values !== undefined) && !member.fields) {
       return member.signed ? `s${member.bits}` : `u${member.bits}`;
     }
+    // An element of a vector of pointers is a pointer: discrete's block list
+    // is a `std::vector<const discrete_block *>`, read `block_list[i]->type`.
+    const container = expressionValueType(expression.object, context)?.replace(/&\s*$/, '').trim();
+    const element = container && /^(?:const\s+)?std::vector\s*<\s*([\s\S]+?)\s*>$/.exec(container)?.[1];
+    if (element?.includes('*')) return element;
   }
   if (expression.kind === 'unary' && expression.operator === '&') {
     return `${expressionValueType(expression.operand, context) ?? ''}*`;
@@ -1528,7 +1658,7 @@ function emitCall(
     // through runtime.macro: ymfm clamps every envelope and rate this way.
     if ((name === 'std::min' || name === 'std::max') && args.length === 2 &&
         !context.definition.methods.some(method => method.name === name)) {
-      return `Math.${name.slice(5)}(+(${args[0]}), +(${args[1]}))`;
+      return `${name === 'std::min' ? 'cppMin' : 'cppMax'}(+(${args[0]}), +(${args[1]}))`;
     }
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
@@ -1575,6 +1705,7 @@ function emitCall(
         args,
       );
     }
+    if (name === 'ALLOC_OBJECTS') return `new Array(Math.max(0, Number(${args[0] ?? '0'}))).fill(0)`;
     if (name === 'ARRAY') return `[${args.join(', ')}]`;
     if (name === 'sizeof') {
       const operand = expression.args[0];
@@ -1906,7 +2037,8 @@ function valueMemberCallCode(
   const directObject = finder || /^bitmap_(?:rgb32|ind16|ind8)$/.test(member?.valueType ?? '') ||
     (receiver.kind === 'call' && receiver.callee.kind === 'identifier' &&
       receiver.callee.name === 'space' && Boolean(context.definition.spaces?.length));
-  const access = directObject ? `(${object}).${property}` : `(runtime.dereference(${object})).${property}`;
+  const accessed = directObject ? `(${object})` : `runtime.dereference(${object})`;
+  const access = `${accessed}.${property}`;
   // Resolved device finders expose source methods as functions. They cannot
   // be a pointer into an array or a numeric framework property. A finder the
   // board serves itself -- a hosted MCU, whose `m_cpu->set_input_line` is a
@@ -1949,15 +2081,22 @@ function valueMemberCallCode(
     // The optional call costs nothing when the method is there.
     return args.length
       ? { code: `(${access}?.(${args.join(', ')}) ?? 0)`, generic: { direct: directObject } }
-      : `(${access}?.() ?? runtime.container(${object}, ${JSON.stringify(property)}))`;
+      // A void method answers undefined, which is no reason to ask the
+      // container too: DISCRETE's per-sample `node->step()` did, every call.
+      : (() => {
+          const held = methodTemp(context);
+          return `(${held} = ${accessed}, typeof ${held}.${property} === 'function' ? (${held}.${property}() ?? 0) : ` +
+            `runtime.container(${object}, ${JSON.stringify(property)}))`;
+        })();
   }
   // A MAME memory container answers its own accessors from the container: a
   // `std::unique_ptr<u8[]>` is a plain array at run time, so `m_vram.get()` has
   // no method to call and the pointer it would return *is* the array. Falling
   // through to 0 made the Game Boy PPU fetch every tile from address zero.
+  const held = methodTemp(context);
   return {
-    code: `(typeof ${access} === 'function' ? ${access}() : ` +
-      `typeof ${access} === 'number' || typeof ${access} === 'boolean' ? ${access} : ` +
+    code: `(${held} = ${accessed}, typeof ${held}.${property} === 'function' ? ${held}.${property}() : ` +
+      `typeof ${held}.${property} === 'number' || typeof ${held}.${property} === 'boolean' ? ${held}.${property} : ` +
       `runtime.container(${object}, ${JSON.stringify(property)}))`,
     generic: { direct: directObject },
   };
@@ -2173,7 +2312,7 @@ function emitAssignment(
   // A struct field or member declared with a width is an integer, whatever
   // spelling (if any) the target carries.
   const next = pointerAssignment(target.code, operator, right,
-    target.valueType ?? (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : undefined));
+    target.valueType ?? (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : target.pointerArithmetic ? 'auto*' : undefined));
   if (expression.kind === 'unary' && expression.operator === '*') {
     return `${target.code} = ${next}`;
   }
@@ -2346,6 +2485,67 @@ function usesIdentifier(operations: GeneratedHandlerOperation[], name: string): 
   return used;
 }
 
+/**
+ * A handler-IR range-for (`for (auto &x : seq)`, lowered to an index loop over
+ * `__rangeN`) whose body never stores to the element itself or takes its
+ * address: the element can be read once an iteration. Its fields can still
+ * be written, since it is the same object.
+ */
+function rangeLoopElement(operation: Extract<GeneratedHandlerOperation, { op: 'for' }>):
+  { sequence: string; element: GeneratedExpression } | undefined {
+  const [sequence, counter] = operation.initialize;
+  if (sequence?.op !== 'declare' || !/^__range\d+$/.test(sequence.name)) return undefined;
+  if (counter?.op !== 'declare' || counter.name !== `${sequence.name}_index`) return undefined;
+  const isElement = (expression: GeneratedExpression) =>
+    expression.kind === 'index' && expression.object.kind === 'identifier' && expression.object.name === sequence.name &&
+    expression.index.kind === 'identifier' && expression.index.name === counter.name;
+  let stored = false;
+  visitOperations(operation.body, inner => {
+    if (inner.op === 'assign' && isElement(inner.target)) stored = true;
+    if ((inner.op === 'assign' && inner.target.kind === 'identifier' && [sequence.name, counter.name].includes(inner.target.name)) ||
+        (inner.op === 'declare' && [sequence.name, counter.name].includes(inner.name))) stored = true;
+    visitOperationExpressions(inner, expression => {
+      if (expression.kind === 'assignment' && isElement(expression.target)) stored = true;
+      if (expression.kind === 'unary' && expression.operator === '&' && isElement(expression.operand)) stored = true;
+    });
+  });
+  return stored ? undefined : {
+    sequence: sequence.name,
+    element: { kind: 'index', object: { kind: 'identifier', name: sequence.name }, index: { kind: 'identifier', name: counter.name } },
+  };
+}
+
+function methodTemp(context: EmitContext): string {
+  const temps = context.temps ??= { count: 0 };
+  return `__t${temps.count++}`;
+}
+
+function structPointerField(name: string, context: EmitContext): boolean {
+  const structs = context.definition.structs ?? {};
+  const types = Object.values(structs).flatMap(fields => fields.filter(field => field.name === name).map(field => field.valueType ?? ''));
+  return types.length > 0 && types.every(type =>
+    /\*\s*$/.test(type) && Boolean(structs[type.replace(/\bconst\b/g, '').replace(/\*/g, '').trim()]));
+}
+
+/**
+ * Whether every store to a local is a whole statement `name = value`: no
+ * `++`, no compound or nested assignment, and its address never taken, so
+ * what it points at changes only where such a statement stands.
+ */
+function plainlyAssigned(operations: GeneratedHandlerOperation[], name: string): boolean {
+  let plain = true;
+  visitOperations(operations, operation => {
+    if (operation.op === 'assign' && operation.target.kind === 'identifier' &&
+      operation.target.name === name && operation.operator !== '=') plain = false;
+    visitOperationExpressions(operation, expression => {
+      if (expression.kind === 'assignment' && expression.target.kind === 'identifier' && expression.target.name === name) plain = false;
+      if (expression.kind === 'unary' && expression.operator === '&' &&
+        expression.operand.kind === 'identifier' && expression.operand.name === name) plain = false;
+    });
+  });
+  return plain;
+}
+
 function assignsIdentifier(
   operations: GeneratedHandlerOperation[],
   name: string,
@@ -2454,6 +2654,9 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
         code: `members.${member.name}`,
         bits: member.bits,
         signed: member.signed,
+        // A pointer member steps through the runtime's pointer arithmetic:
+        // discrete's `double_stack` pushes with `*p++ = v`.
+        ...(member.valueType.includes('*') ? { valueType: member.valueType } : {}),
       };
     }
   }
@@ -2471,6 +2674,10 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     return {
       code: emitExpression(expression, context),
       ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),
+      // A pointer field steps by pointer arithmetic, and so does one whose
+      // type it cannot follow (a range-for element's): discrete's tasks read
+      // each buffered source as `sn.buffer = *sn.ptr++`.
+      ...(field?.valueType?.includes('*') || (!field?.bits && !field?.valueType) ? { pointerArithmetic: true } : {}),
     };
   }
   if (expression.kind === 'unary' && expression.operator === '*') {
@@ -2575,7 +2782,7 @@ function narrowed(value: number, element: string): number {
 /** The IR's aggregate producers: a local C array, or a buffer it owns. */
 function allocatesAggregate(value: GeneratedExpression | undefined): boolean {
   return value?.kind === 'call' && value.callee.kind === 'identifier' &&
-    ['ALLOC', 'ALLOC16', 'ALLOC32', 'ALLOCF', 'make_unique_clear', 'ARRAY'].includes(value.callee.name);
+    ['ALLOC', 'ALLOC16', 'ALLOC32', 'ALLOCF', 'ALLOC_OBJECTS', 'make_unique_clear', 'ARRAY'].includes(value.callee.name);
 }
 
 /**

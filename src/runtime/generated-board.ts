@@ -17,6 +17,7 @@ import {
   setGeneratedTimerArmBase,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
+  generatedDeviceKey,
   generatedDeviceDefinition,
   generatedDeviceRole,
   loadSlotCard,
@@ -50,7 +51,6 @@ import {
 } from './generated-handler.ts';
 import {
   HOST_SERVICE_CALLS,
-  DISCRETE_INPUT_CALLS,
   type BoardEffect,
   type BoardIr,
   type GeneratedExecutionCpu,
@@ -725,7 +725,7 @@ class IrBoard implements Board {
     }
     const deviceConstants: Record<string, number> = {};
     for (const specification of machine.devices ?? []) {
-      if (hasGeneratedDevice(specification.type) && generatedDeviceRole(specification.type) !== 'passive-storage') {
+      if (hasGeneratedDevice(generatedDeviceKey(specification)) && generatedDeviceRole(generatedDeviceKey(specification)) !== 'passive-storage') {
         const screenHost = {
           time_until_pos: (position: number, hpos = 0) => {
             this.deviceClockFollowsProcessors = true;
@@ -873,10 +873,17 @@ class IrBoard implements Board {
             m_fixed_layer_bank_type: 0,
           } : {}),
         };
-        const hostBound = startReadsHostBindings(specification.type);
-        const device = createDevice(specification.type, {
+        const hostBound = startReadsHostBindings(generatedDeviceKey(specification));
+        // sound_manager::system_mute, which Space Invaders' sound board sets
+        // from its enable latch: the whole mix, not one device.
+        const systemMute = (mute: unknown) => { this.state.systemSoundMuted = Number(mute) ? 1 : 0; return 0; };
+        const device = createDevice(generatedDeviceKey(specification), {
           clock: specification.clock,
           tag: specification.tag,
+          ...(specification.soundInputs ? { soundInputsMask: specification.soundInputs } : {}),
+          heldChild: (tag: string) => (machine.devices ?? []).some(device =>
+            device.tag === tag && device.hostTag === specification.tag && hasGeneratedDevice(generatedDeviceKey(device)))
+            ? this.deviceHandle(tag) : undefined,
           schedule: run => this.synchronize(run),
           // Every processor runs in the round, hosted MCUs included, except
           // under a perfect quantum (see autonomousProcessors).
@@ -949,13 +956,12 @@ class IrBoard implements Board {
             // MAME's `vector_device` is the display: what a vector generator
             // hands it is presentation, kept as the list the renderer draws.
             if (targetDevice?.type === 'VECTOR') return this.vectorDisplay(screenHost);
-            if (targetDevice?.type === 'DISCRETE') {
-              return {
-                write: (offset: number, data: number) => {
-                  sinks.soundWrite(offset, data, this.soundFraction(), 'discrete');
-                  return 0;
-                },
-              };
+            // A generated device the board holds, found by another device's
+            // finder: the Namco 54xx writes its noise nodes straight into the
+            // board's DISCRETE as `m_discrete->write(...)`.
+            if (targetDevice && hasGeneratedDevice(generatedDeviceKey(targetDevice)) &&
+                !machine.execution.cpus.some(cpu => cpu.tag === tag)) {
+              return this.deviceHandle(tag);
             }
             const cpuSpec = machine.execution.cpus.find(candidate => candidate.tag === tag) ??
               machine.execution.cpus[0];
@@ -1076,6 +1082,7 @@ class IrBoard implements Board {
           calls: {
             screen: () => screenHost,
             ...screenServiceCalls,
+            'machine().sound().system_mute': systemMute,
             exists: () => 1,
             // A tapping device drives a bank the board owns; MAME reaches it
             // through the device's own required_memory_bank finder, which
@@ -3399,6 +3406,9 @@ class IrBoard implements Board {
     };
     return new Proxy({}, {
       get: (_object, property) => {
+        // A finder to a device that exists is a pointer that is not null:
+        // the Hyper Sports sound board tests `m_vlm != nullptr`.
+        if (property === Symbol.toPrimitive) return () => 1;
         if (typeof property === 'symbol' || ['valueOf', 'toString', 'toJSON', 'then', 'stateKeys', 'stateRestored'].includes(property)) {
           return undefined;
         }
@@ -3408,6 +3418,10 @@ class IrBoard implements Board {
             this.deviceInputLine(tag, target(), Number(line), Number(state));
         }
         if (name === 'tag') return () => tag;
+        // A finder re-tagged in machine configuration (the 54xx's
+        // `set_discrete("discrete")`) before the device it names exists: the
+        // board bound this finder to that device already.
+        if (name === 'set_tag' && !this.devices.has(tag)) return () => 0;
         const device = target();
         if (device.methodNames().includes(name)) {
           return device.preparedCall?.(name) ?? ((...args: GeneratedCallArgument[]) => device.invoke(name, ...args));
@@ -3630,14 +3644,6 @@ class IrBoard implements Board {
           : Number(line) || 0;
       return this.deviceInputLine(tag, device, inputLine, Number(state));
     });
-    // Normalize the adjacent MAME discrete nodes (NODE_01..NODE_04) to the
-    // compact four-channel protocol consumed by the generated audio core. The
-    // names are the contract the preprocessor keeps symbolic.
-    for (const [name, input] of Object.entries(DISCRETE_INPUT_CALLS)) host.bindCall(name, () => input);
-    host.bindCall('m_discrete.write', (channel, value) => {
-      sinks.soundWrite(channel, value, this.soundFraction(), 'discrete');
-      return 0;
-    });
     if (host.signalNames().includes('reset')) {
       host.on('reset', state => {
         model.resetHeld = state !== 0;
@@ -3653,6 +3659,7 @@ class IrBoard implements Board {
     this.inFrame = true;
     try {
       this.frameRunner.frame(framebuffer);
+      this.soundRuntime?.endFrame?.();
     } finally {
       this.inFrame = false;
     }
@@ -5492,6 +5499,7 @@ class IrBoard implements Board {
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
       deviceTime: tag => this.roundDeviceSeconds(tag),
+      systemMuted: () => Boolean(this.state.systemSoundMuted),
       bindDeviceCall: (tag, name, callback) => deviceFor(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {
         const device = deviceFor(tag);
@@ -6171,14 +6179,8 @@ class IrBoard implements Board {
           state,
           this.soundFraction(),
         ),
-      audioWrite: (tag, method) => {
-        const symbol = /^write_line_(.+)$/.exec(method)?.[1];
-        const offset = symbol
-          ? this.machine.sound?.writeOffsets?.[symbol] ?? 0
-          : 0;
-        return state =>
-          sinks.soundWrite(offset, state, this.soundFraction(), `${tag}.${method}`);
-      },
+      audioWrite: (tag, method) => state =>
+        sinks.soundWrite(0, state, this.soundFraction(), `${tag}.${method}`),
     };
   }
 }

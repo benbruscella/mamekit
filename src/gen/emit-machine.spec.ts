@@ -438,8 +438,7 @@ const defaultClockDac = lowerAuxiliaryAudioDevices(defaultClockDacGraph, [{
 }]);
 if (
   defaultClockDac[0]?.clock !== 0 ||
-  defaultClockDac[0]?.member !== 'm_dac' ||
-  defaultClockDac[0]?.referenceControl?.member !== 'm_dacvol'
+  defaultClockDac[0]?.member !== 'm_dac'
 ) {
   throw new Error('clockless passive R2R DACs must lower as routed auxiliary streams');
 }

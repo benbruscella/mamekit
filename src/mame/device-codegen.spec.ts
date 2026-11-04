@@ -374,7 +374,7 @@ const pointerAdditionDefinition: GeneratedDeviceDefinition = {
 const pointerAdditionEmitted = generatedDeviceMethodsSource(pointerAdditionDefinition);
 assert.match(
   pointerAdditionEmitted.source,
-  /runtime\.addressOf\(base_ptr, 2\)/,
+  /(?:runtime\.addressOf\(|__addr_\w+\(runtime, )base_ptr, 2\)/,
   'compiled C++ pointer addition must create an offset memory view',
 );
 const pointerAdditionMethods = Function(
@@ -820,7 +820,7 @@ assert.equal(
     }],
   };
   const emitted = generatedDeviceMethodsSource(iterators);
-  assert.match(emitted.source, /runtime\.vectorMethod\(track, "insert", runtime\.addressOf\(/);
+  assert.match(emitted.source, /runtime\.vectorMethod\(track, "insert", (?:runtime\.addressOf\(|__addr_\w+\(runtime, )/);
   const built = new Function(`return ${emitted.source}`)() as
     Record<string, (runtime: unknown, ...args: unknown[]) => unknown>;
   const track = [1, 2, 3];

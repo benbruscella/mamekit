@@ -5,7 +5,7 @@ import {
   type SoundRuntimeHooks,
 } from '../sound-runtime.ts';
 import { STREAM_AUDIO_RATE } from '../speaker/definition.ts';
-import { createStreamMixer } from '../speaker/runtime.ts';
+import { createStreamMixer, streamDeviceSources } from '../speaker/runtime.ts';
 import { MAIN_THREAD_STREAM_DEVICES, pumpStreamDevices } from '../stream-device-pump.ts';
 
 export function installSn76489Runtime(context: SoundRuntimeContext): SoundRuntimeHooks | void {
@@ -46,7 +46,7 @@ export function installSn76489Runtime(context: SoundRuntimeContext): SoundRuntim
   // (Congo Bongo's samples): mixed there and handed to the worklet as one PCM
   // stream.
   const streams = context.sound.streamDevices?.length
-    ? createStreamMixer(context, context.sound.streamDevices.map(device => ({ tag: device.deviceTag, gain: device.gain })),
+    ? createStreamMixer(context, streamDeviceSources(context.sound.streamDevices),
       (sample, frac) => context.soundWrite(STREAM_AUDIO_RATE, sample, frac, 'stream.pcm'))
     : undefined;
   const pumped = pumpStreamDevices(context, MAIN_THREAD_STREAM_DEVICES);
@@ -55,5 +55,6 @@ export function installSn76489Runtime(context: SoundRuntimeContext): SoundRuntim
     state: { streams: streams.state, ...(pumped ? { pumped: pumped.state } : {}) },
     reset: () => { streams.reset?.(); pumped?.reset?.(); },
     tickCpu: (cpu, cycles) => { streams.tickCpu?.(cpu, cycles); pumped?.tickCpu?.(cpu, cycles); },
+    endFrame: () => { streams.endFrame?.(); pumped?.endFrame?.(); },
   };
 }

@@ -24,7 +24,7 @@ export async function createNamcoWsgProbe(
     ),
   ).href) as {
     GeneratedNamcoWsgCore: new (
-      waveRom: Uint8Array, clock: number, auxiliary?: unknown, sampleRom?: Uint8Array,
+      waveRom: Uint8Array, clock: number, sampleRom?: Uint8Array,
     ) => WsgCore;
     GeneratedNamcoWsgFrameRenderer: new (
       core: WsgCore, refresh: number,
@@ -36,7 +36,6 @@ export async function createNamcoWsgProbe(
   const core = new module.GeneratedNamcoWsgCore(
     waveRom,
     context.sound.clock ?? 96_000,
-    context.sound.auxiliary,
     context.sound.sampleRegion ? context.regions[context.sound.sampleRegion] : undefined,
   );
   const native = new module.GeneratedNamcoWsgFrameRenderer(core, context.refresh);

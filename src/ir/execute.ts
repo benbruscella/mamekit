@@ -368,6 +368,14 @@ function generatedLoopLimitError(kind: string, context: ExecutionContext): Error
 }
 
 export const DEFAULT_CONSTANTS: Record<string, number> = {
+  // <atomic>'s std::memory_order, numbered as the standard declares it. On
+  // one thread an ordering changes nothing; DISCRETE's tasks name them.
+  'std::memory_order_relaxed': 0,
+  'std::memory_order_consume': 1,
+  'std::memory_order_acquire': 2,
+  'std::memory_order_release': 3,
+  'std::memory_order_acq_rel': 4,
+  'std::memory_order_seq_cst': 5,
   ASSERT_LINE: 1,
   CLEAR_LINE: 0,
   HOLD_LINE: 2,
@@ -1596,6 +1604,11 @@ function compileFastExpression(
     const view = expression.pointer ? packedCastView(expression.valueType) : undefined;
     if (view !== undefined) return context => packedByteView(operand(context), view);
     const wrap = valueWrapper(expression.valueType);
+    // A pointer cast of a string is the string: `(const char *)custom_data()`.
+    if (expression.pointer) return context => {
+      const value = operand(context);
+      return typeof value === 'string' ? value : wrap(value);
+    };
     return context => wrap(operand(context));
   }
   if (expression.kind === 'binary') {
@@ -1645,6 +1658,7 @@ function compileFastExpression(
           return { generatedPointer: true, source: leftValue, offset: toNumber(rightValue) };
         }
         if (isGeneratedPointer(rightValue)) return offsetPointer(rightValue, toNumber(leftValue));
+        if (isCStringStep(leftValue, rightValue)) return generatedAdd(leftValue, rightValue);
         if (typeof leftValue === 'bigint' || typeof rightValue === 'bigint') {
           return wideBinary('+', leftValue, rightValue);
         }
@@ -2043,6 +2057,8 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.operator === '*') {
       if (isGeneratedPointer(raw)) return pointerValue(raw, 0);
       if (isIndexableMemory(raw)) return indexValue(raw, 0);
+      // A C string's first character, as emitted code reads it.
+      if (typeof raw === 'string') return dereferenceGeneratedValue(raw);
       return raw;
     }
     if (expression.operator === '!') return truthy(raw) ? 0 : 1;
@@ -2055,7 +2071,9 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.pointer && isBytePointerType(expression.valueType)) return generatedByteView(evaluate(expression.operand, context));
     const view = expression.pointer ? packedCastView(expression.valueType) : undefined;
     if (view !== undefined) return packedByteView(evaluate(expression.operand, context), view);
-    return wrapValue(expression.valueType, evaluate(expression.operand, context));
+    const value = evaluate(expression.operand, context);
+    if (expression.pointer && typeof value === 'string') return value;
+    return wrapValue(expression.valueType, value);
   }
   if (expression.kind === 'assignment') {
     const previous = expression.postfix ? evaluate(expression.target, context) : undefined;
@@ -2076,6 +2094,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, toNumber(rightValue));
     }
+    if (expression.operator === '+' && isCStringStep(leftValue, rightValue)) return generatedAdd(leftValue, rightValue);
     if (expression.operator === '+' && isIndexableMemory(leftValue)) {
       return {
         generatedPointer: true,
@@ -2194,6 +2213,9 @@ export function isFloatingExpression(expression: GeneratedExpression): boolean {
   if (expression.kind === 'conditional') {
     return isFloatingExpression(expression.whenTrue) || isFloatingExpression(expression.whenFalse);
   }
+  // A call to a method declared to return float or double, and a struct
+  // field declared one (device-compiler markFloatingNames).
+  if (expression.kind === 'call' || expression.kind === 'member') return Boolean((expression as { floating?: boolean }).floating);
   return false;
 }
 
@@ -2301,11 +2323,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     );
   }
   // C and C++ standard-library primitives MAME device sources rely on.
+  // As <algorithm> defines them: the first unless the second compares less
+  // (greater), so a NaN argument is not the answer the way Math.min makes it.
   if (name === 'std::min') {
-    return Math.min(...args.map(toNumber));
+    return args.map(toNumber).reduce((least, value) => (value < least ? value : least));
   }
   if (name === 'std::max') {
-    return Math.max(...args.map(toNumber));
+    return args.map(toNumber).reduce((most, value) => (most < value ? value : most));
   }
   if (name === 'std::clamp') {
     return Math.min(toNumber(args[2]), Math.max(toNumber(args[1]), toNumber(args[0])));
@@ -2392,6 +2416,8 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOC' || name === 'make_unique_clear') {
     return new Uint8Array(Math.max(0, toNumber(args[0])));
   }
+  // An array of pointers, every one null.
+  if (name === 'ALLOC_OBJECTS') return new Array<unknown>(Math.max(0, toNumber(args[0]))).fill(0);
   // The same allocation at the element width MAME declared.
   if (name === 'ALLOC16') return new Uint16Array(Math.max(0, toNumber(args[0])));
   if (name === 'ALLOC32') return new Uint32Array(Math.max(0, toNumber(args[0])));
@@ -2401,7 +2427,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // `std::abs(m_ampl[c])`, and unbound that sum was 0 and every sample
   // divided by it.
   if (name.startsWith('std::') && ['abs', 'fabs', 'floor', 'ceil', 'pow', 'sqrt', 'exp', 'log', 'log10',
-    'tan', 'atan', 'atan2', 'cos', 'sin'].includes(name.slice(5))) {
+    'tan', 'atan', 'atan2', 'cos', 'sin', 'fmod'].includes(name.slice(5))) {
     return applyGeneratedMacro(name.slice(5) === 'abs' ? 'fabs' : name.slice(5), args);
   }
   if (name === 'abs') return Math.abs(toNumber(args[0]));
@@ -2419,6 +2445,9 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'atan2') return Math.atan2(toNumber(args[0]), toNumber(args[1]));
   if (name === 'cos') return Math.cos(toNumber(args[0]));
   if (name === 'sin') return Math.sin(toNumber(args[0]));
+  // C's fmod keeps the dividend's sign, as JavaScript's % does: discrete's
+  // wave sources wrap their phase with `fmod(phase, 2.0 * M_PI)`.
+  if (name === 'fmod') return toNumber(args[0]) % toNumber(args[1]);
   if (name === 'DEGREE_TO_RADIAN') return toNumber(args[0]) * Math.PI / 180;
   if (name === 'rgb_t') {
     // rgb_t has both (r, g, b) and (a, r, g, b) constructors.  Treating
@@ -2927,8 +2956,13 @@ function evaluateCall(
       if (Array.isArray(object) && (method === 'insert' || method === 'erase')) {
         return generatedVectorMethod(object, method, ...args);
       }
+      // A vector's capacity is the host's business; reserving changes nothing it holds.
+      if (Array.isArray(object) && (method === 'reserve' || method === 'shrink_to_fit')) return 0;
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
+      // `std::unique_ptr<T>::get()` on the object it owns.
+      if (method === 'get' && !args.length && methodValue === undefined && !Array.isArray(object) &&
+          !ArrayBuffer.isView(object) && !isGeneratedPointer(object)) return object;
       // MAME spells every framework accessor as a call, but the runtime models
       // some of those surfaces as plain data: a bitmap's extent is a field on
       // the generated pixmap, not a method. A zero-argument call whose member
@@ -3180,6 +3214,8 @@ function compileAssignmentValue(operator: string): FastAssignmentValue {
   else if (operator === '+=') {
     combine = (current, value) => isGeneratedPointer(current)
       ? offsetPointer(current, toNumber(value))
+      : isCStringStep(current, value)
+        ? generatedAdd(current, value)
       : isIndexableMemory(current)
         ? { generatedPointer: true, source: current, offset: toNumber(value) }
         : apply(toNumber(current), toNumber(value));
@@ -3462,12 +3498,61 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
     // instead, every Game Boy cartridge installed a ROM window over one byte.
     const memory = evaluate(expression, context);
     if (isIndexableMemory(memory) || isGeneratedPointer(memory)) return memory;
+    // The address of an object a call answers is that object:
+    // `pbuf = &m_buffers.back()` in discrete's task setup.
+    if (memory && typeof memory === 'object' && !isLValue(memory) && !isReference(memory)) return memory;
+  }
+  // A field's address names the object it was taken on, once: discrete's
+  // tasks point each node input at `&dest_task.source_list.back().buffer`,
+  // and re-read later every input read whichever source was added last.
+  // A struct's fields lie one after another, and C walks them with the same
+  // pointer: DISCRETE's op-amp oscillator reads its eight resistors with
+  // `r_info_ptr = &info->r1; ... r_info_ptr++`.
+  if (expression.kind === 'member') {
+    const object = memberObject(evaluate(expression.object, context), expression.property);
+    if (object && typeof object === 'object' && !isLValue(object) && !isReference(object) && !isGeneratedPointer(object)) {
+      const fields = object as Record<string, unknown>;
+      const property = expression.property;
+      if (isIndexableMemory(fields[property])) return fields[property];
+      const view = structFieldView(fields);
+      const offset = view.keys.indexOf(property);
+      if (offset >= 0) return { generatedPointer: true, source: view.fields, offset };
+      return {
+        generatedPointer: true,
+        target: { generatedLValue: true, get: () => fields[property] ?? 0, set: (value: unknown) => { fields[property] = value; } },
+        offset: 0,
+      };
+    }
   }
   return {
     generatedPointer: true,
     target: lValue(expression, context),
     offset: 0,
   };
+}
+
+const STRUCT_FIELD_VIEWS = new WeakMap<object, { keys: string[]; fields: ArrayLike<unknown> }>();
+
+/**
+ * A struct's scalar fields as an indexable run, in the order it declares
+ * them: index n reads and writes the nth field. Kept per struct, so every
+ * pointer into it shares one view.
+ */
+function structFieldView(struct: Record<string, unknown>): { keys: string[]; fields: ArrayLike<unknown> } {
+  let view = STRUCT_FIELD_VIEWS.get(struct);
+  if (!view) {
+    const keys = Object.keys(struct);
+    // A real array, so every reader that takes memory takes it.
+    const fields: unknown[] = new Array(keys.length);
+    keys.forEach((key, index) => Object.defineProperty(fields, index, {
+      get: () => struct[key] ?? 0,
+      set: (value: unknown) => { struct[key] = value; },
+      enumerable: true,
+    }));
+    view = { keys, fields };
+    STRUCT_FIELD_VIEWS.set(struct, view);
+  }
+  return view;
 }
 
 function offsetPointer(pointer: GeneratedPointer, offset: number): GeneratedPointer {
@@ -3890,6 +3975,8 @@ function resizeGeneratedMemory(
  * then walks it by the byte.
  */
 export function generatedByteView(value: unknown): unknown {
+  // `(const char *)custom_data()` over a string literal: its C bytes.
+  if (typeof value === 'string') return cString(value);
   const bytes = (memory: unknown): Uint8Array | undefined => {
     const view = memory as Uint16Array;
     return ArrayBuffer.isView(memory) && view.BYTES_PER_ELEMENT > 1
@@ -3923,8 +4010,56 @@ function describeGeneratedTarget(expression: unknown): string {
   return node?.kind ? `<${node.kind}>` : '<unknown>';
 }
 
+/** A C string stepped by a number (`fPTR++`), as opposed to two strings joined. */
+function isCStringStep(left: unknown, right: unknown): boolean {
+  return (typeof left === 'string' && typeof right === 'number') || (typeof right === 'string' && typeof left === 'number');
+}
+
+/** A string's bytes as C holds them, NUL-terminated. */
+function cString(text: string): Uint8Array {
+  const bytes = new Uint8Array(text.length + 1);
+  for (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index) & 0xff;
+  return bytes;
+}
+
+/**
+ * `*pointer` for emitted code: small enough for V8 to inline at every call
+ * site, it answers a pointer into an array and an object that is its own
+ * pointee at once, and hands every other shape to dereferenceGeneratedValue.
+ * DISCRETE reads each node input this way, millions of times a second.
+ */
+export function dereferenceGeneratedFast(value: unknown): unknown {
+  if (value !== null && typeof value === 'object') {
+    if ((value as GeneratedPointer).generatedPointer === true) {
+      if ((value as GeneratedPointer).target === undefined) {
+        const read = ((value as GeneratedPointer).source as ArrayLike<unknown>)[(value as GeneratedPointer).offset];
+        if (read !== undefined && read !== null) return read;
+      }
+    } else if (!Array.isArray(value) && !ArrayBuffer.isView(value)) {
+      return value;
+    }
+  }
+  return dereferenceGeneratedValue(value);
+}
+
 export function dereferenceGeneratedValue(value: unknown): unknown {
+  // The common case first, a pointer into an array: every DISCRETE node reads
+  // each input as `*(m_input[n])`, millions of times a second.
+  // Into a plain array its element (a struct, for `tone = &m_tone[chan]`), as
+  // indexValue answers it.
+  if (value !== null && typeof value === 'object' && (value as GeneratedPointer).generatedPointer === true &&
+      (value as GeneratedPointer).target === undefined) {
+    const source = (value as GeneratedPointer).source;
+    if (Array.isArray(source) || ArrayBuffer.isView(source)) {
+      return (source as ArrayLike<unknown>)[(value as GeneratedPointer).offset] ?? 0;
+    }
+  }
   if (ArrayBuffer.isView(value)) return (value as Uint8Array)[0] ?? 0;
+  // An object that is neither a pointer nor memory is its own pointee: a
+  // struct or device a pointer member names (`m_device->`, `info->`).
+  if (value !== null && typeof value === 'object' && (value as GeneratedPointer).generatedPointer !== true && !Array.isArray(value)) return value;
+  // `*text` is its first character; an empty string is its NUL.
+  if (typeof value === 'string') return value.length ? value.charCodeAt(0) & 0xff : 0;
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
   if (isIndexableMemory(value)) return indexValue(value, 0);
   return value;
@@ -3973,6 +4108,10 @@ export function generatedAdd(left: unknown, right: unknown): unknown {
   if (isIndexableMemory(right)) {
     return { generatedPointer: true, source: right, offset: toNumber(left) };
   }
+  // A C string walked by pointer (discrete's transform reads its expression
+  // with `*fPTR++`): its characters, and the NUL that ends them.
+  if (typeof left === 'string' && typeof right === 'number') return { generatedPointer: true, source: cString(left), offset: right };
+  if (typeof right === 'string' && typeof left === 'number') return { generatedPointer: true, source: cString(right), offset: left };
   if (typeof left === 'bigint' || typeof right === 'bigint') {
     return wideBinary('+', left, right);
   }
@@ -4084,6 +4223,12 @@ export function generatedVectorMethod(container: unknown, method: string, ...arg
 
 export function generatedContainerAccessor(value: unknown, method: string): unknown {
   const held = isLValue(value) ? value.get() : value;
+  // A std::string is a JS string: `siblingtag(tag).c_str()` is the tag itself.
+  if (typeof held === 'string') {
+    if (method === 'c_str' || method === 'data') return held;
+    if (method === 'size' || method === 'length') return held.length;
+    if (method === 'empty') return held.length ? 0 : 1;
+  }
   if (typeof held === 'number') {
     const answered = attotimeSecondsMethod(held, method);
     if (answered !== undefined) return answered;
@@ -4098,6 +4243,8 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
     const member = held && typeof held === 'object'
       ? (held as Record<string, unknown>)[method]
       : undefined;
+    // `std::unique_ptr<T>::get()` on an object it owns: the object.
+    if (method === 'get' && member === undefined && held && typeof held === 'object') return held;
     return member !== undefined && typeof member !== 'function' ? member : 0;
   }
   const length = pointer
@@ -4127,6 +4274,16 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
     held.length = 0;
     return 0;
   }
+  // std::vector's ends: DISCRETE takes each node it builds back with
+  // `*m_node_list.back()`, and its tasks with `task_list.back().get()`.
+  if (method === 'back' || method === 'front') {
+    const index = method === 'back' ? length - 1 : 0;
+    return pointer ? (held.source as ArrayLike<unknown>)[held.offset + index] ?? 0 : (held as ArrayLike<unknown>)[index] ?? 0;
+  }
+  if (method === 'pop_back' && Array.isArray(held)) {
+    held.pop();
+    return 0;
+  }
   return 0;
 }
 
@@ -4144,10 +4301,16 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
  * struct. ymfm renders `output->clear()` with `output` still the caller's
  * `output_data output[256]`.
  */
+/** A std::vector's own members, which a vector of structs answers itself. */
+const CONTAINER_METHODS = new Set(['size', 'empty', 'back', 'front', 'begin', 'end', 'data', 'clear', 'pop_back', 'resize', 'reserve', 'shrink_to_fit', 'insert', 'erase', 'get']);
+
 function memberObject(value: unknown, property: string): unknown {
   if (isGeneratedPointer(value)) return pointerValue(value, 0);
-  // Not a property the array has itself: a range-for reads `__range.length`.
-  if (Array.isArray(value) && isGeneratedStruct(value[0]) && !(property in value)) return value[0];
+  // Not a property the array has itself: a range-for reads `__range.length`,
+  // and a vector of structs is asked for its own `back()` -- unless the
+  // struct has that member itself, as ymfm's output has its own `clear()`.
+  if (Array.isArray(value) && isGeneratedStruct(value[0]) && !(property in value) &&
+      (!CONTAINER_METHODS.has(property) || property in (value[0] as object))) return value[0];
   return value;
 }
 

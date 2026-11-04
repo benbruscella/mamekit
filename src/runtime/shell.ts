@@ -17,7 +17,7 @@ import { missingMedia, putMedia, recordMedia, transportImage, type TransportImag
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedDacFilterPlan, GeneratedDiscreteDacPlan, GeneratedDiscreteEffectsPlan, GeneratedDiscreteMixerPlan, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes, fetchSampleSetBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
@@ -170,19 +170,15 @@ export interface SoundSpec {
   /** Per-output routes lowered from MAME add_route calls. */
   routes?: GeneratedAudioRoute[];
   /** MAME discrete DAC/filter network mixed with the primary core. */
-  auxiliary?: GeneratedDacFilterPlan;
   /** Source-routed secondary stream devices mixed by the generated worklet. */
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** Total routed gain of the main-thread streams posted beside the owning chip. */
   /** FILTER_BIQUAD stages between the sound core and the board output. */
   filterChain?: GeneratedBiquadStage[];
   /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
-  discreteMixer?: GeneratedDiscreteMixerPlan;
   /** Per AY chip, the load each of its three pins drives (set_resistors_load). */
   chipOutputs?: GeneratedAyChipOutput[];
   netlist?: unknown;
-  discreteDac?: GeneratedDiscreteDacPlan;
-  discreteEffects?: GeneratedDiscreteEffectsPlan;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
   /**
@@ -1348,17 +1344,13 @@ export async function runShell(
         clocks: cfg.sound.clocks,
         dacs: cfg.sound.dacs,
         routes: cfg.sound.routes,
-        auxiliary: cfg.sound.auxiliary,
         auxiliaryDevices: cfg.sound.auxiliaryDevices?.map(device => ({
           ...device,
           ...(device.sampleRegion ? { sampleRom: regions[device.sampleRegion] } : {}),
         })),
         filterChain: cfg.sound.filterChain,
-        discreteMixer: cfg.sound.discreteMixer,
         chipOutputs: cfg.sound.chipOutputs,
         netlist: cfg.sound.netlist,
-        discreteDac: cfg.sound.discreteDac,
-        discreteEffects: cfg.sound.discreteEffects,
         speakerFilter: cfg.sound.speakerFilter,
         refresh: cfg.board.screen.refresh,
         debug: input.debug,

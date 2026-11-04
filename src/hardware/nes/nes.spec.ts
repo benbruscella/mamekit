@@ -128,7 +128,7 @@ assert.match(
   // The fixed array may be indexed directly (and, as nothing rebinds it, read
   // once into a local), but the resulting nametable address must still retain
   // its pointer base and offset.
-  /runtime\.addressOf\(base_ptr, (?:runtime\.readIndex\()?\(?(?:members\.|h_)m_nt_orig\b/,
+  /(?:runtime\.addressOf\(|__addr_\w+\(runtime, )base_ptr, (?:runtime\.readIndex\()?\(?(?:members\.|h_)m_nt_orig\b/,
   'runtime MMC3 mirroring changes must retain offset nametable pointers',
 );
 assert.equal(slotDefinition.role, 'cartridge');

@@ -234,21 +234,19 @@ check('a secondary stream device lowers to an audio write', () => {
   );
 });
 
-check('a discrete latch input lowers to an audio write', () => {
+// A DISCRETE is a generated device like any other: its latch inputs are its
+// own write_line<NODE> methods, not writes the host maps to a worklet.
+check('a discrete latch input lowers to the generated device', () => {
   assert.deepEqual(
     lowerCallbackEffect(
       callback({
         targetTag: 'discrete',
         targetClass: 'discrete_device',
-        targetMethod: 'write_line_DS_SOUND0_INP',
+        targetMethod: 'write_line_1073741832',
       }),
-      { ...context, soundTag: 'discrete' },
+      { ...context, soundTag: 'discrete', deviceTags: new Set([...context.deviceTags, 'discrete']) },
     ),
-    {
-      kind: 'audio-write',
-      tag: 'discrete',
-      method: 'write_line_DS_SOUND0_INP',
-    },
+    { kind: 'device-method', tag: 'discrete', method: 'write_line_1073741832', ownerClass: 'discrete_device' },
   );
 });
 
