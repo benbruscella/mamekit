@@ -579,18 +579,17 @@ export type RomTransform =
       parameters: string;
       program: GeneratedHandlerProgram;
       helpers: { method: string; parameters: string; program: GeneratedHandlerProgram }[];
+      /**
+       * A device's own ROM program (an encrypted Sega Z80's `decrypt()`), run
+       * as that device: `tag()` is its tag, its members hold their configured
+       * values, and a share it names is a region.
+       */
+      device?: {
+        tag: string;
+        members: Record<string, number | string | { region: string }>;
+        shares: Record<string, { region: string; size: number }>;
+      };
       source?: { file: string; line: number; column?: number };
-    }
-  | {
-      kind: 'sega-z80-decrypt';
-      algorithm: 'segacrpt' | 'segacrp2';
-      sourceRegion: string;
-      targetRegion: string;
-      start: number;
-      end: number;
-      convtable?: number[];
-      xorTable?: number[];
-      swapTable?: number[];
     };
 
 /**
@@ -608,9 +607,21 @@ function executeDriverInitProgram(
   const where = transform.source
     ? `${transform.source.file}:${transform.source.line}`
     : transform.method;
+  const device = transform.device;
+  // A share the device names, as a region: MAME allocates it zeroed, the
+  // size of the range the address map shares.
+  const share = (name: string): Uint8Array => {
+    const tag = name.replace(/^:/, '');
+    const shared = device?.shares[tag];
+    if (!shared) throw new Error(`${where}: device ROM program has no share "${tag}"`);
+    regions[shared.region] ??= new Uint8Array(shared.size);
+    return regions[shared.region]!;
+  };
+  const members: Record<string, unknown> = Object.fromEntries(Object.entries(device?.members ?? {})
+    .map(([name, value]) => [name, typeof value === 'object' ? share(value.region) : value]));
   const referenceCalls: Record<string, (...args: unknown[]) => unknown> = {
     memregion: (...args: unknown[]) => {
-      const tag = String(argumentValue(args[0]) ?? '');
+      const tag = String(argumentValue(args[0]) ?? '').replace(/^:/, '');
       const bytes = regions[tag];
       if (!bytes) throw new Error(`${where}: driver init has no ROM region "${tag}"`);
       return { base: () => bytes, bytes: () => bytes.length };
@@ -620,21 +631,29 @@ function executeDriverInitProgram(
       configure_entry: () => 0,
       set_entry: () => 0,
     }),
+    ...(device ? {
+      tag: () => device.tag,
+      memshare: (...args: unknown[]) => {
+        const bytes = share(String(argumentValue(args[0]) ?? ''));
+        return { ptr: () => bytes };
+      },
+    } : {}),
   };
   for (const helper of transform.helpers) {
+    // `const uint8_t convtable[32][4]` is named before its dimensions.
     const names = helper.parameters
       .split(',')
-      .map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+      .map(parameter => /(\w+)\s*(?:\[[^\]]*\]\s*)*$/.exec(parameter.trim())?.[1])
       .filter((name): name is string => Boolean(name));
     referenceCalls[helper.method] = (...args: unknown[]) => executeGeneratedHandler(
       helper.program,
-      { constants: {}, members: {}, referenceCalls },
+      { constants: {}, members, referenceCalls },
       Object.fromEntries(names.map((name, index) => [name, argumentValue(args[index])])),
     );
   }
   executeGeneratedHandler(
     transform.program,
-    { constants: {}, members: {}, referenceCalls },
+    { constants: {}, members, referenceCalls },
   );
 }
 
@@ -788,66 +807,6 @@ export function applyRomTransforms(regions: Regions, transforms: readonly RomTra
     const source = regions[transform.sourceRegion];
     if (!source) {
       throw new Error(`ROM transform has no source region "${transform.sourceRegion}"`);
-    }
-    if (transform.kind === 'sega-z80-decrypt') {
-      if (!source || transform.start < 0 || transform.end < transform.start ||
-          transform.end > source.length) {
-        throw new Error(`Sega Z80 transform for "${transform.sourceRegion}" has invalid bounds`);
-      }
-      const target = source.slice();
-      if (transform.algorithm === 'segacrpt') {
-        if (transform.convtable?.length !== 128) {
-          throw new Error('Sega Z80 transform has no 32x4 conversion table');
-        }
-        for (let address = transform.start; address < transform.end; address++) {
-          const src = source[address]!;
-          const row = (address & 1) | (((address >>> 4) & 1) << 1) |
-            (((address >>> 8) & 1) << 2) | (((address >>> 12) & 1) << 3);
-          let column = ((src >>> 3) & 1) | (((src >>> 5) & 1) << 1);
-          let xor = 0;
-          if (src & 0x80) { column = 3 - column; xor = 0xa8; }
-          const opcodeKey = transform.convtable[2 * row * 4 + column]!;
-          const dataKey = transform.convtable[(2 * row + 1) * 4 + column]!;
-          target[address] = opcodeKey === 0xff
-            ? 0xee : (src & ~0xa8) | (opcodeKey ^ xor);
-          source[address] = dataKey === 0xff
-            ? 0xee : (src & ~0xa8) | (dataKey ^ xor);
-        }
-      } else {
-        if (transform.xorTable?.length !== 128 || transform.swapTable?.length !== 128) {
-          throw new Error('Sega Z80 transform has no 128-entry XOR/swap tables');
-        }
-        const swaps = [
-          [6, 4, 2, 0], [4, 6, 2, 0], [2, 4, 6, 0], [0, 4, 2, 6],
-          [6, 2, 4, 0], [6, 0, 2, 4], [6, 4, 0, 2], [2, 6, 4, 0],
-          [4, 2, 6, 0], [4, 6, 0, 2], [6, 0, 4, 2], [0, 6, 4, 2],
-          [4, 0, 6, 2], [0, 4, 6, 2], [6, 2, 0, 4], [2, 6, 0, 4],
-          [0, 6, 2, 4], [2, 0, 6, 4], [0, 2, 6, 4], [4, 2, 0, 6],
-          [2, 4, 0, 6], [4, 0, 2, 6], [2, 0, 4, 6], [0, 2, 4, 6],
-        ];
-        const decode = (value: number, tableIndex: number, xor: number): number => {
-          const bits = swaps[tableIndex]!;
-          return (((((value >>> 7) & 1) << 7) |
-            (((value >>> bits[0]!) & 1) << 6) |
-            (((value >>> 5) & 1) << 5) |
-            (((value >>> bits[1]!) & 1) << 4) |
-            (((value >>> 3) & 1) << 3) |
-            (((value >>> bits[2]!) & 1) << 2) |
-            (((value >>> 1) & 1) << 1) |
-            ((value >>> bits[3]!) & 1)) ^ xor) & 0xff;
-        };
-        for (let address = transform.start; address < transform.end; address++) {
-          const src = source[address]!;
-          const row = (((address >>> 14) & 1) << 5) |
-            (((address >>> 12) & 1) << 4) | (((address >>> 9) & 1) << 3) |
-            (((address >>> 6) & 1) << 2) | (((address >>> 3) & 1) << 1) |
-            (address & 1);
-          target[address] = decode(src, transform.swapTable[2 * row]!, transform.xorTable[2 * row]!);
-          source[address] = decode(src, transform.swapTable[2 * row + 1]!, transform.xorTable[2 * row + 1]!);
-        }
-      }
-      regions[transform.targetRegion] = target;
-      continue;
     }
     if (
       transform.start < 0 ||

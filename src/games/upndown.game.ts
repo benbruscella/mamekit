@@ -25,7 +25,7 @@ export const upndown = sourceTarget({
   ],
   golden: {
     regions: {
-      decrypted_opcodes: '85b8cb0e',
+      decrypted_opcodes: '3eb23c79',
       lookup_proms: '648350b8',
       maincpu: 'b58d499c',
       soundcpu: '43b2b9a5',

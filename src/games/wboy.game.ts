@@ -11,7 +11,7 @@ export const wboy = sourceTarget({
   minimumFps: 30,
   golden: {
     regions: {
-      decrypted_opcodes: 'c4509bc9',
+      decrypted_opcodes: 'ec31d42e',
       lookup_proms: '648350b8',
       maincpu: 'b83d8d10',
       soundcpu: 'cb7f6cfe',

@@ -1099,17 +1099,34 @@ class HandlerParser {
           this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
           return declarations;
         }
+        // Further dimensions: `static const uint8_t convtable[32][4] = { {...}, ... }`,
+        // each of the Sega Z80 decryptors' key tables.
+        let dimensions = 1;
+        while (this.consume('[')) {
+          if (!this.parseExpression() || !this.consume(']')) {
+            this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
+            return declarations;
+          }
+          dimensions++;
+        }
         const directListInitializer = this.consume('{');
         if (directListInitializer || this.consume('=')) {
           if (!directListInitializer && !this.consume('{')) {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
-          const values = this.parseDelimitedExpressions('}');
-          if (!values) {
+          const parsed = this.parseDelimitedExpressions('}');
+          if (!parsed) {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
+          // A row of a multi-dimensional array is an array, not a struct.
+          const rows = (expression: GeneratedExpression): GeneratedExpression =>
+            expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+              expression.callee.name === 'AGGREGATE'
+              ? { ...expression, callee: { kind: 'identifier', name: 'ARRAY' }, args: expression.args.map(rows) }
+              : expression;
+          const values = dimensions > 1 ? parsed.map(rows) : parsed;
           value = values.length ? {
             kind: 'call',
             callee: { kind: 'identifier', name: 'ARRAY' },

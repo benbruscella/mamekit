@@ -13,9 +13,9 @@ import type { KnowledgeGraph } from '../kg/types.ts';
 
 import { compileMameVideo } from '../mame/video-compiler.ts';
 
-import { compileSegaZ80RomTransform } from '../mame/sega-z80-compiler.ts';
 import { compileDriverRomTransforms } from '../mame/driver-rom-compiler.ts';
-import { compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
+import { compileDeviceRomProgram, compileDriverInitProgram } from '../mame/driver-init-compiler.ts';
 import { hiscoreTable } from '../mame/hiscore-dat.ts';
 
 import type { GenerateOptions } from './generate.ts';
@@ -101,16 +101,28 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
     );
     if (initProgram) romTransforms.push(initProgram as unknown as Record<string, unknown>);
   }
+  // A CPU that decrypts its own ROM into the opcode share it fetches from:
+  // MAME's encrypted Sega Z80s, whose `decrypt()` runs when they start or reset.
   for (const [index, device] of cpuDevs.entries()) {
     const cpu = cpus[index]!;
     if (!cpu.opcode) continue;
-    const transform = compileSegaZ80RomTransform(
+    const definition = indexMameHardware(opts.mameSrc).get(String(device.props.type));
+    if (!definition) continue;
+    const program = compileDeviceRomProgram(
       opts.mameSrc,
-      String(device.props.type),
-      String(cpu.region),
-      String((cpu.opcode as { region: string }).region),
+      definition,
+      Array.isArray(device.props.config) ? device.props.config.map(String) : [],
+      (() => {
+        const opcode = cpu.opcode as { region: string; ranges: { start: number; end: number; share?: string }[] };
+        const shared = opcode.ranges.find(range => range.share === opcode.region);
+        return {
+          tag: String(cpu.region),
+          opcodeRegion: opcode.region,
+          opcodeSize: shared ? shared.end - shared.start + 1 : 0,
+        };
+      })(),
     );
-    if (transform) romTransforms.push(transform as unknown as Record<string, unknown>);
+    if (program) romTransforms.push(program as unknown as Record<string, unknown>);
   }
   const initialShares = sourceNvramInitializers(devices, opts.mameSrc);
   // The bytes the game keeps its high-score table in, from MAME's own
