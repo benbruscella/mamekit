@@ -25,12 +25,12 @@ export const rocnrope = sourceTarget({
       'timeplt_audio:tpsound': 'f47e6800',
     },
     checkpoints: {
-      1: { video: 'fa7a7abe', state: 'ecfb0dd9' },
-      60: { video: '133dcf53', state: 'a3ec27fc' },
-      300: { video: '0ba4f893', state: 'ba045f35' },
-      540: { video: '5512b739', state: '9dd1dd14' },
-      720: { video: '4205a71e', state: '5b91b433' },
-      1200: { video: '775eb52d', state: 'e58a01ca' },
+      1: { video: 'fa7a7abe', state: '11f8d325' },
+      60: { video: '133dcf53', state: 'a5d3953f' },
+      300: { video: '0ba4f893', state: '5baa34a1' },
+      540: { video: '5512b739', state: '6a370bfe' },
+      720: { video: '4205a71e', state: 'b22877c3' },
+      1200: { video: '775eb52d', state: 'de86f249' },
     },
     audio: {
       writes: 1423,

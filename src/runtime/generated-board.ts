@@ -3013,8 +3013,11 @@ class IrBoard implements Board {
     // MAME's rounds end at the soonest timer, which needs the devices to
     // stand where the processors do, not settled a span of lines ahead of
     // them. Under a perfect quantum every round is already a cycle.
+    // A watchdog kick arms three seconds off; with no other device timer
+    // pending, that aborted Rygar's sound CPU at every kick.
     const armedTimer = (seconds: number): void => {
       if (!(seconds + 1e-9 < this.roundTimerBudget)) return;
+      if (!(seconds < (this.frameRunner?.frameSeconds ?? Infinity))) return;
       this.roundTimerBudget = Math.max(0, seconds - 1e-9);
       this.frameRunner?.requestSynchronize();
     };

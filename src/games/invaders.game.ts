@@ -21,12 +21,12 @@ export const invaders = sourceTarget({
       maincpu: 'eaf1bbdb',
     },
     checkpoints: {
-      1: { video: 'e8273a79', state: '4271c694' },
-      60: { video: '7f097af0', state: 'eb87b1e2' },
-      180: { video: '0f631559', state: 'a6210ae9' },
-      300: { video: '64709a0d', state: '8d316c99' },
-      420: { video: 'e2d8e7f5', state: '0b27b07f' },
-      600: { video: 'a4acf059', state: '882c383c' },
+      1: { video: 'e8273a79', state: 'e8b00997' },
+      60: { video: '7f097af0', state: '96484e81' },
+      180: { video: '0f631559', state: '0671f0d3' },
+      300: { video: '64709a0d', state: '62a17953' },
+      420: { video: 'e2d8e7f5', state: '98335664' },
+      600: { video: 'a4acf059', state: 'd0ac8759' },
     },
     audio: {
       writes: 483692,
