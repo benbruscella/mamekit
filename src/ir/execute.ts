@@ -2981,6 +2981,12 @@ function evaluateCall(
       if (Array.isArray(object) && (method === 'reserve' || method === 'shrink_to_fit')) return 0;
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
+      // A finder member re-pointed by its own setter: `m_screen.set_tag(tag)`
+      // is the device's to rebind, not the found object's.
+      if (method === 'set_tag') {
+        const rebind = context.bindings.calls?.[`${generatedExpressionName(expression.callee.object)}.set_tag`];
+        if (rebind) return rebind(...args.map(callArgument));
+      }
       // `std::unique_ptr<T>::get()` on the object it owns.
       if (method === 'get' && !args.length && methodValue === undefined && !Array.isArray(object) &&
           !ArrayBuffer.isView(object) && !isGeneratedPointer(object)) return object;

@@ -1601,6 +1601,14 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
+        // `m_screen.set_tag(screen_tag)`: a setter re-pointing a device finder
+        // (the watchdog's set_vblank_count) rebinds the member to that tag.
+        ...Object.fromEntries(definition.members
+          .filter(member => member.finder?.kind === 'device' && member.finder.tag !== '^')
+          .map(member => [`${member.name}.set_tag`, (tag: unknown) => {
+            this.members[member.name] = options.finder?.(String(tag), member.name) ?? 0;
+            return 0;
+          }])),
         // A call through a member-function pointer, which holds the method's
         // name (member-pointers.ts): the T-Unit blitter's dma_draw tables.
         CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>

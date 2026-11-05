@@ -3172,9 +3172,12 @@ function compileMethod(
     '',
   );
   // A reference local bound to a framework accessor chain is that chain:
-  // `auto &scheduler = machine().scheduler(); if (scheduler.currently_executing())`.
-  for (const alias of [...body.matchAll(/\bauto\s*&\s*(\w+)\s*=\s*(machine\(\)(?:\s*\.\s*\w+\(\))+)\s*;/g)]) {
-    body = body.replace(alias[0], '').replace(new RegExp(`(?<![\\w.>])${alias[1]}\\s*\\.`, 'g'), `${alias[2]}.`);
+  // `auto &scheduler = machine().scheduler(); if (scheduler.currently_executing())`,
+  // or initialised directly and typed, as the Taito SJ security interface does:
+  // `device_scheduler &sched(machine().scheduler()); sched.synchronize(...)`.
+  for (const alias of [...body.matchAll(/\b[\w:]+\s*&\s*(\w+)\s*(?:=\s*(machine\(\)(?:\s*\.\s*\w+\(\))+)|\(\s*(machine\(\)(?:\s*\.\s*\w+\(\))+)\s*\))\s*;/g)]) {
+    const chain = (alias[2] ?? alias[3])!;
+    body = body.replace(alias[0], '').replace(new RegExp(`(?<![\\w.>])${alias[1]}\\s*\\.`, 'g'), `${chain}.`);
   }
   body = expandStringMacros(body, stringMacros);
   // `space(AS_PROGRAM).cache(m_cprogram13)` binds the accessor to that space:

@@ -885,7 +885,12 @@ class IrBoard implements Board {
             m_fixed_layer_bank_type: 0,
           } : {}),
         };
-        const hostBound = startReadsHostBindings(generatedDeviceKey(specification));
+        // A device whose children the board holds starts once they exist:
+        // MAME starts every device before it resets any, and Elevator Action's
+        // security interface clears its 68705's IRQ line in device_reset.
+        const holdsChildren = (machine.devices ?? []).some(device =>
+          device.hostTag === specification.tag && hasGeneratedDevice(generatedDeviceKey(device)));
+        const hostBound = startReadsHostBindings(generatedDeviceKey(specification)) || holdsChildren;
         // sound_manager::system_mute, which Space Invaders' sound board sets
         // from its enable latch: the whole mix, not one device.
         const systemMute = (mute: unknown) => { this.state.systemSoundMuted = Number(mute) ? 1 : 0; return 0; };
@@ -1095,6 +1100,15 @@ class IrBoard implements Board {
             screen: () => screenHost,
             ...screenServiceCalls,
             'machine().sound().system_mute': systemMute,
+            // The interleave a device asks for itself: the Taito SJ security
+            // interface's ten microseconds after each host write.
+            // A device passes an attotime, not seconds.
+            'machine().scheduler().perfect_quantum': (duration: unknown = 0) => {
+              this.perfectQuantum(duration && typeof duration === 'object' && 'as_double' in duration
+                ? (duration as { as_double(): number }).as_double()
+                : Number(duration) || 0);
+              return 0;
+            },
             exists: () => 1,
             // A tapping device drives a bank the board owns; MAME reaches it
             // through the device's own required_memory_bank finder, which
@@ -2613,7 +2627,6 @@ class IrBoard implements Board {
         device,
         host,
         firmware,
-        sinks,
         specification.member,
       );
       return [{
@@ -3554,7 +3567,6 @@ class IrBoard implements Board {
     device: Device,
     host: Device,
     firmware: Uint8Array,
-    sinks: BoardSinks,
     /** The host's member for this processor: Namco's `m_cpu`, Taito's `m_mcu`. */
     member = 'm_cpu',
   ): () => boolean {
@@ -3562,19 +3574,9 @@ class IrBoard implements Board {
       resetHeld: false,
       ram: new Uint8Array(1 << (device.dataAddressBits() ?? 7)),
     });
+    // Still restated here: the processor's program and data spaces, as its
+    // firmware and a private RAM. Its own address maps should serve both.
     const ram = model.ram;
-    device.bindCall('GETPC', () => (device.get('m_PA') << 6) + device.get('m_PC'));
-    device.bindCall('GETEA', () => (device.get('m_X') << 4) + device.get('m_Y'));
-    device.bindCall('INCPC', () => {
-      const next = device.get('m_PC') + 1;
-      if (next >= 0x40) {
-        device.set('m_PC', 0);
-        device.set('m_PA', device.get('m_PA') + 1);
-      } else {
-        device.set('m_PC', next);
-      }
-      return 0;
-    });
     const readOpcode = (address: number) => firmware[address & (firmware.length - 1)] ?? 0;
     const readData = (address: number) => ram[address & (ram.length - 1)]! & 0x0f;
     const writeData = (address: number, value: number) => {
@@ -3584,31 +3586,8 @@ class IrBoard implements Board {
     device.bindCall('READOP', readOpcode);
     device.bindCall('RDMEM', readData);
     device.bindCall('WRMEM', writeData);
-    // Source macros may lower to the address-space/cache APIs themselves.
-    // Both forms must see the same firmware and private RAM, rather than an
-    // unbound cache returning zero opcodes after macro expansion.
     device.bindMember('m_cache', { read_byte: readOpcode });
     device.bindMember('m_data', { read_byte: readData, write_byte: writeData });
-    for (const [name, member] of [
-      ['TEST_ST', 'm_st'],
-      ['TEST_ZF', 'm_zf'],
-      ['TEST_CF', 'm_cf'],
-      ['TEST_VF', 'm_vf'],
-      ['TEST_SF', 'm_sf'],
-      ['TEST_IF', 'm_if'],
-    ]) {
-      device.bindCall(name!, () => device.get(member!) & 1);
-    }
-    device.bindCall('UPDATE_ST_C', value => device.set('m_st', value & 0x10 ? 0 : 1));
-    device.bindCall('UPDATE_ST_Z', value => device.set('m_st', value === 0 ? 0 : 1));
-    device.bindCall('UPDATE_CF', value => device.set('m_cf', value & 0x10 ? 1 : 0));
-    device.bindCall('UPDATE_ZF', value => device.set('m_zf', value !== 0 ? 0 : 1));
-    device.bindCall('debugger_instruction_hook', () => 0);
-    device.bindCall('standard_irq_callback', () => 0);
-    device.bindCall('fatalerror', () => {
-      throw new Error(`${tag}: generated hosted processor fatalerror`);
-    });
-
     for (const callback of this.machine.callbacks.filter(candidate =>
       candidate.ownerTag === tag && candidate.targetMethod)) {
       if (!host.methodNames().includes(callback.targetMethod!)) continue;
@@ -4276,45 +4255,53 @@ class IrBoard implements Board {
             this.catchUpDeviceTime?.(lag);
             return prepared(...args);
           };
+          // MAME's `address_space &space` first parameter: the accessing
+          // processor's bus, built once for the handler.
+          const spaced = Boolean(parameters[0]?.includes('address_space'));
+          const cpuTag = machine.execution.cpus.find(candidateCpu =>
+            [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(candidate =>
+              candidate.start === range.start &&
+              candidate.end === range.end &&
+              candidate[kind] === key))?.tag ??
+            machine.execution.cpus[0]?.tag;
+          const space = spaced ? {
+            read_byte: (address: number) => (cpuTag ? this.cpuBuses.get(cpuTag) : undefined)?.read(address) ?? 0xff,
+            write_byte: (address: number, value: number) =>
+              (cpuTag ? this.cpuBuses.get(cpuTag) : undefined)?.write(address, value),
+            // What an unmapped read answers: the open bus MAME's spaces default to.
+            unmap: () => 0xff,
+            device: () => ({
+              execute: () => ({
+                adjust_icount: (delta: number) =>
+                  this.adjustGeneratedIcount(cpuTag ?? '', delta),
+              }),
+            }),
+          } : undefined;
           if (kind === 'read') {
-            registry.read[key] = masked
-              ? (_address, offset, memMask = 0xffff) => Number(invoke(offset, memMask)) || 0
-              : arity
-                ? (_address, offset) => Number(invoke(offset)) || 0
-                : () => Number(invoke()) || 0;
+            // `(address_space &space, offs_t offset)`: the Taito SJ security
+            // interface's data_r tells a status poll from a data read by the
+            // offset, which a bare `(offset)` call handed it as the space.
+            registry.read[key] = space
+              ? (_address, offset) => Number(device.invoke(method, space, offset)) || 0
+              : masked
+                ? (_address, offset, memMask = 0xffff) => Number(invoke(offset, memMask)) || 0
+                : arity
+                  ? (_address, offset) => Number(invoke(offset)) || 0
+                  : () => Number(invoke()) || 0;
           } else if (masked) {
             registry.write[key] = (_address, offset, data, memMask = 0xffff) => {
               invoke(offset, data, memMask);
             };
-          } else if (!parameters[0]?.includes('address_space')) {
+          } else if (!space) {
             registry.write[key] = arity <= 1
               ? (_address, _offset, data) => { invoke(data); }
               : (_address, offset, data) => { invoke(offset, data); };
           } else {
-            registry.write[key] = (_address, offset, data) => {
-              const cpuTag = machine.execution.cpus.find(candidateCpu =>
-                [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(candidate =>
-                  candidate.start === range.start &&
-                  candidate.end === range.end &&
-                  candidate.write === key))?.tag ??
-                machine.execution.cpus[0]?.tag;
-              const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
-              const space = {
-                read_byte: (address: number) => bus?.read(address) ?? 0xff,
-                write_byte: (address: number, value: number) =>
-                  bus?.write(address, value),
-                device: () => ({
-                  execute: () => ({
-                    adjust_icount: (delta: number) =>
-                      this.adjustGeneratedIcount(cpuTag ?? '', delta),
-                  }),
-                }),
-              };
-              // `(address_space &space, offs_t offset, u8 data)` as the
-              // Williams blitter's control_w declares it, or `(space, data)`.
-              if (arity >= 3) device.invoke(method, space, offset, data);
-              else device.invoke(method, space, data);
-            };
+            // `(address_space &space, offs_t offset, u8 data)` as the
+            // Williams blitter's control_w declares it, or `(space, data)`.
+            registry.write[key] = arity >= 3
+              ? (_address, offset, data) => { device.invoke(method, space, offset, data); }
+              : (_address, _offset, data) => { device.invoke(method, space, data); };
           }
         }
       }
