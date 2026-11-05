@@ -631,8 +631,10 @@ class IrBoard implements Board {
   private boardSpecificReset?: () => void;
   private readonly peripheralResets: Array<() => void> = [];
   private readonly peripheralTicks: Array<(seconds: number) => void> = [];
-  private watchdogFrames = 0;
-  private watchdogLimitFrames = 0;
+  /** `machine().schedule_soft_reset()`, taken when the frame ends. */
+  private softResetPending = false;
+  /** Delegates devices registered with `screen_device::register_vblank_callback`. */
+  private readonly vblankCallbacks = new Map<string, (screen: unknown, state: number) => unknown>();
   private frameSound?: () => void;
   private readonly inputs: InputPorts;
   private readonly inputLatchPrevious = new Map<string, boolean>();
@@ -818,6 +820,15 @@ class IrBoard implements Board {
             target?.allocate?.(screenHost.width(), screenHost.height());
             return 0;
           },
+          // MAME `screen_device::register_vblank_callback`: the delegate is
+          // called with (screen, state) as VBLANK starts and ends. Keyed by
+          // device and method, as a delegate registers once.
+          register_vblank_callback: (delegate: unknown) => {
+            if (typeof delegate !== 'function') return 0;
+            const method = (delegate as { delegateMethod?: string }).delegateMethod ?? '';
+            this.vblankCallbacks.set(`${specification.tag}.${method}`, delegate as (screen: unknown, state: number) => unknown);
+            return 0;
+          },
         };
         // The same services under the chain names a generated device emits:
         // `screen().vpos()` resolves to one lookup rather than evaluating
@@ -833,6 +844,7 @@ class IrBoard implements Board {
             side_effects_disabled: () => 0,
             phase: () => this.machinePhase,
             time: () => generatedAttotime(this.machineSeconds()),
+            schedule_soft_reset: () => { this.softResetPending = true; return 0; },
           },
         };
         const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
@@ -1118,6 +1130,9 @@ class IrBoard implements Board {
               write_ctrlsel: () => 0,
             } : {}),
             machine: () => ({
+              // MAME defers a soft reset to the end of the timeslice; the
+              // board takes it when the frame ends. The watchdog's way out.
+              schedule_soft_reset: () => { this.softResetPending = true; return 0; },
               // False during emulation; MAME only sets it for a debugger peek.
               // Devices gate real state changes on it — the 6532 sets its timer
               // interrupt enable inside `if (!machine().side_effects_disabled())`
@@ -3224,18 +3239,13 @@ class IrBoard implements Board {
             this.cpus.get('maincpu')?.setInputLine(1, signal.state);
             spriteDmaLineSignals.splice(index, 1);
           }
-          // device_start can register a screen vblank delegate. The generated
-          // device retains that source callback even though the browser screen
-          // host has no MAME delegate registry, so deliver both source edges
-          // directly to every device that exposes the registered entry point.
+          // The screen's VBLANK edges, to every delegate a device registered
+          // (`register_vblank_callback`): the K051960/K052109's IRQ, the
+          // watchdog's counter.
           const { vbstart, vbend = 0 } = machine.execution.screen;
           if ((line === vbstart || line === vbend) && !this.frameRunner.atOrigin) {
             const state = Number(line === vbstart);
-            for (const device of this.devices.values()) {
-              if (device.methodNames().includes('vblank_callback')) {
-                device.invoke('vblank_callback', 0, state);
-              }
-            }
+            for (const callback of this.vblankCallbacks.values()) callback(0, state);
           }
           const collisions = this.pendingExidyCollisions.get(line);
           if (collisions?.length) {
@@ -3663,8 +3673,9 @@ class IrBoard implements Board {
     } finally {
       this.inFrame = false;
     }
-    if (this.watchdogLimitFrames && ++this.watchdogFrames >= this.watchdogLimitFrames) {
-      this.watchdogReset();
+    if (this.softResetPending) {
+      this.softResetPending = false;
+      this.softReset();
     }
   }
 
@@ -3891,13 +3902,14 @@ class IrBoard implements Board {
   }
 
   /**
-   * MAME's watchdog performs a device reset without restarting emulated time.
+   * MAME's soft reset (a watchdog firing) resets every device without
+   * restarting emulated time.
    * In particular, a 68705 keeps internal RAM while its PC, ports and timer
    * reset.  Re-running device_start here would erase the parent interface's
    * output latch; resetting the frame runner would also make a boot watchdog
    * look like an endless frame-zero loop to clients.
    */
-  private watchdogReset(): void {
+  private softReset(): void {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
@@ -3908,7 +3920,6 @@ class IrBoard implements Board {
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     for (const reset of this.peripheralResets) reset();
     this.boardSpecificReset?.();
-    this.watchdogFrames = 0;
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
@@ -4066,7 +4077,7 @@ class IrBoard implements Board {
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
-      'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'watchdogFrames',
+      'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'softResetPending',
       // A slice's overrun still owed to the device clock: since #184 a 6502
       // pays it at its next instruction, so a load must find it where it was.
       'timerCpuCarriedCycles', 'heldDeviceSeconds',
@@ -4753,54 +4764,6 @@ class IrBoard implements Board {
       reset();
       return reset;
     }
-    const taitoSjTag = machine.devices?.find(device => device.type === 'TAITO_SJ_SECURITY_MCU')?.tag;
-    if (taitoSjTag && this.devices.has(`${taitoSjTag}:mcu`)) {
-      // The security interface runs as its own compiled handlers (data_r,
-      // data_w, the 68705's port callbacks), and its 68705 is generated. What
-      // is still written here, and on #176's list to generate: a composite
-      // parent's device_start/device_reset and its set_int_mode()
-      // configuration are not run, so their values and the private enum the
-      // handler IR keeps symbolic are supplied here; and the board's
-      // vblank-counting WATCHDOG_TIMER, which has no generic model yet.
-      this.bindings.constants = {
-        ...this.bindings.constants,
-        'int_mode::NONE': 0,
-        'int_mode::LATCH': 1,
-        'int_mode::WRITE': 2,
-      };
-      const initialize = () => {
-        this.watchdogFrames = 0;
-        this.state.m_int_mode = 1;
-        this.state.m_addr = 0xffff;
-        this.state.m_mcu_data = 0xff;
-        this.state.m_host_data = 0xff;
-        this.state.m_read_data = 0xff;
-        this.state.m_zaccept = 1;
-        this.state.m_zready = 0;
-        // Device callback resolution exposes the 68705's reset Port A latch
-        // (0xff) to the interface before firmware changes the DDR.  Starting
-        // the cached bus value at zero forces every host byte read to zero.
-        this.state.m_pa_val = 0xff;
-        this.state.m_pb_val = 0xff;
-        this.state.m_busak = 0;
-        this.state.m_reset = 0;
-      };
-      const child = this.devices.get(`${taitoSjTag}:mcu`)!;
-      const reset = () => {
-        this.watchdogFrames = 0;
-        this.state.m_zaccept = 1;
-        this.state.m_zready = 0;
-        child.call('execute_set_input', 0, 0);
-      };
-      // The CPU board's 74LS393 fires after 128 vblanks. Elevator Action uses
-      // that real watchdog reset as part of its power-on protection sequence;
-      // the 68705's internal RAM survives device_reset, as modelled by the
-      // generated core.
-      this.watchdogLimitFrames = 128;
-      registry.write['watchdog.reset_w'] = () => { this.watchdogFrames = 0; };
-      initialize();
-      return reset;
-    }
     return undefined;
   }
 
@@ -5129,14 +5092,9 @@ class IrBoard implements Board {
         registry.write[key] = () => {};
         continue;
       }
-      if (key.startsWith('watchdog.')) registry.write[key] = () => {};
     }
     for (const key of usedHandlers(machine, 'read')) {
       if (registry.read[key]) continue;
-      if (key.startsWith('watchdog.')) {
-        registry.read[key] = () => 0xff;
-        continue;
-      }
       const deviceTag = key.slice(0, key.indexOf('.'));
       const deviceType = machine.devices?.find(device => device.tag === deviceTag)?.type ?? '';
       const paletteRead = /^palette\.read(?:8|16|32)(_ext)?$/.exec(key);

@@ -1144,7 +1144,23 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           : {}),
         ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
       };
-      const configCalls = dev.config.flatMap(raw => {
+      // Setters chained on the device-add expression itself are configuration
+      // like any other: `WATCHDOG_TIMER(config, "watchdog").set_vblank_count("screen", 128)`.
+      const chained: string[] = [];
+      const added = new RegExp(`\\b${dev.type}\\s*\\(`).exec(dev.config[0] ?? '');
+      if (added) {
+        const line = dev.config[0]!;
+        let at = matchingParenthesis(line, added.index + added[0].length - 1) + 1;
+        for (let link; at > 0 && (link = /^\s*\.\s*(\w+)\s*(?:<[^<>()]*>)?\s*\(/.exec(line.slice(at)));) {
+          const open = at + link[0].length - 1;
+          const close = matchingParenthesis(line, open);
+          if (close < 0) break;
+          // Setters only: `.add_route(...)` is the sound graph's, read elsewhere.
+          if (link[1]!.startsWith('set_')) chained.push(`__added.${line.slice(at, close + 1).trim().replace(/^\.\s*/, '')}`);
+          at = close + 1;
+        }
+      }
+      const configCalls = [...dev.config, ...chained].flatMap(raw => {
         // Device finder arrays retain their source spelling (`m_pia[0]`).
         // Accept the subscript here so their constant machine-config setters
         // are lowered just like setters on scalar finder members.

@@ -2730,6 +2730,27 @@ function applyIdentifierCall(
     const handler = memoryDelegate(expression, args, context);
     if (handler) return handler;
   }
+  // A delegate bound by member pointer to one of the device's own methods,
+  // which a framework service keeps and calls back: the watchdog's
+  // `register_vblank_callback(vblank_state_delegate(&watchdog_timer_device::watchdog_vblank, this))`.
+  if (/_delegate$/.test(name)) {
+    const pointer = expression.args.find(argument =>
+      argument.kind === 'unary' && argument.operator === '&' &&
+      argument.operand.kind === 'identifier' && argument.operand.name.includes('::'));
+    const method = pointer?.kind === 'unary' && pointer.operand.kind === 'identifier'
+      ? pointer.operand.name.split('::').at(-1)!
+      : undefined;
+    const own = method === undefined
+      ? undefined
+      : context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
+    if (typeof own === 'function') {
+      // Named, so a service that keeps it can tell one registration from another.
+      return Object.assign(
+        (...values: unknown[]) => (own as (...rest: unknown[]) => unknown)(...values),
+        { delegateMethod: method },
+      );
+    }
+  }
   if (name === 'COMBINE_DATA') {
     const memMask = Object.hasOwn(context.locals, 'mem_mask')
       ? context.locals.mem_mask
