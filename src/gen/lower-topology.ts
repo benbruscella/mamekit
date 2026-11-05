@@ -274,26 +274,6 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
     if (r.props.bankRead || r.props.bankWrite) {
       spec.bank = String(r.props.bankRead ?? r.props.bankWrite);
     }
-    // Williams first-generation boards embed the blitter's eight-byte
-    // register decoder with `.m(m_blitter, FUNC(...::map))`.  Keep that
-    // source-declared submap attached to the generated device; otherwise the
-    // CPU sees CA00-CA07 as NOPs and every post-boot frame is blank because no
-    // game blit can ever start.
-    const williamsBlitterSubmap = !spec.read && !spec.write
-      ? /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*williams_blitter_device::map\s*\)\s*\)/
-        .exec(raw)
-      : null;
-    if (williamsBlitterSubmap) {
-      const localTag = williamsBlitterSubmap[2]!;
-      const namespace = ownerTag?.includes(':')
-        ? ownerTag.slice(0, ownerTag.lastIndexOf(':'))
-        : undefined;
-      const scopedTag = namespace && byTag.has(`${namespace}:${localTag}`)
-        ? `${namespace}:${localTag}`
-        : localTag;
-      spec.kind = 'handler';
-      spec.write = `${scopedTag}.register_write`;
-    }
     if (spec.kind === 'handler' && !spec.read && !spec.write) spec.kind = 'nop';
     return spec;
   };

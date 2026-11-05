@@ -377,7 +377,7 @@ export function lowerGeneratedMachine(
       ...(deviceDelegates(graph, node.props).length
         ? { delegates: deviceDelegates(graph, node.props) }
         : {}),
-      ...deviceConstructorComposition(node.props),
+      ...deviceConstructorShares(node.props),
       ...lowerRamAllocation(node.props, String(graph.meta.mameSrc ?? '')),
       ...(typeof node.props.slotOptions === 'string'
         ? { slotOptions: node.props.slotOptions }
@@ -2162,30 +2162,18 @@ function constructorTableConfiguration(
 }
 
 /**
- * Lower values wired by typed machine-config constructors.  These arguments
- * are real composition metadata, but unlike `device->setter(...)` calls they
- * live on the device-add expression itself.  Williams' blitter constructors
- * configure both scalar behavior and the driver's shared video RAM this way.
+ * The memory shares a typed device-add constructor binds: the graph's
+ * `constructorShares`, a finder member of the device and the share it names
+ * (`WILLIAMS_BLITTER_SC1(config, m_blitter, 0xc000, m_maincpu, m_videoram)`
+ * forwards `m_videoram` to the blitter's `m_vram`).
  */
-function deviceConstructorComposition(
+function deviceConstructorShares(
   props: Record<string, unknown>,
-): Pick<GeneratedDevice, 'memberValues' | 'memoryShares'> {
-  const type = String(props.type ?? '');
-  if (type !== 'WILLIAMS_BLITTER_SC1' && type !== 'WILLIAMS_BLITTER_SC2') return {};
-  const line = deviceConfigLines(props).find(candidate =>
-    candidate.trimStart().startsWith(`${type}(`));
-  if (!line) return {};
-  const match = /^[^(]+\((.*)\)\s*;?$/.exec(line.trim());
-  const args = match?.[1]?.split(',').map(argument => argument.trim()) ?? [];
-  const clipAddress = Number(args[2]);
-  const vram = args[4]?.replace(/^m_/, '');
-  return {
-    memberValues: {
-      ...(Number.isFinite(clipAddress) ? { m_clip_address: clipAddress } : {}),
-      m_size_xor: type === 'WILLIAMS_BLITTER_SC1' ? 4 : 0,
-    },
-    ...(vram ? { memoryShares: { m_vram: vram } } : {}),
-  };
+): Pick<GeneratedDevice, 'memoryShares'> {
+  const entries = (Array.isArray(props.constructorShares) ? props.constructorShares : [])
+    .map(entry => String(entry).split('='))
+    .filter((entry): entry is [string, string] => entry.length === 2 && Boolean(entry[0] && entry[1]));
+  return entries.length ? { memoryShares: Object.fromEntries(entries) } : {};
 }
 
 function inferInterruptVectorWriters(

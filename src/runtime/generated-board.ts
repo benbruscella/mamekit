@@ -4244,40 +4244,6 @@ class IrBoard implements Board {
           const method = key.slice(tag.length + 1);
           const device = this.devices.get(tag);
           if (!device) continue;
-          const specification = machine.devices?.find(candidate => candidate.tag === tag);
-          if (
-            specification?.type.startsWith('WILLIAMS_BLITTER_SC') &&
-            method === 'register_write' && kind === 'write'
-          ) {
-            registry.write[key] = (_address, offset, data) => {
-              const register = offset & 7;
-              if (register === 0) {
-                const cpuTag = machine.execution.cpus.find(candidateCpu =>
-                  [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(
-                    candidate => candidate.start === range.start &&
-                      candidate.end === range.end && candidate.write === key,
-                  ))?.tag ?? machine.execution.cpus[0]?.tag;
-                const bus = cpuTag ? this.cpuBuses.get(cpuTag) : undefined;
-                device.invoke('control_w', {
-                  read_byte: (address: number) => bus?.read(address) ?? 0xff,
-                  write_byte: (address: number, value: number) => bus?.write(address, value),
-                }, offset, data);
-                return;
-              }
-              if (register === 1) device.set('m_solid_color', data);
-              else if (register === 2) {
-                device.set('m_sstart', (device.get('m_sstart') & 0x00ff) | (data << 8));
-              } else if (register === 3) {
-                device.set('m_sstart', (device.get('m_sstart') & 0xff00) | data);
-              } else if (register === 4) {
-                device.set('m_dstart', (device.get('m_dstart') & 0x00ff) | (data << 8));
-              } else if (register === 5) {
-                device.set('m_dstart', (device.get('m_dstart') & 0xff00) | data);
-              } else if (register === 6) device.set('m_width', data);
-              else device.set('m_height', data);
-            };
-            continue;
-          }
           if (!device.methodNames().includes(method)) continue;
           // A handler that declares `mem_mask` is told which data lanes the
           // access drives, as MAME tells it; the T-Unit's VRAM writes test
@@ -4333,7 +4299,10 @@ class IrBoard implements Board {
                   }),
                 }),
               };
-              device.invoke(method, space, data);
+              // `(address_space &space, offs_t offset, u8 data)` as the
+              // Williams blitter's control_w declares it, or `(space, data)`.
+              if (arity >= 3) device.invoke(method, space, offset, data);
+              else device.invoke(method, space, data);
             };
           }
         }

@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
+import { evalExpr, parseAddressMaps, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   parseMameAst,
@@ -1151,6 +1151,30 @@ function compileMameDeviceSource(
       )) {
         replaceOrAppend(specialized);
       }
+    }
+  }
+
+  // The lambdas of the device's own address maps. A board installs such a
+  // map in a window of its space (`.m(m_blitter, FUNC(williams_blitter_device::map))`),
+  // and a `lw8(NAME([this](u8 data) { m_sstart = ... }))` entry is a handler
+  // that writes the device's members, so it is one of the device's methods,
+  // named as the graph names the range's handler.
+  for (const map of parseAddressMaps(sources.map(({ source }) => stripCppComments(source)).join('\n'))) {
+    if (!own.has(map.cls)) continue;
+    const mapFunction = sourceMethods.find(candidate =>
+      candidate.className === map.cls && candidate.name === map.name);
+    if (!mapFunction) continue;
+    for (const handler of map.ranges.flatMap(range => [range.read, range.write])) {
+      if (handler?.inlineBody === undefined) continue;
+      if (methods.some(candidate => candidate.name === handler.method)) continue;
+      replaceOrAppend({
+        ...mapFunction,
+        name: handler.method,
+        parameters: handler.inlineParameters ?? '',
+        body: handler.inlineBody,
+        statements: [],
+        templateParameters: undefined,
+      });
     }
   }
 

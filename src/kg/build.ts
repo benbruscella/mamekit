@@ -1206,8 +1206,16 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         : undefined);
       const constructed = deviceClass
         ? constructorConfigCalls(dev.config[0] ?? '', deviceClass, [combined, ...externalSources], consts)
-        : { calls: [], clockConsumed: false };
+        : { calls: [], tags: [], clockConsumed: false };
       configCalls.push(...constructed.calls);
+      // A finder tag the constructor forwards to a memory share: the Williams
+      // blitter's `set_vram_tag(std::forward<U>(vram_tag))` is `m_vram`, a
+      // required_shared_ptr, bound to the driver's `m_videoram`.
+      const shares = deviceClass
+        ? constructorShares(constructed.tags, [combined, ...externalSources, ...deviceClassSources(mameSrc, (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.sourceFile)])
+          .map(([member, argument]) => `${member}=${/^"/.test(argument) ? argument.slice(1, -1) : (memberTags[argument] ?? argument).replace(/^m_/, '')}`)
+        : [];
+      if (shares.length) props.constructorShares = shares;
 
       // A table the constructor hands a setter: `DISCRETE(config, m_discrete,
       // qix_discrete)` is `set_intf(qix_discrete)`, a file-scope aggregate
@@ -2644,8 +2652,8 @@ export function constructorConfigCalls(
   className: string,
   sources: readonly string[],
   constants: Record<string, number>,
-): { calls: string[]; clockConsumed: boolean } {
-  const none = { calls: [], clockConsumed: false };
+): { calls: string[]; tags: { setter: string; argument: string }[]; clockConsumed: boolean } {
+  const none = { calls: [], tags: [], clockConsumed: false };
   // `TYPE(config, ...)`, or the same wrapped to keep a reference:
   // `snapshot_image_device &snapshot(SNAPSHOT(config, "snapshot", "sna,z80"))`.
   const added = /^\s*\w+\s*\(/.exec(addStatement) ?? /\b[A-Z][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
@@ -2685,21 +2693,58 @@ export function constructorConfigCalls(
       // does -- the IEC slot's `set_options(std::forward<T>(opts), dflt,
       // false)` -- is configuration this graph records another way.
       // A slot's default option is the graph's `slotDefault` already.
-      const setters = statements.map(statement => /^(\w+)\s*\(\s*(\w+)\s*\)$/.exec(statement))
-        .filter((setter): setter is RegExpExecArray => Boolean(setter && names.includes(setter[2]) &&
+      // A parameter may be passed on through `std::forward<T>(name)`, as a
+      // finder's tag is.
+      const setters = statements
+        .map(statement => /^(\w+)\s*\(\s*(?:std::forward\s*<\s*\w+\s*>\s*\(\s*(\w+)\s*\)|(\w+))\s*\)$/.exec(statement))
+        .filter((setter): setter is RegExpExecArray => Boolean(setter && names.includes(setter[2] ?? setter[3]) &&
           setter[1] !== 'set_default_option' && setter[1] !== 'set_fixed'));
-      if (!setters.length) continue;
-      const calls = setters.flatMap(setter => {
-        const position = names.indexOf(setter[2]);
-        const argument = extra[position];
-        if (argument === undefined) return [];
-        const value = configArgument(argument, sources, constants);
-        return value === undefined ? [] : [`${setter[1]}(${value})`];
-      });
-      return { calls, clockConsumed: setters.some(setter => names.indexOf(setter[2]) === 0) };
+      // And a setter the constructor calls with a constant of its own is
+      // configuration too: the Williams SC1 blitter's `set_size_xor(4)`.
+      const fixed = statements
+        .map(statement => /^(set_\w+)\s*\(\s*([^(),]+)\s*\)$/.exec(statement))
+        .filter((setter): setter is RegExpExecArray => Boolean(setter && !names.includes(setter[2]!.trim()) &&
+          evalExpr(setter[2]!, constants) !== null));
+      if (!setters.length && !fixed.length) continue;
+      const tags: { setter: string; argument: string }[] = [];
+      const calls = [
+        ...fixed.map(setter => `${setter[1]}(${evalExpr(setter[2]!, constants)})`),
+        ...setters.flatMap(setter => {
+          const position = names.indexOf(setter[2] ?? setter[3]);
+          const argument = extra[position];
+          if (argument === undefined) return [];
+          if (setter[2]) {
+            tags.push({ setter: setter[1]!, argument: argument.trim() });
+            return [];
+          }
+          const value = configArgument(argument, sources, constants);
+          return value === undefined ? [] : [`${setter[1]}(${value})`];
+        }),
+      ];
+      return { calls, tags, clockConsumed: setters.some(setter => names.indexOf(setter[2] ?? setter[3]) === 0) };
     }
   }
   return none;
+}
+
+/**
+ * The memory shares a constructor's forwarded finder tags name: a setter whose
+ * body is `m_x.set_tag(...)`, where `m_x` is a shared_ptr finder.
+ */
+function constructorShares(
+  tags: readonly { setter: string; argument: string }[],
+  sources: readonly string[],
+): [string, string][] {
+  return tags.flatMap(({ setter, argument }): [string, string][] => {
+    for (const source of sources) {
+      const member = new RegExp(`\\b${setter}\\s*\\([^)]*\\)\\s*\\{\\s*(m_\\w+)\\s*\\.\\s*set_tag\\s*\\(`).exec(source)?.[1];
+      if (!member) continue;
+      const shared = sources.some(candidate =>
+        new RegExp(`\\b(?:required|optional)_shared_ptr\\s*<[^>]*>\\s+${member}\\b`).test(candidate));
+      return shared ? [[member, argument]] : [];
+    }
+    return [];
+  });
 }
 
 /**
@@ -3788,9 +3833,13 @@ function expandSubmap(
 ): AddressRangeDef[] | undefined {
   const submap = range.deviceMap;
   if (!submap) return undefined;
+  // A device in the driver's own directory is parsed with the driver
+  // (williams.h includes "williamsblitter.h"), so its map is one of the
+  // driver's maps rather than an external include's.
   const declared = submap.ref
     ? deviceMaps.find(candidate =>
-      candidate.cls === submap.className && candidate.name === submap.method)
+      candidate.cls === submap.className && candidate.name === submap.method) ??
+      [ownMap(submap.className, submap.method)].find(map => map?.cls === submap.className)
     : ownMap(submap.className, submap.method);
   // Left as-is rather than dropped: an unresolved submap keeps its window
   // and stays visible in the graph as a range that decodes nothing, which
@@ -3802,8 +3851,15 @@ function expandSubmap(
     // window is what MAME actually installs, so the inner end clamps to it.
     const start = range.start + inner.start;
     const end = Math.min(range.start + inner.end, range.end);
+    // A lambda in the device's map is the device's own: `lw8(NAME([this](u8
+    // data) { m_width = data; }))` writes the device's members, and the
+    // device compiler lowers it as one of its methods under the same name.
     const withDevice = (handler?: HandlerRef): HandlerRef | undefined =>
-      handler && (reference ? { ...handler, deviceRef: handler.deviceRef ?? reference } : handler);
+      handler && (reference ? {
+        ...handler,
+        deviceRef: handler.deviceRef ?? reference,
+        ...(handler.inlineBody !== undefined && !handler.deviceClass ? { deviceClass: declared.cls } : {}),
+      } : handler);
     return {
       ...inner,
       start,
