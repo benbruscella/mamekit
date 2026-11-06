@@ -142,6 +142,16 @@ function startReadsHostBindings(type: string): boolean {
     if (property === 'isunset') reads = true;
     if (property === 'create' && object.kind === 'call' && object.callee.kind === 'member' &&
       object.callee.property === 'tilemap') reads = true;
+    // `if (!palette().device().started()) throw device_missing_dependencies();`
+    // is MAME starting the device after its palette: the K053246 decodes its
+    // sprite ROM against the palette's entry count.
+    if (property === 'started') reads = true;
+  });
+  // And one that builds its own graphics set reads the palette the video
+  // composes, through device_gfx_interface.
+  walkExpressions(start.program.operations, expression => {
+    if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+      ['gfx', 'set_gfx'].includes(expression.callee.name)) reads = true;
   });
   return reads;
 }
@@ -837,8 +847,17 @@ class IrBoard implements Board {
         // to the interpreter.
         const hostServiceHosts: Record<string, Record<string, unknown>> = {
           screen: screenHost as unknown as Record<string, unknown>,
+          // device_palette_interface's shadow services, on the palette the
+          // video plan built (which exists only once video is composed).
           palette: {
-            set_shadow_mode: () => 0,
+            shadow_mode: () => this.videoPrimitives?.paletteShadows?.()?.shadow_mode() ?? 0,
+            set_shadow_mode: (mode: number) => {
+              this.videoPrimitives?.paletteShadows?.()?.set_shadow_mode(Number(mode));
+              return 0;
+            },
+            shadows_enabled: () => this.videoPrimitives?.paletteShadows?.()?.shadowGroup ? 1 : 0,
+            highlights_enabled: () => this.videoPrimitives?.paletteShadows?.()?.highlightGroup ? 1 : 0,
+            shadow_table: () => this.videoPrimitives?.paletteShadows?.()?.shadow_table() ?? 0,
           },
           machine: {
             side_effects_disabled: () => 0,
@@ -2939,16 +2958,35 @@ class IrBoard implements Board {
       // the driver's m_gfxdecode. The decode member on each plan entry is what
       // ties the two together; without this binding such a device draws
       // nothing at all (Rygar's sprites live on TECMO_SPRITE).
+      //
+      // A device can also build its set itself in device_start: the K053246
+      // decodes its sprite ROM through konami_decode_gfx, which hands the
+      // element to the device's own `set_gfx` and reads `palette()` for the
+      // colour count.
       for (const specification of machine.devices ?? []) {
-        const member = specification.member;
-        const group = member && primitives.gfxForDecodeMember(member);
-        if (!group?.length) continue;
-        this.devices.get(specification.tag)?.bindCall(
-          'gfx',
-          (index: number) => group[index] ?? 0,
-        );
         const device = this.devices.get(specification.tag);
-        if (device?.hasMember('m_gfx')) device.bindMember('m_gfx', group[0]);
+        if (!device) continue;
+        const member = specification.member;
+        const group = (member && primitives.gfxForDecodeMember(member)) || [];
+        const own: unknown[] = [];
+        // A device's own method of the name is its own (a palette device's
+        // `palette()`); the binding would win over it.
+        const methods = new Set(device.methodNames());
+        const bind = (name: string, call: (...args: never[]) => unknown) => {
+          if (!methods.has(name)) device.bindCall(name, call as (...args: unknown[]) => unknown);
+        };
+        bind('gfx', (index: number) => own[index] ?? group[index] ?? 0);
+        bind('set_gfx', (index: number, element: unknown) => {
+          own[Number(index)] = element;
+          return 0;
+        });
+        bind('palette', () => primitives.devicePalette() ?? 0);
+        bind('std::make_unique<gfx_element>', (...args: unknown[]) => primitives.makeGfxElement(...args));
+        // bitmap.h's rectangle(minx, maxx, miny, maxy), which a renderer
+        // builds its destination clip from.
+        bind('rectangle', (minX = 0, maxX = 0, minY = 0, maxY = 0) =>
+          new GeneratedRectangle(Number(minX), Number(maxX), Number(minY), Number(maxY)));
+        if (group.length && device.hasMember('m_gfx')) device.bindMember('m_gfx', group[0]);
       }
       // A video-display processor draws its own picture: hand the renderer the
       // generated device's update instead of a driver handler to execute.

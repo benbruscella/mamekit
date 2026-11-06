@@ -3860,6 +3860,16 @@ function copyGeneratedMemory(
 ): void {
   // Bytes into a struct (`read(file, &header, CRT_HEADER_LENGTH)`).
   const struct = isGeneratedPointer(destination) && destination.target ? destination.target.get() : destination;
+  // A struct copied whole into another: konami_decode_gfx's
+  // `memcpy(&gl, layout, sizeof(gl))`. Field by field, arrays copied too.
+  const whole = isGeneratedPointer(source) && source.target ? source.target.get() : source;
+  if (isGeneratedStruct(struct) && isGeneratedStruct(whole)) {
+    const copy = (value: unknown): unknown => Array.isArray(value) ? value.map(copy)
+      : isGeneratedStruct(value) ? generatedStruct(Object.entries(value).flatMap(([field, held]) => [field, copy(held)]))
+        : value;
+    for (const [field, value] of Object.entries(whole)) struct[field] = copy(value);
+    return;
+  }
   if (isGeneratedStruct(struct)) {
     const origin = generatedMemoryView(source, bytewise);
     if (!origin) return;

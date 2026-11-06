@@ -510,6 +510,11 @@ export function compileMameVideo(
     palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
   }
+  const paletteGroups = compilePaletteGroups(
+    graph,
+    machineIds,
+    ramPalette?.entries ?? paletteProgram?.entries,
+  );
   const motionObjects = compileMotionObjects(graph, mameSrc, driver, start?.body);
   const runtimeGfxLayouts = compileRuntimeGfxLayouts(source);
   const colorTables = compileVideoColorTables(source, constants);
@@ -530,6 +535,7 @@ export function compileMameVideo(
       ...(palettes.length ? { palettes } : {}),
       ...(ramPalette ? { ramPalette } : {}),
       ...(paletteProgram ? { paletteProgram } : {}),
+      ...(paletteGroups ? { paletteGroups } : {}),
       tilemaps: executableTilemaps,
       ...(motionObjects ? { motionObjects } : {}),
       ...(Object.keys(runtimeGfxLayouts).length ? { gfxLayouts: runtimeGfxLayouts } : {}),
@@ -649,30 +655,30 @@ function konamiDeviceGfx(
     });
   }
 
-  const newSprites = device('K053246');
-  if (
-    newSprites &&
-    /k053247_device::device_start\s*\(\)/.test(source) &&
-    /static const gfx_layout spritelayout\s*=/.test(source) &&
-    /konami_decode_gfx\s*\(\s*\*this\s*,\s*m_gfx_num/.test(source)
-  ) {
-    result.push({
-      ...common,
-      region: String(newSprites.props.tag),
-      decodeMember: member(newSprites),
-      layout: {
-        width: 16, height: 16, total: 'RGN_FRAC(1,1)', planes: 4,
-        planeOffsets: [0, 1, 2, 3],
-        xOffsets: [8, 12, 0, 4, 24, 28, 16, 20, 40, 44, 32, 36, 56, 60, 48, 52],
-        yOffsets: [
-          0, 64, 128, 192, 256, 320, 384, 448,
-          512, 576, 640, 704, 768, 832, 896, 960,
-        ],
-        charIncrement: 1024,
-      },
-    });
-  }
   return result;
+}
+
+/**
+ * palette_device's enable_shadows() / enable_highlights(), from the machine
+ * configuration: either chained on PALETTE(config, ...) or called on the
+ * member afterwards (`m_palette->enable_shadows()`). MAME then allocates a
+ * colour group for each after the palette's own entries.
+ */
+function compilePaletteGroups(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+  entries: number | undefined,
+): GeneratedVideoPlan['paletteGroups'] {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  const palettes = graph.nodes.filter(node =>
+    deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE');
+  if (palettes.length !== 1 || !entries) return undefined;
+  const config = ((palettes[0]!.props.config as string[] | undefined) ?? []).join('\n');
+  const shadows = /(?:\.|->)\s*enable_shadows\s*\(\s*\)/.test(config);
+  const highlights = /(?:\.|->)\s*enable_highlights\s*\(\s*\)/.test(config);
+  return shadows || highlights ? { entries, shadows, highlights } : undefined;
 }
 
 /**

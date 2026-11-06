@@ -674,7 +674,7 @@ function compileMameDeviceSource(
     const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'), defines);
     return { file, source: options.transformSource ? options.transformSource(file, source) : source };
   });
-  for (const library of formatLibrarySources(mameSrc, sources)) {
+  for (const library of [...formatLibrarySources(mameSrc, sources), ...helperLibrarySources(mameSrc, sources)]) {
     sources.push(library);
     sourceFiles.push(library.file);
   }
@@ -864,6 +864,12 @@ function compileMameDeviceSource(
   }
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
+  // And for a framework struct it names, which only MAME's emu headers
+  // declare: `static const gfx_layout spritelayout = { ... }` is digfx.h's.
+  const named = sources.map(({ source }) => stripCppComments(source)).join('\n');
+  for (const [name, fields] of coreStructs(mameSrc)) {
+    if (!structFields.has(name) && new RegExp(`\\b${name}\\b`).test(named)) structFields.set(name, fields);
+  }
   const structMethods = structMethodDeclarations(sources);
 
   // What a class names by alias, and the constants it sees, so a type
@@ -1825,7 +1831,7 @@ function compileMameDeviceSource(
     if (/_device$/.test(held) || structFields.has(held) || !constructorOf(held)) continue;
     member.objectType = held;
   }
-  lowerStructLocals(result, sources);
+  lowerStructLocals(result, sources, mameSrc);
   result.summary = {
     methods: result.methods.length,
     compiledMethods: result.methods.filter(method => !method.program.diagnostics.length).length,
@@ -2184,7 +2190,86 @@ function lowerObjectReferenceAddresses(device: GeneratedDeviceDefinition): void 
   }
 }
 
-export function lowerStructLocals(device: GeneratedDeviceDefinition, sources: readonly { source: string }[] = []): void {
+/** bitmap_t's bits per pixel, by class (bitmap.h). */
+const BITMAP_CLASS_BPP: Record<string, number> = {
+  bitmap_ind8: 8, bitmap_ind16: 16, bitmap_ind32: 32, bitmap_rgb32: 32, bitmap_ind64: 64,
+};
+
+/**
+ * Overloads of one name and arity told apart only by the bitmap class a
+ * reference takes: `k053247_sprites_draw(bitmap_ind16 &, ...)` and its
+ * `bitmap_rgb32 &` twin. C++ picks by the argument's static type, which the
+ * untyped IR does not carry -- and a template hands its deduced bitmap on as
+ * `auto` -- so each overload gets its typed name and the plain name picks one
+ * by the bitmap's own `bpp()`, the one fact of its class it keeps at run time.
+ */
+function dispatchBitmapOverloads(device: GeneratedDeviceDefinition): void {
+  const declared = (parameters: string) => splitMameArgs(parameters)
+    .map(parameter => parameter.trim())
+    .filter(parameter => parameter && parameter !== 'void');
+  const groups = new Map<string, GeneratedDeviceMethod[]>();
+  for (const method of device.methods) {
+    const key = `${method.name}/${declared(method.parameters).length}`;
+    groups.set(key, [...groups.get(key) ?? [], method]);
+  }
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const lists = group.map(method => declared(method.parameters));
+    const differing = lists[0]!.map((_unused, index) =>
+      new Set(lists.map(list => parameterBaseType(list[index] ?? ''))).size > 1);
+    // The bitmap decides; any other difference is a scalar C++ converts
+    // either way (`bool flipx` against `int flipx`).
+    const isBitmap = (index: number) => lists.every(list =>
+      /&/.test(list[index]!) && BITMAP_CLASS_BPP[parameterBaseType(list[index]!)] !== undefined);
+    const positions = differing.flatMap((differs, index) => differs ? [index] : []);
+    const bitmaps = positions.filter(isBitmap);
+    if (bitmaps.length !== 1) continue;
+    const position = bitmaps[0]!;
+    if (positions.some(index => index !== position && lists.some(list => /[&*]/.test(list[index]!)))) continue;
+    const bpps = lists.map(list => BITMAP_CLASS_BPP[parameterBaseType(list[position]!)]!);
+    if (new Set(bpps).size !== bpps.length) continue;
+    const name = group[0]!.name;
+    const argumentNames = lists[0]!.map(parameterName);
+    for (const method of group) method.name = typedOverloadName(name, method.parameters);
+    const forward = (method: GeneratedDeviceMethod): GeneratedExpression => ({
+      kind: 'call',
+      callee: { kind: 'identifier', name: method.name },
+      args: argumentNames.map(argument => ({ kind: 'identifier', name: argument })),
+    });
+    let operations: GeneratedHandlerOperation[] = [{ op: 'return', value: forward(group.at(-1)!) }];
+    for (let index = group.length - 2; index >= 0; index--) {
+      operations = [{
+        op: 'if',
+        condition: {
+          kind: 'binary',
+          operator: '==',
+          left: {
+            kind: 'call',
+            callee: { kind: 'member', object: { kind: 'identifier', name: argumentNames[position]! }, property: 'bpp' },
+            args: [],
+          },
+          right: { kind: 'number', value: bpps[index]! },
+        },
+        then: [{ op: 'return', value: forward(group[index]!) }],
+        else: operations,
+      }];
+    }
+    device.methods.push({
+      name,
+      parameters: group[0]!.parameters,
+      source: group[0]!.source,
+      program: { ...group[0]!.program, operations, diagnostics: [] },
+    });
+  }
+}
+
+export function lowerStructLocals(
+  device: GeneratedDeviceDefinition,
+  sources: readonly { source: string }[] = [],
+  /** The MAME tree, for the core classes a braced temporary constructs. */
+  mameSrc?: string,
+): void {
+  dispatchBitmapOverloads(device);
   // Overloads told apart by type, each under its own name (typedOverloadName);
   // a qualified alias (`discrete_base_node::interface`) is renamed with them.
   const leafOverloads = typedOverloads(device.methods.map(method => ({ ...method, name: method.name.split('::').at(-1)! })));
@@ -2322,6 +2407,12 @@ export function lowerStructLocals(device: GeneratedDeviceDefinition, sources: re
       if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || expression.callee.name !== 'AGGREGATE_OF') return;
       const type = expression.args[0]?.kind === 'string' ? expression.args[0].value : '';
       const fields = fieldsOf(type);
+      // A class with a constructor is list-initialised through it:
+      // `rectangle {sx, 0, sy, 0}` is bitmap.h's rectangle(minx, maxx, miny, maxy).
+      if (!fields && mameSrc && coreConstructorArities(mameSrc).get(type)?.has(expression.args.length - 1)) {
+        Object.assign(expression, { callee: { kind: 'identifier', name: type }, args: expression.args.slice(1) });
+        return;
+      }
       if (!fields) {
         method.program.diagnostics.push(`braced temporary of unknown struct ${type}`);
         return;
@@ -2715,6 +2806,43 @@ function executionDataAddressBits(
  * function the header declares is called, so a device that merely names a
  * format class (every floppy connector) compiles exactly as it did.
  */
+/** The file-scope functions a header declares; a class's methods are its own. */
+function headerFunctionNames(header: string): string[] {
+  const declared = stripCppComments(header);
+  const outside = declared.replace(/\b(?:class|struct)\s+\w+[^;{]*\{(?:[^{}]|\{[^{}]*\})*\}\s*;/g, '');
+  return [...outside.matchAll(/^[\w:<>*&\s]+?\b(\w+)\s*\([^;{}]*\)\s*;/gm)].map(name => name[1]!);
+}
+
+/**
+ * A helper library beside a device's own source: konami_helper.h, which
+ * k053246_k053247_k055673.cpp includes, declares konami_decode_gfx, and
+ * konami_helper.cpp defines it. Like a format library, the pair joins the
+ * device only when a function the header declares is called.
+ */
+function helperLibrarySources(
+  mameSrc: string,
+  sources: readonly { file: string; source: string }[],
+): { file: string; source: string }[] {
+  const own = sources.map(({ source }) => stripCppComments(source)).join('\n');
+  const libraries: { file: string; source: string }[] = [];
+  const seen = new Set(sources.map(({ file }) => file));
+  for (const { file, source } of sources) {
+    for (const match of source.matchAll(/^\s*#include\s+"(\w+)\.h"/gm)) {
+      const header = join(dirname(file), `${match[1]}.h`);
+      const implementation = join(dirname(file), `${match[1]}.cpp`);
+      if (seen.has(implementation) || !existsSync(join(mameSrc, header)) || !existsSync(join(mameSrc, implementation))) continue;
+      const names = headerFunctionNames(readFileSync(join(mameSrc, header), 'utf8'));
+      if (!names.some(name => new RegExp(`\\b${name}\\s*\\(`).test(own))) continue;
+      seen.add(implementation);
+      for (const library of [header, implementation]) {
+        if (sources.some(entry => entry.file === library) || libraries.some(entry => entry.file === library)) continue;
+        libraries.push({ file: library, source: readFileSync(join(mameSrc, library), 'utf8') });
+      }
+    }
+  }
+  return libraries;
+}
+
 function formatLibrarySources(
   mameSrc: string,
   sources: readonly { file: string; source: string }[],
@@ -2902,14 +3030,37 @@ function stripEmptyPackRecursion(body: string): string {
   );
 }
 
+/**
+ * A type parameter's pixel size, from the bitmap it arrives as. Left to
+ * deduction, `template <class BitmapClass>` is `auto` to the untyped IR, and
+ * `sizeof(typename BitmapClass::pixel_t)` named nothing; the instance C++
+ * would deduce is the one the `BitmapClass &bitmap` argument is, so the size
+ * is that bitmap's `bpp()` in bytes.
+ */
+function bindDependentPixelSize(method: MameFunction, typeParameters: readonly string[]): MameFunction {
+  let body = method.body;
+  for (const parameter of typeParameters) {
+    const argument = splitMameArgs(method.parameters)
+      .map(declared => new RegExp(`^\\s*(?:const\\s+)?${parameter}\\s*[&*]\\s*(\\w+)\\s*$`).exec(declared)?.[1])
+      .find(Boolean);
+    if (!argument) continue;
+    body = body.replace(
+      new RegExp(`\\bsizeof\\s*\\(\\s*(?:typename\\s+)?${parameter}\\s*::\\s*pixel_t\\s*\\)`, 'g'),
+      `(${argument}.bpp() >> 3)`,
+    );
+  }
+  return body === method.body ? method : { ...method, body };
+}
+
 function specializeFunctionTemplate(
-  method: MameFunction,
+  template: MameFunction,
   sources: readonly { file: string; source: string }[],
   functionMacros: readonly FunctionMacro[],
   constants: Record<string, number>,
 ): MameFunction[] {
-  const parameters = method.templateParameters ?? [];
-  if (!parameters.length) return [method];
+  const parameters = template.templateParameters ?? [];
+  if (!parameters.length) return [template];
+  const method = bindDependentPixelSize(template, parameters);
   const className = method.className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const methodName = method.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // A derived class's qualifier names an inherited template too: the
@@ -4021,6 +4172,69 @@ function coreOsdDefines(mameSrc: string, sources: readonly { source: string }[])
     if (value !== null && Number.isFinite(value)) defines[match[1]!] = value;
   }
   return defines;
+}
+
+const CORE_CONSTRUCTORS = new Map<string, Map<string, Set<number>>>();
+
+/**
+ * The constructor arities of the core library's classes (src/lib/util and
+ * src/emu headers), which every device sees: `rectangle` takes 0 or 4.
+ */
+function coreConstructorArities(mameSrc: string): Map<string, Set<number>> {
+  let core = CORE_CONSTRUCTORS.get(mameSrc);
+  if (core) return core;
+  core = new Map();
+  for (const directory of ['src/lib/util', 'src/emu'].map(path => join(mameSrc, path))) {
+    for (const file of existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.h')).sort() : []) {
+      const header = stripCppComments(readFileSync(join(directory, file), 'utf8'));
+      for (const match of header.matchAll(/^class\s+(\w+)\b[^;{]*\{/gm)) {
+        const name = match[1]!;
+        if (core.has(name)) continue;
+        const open = header.indexOf('{', match.index);
+        const close = matchingBrace(header, open);
+        if (close < 0) continue;
+        const body = header.slice(open + 1, close);
+        const arities = new Set<number>();
+        for (const constructor of body.matchAll(new RegExp(`(?:^|[\\s;{}])(?:constexpr\\s+|explicit\\s+)*${name}\\s*\\(([^()]*)\\)\\s*(?::|\\{|noexcept|=)`, 'g'))) {
+          const parameters = splitMameArgs(constructor[1]!).map(parameter => parameter.trim()).filter(parameter => parameter && parameter !== 'void');
+          arities.add(parameters.length);
+        }
+        if (arities.size) core.set(name, arities);
+      }
+    }
+  }
+  CORE_CONSTRUCTORS.set(mameSrc, core);
+  return core;
+}
+
+const CORE_STRUCTS = new Map<string, Map<string, GeneratedStructField[]>>();
+
+/**
+ * The file-scope structs of the emulator core's headers, sized by each
+ * header's own constants (`u32 planeoffset[MAX_GFX_PLANES]`). A device sees
+ * all of `src/emu` through emu.h without including any of it.
+ */
+function coreStructs(mameSrc: string): Map<string, GeneratedStructField[]> {
+  let core = CORE_STRUCTS.get(mameSrc);
+  if (core) return core;
+  core = new Map();
+  const directory = join(mameSrc, 'src/emu');
+  for (const file of existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.h')).sort() : []) {
+    const header = stripCppComments(readFileSync(join(directory, file), 'utf8'));
+    const constants: Record<string, number> = {};
+    for (const match of header.matchAll(/^\s*(?:static\s+)?constexpr\s+[\w:]+\s+(\w+)\s*=\s*([^;]+);/gm)) {
+      const value = evalExpr(match[2]!, constants);
+      if (value !== null && Number.isFinite(value)) constants[match[1]!] = value;
+    }
+    for (const declaration of structBlocks(header)) {
+      // `struct { ... } w;` names a member, not a type.
+      if (!declaration.name || declaration.name === declaration.declarator || core.has(declaration.name)) continue;
+      const fields = structFieldList(declaration.body, constants, declaration.name);
+      if (fields.length) core.set(declaration.name, fields);
+    }
+  }
+  CORE_STRUCTS.set(mameSrc, core);
+  return core;
 }
 
 const CORE_ENUMERATORS = new Map<string, Record<string, number>>();

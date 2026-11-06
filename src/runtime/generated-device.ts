@@ -2578,6 +2578,13 @@ class IrDevice implements Device {
         this.bindings.referenceCalls![name] = listener;
       }
     }
+    // What the board binds is the device's own interface, reached through
+    // `*this` as well: konami_decode_gfx takes the K053246 as
+    // `device_gfx_interface &gfxdecode` and calls its palette() and set_gfx().
+    const self = this.members.this as Record<string, unknown> | undefined;
+    if (self && /^\w+$/.test(name) && !Object.hasOwn(self, name)) {
+      self[name] = (...args: unknown[]) => (this.bindings.calls![name] as (...values: unknown[]) => unknown)(...args);
+    }
     this.refreshCallLinks();
     for (const refresh of this.callConnections.get(name) ?? []) refresh();
     return this;

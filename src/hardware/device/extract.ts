@@ -24,7 +24,6 @@ const SPECIALIZED: Record<
 string,
 (mameSource: string, definition: MameHardwareDefinition) => Compiled
 > = {
-  K053246: compileK053246,
   UPD7759: compileUpd7759,
   NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
   SEGAIC16VID: compileSegaic16Video,
@@ -44,49 +43,6 @@ export function compileUpd7759(
 ): Compiled {
   const device = compileMameDevice(mameSource, definition, 'UPD7759');
   replaceMethod(device, 'sound_stream_update', '');
-  return refreshSummary(device);
-}
-
-/**
- * K053246 is the board-facing alias of MAME's k053247_device. Its indexed
- * renderer is executable as-is; only a compile-time sizeof branch for the
- * unrelated RGB32 shadow path prevents the generic all-method gate passing.
- */
-export function compileK053246(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'K053246');
-  const raw = readFileSync(join(mameSource, definition.sourceFile), 'utf8');
-  const ast = new MameAstIndex(parseMameAst([{ file: definition.sourceFile, source: raw }]));
-  const common = ast.findFunction('k053247_device', 'k053247_sprites_draw_common');
-  if (!common) throw new Error('K053246: source sprite renderer is missing');
-  const indexedBody = common.body.replace(
-    /if \(palette\(\)\.shadows_enabled\(\)\)[\s\S]*?else\s*\n\s*shdmask = -1;/,
-    'shdmask = -1;',
-  );
-  replaceMethod(device, 'k053247_sprites_draw_common', indexedBody);
-  // The RGB32 overloads are a System GX path. Simpsons configures an indexed
-  // screen and reaches the shared non-GX renderer above. Keep only the
-  // indexed public overload: the direct-code emitter deliberately declines
-  // overloaded names because JavaScript cannot dispatch them by C++ type.
-  // Leaving the unused RGB overload present therefore made the board's
-  // k053247_sprites_draw call fall back to the interpreter and silently skip
-  // the whole hot renderer.
-  device.methods = device.methods.filter(method => !(
-    (method.name === 'k053247_sprites_draw' || method.name === 'zdrawgfxzoom32GP') &&
-    method.parameters.includes('bitmap_rgb32')
-  ));
-  replaceMethod(device, 'device_start', `
-    m_z_rejection = -1;
-    m_objcha_line = 0;
-    m_gfx = gfx(m_gfx_num);
-  `);
-  device.hotMethods = [...new Set([
-    ...(device.hotMethods ?? []),
-    'k053247_sprites_draw',
-    'k053247_sprites_draw_common',
-  ])];
   return refreshSummary(device);
 }
 

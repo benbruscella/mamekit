@@ -369,11 +369,13 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // The screen's visible rectangle, which a device asks for when it clears a
   // band of its own bitmap (`m_bitmap.fill(colour, screen().visible_area())`).
   'screen().visible_area',
-  // Indexed custom renderers select palette shadow modes while walking their
-  // sprite list. The generic palette currently treats shadow pens as source
-  // pens, but the call itself remains a valid framework service.
+  // A custom renderer selects the palette's shadow preset while walking its
+  // sprite list, and draws its shadow pens through that preset's table.
   'palette().shadow_mode',
   'palette().set_shadow_mode',
+  'palette().shadows_enabled',
+  'palette().highlights_enabled',
+  'palette().shadow_table',
 ];
 
 export type GeneratedExpression =
@@ -1225,6 +1227,12 @@ export interface GeneratedVideoPlan {
   paletteProgram?: GeneratedProgramPalettePlan;
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
+  /**
+   * palette_device's enable_shadows() and enable_highlights(): the palette
+   * holds a shadow group, then a highlight group, after its `entries` base
+   * colours, and shadow_table() remaps a pen into one (dipalette.cpp).
+   */
+  paletteGroups?: { entries: number; shadows: boolean; highlights: boolean };
   tilemaps: GeneratedTilemapPlan[];
   /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
   motionObjects?: GeneratedMotionObjectsPlan;
