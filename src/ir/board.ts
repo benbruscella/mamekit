@@ -769,30 +769,6 @@ export interface GeneratedExecutionPlan {
     method?: string;
   }[];
   frameEvents: GeneratedFrameEvent[];
-  /**
-   * MAME devices that watch every access on another device's address space.
-   *
-   * `install_readwrite_tap` is how a protection chip sees the access pattern
-   * it decodes; the Atari slapstic changes its ROM bank purely from the
-   * sequence of addresses the 68000 touches, and nothing it does is visible
-   * in an address map. The window the machine config hands the device with
-   * `set_range` is carried here with the bank it drives.
-   */
-  accessTaps?: {
-    /** CPU whose address space is watched. */
-    cpu: string;
-    space: 'program';
-    /** Device tag receiving the tap. */
-    device: string;
-    /** Device method invoked with the accessed offset. */
-    method: string;
-    start: number;
-    end: number;
-    mirror: number;
-    /** Memory bank the device selects, when the source declares one. */
-    bank?: string;
-    source?: BoardSourceRef;
-  }[];
   screenUpdate?: {
     handler: string;
     /**

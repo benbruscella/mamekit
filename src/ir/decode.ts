@@ -479,23 +479,6 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.optionalNumber(event.frequency, `${path}.frequency`, source);
   }
 
-  if (execution.accessTaps !== undefined) {
-    for (const [index, entry] of reader.array(
-      execution.accessTaps, 'execution.accessTaps').entries()) {
-      const path = `execution.accessTaps[${index}]`;
-      const tap = reader.object(entry, path);
-      const source = sourceOf(tap);
-      reader.string(tap.cpu, `${path}.cpu`, source);
-      reader.string(tap.space, `${path}.space`, source);
-      reader.string(tap.device, `${path}.device`, source);
-      reader.string(tap.method, `${path}.method`, source);
-      reader.number(tap.start, `${path}.start`, source);
-      reader.number(tap.end, `${path}.end`, source);
-      reader.number(tap.mirror, `${path}.mirror`, source);
-      reader.optionalString(tap.bank, `${path}.bank`, source);
-    }
-  }
-
   if (execution.spaceAccessors !== undefined) {
     for (const [index, entry] of reader.array(execution.spaceAccessors, 'execution.spaceAccessors').entries()) {
       const accessor = reader.object(entry, `execution.spaceAccessors[${index}]`);

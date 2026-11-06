@@ -190,18 +190,30 @@ export class Bus {
    * space itself. A word access fires one tap, as it does in MAME, rather
    * than one per byte lane.
    */
-  private readonly accessTaps: ((address: number) => void)[] = [];
+  private readonly accessTaps: ((address: number, write: boolean) => void)[] = [];
   private tapDepth = 0;
 
-  installAccessTap(tap: (address: number) => void): void {
+  installAccessTap(tap: (address: number, write: boolean) => void): void {
     this.accessTaps.push(tap);
   }
 
-  private tap(address: number): void {
+  private tap(address: number, write: boolean): void {
     if (this.tapDepth) return;
     this.tapDepth++;
-    for (const tap of this.accessTaps) tap(address);
+    for (const tap of this.accessTaps) tap(address, write);
     this.tapDepth--;
+  }
+
+  /** The address mask a space with these ranges decodes through. */
+  static addressMaskOf(ranges: readonly RangeSpec[]): number {
+    const highest = Math.max(0, ...ranges.map(range => Math.max(range.end, range.mirror ?? 0)));
+    // A bit-addressed TMS34010 space reaches byte 0x1fffffff once scaled.
+    return highest > 0xffffff ? 0x1fffffff : highest > 0xffff ? 0xffffff : 0xffff;
+  }
+
+  /** MAME `address_space::addrmask()`. */
+  addrmask(): number {
+    return this.addressMask;
   }
 
   constructor(
@@ -217,9 +229,7 @@ export class Bus {
   ) {
     this.shares = shares;
     if (unmapHigh) this.readFns[0] = () => 0xff;
-    const highest = Math.max(0, ...ranges.map(range => Math.max(range.end, range.mirror ?? 0)));
-    // A bit-addressed TMS34010 space reaches byte 0x1fffffff once scaled.
-    this.addressMask = highest > 0xffffff ? 0x1fffffff : highest > 0xffff ? 0xffffff : 0xffff;
+    this.addressMask = Bus.addressMaskOf(ranges);
     for (const r of ranges) {
       const size = r.end - r.start + 1;
       let read: ReadHandler | null = null;
@@ -484,7 +494,7 @@ export class Bus {
 
   read = (addr: number): number => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    if (this.accessTaps.length) this.tap(addr, false);
     if (addr <= 0xffff) {
       return this.readFns[this.readId[addr]](addr, addr - (this.base[addr] & 0xffff)) & 0xff;
     }
@@ -497,7 +507,7 @@ export class Bus {
     // The tap bookkeeping below costs an exception frame on every access; a
     // board with no taps installed cannot need it.
     if (!this.accessTaps.length) return this.read16beUntapped(addr);
-    this.tap(addr);
+    this.tap(addr, false);
     this.tapDepth++;
     try {
       return this.read16beUntapped(addr);
@@ -525,7 +535,7 @@ export class Bus {
 
   write = (addr: number, data: number): void => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    if (this.accessTaps.length) this.tap(addr, true);
     if (addr <= 0xffff) {
       this.writeFns[this.writeId[addr]](addr, addr - (this.base[addr] >>> 16), data & 0xff);
       return;
@@ -539,7 +549,7 @@ export class Bus {
 
   write16be = (addr: number, data: number): void => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    if (this.accessTaps.length) this.tap(addr, true);
     this.tapDepth++;
     try {
       this.write16beUntapped(addr, data);

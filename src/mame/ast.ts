@@ -153,16 +153,22 @@ const CONTROL_KEYWORDS = new Set([
 ]);
 
 export function parseMameSource(file: string, source: string): MameTranslationUnit {
-  const masked = maskComments(source);
+  // A call operator is the method `__call`, which a call on the object
+  // lowers to: the slapstic's address predicate is `bool operator()(offs_t a)`.
+  // Respelled in place, so every offset into the masked text still holds.
+  const masked = maskComments(source)
+    .replace(/\boperator\s*\(\s*\)(\s*)\(/g, call => `${'__call'.padEnd(call.length - 1)}(`);
   const lineStarts = buildLineStarts(source);
   const span = (start: number, end: number) => makeSpan(file, lineStarts, start, end);
 
   const functions: MameFunction[] = [];
   const occupied: [number, number][] = [];
   // `const noexcept` too: the 6805's `execute_cycles_to_clocks` is defined
-  // that way, and skipping it lost the core's divide-by-four clock.
+  // that way, and skipping it lost the core's divide-by-four clock. The class
+  // may be padded to align a column of definitions: the slapstic defines its
+  // states' `state_id()` as `atari_slapstic_device::idle              ::state_id()`.
   const functionRe =
-    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
+    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?[^\S\n]*::(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
   let fm: RegExpExecArray | null;
   while ((fm = functionRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);

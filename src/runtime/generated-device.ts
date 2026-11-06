@@ -260,6 +260,12 @@ export interface GeneratedDeviceDefinition {
   imageInterface?: true;
   allocations?: Record<string, GeneratedDeviceDefinition>;
   construct?: string;
+  /**
+   * The constructor the configuration's argument reaches when it is not the
+   * clock (device-compiler): run with that argument, and the device's clock
+   * is the one it delegates.
+   */
+  clockConstructor?: { method: string; clock: number };
   constants: Record<string, number>;
   members: DeviceMember[];
   callbacks: DeviceCallback[];
@@ -381,6 +387,8 @@ export interface Device {
     write: (address: number, data: number) => void): void;
   reset(): void;
   tick(seconds: number): void;
+  /** MAME's `device_pre_save` on the device and the devices inside it, before a state save. */
+  preSave?(): void;
   /** MAME's `device_post_load` on the device and the devices inside it, after a state load. */
   postLoad?(): void;
   /** Whether this device or a composed child owns a scheduled timer. */
@@ -613,7 +621,7 @@ export interface GeneratedDeviceOptions {
    * Resolve required/optional device finders to host/device proxies, and a
    * `required_address_space` to a space its own `set_tag` points at a bus.
    */
-  finder?: (tag: string, member?: string, kind?: 'space') => unknown;
+  finder?: (tag: string, member?: string, kind?: 'space' | 'bank') => unknown;
   regions?: Record<string, Uint8Array>;
   /** MAME's `machine().basename()`: the machine's short name. */
   machineName?: string;
@@ -1207,6 +1215,8 @@ class IrDevice implements Device {
     // 31399.78. Handing the fraction back made the TIA's sample counter land
     // one short of its divisor and take the oversampling branch MAME does not.
     clock = Math.trunc(clock);
+    const constructorArgument = clock;
+    if (definition.clockConstructor) clock = definition.clockConstructor.clock;
     this.clock = clock;
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
@@ -1292,6 +1302,8 @@ class IrDevice implements Device {
             ? options.finder?.(member.finder.tag, member.name) ?? 0
           : /^(?:required|optional)_address_space$/.test(member.valueType)
             ? options.finder?.('', member.name, 'space') ?? 0
+          : /^(?:required|optional)_memory_bank$/.test(member.valueType)
+            ? options.finder?.('', member.name, 'bank') ?? 0
           : /^bitmap_(?:rgb32|ind16|ind8)$/.test(member.valueType)
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength },
@@ -1955,14 +1967,16 @@ class IrDevice implements Device {
     const pendingTimers = [...this.timers.values()];
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
     // A struct local with no initializer, built from its declaration
-    // (device-compiler lowerStructLocals): `cbm_crt_header header;`.
-    const structOf = (type: unknown): unknown => {
+    // (device-compiler lowerStructLocals): `cbm_crt_header header;`. With
+    // arguments it is built through the constructor of that arity instead:
+    // the slapstic's `test(mask, value)`.
+    const structOf = (type: unknown, ...args: unknown[]): unknown => {
       const fields = definition.structs?.[String(type)];
       if (!fields) return 0;
       const struct = structMember(fields, definition.structs, String(type));
       // What its constructor sets up (device-compiler structMethodsOf).
-      const construct = (struct as { __construct?: () => unknown }).__construct;
-      if (typeof construct === 'function') construct.call(struct);
+      const construct = (struct as Record<string, unknown>)[args.length ? `__construct_${args.length}` : '__construct'];
+      if (typeof construct === 'function') construct.apply(struct, args);
       return struct;
     };
     this.bindings.calls!.STRUCT_OF = structOf as (...args: number[]) => unknown;
@@ -2164,6 +2178,7 @@ class IrDevice implements Device {
     // the emitted methods read before any of them can run.
     this.refreshCallLinks();
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
+    if (definition.clockConstructor) this.invoke(definition.clockConstructor.method, 0, 0, 0, constructorArgument);
     options.configure?.(this);
     const start = (): void => {
       if (definition.start) this.call(definition.start);
@@ -2300,6 +2315,17 @@ class IrDevice implements Device {
    * from the registers by `postload()`, and without it a voice kept running
    * whichever routine it had when the save was loaded over it.
    */
+  /**
+   * MAME calls `device_pre_save` on every device before a state is saved, so
+   * a device can put into saved members what it otherwise holds as wiring:
+   * the slapstic records which state object `m_state` points at.
+   */
+  preSave(): void {
+    if (this.methodNames().includes('device_pre_save')) this.invoke('device_pre_save');
+    for (const child of this.children) child.preSave();
+    this.slotChild?.preSave();
+  }
+
   postLoad(): void {
     if (this.methodNames().includes('device_post_load')) this.invoke('device_post_load');
     for (const child of this.children) child.postLoad();

@@ -186,6 +186,7 @@ export function generatedDeviceMethodsSource(
       // when their loop only calls helpers and has no switch of its own.
       method.name === 'execute_run' ||
       isStreamRenderer(method) ||
+      installsLambda(method.program.operations) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -350,6 +351,25 @@ function constantCondition(expression: GeneratedExpression): number | undefined 
     }
   }
   return undefined;
+}
+
+/**
+ * Whether the method hands a lambda to an address-space install call
+ * (`install_readwrite_tap`, `install_read_handler`, ...). The lambda is then
+ * a handler the bus runs on every access: the slapstic's tap decodes all of
+ * the 68010's, and created by the interpreter it was interpreted each time.
+ */
+function installsLambda(operations: GeneratedHandlerOperation[]): boolean {
+  let found = false;
+  visitOperations(operations, operation => {
+    visitOperationExpressions(operation, expression => {
+      if (expression.kind !== 'call') return;
+      const callee = expression.callee.kind === 'member' ? expression.callee.property
+        : expression.callee.kind === 'identifier' ? expression.callee.name : '';
+      if (/^install_\w+$/.test(callee) && expression.args.some(argument => argument.kind === 'lambda')) found = true;
+    });
+  });
+  return found;
 }
 
 function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
@@ -528,9 +548,7 @@ function isStreamRenderer(method: GeneratedDeviceMethod): boolean {
 function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
   const first = method.parameters.split(',')[0]?.trim() ?? '';
   // MAME's handlers take the address first and call it `offset`, always. The
-  // NAME is the discriminator, not the arity: the slapstic's
-  // `configure_range(offs_t start, ...)` is configuration rather than a bus
-  // handler, while a ColecoVision cartridge's
+  // NAME is the discriminator, not the arity: a ColecoVision cartridge's
   // `read(offs_t offset, int _8000, int _a000, int _c000, int _e000)` carries
   // four chip selects besides the address -- and runs on every instruction
   // fetch, because the game code lives in cartridge ROM.

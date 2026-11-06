@@ -218,6 +218,8 @@ export interface GeneratedDeviceDefinition {
   /** Source constructors for dynamically allocated helper objects. */
   allocations?: Record<string, GeneratedDeviceDefinition>;
   construct?: string;
+  /** A constructor the configuration's argument reaches instead of the clock one (runtime GeneratedDeviceDefinition). */
+  clockConstructor?: { method: string; clock: number };
   /**
    * Every struct type the device declares, keyed by type name.
    *
@@ -753,7 +755,11 @@ function compileMameDeviceSource(
   // holding one is here: the AY-3-8910 builds its mixer into
   // `m_vol3d_table.get()`, and as a call on the array it answered nothing,
   // so the table stayed empty and the Sunsoft 5B played silence.
-  const smartPointers = [...new Set(hierarchy.flatMap(className => {
+  // A class declared inside the device reaches the device's own through its
+  // back pointer: a slapstic state moves on with `m_sl->m_s_active.get()`.
+  const enclosing = hierarchy.flatMap(className => className.split('::').slice(0, -1)
+    .map((_scope, depth, scopes) => scopes.slice(0, depth + 1).join('::')));
+  const smartPointers = [...new Set([...hierarchy, ...enclosing].flatMap(className => {
     const declaration = classes.get(className);
     return declaration ? memberDeclarations(declaration)
       .filter(member => /^std::(?:unique|shared)_ptr\s*</.test(member.valueType))
@@ -794,11 +800,17 @@ function compileMameDeviceSource(
     // `std::make_unique<T>(args)` builds a T as `new T(args)` does, and a
     // class template's instance is named as an allocation can be: ymfm's
     // engine builds `std::make_unique<fm_channel<RegisterType>>(*this, ...)`.
+    // T may be declared inside the device's own class: the slapstic makes
+    // each of its states as `std::make_unique<idle>(this, check, info)`. One
+    // a base declares (a processor's `mi_default` memory interface) is still
+    // the runtime's to make.
+    const nestedOwn = className === definition.className;
     specialized = specialized.replace(
       /\b(?:std::make_unique\s*<\s*([\w:]+(?:\s*<[^<>;()]*>)?)\s*>|new\s+([\w:]+\s*<[^<>;()]*>))\s*\(/g,
       (text, made: string | undefined, allocated: string | undefined) => {
         const allocatedType = (made ?? allocated)!;
-        if (!classes.has(allocatedType.replace(/\s*<[\s\S]*>$/, ''))) return text;
+        const template = allocatedType.replace(/\s*<[\s\S]*>$/, '');
+        if (!classes.has(template) && !(nestedOwn && classes.has(`${className}::${template}`))) return text;
         const name = templateInstanceName(allocatedType);
         if (name !== allocatedType) instanceNames.set(name, allocatedType);
         return `new ${name}(`;
@@ -1726,6 +1738,22 @@ function compileMameDeviceSource(
       diagnostics,
     },
   };
+  // A device with a constructor that takes something other than a clock as
+  // its last argument and delegates to the clock one: the configuration's
+  // argument is that one's, as C++ overload resolution has an int literal
+  // pick it. `SLAPSTIC(config, m_slapstic, 104)` is
+  // `atari_slapstic_device(..., int chipnum) : atari_slapstic_device(..., u32(0)) { m_chipnum = chipnum; }`.
+  if (!options.nestedClass) {
+    const leaf = definition.className.split('::').at(-1)!;
+    const body = classes.get(definition.className)?.body ?? '';
+    const pattern = new RegExp(`\\b${leaf}\\s*\\(\\s*const\\s+machine_config\\s*&\\s*\\w+\\s*,\\s*const\\s+char\\s*\\*\\s*\\w+\\s*,\\s*device_t\\s*\\*\\s*\\w+\\s*,\\s*(\\w+)\\s+\\w+\\s*\\)\\s*:\\s*${leaf}\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*\\w+\\s*,\\s*(?:u32|uint32_t)\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\)`);
+    const overload = pattern.exec(body);
+    const method = result.methods.find(candidate => candidate.name === leaf &&
+      splitMameArgs(candidate.parameters).length === 4 && candidate.parameters.includes(overload?.[1] ?? '\0'));
+    if (overload && !/^(?:u32|uint32_t)$/.test(overload[1]!) && method) {
+      result.clockConstructor = { method: method.name, clock: Number(overload[2]) };
+    }
+  }
   const allocations: Record<string, GeneratedDeviceDefinition> = {};
   const compileNestedClass = (name: string, qualified: string): GeneratedDeviceDefinition => {
     if (compiling.has(qualified)) throw new Error(`cannot resolve nested MAME class ${qualified}`);
@@ -1787,16 +1815,30 @@ function compileMameDeviceSource(
   // (`samples_iterator iter(*this);`), built as a `new` would build it. The
   // declaration parses as a functional cast, and answering its methods as
   // unresolved calls would load no sample.
+  // With more than one argument it parses as a call of the type's name
+  // (`checker check(m_start, m_end, ...)`, the slapstic's address predicates),
+  // and the class may be declared inside the device.
   for (const method of methods) walkOperations(method.program.operations, operation => {
-    if (operation.op !== 'declare' || operation.value?.kind !== 'cast' || operation.valueType !== operation.value.valueType) return;
+    if (operation.op !== 'declare' || !operation.value) return;
+    const value = operation.value;
+    const args = value.kind === 'cast' && operation.valueType === value.valueType ? [value.operand]
+      : value.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === operation.valueType ? value.args
+        : undefined;
     const type = operation.valueType;
+    if (!args || !type) return;
     // lib/util/flac.h wraps libFLAC, which is no MAME source; the host answers it.
     if (type === 'flac_decoder') {
-      operation.value = { kind: 'call', callee: { kind: 'identifier', name: type }, args: [operation.value.operand] };
+      operation.value = { kind: 'call', callee: { kind: 'identifier', name: type }, args };
       return;
     }
-    if (!classes.has(type) || hierarchy.includes(type) || /_device$/.test(type) || structFields.has(type) || !constructorOf(type)) return;
-    operation.value = { kind: 'call', callee: { kind: 'identifier', name: `new::${type}` }, args: [operation.value.operand] };
+    const nested = classes.has(`${definition.className}::${type}`);
+    const qualified = nested ? `${definition.className}::${type}` : type;
+    if (!nested && (!classes.has(type) || hierarchy.includes(type) || /_device$/.test(type))) return;
+    if (!constructorOf(qualified)) return;
+    // A struct is plain data unless it defines methods of its own out of
+    // line, which makes it an object as a class is: the slapstic's checker.
+    if (structFields.has(type) && !sourceMethods.some(helper => helper.className === qualified)) return;
+    operation.value = { kind: 'call', callee: { kind: 'identifier', name: `new::${type}` }, args };
   });
   for (const method of methods) walkExpressions(method.program.operations, expression => {
     if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
@@ -1815,14 +1857,22 @@ function compileMameDeviceSource(
   // emitted: discrete's transform node pushes and pops a `double_stack` for
   // every term of its expression, every sample. Its values stay plain structs
   // (STRUCT_OF); only its methods come from the allocation.
-  // Only where this class's own methods declare one, so each struct is
-  // compiled beside the code that calls it.
+  // Only where this class's own methods declare or build one, or the class
+  // holds one as a member, so each struct is compiled beside the code that
+  // calls it: each slapstic state holds its address predicates as `test`
+  // members and calls them on every access the processor makes, and its
+  // checker builds them (`return test(mask, value);`).
   const ownBodies = [...methodBodies.values()].join('\n');
+  const heldTypes = new Set(result.members.map(member => member.valueType.split('::').at(-1)));
   for (const type of Object.keys(structMethods)) {
-    if (allocations[type] || compiling.has(type) || !classes.has(type) || hierarchy.includes(type) || !constructorOf(type)) continue;
+    const qualified = classes.has(type) ? type
+      : [...hierarchy, definition.className].flatMap(className => className.split('::').slice(0, -1)
+        .map((_scope, depth, scopes) => `${scopes.slice(0, depth + 1).join('::')}::${type}`))
+        .find(candidate => classes.has(candidate)) ?? type;
+    if (allocations[type] || compiling.has(qualified) || !classes.has(qualified) || hierarchy.includes(qualified) || !constructorOf(qualified)) continue;
     if (!structMethods[type]!.some(method => method.name === '__construct')) continue;
-    if (!new RegExp(`\\b${type}\\s+\\w+\\s*;`).test(ownBodies)) continue;
-    compileNestedClass(type, type);
+    if (!new RegExp(`\\b${type}\\s+\\w+\\s*;|(?<![\\w.>:])${type}\\s*\\(`).test(ownBodies) && !heldTypes.has(type)) continue;
+    compileNestedClass(type, qualified);
   }
   if (Object.keys(allocations).length) result.allocations = allocations;
   annotateMemberCallReferences(result, classes, sourceMethods, hierarchy);
@@ -2406,6 +2456,39 @@ export function lowerStructLocals(
       const fields = structs[expression.callee.name];
       if (fields) Object.assign(expression, structValue(fields, []));
     });
+    // With arguments it is built through the constructor of that arity
+    // (structMethodsOf's `__construct_<arity>`): the slapstic's checker
+    // answers each predicate as `return test(mask, value);`.
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.args.length) return;
+      const type = expression.callee.name;
+      if (!structs[type] || !device.structMethods?.[type]?.some(candidate => candidate.name === `__construct_${expression.args.length}`)) return;
+      Object.assign(expression, { callee: { kind: 'identifier', name: 'STRUCT_OF' }, args: [string(type), ...expression.args] });
+    });
+    // A call on a struct value is its call operator (`__call`): each slapstic
+    // state tests an address as `m_reset(addr)`, `m_bank[i](addr)`.
+    const callable = new Set(Object.entries(device.structMethods ?? {})
+      .filter(([, methods]) => methods.some(candidate => candidate.name === '__call')).map(([type]) => type));
+    if (callable.size) {
+      const typed = new Map<string, string>(device.members.map(member => [member.name, member.valueType]));
+      for (const parameter of splitMameArgs(method.parameters)) {
+        const name = parameterName(parameter);
+        if (name) typed.set(name, parameterBaseType(parameter));
+      }
+      walkOperations(method.program.operations, operation => {
+        if (operation.op === 'declare' && operation.valueType) typed.set(operation.name, operation.valueType);
+      });
+      const callableType = (expression: GeneratedExpression): boolean => {
+        const root = expression.kind === 'index' ? expression.object : expression;
+        if (root.kind !== 'identifier') return false;
+        const leaf = typed.get(root.name)?.replace(/\bconst\b/g, '').replace(/[*&]/g, '').trim().split('::').at(-1);
+        return leaf !== undefined && callable.has(leaf);
+      };
+      walkExpressions(method.program.operations, expression => {
+        if (expression.kind !== 'call' || !callableType(expression.callee)) return;
+        (expression as { callee: GeneratedExpression }).callee = { kind: 'member', object: expression.callee, property: '__call' };
+      });
+    }
     walkExpressions(method.program.operations, expression => {
       if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || expression.callee.name !== 'AGGREGATE_OF') return;
       const type = expression.args[0]?.kind === 'string' ? expression.args[0].value : '';
@@ -2660,7 +2743,10 @@ export function addSourceConstructor(
         const args = initializer.args.map(argument => specialize(argument.trim()));
         const member = device.members.find(candidate => candidate.name === initializer.name);
         if (!member) {
-          const base = initializer.name.replace(/\s*<[\s\S]*>$/, '');
+          // A base is named as the derived class's scope sees it: a slapstic
+          // state's `: state(sl)` is `atari_slapstic_device::state`.
+          const named = initializer.name.replace(/\s*<[\s\S]*>$/, '');
+          const base = device.hierarchy?.find(className => className === named || className.endsWith(`::${named}`)) ?? named;
           const chained = device.hierarchy?.includes(base) ? baseConstructor(base) : undefined;
           if (!chained) continue;
           lower(chained, `${base}::__construct`);
@@ -3254,7 +3340,21 @@ function classHierarchy(
       // one without the other is a cartridge that cannot reach its own code.
       const argument = templateArguments.get(name)?.[base];
       const unqualified = (argument ?? base).split('::').at(-1)!;
-      if (classes.has(unqualified)) visit(unqualified);
+      if (classes.has(unqualified)) {
+        visit(unqualified);
+        continue;
+      }
+      // Otherwise looked up outward from the class's own scope, as C++ does:
+      // the slapstic's `struct idle : public state` derives from the
+      // `atari_slapstic_device::state` declared beside it.
+      const scopes = name.split('::').slice(0, -1);
+      for (let depth = scopes.length; depth > 0; depth--) {
+        const nested = `${scopes.slice(0, depth).join('::')}::${unqualified}`;
+        if (classes.has(nested)) {
+          visit(nested);
+          break;
+        }
+      }
     }
     if (declaration) result.push(name);
   };
@@ -3400,8 +3500,10 @@ function compileMethod(
 function inlineMethods(declaration: MameClass): MameFunction[] {
   const methods: MameFunction[] = [];
   const source = declaration.body;
+  // A call operator is `__call`, as the AST names it (parseMameSource).
   const masked = maskNestedClasses(source.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, match =>
-    match.replace(/[^\r\n]/g, ' ')));
+    match.replace(/[^\r\n]/g, ' ')))
+    .replace(/\boperator\s*\(\s*\)(\s*)\(/g, call => `${'__call'.padEnd(call.length - 1)}(`);
   // MAME declares pointer-returning accessors as `Type *buffer()`, so the
   // sigils sit against the method name rather than the return type.
   const pattern =
@@ -3497,11 +3599,12 @@ export function memberDeclarations(
   // C++ commonly groups scalar members (`int m_base, m_mask;`). Treat every
   // declarator as its own field before the single-declarator patterns below.
   // The names need not carry `m_`: the 64H156 keeps its live and checkpoint
-  // bit-engine states as `live_info cur_live, checkpoint_live;`.
+  // bit-engine states as `live_info cur_live, checkpoint_live;`. The type may
+  // be elaborated: each slapstic state holds `struct test m_bank[4], m_alt, m_bit;`.
   for (const match of declaration.body.matchAll(
-    /^\s*((?:const\s+)?[\w:]+(?:\s+const)?)\s+([A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
+    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s+const)?)\s+([A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
   )) {
-    const valueType = match[1]!.replace(/\s+/g, ' ').trim();
+    const valueType = match[1]!.replace(/\b(?:struct|union)\s+/, '').replace(/\s+/g, ' ').trim();
     if (/^(?:return|using|typedef|friend|case|goto|delete|throw)$/.test(valueType)) continue;
     for (const declarator of match[2]!.split(',').map(value => value.trim())) {
       const parsed = /^([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
@@ -3613,15 +3716,22 @@ function arrayBound(bound: string, constants: Record<string, number> = {}): numb
   return Number(evalExpr(bound.trim(), constants) ?? Number.NaN);
 }
 
+// A named struct is masked too: its fields are its own, and the slapstic's
+// states each hold a `struct test m_bank[4]` that read as the device's
+// `optional_memory_bank m_bank`. Its `struct name` stays, so a declarator
+// after the block (`struct name { ... } m_x;`) is still a member of that type.
 function maskNestedClasses(source: string): string {
-  const pattern = /\bclass\s+\w+\s*(?::[^;{]+)?\{/g;
+  const pattern = /\b(class|struct)\s+(\w+)\s*(?::[^;{]+)?\{/g;
   let match: RegExpExecArray | null;
   let result = source;
   while ((match = pattern.exec(source))) {
     const brace = source.indexOf('{', match.index);
     const end = matchingBrace(source, brace);
     if (end < 0) continue;
-    result = result.slice(0, match.index) + result.slice(match.index, end + 1).replace(/[^\r\n]/g, ' ') + result.slice(end + 1);
+    const declared = /^\s*\w+\s*(?:\[[^\]]*\]\s*)?;/.test(source.slice(end + 1));
+    const kept = match[1] === 'struct' && declared ? `struct ${match[2]}` : '';
+    const masked = kept + result.slice(match.index + kept.length, end + 1).replace(/[^\r\n]/g, ' ');
+    result = result.slice(0, match.index) + masked + result.slice(end + 1);
     pattern.lastIndex = end + 1;
   }
   return result;
@@ -4775,18 +4885,31 @@ function staticStructConstants(
     : text.replace(/\b[A-Z_][A-Z0-9_]*\b/g, name =>
       macros.has(name) && constants[name] === undefined ? expand(macros.get(name)!, depth + 1) : name);
   const lifted: GeneratedDeviceMember[] = [];
+  const value = (item: string): unknown => item.startsWith('{')
+    ? initializerItems(item.slice(1, -1)).map(value)
+    : evalExpr(item, constants) ?? 0;
+  // A braced item for a field of a struct type is that struct, field by
+  // field: each slapstic's table holds its address predicates as
+  // `mask_value` pairs, `{ 0x1f00,0x1e00 }`.
+  const record = (fields: readonly GeneratedStructField[], items: readonly string[]): Record<string, unknown> =>
+    Object.fromEntries(items.map((item, index) => {
+      const field = fields[index]!;
+      const nested = field.fields ?? (field.valueType ? structFields.get(field.valueType.split('::').at(-1)!) : undefined);
+      return [field.name, item.startsWith('{') && nested && !field.length
+        ? record(nested, initializerItems(item.slice(1, -1)))
+        : value(item)];
+    }));
   // `static const struct x name = {...}`, or a class's struct spelled through
   // the class with no `struct` at all: the AY-3-8910's `static const
   // ay8910_device::ay_ym_param ym2149_param = {...}`, its resistor network.
-  for (const match of all.matchAll(/\bstatic\s+const\s+(?:struct\s+)?((?:\w+::)*(\w+))\s+(\w+)\s*=\s*\{/g)) {
+  // A class's static defined out of the class has no `static` there:
+  // `const atari_slapstic_device::slapstic_data atari_slapstic_device::slapstic101 = {...}`.
+  for (const match of all.matchAll(/(?:\bstatic\s+|(?:^|[;}\s])(?=const\s+(?:struct\s+)?(?:\w+::)*\w+\s+(?:\w+::)+\w+\s*=))const\s+(?:struct\s+)?((?:\w+::)*(\w+))\s+(?:\w+::)*(\w+)\s*=\s*\{/g)) {
     const [, type, bareType, name] = match;
     const fields = structFields.get(type!) ?? structFields.get(bareType!);
     if (!fields || !new RegExp(`\\b${name}\\b`).test(code)) continue;
     if (existing.some(member => member.name === name) || lifted.some(member => member.name === name)) continue;
     const body = expand(braceBody(all, match.index! + match[0].length - 1, name));
-    const value = (item: string): unknown => item.startsWith('{')
-      ? initializerItems(item.slice(1, -1)).map(value)
-      : evalExpr(item, constants) ?? 0;
     // C lets an aggregate stop early; the fields it leaves out are zero, which
     // is what the struct's own shape already builds.
     const items = initializerItems(body);
@@ -4795,7 +4918,31 @@ function staticStructConstants(
       name: name!,
       valueType: structFields.has(type!) ? type! : bareType!,
       fields,
-      initialValue: Object.fromEntries(items.map((item, index) => [fields[index]!.name, value(item)])),
+      initialValue: record(fields, items),
+    });
+  }
+  // A const array of pointers to those statics: the slapstic picks its chip's
+  // table as `slapstic_table[m_chipnum - 101]`. Each pointee is const, so the
+  // element is its value; a null element (a chip never seen) is all zero,
+  // which only MAME's validity check would tell from a table.
+  for (const match of all.matchAll(/(?:^|[;}\s])(?:static\s+)?const\s+(?:struct\s+)?((?:\w+::)*(\w+))\s*\*\s*const\s+(?:\w+::)*(\w+)\s*\[\s*\w*\s*\]\s*=\s*\{/g)) {
+    const [, type, bareType, name] = match;
+    const fields = structFields.get(type!) ?? structFields.get(bareType!);
+    if (!fields || !new RegExp(`\\b${name}\\b`).test(methodCode || code)) continue;
+    if (existing.some(member => member.name === name) || lifted.some(member => member.name === name)) continue;
+    const items = initializerItems(braceBody(all, match.index! + match[0].length - 1, name));
+    const elements = items.map(item => {
+      if (/^(?:nullptr|NULL|0)$/.test(item.trim())) return null;
+      const pointee = /^&\s*(?:\w+::)*(\w+)$/.exec(item.trim())?.[1];
+      return lifted.find(member => member.name === pointee)?.initialValue;
+    });
+    if (!elements.length || elements.some(element => element === undefined)) continue;
+    lifted.push({
+      name: name!,
+      valueType: `${structFields.has(type!) ? type! : bareType!}*`,
+      fields,
+      arrayLength: elements.length,
+      initialValues: elements.map(element => element ?? {}),
     });
   }
   // A class's static array of structs, defined out of the class:
@@ -4897,19 +5044,36 @@ function structMethodsOf(body: string, name?: string): { name: string; parameter
   // Its default constructor, as `__construct`, which building the struct
   // runs: discrete's `double_stack() : p(&stk[0]) { }` points its stack at
   // its own storage, and built as zeros the first push wrote through null.
+  // One taking arguments is `__construct_<arity>`, which building the struct
+  // with them runs instead (`STRUCT_OF(type, ...args)`): the slapstic's
+  // address predicate is `test(offs_t m, offs_t v) : m_m(m), m_v(v) {}`.
   const leaf = name?.split('::').at(-1);
-  const constructor = leaf ? new RegExp(`(?:^|[;{}]|(?<!:):)\\s*${leaf}\\s*\\(\\s*(?:void\\s*)?\\)\\s*(?::([^{;]*))?\\{`).exec(body) : null;
-  if (constructor) {
+  const constructors = leaf
+    ? body.matchAll(new RegExp(`(?:^|[;{}]|(?<!:):)\\s*${leaf}\\s*\\(([^()]*)\\)\\s*(?::([^{;]*))?\\{`, 'g'))
+    : [];
+  for (const constructor of constructors) {
+    const parameters = constructor[1]!.trim() === 'void' ? '' : constructor[1]!.trim();
+    const arity = parameters ? splitMameArgs(parameters).length : 0;
     const open = constructor.index + constructor[0].length - 1;
     const close = matchingBrace(body, open);
-    const initializers = splitMameArgs(constructor[1] ?? '').flatMap(initializer => {
+    const initializers = splitMameArgs(constructor[2] ?? '').flatMap(initializer => {
       const parsed = /^\s*(\w+)\s*[({]([\s\S]*)[)}]\s*$/.exec(initializer);
       return parsed ? [`${parsed[1]} = ${parsed[2]!.trim() || '0'};`] : [];
     });
     if (close > open) {
       const program = compileMameHandler(normalizeMameExecutionSource(`${initializers.join('\n')}\n${body.slice(open + 1, close)}`));
-      if (!program.diagnostics.length && program.operations.length) found.push({ name: '__construct', parameters: '', program });
+      if (!program.diagnostics.length && program.operations.length) {
+        found.push({ name: arity ? `__construct_${arity}` : '__construct', parameters, program });
+      }
     }
+  }
+  // Its call operator, as `__call`: `bool operator()(offs_t a) const`.
+  for (const match of body.matchAll(/(?:^\s*|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+operator\s*\(\s*\)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g)) {
+    const open = body.indexOf('{', match.index! + match[0].length - 1);
+    const close = matchingBrace(body, open);
+    if (close < 0) continue;
+    const program = compileMameHandler(normalizeMameExecutionSource(body.slice(open + 1, close)));
+    if (!program.diagnostics.length) found.push({ name: '__call', parameters: match[1]!.trim(), program });
   }
   // The first method may open the body: `ymfm_output &clear()`.
   const header = /(?:^\s*|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+(\w+)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g;

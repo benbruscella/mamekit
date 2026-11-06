@@ -294,9 +294,6 @@ export function withEmptySlots(machine: BoardIr, slots: readonly string[] | unde
       ...(execution.bankDevices
         ? { bankDevices: execution.bankDevices.filter(bank => !inCard(bank.tag)) }
         : {}),
-      ...(execution.accessTaps
-        ? { accessTaps: execution.accessTaps.filter(tap => !inCard(tap.cpu) && !inCard(tap.device)) }
-        : {}),
       frameEvents: execution.frameEvents.filter(event =>
         !inCard(event.ownerTag) && !removed.has(event.callbackId)),
     },
@@ -457,6 +454,8 @@ class IrBoard implements Board {
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
   /** MAME address-space taps a mounted cartridge installed over the CPU space. */
   private cartridgeTaps: ((address: number) => void)[] = [];
+  /** Device taps on a space whose bus was not built yet (install_readwrite_tap). */
+  private pendingSpaceTaps: { cpu: string; tap: (address: number, write: boolean) => void }[] = [];
   /**
    * Cycles a CPU has run inside the slice it is running now.
    *
@@ -875,8 +874,6 @@ class IrBoard implements Board {
               (service as (...rest: number[]) => unknown)(...args);
           }
         }
-        const tapBank = machine.execution.accessTaps
-          ?.find(tap => tap.device === specification.tag)?.bank;
         const configuredMembers: Record<string, unknown> = {
           ...specification.memberValues,
           ...Object.fromEntries(Object.entries(specification.memoryShares ?? {})
@@ -959,6 +956,7 @@ class IrBoard implements Board {
               // Configured before the processors' buses exist, so the tag is
               // kept and the bus looked up when the space is first used.
               let target = '';
+              const processor = () => machine.execution.cpus.find(cpu => cpu.tag === target);
               return {
                 set_tag: (tag: string) => {
                   target = String(tag);
@@ -967,6 +965,48 @@ class IrBoard implements Board {
                 read_byte: (address: number) => this.cpuBuses.get(target)?.read(address) ?? 0xff,
                 write_byte: (address: number, data: number) => {
                   this.cpuBuses.get(target)?.write(address, data);
+                  return 0;
+                },
+                data_width: () => {
+                  const cpu = processor();
+                  return cpu?.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(cpu?.type ?? '');
+                },
+                addrmask: () => this.cpuBuses.get(target)?.addrmask() ?? Bus.addressMaskOf(processor()?.ranges ?? []),
+                // MAME `install_readwrite_tap(start, end, mirror, name, read, write)`:
+                // the slapstic watches every access its processor makes. The
+                // tap answers nothing, and a device may install it before the
+                // bus is built, so it waits for its bus (installSpaceTaps).
+                install_readwrite_tap: (start: number, end: number, mirror: number, _name: unknown, read: unknown, write: unknown) => {
+                  const tap = (address: number, writing: boolean) => {
+                    const masked = address & ~Number(mirror);
+                    if (masked < Number(start) || masked > Number(end)) return;
+                    const handler = writing ? write : read;
+                    if (typeof handler === 'function') handler(address, 0, 0xffff);
+                  };
+                  const bus = this.cpuBuses.get(target);
+                  if (bus) bus.installAccessTap(tap);
+                  else this.pendingSpaceTaps.push({ cpu: target, tap });
+                  return 0;
+                },
+              };
+            }
+            // MAME `optional_memory_bank`/`required_memory_bank`: the device's
+            // own setter names one of the board's banks (`m_bank.set_tag(tag)`),
+            // and `set_entry` selects within it.
+            if (kind === 'bank') {
+              let target = '';
+              return {
+                set_tag: (tag: string) => {
+                  target = String(tag);
+                  return 0;
+                },
+                set_entry: (entry: number) => {
+                  const set = this.bankEntry.get(target);
+                  if (!set) {
+                    this.pendingBankEntry.set(target, entry);
+                    return 0;
+                  }
+                  set(entry);
                   return 0;
                 },
               };
@@ -1129,19 +1169,6 @@ class IrBoard implements Board {
               return 0;
             },
             exists: () => 1,
-            // A tapping device drives a bank the board owns; MAME reaches it
-            // through the device's own required_memory_bank finder, which
-            // resolves to exactly this setter.
-            ...(tapBank ? {
-              set_bank_entry: (entry: number) => {
-                const set = this.bankEntry.get(tapBank);
-                if (!set) {
-                  this.pendingBankEntry.set(tapBank, entry);
-                  return entry;
-                }
-                return set(entry);
-              },
-            } : {}),
             ...(specification.type === 'NEOGEO_CTRL_EDGE_CONNECTOR' ? {
               // The MVS cabinet controls are a source-declared card in the
               // edge-connector slot. The generic host exposes those card
@@ -2064,6 +2091,9 @@ class IrBoard implements Board {
       // which for an Atari 2600 bank switch is the ROM window it just read.
       if (specification.tag === machine.execution.cpus[0]?.tag) {
         for (const tap of this.cartridgeTaps) bus.installAccessTap(tap);
+      }
+      for (const pending of this.pendingSpaceTaps.filter(candidate => candidate.cpu === specification.tag)) {
+        bus.installAccessTap(pending.tap);
       }
       for (const viewTag of new Set(
         (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
@@ -3402,7 +3432,6 @@ class IrBoard implements Board {
     });
     // The beam starts where the frame runner's first frame does.
     this.currentLine = this.frameRunner.originLine;
-    this.installAccessTaps(machine);
     for (const device of this.hostBoundStarts) device.startDeferred?.();
     this.attachComposedCards();
     this.runDeviceStarts();
@@ -4142,6 +4171,8 @@ class IrBoard implements Board {
       const pristine = this.pristineRegions[tag];
       if (!pristine || pristine.length !== bytes.length || !bytesEqual(pristine, bytes)) regions[tag] = bytes.slice();
     }
+    // MAME's pre-save pass (machine.cpp `presave_all_devices`).
+    for (const device of this.devices.values()) device.preSave?.();
     const shares: Record<string, Uint8Array> = {};
     for (const [tag, bytes] of Object.entries(this.shares)) shares[tag] = bytes.slice();
     for (const sync of this.stateSyncs) sync.capture();
@@ -5221,45 +5252,6 @@ class IrBoard implements Board {
           this.cpus.get(cpuTag)?.setIrqLine(false);
         }
       };
-    }
-  }
-
-  /**
-   * MAME `install_readwrite_tap` on a CPU's program space.
-   *
-   * The watching device is handed the window the machine config gave it and
-   * the bus width it is looking at, which is what MAME's `checker` needs to
-   * build its address predicates, then every access on that space is offered
-   * to the device's decoder.
-   */
-  private installAccessTaps(machine: BoardIr): void {
-    for (const tap of machine.execution.accessTaps ?? []) {
-      const bus = this.cpuBuses.get(tap.cpu);
-      const device = this.devices.get(tap.device);
-      if (!bus || !device) {
-        throw new Error(
-          `${machine.game}: access tap ${tap.device}.${tap.method} has no ` +
-          `${bus ? 'device' : 'CPU bus'} for "${bus ? tap.device : tap.cpu}"`,
-        );
-      }
-      if (!device.methodNames().includes(tap.method)) {
-        throw new Error(
-          `${machine.game}: access tap device "${tap.device}" has no generated ` +
-          `method "${tap.method}"`,
-        );
-      }
-      const cpu = machine.execution.cpus.find(candidate => candidate.tag === tap.cpu);
-      device.invoke(
-        'configure_range',
-        tap.start,
-        tap.end,
-        tap.mirror,
-        generatedCpuDataWidth(cpu?.type ?? ''),
-      );
-      const decode = (address: number): void => {
-        device.invoke(tap.method, address);
-      };
-      bus.installAccessTap(decode);
     }
   }
 

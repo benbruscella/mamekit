@@ -98,15 +98,12 @@ const REPLACED_METHODS = [
   'compileNeogeoSprite: device_reset', 'compileNeogeoSprite: draw_fixed_layer',
   'compileNeogeoSprite: draw_pixel',
   'compileSegaic16Video: method', 'compileSegaic16Video: tilemap_init',
-  'compileSlapstic: change_bank', 'compileSlapstic: device_post_load',
-  'compileSlapstic: device_pre_save', 'compileSlapstic: device_reset',
-  'compileSlapstic: device_start',
   'compileUpd7759: sound_stream_update',
 ];
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
 const SPECIALIZED_COMPILERS = [
-  'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID', 'SLAPSTIC', 'UPD7759',
+  'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID', 'UPD7759',
 ];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
