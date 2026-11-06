@@ -866,9 +866,12 @@ function compileMameDeviceSource(
   const structFields = structDeclarations(sources, constants);
   // And for a framework struct it names, which only MAME's emu headers
   // declare: `static const gfx_layout spritelayout = { ... }` is digfx.h's.
+  // Named as a type, that is: declaring something of it, or braced. A
+  // local called `entry` is not digfx.h's struct of that name.
   const named = sources.map(({ source }) => stripCppComments(source)).join('\n');
   for (const [name, fields] of coreStructs(mameSrc)) {
-    if (!structFields.has(name) && new RegExp(`\\b${name}\\b`).test(named)) structFields.set(name, fields);
+    if (structFields.has(name)) continue;
+    if (new RegExp(`\\b${name}\\s*(?:[*&]\\s*)*\\w+\\s*[;=,)[]|\\b${name}\\s*\\{`).test(named)) structFields.set(name, fields);
   }
   const structMethods = structMethodDeclarations(sources);
 

@@ -3987,9 +3987,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private gfxDecodeInterface(group: GeneratedGfxElement[]): {
     gfx(index: number): GeneratedGfxElement | 0;
     set_gfx(index: number, element: unknown): number;
+    started(): number;
   } {
     return {
       gfx: index => group[index] ?? 0,
+      // device_t::started(): composed with the video, before any device that
+      // waits on it (`if (!m_gfxdecode->started()) throw
+      // device_missing_dependencies();`) starts.
+      started: () => 1,
       set_gfx: (index, element) => {
         if (!(element instanceof GeneratedGfxElement)) return 0;
         group[index] = element;
