@@ -221,6 +221,41 @@ for (const file of engineSources) {
     'HAND_WRITTEN_ENGINES or HOST_BOUNDARIES)',
   );
 }
+// What the board keeps beside the generated machine: each `hostModel(...)`
+// record and each field a save state carries. Hand-written hardware hides its
+// registers in exactly these (the Vic Dual coin circuit kept its edge and
+// timer as two saved fields), so both are exact lists that may only shrink.
+const HOST_MODELS = [
+  '${specification.tag}.instructionTicks', '${specification.tag}.timing', '${tag}.hosted',
+  'bank-device.${bank.tag}', 'bank.${bank.tag}', 'coinLockout', 'deviceLineStates',
+  'hostedCarry', 'roundDevices', 'systemMute',
+];
+const SAVED_BOARD_FIELDS = [
+  'bankDeviceBuses', 'cpuBuses', 'cpuCycles', 'cpuHeld', 'cpuReportedSuspended',
+  'cpuSliceCycles', 'cpuStalls', 'cpus', 'currentLine', 'currentLineFraction',
+  'declarativeEeprom', 'devices', 'frameRunner', 'generatedBanks', 'generatedResources',
+  'heldDeviceSeconds', 'hostState', 'inFrame', 'inputLatchPrevious', 'observedTransportSeconds',
+  'pendingBankEntry', 'pendingExidyCollisions', 'pendingTimers', 'runningSliceCycles',
+  'softResetPending', 'soundRuntime', 'state', 'timedHardwareDelivered',
+  'timerCpuCarriedCycles', 'video', 'videoPrimitives',
+];
+{
+  const board = readFileSync(join(root, 'generated-board.ts'), 'utf8');
+  assert.deepEqual(
+    [...new Set([...board.matchAll(/\bhostModel\(\s*(['`])([^'`]*)\1/g)].map(match => match[2]!))].sort(),
+    [...HOST_MODELS].sort(),
+    'generated-board.ts: a new hostModel record is state the generated machine does not own; ' +
+    'generate the hardware instead (or, if one was removed, delete it from HOST_MODELS)',
+  );
+  const keys = /\n  stateKeys\(\): readonly string\[\] \{\s*return \[([\s\S]*?)\];/.exec(board)?.[1] ?? '';
+  assert.deepEqual(
+    [...keys.replace(/\/\/[^\n]*/g, '').matchAll(/'(\w+)'/g)].map(match => match[1]!).sort(),
+    [...SAVED_BOARD_FIELDS].sort(),
+    'generated-board.ts: a new saved board field is state the generated machine does not own; ' +
+    'generate the hardware instead (or, if one was removed, delete it from SAVED_BOARD_FIELDS)',
+  );
+}
+
 // A list keyed by a file that is gone would pass silently forever.
 for (const [list, files, scanned] of [
   ['DEVICE_TYPE_BRANCHES', DEVICE_TYPE_BRANCHES, sharedRuntime],
