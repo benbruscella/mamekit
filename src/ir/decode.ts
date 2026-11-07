@@ -172,12 +172,15 @@ function decodeStateMembers(reader: Reader, value: unknown): void {
     const path = `stateMembers[${index}]`;
     const member = reader.object(entry, path);
     reader.string(member.name, `${path}.name`);
+    if (member.delegate !== undefined && member.delegate !== true) reader.fail(`${path}.delegate`, 'is true when present');
+    if (member.delegate === true) continue;
     const bits = reader.number(member.bits, `${path}.bits`);
     if (![1, 8, 16, 32].includes(bits)) {
       reader.fail(`${path}.bits`, `declares ${bits}, which is not a C integer width`);
     }
     reader.optionalNumber(member.arrayLength, `${path}.arrayLength`);
     reader.optionalNumber(member.initial, `${path}.initial`);
+    if (member.vector !== undefined && member.vector !== true) reader.fail(`${path}.vector`, 'is true when present');
   }
 }
 

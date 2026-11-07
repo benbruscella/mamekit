@@ -1347,11 +1347,20 @@ export interface GeneratedStateMember {
   name: string;
   /** Constant scalar initializer from the source constructor/declaration. */
   initial?: number;
-  /** 1 for `bool`; otherwise the declared integer width. */
-  bits: 1 | 8 | 16 | 32;
+  /** 1 for `bool`; otherwise the declared integer width. Absent only on a delegate. */
+  bits?: 1 | 8 | 16 | 32;
+  /**
+   * A `*_delegate` member: MAME's null delegate until the driver binds one,
+   * so `isnull()` answers true (System 16A's `m_lamp_changed_w`).
+   */
+  delegate?: true;
   signed?: boolean;
   /** Element count when the member is a fixed C array (`uint8_t m_io[0x10]`). */
   arrayLength?: number;
+  /** A `std::vector` of this width: empty until the driver sizes it. */
+  vector?: true;
+  /** Every dimension of a multi-dimensional C array (`[32][4]`), outermost first. */
+  arrayShape?: number[];
   /**
    * The file-scope static table a driver init points this member at
    * (`m_nbajam_prot_table = nbajam_prot_values;`), element by element.

@@ -93,14 +93,12 @@ const DIRECT_SCREEN_SHAPES = [
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
 // for a hand-written body, keyed by the compiler that makes it.
 const REPLACED_METHODS = [
-  'compileNeogeoSprite: device_reset', 'compileNeogeoSprite: draw_fixed_layer',
-  'compileNeogeoSprite: draw_pixel',
   'compileUpd7759: sound_stream_update',
 ];
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
 const SPECIALIZED_COMPILERS = [
-  'NEOGEO_SPRITE_OPTIMZIED', 'UPD7759',
+  'UPD7759',
 ];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and

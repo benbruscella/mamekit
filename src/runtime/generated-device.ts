@@ -56,6 +56,7 @@ interface DeviceMember {
   finder?: {
     kind: 'input' | 'device';
     tag: string;
+    tags?: string[];
   };
   /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
   arrayLength?: number;
@@ -650,6 +651,13 @@ export interface GeneratedDeviceOptions {
    * the card does not exist until the board has built it.
    */
   deferStart?: boolean;
+  /**
+   * Leave device_reset to the host. MAME starts every device, then runs the
+   * driver's machine_start, and only then resets every device: Neo Geo's
+   * machine_start points the sound bank at the cartridge, and the system
+   * latch's reset puts it back on the BIOS the Z80 boots from.
+   */
+  holdReset?: boolean;
   /**
    * The machine config's setter calls on this device, made between its
    * construction and device_start, as MAME makes them.
@@ -1299,7 +1307,11 @@ class IrDevice implements Device {
         (resourceMembers[member.name]
           ? resolveDeviceResource(resourceMembers[member.name]!, resourceOptions)
           :
-        (inputTag
+        (inputTag && member.finder?.tags
+          ? member.finder.tags.map(tag => ({
+              read: inputFinderRead(options.inputs, [options.tag, tag].filter(Boolean).join(':'), definition.inputDefaults?.[tag]),
+            }))
+          : inputTag
           ? { read: inputFinderRead(options.inputs, inputTag, definition.inputDefaults?.[member.finder?.tag ?? '']) }
           // DEVICE_SELF_OWNER: the device this one was built inside.
           : member.finder?.kind === 'device' && member.finder.tag === '^' && options.owner
@@ -2211,7 +2223,7 @@ class IrDevice implements Device {
             resolveDeviceResource(resource, resourceOptions)),
         );
       }
-      this.reset();
+      if (!options.holdReset) this.reset();
     };
     if (options.deferStart) this.pendingStart = start;
     else start();

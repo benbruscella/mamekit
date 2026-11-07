@@ -11,7 +11,6 @@ import { GeneratedRectangle } from './rectangle.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
 import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
 import type { GeneratedDirectScreenShape } from '../ir/video-execution.ts';
-import { hasDeviceType } from './generated-source-shape.ts';
 
 /**
  * The screen update of a generated video device, called with MAME's own
@@ -3261,37 +3260,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         new GeneratedProgramPalette(machine.video.paletteProgram, regions, machine.game),
       );
     }
-    const neoGeoHardware = hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED');
-    const ramPalettePlan = machine.video?.ramPalette ?? (neoGeoHardware
-      ? {
-        // Neo Geo does not use palette_device::set_format: paletteram_w
-        // performs the source's dark-bit RGB conversion itself and writes
-        // both the normal and shadow halves with set_pen_color.  The device
-        // nevertheless owns 0x4000 live pens (0x2000 per screen-shadow bank),
-        // and pointer arithmetic in set_pens must address that real storage.
-        tag: 'palette',
-        endianness: 'big' as const,
-        entries: 0x4000,
-        bytesPerEntry: 2,
-        channels: [
-          { channel: 'r' as const, bits: 5, shift: 10 },
-          { channel: 'g' as const, bits: 5, shift: 5 },
-          { channel: 'b' as const, bits: 5, shift: 0 },
-        ],
-      }
-      : undefined);
-    if (neoGeoHardware) {
-      // These are source-owned std::vector/static-array members rather than
-      // address-map shares, so there is no finder from which composition can
-      // infer their storage. Materialize the exact neogeo_v.cpp extents and
-      // the five measured DAC resistors before video_start executes.
-      state.m_paletteram ??= new Array<number>(0x2000).fill(0);
-      state.m_palette_lookup ??= Array.from(
-        { length: 32 },
-        () => new Array<number>(4).fill(0),
-      );
-      state.resistances ??= [3900, 2200, 1000, 470, 220];
-    }
+    const ramPalettePlan = machine.video?.ramPalette;
     if (ramPalettePlan) {
       this.ramPalette = new GeneratedRamPalette(
         ramPalettePlan,

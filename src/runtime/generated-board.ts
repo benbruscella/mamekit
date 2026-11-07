@@ -29,7 +29,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { callLinksGeneration, DEFAULT_CONSTANTS, generatedVector, noteCallLinksChanged, noteUnresolvedCall, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
+import { callLinksGeneration, DEFAULT_CONSTANTS, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
 import {
@@ -880,6 +880,8 @@ class IrBoard implements Board {
         const device = createDevice(generatedDeviceKey(specification), {
           clock: specification.clock,
           tag: specification.tag,
+          // Reset with the machine, after machine_start (see construction's end).
+          holdReset: true,
           ...(specification.soundInputs ? { soundInputsMask: specification.soundInputs } : {}),
           heldChild: (tag: string) => (machine.devices ?? []).some(device =>
             device.tag === tag && device.hostTag === specification.tag && hasGeneratedDevice(generatedDeviceKey(device)))
@@ -2849,28 +2851,6 @@ class IrBoard implements Board {
           : processor.run(target));
       }
     };
-    // Machine latches drive reset/hold lines at power-on. Hosted processors
-    // must be wired before these initial values are emitted.
-    for (const callback of machine.callbacks) {
-      if (
-        !['q_out_cb', 'write_cb'].includes(callback.signal) ||
-        callback.slot === undefined
-      ) continue;
-      const source = this.devices.get(callback.ownerTag);
-      if (!source) continue;
-      const member = callback.signal === 'q_out_cb' ? 'm_q' : 'm_value';
-      if (callback.signal === 'write_cb' && source.get(member) === 0) continue;
-      // A generated CPU resets during construction and may drive a latch
-      // before board-level device callbacks have been attached. MAME wires
-      // those callbacks in machine_config first, so replay the live latch
-      // output here to preserve the electrical state it would have observed.
-      dispatchGeneratedCallback(
-        machine,
-        callback.id,
-        (source.get(member) >> callback.slot) & 1,
-        this.effects,
-      );
-    }
     // A machine-config device whose behaviour is compiled board handlers
     // rather than an executable core (MAME's protection interface devices are
     // the common case). MAME reaches those methods through the finder member,
@@ -3400,13 +3380,6 @@ class IrBoard implements Board {
             }
           }
         }
-        if (neoGeoInterrupts && phase === 'before-processors') {
-          // neosprite_base_device's line timer parses the current scanline
-          // before screen_update draws it. Host timer quantisation can land a
-          // one-line timer just after the boundary and repeatedly miss the
-          // odd list; dispatch the source method at the exact raster edge.
-          this.devices.get('spritegen')?.invoke('parse_sprites', line);
-        }
         // onLine is invoked at both boundaries of the CPU interval. Advance
         // hardware timers once at its leading edge; doing it at both phases
         // runs every device clock at 2x (Neo Geo's per-line sprite parser then
@@ -3485,6 +3458,9 @@ class IrBoard implements Board {
     this.bindDelegateSlots(machine);
     this.runMachineLifecycle('startHandlers');
     this.setRtcDatetime(config.baseTime);
+    // running_machine::soft_reset: every device resets, then the driver's
+    // machine_reset runs, all after the driver has started.
+    for (const device of this.devices.values()) device.reset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.runMachineReset();
     // Construction assigned into the calls table freely; any handler runtime
@@ -4846,14 +4822,12 @@ class IrBoard implements Board {
               ? `${candidate.ownerClass}.${candidate.method}` === custom.handler
               : candidate.method === custom.member);
           if (!handler?.program || handler.program.diagnostics.length) continue;
-          const result = custom.member === 'startsel_edge_joy_r'
-            ? inputs.read('edge:START') & 0x0f
-            : executeGeneratedMachineHandler(
-                machine,
-                handler,
-                this.bindings,
-                {},
-              ) ?? 0;
+          const result = executeGeneratedMachineHandler(
+            machine,
+            handler,
+            this.bindings,
+            {},
+          ) ?? 0;
           const shift = trailingZeroBits(custom.mask);
           // ioport_port::read applies the field's active-high/low default
           // after inserting a dynamic callback value.  KeyboardInput already
@@ -5180,6 +5154,12 @@ class IrBoard implements Board {
         this.bindings.calls![`${alias}.configure_entries`] ??= configureEntries as never;
         this.bindings.calls![`${alias}.entry`] ??= () => selection.entry;
         this.bindings.calls![`${alias}.base`] ??= entryBytes as never;
+        // `memory_bank::set_base(ptr)`: the selected entry now points there.
+        this.bindings.calls![`${alias}.set_base`] ??= ((base: unknown) => {
+          if (ownedEntries && base instanceof Uint8Array) ownedEntries[selection.entry] = base;
+          else placeEntry(selection.entry, base);
+          return 0;
+        }) as never;
         if (!ownedEntries) {
           this.bindings.calls![`${alias}.configure_entry`] ??= ((value: number, base: unknown) => {
             placeEntry(value, base);
@@ -6089,17 +6069,40 @@ export function generatedStateSetters(
 ): Record<string, (value: number) => void> {
   const setters: Record<string, (value: number) => void> = {};
   for (const member of members) {
+    if (member.delegate) {
+      state[member.name] ??= null;
+      continue;
+    }
     // C++ fixed arrays exist zero-initialized before their first write. A
     // source handler may read one first (M72 screen_update reads m_scrollx/y
     // while both are still zero); leaving it absent turns that read into an
     // unresolved reference object and sends tilemaps off-screen.
+    // A multi-dimensional array is rows of its innermost dimension, zeroed as
+    // C++ zero-initialises it: Neo Geo's create_rgb_lookups fills
+    // m_palette_lookup[32][4], and with nowhere to write every pen was black.
+    if (member.arrayShape && member.arrayShape.length > 1) {
+      const build = (shape: readonly number[]): unknown => shape.length === 1
+        ? generatedStateArray({ ...member, arrayShape: undefined, arrayLength: shape[0], initialValues: undefined })
+        : Array.from({ length: shape[0]! }, () => build(shape.slice(1)));
+      state[member.name] ??= build(member.arrayShape);
+      continue;
+    }
     if (member.arrayLength) {
       state[member.name] ??= generatedStateArray(member);
       continue;
     }
-    state[member.name] ??= generatedStateWidth(member.initial ?? 0, member.bits, member.signed);
+    // A std::vector the driver sizes itself, over a buffer that grows in place
+    // so a resize through any holder reaches every other.
+    if (member.vector) {
+      const buffer = resizableBuffer(256 * 1024 * 1024);
+      state[member.name] ??= member.bits === 32 ? new Uint32Array(buffer)
+        : member.bits === 16 ? new Uint16Array(buffer) : new Uint8Array(buffer);
+      continue;
+    }
+    const bits = member.bits ?? 32;
+    state[member.name] ??= generatedStateWidth(member.initial ?? 0, bits, member.signed);
     setters[member.name] = value => {
-      state[member.name] = generatedStateWidth(value, member.bits, member.signed);
+      state[member.name] = generatedStateWidth(value, bits, member.signed);
     };
   }
   return setters;

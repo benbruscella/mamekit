@@ -1816,6 +1816,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_4BIT_R2R: ['data_w', 'write'],
   DAC_8BIT_R2R: ['data_w', 'write'],
   AD7524: ['data_w', 'write'],
+  AD7533: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
@@ -1898,7 +1899,7 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516'].includes(device.type)
+      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'AD7533', 'HC55516'].includes(device.type)
         ? 0
         : device.type === 'UPD7759'
           ? 640_000

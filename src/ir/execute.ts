@@ -862,6 +862,15 @@ function preparedHandlerRuntime(
     memberCall: (object, property, direct, bare) => (...args) => {
       // A delegate nothing assigned is null (see evaluateCall).
       if (object == null) return bare?.(...args) ?? (property === 'isnull' || property === 'isunset' ? 1 : 0);
+      // A reference answers by its name, as the interpreter resolves it: Neo
+      // Geo keeps `membank("audio_f000")` in m_bank_audio_cart[], and its
+      // emitted bank-select read set no bank at all, so the Z80 read its
+      // song data from the power-on banks and never keyed a note.
+      if (isReference(object)) {
+        const key = `${object.reference}.${property}`;
+        const call = prepared.referenceCalls[key] ?? bindings.calls?.[key];
+        if (call) return call(...args.map(callArgument)) ?? 0;
+      }
       const target = (direct ? object : dereferenceGeneratedValue(object)) as Record<string, unknown>;
       const value = target[property] as ((...values: unknown[]) => unknown) | number | boolean | undefined;
       if (args.length) return (value == null ? undefined : (value as (...values: unknown[]) => unknown).apply(target, args)) ?? 0;

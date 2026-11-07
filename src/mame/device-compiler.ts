@@ -74,6 +74,8 @@ export interface GeneratedDeviceMember {
   finder?: {
     kind: 'input' | 'device';
     tag: string;
+    /** A `required_ioport_array`'s element tags: `m_joy(*this, "JOY%u", 1U)` is JOY1, JOY2. */
+    tags?: string[];
   };
   /**
    * Declared array bound, for a member whose C++ type is an object rather than
@@ -1336,9 +1338,18 @@ function compileMameDeviceSource(
     [...classes.values()].map(declaration => declaration.body).join('\n'),
     constants,
   );
-  const constructorBindings = memberConstructorBindings(
-    sources.map(source => source.source).join('\n'),
-  );
+  // A file can define several devices (joystick.cpp: neogeo_joystick_device
+  // and neogeo_joy_ac_device both bind an `m_ss`), so the hierarchy's own
+  // constructors name a member's finder before any other constructor does.
+  const constructorBindings: Record<string, string[]> = {
+    ...memberConstructorBindings(sources.map(source => source.source).join('\n')),
+    ...Object.fromEntries(constructors
+      .filter(candidate => hierarchy.includes(candidate.className))
+      .reverse()
+      .flatMap(candidate => candidate.initializers)
+      .filter(initializer => /^m_\w+$/.test(initializer.name))
+      .map(initializer => [initializer.name, initializer.args.map(argument => argument.trim())])),
+  };
   const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
@@ -1371,7 +1382,7 @@ function compileMameDeviceSource(
       const pushed = new RegExp(`\\b${member.name}\\s*\\.\\s*(?:push_back|emplace_back)\\s*\\(`)
         .test(sources.map(candidate => candidate.source).join('\n'));
       const memory = memoryContainer(member.valueType, member.name, constructorBindings, pushed);
-      const finder = finderBinding(member.valueType, member.name, constructorBindings);
+      const finder = finderBinding(member.valueType, member.name, constructorBindings, constants);
       const structType = structFields.has(member.valueType.replace(/\*$/, '').trim());
       return [{
         name: member.name,
@@ -1623,6 +1634,7 @@ function compileMameDeviceSource(
     }
     configureChildren(mconfig, children);
   }
+  inlineReferenceCallees(methods);
   // Bitmap entry points are necessarily frame/scanline hot paths. Methods
   // installed through FUNC(...) are hardware callbacks too: a child MCU can
   // invoke a tiny parent-port handler hundreds of thousands of times per
@@ -3640,7 +3652,11 @@ export function memberDeclarations(
   // An access specifier ends its line: a class a macro writes (discrete's
   // DISCRETE_CLASS_STEP_RESET) is one line, and the member after `private:`
   // otherwise starts mid-line, where no pattern below looks.
+  // Two members on one line are two declarations: neosprite declares
+  // `u8* m_region_fixed = nullptr; u32 m_region_fixed_size = 0;`, and only the
+  // first was ever read, so the fixed layer's size was no member at all.
   declaration = { ...declaration, body: maskNestedClasses(declaration.body)
+    .replace(/;[ \t]+(?=(?:const\s+)?[\w:]+(?:\s*<[^<>;]*>)?[\s*&]+m_\w+\s*(?:=|;|\[|\{))/g, ';\n')
     .replace(/\b(public|protected|private)\s*:(?!:)/g, '$1:\n')
     .replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1') };
   const members: {
@@ -3810,7 +3826,18 @@ function finderBinding(
   valueType: string,
   name: string,
   constructorBindings: Record<string, string[]>,
+  constants: Record<string, number> = {},
 ): GeneratedDeviceMember['finder'] {
+  const inputArray = /^(?:required|optional)_ioport_array\s*<\s*([^<>]+)>$/.exec(valueType.trim());
+  if (inputArray) {
+    const binding = constructorBindings[name] ?? [];
+    const count = evalExpr(inputArray[1]!, constants);
+    const format = unquoteToken(binding[1] ?? '');
+    if (count === null || !Number.isInteger(count) || count <= 0 || !format) return undefined;
+    const first = evalExpr((binding[2] ?? '0').replace(/(\d)[uUlL]+$/, '$1'), constants) ?? 0;
+    const tags = Array.from({ length: count }, (_, index) => format.replace(/%[ud]/, String(first + index)));
+    return { kind: 'input', tag: tags[0]!, tags };
+  }
   const kind = valueType === 'required_ioport' || valueType === 'optional_ioport'
     ? 'input'
     : /^(?:required|optional)_device(?:_array)?</.test(valueType)
@@ -5387,4 +5414,85 @@ export function deviceInputDefaults(body: string | undefined, source: string): R
   };
   apply(blocks.get(name));
   return Object.keys(values).length ? values : undefined;
+}
+
+/**
+ * Inline a call statement whose callee moves a reference parameter, when every
+ * such argument is one of the caller's own variables: MAME's inline
+ * `draw_fixed_layer_2pixels(u32*& pixel_addr, ...)` steps Neo Geo's fixed-layer
+ * cursor two pixels at a time. Called as a method, the write through `&` could
+ * only be honoured interpreted, and that kept its caller, run for every pixel
+ * of every line, interpreted too. Inlined, the reference is the caller's own
+ * variable and the callee's locals and value parameters are fresh names.
+ */
+function inlineReferenceCallees(methods: GeneratedDeviceMethod[]): void {
+  const byName = new Map<string, GeneratedDeviceMethod[]>();
+  for (const method of methods) byName.set(method.name, [...byName.get(method.name) ?? [], method]);
+  const parameters = (method: GeneratedDeviceMethod) => splitMameArgs(method.parameters ?? '')
+    .map(parameter => parameter.trim()).filter(parameter => parameter && parameter !== 'void')
+    .map(parameter => {
+      const name = /([A-Za-z_]\w*)\s*(?:=[^=].*)?$/.exec(parameter)?.[1] ?? '';
+      return { name, reference: /&/.test(parameter.slice(0, parameter.lastIndexOf(name))) && !/\bconst\b/.test(parameter) };
+    });
+  const json = (value: unknown) => JSON.stringify(value);
+  const inlinable = (callee: GeneratedDeviceMethod): boolean => {
+    if (callee.program.diagnostics.length) return false;
+    const text = json(callee.program.operations);
+    if (text.includes('"op":"return"')) return false;
+    return parameters(callee).some(parameter => parameter.reference &&
+      text.includes(`"target":{"kind":"identifier","name":"${parameter.name}"}`));
+  };
+  let serial = 0;
+  const rewrite = (operations: GeneratedHandlerOperation[], depth: number): GeneratedHandlerOperation[] =>
+    operations.flatMap(operation => {
+      const nested = JSON.parse(json(operation)) as GeneratedHandlerOperation;
+      for (const key of ['then', 'else', 'body', 'initialize', 'iterate'] as const) {
+        const value = (nested as Record<string, unknown>)[key];
+        if (Array.isArray(value)) (nested as Record<string, unknown>)[key] = rewrite(value as GeneratedHandlerOperation[], depth);
+      }
+      if (nested.op === 'switch') nested.cases = nested.cases.map(entry => ({ ...entry, body: rewrite(entry.body, depth) }));
+      if (nested.op !== 'call' || depth > 4) return [nested];
+      const callee = nested.expression.callee;
+      if (callee.kind !== 'identifier') return [nested];
+      const candidates = byName.get(callee.name) ?? [];
+      const target = candidates.length === 1 ? candidates[0]! : undefined;
+      if (!target || !inlinable(target)) return [nested];
+      const params = parameters(target);
+      const args = nested.expression.args;
+      if (params.length !== args.length) return [nested];
+      if (params.some((parameter, index) => parameter.reference && args[index]!.kind !== 'identifier')) return [nested];
+      const tag = `__inline${serial++}_`;
+      const renames = new Map<string, string>();
+      const prologue: GeneratedHandlerOperation[] = [];
+      params.forEach((parameter, index) => {
+        const argument = args[index]!;
+        if (parameter.reference) renames.set(parameter.name, (argument as { name: string }).name);
+        else {
+          renames.set(parameter.name, tag + parameter.name);
+          prologue.push({ op: 'declare', name: tag + parameter.name, valueType: 'auto', value: argument });
+        }
+      });
+      const body = JSON.parse(json(target.program.operations), (key, value) => {
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          if (value.kind === 'identifier' && renames.has(value.name)) return { ...value, name: renames.get(value.name) };
+          if (value.op === 'declare' && typeof value.name === 'string') {
+            if (!renames.has(value.name)) renames.set(value.name, tag + value.name);
+            return { ...value, name: renames.get(value.name) };
+          }
+        }
+        return value;
+      }) as GeneratedHandlerOperation[];
+      // Declarations come before their uses in source order, so a second
+      // pass renames uses of the callee's own locals now that all are known.
+      const renamed = JSON.parse(json(body), (key, value) =>
+        value && typeof value === 'object' && value.kind === 'identifier' && renames.has(value.name)
+          && !String(value.name).startsWith(tag) ? { ...value, name: renames.get(value.name) } : value) as GeneratedHandlerOperation[];
+      return [...prologue, ...rewrite(renamed, depth + 1)];
+    });
+  for (const method of methods) {
+    if (method.program.diagnostics.length) continue;
+    const text = json(method.program.operations);
+    if (![...byName.keys()].some(name => text.includes(`"name":"${name}"`))) continue;
+    method.program = { ...method.program, operations: rewrite(method.program.operations, 0) };
+  }
 }

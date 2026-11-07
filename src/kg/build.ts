@@ -1066,12 +1066,27 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       /\b(m_\w+)\s*->\s*size\s*\(\s*\)/g,
       (all, member: string) => bankRamSizes[member] !== undefined ? String(bankRamSizes[member]) : all,
     );
+    // `m_bank0d->set_base(m_banked_decrypted_opcodes.get())`: a
+    // `std::unique_ptr` stays null unless something this machine runs
+    // allocates it (System 1's MC-8123 inits; Up'n Down's empty_init does
+    // not), and MAME's own `if (m_banked_decrypted_opcodes)` then skips the
+    // bank. Planning storage for it made that guard true.
+    const classBodies = sourceClassHierarchy(ast, cfg.cls)
+      .map(name => ast.ast.units.flatMap(unit => unit.classes).find(entry => entry.name === name)?.body ?? '')
+      .join('\n');
+    const unallocated = (member: string): boolean => {
+      const base = member.replace(/\.get\(\)$|\[.*$/, '');
+      if (!new RegExp(`std::unique_ptr\\s*<[^;]*>\\s+${base}\\b`).test(classBodies)) return false;
+      // Assigned whole or per element (Phoenix's `m_videoram_pg[0] = ...`).
+      return !bankFunctions.some(fn =>
+        new RegExp(`\\b${base}\\s*(?:\\[[^\\]]*\\]\\s*)?(?:=[^=]|\\.reset\\s*\\()`).test(fn.body));
+    };
     const bankSources = [
       ...bankFunctions.flatMap(fn =>
         parseMemoryBanks(sizedBankBody(fn.body), memberTags, consts).map(bank => ({ bank, source: fn.span }))),
       ...overrideBankSources,
       ...deviceBankSources,
-    ];
+    ].filter(({ bank }) => !bank.entryMember || !unallocated(bank.entryMember));
     // `m_maincpu->space(AS_PROGRAM).specific(m_program)`: a member the driver
     // reads a processor's space through (the 128K fetches every opcode with
     // `m_program.read_byte`), bound where the machine starts.
@@ -2166,12 +2181,12 @@ export function attotimeSeconds(
 function driverStateMembers(
   ast: MameAstIndex,
   className: string,
-): { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; initial?: number }[] {
+): { name: string; bits?: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; arrayShape?: number[]; initial?: number; vector?: true; delegate?: true }[] {
   const classes = new Map(
     ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
   );
   const members: {
-    name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; initial?: number;
+    name: string; bits?: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; arrayShape?: number[]; initial?: number; vector?: true; delegate?: true;
   }[] = [];
   // A member the driver uses to carry an input line. MAME's own
   // `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
@@ -2196,20 +2211,32 @@ function driverStateMembers(
     const initial = constructorInitialValues(name, declaration.body.replace(
       new RegExp(`\\b${escapedName}\\s*\\(`, 'g'), `${name}::${name}(`));
     for (const member of memberDeclarations(declaration)) {
-      // A multi-dimensional member is left alone: its rows are objects, and
-      // the width belongs to the innermost one.
-      if (member.arrayShape) continue;
       // A `const` member is a compile-time constant resolved by name, not
       // board state, and giving it a zeroed slot would shadow that.
       if (/\bconst\b/.test(member.valueType)) continue;
       if (lineCarriers.has(member.name)) continue;
-      const bits = integerBits(member.valueType);
+      // `lamp_changed_delegate m_lamp_changed_w;`: null until a driver init
+      // binds it, and a handler asks isnull() before calling through it.
+      if (/^(?:[\w:]*_delegate|delegate\s*<.*>)$/.test(member.valueType.trim())) {
+        const existing = members.findIndex(candidate => candidate.name === member.name);
+        const entry = { name: member.name, delegate: true as const };
+        if (existing >= 0) members[existing] = entry;
+        else members.push(entry);
+        continue;
+      }
+      // `std::vector<uint16_t> m_paletteram;`: storage the driver sizes itself
+      // (Neo Geo's video_start resizes it to both palette banks).
+      const element = /^std::vector\s*<\s*([\w:]+)\s*>$/.exec(member.valueType.trim())?.[1];
+      const bits = integerBits(element ?? member.valueType);
       if (!bits) continue;
       const entry = {
         name: member.name,
         bits,
+        ...(element ? { vector: true as const } : {}),
         ...(integerSigned(member.valueType) ? { signed: true } : {}),
         ...(member.arrayLength ? { arrayLength: member.arrayLength } : {}),
+        // `uint8_t m_palette_lookup[32][4]{}`: rows of the innermost width.
+        ...(member.arrayShape ? { arrayShape: member.arrayShape } : {}),
         ...(!member.arrayLength && initial[member.name] !== undefined
           ? { initial: initial[member.name] } : {}),
       };
@@ -2636,6 +2663,12 @@ function handlerProps(
     )) {
       const [, valueType, name, declared] = table;
       if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+      // A table handed on whole stays the declared array it is: Neo Geo's
+      // create_rgb_lookups passes `resistances` to compute_resistor_weights,
+      // and with its declaration rewritten away the name meant nothing and
+      // every palette weight came out zero.
+      if (body.includes(table[0]) &&
+          new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(body.replace(table[0], ''))) continue;
       // MAME annotates its tables, and comments out alternatives it kept:
       // `palette_gb` carries a whole disused black-and-white palette inside
       // `/* ... */`. Read as data those numbers become the table.

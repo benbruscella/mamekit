@@ -1959,6 +1959,14 @@ function emitCall(
         `(${object}) != null ? ${onValue} : ` +
         `(${bare}?.(${args.join(', ')}) ?? 0))`;
     }
+    // A driver member whose call has no name to bind (`m_bank_audio_cart[offset
+    // & 3]->set_entry(...)`) may hold a reference rather than an object, which
+    // the runtime resolves by its name, as the interpreter does. Called on the
+    // value, Neo Geo's Z80 bank selects answered 0 and set no bank.
+    if (context.boardScope && value.generic) {
+      return `runtime.memberCall(${object}, ${JSON.stringify(expression.callee.property)}, ` +
+        `${value.generic.direct ? 1 : 0}, undefined)(${args.join(', ')})`;
+    }
     return onValue;
   }
   const args = expression.args.map(argument => emitExpression(argument, context));
