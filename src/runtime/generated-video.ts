@@ -2323,7 +2323,12 @@ class GeneratedTilemap {
   /** The share `tilemap_device::m_basemem` binds; see GeneratedTilemapPlan. */
   private readonly baseMemory?: Uint8Array;
   private readonly mapper?: GeneratedHandler;
-  private readonly tileInfo: GeneratedHandler;
+  private readonly tileInfo?: GeneratedHandler;
+  /** The get_info delegate of a tilemap a device created at run time. */
+  private readonly tileInfoCall?: (tilemap: unknown, tileinfo: unknown, index: number) => unknown;
+  /** tilemap_t::set_user_data, for a tilemap created at run time. */
+  private userData?: unknown;
+  private paletteOffset = 0;
   private readonly machine: BoardIr;
   private readonly bindings: () => GeneratedHandlerBindings;
   private readonly gfx: GeneratedGfxElement[];
@@ -2348,6 +2353,7 @@ class GeneratedTilemap {
     bindings: () => GeneratedHandlerBindings,
     gfx: GeneratedGfxElement[],
     baseMemory?: Uint8Array,
+    tileInfoCall?: (tilemap: unknown, tileinfo: unknown, index: number) => unknown,
   ) {
     this.baseMemory = baseMemory;
     this.plan = plan;
@@ -2357,7 +2363,8 @@ class GeneratedTilemap {
     this.mapper = standardMapper(plan.mapper)
       ? undefined
       : requiredHandler(machine, plan.mapper);
-    this.tileInfo = requiredHandler(machine, plan.tileInfo);
+    this.tileInfoCall = tileInfoCall;
+    if (!tileInfoCall) this.tileInfo = requiredHandler(machine, plan.tileInfo);
     this.scrollX = new Array(plan.scrollRows ?? 1).fill(0);
     this.scrollY = new Array(plan.scrollColumns ?? 1).fill(0);
     this.pixmapBitmap = new GeneratedIndexedBitmap(
@@ -2410,7 +2417,30 @@ class GeneratedTilemap {
     this.mark_tile_dirty(index);
   }
 
+  set_user_data(value: unknown): void {
+    this.userData = value;
+  }
+
+  // The configuration a plan states for a tilemap the video compiler found,
+  // set by the source itself on one a device created at run time.
+  set_transparent_pen(pen: number): void {
+    (this.plan as { transparentPen?: number }).transparentPen = Number(pen);
+  }
+
+  set_scrolldx(normal: number, flipped: number): void {
+    (this.plan as { scrollDx?: [number, number] }).scrollDx = [Number(normal), Number(flipped)];
+  }
+
+  set_scrolldy(normal: number, flipped: number): void {
+    (this.plan as { scrollDy?: [number, number] }).scrollDy = [Number(normal), Number(flipped)];
+  }
+
+  set_palette_offset(offset: number): void {
+    this.paletteOffset = Number(offset);
+  }
+
   user_data(): unknown {
+    if (this.userData !== undefined) return this.userData;
     const source = this.plan.userDataMember
       ? this.bindings().members?.[this.plan.userDataMember]
       : undefined;
@@ -2539,13 +2569,13 @@ class GeneratedTilemap {
       Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 });
       const tileinfo = createGeneratedTileInfoTarget(tile);
       const bindings = this.bindings();
-      const deviceTileInfo = bindings.referenceCalls?.[this.plan.tileInfo];
+      const deviceTileInfo = this.tileInfoCall ?? bindings.referenceCalls?.[this.plan.tileInfo];
       if (deviceTileInfo) {
         deviceTileInfo(this, tileinfo, tileIndex);
       } else {
         executeGeneratedMachineProgram(
           this.machine,
-          this.tileInfo,
+          this.tileInfo!,
           bindings,
           { tilemap: this, tileinfo, tile_index: tileIndex },
         );
@@ -2611,6 +2641,9 @@ class GeneratedTilemap {
     _priorityMask = 0xff,
   ): void {
     if (!this.active) return;
+    // The gfx elements draw from their own colour base; an offset on top of
+    // it is not drawn yet, and must not be dropped silently.
+    if (this.paletteOffset) throw new Error(`${this.machine.game}: a tilemap palette offset is not drawn`);
     // tilemap_t::configure_blit_parameters packs the pair into one code and
     // skips the priority bitmap entirely when it comes out as 0xff00 — the
     // default "I am not using priority" call every ordinary driver makes.
@@ -3141,6 +3174,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   readonly height: number;
   private readonly machine: BoardIr;
   private readonly regions: Regions;
+  private readonly shares: Record<string, Uint8Array>;
+  /** A generated device's members, by tag (set by the board that built it). */
+  deviceMembers?: (tag: string) => Record<string, unknown> | undefined;
   private readonly state: Record<string, unknown>;
   private readonly motionObjects?: GeneratedMotionObjects;
   private readonly gfx: GeneratedGfxElement[];
@@ -3170,6 +3206,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   ) {
     this.machine = machine;
     this.regions = regions;
+    this.shares = shares;
     this.state = state;
     this.memoryRead = memoryRead;
     this.vectorPoints = vectorPoints;
@@ -3973,6 +4010,40 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     return (this.priorityBitmap ??= new GeneratedPriorityBitmap(this.machine));
   }
 
+  /**
+   * tilemap_manager::create for a tilemap a device builds at run time, into
+   * storage the video compiler has no member for: segaic16's tilemap_init
+   * creates its text and page tilemaps into `info->textmap` and
+   * `info->tilemaps[n]`, fields of a struct. The geometry, the standard mapper
+   * and the get_info delegate are the call's own arguments.
+   */
+  createTilemap(
+    decode: unknown,
+    tileInfo: (tilemap: unknown, tileinfo: unknown, index: number) => unknown,
+    mapper: unknown,
+    tileWidth: number,
+    tileHeight: number,
+    columns: number,
+    rows: number,
+  ): GeneratedTilemap {
+    // tilemap.h's tilemap_standard_mapper: ROWS is 0, COLS is 4.
+    const standard = ({ 0: 'TILEMAP_SCAN_ROWS', 4: 'TILEMAP_SCAN_COLS' } as Record<number, string>)[Number(mapper)];
+    if (!standard) throw new Error(`${this.machine.game}: tilemap mapper ${String(mapper)} is not a standard one`);
+    const decoded = [...this.gfxByDecode].find(([member]) => this.state[member] === decode)?.[1] ?? this.gfx;
+    return new GeneratedTilemap(
+      {
+        member: '', mapper: standard, tileInfo: '',
+        tileWidth: Number(tileWidth), tileHeight: Number(tileHeight),
+        columns: Number(columns), rows: Number(rows),
+      },
+      this.machine,
+      () => this.bindings,
+      decoded,
+      undefined,
+      tileInfo,
+    );
+  }
+
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {
     return this.bindings;
   }
@@ -4604,7 +4675,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     const tile = wordsView(this.state.m_tileram);
     const text = wordsView(this.state.m_textram);
-    const sprites = wordsView(this.state.m_sprites);
+    // sprite_device::device_start takes its RAM from the share named after
+    // the device's own tag.
+    const sprites = wordsView(this.shares[
+      this.machine.devices?.find(device => device.member === 'm_sprites')?.tag ?? '']);
     const palette = wordsView(this.state.m_paletteram);
     const spriteRom = this.regions.sprites;
     const gfx = this.gfx[0];
@@ -4623,11 +4697,20 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       this.ramPalette?.set_pen_color(index + paletteEntries, colors.effect);
     }
 
+    // The layer controls are the compiled SEGAIC16VID's: the PPI's port B and
+    // C callbacks set them through tilemap_set_flip/rowscroll/colscroll and
+    // set_display_enable, and the sprite device keeps its own set_flip.
+    const members = (member: string) => this.deviceMembers?.(
+      this.machine.devices?.find(device => device.member === member)?.tag ?? '') ?? {};
+    const video = members('m_segaic16vid');
+    const layers = (video.m_bg_tilemap as Record<string, unknown>[] | undefined)?.[0] ?? {};
     bitmap.fill(0, cliprect);
+    if (!Number(video.m_display_enable)) return true;
     const priority = new Uint8Array(this.width * this.height);
-    const flipped = Boolean(this.state.__flip_screen);
-    const rowscroll = Boolean(this.state.__system16aRowscroll);
-    const colscroll = Boolean(this.state.__system16aColscroll);
+    const flipped = Boolean(Number(layers.flip));
+    const spritesFlipped = Boolean(Number(members('m_sprites').m_flip));
+    const rowscroll = Boolean(Number(layers.rowscroll));
+    const colscroll = Boolean(Number(layers.colscroll));
     const decoded = gfx.decoded;
     const decodedPixel = (code: number, x: number, y: number): number =>
       decoded.pixels[(code % decoded.count) * 64 + (y & 7) * 8 + (x & 7)] ?? 0;
@@ -4717,7 +4800,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       if (top >= bottom) continue;
       let xDelta = 1;
       let xOrigin = 189;
-      if (flipped) {
+      if (spritesFlipped) {
         const oldTop = top;
         top = 224 - bottom;
         bottom = 224 - oldTop;

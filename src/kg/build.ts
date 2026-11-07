@@ -339,8 +339,26 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         initDelegateLines.set(tag, [...(initDelegateLines.get(tag) ?? []), `${match[1]}->${match[2]}(${args})`]);
       }
     }
+    // A driver init may point a delegate member of its own at one of its
+    // handlers: System 16A's init_generic sets `m_custom_io_r =
+    // read16sm_delegate(*this, FUNC(segas16a_state::standard_io_r))`, and
+    // misc_io_r calls through it. The handler joins the closure, and the
+    // member holds it from the start (MAME runs the init before machine_start).
+    const initDelegates: { member: string; handler: string }[] = [];
+    if (initFunction) {
+      const body = effectiveInitBody(ast, gm.cls, initFunction, consts);
+      for (const match of body.matchAll(
+        /^\s*(m_\w+)\s*=\s*\w+_delegate\s*\(\s*\*?\s*this\s*,\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*\)\s*;/gm,
+      )) {
+        const target = ast.findFunctionInHierarchy(gm.cls, match[3]!);
+        if (!target?.className) continue;
+        g.edge(id, emitSourceHandlerClosure(g, ast, target.className, target.name, consts, target.span), 'CALLS_HANDLER');
+        initDelegates.push({ member: match[1]!, handler: `${target.className}.${target.name}` });
+      }
+    }
     g.node('Game', id, {
       ...(initTables.length ? { initTables: initTables.map(table => JSON.stringify(table)) } : {}),
+      ...(initDelegates.length ? { initDelegates: initDelegates.map(delegate => JSON.stringify(delegate)) } : {}),
       name: gm.name, year: gm.year, company: gm.company, fullname: gm.fullname,
       monitor: gm.monitor, cls: gm.cls, init: gm.init, flags: gm.flags,
       kind: gm.kind,

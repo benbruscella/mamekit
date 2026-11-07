@@ -25,7 +25,6 @@ string,
 > = {
   UPD7759: compileUpd7759,
   NEOGEO_SPRITE_OPTIMZIED: compileNeogeoSprite,
-  SEGAIC16VID: compileSegaic16Video,
 };
 
 /**
@@ -41,28 +40,6 @@ export function compileUpd7759(
 ): Compiled {
   const device = compileMameDevice(mameSource, definition, 'UPD7759');
   replaceMethod(device, 'sound_stream_update', '');
-  return refreshSummary(device);
-}
-
-/**
- * The shared Sega video device contains both the System 16 tile engine and
- * unrelated rotate/road paths.  The generic parser sees C++ struct casts in
- * those methods as diagnostics even when a System 16 board never selects the
- * rotate hardware.  Preserve the executable device surface and let the board
- * video compiler own rasterization; these entry points keep the source state
- * transitions that the mapper and driver call.
- */
-function compileSegaic16Video(
-  mameSource: string,
-  definition: MameHardwareDefinition,
-): Compiled {
-  const device = compileMameDevice(mameSource, definition, 'SEGAIC16VID');
-  const unsupported = device.methods
-    .filter(method => method.program.diagnostics.length)
-    .map(method => method.name);
-  for (const method of new Set(unsupported)) replaceMethod(device, method, '');
-  replaceMethod(device, 'tilemap_init', 'm_display_enable = 1;');
-  device.hotMethods = [...new Set([...(device.hotMethods ?? []), 'tilemap_draw'])];
   return refreshSummary(device);
 }
 

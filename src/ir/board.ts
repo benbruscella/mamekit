@@ -675,6 +675,8 @@ export interface GeneratedExecutionPlan {
   /** Driver lifecycle handlers executed in source-derived base-first order. */
   startHandlers?: string[];
   resetHandlers?: string[];
+  /** Delegate members the driver init points at one of its handlers. */
+  initDelegates?: { member: string; handler: string }[];
   banks?: {
     tag: string;
     member: string;

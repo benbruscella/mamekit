@@ -30,6 +30,8 @@ export const DEVICE_MAME_TYPES = [
   'HC259',
   'HD6845S',
   'I8257',
+  'I8243',
+  'I8255',
   'I8255A',
   'INPUT_MERGER_ALL_HIGH',
   'INPUT_MERGER_ANY_HIGH',
@@ -60,6 +62,7 @@ export const DEVICE_MAME_TYPES = [
   // Elevator Action's security interface: its own device_start/reset and
   // set_int_mode configuration, around the 68705 it holds.
   'TAITO_SJ_SECURITY_MCU',
+  'SEGA_SYS16A_SPRITES',
   'SEGA_SYS16B_SPRITES',
   'SEGAIC16VID',
   'SLAPSTIC',

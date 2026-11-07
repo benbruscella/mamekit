@@ -54,10 +54,11 @@ export function generatedCpuCycleClock(type: string | undefined, rawClock: numbe
     // variants (m6803e, mc6809e-style) run 1:1 and stay off this list.
     type === 'hd63701y0'
   ) return divided(4);
-  // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 is a
-  // plain mcs48_cpu_device, only i8021/i8022 use the /30 variant.
+  // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 and upd7751
+  // are plain mcs48_cpu_devices, only i8021/i8022 use the /30 variant.
   if (
-    type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715'
+    type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715' ||
+    type === 'upd7751'
   ) return divided(15);
   return clock;
 }
@@ -628,9 +629,12 @@ export function lowerGeneratedMachine(
     : [];
   // What the selected game's init leaves in driver state runs first, as MAME
   // runs the init before machine_start (build.ts).
+  const initDelegates: { member: string; handler: string }[] = [];
   for (const node of graph.nodes) {
     if (node.label === 'Game' && node.props.name === game) {
       startHandlers.unshift(...((node.props.initHandlers as string[] | undefined) ?? []));
+      initDelegates.push(...((node.props.initDelegates as string[] | undefined) ?? [])
+        .map(value => JSON.parse(value) as { member: string; handler: string }));
     }
   }
   // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: a one-shot the
@@ -864,6 +868,7 @@ export function lowerGeneratedMachine(
       : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
+    ...(initDelegates.length ? { initDelegates } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
     ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),

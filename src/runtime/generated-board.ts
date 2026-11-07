@@ -2052,21 +2052,6 @@ class IrBoard implements Board {
               }),
             ),
           ]
-        : sourceRanges.some(range => range.read === 'mapper.read') &&
-            specification.tag === 'maincpu'
-        ? [
-            // The 315-5195 starts with every bank overlaid at zero, then the
-            // boot ROM programs its live windows.  Keep the extracted RAM
-            // ranges solely to allocate their shares, and put the mapper back
-            // on top so its runtime decoder owns every access.
-            ...sourceRanges.filter(range => range.read !== 'mapper.read'),
-            ...sourceRanges
-              .filter(range => range.read === 'mapper.read')
-              // The 315-5195's own registers occupy the low byte lane, but
-              // the ROM/RAM/handler windows it installs cover the full 16-bit
-              // 68000 bus. The live decoder below handles that distinction.
-              .map(range => ({ ...range, umask: undefined })),
-          ]
         : hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED') && specification.tag === 'maincpu'
         ? [
             ...sourceRanges.filter(range =>
@@ -2866,6 +2851,19 @@ class IrBoard implements Board {
         }
       }
     }
+    // A delegate member the driver init points at one of its own handlers:
+    // System 16A's misc_io_r calls `m_custom_io_r(offset)`, which init_generic
+    // set to standard_io_r. Calling the member runs that handler.
+    for (const { member, handler: key } of machine.execution.initDelegates ?? []) {
+      const handler = machine.handlers?.find(candidate => `${candidate.ownerClass}.${candidate.method}` === key)!;
+      const names = handlerParameterNames(handler.parameters);
+      this.bindings.calls![member] = (...args: unknown[]) => executeGeneratedMachineHandler(
+        machine,
+        handler,
+        this.bindings,
+        Object.fromEntries(names.map((name, index) => [name, args[index] ?? 0])),
+      ) ?? 0;
+    }
     // A device_delegate configured in machine_config: the driver names the
     // device's inline setter (m_sprgen->set_pri_callback(FUNC(state::pri_cb)))
     // while the device's own code calls the member that setter assigns. The
@@ -2946,6 +2944,7 @@ class IrBoard implements Board {
         this.shares,
         () => this.vectorPoints.points,
       );
+      primitives.deviceMembers = tag => (this.devices.get(tag) as { members?: Record<string, unknown> } | undefined)?.members;
       // video_start is a machine lifecycle handler executed below through the
       // board bindings. Carry the video package's framework factories (bitmap
       // allocation, delegates and tilemap creation) into that same binding set
@@ -2982,6 +2981,15 @@ class IrBoard implements Board {
         // for its members, in the order its source creates them.
         let nextCreated = 0;
         if (created.length) device.bindCall('machine().tilemap().create', () => created[nextCreated++] ?? 0);
+        // One that creates them into storage no plan names (segaic16's struct
+        // fields) gets each built from the call's own arguments, its tile
+        // callback the get_info delegate it passes.
+        else {
+          device.bindCall('machine().tilemap().create', (decode, getInfo, mapper, width, height, columns, rows) =>
+            primitives.createTilemap(decode, deviceDelegate(device, getInfo), mapper, width, height, columns, rows),
+          'gfxdecode_device &decode, tilemap_get_info_delegate tile_get_info, tilemap_standard_mapper mapper, ' +
+            'u16 tilewidth, u16 tileheight, u32 cols, u32 rows');
+        }
       }
       // MAME's device_gfx_interface gives a device its own decoded graphics,
       // and its draw routines call the bare `gfx(n)` of that set rather than
@@ -4580,124 +4588,6 @@ class IrBoard implements Board {
     regions: Regions,
     registry: HandlerRegistry,
   ): (() => void) | undefined {
-    if (hasDeviceType(machine, 'SEGA_SYS16A_SPRITES')) {
-      // System 16A exposes a conventional fixed memory map, but all of its
-      // controls are funnelled through an 8255 whose selected source methods
-      // live outside the machine's reachable handler closure. Model that
-      // small PPI here so the canonical unprotected Shinobi set can complete
-      // its startup checks and enable the tile/sprite hardware.
-      const ppi = this.hostModel('sys16a.ppi', { ports: new Uint8Array(3), control: 0x9b, soundLatch: 0 });
-      const ports = ppi.ports;
-      const shareWord = (tag: string, offset: number) => {
-        const bytes = this.shares[tag];
-        if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return 0xffff;
-        return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)[offset]!;
-      };
-      const writeShareWord = (
-        tag: string,
-        offset: number,
-        data: number,
-        memMask: number,
-      ) => {
-        const bytes = this.shares[tag];
-        if (!bytes || offset < 0 || offset * 2 + 1 >= bytes.length) return;
-        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
-        words[offset] = (words[offset]! & ~memMask) | (data & memMask);
-      };
-      const outputPort = (port: number) => {
-        const data = ports[port]!;
-        if (port === 0) {
-          ppi.soundLatch = data;
-          this.state.m_to_sound = data;
-        } else if (port === 1) {
-          this.state.m_video_control = data;
-          this.state.__flip_screen = data & 0x80;
-          this.state.__system16aDisplayEnable = data & 0x10;
-        } else {
-          this.cpus.get('soundcpu')?.setInputLine(INPUT_LINE_NMI, data & 0x80 ? 0 : 1);
-          this.state.__system16aColscroll = (~data) & 0x04;
-          this.state.__system16aRowscroll = (~data) & 0x02;
-        }
-      };
-      const ppiWrite = (port: number, data: number) => {
-        data &= 0xff;
-        if (port < 3) {
-          ports[port] = data;
-          outputPort(port);
-          if (port === 0) {
-            // Mode-1 port A lowers /OBF on each command. PC7 is wired to the
-            // sound CPU NMI through tilemap_sound_w.
-            ports[2] &= ~0x80;
-            outputPort(2);
-          }
-        } else if (data & 0x80) {
-          ppi.control = data;
-          ports.fill(0);
-          ports[2] = 0x80;
-          outputPort(0);
-          outputPort(1);
-          outputPort(2);
-        } else {
-          const bit = (data >>> 1) & 7;
-          ports[2] = data & 1 ? ports[2]! | (1 << bit) : ports[2]! & ~(1 << bit);
-          outputPort(2);
-        }
-      };
-      registry.read['segas16a_state.misc_io_r'] = (_address, rawOffset) => {
-        const offset = rawOffset & 0x1fff;
-        switch (offset & 0x1800) {
-          case 0x0000: return (offset & 3) === 3 ? ppi.control : ports[offset & 3]!;
-          case 0x0800:
-            return this.bindings.inputs?.read(['SERVICE', 'P1', 'UNUSED', 'P2'][offset & 3]!)
-              ?? 0xff;
-          case 0x1000:
-            return this.bindings.inputs?.read((offset & 1) ? 'DSW2' : 'DSW1') ?? 0xff;
-          default: return 0xffff;
-        }
-      };
-      registry.write['segas16a_state.misc_io_w'] = (
-        _address,
-        rawOffset,
-        data,
-        memMask = 0xffff,
-      ) => {
-        const offset = rawOffset & 0x1fff;
-        if ((offset & 0x1800) === 0 && (memMask & 0x00ff)) ppiWrite(offset & 3, data);
-      };
-      registry.read['segas16a_state.sound_data_r'] = () => {
-        // The Z80 acknowledges the command through PC6. The 8255 releases
-        // /OBF (PC7 high), which clears the held NMI until the next PA write.
-        ports[2] = (ports[2]! & ~0x40) | 0x80;
-        outputPort(2);
-        return ppi.soundLatch;
-      };
-      for (const [handler, share] of [
-        ['segaic16vid.tileram', 'tileram'],
-        ['segaic16vid.textram', 'textram'],
-      ] as const) {
-        registry.read[`${handler}_r`] = (_address, offset) => shareWord(share, offset);
-        registry.write[`${handler}_w`] = (
-          _address,
-          offset,
-          data,
-          memMask = 0xffff,
-        ) => writeShareWord(share, offset, data, memMask);
-      }
-      const reset = () => {
-        ports.fill(0);
-        ports[2] = 0x80;
-        ppi.control = 0x9b;
-        ppi.soundLatch = 0;
-        this.state.m_to_sound = 0;
-        this.state.m_video_control = 0;
-        this.state.__flip_screen = 0;
-        this.state.__system16aDisplayEnable = 0;
-        this.state.__system16aColscroll = 0;
-        this.state.__system16aRowscroll = 0;
-      };
-      reset();
-      return reset;
-    }
     if (hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED')) {
       const in0 = () =>
         ((this.inputs.read('edge:JOY1') & 0xff) << 8) |
@@ -6018,12 +5908,6 @@ class IrBoard implements Board {
           this.bindings.calls?.[`m_${tag}.${method}`];
         if (call) return state => { call(state); };
         const type = this.machine.devices?.find(candidate => candidate.tag === tag)?.type ?? '';
-        if (hasDeviceType(this.machine, 'SEGA_SYS16A_SPRITES') && type === 'I8243' && method === 'prog_w') {
-          // The 8243 is a four-port expander rather than a processor. Until
-          // its tiny generated core is composed, retain the PROG pin here so
-          // System 16A's 7751 sample controller remains a valid endpoint.
-          return state => { this.state[`__${tag}_${method}`] = state & 1; };
-        }
         if (/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(type)) {
           // Auxiliary sound chips may not be the board's selected primary
           // synthesizer, but their control pins remain real I/O endpoints.
@@ -6440,6 +6324,22 @@ function trailingZeroBits(value: number): number {
   let count = 0;
   while (((value >>> count) & 1) === 0) count++;
   return count;
+}
+
+/**
+ * A delegate a device built for its own method, as a callable: what
+ * `tilemap_get_info_delegate(*this, FUNC(cls::method))` evaluates to.
+ */
+function deviceDelegate(
+  device: Device,
+  delegate: unknown,
+): (...args: unknown[]) => unknown {
+  if (typeof delegate === 'function') return delegate as (...args: unknown[]) => unknown;
+  if (typeof delegate === 'string') {
+    const method = delegate.split('::').at(-1)!;
+    return (...args) => device.invoke(method, ...(args as GeneratedCallArgument[]));
+  }
+  throw new Error(`a device delegate is ${typeof delegate} ${JSON.stringify(delegate)?.slice(0, 80)}`);
 }
 
 export function bindGeneratedShareState(

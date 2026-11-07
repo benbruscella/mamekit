@@ -447,6 +447,14 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.initDelegates !== undefined) {
+    for (const [index, delegate] of reader.array(execution.initDelegates, 'execution.initDelegates').entries()) {
+      const path = `execution.initDelegates[${index}]`;
+      reader.string(reader.object(delegate, path).member, `${path}.member`);
+      reader.string(reader.object(delegate, path).handler, `${path}.handler`);
+    }
+  }
+
   reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
   if (execution.executeDevices !== undefined) {
     for (const [index, entry] of reader.array(execution.executeDevices, 'execution.executeDevices').entries()) {

@@ -146,6 +146,10 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       );
     }
   }
+  for (const [index, delegate] of (board.execution.initDelegates ?? []).entries()) {
+    if (handlerKeys.has(delegate.handler)) continue;
+    fail(`execution.initDelegates[${index}]`, `init delegate handler "${delegate.handler}" was not generated`);
+  }
   // A MAME timer_device is declared by the callback that schedules it rather
   // than by a machine-config device line, so it owns itself.
   const timerOwners = new Set(

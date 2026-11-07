@@ -932,6 +932,49 @@ function parseM6502OpcodeBlocks(file: string, source: string): M6502OpcodeBlock[
 }
 
 /**
+ * An MCS-48 variant's ROM, RAM and features: the arguments its constructor
+ * hands mcs48_cpu_device (mconfig, type, tag, owner, clock, rom_size,
+ * ram_size, feature_mask, opcode_table).
+ */
+function mcs48Geometry(
+  cpp: string,
+  variant: string,
+  constants: Record<string, number>,
+): { romSize: number; ramSize: number; featureMask: number } {
+  // The variant's class is the one its DEFINE_DEVICE_TYPE names.
+  const variantClass = new RegExp(`DEFINE_DEVICE_TYPE\\(\\s*${variant}\\s*,\\s*(\\w+)`).exec(cpp)?.[1];
+  if (!variantClass) throw new Error(`MAME MCS-48 source does not define ${variant}`);
+  const constructor = new RegExp(
+    `${variantClass}::${variantClass}\\([^\\n]*\\)\\s*` +
+    `:\\s*mcs48_cpu_device\\(([^\\n]+)\\)`,
+  ).exec(cpp);
+  if (!constructor) throw new Error(`MAME MCS-48 source has no ${variantClass} constructor`);
+  const constructorArgs = splitMameArgs(constructor[1]!);
+  const constructorValue = (index: number): number => {
+    const expression = constructorArgs[index]?.trim() ?? '';
+    const value = constants[expression] ?? Number(expression);
+    if (!Number.isFinite(value)) {
+      throw new Error(`${variantClass} constructor argument ${index} is not numeric: ${expression}`);
+    }
+    return value;
+  };
+  return { romSize: constructorValue(5), ramSize: constructorValue(6), featureMask: constructorValue(7) };
+}
+
+/**
+ * The internal program ROM of a CPU whose core maps one itself, in bytes:
+ * mcs48_cpu_device's program_map puts `rom_size` bytes of the device's own
+ * region at 0 (behind the EA view, which selects it at reset when rom_size is
+ * non-zero). A uPD7751 has no driver map at all and runs from it.
+ */
+export function cpuInternalRomBytes(mameSrc: string, type: string): number | undefined {
+  const cpp = readFileSync(join(mameSrc, 'src/devices/cpu/mcs48/mcs48.cpp'), 'utf8');
+  if (!new RegExp(`DEFINE_DEVICE_TYPE\\(\\s*${type}\\s*,`).test(cpp)) return undefined;
+  const constants = extractDefineConstants(cpp);
+  return mcs48Geometry(cpp, type, constants).romSize || undefined;
+}
+
+/**
  * Compile Intel MCS-48 execution directly from MAME's opcode-handler table.
  *
  * MAME expresses this core as 256 OP(handler) entries backed by OPHANDLER
@@ -941,7 +984,7 @@ function parseM6502OpcodeBlocks(file: string, source: string): M6502OpcodeBlock[
  */
 export function compileMameMcs48(
   mameSrc: string,
-  variant: 'I8035' | 'I8039' | 'MB8884' | 'M58715' = 'I8039',
+  variant: 'I8035' | 'I8039' | 'MB8884' | 'M58715' | 'UPD7751' = 'I8039',
 ): GeneratedCpuDefinition {
   const cppFile = 'src/devices/cpu/mcs48/mcs48.cpp';
   const headerFile = 'src/devices/cpu/mcs48/mcs48.h';
@@ -1041,32 +1084,7 @@ export function compileMameMcs48(
       ASSERT_LINE: 1,
     }),
   };
-  const variantClass = variant === 'MB8884'
-    ? 'mb8884_device'
-    : variant === 'M58715'
-      ? 'm58715_device'
-    : variant === 'I8035'
-      ? 'i8035_device'
-      : 'i8039_device';
-  const constructor = new RegExp(
-    `${variantClass}::${variantClass}\\([^\\n]*\\)\\s*` +
-    `:\\s*mcs48_cpu_device\\(([^\\n]+)\\)`,
-  ).exec(cpp);
-  if (!constructor) throw new Error(`MAME MCS-48 source has no ${variantClass} constructor`);
-  const constructorArgs = splitMameArgs(constructor[1]!);
-  const constructorValue = (index: number): number => {
-    const expression = constructorArgs[index]?.trim() ?? '';
-    const value = constants[expression] ?? Number(expression);
-    if (!Number.isFinite(value)) {
-      throw new Error(`${variantClass} constructor argument ${index} is not numeric: ${expression}`);
-    }
-    return value;
-  };
-  // mcs48_cpu_device(mconfig, type, tag, owner, clock,
-  //                  rom_size, ram_size, feature_mask, opcode_table)
-  const romSize = constructorValue(5);
-  const ramSize = constructorValue(6);
-  const featureMask = constructorValue(7);
+  const { romSize, ramSize, featureMask } = mcs48Geometry(cpp, variant, constants);
   const members = extractMembers(header, {}).filter(member => member.name !== 'm_rtemp');
   const setInitial = (name: string, initial: number): void => {
     const member = members.find(candidate => candidate.name === name);
@@ -3894,6 +3912,10 @@ export function normalizeMameExecutionSource(source: string): string {
   source = source.replace(/\[\[\s*\w+(?:::\w+)?(?:\([^)]*\))?\s*\]\]\s*/g, '');
 
   let normalized = stripTracingCalls(stripInactivePreprocessorBranches(source))
+    // An elaborated type specifier names the same type without its keyword:
+    // segaic16's tile callbacks cast `(const struct tilemap_callback_info *)`,
+    // which the parser read as two type names and dropped the declaration.
+    .replace(/\b(?:struct|union)\s+(?=[A-Za-z_][\w:]*\s*[*&)])/g, '')
     .replace(/^[ \t]*#if\s+0[^\r\n]*\r?\n[\s\S]*?^[ \t]*#endif[^\r\n]*(?:\r?\n|$)/gm, '')
     .replaceAll('[[fallthrough]];', '')
     .replace(/\bstatic_assert\s*\([^;]*\)\s*;/g, '')
@@ -3946,8 +3968,10 @@ export function normalizeMameExecutionSource(source: string): string {
     // three tile layers are u16 arrays written a byte at a time through
     // COMBINE_DATA, so every high byte vanished and the board's own power-on
     // test reported "FRAM ERROR".
+    // `std::make_unique<T[]>(n)` value-initializes its elements too, so it
+    // is the same array: the System 16 rotate buffer is `make_unique<uint16_t[]>`.
     .replace(
-      /\bmake_unique_clear\s*<\s*([A-Za-z_][A-Za-z_0-9:]*)\s*\[\s*\]\s*>\s*\(/g,
+      /\b(?:std::make_unique|make_unique_clear)\s*<\s*([A-Za-z_][A-Za-z_0-9:]*)\s*\[\s*\]\s*>\s*\(/g,
       (_, type: string) => `${allocIntrinsic(type)}(`,
     )
     // <cmath>'s HUGE_VAL is a double's infinity, which C spells 1.0 / 0.0 and

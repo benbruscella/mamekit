@@ -2449,12 +2449,37 @@ export function lowerStructLocals(
         args: [expression.callee, ...expression.args],
       });
     });
-    // `T()` of a struct is that struct value-initialised: Phoenix resets its
-    // capacitors with `m_c24_state = c_state();`.
+    // A delegate bound to one of the device's own methods is that method, by
+    // name: segaic16's tilemap_init hands machine().tilemap().create a
+    // `tilemap_get_info_delegate(*this, FUNC(segaic16_video_device::tilemap_16a_text_info))`.
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !/_delegate$/.test(expression.callee.name)) return;
+      const [owner, bound] = expression.args;
+      const self = owner?.kind === 'identifier' ? owner.name === 'this'
+        : owner?.kind === 'unary' && owner.operator === '*' && owner.operand.kind === 'identifier' && owner.operand.name === 'this';
+      if (!self || bound?.kind !== 'call' || bound.callee.kind !== 'identifier' || bound.callee.name !== 'FUNC') return;
+      const target = bound.args[0];
+      const name = target?.kind === 'identifier' ? target.name.split('::').at(-1)! : '';
+      if (!device.methods.some(candidate => candidate.name === name)) return;
+      for (const key of Object.keys(expression)) delete (expression as Record<string, unknown>)[key];
+      Object.assign(expression, string(name));
+    });
+    // Declared unbound (`tilemap_get_info_delegate get_text_info(*this);`), it
+    // holds no method until one is assigned: a name, not a number.
+    walkOperations(method.program.operations, operation => {
+      if (operation.op !== 'declare' || !/_delegate$/.test(operation.valueType ?? '')) return;
+      operation.valueType = 'auto';
+      operation.value = string('');
+    });
+    // `T()` of a struct is that struct value-initialised, built from its
+    // declaration as a struct local is (STRUCT_OF): Phoenix resets its
+    // capacitors with `m_c24_state = c_state();`, and segaic16's
+    // `*info = tilemap_info();` holds struct and array fields that a literal
+    // of zeros left as numbers.
     walkExpressions(method.program.operations, expression => {
       if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || expression.args.length) return;
-      const fields = structs[expression.callee.name];
-      if (fields) Object.assign(expression, structValue(fields, []));
+      const type = expression.callee.name;
+      if (structs[type]) Object.assign(expression, { callee: { kind: 'identifier', name: 'STRUCT_OF' }, args: [string(type)] });
     });
     // With arguments it is built through the constructor of that arity
     // (structMethodsOf's `__construct_<arity>`): the slapstic's checker
@@ -5166,10 +5191,12 @@ function structFieldList(
       // constructor's closing brace. Modern
       // MAME also initialises fields in the declaration and groups them --
       // the 64H156's `int state = 0, next_state = 0;` -- and a field the
-      // pattern missed was simply absent from the struct. The type and the
+      // pattern missed was simply absent from the struct, as was an array
+      // initialised from a brace list (segaic16's `uint8_t bank[8] = {0,...}`).
+      // The type and the
       // name are apart by a space or a `*`: without that, `unsigned short
       // energytable[...]` backtracked into a field `e` of type `energytabl`.
-      /(?:^|(?<=[;}]))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
+      /(?:^|(?<=[;}]))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
     )) {
       const valueType = statement[1]!.replace(/\s+/g, ' ');
       if (/^(?:return|using|typedef|friend|enum|struct|class|union)$/.test(valueType)) continue;
