@@ -31,7 +31,7 @@ import {
   resizeGeneratedContainer,
   resizeGeneratedVector,
 } from './generated-handler.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
@@ -3564,14 +3564,22 @@ function memoryMember(
 }
 
 /** A memory container indexed in the element width declared by its C++ type. */
+/** The most an owned vector may grow to: Neo Geo's largest decoded sprite sets. */
+const GROWABLE_VECTOR_BYTES = 256 * 1024 * 1024;
+
 function generatedMemoryArray(
   elementBytes: number,
   bytes?: Uint8Array,
 ): Uint8Array | Uint16Array | Uint32Array {
   if (!bytes) {
-    if (elementBytes === 2) return new Uint16Array(0);
-    if (elementBytes === 4) return new Uint32Array(0);
-    return new Uint8Array(0);
+    // An owned std::vector starts empty and is sized later, often through a
+    // reference (`optimize_helper(m_sprite_gfx, ...)` resizes Neo Geo's
+    // decoded sprites through `std::vector<u8> &`): over a resizable buffer
+    // the resize happens in place, so every holder sees it.
+    const buffer = resizableBuffer(GROWABLE_VECTOR_BYTES);
+    if (elementBytes === 2) return new Uint16Array(buffer);
+    if (elementBytes === 4) return new Uint32Array(buffer);
+    return new Uint8Array(buffer);
   }
   if (elementBytes === 2) {
     return new Uint16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));

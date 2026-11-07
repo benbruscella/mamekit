@@ -53,6 +53,18 @@ export function resizeGeneratedVector(vector: unknown[], length: number): unknow
   return vector;
 }
 
+/** ES2024's resizable ArrayBuffer, which the ES2022 lib this project builds against does not declare. */
+interface ResizableArrayBuffer extends ArrayBuffer {
+  readonly resizable: boolean;
+  readonly maxByteLength: number;
+  resize(byteLength: number): void;
+}
+
+/** An empty buffer that can grow in place up to `maxByteLength`. */
+export function resizableBuffer(maxByteLength: number): ArrayBuffer {
+  return new (ArrayBuffer as unknown as new (length: number, options: { maxByteLength: number }) => ArrayBuffer)(0, { maxByteLength });
+}
+
 /** `container.resize(length)` for emitted code: the resized container. */
 export function resizeGeneratedContainer(container: unknown, length: number): unknown {
   if (Array.isArray(container)) return resizeGeneratedVector(container, length);
@@ -60,6 +72,19 @@ export function resizeGeneratedContainer(container: unknown, length: number): un
   const current = container as unknown as ArrayLike<number> & { constructor: new (size: number) => ArrayLike<number> & { set(values: ArrayLike<number>): void } };
   const target = Math.max(0, Math.floor(length));
   if (current.length === target) return container;
+  // A vector over a resizable buffer grows in place, so a resize through a
+  // reference reaches the member it refers to (generated-device's owned
+  // vectors start this way).
+  const buffer = (container as unknown as { buffer: ResizableArrayBuffer }).buffer;
+  const width = (container as unknown as { BYTES_PER_ELEMENT: number }).BYTES_PER_ELEMENT;
+  if (buffer.resizable && (container as unknown as { byteOffset: number }).byteOffset === 0 &&
+      target * width <= buffer.maxByteLength) {
+    const previous = current.length;
+    buffer.resize(target * width);
+    // std::vector::resize value-initialises what it adds.
+    if (target > previous) (container as unknown as Uint8Array).fill(0, previous);
+    return container;
+  }
   const resized = new current.constructor(target);
   resized.set((container as unknown as { subarray(start: number, end: number): ArrayLike<number> }).subarray(0, Math.min(target, current.length)));
   return resized;
@@ -4055,6 +4080,7 @@ function resizeGeneratedMemory(
     return;
   }
   if (!isIndexableMemory(current) || current.length === length) return;
+  if (ArrayBuffer.isView(current) && resizeGeneratedContainer(current, length) === current) return;
   const resized = ArrayBuffer.isView(current)
     ? new (current.constructor as new (size: number) => ArrayLike<unknown>)(length)
     : new Array<number>(length).fill(0);

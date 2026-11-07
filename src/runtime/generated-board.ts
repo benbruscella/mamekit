@@ -1612,8 +1612,14 @@ class IrBoard implements Board {
         // raises its interrupt 48 pixels (24 T-states) into line 0.
         const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal +
           this.lineFractionAt(Number(hpos ?? 0));
+        // Within half a pixel of the target counts as past it, as the device
+        // screen's does: a precise driver timer fires a hair short of the line
+        // it was armed for, and Neo Geo's vblank callback, re-arming for that
+        // line, asked again and again for no time at all.
+        const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
         let lines = target - this.beamPosition();
-        if (lines <= 0) lines += vtotal;
+        lines -= Math.floor(lines / vtotal) * vtotal;
+        if (lines <= halfPixel) lines += vtotal;
         return lines * this.lineSeconds();
       };
     }

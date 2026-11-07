@@ -680,11 +680,25 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // constructor default (timeplt_a.h: `uint32_t clock = 14'318'181`), and
   // DERIVED_CLOCK(n, d) inside its device_add_mconfig is that clock * n/d.
   const defaultClocks = parseDeviceDefaultClocks(combined);
+  // A framework device declares its default in its own header, outside the
+  // driver: upd1990a.h's `uint32_t clock = 32'768` is the uPD4990A's crystal,
+  // which it divides for every TP period and the one-second count.
+  let frameworkDevices: ReturnType<typeof indexMameHardware> | undefined;
+  const frameworkDefaultClock = (type: string): number | undefined => {
+    const definition = (frameworkDevices ??= indexMameHardware(mameSrc)).get(type);
+    const header = definition?.sourceFile.replace(/\.cpp$/, '.h');
+    if (!definition || !header || !existsSync(join(mameSrc, header))) return undefined;
+    return parseDeviceDefaultClocks(readFileSync(join(mameSrc, header), 'utf8'))[definition.className];
+  };
   for (const cfg of machineConfigs) {
     for (const dev of cfg.devices) {
       if (dev.clock !== null || dev.clockExpr) continue;
       const cls = deviceTypes[dev.type];
       if (cls && defaultClocks[cls] !== undefined) dev.clock = defaultClocks[cls];
+      else if (!cls && mameSrc) {
+        const clock = frameworkDefaultClock(dev.type);
+        if (clock !== undefined) dev.clock = clock;
+      }
     }
   }
   // What `clock()` means inside a class's own device_add_mconfig: the clock of
@@ -2606,6 +2620,13 @@ function handlerProps(
     // was never written and every button read as held down.
     body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
     body = expandFunctionMacros(body, collectParameterCallMacros(source));
+    // A time constant the driver spells as an expression, `#define
+    // NEOGEO_VBLANK_IRQ_HTIM (attotime::from_ticks(56+2, NEOGEO_MASTER_CLOCK))`:
+    // its value is that expression, where unexpanded it named nothing and the
+    // Neo Geo's vblank timer lost the 58 ticks it fires after VBSTART.
+    for (const macro of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+(\(?[ \t]*attotime::[^\n]*)$/gm)) {
+      body = body.replace(new RegExp(`\\b${macro[1]}\\b`, 'g'), `(${macro[2]!.trim()})`);
+    }
     // A library's free function is a handler like any helper, under its own
     // name: `ymfm::decode_fp(...)`.
     body = body.replace(/\b\w+::(\w+)(?=\s*\()/g, (all, name: string) =>
