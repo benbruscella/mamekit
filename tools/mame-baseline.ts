@@ -52,7 +52,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGenerationGameContracts } from '../src/games/contracts.ts';
 import { gameOutputDir } from '../src/gen/output-layout.ts';
@@ -84,6 +84,9 @@ if (command !== 'record' && command !== 'compare' && command !== 'show') {
     '[--jobs N] [--baseline <commit>] [--measures pixels,ram,audio] [--markdown]');
   process.exit(2);
 }
+// Each oracle run is a child that resolves MAME for itself, through the environment.
+if (options.get('--mame-src')) process.env.MAME_SRC = resolve(options.get('--mame-src')!);
+if (options.get('--mame')) process.env.MAME_BIN = resolve(options.get('--mame')!);
 const jobs = Math.max(1, Number(options.get('--jobs') ?? 1));
 const baselineRoot = join(projectRoot, '.oracle/baseline');
 const compareRoot = join(projectRoot, '.oracle/compare');
