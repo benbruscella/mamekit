@@ -223,7 +223,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
 }
 
 const EFFECT_KINDS = new Set([
-  'cpu-line', 'device-method', 'handler', 'port-read',
+  'cpu-line', 'device-method', 'handler', 'port-read', 'constant',
   'video-control', 'audio-control', 'audio-write', 'perfect-quantum', 'unconnected',
 ]);
 const CPU_LINES = new Set([
@@ -273,6 +273,8 @@ function decodeConnections(reader: Reader, value: unknown): void {
       reader.string(effect.handler, `${path}.effect.handler`, source);
     } else if (kind === 'port-read') {
       reader.string(effect.port, `${path}.effect.port`, source);
+    } else if (kind === 'constant') {
+      reader.number(effect.value, `${path}.effect.value`, source);
     } else if (kind === 'video-control') {
       reader.string(effect.control, `${path}.effect.control`, source);
     } else if (kind === 'audio-control') {

@@ -254,6 +254,7 @@ export function lowerGeneratedMachine(
       if (props.targetClass) callback.targetClass = String(props.targetClass);
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
       if (props.targetPort) callback.targetPort = String(props.targetPort);
+      if (props.constant !== undefined) callback.constant = Number(props.constant);
       if (props.deviceTag) callback.deviceTag = String(props.deviceTag);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
       const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];

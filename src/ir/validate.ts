@@ -42,6 +42,7 @@ export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
  */
 export function callbackEndpointKey(callback: GeneratedCallback): string | undefined {
   if (callback.targetPort) return `port.${callback.targetPort}`;
+  if (callback.constant !== undefined) return `constant.${callback.constant}`;
   if (callback.targetTag && callback.inputLine) return `${callback.targetTag}.${callback.inputLine}`;
   if (!callback.targetMethod) return undefined;
   if (callback.targetTag) return `${callback.targetTag}.${callback.targetMethod}`;

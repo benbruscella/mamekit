@@ -80,6 +80,8 @@ export interface GeneratedCallback {
   targetClass?: string;
   targetMethod?: string;
   targetPort?: string;
+  /** The value a `set_constant` read answers. */
+  constant?: number;
   /**
    * MAME `device_delegate` configuration (`set_pri_callback(FUNC(...))`)
    * rather than a devcb the board dispatches: the owning device calls the
@@ -176,6 +178,8 @@ export type BoardEffect =
   | { kind: 'handler'; handler: string; deviceTag?: string }
   /** Read an input port back to the caller (MAME set_ioport). */
   | { kind: 'port-read'; port: string }
+  /** Answer a read with a fixed value (MAME set_constant). */
+  | { kind: 'constant'; value: number }
   /** Board-level video control lowered from MAME's flip_screen helpers. */
   | { kind: 'video-control'; control: 'flip-screen' | 'flip-screen-x' | 'flip-screen-y' }
   /** Audio control routed to the generated sound backend. */

@@ -2113,7 +2113,7 @@ function forwardingDelegateSetter(ast: MameAstIndex, name: string): ForwardingDe
 }
 
 const CALLBACK_OPERATIONS = new Set([
-  'set', 'append', 'set_ioport', 'set_inputline', 'append_inputline', 'set_nop',
+  'set', 'append', 'set_ioport', 'set_inputline', 'append_inputline', 'set_nop', 'set_constant',
   'set_screen_update', 'set_vblank_int', 'set_periodic_int',
   'set_irq_acknowledge_callback',
   'set_maincpu', 'configure_scanline',
@@ -2453,6 +2453,7 @@ function emitCallbacks(
       'set_inputline',
       'append_inputline',
       'set_nop',
+      'set_constant',
     ]).has(operation.name);
     const signal = chainedBinding && operationIndex > 0
       ? calls[operationIndex - 1]
@@ -2562,6 +2563,12 @@ function emitCallbacks(
         .find((value): value is string => value !== undefined);
     if (quotedTarget) props.targetTag = quotedTarget;
     if (operation.name === 'set_ioport' && quotedTarget) props.targetPort = quotedTarget;
+    // `tri_pa_callback().set_constant(0)`: the read answers this value.
+    if (operation.name === 'set_constant') {
+      const value = evalExpr(operation.args[0] ?? '', constants);
+      if (value === null) throw new Error(`${source?.file ?? 'unknown'}: cannot evaluate "${raw}"`);
+      props.constant = value;
+    }
     if (operation.name.includes('inputline')) {
       const line = operation.args.find(arg => {
         const value = arg.trim();

@@ -66,6 +66,15 @@ check('MAME .set_nop() is an explicit unconnected output', () => {
   assert.deepEqual(effect({ operation: 'set_nop' }), { kind: 'unconnected' });
 });
 
+// Zaxxon's PPI floats its input ports at 0, not the devcb default 0xff, and the
+// sound board's falling-edge triggers depend on it.
+check('set_constant lowers to the value it answers', () => {
+  assert.deepEqual(
+    effect({ signal: 'tri_pa_callback', operation: 'set_constant', constant: 0 }),
+    { kind: 'constant', value: 0 },
+  );
+});
+
 check('set_ioport lowers to a port read', () => {
   assert.deepEqual(
     effect({ operation: 'set_ioport', targetTag: 'IN0', targetPort: 'IN0' }),
