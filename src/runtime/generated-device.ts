@@ -3861,7 +3861,16 @@ function mappedDeviceSpace(
       lw8: handler => chain.w!(handler),
       lrw8: (read, write) => chain.rw!(read, write),
       ram: () => { entry.storage = memory; entry.storageOffset = undefined; return chain; },
-      rom: () => chain,
+      // An internal map's `rom()` is the device's own region at the same
+      // addresses: the MB88's program space is its firmware.
+      rom: () => {
+        const bytes = region('tag()');
+        if (bytes) {
+          entry.storage = bytes;
+          entry.storageOffset = entry.start;
+        }
+        return chain;
+      },
       region: (tag, offset) => {
         const bytes = region(String(tag));
         if (!bytes) throw new Error(`address map names region ${String(tag)}, which was not loaded`);

@@ -16,6 +16,7 @@ import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
 import {
   collectFunctionMacros,
+  collectMemberCallMacros,
   collectDynamicMacros,
   referenceAccessorMacros,
   expandDynamicMacros,
@@ -1027,7 +1028,7 @@ function compileMameDeviceSource(
   // Statement macros the device's own sources define. These have to be
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
-  const functionMacros = sources.flatMap(({ source }) => collectFunctionMacros(source));
+  const functionMacros = sources.flatMap(({ source }) => [...collectFunctionMacros(source), ...collectMemberCallMacros(source)]);
   const stringMacros: Record<string, string> = Object.assign({},
     ...sources.map(({ source }) => parseTextMacros(stripCppComments(source)).strings));
   const hierarchyFunctions = ast.units.flatMap(unit => unit.functions)
@@ -4224,7 +4225,7 @@ export function constructorInitialValues(
         // address_space_config(name, endianness, data width, address width[, shift, map])
         const name = /^"([^"]*)"$/.exec(initializer.args[0]!.trim())?.[1];
         if (name === undefined || !/^ENDIANNESS_\w+$/.test(initializer.args[1]!.trim())) continue;
-        const map = /address_map_constructor\s*\(\s*FUNC\s*\(\s*[\w:]*::(\w+)\s*\)/.exec(argTexts[5] ?? initializer.args[5] ?? '')?.[1];
+        const map = selectedMapConstructor(argTexts[5] ?? initializer.args[5] ?? '', text => constantValue(text, { ...constants, ...env }));
         chain.spaceConfigs[memberName(className, initializer.name)] = {
           name, dataBits: args[2]!, addressBits: args[3]!, ...(map ? { map } : {}),
         };
@@ -4239,6 +4240,34 @@ export function constructorInitialValues(
   };
   visit(concreteClass);
   return result;
+}
+
+/**
+ * The map an `address_space_config` is built with. MAME may choose it by the
+ * space's width: the MB88's `(program_width == 9) ? address_map_constructor(
+ * FUNC(mb88_cpu_device::program_9bit), this) : (program_width == 10) ? ... :
+ * address_map_constructor(FUNC(mb88_cpu_device::program_11bit), this)`. Each
+ * arm's condition is evaluated in turn and the last arm is the else.
+ */
+function selectedMapConstructor(
+  text: string,
+  evaluate: (expression: string) => number | undefined,
+): string | undefined {
+  const arm = /address_map_constructor\s*\(\s*FUNC\s*\(\s*[\w:]*::(\w+)\s*\)\s*,\s*\w+\s*\)/g;
+  let rest = text.trim();
+  for (;;) {
+    const question = rest.indexOf('?');
+    if (question < 0) return arm.exec(rest)?.[1];
+    const condition = evaluate(rest.slice(0, question).trim());
+    arm.lastIndex = question;
+    const chosen = arm.exec(rest);
+    if (!chosen || condition === undefined) return undefined;
+    if (condition) return chosen[1];
+    const colon = rest.indexOf(':', arm.lastIndex);
+    if (colon < 0) return undefined;
+    rest = rest.slice(colon + 1).trim();
+    arm.lastIndex = 0;
+  }
 }
 
 /**

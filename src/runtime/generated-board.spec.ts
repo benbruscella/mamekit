@@ -608,22 +608,31 @@ assert.ok(instructionObservations.some(samples => new Set(samples).size > 1),
   assert.deepEqual(carry(carryBoard.save()), carry(saved));
 }
 
+// A hosted processor's program and data spaces are its own address maps, as
+// the MB88's are: device_start binds `m_cache`/`m_data` to them, the program
+// map's internal `rom()` is the device's own region, and the data map is RAM.
 registerGeneratedDevice({
-  type: 'HOSTED_MEMORY_FIXTURE', constants: {}, callbacks: [],
-  members: ['m_cache', 'm_data'].map(name => ({ name, valueType: 'address_space', initial: 0 })),
-  methods: [{ name: 'probe', parameters: '', program: compileMameHandler(
-    'm_data.write_byte(3, 29); return m_cache.read_byte(1) * 16 + m_data.read_byte(3);') }],
+  type: 'HOSTED_MEMORY_FIXTURE', constants: { AS_PROGRAM: 0, AS_DATA: 1 }, callbacks: [],
+  members: ['m_cache', 'm_data'].map(name => ({ name, valueType: 'memory_access<1, 0, 0, ENDIANNESS_BIG>::specific' })),
+  spaces: [
+    { index: 0, name: 'program', addressBits: 1, dataBits: 8, map: 'program_map' },
+    { index: 1, name: 'data', addressBits: 2, dataBits: 8, ram: true },
+  ],
+  methods: [
+    { name: 'program_map', parameters: 'address_map &map', program: compileMameHandler('map(0x0, 0x1).rom();') },
+    { name: 'device_start', parameters: '', program: compileMameHandler(
+      'm_cache = space(AS_PROGRAM); m_data = space(AS_DATA);') },
+    { name: 'probe', parameters: '', program: compileMameHandler(
+      'm_data.write_byte(3, 29); return m_cache.read_byte(1) * 16 + m_data.read_byte(3);') },
+  ],
+  start: 'device_start',
   summary: { diagnostics: 0 },
 });
-const hostedMemory = createDevice('HOSTED_MEMORY_FIXTURE');
-const hostedOwner = createDevice('HOSTED_MEMORY_FIXTURE');
-(clockedBoard as unknown as {
-  configureHostedProcessor(tag: string, device: Device, host: Device, firmware: Uint8Array,
-    sinks: { soundWrite(): void }): unknown;
-}).configureHostedProcessor('firmware-fixture', hostedMemory, hostedOwner, Uint8Array.of(2, 3), { soundWrite() {} });
-assert.equal(hostedMemory.call('probe'), 61, 'expanded cache/data calls must reach hosted firmware and RAM');
-assert.equal(hostedMemory.call('READOP', 1), 3);
-assert.equal(hostedMemory.call('RDMEM', 3), 13, 'named memory macros and expanded calls share storage');
+const hostedMemory = createDevice('HOSTED_MEMORY_FIXTURE', {
+  tag: 'firmware-fixture', regions: { 'firmware-fixture': Uint8Array.of(2, 3) },
+});
+// The MB88 masks a nibble in its own RDMEM macro, not in the space: 3 * 16 + 29.
+assert.equal(hostedMemory.call('probe'), 77, "the device's own spaces serve its firmware and RAM");
 
 let cpuSignalRead = -1;
 let cpuHandlerSignalRead = -1;

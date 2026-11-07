@@ -2706,7 +2706,6 @@ class IrBoard implements Board {
         specification.tag,
         device,
         host,
-        firmware,
         specification.member,
       );
       return [{
@@ -3615,28 +3614,10 @@ class IrBoard implements Board {
     tag: string,
     device: Device,
     host: Device,
-    firmware: Uint8Array,
     /** The host's member for this processor: Namco's `m_cpu`, Taito's `m_mcu`. */
     member = 'm_cpu',
   ): () => boolean {
-    const model = this.hostModel(`${tag}.hosted`, {
-      resetHeld: false,
-      ram: new Uint8Array(1 << (device.dataAddressBits() ?? 7)),
-    });
-    // Still restated here: the processor's program and data spaces, as its
-    // firmware and a private RAM. Its own address maps should serve both.
-    const ram = model.ram;
-    const readOpcode = (address: number) => firmware[address & (firmware.length - 1)] ?? 0;
-    const readData = (address: number) => ram[address & (ram.length - 1)]! & 0x0f;
-    const writeData = (address: number, value: number) => {
-      ram[address & (ram.length - 1)] = value & 0x0f;
-      return 0;
-    };
-    device.bindCall('READOP', readOpcode);
-    device.bindCall('RDMEM', readData);
-    device.bindCall('WRMEM', writeData);
-    device.bindMember('m_cache', { read_byte: readOpcode });
-    device.bindMember('m_data', { read_byte: readData, write_byte: writeData });
+    const model = this.hostModel(`${tag}.hosted`, { resetHeld: false });
     for (const callback of this.machine.callbacks.filter(candidate =>
       candidate.ownerTag === tag && candidate.targetMethod)) {
       if (!host.methodNames().includes(callback.targetMethod!)) continue;

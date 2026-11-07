@@ -70,6 +70,29 @@ export function collectFunctionMacros(
 }
 
 /**
+ * A function-like expression macro that is one call through a member of the
+ * device that defines it: the MB88's `#define READOP(a) (m_cache.read_byte(a))`
+ * and `#define RDMEM(a) (m_data.read_byte(a) & 0x0f)`. Like a parameter call
+ * it routes on no symbol, and forwarded by name it reached nothing until the
+ * board answered it by hand; expanded, the call meets the member the device's
+ * own device_start binds to its address space.
+ */
+export function collectMemberCallMacros(source: string): FunctionMacro[] {
+  const macros: FunctionMacro[] = [];
+  const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+  for (const match of joined.matchAll(/^[ \t]*#define[ \t]+(\w+)\(([^)]*)\)[ \t]+(.+?)[ \t]*$/gm)) {
+    const body = match[3]!;
+    if (/[;{]/.test(body)) continue;
+    if (!/^\(?\s*m_\w+\s*(?:\.|->)\s*\w+\s*\(/.test(body)) continue;
+    // Nothing a runtime routes by name rides along inside it.
+    if (/\b[A-Z_][A-Z0-9_]*\s*\(/.test(body)) continue;
+    const parameters = match[2]!.split(',').map(parameter => parameter.trim()).filter(Boolean);
+    macros.push({ name: match[1]!, parameters, body: body.trim() });
+  }
+  return macros;
+}
+
+/**
  * A function-like macro that only calls a method on one of its own parameters:
  * `#define PLAY(samp,id,loop) samp->start(id, id, loop)` in vicdual.cpp. It has
  * no `;` for the statement rule above and no symbol for a runtime to route, and
