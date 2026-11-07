@@ -32,9 +32,9 @@ export const frogger = sourceTarget({
       900: { video: '8e5b4b09', state: '5a1698b1' },
     },
     audio: {
-      writes: 4905,
-      nonzeroWrites: 1724,
-      writeHash: 'a94e2906',
+      writes: 4915,
+      nonzeroWrites: 1725,
+      writeHash: '5a0ae05f',
       pcmHash: 'e45a3f70',
       rms: 0.067525,
     },

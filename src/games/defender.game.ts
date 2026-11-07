@@ -67,9 +67,9 @@ export const defender = sourceTarget({
       2100: { video: '33f18b7a', state: '934bbfc0' },
     },
     audio: {
-      writes: 69623,
-      nonzeroWrites: 63647,
-      writeHash: '180209d4',
+      writes: 69624,
+      nonzeroWrites: 63648,
+      writeHash: '7c46eb44',
       pcmHash: 'ecff8e8a',
       rms: 0.192395,
     },

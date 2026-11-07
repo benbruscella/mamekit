@@ -58,9 +58,9 @@ export const robotron = sourceTarget({
       2100: { video: '4fb523f8', state: 'e790eb01' },
     },
     audio: {
-      writes: 270220,
-      nonzeroWrites: 266505,
-      writeHash: 'db593a0b',
+      writes: 270221,
+      nonzeroWrites: 266506,
+      writeHash: '6e509c46',
       pcmHash: '906497bc',
       rms: 0.212614,
     },

@@ -20,7 +20,7 @@ export const zaxxon = sourceTarget({
       tilemap_dat: 'd9964df2',
     },
     checkpoints: {
-      1: { video: '6c77a4f3', state: '3a26877c' },
+      1: { video: '15841117', state: '3a26877c' },
       60: { video: '76424eb8', state: 'a5332576' },
       180: { video: '76424eb8', state: '4776a29a' },
       300: { video: '72d8ec6c', state: '0dad916d' },

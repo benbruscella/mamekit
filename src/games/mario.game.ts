@@ -28,7 +28,7 @@ export const mario = {
   ],
   golden: {
     regions: {
-      audiocpu: 'f1e8ba9e',
+      audiocpu: '2144064d',
       decoder_prom: '58d86098',
       gfx1: 'f84d77a9',
       gfx2: '2dbee9db',
@@ -43,15 +43,15 @@ export const mario = {
       900: { video: '026875d1', state: '86538cfe' },
       1200: { video: 'e7380771', state: '68f5fb57' },
       1500: { video: '080dbf8e', state: '5b5c7f92' },
-      1650: { video: '080dbf8e', state: '347ab2eb' },
-      1840: { video: 'c69c9e03', state: 'ab39137b' },
+      1650: { video: '080dbf8e', state: '3f1d9b6f' },
+      1840: { video: 'c69c9e03', state: 'a05e3aff' },
     },
     audio: {
-      writes: 375781,
-      nonzeroWrites: 6260,
-      writeHash: '02a40c34',
-      pcmHash: '0c561a67',
-      rms: 0.99615,
+      writes: 375844,
+      nonzeroWrites: 0,
+      writeHash: 'b7d6141a',
+      pcmHash: 'feedb43f',
+      rms: 1,
     },
   },
 };

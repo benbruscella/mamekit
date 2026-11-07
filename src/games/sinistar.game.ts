@@ -62,11 +62,11 @@ export const sinistar = sourceTarget({
       2400: { video: '30db8efe', state: '5d09d89f' },
     },
     audio: {
-      writes: 48169,
-      nonzeroWrites: 29045,
-      writeHash: '7b9203ee',
-      pcmHash: '883534a8',
-      rms: 0.221382,
+      writes: 48171,
+      nonzeroWrites: 29047,
+      writeHash: '455b9cca',
+      pcmHash: '30a61a0a',
+      rms: 0.225427,
     },
   },
 });

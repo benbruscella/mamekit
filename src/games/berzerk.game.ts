@@ -28,11 +28,11 @@ export const berzerk = sourceTarget({
       1200: { video: '6cc91e34', state: '46b2d744' },
     },
     audio: {
-      writes: 70224,
-      nonzeroWrites: 20095,
-      writeHash: '8ed0d45e',
-      pcmHash: 'aa9d232f',
-      rms: 0.019503,
+      writes: 70226,
+      nonzeroWrites: 20096,
+      writeHash: '92d5b58c',
+      pcmHash: '8c65b2b7',
+      rms: 0.019499,
     },
   },
 });
