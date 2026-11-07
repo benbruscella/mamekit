@@ -2449,11 +2449,15 @@ export function lowerStructLocals(
         args: [expression.callee, ...expression.args],
       });
     });
-    // A delegate bound to one of the device's own methods is that method, by
-    // name: segaic16's tilemap_init hands machine().tilemap().create a
-    // `tilemap_get_info_delegate(*this, FUNC(segaic16_video_device::tilemap_16a_text_info))`.
-    walkExpressions(method.program.operations, expression => {
-      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !/_delegate$/.test(expression.callee.name)) return;
+    // A delegate bound to one of the device's own methods and held in a
+    // variable is that method, by name: segaic16's tilemap_init sets
+    // `get_text_info = tilemap_get_info_delegate(*this, FUNC(...))` and hands
+    // it to machine().tilemap().create. One passed straight to an install_*
+    // call keeps the form that call already resolves (a Game Boy MBC's
+    // `install_write_handler(..., emu::rw_delegate(*this, FUNC(...)))`).
+    walkOperations(method.program.operations, operation => {
+      const expression = operation.op === 'assign' || operation.op === 'declare' ? operation.value : undefined;
+      if (expression?.kind !== 'call' || expression.callee.kind !== 'identifier' || !/_delegate$/.test(expression.callee.name)) return;
       const [owner, bound] = expression.args;
       const self = owner?.kind === 'identifier' ? owner.name === 'this'
         : owner?.kind === 'unary' && owner.operator === '*' && owner.operand.kind === 'identifier' && owner.operand.name === 'this';

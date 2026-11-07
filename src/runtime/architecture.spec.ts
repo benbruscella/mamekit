@@ -76,9 +76,8 @@ const HOST_BOUNDARIES = {
 // A branch on a MAME device type selects code written for that chip or board.
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
   'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS', 'DVG', 'I8243', 'M58715',
+    'ATARI_MOTION_OBJECTS', 'DVG', 'M58715',
     'NEOGEO_CONTROL_PORT', 'NEOGEO_CTRL_EDGE_CONNECTOR', 'NEOGEO_SPRITE_OPTIMZIED',
-    'SEGA_SYS16A_SPRITES',
   ],
   'generated-device.ts': ['GENERIC_LATCH_8'],
   'generated-video.ts': ['DVG', 'NEOGEO_SPRITE_OPTIMZIED'],
