@@ -646,12 +646,9 @@ class IrBoard implements Board {
   private softResetPending = false;
   /** Delegates devices registered with `screen_device::register_vblank_callback`. */
   private readonly vblankCallbacks = new Map<string, (screen: unknown, state: number) => unknown>();
-  private frameSound?: () => void;
   private readonly inputs: InputPorts;
   private readonly inputLatchPrevious = new Map<string, boolean>();
   private readonly pendingExidyCollisions = new Map<number, number[]>();
-  private vicdualCoinPrevious = false;
-  private vicdualCoinFrames = 0;
 
   constructor(
     machine: BoardIr,
@@ -1989,21 +1986,7 @@ class IrBoard implements Board {
       // Cartridge and other slot-backed machines can have a CPU address space
       // made entirely from RAM, handlers and generated banks. Bus still takes
       // a byte array, but such a board has no fixed CPU ROM region to supply.
-      let rom = suppliedRom ?? new Uint8Array(0);
-      if (
-        hasDeviceType(machine, 'M58715') &&
-        specification.tag === 'audiocpu' &&
-        specification.type?.toLowerCase() === 'm58715'
-      ) {
-        // The M58715 owns a 0x800-byte internal ROM window, while its selected
-        // address map supplies the external sound ROM. MAME's sound_start
-        // writes this three-byte bootstrap into the otherwise NO_DUMP internal
-        // image: select memory bank 1, then jump to external $800. The generated
-        // CPU currently exposes one combined program bus, so overlay those
-        // source bytes on a private view of the external ROM.
-        rom = Uint8Array.from(rom);
-        rom.set([0xf5, 0x04, 0x00], 0);
-      }
+      const rom = suppliedRom ?? new Uint8Array(0);
       const ranges = specification.ranges ?? [];
       const bus = new Bus(
         ranges,
@@ -2313,6 +2296,9 @@ class IrBoard implements Board {
           readOpcode: address => bus.readOpcode!(address),
         } : {}),
         write: (address, data) => bus.write(busAddress(address), data),
+        // The core's own memory_view: the MCS-48's internal ROM, which its
+        // EA pin selects or takes away (mcs48_cpu_device::update_ea).
+        selectView: (tag, entry) => bus.selectView(tag, entry),
         write16be: (address, data) => bus.write16be(busAddress(address), data),
         write32be: (address, data) => bus.write32be(busAddress(address), data),
         in: bus.in,
@@ -2950,15 +2936,6 @@ class IrBoard implements Board {
     }
     let activeFramebuffer: Uint32Array | undefined;
     let video: GeneratedVideoRenderer | undefined;
-    const neoGeoInterrupts = hasDeviceType(machine, 'NEOGEO_SPRITE_OPTIMZIED');
-    // Simpsons' vblank callback starts sprite DMA, then two source timers
-    // assert and clear the Konami CPU's FIRQ 256 and 2304 sprite-clock ticks
-    // later. TIMER_CALLBACK_MEMBER bodies are not graph handlers yet, so keep
-    // this source-declared timer pair as raster-line events. The match is on
-    // the extracted handler body and device method, not on the game name.
-    const spriteDmaCallback = machine.callbacks.find(callback =>
-      callback.id === machine.videoExecution?.spriteDmaCallback);
-    const spriteDmaLineSignals: { line: number; state: number }[] = [];
     if (machine.execution.screenUpdate) {
       const primitives = this.videoPrimitives = new GeneratedMameVideoPrimitives(
         machine,
@@ -3330,17 +3307,6 @@ class IrBoard implements Board {
           );
         }
         dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
-        if (
-          spriteDmaCallback?.id === event.callbackId &&
-          Number(this.state.m_firq_enabled) !== 0 &&
-          this.devices.get('k053246')?.call('k053246_is_irq_enabled')
-        ) {
-          const vtotal = Math.max(1, machine.execution.screen.vtotal);
-          spriteDmaLineSignals.push(
-            { line: (this.currentLine + 1) % vtotal, state: 1 },
-            { line: (this.currentLine + 6) % vtotal, state: 0 },
-          );
-        }
       },
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
@@ -3352,12 +3318,6 @@ class IrBoard implements Board {
           for (const specification of machine.execution.cpus) {
             const timer = generatedCpuFacts(specification.type ?? '').scanlineTimer;
             if (timer) this.cpus.get(specification.tag)?.invoke(timer, line);
-          }
-          for (let index = spriteDmaLineSignals.length - 1; index >= 0; index--) {
-            const signal = spriteDmaLineSignals[index]!;
-            if (signal.line !== line) continue;
-            this.cpus.get('maincpu')?.setInputLine(1, signal.state);
-            spriteDmaLineSignals.splice(index, 1);
           }
           // The screen's VBLANK edges, to every delegate a device registered
           // (`register_vblank_callback`): the K051960/K052109's IRQ, the
@@ -3733,7 +3693,6 @@ class IrBoard implements Board {
 
   frame(framebuffer: Uint32Array): void {
     this.pollInputLatches();
-    this.frameSound?.();
     this.inFrame = true;
     try {
       this.frameRunner.frame(framebuffer);
@@ -3786,25 +3745,6 @@ class IrBoard implements Board {
       }
       this.inputLatchPrevious.set(key, asserted);
     }
-    // Sega Vic Dual coin hardware does not expose the switch directly to the
-    // CPU. A rising edge resets the Z80; the restarted program asserts a
-    // separate status latch, and a 70 ms monostable clears it. Preserve that
-    // source-declared protocol for boards whose input map reads coin_status_r.
-    if (this.machine.execution.customs?.some(custom =>
-      custom.handler?.endsWith('.coin_status_r'))) {
-      const asserted = (this.inputs.read('COIN') & 0x01) !== 0;
-      if (asserted && !this.vicdualCoinPrevious) {
-        this.cpus.get('maincpu')?.reset();
-        this.vicdualCoinFrames = Math.max(
-          1,
-          Math.ceil(this.machine.execution.screen.refresh * 0.070),
-        );
-      }
-      this.vicdualCoinPrevious = asserted;
-      if (this.vicdualCoinFrames > 0 && --this.vicdualCoinFrames === 0) {
-        this.state.m_coin_status = 0;
-      }
-    }
   }
 
   reset(): void {
@@ -3825,8 +3765,6 @@ class IrBoard implements Board {
     for (const reset of this.peripheralResets) reset();
     this.inputLatchPrevious.clear();
     this.pendingExidyCollisions.clear();
-    this.vicdualCoinPrevious = false;
-    this.vicdualCoinFrames = 0;
     this.currentLine = this.frameRunner.originLine;
     this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
@@ -4170,8 +4108,7 @@ class IrBoard implements Board {
       // Driver-armed one-shots due to fire: Missile Command's CPU-speed timer
       // is what puts the clock back at the top of the frame.
       'pendingTimers',
-      'inputLatchPrevious', 'pendingExidyCollisions', 'vicdualCoinPrevious',
-      'vicdualCoinFrames', 'hostState',
+      'inputLatchPrevious', 'pendingExidyCollisions', 'hostState',
     ];
   }
 
@@ -5333,20 +5270,6 @@ class IrBoard implements Board {
           return 0;
         };
       }
-    }
-    if (hasDeviceType(machine, 'M58715')) {
-      // Mario's coin effect is source input 6 of samples_w. Preserve that
-      // exact latch path on the host input edge as well as through the Z80's
-      // normal polling loop: the M58715 then reads soundlatch1 and renders the
-      // original external sound ROM through its DAC.
-      const coin = this.hostModel('mario.coin', { down: false });
-      this.frameSound = () => {
-        const active = Boolean(this.inputs.read('IN1') & 0x20);
-        if (active !== coin.down) {
-          this.cpuBuses.get('maincpu')?.write(0x7f06, Number(active));
-          coin.down = active;
-        }
-      };
     }
     return hooks;
   }

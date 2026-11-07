@@ -4886,7 +4886,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const direct = bitmap.direct;
     const videoRaw = this.state.m_videoram;
     const characterRaw = this.state.m_characterram;
-    const promRaw = this.state.m_proms;
+    // `optional_memory_region m_proms`: the region object answers base().
+    const promState = this.state.m_proms as { base?: () => unknown } | undefined;
+    const promRaw = typeof promState?.base === 'function' ? promState.base() : promState;
     if (
       !direct ||
       !ArrayBuffer.isView(videoRaw) ||

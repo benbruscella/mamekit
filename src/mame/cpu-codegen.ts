@@ -1559,6 +1559,9 @@ function emitCall(
   if (name === 'bus_w') {
     return `(this.bus.signal?.('bus_out_cb', (${args[0] ?? '0'}) & 0xff) ?? 0)`;
   }
+  if (name === 'rom_view_w') {
+    return `(this.bus.selectView?.('m_rom_view', (${args[0] ?? '0'}) ? -1 : 0) ?? 0)`;
+  }
   if (name === 'prog_w') {
     return `(this.bus.signal?.('prog_out_cb', (${args[0] ?? '0'}) & 1) ?? 0)`;
   }

@@ -1179,7 +1179,6 @@ class IrDevice implements Device {
   /** Names the definition declares as device_delegates: their arguments pass by reference. */
   private readonly delegateNames: ReadonlySet<string>;
   /** generic_latch_8's write is deferred through the scheduler (see executeMethod). */
-  private readonly latch8: boolean;
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
@@ -1223,7 +1222,6 @@ class IrDevice implements Device {
       HELD_INSTANCE_DEFINITIONS.set(heldInstanceName(definition.floppyImage), definition.floppyImage);
     }
     this.delegateNames = new Set(Object.values(definition.delegates ?? {}));
-    this.latch8 = definition.type.toUpperCase() === 'GENERIC_LATCH_8';
     // `device_t::m_clock` is a u32, so MAME's own `clock()` never has a
     // fraction: a device configured at m_xtal/114 is asked for 31399, not
     // 31399.78. Handing the fraction back made the TIA's sample counter land
@@ -1617,11 +1615,13 @@ class IrDevice implements Device {
       setters,
       constants: definition.constants,
       // MAME's synchronize posts its work for when every processor has
-      // caught up to the call. The cross-CPU command latch always defers;
-      // any other device does where its partners all run in the round
-      // (deferSynchronize). Deferred for Namco's 06xx while its 5xxx MCUs
-      // were hosted on device time instead, Xevious went silent.
-      ...(options.schedule && (definition.type.toUpperCase() === 'GENERIC_LATCH_8' || options.deferSynchronize)
+      // caught up to the call, which needs every partner running in the
+      // round beside it (deferSynchronize): deferred for Namco's 06xx while
+      // its 5xxx MCUs were hosted on device time instead, Xevious went silent.
+      // A command latch's write is one (generic_latch_8_device::write posts
+      // sync_callback), so a reader later in the round cannot see a command
+      // before the time it was sent.
+      ...(options.schedule && options.deferSynchronize
         ? { schedule: options.schedule }
         : {}),
       // An empty synchronize posts nothing, so it cannot desynchronise
@@ -2467,8 +2467,7 @@ class IrDevice implements Device {
   prepareCall(name: string): (...args: GeneratedCallArgument[]) => unknown {
     const methods = this.methods.get(name);
     const compiled = this.definition.compiledMethods?.[name];
-    if (!compiled || methods?.length !== 1 ||
-        (this.definition.type === 'GENERIC_LATCH_8' && name === 'write')) {
+    if (!compiled || methods?.length !== 1) {
       return (...args) => this.invoke(name, ...args);
     }
     const method = methods[0]!;
@@ -2511,8 +2510,7 @@ class IrDevice implements Device {
       // the executable itself lets its caller inline tiny register accessors;
       // a shared dispatch closure makes those sites polymorphic instead.
       receive(compiled && methods?.length === 1 &&
-        scalarArguments && !this.bindings.calls?.[name] &&
-        !(this.definition.type === 'GENERIC_LATCH_8' && name === 'write')
+        scalarArguments && !this.bindings.calls?.[name]
         ? compiled.bind(undefined, this.executionContext) : this.prepareCall(name));
     };
     const connections = this.callConnections.get(name) ?? [];
@@ -3142,23 +3140,6 @@ class IrDevice implements Device {
     args: GeneratedCallArgument[],
   ): unknown {
     try {
-      if (
-        this.latch8 &&
-        method.name === 'write'
-      ) {
-        // generic_latch_8_device defers the store with
-        // scheduler().synchronize(sync_callback, data): the writer's slice
-        // ends, every processor behind it catches up to the write, and only
-        // then does the reader see the byte. Applied inline, a reader that
-        // runs later in the same round sees the command before the time it
-        // was sent: Marble Madness's sound board answered 13 main-CPU
-        // instructions away from where MAME's does.
-        const data = args[0] ?? 0;
-        const schedule = this.bindings.schedule;
-        if (!schedule) return this.invoke('sync_callback', data);
-        schedule(() => void this.invoke('sync_callback', data));
-        return 0;
-      }
       const defaults = this.methodDefaults.get(method);
       const compiled = this.definition.compiledMethods?.[method.name];
       // A `&` parameter always arrives as a get/set wrapper, because the caller

@@ -975,6 +975,22 @@ export function cpuInternalRomBytes(mameSrc: string, type: string): number | und
 }
 
 /**
+ * An MCS-48's internal ROM as its own program_map lays it over the driver's:
+ * `map(0, end).view(m_rom_view); m_rom_view[0](0, end).rom();`, the chip's own
+ * region, selected until the EA pin is raised. Mario's sound_start writes its
+ * bootstrap there. Undefined for a core with no internal ROM or no such view.
+ */
+export function cpuInternalRomView(mameSrc: string, type: string): { bytes: number; viewTag: string; viewEntry: number } | undefined {
+  const bytes = cpuInternalRomBytes(mameSrc, type);
+  if (!bytes) return undefined;
+  const cpp = readFileSync(join(mameSrc, 'src/devices/cpu/mcs48/mcs48.cpp'), 'utf8');
+  const body = /void\s+mcs48_cpu_device::program_map\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(cpp)?.[1] ?? '';
+  const view = /\.view\s*\(\s*(m_\w+)\s*\)/.exec(body)?.[1];
+  const entry = view ? new RegExp(`\\b${view}\\s*\\[\\s*(\\d+)\\s*\\]\\s*\\([^)]*\\)\\s*\\.rom\\s*\\(`).exec(body)?.[1] : undefined;
+  return view && entry !== undefined ? { bytes, viewTag: view, viewEntry: Number(entry) } : undefined;
+}
+
+/**
  * Compile Intel MCS-48 execution directly from MAME's opcode-handler table.
  *
  * MAME expresses this core as 256 OP(handler) entries backed by OPHANDLER
@@ -1014,7 +1030,8 @@ export function compileMameMcs48(
     return normalizeMameExecutionSource(source)
       .replace(/\bm_bus_out_cb\s*\(\s*0\s*,\s*([^,]+),[^)]*\)/g, 'bus_w($1)')
       .replace(/\bupdate_regptr\s*\(\s*\)\s*;/g, '')
-      .replace(/\bupdate_ea\s*\(\s*\)\s*;/g, '')
+      // update_ea: EA=1 takes the internal ROM view away, EA=0 selects it.
+      .replace(/\bupdate_ea\s*\(\s*\)\s*;/g, 'rom_view_w(m_ea);')
       .replace(
         /^\s*if\s*\(\s*!m_t0_clk_func\.isnull\(\)\s*\)\s*[\r\n]+\s*m_t0_clk_func\([^;]*\);/gm,
         '',

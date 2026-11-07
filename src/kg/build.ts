@@ -797,15 +797,24 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // MAME calls the most-derived override, and it calls its own bases
     // (`neogeo_base_state::machine_start();`), so only that one is listed:
     // listing the bases too ran each again inside the override that calls it.
-    const resetHandlers = resetFunctions.slice(-1).map(fn => `${fn.className}.${fn.name}`);
+    // driver_device::device_reset_after_children: machine_reset, then
+    // sound_reset (Mario's clears its sound latches and holds its DAC lines).
+    const soundReset = ast.findFunctionInHierarchy(cfg.cls, 'sound_reset');
+    const resetHandlers = [...resetFunctions.slice(-1), ...(soundReset ? [soundReset] : [])]
+      .map(fn => `${fn.className}.${fn.name}`);
     // driver_device::device_start: machine_start, then video_start, once every
     // device has started.
+    // sound_start comes between them: Mario's writes its MCU bootstrap there.
+    const soundStart = ast.findFunctionInHierarchy(cfg.cls, 'sound_start');
+    const machineStarts = resolveMachineLifecycle(ast, cfg.cls, cfg.name, 'start');
     const startFunctions = [
-      ...resolveMachineLifecycle(ast, cfg.cls, cfg.name, 'start'),
+      ...machineStarts,
+      ...(soundStart ? [soundStart] : []),
       ...(videoStart ? [videoStart] : []),
     ];
     const startHandlers = [
-      ...startFunctions.slice(0, videoStart ? -1 : undefined).slice(-1),
+      ...machineStarts.slice(-1),
+      ...(soundStart ? [soundStart] : []),
       ...(videoStart ? [videoStart] : []),
     ].map(fn => `${fn.className}.${fn.name}`);
     // MAME `machine_config::set_perfect_quantum(device)`: this board is
@@ -938,7 +947,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ...spanProps(cfgFunction?.span),
     });
     definedIn(cfgId, cfgFunction?.span);
-    for (const fn of resetFunctions) {
+    for (const fn of [...resetFunctions, ...(soundReset ? [soundReset] : [])]) {
       const handlerId = emitSourceHandlerClosure(
         g,
         ast,
@@ -1942,6 +1951,18 @@ function emitInputPorts(
         );
         g.edge(fid, handlerId, 'CALLS_HANDLER');
         annotateInputHandlerClosure(g, handlerId, context.ioportMembers, context.stringConstants);
+      }
+      // PORT_CHANGED_MEMBER's callback is lowered with the inputs, but the
+      // helpers it calls belong to the handler closure: Vic Dual's
+      // coin_changed resets the CPU through coin_in().
+      const changed = f.modifiers
+        ?.map(modifier => /PORT_CHANGED_MEMBER\s*\([^,]+,\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(modifier))
+        .find((match): match is RegExpExecArray => Boolean(match));
+      if (changed && context) {
+        const handlerId = emitSourceHandlerClosure(
+          g, context.ast, changed[1]!, changed[2]!, context.constants, source,
+        );
+        g.edge(fid, handlerId, 'CALLS_HANDLER');
       }
     });
   }

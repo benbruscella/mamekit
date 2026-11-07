@@ -62,9 +62,6 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       const key = videoExecution[field];
       if (key && !handlers.has(key)) fail(`videoExecution.${field}`, `handler "${key}" is not generated`);
     }
-    if (videoExecution.spriteDmaCallback && !board.callbacks.some(callback => callback.id === videoExecution.spriteDmaCallback)) {
-      fail('videoExecution.spriteDmaCallback', `callback "${videoExecution.spriteDmaCallback}" is not generated`);
-    }
     const members = videoExecution.bitmapMembers.map(bitmap => bitmap.member);
     if (new Set(members).size !== members.length) fail('videoExecution.bitmapMembers', 'duplicate bitmap member');
   }

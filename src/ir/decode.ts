@@ -143,7 +143,7 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
 function decodeVideoExecution(reader: Reader, value: unknown): void {
   if (value === undefined) return;
   const plan = reader.object(value, 'videoExecution');
-  for (const key of ['spriteDmaCallback', 'roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler']) {
+  for (const key of ['roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler']) {
     reader.optionalString(plan[key], `videoExecution.${key}`);
   }
   if (plan.directScreen !== undefined && !DIRECT_SCREEN_SHAPES.has(String(plan.directScreen))) {

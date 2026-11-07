@@ -23,7 +23,7 @@ export function hostedDeviceTag(hostTag: string | undefined, rawTag: string): st
   return `${hostTag}:${rawTag}`;
 }
 import { handlerOwnsSharedRam, sourceHandlerDataWidth, cpuProgramAddressShift, cpuInternalMapRanges } from './machine-source.ts';
-import { cpuInternalRomBytes } from '../mame/cpu-compiler.ts';
+import { cpuInternalRomBytes, cpuInternalRomView } from '../mame/cpu-compiler.ts';
 
 export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: GenerateOptions, family: string) {
   // machine configs compose via helper calls (galaxian(config) -> galaxian_base(config));
@@ -312,6 +312,16 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       // The core's own internal map, installed over the driver's: the
       // TMS34010's I/O registers at 0xc0000000.
       ...cpuInternalMapRanges(opts.mameSrc, String(dev.props.type), String(dev.props.tag)),
+      // And an MCS-48's internal ROM, a view over the driver's own map that
+      // reads the chip's region (M58715: Mario's 2K, its bootstrap written
+      // there by sound_start).
+      ...(() => {
+        const view = programMap ? cpuInternalRomView(opts.mameSrc, String(dev.props.type)) : undefined;
+        return view ? [{
+          start: 0, end: view.bytes - 1, kind: 'rom', region: String(dev.props.tag), romOffset: 0,
+          viewTag: view.viewTag, viewEntry: view.viewEntry,
+        }] : [];
+      })(),
     ];
     const explicitRegions = [...new Set(
       rangeNodes
