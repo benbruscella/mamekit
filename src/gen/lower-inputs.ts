@@ -308,19 +308,6 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
           .map(modifier =>
             /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*\w+::(\w+)\s*\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
-        const rtcLine = mods
-          .map(modifier => /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*upd1990a_device::(tp_r|data_out_r)/.exec(modifier))
-          .find((match): match is RegExpExecArray => Boolean(match));
-        if (type === 'IPT_CUSTOM' && rtcLine) {
-          customs.push({
-            port: tag,
-            mask,
-            member: rtcLine[2]!,
-            source: rtcLine[2] === 'tp_r' ? 'rtc-tp' : 'rtc-data',
-            activeLow,
-          });
-          continue;
-        }
         if (type === 'IPT_CUSTOM' && anyDeviceLine) {
           customs.push({
             port: tag,

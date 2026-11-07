@@ -20,7 +20,7 @@ import type {
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
-import { sourceRegionBindings } from '../mame/video-compiler.ts';
+import { sourceMemoryRegions, sourceRegionBindings } from '../mame/video-compiler.ts';
 import { lowerRamAllocation, ramPowerOn, sharePowerOn } from '../mame/ram-compiler.ts';
 
 /**
@@ -54,10 +54,11 @@ export function generatedCpuCycleClock(type: string | undefined, rawClock: numbe
     // variants (m6803e, mc6809e-style) run 1:1 and stay off this list.
     type === 'hd63701y0'
   ) return divided(4);
-  // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 is a
-  // plain mcs48_cpu_device, only i8021/i8022 use the /30 variant.
+  // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 and upd7751
+  // are plain mcs48_cpu_devices, only i8021/i8022 use the /30 variant.
   if (
-    type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715'
+    type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715' ||
+    type === 'upd7751'
   ) return divided(15);
   return clock;
 }
@@ -253,6 +254,7 @@ export function lowerGeneratedMachine(
       if (props.targetClass) callback.targetClass = String(props.targetClass);
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
       if (props.targetPort) callback.targetPort = String(props.targetPort);
+      if (props.constant !== undefined) callback.constant = Number(props.constant);
       if (props.deviceTag) callback.deviceTag = String(props.deviceTag);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
       const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
@@ -377,7 +379,7 @@ export function lowerGeneratedMachine(
       ...(deviceDelegates(graph, node.props).length
         ? { delegates: deviceDelegates(graph, node.props) }
         : {}),
-      ...deviceConstructorComposition(node.props),
+      ...deviceConstructorShares(node.props),
       ...lowerRamAllocation(node.props, String(graph.meta.mameSrc ?? '')),
       ...(typeof node.props.slotOptions === 'string'
         ? { slotOptions: node.props.slotOptions }
@@ -626,11 +628,18 @@ export function lowerGeneratedMachine(
   const startHandlers = Array.isArray(selectedMachine?.props.startHandlers)
     ? selectedMachine.props.startHandlers.map(String)
     : [];
+  // A driver's banks, filtered against the planned ones once those are lowered
+  // (build.ts driverMemoryBanks).
+  const driverBanks = ((selectedMachine?.props.memoryBanks as string[] | undefined) ?? [])
+    .map(value => JSON.parse(value) as { member: string; tag: string });
   // What the selected game's init leaves in driver state runs first, as MAME
   // runs the init before machine_start (build.ts).
+  const initDelegates: { member: string; handler: string }[] = [];
   for (const node of graph.nodes) {
     if (node.label === 'Game' && node.props.name === game) {
       startHandlers.unshift(...((node.props.initHandlers as string[] | undefined) ?? []));
+      initDelegates.push(...((node.props.initDelegates as string[] | undefined) ?? [])
+        .map(value => JSON.parse(value) as { member: string; handler: string }));
     }
   }
   // `TIMER(config, m_x).configure_generic(FUNC(cls::cb))`: a one-shot the
@@ -682,7 +691,8 @@ export function lowerGeneratedMachine(
   // A driver timer with a real callback that nothing else reaches: no frame
   // event, scanline timer or device line targets the handler it fires, so
   // the board runs it as the one-shot MAME has, armed by the machine-start
-  // function that arms it in source (build.ts `armedTimers`).
+  // function that arms it in source (build.ts `armedTimers`), which runs
+  // as part of the machine's own start.
   const reachedHandlers = new Set(callbacks.flatMap(callback =>
     callback.targetClass && callback.targetMethod
       ? [`${callback.targetClass}.${callback.targetMethod}`]
@@ -690,12 +700,16 @@ export function lowerGeneratedMachine(
   for (const entry of (selectedMachine?.props.armedTimers as string[] | undefined) ?? []) {
     const match = /^([^=]+)=([^@]+)@(.+)$/.exec(entry);
     if (!match) continue;
-    const [, member, handler, arming] = match as unknown as [string, string, string, string];
+    const [, member, handler] = match as unknown as [string, string, string];
     if (reachedHandlers.has(handler) || genericTimers.some(timer => timer.member === member)) continue;
     if (!handlers.some(candidate => `${candidate.ownerClass}.${candidate.method}` === handler)) continue;
+    // Armed by a handler this machine has. Bubble Bobble allocates the
+    // irq_ack timer only its 68705 bootleg arms; a timer nothing arms ends no
+    // timeslice in MAME, and a driver timer puts the board on a per-line
+    // schedule.
+    if (!handlers.some(candidate => candidate.body?.includes(`${member}->adjust`))) continue;
     const precise = ((selectedMachine?.props.preciseTimers as string[] | undefined) ?? []).includes(member);
     genericTimers.push({ tag: member.replace(/^m_/, ''), member, handler, driver: true, ...(precise ? { precise: true as const } : {}) });
-    if (!startHandlers.includes(arming)) startHandlers.unshift(arming);
   }
   // Timers a composed device allocates in its device_start (build.ts). A
   // generated device runs its own timers.
@@ -757,7 +771,8 @@ export function lowerGeneratedMachine(
     }
   }
   const memoryBanks = lowerMemoryBanks(graph, sourceRef);
-  const accessTaps = lowerAccessTaps(graph, devices, memoryBanks, sourceRef);
+  const unplannedBanks = driverBanks.filter(bank =>
+    !memoryBanks.some(planned => planned.member === bank.member || planned.tag === bank.tag));
   // The driver's own region_ptr finders, read straight from its source. These
   // reach the runtime whether or not the board compiles a video plan.
   const driverPath = join(String(graph.meta.mameSrc ?? ''), String(graph.meta.driverFile ?? ''));
@@ -772,6 +787,12 @@ export function lowerGeneratedMachine(
       existsSync(driverPath)
     ? sourceRegionBindings(readFileSync(driverPath, 'utf8'))
     : {});
+  // The driver's memory_region finders, declared in its header as often as in
+  // the driver itself.
+  const driverSources = [driverPath, driverPath.replace(/\.cpp$/, '.h')]
+    .filter(path => graph.meta.mameSrc && graph.meta.driverFile && existsSync(path))
+    .map(path => readFileSync(path, 'utf8')).join('\n');
+  const regionObjects = sourceMemoryRegions(driverSources);
   const executionCpus = board.cpus.map(cpu => {
     const interruptVectorWriters = inferInterruptVectorWriters(
       cpu.tag,
@@ -848,6 +869,7 @@ export function lowerGeneratedMachine(
   // What the driver's machine_start leaves in a RAM share at power-on.
   const sharePowerOnBytes = machineStartShares(graph, rootMachineClass, executionCpus, shareBindings);
   const execution: GeneratedExecutionPlan = {
+    ...(Object.keys(regionObjects).length ? { regionObjects } : {}),
     ...(Object.keys(driverRegionBindings).length
       ? { regionBindings: driverRegionBindings }
       : {}),
@@ -865,13 +887,14 @@ export function lowerGeneratedMachine(
       : {}),
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
+    ...(initDelegates.length ? { initDelegates } : {}),
+    ...(unplannedBanks.length ? { memoryBanks: unplannedBanks } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
     ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),
     ...(executeDevices.length ? { executeDevices } : {}),
     ...(spaceAccessors.length ? { spaceAccessors } : {}),
     ...(memoryBanks.length ? { banks: memoryBanks } : {}),
-    ...(accessTaps.length ? { accessTaps } : {}),
     screen: {
       ...board.screen,
       ownerTag: screenUpdateDeviceTag ?? videoOutputDevice?.tag ?? 'screen',
@@ -1440,85 +1463,6 @@ export function inferredMemberIndexRank(
  * banks may be configured by more than one call, so the entry table is the
  * faithful shape rather than a single base/stride pair.
  */
-/**
- * Devices that watch every access on a CPU's address space.
- *
- * MAME expresses this as `install_readwrite_tap` inside the device's own
- * `device_start`, configured from the machine config with
- * `set_range(cpu, space, start, end, mirror)` and, where the device drives a
- * ROM window, `set_bank(bank)`. Neither call leaves a trace in an address
- * map, so without lowering them the device sees nothing and its bank never
- * moves.
- */
-export function lowerAccessTaps(
-  graph: KnowledgeGraph,
-  devices: GeneratedDevice[],
-  banks: NonNullable<BoardIr['execution']['banks']>,
-  sourceRef: (props: Record<string, unknown>) => BoardSourceRef | undefined,
-): NonNullable<BoardIr['execution']['accessTaps']> {
-  const tagByMember = new Map(
-    devices.filter(device => device.member).map(device => [device.member!, device.tag]),
-  );
-  const bankByMember = new Map(banks.map(bank => [bank.member, bank.tag]));
-  const taps: NonNullable<BoardIr['execution']['accessTaps']> = [];
-  for (const node of graph.nodes) {
-    if (node.label !== 'Device') continue;
-    const tag = String(node.props.tag ?? '');
-    if (!devices.some(device => device.tag === tag)) continue;
-    const config = Array.isArray(node.props.config) ? node.props.config.map(String) : [];
-    const range = config
-      .map(line => /->set_range\(([^)]*)\)/.exec(line.trim()))
-      .find((match): match is RegExpExecArray => Boolean(match));
-    if (!range) continue;
-    const args = range[1]!.split(',').map(argument => argument.trim());
-    if (args.length !== 5) {
-      throw new BoardIrError(
-        'access tap',
-        [{ path: `devices.${tag}.set_range`, message: `device "${tag}" set_range takes five arguments`, source: sourceRef(node.props) }],
-      );
-    }
-    const [cpuMember, space, ...bounds] = args as [string, string, string, string, string];
-    const cpu = tagByMember.get(cpuMember) ?? cpuMember.replace(/^m_/, '');
-    if (space !== 'AS_PROGRAM') {
-      throw new BoardIrError(
-        'access tap',
-        [{ path: `devices.${tag}.set_range`, message: `device "${tag}" taps address space ${space}, which is not lowered`, source: sourceRef(node.props) }],
-      );
-    }
-    const [start, end, mirror] = bounds.map(Number);
-    if (![start, end, mirror].every(value => Number.isFinite(value))) {
-      throw new BoardIrError(
-        'access tap',
-        [{ path: `devices.${tag}.set_range`, message: `device "${tag}" set_range bounds are not constant`, source: sourceRef(node.props) }],
-      );
-    }
-    const bankMember = config
-      .map(line => /->set_bank\(([^)]*)\)/.exec(line.trim()))
-      .find((match): match is RegExpExecArray => Boolean(match))?.[1]?.trim();
-    const bank = bankMember ? bankByMember.get(bankMember) : undefined;
-    if (bankMember && !bank) {
-      throw new BoardIrError(
-        'access tap',
-        [{ path: `devices.${tag}.set_bank`, message: `device "${tag}" selects bank "${bankMember}", which the board does not configure`, source: sourceRef(node.props) }],
-      );
-    }
-    taps.push({
-      cpu,
-      space: 'program',
-      device: tag,
-      // The installed tap forwards the access to the device's own decoder;
-      // MAME writes that entry point as `m_state->test(offset)`.
-      method: 'test',
-      start: start!,
-      end: end!,
-      mirror: mirror!,
-      ...(bank ? { bank } : {}),
-      ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
-    });
-  }
-  return taps;
-}
-
 function lowerMemoryBanks(
   graph: KnowledgeGraph,
   sourceRef: (props: Record<string, unknown>) => BoardSourceRef | undefined,
@@ -1873,6 +1817,7 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_4BIT_R2R: ['data_w', 'write'],
   DAC_8BIT_R2R: ['data_w', 'write'],
   AD7524: ['data_w', 'write'],
+  AD7533: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
@@ -1955,7 +1900,7 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'HC55516'].includes(device.type)
+      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'AD7533', 'HC55516'].includes(device.type)
         ? 0
         : device.type === 'UPD7759'
           ? 640_000
@@ -2162,30 +2107,18 @@ function constructorTableConfiguration(
 }
 
 /**
- * Lower values wired by typed machine-config constructors.  These arguments
- * are real composition metadata, but unlike `device->setter(...)` calls they
- * live on the device-add expression itself.  Williams' blitter constructors
- * configure both scalar behavior and the driver's shared video RAM this way.
+ * The memory shares a typed device-add constructor binds: the graph's
+ * `constructorShares`, a finder member of the device and the share it names
+ * (`WILLIAMS_BLITTER_SC1(config, m_blitter, 0xc000, m_maincpu, m_videoram)`
+ * forwards `m_videoram` to the blitter's `m_vram`).
  */
-function deviceConstructorComposition(
+function deviceConstructorShares(
   props: Record<string, unknown>,
-): Pick<GeneratedDevice, 'memberValues' | 'memoryShares'> {
-  const type = String(props.type ?? '');
-  if (type !== 'WILLIAMS_BLITTER_SC1' && type !== 'WILLIAMS_BLITTER_SC2') return {};
-  const line = deviceConfigLines(props).find(candidate =>
-    candidate.trimStart().startsWith(`${type}(`));
-  if (!line) return {};
-  const match = /^[^(]+\((.*)\)\s*;?$/.exec(line.trim());
-  const args = match?.[1]?.split(',').map(argument => argument.trim()) ?? [];
-  const clipAddress = Number(args[2]);
-  const vram = args[4]?.replace(/^m_/, '');
-  return {
-    memberValues: {
-      ...(Number.isFinite(clipAddress) ? { m_clip_address: clipAddress } : {}),
-      m_size_xor: type === 'WILLIAMS_BLITTER_SC1' ? 4 : 0,
-    },
-    ...(vram ? { memoryShares: { m_vram: vram } } : {}),
-  };
+): Pick<GeneratedDevice, 'memoryShares'> {
+  const entries = (Array.isArray(props.constructorShares) ? props.constructorShares : [])
+    .map(entry => String(entry).split('='))
+    .filter((entry): entry is [string, string] => entry.length === 2 && Boolean(entry[0] && entry[1]));
+  return entries.length ? { memoryShares: Object.fromEntries(entries) } : {};
 }
 
 function inferInterruptVectorWriters(

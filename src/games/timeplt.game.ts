@@ -22,12 +22,12 @@ export const timeplt = sourceTarget({
       'timeplt_audio:tpsound': '3142803f',
     },
     checkpoints: {
-      1: { video: '43d7f729', state: '43e30c92' },
-      60: { video: 'b95a6e16', state: '5efcf53e' },
-      300: { video: '958f2475', state: 'f1c39dba' },
-      540: { video: '3757fed1', state: '61e17559' },
-      720: { video: 'fa28120a', state: '913bbfb9' },
-      1200: { video: 'a420bb8b', state: '9567766e' },
+      1: { video: '43d7f729', state: '9c7fc590' },
+      60: { video: 'b95a6e16', state: '23abfc59' },
+      300: { video: '958f2475', state: '8ee747a8' },
+      540: { video: '3757fed1', state: 'cc761fc6' },
+      720: { video: 'fa28120a', state: '25c0ec58' },
+      1200: { video: 'a420bb8b', state: '4711f57e' },
     },
     audio: {
       writes: 5823,

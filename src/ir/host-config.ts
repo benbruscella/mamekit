@@ -65,7 +65,21 @@ export interface BoardConfig {
    * its samples empty, as MAME does.
    */
   samplePath?: Record<string, Record<string, Uint8Array>>;
+  /**
+   * MAME's -rtc: the local wall-clock time, `YYYYMMDDHHMMSS`, that every
+   * battery-backed clock chip is set to once the machine has started
+   * (running_machine::set_rtc_datetime). Absent, it is the host's own clock,
+   * as MAME's is; a contract passes a fixed one so a run can be repeated.
+   */
+  baseTime?: string;
 }
+
+/**
+ * The -rtc every contract runs at, ours and MAME's reference alike, so a clock
+ * chip reads the same date on both. The instant Neo Geo's hand-written RTC
+ * once answered with, kept so its BIOS boots to the same screen.
+ */
+export const CONTRACT_BASE_TIME = '20260806072050';
 
 /** A software-list part as a slot reads it: each dataarea's bytes, and the part's features. */
 export interface SoftwarePart {

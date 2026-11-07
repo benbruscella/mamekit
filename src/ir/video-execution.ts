@@ -19,7 +19,6 @@ export type GeneratedDirectScreenShape =
 
 export interface GeneratedVideoExecution {
   directScreen?: GeneratedDirectScreenShape;
-  spriteDmaCallback?: string;
   roadHandler?: string;
   zoomSpriteHandler?: string;
   spriteHandler?: string;

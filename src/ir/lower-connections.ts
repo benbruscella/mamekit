@@ -141,6 +141,10 @@ export function lowerCallbackEffect(
       : undefined;
   }
 
+  if (callback.operation === 'set_constant' && callback.constant !== undefined) {
+    return { kind: 'constant', value: callback.constant };
+  }
+
   // set_ioport pulls a value from a port; targetTag repeats the port name.
   if (callback.targetPort) return { kind: 'port-read', port: callback.targetPort };
 

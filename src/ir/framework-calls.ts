@@ -85,6 +85,10 @@ const FRAMEWORK_ACCESSORS = new Set([
 const DEVICE_T_DEFAULTS = new Set([
   'device_config_complete', 'device_reset', 'device_reset_after_children', 'device_stop',
   'device_pre_save', 'device_post_load', 'device_clock_changed',
+  // driver_device's lifecycle overrides, each as empty (emu/driver.cpp).
+  // defender_state::machine_start calls `williams_state::machine_start()`,
+  // which no class between it and driver_device defines.
+  'machine_start', 'machine_reset', 'sound_start', 'sound_reset', 'video_start', 'video_reset',
 ]);
 
 /** Tilemap creation in video_start, which the video compiler reads to build each layer. */

@@ -245,21 +245,12 @@ export function lowerVideoExecution(machine: BoardIr): GeneratedVideoExecution {
         match[2] ? Number(match[2]) + 1 : 0));
     }
   }
-  const spriteDma = machine.callbacks?.find(callback => {
-    if (callback.operation !== 'set_vblank_int' || !callback.targetMethod) return false;
-    const handler = handlers.find(handler => handler.ownerClass === callback.targetClass &&
-      handler.method === callback.targetMethod);
-    return Boolean(handler?.body?.includes('m_dma_start_timer->adjust') &&
-      handler.body.includes('m_dma_end_timer->adjust') &&
-      machine.devices?.some(device => device.type === 'K053246' && device.tag === 'k053246'));
-  });
   return {
     ...(generatedDirectScreenShape(machine) ? { directScreen: generatedDirectScreenShape(machine) } : {}),
     ...(road ? { roadHandler: key(road) } : {}),
     ...(zoom && sprites ? { zoomSpriteHandler: key(zoom), spriteHandler: key(sprites) } : {}),
     ...(mapper ? { bankMapperHandler: key(mapper) } : {}),
     ...(mapper && cpsSprites ? { cpsSpriteHandler: key(cpsSprites) } : {}),
-    ...(spriteDma ? { spriteDmaCallback: spriteDma.id } : {}),
     bitmapMembers: [...bitmaps].map(([member, count]) => ({ member, count })),
   };
 }

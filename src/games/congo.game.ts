@@ -19,7 +19,7 @@ export const congo = sourceTarget({
       tilemap_dat: 'c54ca74c',
     },
     checkpoints: {
-      1: { video: '111c0df1', state: 'faa5e61d' },
+      1: { video: '57a480b3', state: 'faa5e61d' },
       60: { video: 'd4df64f8', state: '5e577877' },
       180: { video: 'd4df64f8', state: 'bf9f4cc8' },
       300: { video: '5109e673', state: 'ea304434' },

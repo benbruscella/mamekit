@@ -76,12 +76,9 @@ const HOST_BOUNDARIES = {
 // A branch on a MAME device type selects code written for that chip or board.
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
   'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS', 'DVG', 'I8243', 'M58715',
-    'NEOGEO_CONTROL_PORT', 'NEOGEO_CTRL_EDGE_CONNECTOR', 'NEOGEO_SPRITE_OPTIMZIED',
-    'SEGA_SYS16A_SPRITES', 'TAITO_SJ_SECURITY_MCU',
+    'ATARI_MOTION_OBJECTS', 'DVG',
   ],
-  'generated-device.ts': ['GENERIC_LATCH_8'],
-  'generated-video.ts': ['DVG', 'NEOGEO_SPRITE_OPTIMZIED'],
+  'generated-video.ts': ['DVG'],
 };
 // Each direct-screen shape is a renderer written for one driver.
 const DIRECT_SCREEN_SHAPES = [
@@ -92,22 +89,14 @@ const DIRECT_SCREEN_SHAPES = [
   'technos-tilemap-sprites', 'timeplt', 'tnx1-banked-raster', 'vicdual-character-ram',
 ];
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
-// for a hand-written body, keyed by the compiler that makes it. One argument
-// is not a literal: `method` is every SEGAIC16VID method that has diagnostics.
+// for a hand-written body, keyed by the compiler that makes it.
 const REPLACED_METHODS = [
-  'compileK053246: device_start', 'compileK053246: k053247_sprites_draw_common',
-  'compileNeogeoSprite: device_reset', 'compileNeogeoSprite: draw_fixed_layer',
-  'compileNeogeoSprite: draw_pixel',
-  'compileSegaic16Video: method', 'compileSegaic16Video: tilemap_init',
-  'compileSlapstic: change_bank', 'compileSlapstic: device_post_load',
-  'compileSlapstic: device_pre_save', 'compileSlapstic: device_reset',
-  'compileSlapstic: device_start',
   'compileUpd7759: sound_stream_update',
 ];
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
 const SPECIALIZED_COMPILERS = [
-  'K053246', 'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID', 'SLAPSTIC', 'UPD7759',
+  'UPD7759',
 ];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
@@ -232,6 +221,41 @@ for (const file of engineSources) {
     'HAND_WRITTEN_ENGINES or HOST_BOUNDARIES)',
   );
 }
+// What the board keeps beside the generated machine: each `hostModel(...)`
+// record and each field a save state carries. Hand-written hardware hides its
+// registers in exactly these (the Vic Dual coin circuit kept its edge and
+// timer as two saved fields), so both are exact lists that may only shrink.
+const HOST_MODELS = [
+  '${specification.tag}.instructionTicks', '${specification.tag}.timing', '${tag}.hosted',
+  'bank-device.${bank.tag}', 'bank.${bank.tag}', 'coinLockout', 'deviceLineStates',
+  'hostedCarry', 'roundDevices', 'systemMute',
+];
+const SAVED_BOARD_FIELDS = [
+  'bankDeviceBuses', 'cpuBuses', 'cpuCycles', 'cpuHeld', 'cpuReportedSuspended',
+  'cpuSliceCycles', 'cpuStalls', 'cpus', 'currentLine', 'currentLineFraction',
+  'declarativeEeprom', 'devices', 'frameRunner', 'generatedBanks', 'generatedResources',
+  'heldDeviceSeconds', 'hostState', 'inFrame', 'inputLatchPrevious', 'observedTransportSeconds',
+  'pendingBankEntry', 'pendingExidyCollisions', 'pendingTimers', 'runningSliceCycles',
+  'softResetPending', 'soundRuntime', 'state', 'timedHardwareDelivered',
+  'timerCpuCarriedCycles', 'video', 'videoPrimitives',
+];
+{
+  const board = readFileSync(join(root, 'generated-board.ts'), 'utf8');
+  assert.deepEqual(
+    [...new Set([...board.matchAll(/\bhostModel\(\s*(['`])([^'`]*)\1/g)].map(match => match[2]!))].sort(),
+    [...HOST_MODELS].sort(),
+    'generated-board.ts: a new hostModel record is state the generated machine does not own; ' +
+    'generate the hardware instead (or, if one was removed, delete it from HOST_MODELS)',
+  );
+  const keys = /\n  stateKeys\(\): readonly string\[\] \{\s*return \[([\s\S]*?)\];/.exec(board)?.[1] ?? '';
+  assert.deepEqual(
+    [...keys.replace(/\/\/[^\n]*/g, '').matchAll(/'(\w+)'/g)].map(match => match[1]!).sort(),
+    [...SAVED_BOARD_FIELDS].sort(),
+    'generated-board.ts: a new saved board field is state the generated machine does not own; ' +
+    'generate the hardware instead (or, if one was removed, delete it from SAVED_BOARD_FIELDS)',
+  );
+}
+
 // A list keyed by a file that is gone would pass silently forever.
 for (const [list, files, scanned] of [
   ['DEVICE_TYPE_BRANCHES', DEVICE_TYPE_BRANCHES, sharedRuntime],

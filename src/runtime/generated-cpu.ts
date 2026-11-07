@@ -20,6 +20,8 @@ export interface CpuBus {
   /** A 68000 long access, which MAME performs as two word accesses. */
   write32be?(address: number, data: number): void;
   in(port: number): number;
+  /** Select an entry of one of the core's own memory views; -1 disables it. */
+  selectView?(tag: string, entry: number): number;
   /**
    * Atomic big-endian word access to the I/O space, for a core whose ports
    * are natively 16 bits wide (the TMS320C1x). Splitting one into two byte
@@ -661,6 +663,7 @@ class IrCpu implements Cpu {
       test_r: port => Number(this.bus.signal?.(`t${port}_in_cb`, 0) ?? 0),
       bus_r: () => Number(this.bus.signal?.('bus_in_cb', 0) ?? 0xff),
       bus_w: value => Number(this.bus.signal?.('bus_out_cb', value & 0xff) ?? 0),
+      rom_view_w: ea => Number(this.bus.selectView?.('m_rom_view', ea ? -1 : 0) ?? 0),
       prog_w: value => Number(this.bus.signal?.('prog_out_cb', value & 1) ?? 0),
       m_out_inte_func: state => this.bus.signal?.('out_inte_func', state) ?? 0,
       m_out_sod_func: state => this.bus.signal?.('out_sod_func', state) ?? 0,

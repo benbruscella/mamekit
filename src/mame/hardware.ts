@@ -271,11 +271,20 @@ export function templateInstanceReferences(
 ): Map<string, Set<string>> {
   const typeOfMember = new Map<string, Set<string>>();
   for (const device of devices) {
-    const member = device.props.member;
+    // The finder member the device is added through, as emit-machine reads it:
+    // `INPUT_MERGER_ANY_HIGH(config, m_soundnmi[1])`.
+    const config = Array.isArray(device.props.config) ? device.props.config.map(String).join('\n') : '';
+    const member = typeof device.props.member === 'string'
+      ? device.props.member
+      : /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
     if (typeof member !== 'string') continue;
-    const types = typeOfMember.get(member) ?? new Set<string>();
-    types.add(String(device.props.type));
-    typeOfMember.set(member, types);
+    // An element of a finder array answers to the array's own name, which is
+    // how driver code reaches it: Elevator Action's `m_soundnmi[1]->in_w<1>`.
+    for (const name of new Set([member, member.replace(/\[\d+\]$/, '')])) {
+      const types = typeOfMember.get(name) ?? new Set<string>();
+      types.add(String(device.props.type));
+      typeOfMember.set(name, types);
+    }
   }
   const byType = new Map<string, Set<string>>();
   const qualified = new Set<string>();

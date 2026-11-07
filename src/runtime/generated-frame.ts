@@ -377,6 +377,15 @@ export class GeneratedFrameRunner {
     return true;
   }
 
+  /**
+   * The frame period in seconds. MAME's screen arms its VBLANK-start timer
+   * every frame, so a timer armed further off than this is never the
+   * soonest and never ends a timeslice (emu_timer::adjust).
+   */
+  get frameSeconds(): number {
+    return this.framePeriod.seconds;
+  }
+
   get frameCount(): number {
     return this.frames;
   }

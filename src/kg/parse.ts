@@ -767,10 +767,14 @@ export function parseRomSets(
       const args = splitArgs(body.slice(open + 1, close));
       const statement = sm[1]!;
       if (statement.startsWith('ROM_REGION')) {
+          // romentry.h's ROM_REGION16_BE(length, tag, flags) is ROM_REGION
+          // with ROMREGION_16BIT | ROMREGION_BE added to the flags.
+          const sized = /^ROM_REGION(16|32|64)_(LE|BE)$/.exec(statement);
+          const flags = args[2] ?? '';
           region = {
             size: evalExpr(args[0], consts) ?? 0,
             tag: strings[args[1].trim()] ?? unquote(args[1]),
-            flags: args[2] ?? '',
+            flags: sized ? `${flags} | ROMREGION_${sized[1]}BIT | ROMREGION_${sized[2]}` : flags,
             loads: [],
             fills: [],
           };
@@ -2119,7 +2123,7 @@ export function parseMachineConfigs(
           if (index < 2 || !/^\w+$/.test(options) || !args[index + 1]?.trim().startsWith('"')) return false;
           return /_devices$/.test(options) || new RegExp(
             `\\b(?:void\\s+)?${options}\\s*\\(\\s*device_slot_interface\\s*&`,
-          ).test(src) || (index === 2 && /(?:_PORT|_CONNECTOR)$/.test(type));
+          ).test(src) || (index === 2 && /(?:_PORT|_CONNECTOR|_SLOT)$/.test(type));
         });
         if (slotIndex >= 0) {
           dev.slotOptions = args[slotIndex].trim();

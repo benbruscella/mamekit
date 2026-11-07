@@ -20,6 +20,8 @@
 //   - a tap does not answer an access, it observes one (and may alter the data
 //     in flight). It layers over whatever else already decodes the window.
 
+import { bigEndianWordBytes } from '../ir/execute.ts';
+
 /** A byte-addressable backing store: a ROM region, a RAM block, a pointer. */
 export type InstalledBytes = ArrayLike<number> & { length: number };
 
@@ -61,6 +63,18 @@ export interface InstalledView {
  * `install_rom(start, end, mirror, base)` are both real, and only the argument
  * count separates them.
  */
+/**
+ * The mirror of a handler install, by where its delegate sits: MAME's
+ * `install_read_handler(start, end, delegate)` has none, and the long form
+ * `(start, end, mask, mirror, select, delegate)` gives it second. Neo Geo's
+ * input windows use the long form, mirrored over 0x01ff7e.
+ */
+function handlerMirror(rest: readonly unknown[]): number {
+  const delegate = rest.findIndex(value => typeof value === 'function');
+  if (delegate >= 3) return Number(rest[1]) | 0;
+  return delegate === 1 ? Number(rest[0]) | 0 : 0;
+}
+
 export class RecordingAddressSpace {
   readonly entries: InstalledEntry[] = [];
   readonly views: InstalledView[] = [];
@@ -104,14 +118,13 @@ export class RecordingAddressSpace {
   }
 
   install_readwrite_handler(start: number, end: number, ...rest: unknown[]): void {
-    const mirror = rest.length > 2 ? Number(rest[0]) | 0 : 0;
     const delegates = rest.filter(value => typeof value === 'function') as InstalledDelegate[];
     if (delegates.length < 2) return;
     this.entries.push({
       kind: 'handler',
       start,
       end,
-      mirror,
+      mirror: handlerMirror(rest),
       read: delegates[0],
       write: delegates[1],
     });
@@ -171,7 +184,7 @@ export class RecordingAddressSpace {
       kind: 'handler',
       start,
       end,
-      mirror: rest.length > 1 && typeof rest[0] === 'number' ? rest[0] | 0 : 0,
+      mirror: handlerMirror(rest),
       ...(side === 'read' ? { read: delegate } : { write: delegate }),
     });
   }
@@ -207,13 +220,17 @@ function isBank(value: unknown): value is InstalledBank {
 }
 
 function asBytes(value: unknown): InstalledBytes | undefined {
+  // A big-endian region seen as words (`(u16 *)base() + 0x40`, Neo Geo's
+  // cartridge program) is installed as the bytes it is over.
+  const words = bigEndianWordBytes(value);
+  if (words) return words;
   if (ArrayBuffer.isView(value) || Array.isArray(value)) return value as InstalledBytes;
   // A generated pointer: a byte source plus an offset into it.
   const pointer = value as { source?: unknown; offset?: number } | undefined;
   if (pointer && typeof pointer === 'object' && pointer.source !== undefined) {
     const source = asBytes(pointer.source);
     if (!source) return undefined;
-    const offset = pointer.offset ?? 0;
+    const offset = (pointer.offset ?? 0) * (bigEndianWordBytes(pointer.source) ? 2 : 1);
     return offset ? subview(source, offset) : source;
   }
   return undefined;

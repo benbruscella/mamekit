@@ -34,12 +34,12 @@ export const bzone = sourceTarget({
       user3: '092af601',
     },
     checkpoints: {
-      1: { video: '71e4b2e8', state: '7af3509f' },
-      60: { video: '5552575c', state: 'a28c28e2' },
-      300: { video: '2923b40e', state: '264b9a75' },
-      500: { video: '1547c858', state: 'b8d80a57' },
-      700: { video: 'e4736fef', state: '4d402be7' },
-      900: { video: '9703242a', state: '0e03d401' },
+      1: { video: '71e4b2e8', state: 'd832df5a' },
+      60: { video: '5552575c', state: '26b05d22' },
+      300: { video: '2923b40e', state: 'b0078f44' },
+      500: { video: '1547c858', state: '906ddce9' },
+      700: { video: 'e4736fef', state: '215bd48a' },
+      900: { video: '9703242a', state: '23194636' },
     },
     audio: {
       writes: 1053257,

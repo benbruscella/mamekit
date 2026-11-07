@@ -22,12 +22,12 @@ export const pooyan = sourceTarget({
       'timeplt_audio:tpsound': '0764635f',
     },
     checkpoints: {
-      1: { video: '74589235', state: 'e803fe50' },
-      60: { video: 'e31b647c', state: '689367f6' },
-      180: { video: 'ff05b684', state: '8a04aece' },
-      300: { video: 'a2d03b71', state: 'c485c0ea' },
-      420: { video: 'a326de60', state: '3dfd1b0d' },
-      600: { video: '359901e1', state: '5f7556eb' },
+      1: { video: '74589235', state: '3fffe66d' },
+      60: { video: 'e31b647c', state: '426a178a' },
+      180: { video: 'ff05b684', state: '1126f2d2' },
+      300: { video: 'a2d03b71', state: '959eb1eb' },
+      420: { video: 'a326de60', state: 'c3e2cdfd' },
+      600: { video: '359901e1', state: '7b625be0' },
     },
     audio: {
       writes: 2295,

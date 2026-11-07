@@ -143,7 +143,7 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
 function decodeVideoExecution(reader: Reader, value: unknown): void {
   if (value === undefined) return;
   const plan = reader.object(value, 'videoExecution');
-  for (const key of ['spriteDmaCallback', 'roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler']) {
+  for (const key of ['roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler']) {
     reader.optionalString(plan[key], `videoExecution.${key}`);
   }
   if (plan.directScreen !== undefined && !DIRECT_SCREEN_SHAPES.has(String(plan.directScreen))) {
@@ -172,12 +172,15 @@ function decodeStateMembers(reader: Reader, value: unknown): void {
     const path = `stateMembers[${index}]`;
     const member = reader.object(entry, path);
     reader.string(member.name, `${path}.name`);
+    if (member.delegate !== undefined && member.delegate !== true) reader.fail(`${path}.delegate`, 'is true when present');
+    if (member.delegate === true) continue;
     const bits = reader.number(member.bits, `${path}.bits`);
     if (![1, 8, 16, 32].includes(bits)) {
       reader.fail(`${path}.bits`, `declares ${bits}, which is not a C integer width`);
     }
     reader.optionalNumber(member.arrayLength, `${path}.arrayLength`);
     reader.optionalNumber(member.initial, `${path}.initial`);
+    if (member.vector !== undefined && member.vector !== true) reader.fail(`${path}.vector`, 'is true when present');
   }
 }
 
@@ -220,7 +223,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
 }
 
 const EFFECT_KINDS = new Set([
-  'cpu-line', 'device-method', 'handler', 'port-read',
+  'cpu-line', 'device-method', 'handler', 'port-read', 'constant',
   'video-control', 'audio-control', 'audio-write', 'perfect-quantum', 'unconnected',
 ]);
 const CPU_LINES = new Set([
@@ -270,6 +273,8 @@ function decodeConnections(reader: Reader, value: unknown): void {
       reader.string(effect.handler, `${path}.effect.handler`, source);
     } else if (kind === 'port-read') {
       reader.string(effect.port, `${path}.effect.port`, source);
+    } else if (kind === 'constant') {
+      reader.number(effect.value, `${path}.effect.value`, source);
     } else if (kind === 'video-control') {
       reader.string(effect.control, `${path}.effect.control`, source);
     } else if (kind === 'audio-control') {
@@ -447,6 +452,27 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.initDelegates !== undefined) {
+    for (const [index, delegate] of reader.array(execution.initDelegates, 'execution.initDelegates').entries()) {
+      const path = `execution.initDelegates[${index}]`;
+      reader.string(reader.object(delegate, path).member, `${path}.member`);
+      reader.string(reader.object(delegate, path).handler, `${path}.handler`);
+    }
+  }
+
+  if (execution.regionObjects !== undefined) {
+    for (const [member, tag] of Object.entries(reader.object(execution.regionObjects, 'execution.regionObjects'))) {
+      reader.string(tag, `execution.regionObjects.${member}`);
+    }
+  }
+  if (execution.memoryBanks !== undefined) {
+    for (const [index, bank] of reader.array(execution.memoryBanks, 'execution.memoryBanks').entries()) {
+      const path = `execution.memoryBanks[${index}]`;
+      reader.string(reader.object(bank, path).member, `${path}.member`);
+      reader.string(reader.object(bank, path).tag, `${path}.tag`);
+    }
+  }
+
   reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
   if (execution.executeDevices !== undefined) {
     for (const [index, entry] of reader.array(execution.executeDevices, 'execution.executeDevices').entries()) {
@@ -477,23 +503,6 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.number(event.line, `${path}.line`, source);
     reader.number(event.state, `${path}.state`, source);
     reader.optionalNumber(event.frequency, `${path}.frequency`, source);
-  }
-
-  if (execution.accessTaps !== undefined) {
-    for (const [index, entry] of reader.array(
-      execution.accessTaps, 'execution.accessTaps').entries()) {
-      const path = `execution.accessTaps[${index}]`;
-      const tap = reader.object(entry, path);
-      const source = sourceOf(tap);
-      reader.string(tap.cpu, `${path}.cpu`, source);
-      reader.string(tap.space, `${path}.space`, source);
-      reader.string(tap.device, `${path}.device`, source);
-      reader.string(tap.method, `${path}.method`, source);
-      reader.number(tap.start, `${path}.start`, source);
-      reader.number(tap.end, `${path}.end`, source);
-      reader.number(tap.mirror, `${path}.mirror`, source);
-      reader.optionalString(tap.bank, `${path}.bank`, source);
-    }
   }
 
   if (execution.spaceAccessors !== undefined) {

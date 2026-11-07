@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { CONTRACT_BASE_TIME } from '../ir/host-config.ts';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -241,6 +242,7 @@ export async function runGameAcceptance(
   const boardConfig: ShellConfig['board'] = {
     ...config.board,
     game: config.game,
+    baseTime: CONTRACT_BASE_TIME,
     ...(Object.keys(samplePath).length ? { samplePath } : {}),
     ...(cartridge ? { cart: cartridge.cart } : {}),
     ...(software?.emptySlots.length ? { emptySlots: software.emptySlots } : {}),

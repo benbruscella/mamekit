@@ -45,6 +45,7 @@ function executorFor(effect: BoardEffect, bindings: EffectBindings): EffectExecu
     case 'device-method': return bindings.deviceMethod(effect.tag, effect.method, effect.ownerClass);
     case 'handler': return bindings.handler(effect.handler, effect.deviceTag);
     case 'port-read': return bindings.portRead(effect.port);
+    case 'constant': { const value = effect.value; return () => value; }
     case 'video-control': return bindings.videoControl(effect.control);
     case 'audio-control': return bindings.audioControl(effect.tag, effect.control, effect.offset);
     case 'audio-write': return bindings.audioWrite(effect.tag, effect.method);
@@ -101,7 +102,7 @@ export function bindBoardEffects(
     bound.set(connection.callbackId, {
       run,
       transforms: connection.transforms,
-      reads: connection.effect.kind === 'port-read' ||
+      reads: connection.effect.kind === 'port-read' || connection.effect.kind === 'constant' ||
         (connection.effect.kind === 'device-method' &&
           isSourceReadAccessor(connection.effect.method)),
     });

@@ -31,7 +31,7 @@ import {
   resizeGeneratedContainer,
   resizeGeneratedVector,
 } from './generated-handler.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
@@ -56,6 +56,7 @@ interface DeviceMember {
   finder?: {
     kind: 'input' | 'device';
     tag: string;
+    tags?: string[];
   };
   /** Declared array bound for an object-typed member (`bitmap_ind16 h[2]`). */
   arrayLength?: number;
@@ -260,6 +261,12 @@ export interface GeneratedDeviceDefinition {
   imageInterface?: true;
   allocations?: Record<string, GeneratedDeviceDefinition>;
   construct?: string;
+  /**
+   * The constructor the configuration's argument reaches when it is not the
+   * clock (device-compiler): run with that argument, and the device's clock
+   * is the one it delegates.
+   */
+  clockConstructor?: { method: string; clock: number };
   constants: Record<string, number>;
   members: DeviceMember[];
   callbacks: DeviceCallback[];
@@ -381,6 +388,8 @@ export interface Device {
     write: (address: number, data: number) => void): void;
   reset(): void;
   tick(seconds: number): void;
+  /** MAME's `device_pre_save` on the device and the devices inside it, before a state save. */
+  preSave?(): void;
   /** MAME's `device_post_load` on the device and the devices inside it, after a state load. */
   postLoad?(): void;
   /** Whether this device or a composed child owns a scheduled timer. */
@@ -420,6 +429,12 @@ export interface Device {
   /** All numeric constants declared by this generated device family. */
   constants(): Readonly<Record<string, number>>;
   methodNames(): readonly string[];
+  /**
+   * A machine-config setter of an interface the host answers rather than the
+   * device: `.set_user_loadable(false)` on device_image_interface. False for
+   * one the host does not keep.
+   */
+  configureHost?(method: string, args: readonly unknown[]): boolean;
   /**
    * PCM the device published through `sound_stream::put_int`, and clear it.
    *
@@ -613,7 +628,7 @@ export interface GeneratedDeviceOptions {
    * Resolve required/optional device finders to host/device proxies, and a
    * `required_address_space` to a space its own `set_tag` points at a bus.
    */
-  finder?: (tag: string, member?: string, kind?: 'space') => unknown;
+  finder?: (tag: string, member?: string, kind?: 'space' | 'bank') => unknown;
   regions?: Record<string, Uint8Array>;
   /** MAME's `machine().basename()`: the machine's short name. */
   machineName?: string;
@@ -636,6 +651,13 @@ export interface GeneratedDeviceOptions {
    * the card does not exist until the board has built it.
    */
   deferStart?: boolean;
+  /**
+   * Leave device_reset to the host. MAME starts every device, then runs the
+   * driver's machine_start, and only then resets every device: Neo Geo's
+   * machine_start points the sound bank at the cartridge, and the system
+   * latch's reset puts it back on the BIOS the Z80 boots from.
+   */
+  holdReset?: boolean;
   /**
    * The machine config's setter calls on this device, made between its
    * construction and device_start, as MAME makes them.
@@ -1157,7 +1179,6 @@ class IrDevice implements Device {
   /** Names the definition declares as device_delegates: their arguments pass by reference. */
   private readonly delegateNames: ReadonlySet<string>;
   /** generic_latch_8's write is deferred through the scheduler (see executeMethod). */
-  private readonly latch8: boolean;
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
@@ -1201,12 +1222,13 @@ class IrDevice implements Device {
       HELD_INSTANCE_DEFINITIONS.set(heldInstanceName(definition.floppyImage), definition.floppyImage);
     }
     this.delegateNames = new Set(Object.values(definition.delegates ?? {}));
-    this.latch8 = definition.type.toUpperCase() === 'GENERIC_LATCH_8';
     // `device_t::m_clock` is a u32, so MAME's own `clock()` never has a
     // fraction: a device configured at m_xtal/114 is asked for 31399, not
     // 31399.78. Handing the fraction back made the TIA's sample counter land
     // one short of its divisor and take the oversampling branch MAME does not.
     clock = Math.trunc(clock);
+    const constructorArgument = clock;
+    if (definition.clockConstructor) clock = definition.clockConstructor.clock;
     this.clock = clock;
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
@@ -1283,7 +1305,11 @@ class IrDevice implements Device {
         (resourceMembers[member.name]
           ? resolveDeviceResource(resourceMembers[member.name]!, resourceOptions)
           :
-        (inputTag
+        (inputTag && member.finder?.tags
+          ? member.finder.tags.map(tag => ({
+              read: inputFinderRead(options.inputs, [options.tag, tag].filter(Boolean).join(':'), definition.inputDefaults?.[tag]),
+            }))
+          : inputTag
           ? { read: inputFinderRead(options.inputs, inputTag, definition.inputDefaults?.[member.finder?.tag ?? '']) }
           // DEVICE_SELF_OWNER: the device this one was built inside.
           : member.finder?.kind === 'device' && member.finder.tag === '^' && options.owner
@@ -1292,6 +1318,8 @@ class IrDevice implements Device {
             ? options.finder?.(member.finder.tag, member.name) ?? 0
           : /^(?:required|optional)_address_space$/.test(member.valueType)
             ? options.finder?.('', member.name, 'space') ?? 0
+          : /^(?:required|optional)_memory_bank$/.test(member.valueType)
+            ? options.finder?.('', member.name, 'bank') ?? 0
           : /^bitmap_(?:rgb32|ind16|ind8)$/.test(member.valueType)
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength },
@@ -1587,11 +1615,13 @@ class IrDevice implements Device {
       setters,
       constants: definition.constants,
       // MAME's synchronize posts its work for when every processor has
-      // caught up to the call. The cross-CPU command latch always defers;
-      // any other device does where its partners all run in the round
-      // (deferSynchronize). Deferred for Namco's 06xx while its 5xxx MCUs
-      // were hosted on device time instead, Xevious went silent.
-      ...(options.schedule && (definition.type.toUpperCase() === 'GENERIC_LATCH_8' || options.deferSynchronize)
+      // caught up to the call, which needs every partner running in the
+      // round beside it (deferSynchronize): deferred for Namco's 06xx while
+      // its 5xxx MCUs were hosted on device time instead, Xevious went silent.
+      // A command latch's write is one (generic_latch_8_device::write posts
+      // sync_callback), so a reader later in the round cannot see a command
+      // before the time it was sent.
+      ...(options.schedule && options.deferSynchronize
         ? { schedule: options.schedule }
         : {}),
       // An empty synchronize posts nothing, so it cannot desynchronise
@@ -1601,6 +1631,14 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
+        // `m_screen.set_tag(screen_tag)`: a setter re-pointing a device finder
+        // (the watchdog's set_vblank_count) rebinds the member to that tag.
+        ...Object.fromEntries(definition.members
+          .filter(member => member.finder?.kind === 'device' && member.finder.tag !== '^')
+          .map(member => [`${member.name}.set_tag`, (tag: unknown) => {
+            this.members[member.name] = options.finder?.(String(tag), member.name) ?? 0;
+            return 0;
+          }])),
         // A call through a member-function pointer, which holds the method's
         // name (member-pointers.ts): the T-Unit blitter's dma_draw tables.
         CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>
@@ -1947,14 +1985,16 @@ class IrDevice implements Device {
     const pendingTimers = [...this.timers.values()];
     this.bindings.calls!.timer_alloc = () => pendingTimers.shift()?.timer ?? 0;
     // A struct local with no initializer, built from its declaration
-    // (device-compiler lowerStructLocals): `cbm_crt_header header;`.
-    const structOf = (type: unknown): unknown => {
+    // (device-compiler lowerStructLocals): `cbm_crt_header header;`. With
+    // arguments it is built through the constructor of that arity instead:
+    // the slapstic's `test(mask, value)`.
+    const structOf = (type: unknown, ...args: unknown[]): unknown => {
       const fields = definition.structs?.[String(type)];
       if (!fields) return 0;
       const struct = structMember(fields, definition.structs, String(type));
       // What its constructor sets up (device-compiler structMethodsOf).
-      const construct = (struct as { __construct?: () => unknown }).__construct;
-      if (typeof construct === 'function') construct.call(struct);
+      const construct = (struct as Record<string, unknown>)[args.length ? `__construct_${args.length}` : '__construct'];
+      if (typeof construct === 'function') construct.apply(struct, args);
       return struct;
     };
     this.bindings.calls!.STRUCT_OF = structOf as (...args: number[]) => unknown;
@@ -2020,6 +2060,12 @@ class IrDevice implements Device {
       const chosen = selected === undefined && options.image ? this.defaultCardSoftware() : undefined;
       const option = String(selected ?? chosen ?? definition.slot.default ?? '');
       this.slotOption = option || undefined;
+      // device_slot_interface::default_option(): the card the machine config
+      // fits. Neo Geo's fixed cartridge slot hands it to set_cart_type, which
+      // names the PCB by comparing it against its own table.
+      const configured = String(options.slot ?? definition.slot.default ?? '');
+      this.bindings.calls!.default_option = () => configured as never;
+      (this.members.this as Record<string, unknown>).default_option ??= () => configured;
       const childDefinition = definition.slot.options[option];
       if (childDefinition) {
         const cartSpace = definition.slot.install?.space;
@@ -2156,6 +2202,7 @@ class IrDevice implements Device {
     // the emitted methods read before any of them can run.
     this.refreshCallLinks();
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
+    if (definition.clockConstructor) this.invoke(definition.clockConstructor.method, 0, 0, 0, constructorArgument);
     options.configure?.(this);
     const start = (): void => {
       if (definition.start) this.call(definition.start);
@@ -2176,7 +2223,7 @@ class IrDevice implements Device {
             resolveDeviceResource(resource, resourceOptions)),
         );
       }
-      this.reset();
+      if (!options.holdReset) this.reset();
     };
     if (options.deferStart) this.pendingStart = start;
     else start();
@@ -2292,6 +2339,17 @@ class IrDevice implements Device {
    * from the registers by `postload()`, and without it a voice kept running
    * whichever routine it had when the save was loaded over it.
    */
+  /**
+   * MAME calls `device_pre_save` on every device before a state is saved, so
+   * a device can put into saved members what it otherwise holds as wiring:
+   * the slapstic records which state object `m_state` points at.
+   */
+  preSave(): void {
+    if (this.methodNames().includes('device_pre_save')) this.invoke('device_pre_save');
+    for (const child of this.children) child.preSave();
+    this.slotChild?.preSave();
+  }
+
   postLoad(): void {
     if (this.methodNames().includes('device_post_load')) this.invoke('device_post_load');
     for (const child of this.children) child.postLoad();
@@ -2409,8 +2467,7 @@ class IrDevice implements Device {
   prepareCall(name: string): (...args: GeneratedCallArgument[]) => unknown {
     const methods = this.methods.get(name);
     const compiled = this.definition.compiledMethods?.[name];
-    if (!compiled || methods?.length !== 1 ||
-        (this.definition.type === 'GENERIC_LATCH_8' && name === 'write')) {
+    if (!compiled || methods?.length !== 1) {
       return (...args) => this.invoke(name, ...args);
     }
     const method = methods[0]!;
@@ -2453,8 +2510,7 @@ class IrDevice implements Device {
       // the executable itself lets its caller inline tiny register accessors;
       // a shared dispatch closure makes those sites polymorphic instead.
       receive(compiled && methods?.length === 1 &&
-        scalarArguments && !this.bindings.calls?.[name] &&
-        !(this.definition.type === 'GENERIC_LATCH_8' && name === 'write')
+        scalarArguments && !this.bindings.calls?.[name]
         ? compiled.bind(undefined, this.executionContext) : this.prepareCall(name));
     };
     const connections = this.callConnections.get(name) ?? [];
@@ -2494,6 +2550,15 @@ class IrDevice implements Device {
 
   methodNames(): readonly string[] {
     return [...this.methods.keys()];
+  }
+
+  /** The image-interface setters the host keeps (see hostImageFile). */
+  private readonly hostSettings: Record<string, readonly unknown[]> = {};
+
+  configureHost(method: string, args: readonly unknown[]): boolean {
+    if (method !== 'set_user_loadable' || !this.readsOwnFile()) return false;
+    this.hostSettings[method] = args.map(Number);
+    return true;
   }
 
   /** Every stream the device allocated, in `stream_alloc` order. */
@@ -2569,6 +2634,13 @@ class IrDevice implements Device {
       if (parameters.includes('&')) {
         this.bindings.referenceCalls![name] = listener;
       }
+    }
+    // What the board binds is the device's own interface, reached through
+    // `*this` as well: konami_decode_gfx takes the K053246 as
+    // `device_gfx_interface &gfxdecode` and calls its palette() and set_gfx().
+    const self = this.members.this as Record<string, unknown> | undefined;
+    if (self && /^\w+$/.test(name) && !Object.hasOwn(self, name)) {
+      self[name] = (...args: unknown[]) => (this.bindings.calls![name] as (...values: unknown[]) => unknown)(...args);
     }
     this.refreshCallLinks();
     for (const refresh of this.callConnections.get(name) ?? []) refresh();
@@ -2772,10 +2844,11 @@ class IrDevice implements Device {
     const surface: Record<string, (...args: unknown[]) => unknown> = {
       exists: () => this.imageFile ? 1 : 0,
       is_open: () => this.imageFile ? 1 : 0,
-      // device_image_interface's own default; only a machine's internal
-      // socket says set_user_loadable(false). The generic cartridge slot
-      // reads a user-loaded ROM, not its region, on this answer.
-      user_loadable: () => 1,
+      // device_image_interface's own default, unless the machine config
+      // says set_user_loadable(false): Neo Geo's fixed cartridge socket, read
+      // from its regions rather than a loaded image. The generic cartridge
+      // slot reads a user-loaded ROM, not its region, on this answer.
+      user_loadable: () => this.hostSettings.set_user_loadable?.[0] === 0 ? 0 : 1,
       filename: () => this.imageFile?.name ?? 0,
       basename: () => this.imageFile?.name ?? 0,
       basename_noext: () => this.imageFile?.name.replace(/\.[^.]*$/, '') ?? 0,
@@ -3067,23 +3140,6 @@ class IrDevice implements Device {
     args: GeneratedCallArgument[],
   ): unknown {
     try {
-      if (
-        this.latch8 &&
-        method.name === 'write'
-      ) {
-        // generic_latch_8_device defers the store with
-        // scheduler().synchronize(sync_callback, data): the writer's slice
-        // ends, every processor behind it catches up to the write, and only
-        // then does the reader see the byte. Applied inline, a reader that
-        // runs later in the same round sees the command before the time it
-        // was sent: Marble Madness's sound board answered 13 main-CPU
-        // instructions away from where MAME's does.
-        const data = args[0] ?? 0;
-        const schedule = this.bindings.schedule;
-        if (!schedule) return this.invoke('sync_callback', data);
-        schedule(() => void this.invoke('sync_callback', data));
-        return 0;
-      }
       const defaults = this.methodDefaults.get(method);
       const compiled = this.definition.compiledMethods?.[method.name];
       // A `&` parameter always arrives as a get/set wrapper, because the caller
@@ -3232,7 +3288,11 @@ function resolveDeviceResource(
   // (Battlezone's AVG state PROM is region "avg:prom"), as MAME does.
   // A device built inside another carries its full tag as deviceTag.
   const own = options.deviceTag && regions[`${options.deviceTag}:${resourceName}`] ? options.deviceTag : options.tag;
-  const subtag = own && resourceName !== 'self' ? `${own}:${resourceName}` : undefined;
+  // `^maincpu` from a cartridge card names its slot's region, `cslot1:maincpu`.
+  const relative = /^[\^:]/.test(resourceName) && (options.deviceTag ?? options.tag)
+    ? mameSubtag(options.deviceTag ?? options.tag ?? '', resourceName)
+    : undefined;
+  const subtag = relative ?? (own && resourceName !== 'self' ? `${own}:${resourceName}` : undefined);
   const regionName = resourceName === 'self'
     ? options.tag ?? ''
     : subtag && regions[subtag] ? subtag : resourceName;
@@ -3241,15 +3301,7 @@ function resolveDeviceResource(
   // questions -- how big, where does it start, give me the bytes -- and a
   // missing region answers as a null pointer does, which is what lets a
   // cartridge with no save RAM take MAME's own "no NVRAM" branch.
-  if (resource.kind === 'region-object') {
-    const bytes = regions[regionName];
-    if (!bytes?.length) return 0;
-    return {
-      bytes: () => bytes.length,
-      base: () => bytes,
-      as_u8: () => bytes,
-    };
-  }
+  if (resource.kind === 'region-object') return memoryRegionObject(regions[regionName]);
   if (resource.kind === 'region-pointer') {
     // MAME's `get_rom_base() + N`: the same bytes, addressed from an offset.
     return {
@@ -3505,14 +3557,22 @@ function memoryMember(
 }
 
 /** A memory container indexed in the element width declared by its C++ type. */
+/** The most an owned vector may grow to: Neo Geo's largest decoded sprite sets. */
+const GROWABLE_VECTOR_BYTES = 256 * 1024 * 1024;
+
 function generatedMemoryArray(
   elementBytes: number,
   bytes?: Uint8Array,
 ): Uint8Array | Uint16Array | Uint32Array {
   if (!bytes) {
-    if (elementBytes === 2) return new Uint16Array(0);
-    if (elementBytes === 4) return new Uint32Array(0);
-    return new Uint8Array(0);
+    // An owned std::vector starts empty and is sized later, often through a
+    // reference (`optimize_helper(m_sprite_gfx, ...)` resizes Neo Geo's
+    // decoded sprites through `std::vector<u8> &`): over a resizable buffer
+    // the resize happens in place, so every holder sees it.
+    const buffer = resizableBuffer(GROWABLE_VECTOR_BYTES);
+    if (elementBytes === 2) return new Uint16Array(buffer);
+    if (elementBytes === 4) return new Uint32Array(buffer);
+    return new Uint8Array(buffer);
   }
   if (elementBytes === 2) {
     return new Uint16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
@@ -3801,7 +3861,16 @@ function mappedDeviceSpace(
       lw8: handler => chain.w!(handler),
       lrw8: (read, write) => chain.rw!(read, write),
       ram: () => { entry.storage = memory; entry.storageOffset = undefined; return chain; },
-      rom: () => chain,
+      // An internal map's `rom()` is the device's own region at the same
+      // addresses: the MB88's program space is its firmware.
+      rom: () => {
+        const bytes = region('tag()');
+        if (bytes) {
+          entry.storage = bytes;
+          entry.storageOffset = entry.start;
+        }
+        return chain;
+      },
       region: (tag, offset) => {
         const bytes = region(String(tag));
         if (!bytes) throw new Error(`address map names region ${String(tag)}, which was not loaded`);
@@ -4047,4 +4116,29 @@ function inputFinderRead(
   return () => fallback !== undefined && inputs?.has?.(tag) === false
     ? fallback
     : inputs?.read(tag) ?? fallback ?? 0xff;
+}
+
+/**
+ * MAME's `memory_region *`. Whoever is handed one asks it how big it is, where
+ * it starts and for its bytes; a missing region answers as a null pointer
+ * does, which is what lets a cartridge with no save RAM take MAME's own "no
+ * NVRAM" branch.
+ */
+export function memoryRegionObject(bytes: Uint8Array | undefined): unknown {
+  if (!bytes?.length) return 0;
+  return {
+    found: () => 1,
+    bytes: () => bytes.length,
+    base: () => bytes,
+    // `&region->as_u8(n)` and `&region->as_u16(n)`: the storage from byte or
+    // word n, as the device's own pointers read it.
+    as_u8: (offset = 0) => Number(offset) ? { generatedPointer: true, source: bytes, offset: Number(offset) } : bytes,
+    as_u16: (offset = 0) => {
+      const words = generatedPackedView(bytes, false);
+      return Number(offset) ? { generatedPointer: true, source: words, offset: Number(offset) } : words;
+    },
+    // What `&` of each answers, as emitted code asks for it.
+    'as_u8&': (offset = 0) => ({ generatedPointer: true, source: bytes, offset: Number(offset) }),
+    'as_u16&': (offset = 0) => ({ generatedPointer: true, source: generatedPackedView(bytes, false), offset: Number(offset) }),
+  };
 }

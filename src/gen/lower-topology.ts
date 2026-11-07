@@ -23,6 +23,7 @@ export function hostedDeviceTag(hostTag: string | undefined, rawTag: string): st
   return `${hostTag}:${rawTag}`;
 }
 import { handlerOwnsSharedRam, sourceHandlerDataWidth, cpuProgramAddressShift, cpuInternalMapRanges } from './machine-source.ts';
+import { cpuInternalRomBytes, cpuInternalRomView } from '../mame/cpu-compiler.ts';
 
 export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: GenerateOptions, family: string) {
   // machine configs compose via helper calls (galaxian(config) -> galaxian_base(config));
@@ -171,7 +172,7 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
   // --- cpus + address maps ----------------------------------------------------
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
-  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', DECO_CPU7: 'deco_cpu7', DECO_C10707: 'deco_c10707', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
+  const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', UPD7751: 'upd7751', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', DECO_CPU7: 'deco_cpu7', DECO_C10707: 'deco_c10707', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
   // ROM windows installed by a CPU's own internal address map. They do not
   // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
   const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
@@ -274,26 +275,6 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
     if (r.props.bankRead || r.props.bankWrite) {
       spec.bank = String(r.props.bankRead ?? r.props.bankWrite);
     }
-    // Williams first-generation boards embed the blitter's eight-byte
-    // register decoder with `.m(m_blitter, FUNC(...::map))`.  Keep that
-    // source-declared submap attached to the generated device; otherwise the
-    // CPU sees CA00-CA07 as NOPs and every post-boot frame is blank because no
-    // game blit can ever start.
-    const williamsBlitterSubmap = !spec.read && !spec.write
-      ? /\.m\s*\(\s*(m_)?([\w:]+)\s*,\s*FUNC\s*\(\s*williams_blitter_device::map\s*\)\s*\)/
-        .exec(raw)
-      : null;
-    if (williamsBlitterSubmap) {
-      const localTag = williamsBlitterSubmap[2]!;
-      const namespace = ownerTag?.includes(':')
-        ? ownerTag.slice(0, ownerTag.lastIndexOf(':'))
-        : undefined;
-      const scopedTag = namespace && byTag.has(`${namespace}:${localTag}`)
-        ? `${namespace}:${localTag}`
-        : localTag;
-      spec.kind = 'handler';
-      spec.write = `${scopedTag}.register_write`;
-    }
     if (spec.kind === 'handler' && !spec.read && !spec.write) spec.kind = 'nop';
     return spec;
   };
@@ -310,13 +291,17 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       return mapRefs.find(m => (m.edge.props?.space ?? 'AS_PROGRAM') === space)?.node;
     };
     const programMap = forSpace('AS_PROGRAM');
-    if (!programMap && dev.props.type !== 'M6801U4') {
+    // Without a driver map, a core that maps its own internal ROM runs from it.
+    const internalRomBytes = programMap ? undefined : cpuInternalRomBytes(opts.mameSrc, String(dev.props.type));
+    if (!programMap && dev.props.type !== 'M6801U4' && !internalRomBytes) {
       throw new Error(`no address map on ${dev.props.tag}`);
     }
     const rangeNodes = programMap ? collectRanges(programMap.id) : [];
     const driverRanges = programMap
       ? rangeNodes.map(range => rangeSpec(range, String(dev.props.tag)))
-      : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
+      : internalRomBytes
+        ? [{ start: 0, end: internalRomBytes - 1, kind: 'rom', romOffset: 0 }]
+        : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
     const internalRom = CPU_INTERNAL_ROM[String(dev.props.type)];
     const ranges = [
       ...(internalRom && !driverRanges.some(range =>
@@ -327,6 +312,16 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       // The core's own internal map, installed over the driver's: the
       // TMS34010's I/O registers at 0xc0000000.
       ...cpuInternalMapRanges(opts.mameSrc, String(dev.props.type), String(dev.props.tag)),
+      // And an MCS-48's internal ROM, a view over the driver's own map that
+      // reads the chip's region (M58715: Mario's 2K, its bootstrap written
+      // there by sound_start).
+      ...(() => {
+        const view = programMap ? cpuInternalRomView(opts.mameSrc, String(dev.props.type)) : undefined;
+        return view ? [{
+          start: 0, end: view.bytes - 1, kind: 'rom', region: String(dev.props.tag), romOffset: 0,
+          viewTag: view.viewTag, viewEntry: view.viewEntry,
+        }] : [];
+      })(),
     ];
     const explicitRegions = [...new Set(
       rangeNodes
@@ -526,40 +521,6 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
         ...(mapUnmapsHigh(map.id) ? { unmapHigh: true } : {}),
       }];
     });
-
-  if (family === 'neogeo') {
-    const main = cpus.find(cpu => cpu.tag === 'maincpu');
-    if (main) {
-      // set_slot_idx installs the fixed cartridge window and its initial 1 MiB
-      // bank dynamically. Fixed arcade carts select slot zero at machine start;
-      // expressing those source-owned installs as ranges lets the generated
-      // bus execute the BIOS-to-cartridge handoff before dynamic bank changes.
-      main.ranges = [
-        {
-          start: 0x000080,
-          end: 0x0fffff,
-          kind: 'rom' as const,
-          region: 'cslot1:maincpu',
-          romOffset: 0x80,
-        },
-        {
-          start: 0x200000,
-          end: 0x2fffff,
-          kind: 'rom' as const,
-          region: 'cslot1:maincpu',
-          romOffset: 0x100000,
-        },
-        ...main.ranges,
-        {
-          start: 0x000000,
-          end: 0x00007f,
-          kind: 'rom' as const,
-          region: 'mainbios',
-          romOffset: 0,
-        },
-      ];
-    }
-  }
 
   // legacy alias: boards for single-map families read cpus[n].ranges; the
   // shared `ranges` field mirrors cpu[0] for the galaga family's shared map

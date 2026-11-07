@@ -42,6 +42,7 @@ export function isDeclarativeCallback(callback: GeneratedCallback): boolean {
  */
 export function callbackEndpointKey(callback: GeneratedCallback): string | undefined {
   if (callback.targetPort) return `port.${callback.targetPort}`;
+  if (callback.constant !== undefined) return `constant.${callback.constant}`;
   if (callback.targetTag && callback.inputLine) return `${callback.targetTag}.${callback.inputLine}`;
   if (!callback.targetMethod) return undefined;
   if (callback.targetTag) return `${callback.targetTag}.${callback.targetMethod}`;
@@ -61,9 +62,6 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
     for (const field of ['roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler'] as const) {
       const key = videoExecution[field];
       if (key && !handlers.has(key)) fail(`videoExecution.${field}`, `handler "${key}" is not generated`);
-    }
-    if (videoExecution.spriteDmaCallback && !board.callbacks.some(callback => callback.id === videoExecution.spriteDmaCallback)) {
-      fail('videoExecution.spriteDmaCallback', `callback "${videoExecution.spriteDmaCallback}" is not generated`);
     }
     const members = videoExecution.bitmapMembers.map(bitmap => bitmap.member);
     if (new Set(members).size !== members.length) fail('videoExecution.bitmapMembers', 'duplicate bitmap member');
@@ -145,6 +143,10 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
         `machine lifecycle handler "${handler}" was not generated`,
       );
     }
+  }
+  for (const [index, delegate] of (board.execution.initDelegates ?? []).entries()) {
+    if (handlerKeys.has(delegate.handler)) continue;
+    fail(`execution.initDelegates[${index}]`, `init delegate handler "${delegate.handler}" was not generated`);
   }
   // A MAME timer_device is declared by the callback that schedules it rather
   // than by a machine-config device line, so it owns itself.
@@ -284,29 +286,6 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       bank.source,
     );
   }
-  for (const [index, tap] of (board.execution.accessTaps ?? []).entries()) {
-    if (!board.execution.cpus.some(cpu => cpu.tag === tap.cpu)) {
-      fail(
-        `execution.accessTaps[${index}].cpu`,
-        `access tap watches unknown CPU "${tap.cpu}"`,
-        tap.source,
-      );
-    }
-    if (!board.devices?.some(device => device.tag === tap.device)) {
-      fail(
-        `execution.accessTaps[${index}].device`,
-        `access tap targets unknown device "${tap.device}"`,
-        tap.source,
-      );
-    }
-    if (tap.bank !== undefined && !bankTags.has(tap.bank)) {
-      fail(
-        `execution.accessTaps[${index}].bank`,
-        `access tap selects bank "${tap.bank}", which the board does not configure`,
-        tap.source,
-      );
-    }
-  }
   for (const [index, cpu] of board.execution.cpus.entries()) {
     for (const [position, range] of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].entries()) {
       for (const key of [range.read, range.write]) {
@@ -353,7 +332,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       );
       continue;
     }
-    if (custom.source === 'screen-vblank' || custom.source === 'rtc-tp' || custom.source === 'rtc-data') continue;
+    if (custom.source === 'screen-vblank') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)
       : handlerMethods.has(custom.member);

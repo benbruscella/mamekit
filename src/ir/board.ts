@@ -80,6 +80,8 @@ export interface GeneratedCallback {
   targetClass?: string;
   targetMethod?: string;
   targetPort?: string;
+  /** The value a `set_constant` read answers. */
+  constant?: number;
   /**
    * MAME `device_delegate` configuration (`set_pri_callback(FUNC(...))`)
    * rather than a devcb the board dispatches: the owning device calls the
@@ -176,6 +178,8 @@ export type BoardEffect =
   | { kind: 'handler'; handler: string; deviceTag?: string }
   /** Read an input port back to the caller (MAME set_ioport). */
   | { kind: 'port-read'; port: string }
+  /** Answer a read with a fixed value (MAME set_constant). */
+  | { kind: 'constant'; value: number }
   /** Board-level video control lowered from MAME's flip_screen helpers. */
   | { kind: 'video-control'; control: 'flip-screen' | 'flip-screen-x' | 'flip-screen-y' }
   /** Audio control routed to the generated sound backend. */
@@ -369,11 +373,13 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // The screen's visible rectangle, which a device asks for when it clears a
   // band of its own bitmap (`m_bitmap.fill(colour, screen().visible_area())`).
   'screen().visible_area',
-  // Indexed custom renderers select palette shadow modes while walking their
-  // sprite list. The generic palette currently treats shadow pens as source
-  // pens, but the call itself remains a valid framework service.
+  // A custom renderer selects the palette's shadow preset while walking its
+  // sprite list, and draws its shadow pens through that preset's table.
   'palette().shadow_mode',
   'palette().set_shadow_mode',
+  'palette().shadows_enabled',
+  'palette().highlights_enabled',
+  'palette().shadow_table',
 ];
 
 export type GeneratedExpression =
@@ -673,6 +679,16 @@ export interface GeneratedExecutionPlan {
   /** Driver lifecycle handlers executed in source-derived base-first order. */
   startHandlers?: string[];
   resetHandlers?: string[];
+  /** Delegate members the driver init points at one of its handlers. */
+  initDelegates?: { member: string; handler: string }[];
+  /**
+   * The driver's own memory banks that no bank below plans: configured as
+   * its code runs (`m_bank_cartridge->set_base(...)`), and installed into a
+   * space the same way (`install_read_bank`).
+   */
+  memoryBanks?: { member: string; tag: string }[];
+  /** The driver's memory_region finders, member to region: each is the region, or null. */
+  regionObjects?: Record<string, string>;
   banks?: {
     tag: string;
     member: string;
@@ -731,7 +747,7 @@ export interface GeneratedExecutionPlan {
     mask: number;
     member: string;
     handler?: string;
-    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data' | 'device-line';
+    source?: 'screen-vblank' | 'device-line';
     /**
      * MAME `PORT_READ_LINE_DEVICE_MEMBER(tag, FUNC(class::method))`: the bit
      * is an output line of another device rather than a switch. The device
@@ -767,30 +783,6 @@ export interface GeneratedExecutionPlan {
     method?: string;
   }[];
   frameEvents: GeneratedFrameEvent[];
-  /**
-   * MAME devices that watch every access on another device's address space.
-   *
-   * `install_readwrite_tap` is how a protection chip sees the access pattern
-   * it decodes; the Atari slapstic changes its ROM bank purely from the
-   * sequence of addresses the 68000 touches, and nothing it does is visible
-   * in an address map. The window the machine config hands the device with
-   * `set_range` is carried here with the bank it drives.
-   */
-  accessTaps?: {
-    /** CPU whose address space is watched. */
-    cpu: string;
-    space: 'program';
-    /** Device tag receiving the tap. */
-    device: string;
-    /** Device method invoked with the accessed offset. */
-    method: string;
-    start: number;
-    end: number;
-    mirror: number;
-    /** Memory bank the device selects, when the source declares one. */
-    bank?: string;
-    source?: BoardSourceRef;
-  }[];
   screenUpdate?: {
     handler: string;
     /**
@@ -1225,6 +1217,12 @@ export interface GeneratedVideoPlan {
   paletteProgram?: GeneratedProgramPalettePlan;
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
+  /**
+   * palette_device's enable_shadows() and enable_highlights(): the palette
+   * holds a shadow group, then a highlight group, after its `entries` base
+   * colours, and shadow_table() remaps a pen into one (dipalette.cpp).
+   */
+  paletteGroups?: { entries: number; shadows: boolean; highlights: boolean };
   tilemaps: GeneratedTilemapPlan[];
   /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
   motionObjects?: GeneratedMotionObjectsPlan;
@@ -1353,11 +1351,20 @@ export interface GeneratedStateMember {
   name: string;
   /** Constant scalar initializer from the source constructor/declaration. */
   initial?: number;
-  /** 1 for `bool`; otherwise the declared integer width. */
-  bits: 1 | 8 | 16 | 32;
+  /** 1 for `bool`; otherwise the declared integer width. Absent only on a delegate. */
+  bits?: 1 | 8 | 16 | 32;
+  /**
+   * A `*_delegate` member: MAME's null delegate until the driver binds one,
+   * so `isnull()` answers true (System 16A's `m_lamp_changed_w`).
+   */
+  delegate?: true;
   signed?: boolean;
   /** Element count when the member is a fixed C array (`uint8_t m_io[0x10]`). */
   arrayLength?: number;
+  /** A `std::vector` of this width: empty until the driver sizes it. */
+  vector?: true;
+  /** Every dimension of a multi-dimensional C array (`[32][4]`), outermost first. */
+  arrayShape?: number[];
   /**
    * The file-scope static table a driver init points this member at
    * (`m_nbajam_prot_table = nbajam_prot_values;`), element by element.

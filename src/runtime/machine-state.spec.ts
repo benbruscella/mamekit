@@ -221,6 +221,23 @@ class Keyed implements StatefulKeys {
   assert.deepEqual(restoreState(other, saved).map(d => d.path), ['m_fixed'], 'only a marked vector may change length');
 }
 
+// A pointer restores by pointing. The slapstic holds its current state as
+// `m_state`, one of its ten state objects; loaded over a machine whose
+// pointer has since moved on, it points back at the object it was saved
+// pointing at, and neither object takes the other's fields.
+{
+  const idle = { reset: 1 };
+  const active = { bank: [2, 3] };
+  const device = { idle, active, state: active as object };
+  const saved = captureState(device);
+  device.state = idle;
+  active.bank[0] = 9;
+  assert.deepEqual(restoreState(device, saved), []);
+  assert.equal(device.state, active);
+  assert.deepEqual(active.bank, [2, 3]);
+  assert.deepEqual(idle, { reset: 1 });
+}
+
 console.log('machine-state.spec: capture and in-place restore round-trip every runtime shape');
 
 // --- value objects: a driver slot that starts as 0 and later holds an
