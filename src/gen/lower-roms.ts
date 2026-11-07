@@ -87,6 +87,9 @@ export function lowerRoms(opts: GenerateOptions, g: Graph, romset: KGNode, devic
       ...(assignedRomSet ? { romSet: assignedRomSet } : {}),
       ...(String(region.props.flags).includes('ROMREGION_ERASEFF') ? { fill: 0xff } : {}),
       ...(String(region.props.flags).includes('ROMREGION_INVERT') ? { invert: true } : {}),
+      ...(/\bROMREGION_BE\b/.test(String(region.props.flags)) && /\bROMREGION_16BIT\b/.test(String(region.props.flags))
+        ? { bigEndianWords: true as const }
+        : {}),
       ...(region.props.fills ? {
         fills: chunkTriples(region.props.fills as number[]).map(
           ([offset, size, value]) => ({ offset, size, value }),

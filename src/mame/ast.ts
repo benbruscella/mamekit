@@ -153,16 +153,22 @@ const CONTROL_KEYWORDS = new Set([
 ]);
 
 export function parseMameSource(file: string, source: string): MameTranslationUnit {
-  const masked = maskComments(source);
+  // A call operator is the method `__call`, which a call on the object
+  // lowers to: the slapstic's address predicate is `bool operator()(offs_t a)`.
+  // Respelled in place, so every offset into the masked text still holds.
+  const masked = maskComments(source)
+    .replace(/\boperator\s*\(\s*\)(\s*)\(/g, call => `${'__call'.padEnd(call.length - 1)}(`);
   const lineStarts = buildLineStarts(source);
   const span = (start: number, end: number) => makeSpan(file, lineStarts, start, end);
 
   const functions: MameFunction[] = [];
   const occupied: [number, number][] = [];
   // `const noexcept` too: the 6805's `execute_cycles_to_clocks` is defined
-  // that way, and skipping it lost the core's divide-by-four clock.
+  // that way, and skipping it lost the core's divide-by-four clock. The class
+  // may be padded to align a column of definitions: the slapstic defines its
+  // states' `state_id()` as `atari_slapstic_device::idle              ::state_id()`.
   const functionRe =
-    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?::(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
+    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(?:[*&]+\s*)?(\w+(?:::\w+)*)(?:\s*<[^<>();{}]*>)?[^\S\n]*::(\w+)\s*\(([^;{}]*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
   let fm: RegExpExecArray | null;
   while ((fm = functionRe.exec(masked)) !== null) {
     const braceStart = masked.indexOf('{', fm.index + fm[0].length - 1);
@@ -264,8 +270,9 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   // MAME's legacy lifecycle overrides are function definitions hidden behind
   // macros. Give them stable names so extraction can select the override that
   // belongs to a machine config and compile it like any other driver method.
-  // CALL_MEMBER is represented by the ordered lifecycle plan rather than as
-  // an ordinary C++ call, so blank it while preserving source offsets/lines.
+  // MACHINE_RESET_CALL_MEMBER(common) runs the class's machine_reset_common,
+  // so it is that call, the same length, as VIDEO_START_CALL_MEMBER is above:
+  // a machine's lifecycle lists only the override it runs.
   const lifecycleRe =
     /\bMACHINE_(START|RESET)_MEMBER\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*\{/g;
   while ((fm = lifecycleRe.exec(masked)) !== null) {
@@ -276,8 +283,8 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const kind = fm[1]!.toLowerCase();
     const rawBody = source.slice(bodyStart, braceEnd);
     const body = rawBody.replace(
-      new RegExp(`\\bMACHINE_${fm[1]}_CALL_MEMBER\\s*\\([^)]*\\)\\s*;?`, 'g'),
-      value => value.replace(/[^\r\n]/g, ' '),
+      new RegExp(`\\bMACHINE_${fm[1]}_CALL_MEMBER\\s*\\(\\s*(\\w+)\\s*\\)`, 'g'),
+      (whole, name: string) => `machine_${kind}_${name}()`.padEnd(whole.length, ' '),
     );
     functions.push({
       kind: 'function',

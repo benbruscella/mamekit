@@ -339,8 +339,26 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         initDelegateLines.set(tag, [...(initDelegateLines.get(tag) ?? []), `${match[1]}->${match[2]}(${args})`]);
       }
     }
+    // A driver init may point a delegate member of its own at one of its
+    // handlers: System 16A's init_generic sets `m_custom_io_r =
+    // read16sm_delegate(*this, FUNC(segas16a_state::standard_io_r))`, and
+    // misc_io_r calls through it. The handler joins the closure, and the
+    // member holds it from the start (MAME runs the init before machine_start).
+    const initDelegates: { member: string; handler: string }[] = [];
+    if (initFunction) {
+      const body = effectiveInitBody(ast, gm.cls, initFunction, consts);
+      for (const match of body.matchAll(
+        /^\s*(m_\w+)\s*=\s*\w+_delegate\s*\(\s*\*?\s*this\s*,\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*\)\s*;/gm,
+      )) {
+        const target = ast.findFunctionInHierarchy(gm.cls, match[3]!);
+        if (!target?.className) continue;
+        g.edge(id, emitSourceHandlerClosure(g, ast, target.className, target.name, consts, target.span), 'CALLS_HANDLER');
+        initDelegates.push({ member: match[1]!, handler: `${target.className}.${target.name}` });
+      }
+    }
     g.node('Game', id, {
       ...(initTables.length ? { initTables: initTables.map(table => JSON.stringify(table)) } : {}),
+      ...(initDelegates.length ? { initDelegates: initDelegates.map(delegate => JSON.stringify(delegate)) } : {}),
       name: gm.name, year: gm.year, company: gm.company, fullname: gm.fullname,
       monitor: gm.monitor, cls: gm.cls, init: gm.init, flags: gm.flags,
       kind: gm.kind,
@@ -662,11 +680,25 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // constructor default (timeplt_a.h: `uint32_t clock = 14'318'181`), and
   // DERIVED_CLOCK(n, d) inside its device_add_mconfig is that clock * n/d.
   const defaultClocks = parseDeviceDefaultClocks(combined);
+  // A framework device declares its default in its own header, outside the
+  // driver: upd1990a.h's `uint32_t clock = 32'768` is the uPD4990A's crystal,
+  // which it divides for every TP period and the one-second count.
+  let frameworkDevices: ReturnType<typeof indexMameHardware> | undefined;
+  const frameworkDefaultClock = (type: string): number | undefined => {
+    const definition = (frameworkDevices ??= indexMameHardware(mameSrc)).get(type);
+    const header = definition?.sourceFile.replace(/\.cpp$/, '.h');
+    if (!definition || !header || !existsSync(join(mameSrc, header))) return undefined;
+    return parseDeviceDefaultClocks(readFileSync(join(mameSrc, header), 'utf8'))[definition.className];
+  };
   for (const cfg of machineConfigs) {
     for (const dev of cfg.devices) {
       if (dev.clock !== null || dev.clockExpr) continue;
       const cls = deviceTypes[dev.type];
       if (cls && defaultClocks[cls] !== undefined) dev.clock = defaultClocks[cls];
+      else if (!cls && mameSrc) {
+        const clock = frameworkDefaultClock(dev.type);
+        if (clock !== undefined) dev.clock = clock;
+      }
     }
   }
   // What `clock()` means inside a class's own device_add_mconfig: the clock of
@@ -762,8 +794,20 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       cfg.name,
       'reset',
     );
-    const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
-    const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
+    // MAME calls the most-derived override, and it calls its own bases
+    // (`neogeo_base_state::machine_start();`), so only that one is listed:
+    // listing the bases too ran each again inside the override that calls it.
+    const resetHandlers = resetFunctions.slice(-1).map(fn => `${fn.className}.${fn.name}`);
+    // driver_device::device_start: machine_start, then video_start, once every
+    // device has started.
+    const startFunctions = [
+      ...resolveMachineLifecycle(ast, cfg.cls, cfg.name, 'start'),
+      ...(videoStart ? [videoStart] : []),
+    ];
+    const startHandlers = [
+      ...startFunctions.slice(0, videoStart ? -1 : undefined).slice(-1),
+      ...(videoStart ? [videoStart] : []),
+    ].map(fn => `${fn.className}.${fn.name}`);
     // MAME `machine_config::set_perfect_quantum(device)`: this board is
     // interleaved as finely as the scheduler can manage, for the whole run.
     // Qix's three processors share RAM through a handshake that will not
@@ -800,32 +844,46 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       const [className, method] = key.split('.');
       const fn = className && method ? ast.findFunctionInHierarchy(className, method) : undefined;
       if (!fn) return [];
+      // Wherever the driver arms it: missile's machine_start through its own
+      // closure, the Spectrum's vblank callback, Neo Geo's video registers
+      // and Simpsons' sprite DMA from the handlers that start them. A timer
+      // the board already reaches another way (berzerk's scanline schedule)
+      // is left to that in emit-machine.
       return [...fn.body.matchAll(/\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*(\w+)::(\w+)\s*\)/g)]
-        // Armed by the function that allocates it, through its own closure
-        // (missile's machine_start arms m_irq_timer via schedule_next_irq).
-        // Or, for one video_start allocates, armed by another handler of the
-        // driver's: the Spectrum's vblank callback arms its IRQ timer, whose
-        // callback arms the one that clears the line again. Only there: a
-        // machine-start timer armed elsewhere is one the runtime already
-        // schedules its own way (Neo Geo's raster interrupts, Simpsons'
-        // sprite DMA), and lowering it too fires it twice.
-        .flatMap(match => functionClosureContains(ast, fn, body => body.includes(`${match[1]}->adjust`)) ||
-          (method?.startsWith('video_start') &&
-            ast.ast.units.some(unit => unit.functions.some(candidate => candidate.body.includes(`${match[1]}->adjust`))))
-          ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
-          : []);
+        .flatMap(match =>
+          ast.ast.units.some(unit => unit.functions.some(candidate => candidate.body.includes(`${match[1]}->adjust`)))
+            ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
+            : []);
     });
     // A timer armed inside a line rather than at its start: MAME's
     // `time_until_pos(v, h)` with a pixel, or a duration in clocks (the
     // Spectrum's IRQ, raised at the screen area's left edge and held for 32
     // T-states). Only those need the board to fire them between instructions;
     // one aimed at a line start keeps its line (Missile Command's).
+    const timeMacros = new Map([...combined.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^\n]+)/gm)]
+      .map(match => [match[1]!, match[2]!.trim()]));
+    const expandTimeMacros = (text: string): string => {
+      for (let depth = 0; depth < 4; depth++) {
+        const next = text.replace(/\b[A-Z_][A-Z0-9_]*\b/g, name => timeMacros.get(name) ?? name);
+        if (next === text) break;
+        text = next;
+      }
+      return text;
+    };
     const preciseTimers = armedTimers.map(entry => /^([^=]+)=/.exec(entry)![1]!).filter(member =>
       ast.ast.units.some(unit => unit.functions.some(fn => {
         for (const call of fn.body.matchAll(new RegExp(`\\b${member}\\s*->\\s*adjust\\s*\\(`, 'g'))) {
           const open = call.index + call[0].length - 1;
           const close = matchingParenthesis(fn.body, open);
-          const argument = fn.body.slice(open + 1, close < 0 ? undefined : close);
+          // Through the driver's own #defines (Neo Geo's
+          // NEOGEO_VBLANK_IRQ_HTIM is an attotime::from_ticks) and back to a
+          // local's initializer (its display counter's `period`).
+          let argument = expandTimeMacros(fn.body.slice(open + 1, close < 0 ? undefined : close));
+          const local = /^\s*(\w+)\s*$/.exec(argument)?.[1];
+          const initializer = local
+            ? new RegExp(`\\b${local}\\s*(?:=\\s*([^;]+);|\\(([^;]+)\\)\\s*;)`).exec(fn.body)
+            : undefined;
+          if (initializer) argument = expandTimeMacros(initializer[1] ?? initializer[2] ?? '');
           if (/\bclocks_to_attotime\s*\(|\bfrom_ticks\s*\(/.test(argument)) return true;
           const position = /\btime_until_pos\s*\(/.exec(argument);
           if (position) {
@@ -855,6 +913,9 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ...(preciseTimers.length ? { preciseTimers } : {}),
       ...(driverStateMembers(ast, cfg.cls).length
         ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
+        : {}),
+      ...(driverMemoryBanks(ast, cfg.cls, memberTags).length
+        ? { memoryBanks: driverMemoryBanks(ast, cfg.cls, memberTags).map(bank => JSON.stringify(bank)) }
         : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
       ...(maximumQuantum ? { maximumQuantum } : {}),
@@ -888,14 +949,14 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
-    if (videoStart) {
+    for (const fn of startFunctions) {
       const handlerId = emitSourceHandlerClosure(
         g,
         ast,
-        videoStart.className,
-        videoStart.name,
+        fn.className,
+        fn.name,
         consts,
-        videoStart.span,
+        fn.span,
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
@@ -1144,7 +1205,23 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           : {}),
         ...spanProps(ast.findStatement(dev.config[0] ?? '', cfgFunction)?.span),
       };
-      const configCalls = dev.config.flatMap(raw => {
+      // Setters chained on the device-add expression itself are configuration
+      // like any other: `WATCHDOG_TIMER(config, "watchdog").set_vblank_count("screen", 128)`.
+      const chained: string[] = [];
+      const added = new RegExp(`\\b${dev.type}\\s*\\(`).exec(dev.config[0] ?? '');
+      if (added) {
+        const line = dev.config[0]!;
+        let at = matchingParenthesis(line, added.index + added[0].length - 1) + 1;
+        for (let link; at > 0 && (link = /^\s*\.\s*(\w+)\s*(?:<[^<>()]*>)?\s*\(/.exec(line.slice(at)));) {
+          const open = at + link[0].length - 1;
+          const close = matchingParenthesis(line, open);
+          if (close < 0) break;
+          // Setters only: `.add_route(...)` is the sound graph's, read elsewhere.
+          if (link[1]!.startsWith('set_')) chained.push(`__added.${line.slice(at, close + 1).trim().replace(/^\.\s*/, '')}`);
+          at = close + 1;
+        }
+      }
+      const configCalls = [...dev.config, ...chained].flatMap(raw => {
         // Device finder arrays retain their source spelling (`m_pia[0]`).
         // Accept the subscript here so their constant machine-config setters
         // are lowered just like setters on scalar finder members.
@@ -1162,6 +1239,8 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         // literal, or a device finder resolved to its tag (the Battlezone
         // AVG's `set_memory(m_maincpu, AS_PROGRAM, 0x2000)`).
         const values = splitMameArgs(call[3]!).map(value => {
+          // `.set_user_loadable(false)`: a bool is the number C++ makes of it.
+          if (/^\s*(?:true|false)\s*$/.test(value)) return value.trim() === 'true' ? '1' : '0';
           const number = evalExpr(expandConstexprCalls(value, constexprFunctions), { ...addressSpaces, ...consts });
           if (number !== null) return String(number);
           const text = value.trim();
@@ -1206,8 +1285,16 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         : undefined);
       const constructed = deviceClass
         ? constructorConfigCalls(dev.config[0] ?? '', deviceClass, [combined, ...externalSources], consts)
-        : { calls: [], clockConsumed: false };
+        : { calls: [], tags: [], clockConsumed: false };
       configCalls.push(...constructed.calls);
+      // A finder tag the constructor forwards to a memory share: the Williams
+      // blitter's `set_vram_tag(std::forward<U>(vram_tag))` is `m_vram`, a
+      // required_shared_ptr, bound to the driver's `m_videoram`.
+      const shares = deviceClass
+        ? constructorShares(constructed.tags, [combined, ...externalSources, ...deviceClassSources(mameSrc, (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.sourceFile)])
+          .map(([member, argument]) => `${member}=${/^"/.test(argument) ? argument.slice(1, -1) : (memberTags[argument] ?? argument).replace(/^m_/, '')}`)
+        : [];
+      if (shares.length) props.constructorShares = shares;
 
       // A table the constructor hands a setter: `DISCRETE(config, m_discrete,
       // qix_discrete)` is `set_intf(qix_discrete)`, a file-scope aggregate
@@ -2176,6 +2263,26 @@ function includedBaseDeclarations(
   return found;
 }
 
+/**
+ * The memory banks a driver class finds or creates for itself
+ * (`memory_bank_creator m_bank_cartridge{*this, "cartridge"}`), by member and
+ * tag. Neo Geo points its cartridge window's bank with set_base() once it knows
+ * which slot is fitted, so the bank exists before anything is configured in it.
+ */
+function driverMemoryBanks(
+  ast: MameAstIndex,
+  className: string,
+  memberTags: Record<string, string>,
+): { member: string; tag: string }[] {
+  const classes = new Map(ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]));
+  return sourceClassHierarchy(ast, className).flatMap(name => [
+    ...(classes.get(name)?.body ?? '').matchAll(/\b(?:memory_bank_creator|required_memory_bank|optional_memory_bank)\s+(m_\w+)\s*[;{]/g),
+  ].flatMap(match => {
+    const tag = memberTags[`${name}::${match[1]}`] ?? memberTags[match[1]!];
+    return tag ? [{ member: match[1]!, tag }] : [];
+  }));
+}
+
 function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {
   const classes = new Map(
     ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
@@ -2513,6 +2620,13 @@ function handlerProps(
     // was never written and every button read as held down.
     body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
     body = expandFunctionMacros(body, collectParameterCallMacros(source));
+    // A time constant the driver spells as an expression, `#define
+    // NEOGEO_VBLANK_IRQ_HTIM (attotime::from_ticks(56+2, NEOGEO_MASTER_CLOCK))`:
+    // its value is that expression, where unexpanded it named nothing and the
+    // Neo Geo's vblank timer lost the 58 ticks it fires after VBSTART.
+    for (const macro of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+(\(?[ \t]*attotime::[^\n]*)$/gm)) {
+      body = body.replace(new RegExp(`\\b${macro[1]}\\b`, 'g'), `(${macro[2]!.trim()})`);
+    }
     // A library's free function is a handler like any helper, under its own
     // name: `ymfm::decode_fp(...)`.
     body = body.replace(/\b\w+::(\w+)(?=\s*\()/g, (all, name: string) =>
@@ -2644,8 +2758,8 @@ export function constructorConfigCalls(
   className: string,
   sources: readonly string[],
   constants: Record<string, number>,
-): { calls: string[]; clockConsumed: boolean } {
-  const none = { calls: [], clockConsumed: false };
+): { calls: string[]; tags: { setter: string; argument: string }[]; clockConsumed: boolean } {
+  const none = { calls: [], tags: [], clockConsumed: false };
   // `TYPE(config, ...)`, or the same wrapped to keep a reference:
   // `snapshot_image_device &snapshot(SNAPSHOT(config, "snapshot", "sna,z80"))`.
   const added = /^\s*\w+\s*\(/.exec(addStatement) ?? /\b[A-Z][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
@@ -2685,21 +2799,58 @@ export function constructorConfigCalls(
       // does -- the IEC slot's `set_options(std::forward<T>(opts), dflt,
       // false)` -- is configuration this graph records another way.
       // A slot's default option is the graph's `slotDefault` already.
-      const setters = statements.map(statement => /^(\w+)\s*\(\s*(\w+)\s*\)$/.exec(statement))
-        .filter((setter): setter is RegExpExecArray => Boolean(setter && names.includes(setter[2]) &&
+      // A parameter may be passed on through `std::forward<T>(name)`, as a
+      // finder's tag is.
+      const setters = statements
+        .map(statement => /^(\w+)\s*\(\s*(?:std::forward\s*<\s*\w+\s*>\s*\(\s*(\w+)\s*\)|(\w+))\s*\)$/.exec(statement))
+        .filter((setter): setter is RegExpExecArray => Boolean(setter && names.includes(setter[2] ?? setter[3]) &&
           setter[1] !== 'set_default_option' && setter[1] !== 'set_fixed'));
-      if (!setters.length) continue;
-      const calls = setters.flatMap(setter => {
-        const position = names.indexOf(setter[2]);
-        const argument = extra[position];
-        if (argument === undefined) return [];
-        const value = configArgument(argument, sources, constants);
-        return value === undefined ? [] : [`${setter[1]}(${value})`];
-      });
-      return { calls, clockConsumed: setters.some(setter => names.indexOf(setter[2]) === 0) };
+      // And a setter the constructor calls with a constant of its own is
+      // configuration too: the Williams SC1 blitter's `set_size_xor(4)`.
+      const fixed = statements
+        .map(statement => /^(set_\w+)\s*\(\s*([^(),]+)\s*\)$/.exec(statement))
+        .filter((setter): setter is RegExpExecArray => Boolean(setter && !names.includes(setter[2]!.trim()) &&
+          evalExpr(setter[2]!, constants) !== null));
+      if (!setters.length && !fixed.length) continue;
+      const tags: { setter: string; argument: string }[] = [];
+      const calls = [
+        ...fixed.map(setter => `${setter[1]}(${evalExpr(setter[2]!, constants)})`),
+        ...setters.flatMap(setter => {
+          const position = names.indexOf(setter[2] ?? setter[3]);
+          const argument = extra[position];
+          if (argument === undefined) return [];
+          if (setter[2]) {
+            tags.push({ setter: setter[1]!, argument: argument.trim() });
+            return [];
+          }
+          const value = configArgument(argument, sources, constants);
+          return value === undefined ? [] : [`${setter[1]}(${value})`];
+        }),
+      ];
+      return { calls, tags, clockConsumed: setters.some(setter => names.indexOf(setter[2] ?? setter[3]) === 0) };
     }
   }
   return none;
+}
+
+/**
+ * The memory shares a constructor's forwarded finder tags name: a setter whose
+ * body is `m_x.set_tag(...)`, where `m_x` is a shared_ptr finder.
+ */
+function constructorShares(
+  tags: readonly { setter: string; argument: string }[],
+  sources: readonly string[],
+): [string, string][] {
+  return tags.flatMap(({ setter, argument }): [string, string][] => {
+    for (const source of sources) {
+      const member = new RegExp(`\\b${setter}\\s*\\([^)]*\\)\\s*\\{\\s*(m_\\w+)\\s*\\.\\s*set_tag\\s*\\(`).exec(source)?.[1];
+      if (!member) continue;
+      const shared = sources.some(candidate =>
+        new RegExp(`\\b(?:required|optional)_shared_ptr\\s*<[^>]*>\\s+${member}\\b`).test(candidate));
+      return shared ? [[member, argument]] : [];
+    }
+    return [];
+  });
 }
 
 /**
@@ -3788,9 +3939,13 @@ function expandSubmap(
 ): AddressRangeDef[] | undefined {
   const submap = range.deviceMap;
   if (!submap) return undefined;
+  // A device in the driver's own directory is parsed with the driver
+  // (williams.h includes "williamsblitter.h"), so its map is one of the
+  // driver's maps rather than an external include's.
   const declared = submap.ref
     ? deviceMaps.find(candidate =>
-      candidate.cls === submap.className && candidate.name === submap.method)
+      candidate.cls === submap.className && candidate.name === submap.method) ??
+      [ownMap(submap.className, submap.method)].find(map => map?.cls === submap.className)
     : ownMap(submap.className, submap.method);
   // Left as-is rather than dropped: an unresolved submap keeps its window
   // and stays visible in the graph as a range that decodes nothing, which
@@ -3802,8 +3957,15 @@ function expandSubmap(
     // window is what MAME actually installs, so the inner end clamps to it.
     const start = range.start + inner.start;
     const end = Math.min(range.start + inner.end, range.end);
+    // A lambda in the device's map is the device's own: `lw8(NAME([this](u8
+    // data) { m_width = data; }))` writes the device's members, and the
+    // device compiler lowers it as one of its methods under the same name.
     const withDevice = (handler?: HandlerRef): HandlerRef | undefined =>
-      handler && (reference ? { ...handler, deviceRef: handler.deviceRef ?? reference } : handler);
+      handler && (reference ? {
+        ...handler,
+        deviceRef: handler.deviceRef ?? reference,
+        ...(handler.inlineBody !== undefined && !handler.deviceClass ? { deviceClass: declared.cls } : {}),
+      } : handler);
     return {
       ...inner,
       start,

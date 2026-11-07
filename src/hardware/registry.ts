@@ -49,6 +49,8 @@ import { extractColeco } from './coleco/extract.ts';
 import { C64_ID, C64_MAME_TYPES, C64_PORTS } from './c64/definition.ts';
 import { extractC64 } from './c64/extract.ts';
 import { SPECTRUM_ID, SPECTRUM_MAME_TYPES, SPECTRUM_PORTS } from './spectrum/definition.ts';
+import { NEOGEO_ID, NEOGEO_MAME_TYPES, NEOGEO_PORTS } from './neogeo/definition.ts';
+import { extractNeogeo } from './neogeo/extract.ts';
 import { extractSpectrum } from './spectrum/extract.ts';
 import { SPEAKER_ID, SPEAKER_MAME_TYPES, SPEAKER_PORTS } from './speaker/definition.ts';
 import { DISCRETE_ID, DISCRETE_MAME_TYPES, DISCRETE_PORTS } from './discrete/definition.ts';
@@ -179,6 +181,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   },
   { id: C64_ID, mameTypes: C64_MAME_TYPES, ports: C64_PORTS, extract: extractC64 },
   { id: SPECTRUM_ID, mameTypes: SPECTRUM_MAME_TYPES, ports: SPECTRUM_PORTS, extract: extractSpectrum },
+  { id: NEOGEO_ID, mameTypes: NEOGEO_MAME_TYPES, ports: NEOGEO_PORTS, extract: extractNeogeo },
   { id: SPEAKER_ID, mameTypes: SPEAKER_MAME_TYPES, ports: SPEAKER_PORTS, extract: extractSpeaker },
   { id: CASSETTE_ID, mameTypes: CASSETTE_MAME_TYPES, ports: CASSETTE_PORTS, extract: extractCassette },
   { id: FLOPPY_ID, mameTypes: FLOPPY_MAME_TYPES, ports: FLOPPY_PORTS, extract: extractFloppy },

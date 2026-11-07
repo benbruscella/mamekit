@@ -28,12 +28,12 @@ export const junofrst = sourceTarget({
       mcu: 'd0fa5d5f',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: 'c9e2d9ae' },
-      60: { video: 'f8a0d088', state: 'f0e772a8' },
-      300: { video: 'ddad08c3', state: '480af0cc' },
-      480: { video: 'e5b26a75', state: 'f38dc7c2' },
-      720: { video: '90ec6eb7', state: 'fe32a0a2' },
-      1200: { video: '29686572', state: '0356c769' },
+      1: { video: 'f7e6ac81', state: 'f50a95b0' },
+      60: { video: 'f8a0d088', state: 'b93a5fcb' },
+      300: { video: 'ddad08c3', state: '8a0c3b11' },
+      480: { video: 'e5b26a75', state: '3897b8f8' },
+      720: { video: '90ec6eb7', state: '5323e6d4' },
+      1200: { video: '29686572', state: 'f0788adf' },
     },
     audio: {
       writes: 46837,

@@ -2,6 +2,9 @@
 // Dispatch is a flat 64k handler-id table + handler arrays — one indexed load
 // and one call per access, fast enough for ~10M accesses/sec with headroom.
 
+/** A range installed at run time may answer from bytes the installer handed over (`install_rom(start, end, base)`). */
+export type InstalledRange = RangeSpec & { bytes?: ArrayLike<number> };
+
 export interface RangeSpec {
   start: number;
   end: number;
@@ -190,18 +193,30 @@ export class Bus {
    * space itself. A word access fires one tap, as it does in MAME, rather
    * than one per byte lane.
    */
-  private readonly accessTaps: ((address: number) => void)[] = [];
+  private readonly accessTaps: ((address: number, write: boolean) => void)[] = [];
   private tapDepth = 0;
 
-  installAccessTap(tap: (address: number) => void): void {
+  installAccessTap(tap: (address: number, write: boolean) => void): void {
     this.accessTaps.push(tap);
   }
 
-  private tap(address: number): void {
+  private tap(address: number, write: boolean): void {
     if (this.tapDepth) return;
     this.tapDepth++;
-    for (const tap of this.accessTaps) tap(address);
+    for (const tap of this.accessTaps) tap(address, write);
     this.tapDepth--;
+  }
+
+  /** The address mask a space with these ranges decodes through. */
+  static addressMaskOf(ranges: readonly RangeSpec[]): number {
+    const highest = Math.max(0, ...ranges.map(range => Math.max(range.end, range.mirror ?? 0)));
+    // A bit-addressed TMS34010 space reaches byte 0x1fffffff once scaled.
+    return highest > 0xffffff ? 0x1fffffff : highest > 0xffff ? 0xffffff : 0xffff;
+  }
+
+  /** MAME `address_space::addrmask()`. */
+  addrmask(): number {
+    return this.addressMask;
   }
 
   constructor(
@@ -217,224 +232,274 @@ export class Bus {
   ) {
     this.shares = shares;
     if (unmapHigh) this.readFns[0] = () => 0xff;
-    const highest = Math.max(0, ...ranges.map(range => Math.max(range.end, range.mirror ?? 0)));
-    // A bit-addressed TMS34010 space reaches byte 0x1fffffff once scaled.
-    this.addressMask = highest > 0xffffff ? 0x1fffffff : highest > 0xffff ? 0xffffff : 0xffff;
-    for (const r of ranges) {
-      const size = r.end - r.start + 1;
-      let read: ReadHandler | null = null;
-      let write: WriteHandler | null = null;
-      let wordRead: WordReadHandler | null = null;
-      let wordWrite: WordWriteHandler | null = null;
-      // A byte-lane device is wired to one half of the bus. A full-width byte
-      // handler is different: both lanes reach consecutive device offsets,
-      // as with the K051960's byte-addressed sprite RAM on a 68000.
-      const lane = dataWidth === 16 && isByteLane(r.umask) ? r.umask : undefined;
-      const byteHandler = dataWidth === 16 && r.handlerWidth === 8;
-      const littleEndian = dataWidth === 16 && endianness === 'little';
-      // A bank window is storage, so its handler is byte-addressed at every
-      // bus width, exactly like the rom and ram ranges beside it. Only a MAME
-      // device handler is native to the bus and indexed by word.
-      const adaptRead = (h: ReadHandler): ReadHandler =>
-        r.bank ? h
-          : lane !== undefined ? laneReadHandler(h, lane, littleEndian)
-          : byteHandler ? h
-          : dataWidth === 16 ? wordReadHandler(h, littleEndian)
-            : h;
-      const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
-        r.bank ? (dataWidth === 16 ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff : null)
-          : lane !== undefined ? laneWordReadHandler(h, lane, littleEndian)
-          : byteHandler ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff
-          : dataWidth === 16 ? (a, off) => {
-              const value = h(a, off >>> 1, 0xffff) & 0xffff;
-              return littleEndian ? ((value & 0xff) << 8) | (value >>> 8) : value;
-            }
-            : null;
-      const adaptWrite = (h: WriteHandler): WriteHandler =>
-        r.bank ? h
-          : lane !== undefined ? laneWriteHandler(h, lane, littleEndian)
-          : byteHandler ? h
-          : dataWidth === 16 ? wordWriteHandler(h, littleEndian)
-            : h;
-      const adaptWordWrite = (h: WriteHandler): WordWriteHandler | null =>
-        r.bank
-          ? (dataWidth === 16
-            ? (a, off, data) => {
-              h(a, off, (data >>> 8) & 0xff, 0xffff);
-              h(a, off + 1, data & 0xff, 0xffff);
-            }
-            : null)
-          : lane !== undefined ? laneWordWriteHandler(h, lane, littleEndian)
-          : byteHandler ? (a, off, data) => {
-            h(a, off, (data >>> 8) & 0xff, LANE_MEM_MASK);
-            h(a + 1, off + 1, data & 0xff, LANE_MEM_MASK);
-          }
-          : dataWidth === 16 ? (a, off, data) => {
-              const value = littleEndian
-                ? ((data & 0xff) << 8) | ((data >>> 8) & 0xff)
-                : data;
-              h(a, off >>> 1, value & 0xffff, 0xffff);
-            }
-            : null;
-
-      if (r.kind === 'rom') {
-        const rangeRom = r.region ? regions?.[r.region] : rom;
-        if (!rangeRom) throw new Error(`missing ROM region: ${r.region}`);
-        // offset-based so mirror images read the same region bytes
-        read = (_a, off) => rangeRom[(r.romOffset ?? r.start) + off];
-      } else if (r.kind === 'ram') {
-        const bytes = r.share
-          ? (this.shares[r.share] ??= new Uint8Array(size))
-          : new Uint8Array(size);
-        if (!r.share) this.ram.push(bytes);
-        if (dataWidth === 16) {
-          const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
-          read = (_a, off) => littleEndian
-            ? (off & 1 ? words[off >>> 1]! >>> 8 : words[off >>> 1]! & 0xff)
-            : (off & 1 ? words[off >>> 1]! & 0xff : words[off >>> 1]! >>> 8);
-          write = (_a, off, d) => {
-            const index = off >>> 1;
-            words[index] = littleEndian
-              ? (off & 1
-                ? (words[index]! & 0x00ff) | ((d & 0xff) << 8)
-                : (words[index]! & 0xff00) | (d & 0xff))
-              : (off & 1
-                ? (words[index]! & 0xff00) | (d & 0xff)
-                : (words[index]! & 0x00ff) | ((d & 0xff) << 8));
-          };
-          wordRead = (_a, off) => littleEndian
-            ? ((words[off >>> 1]! & 0xff) << 8) | (words[off >>> 1]! >>> 8)
-            : words[off >>> 1]!;
-          wordWrite = (_a, off, data) => {
-            words[off >>> 1] = littleEndian
-              ? ((data & 0xff) << 8) | ((data >>> 8) & 0xff)
-              : data & 0xffff;
-          };
-        } else {
-          read = (_a, off) => bytes[off];
-          write = (_a, off, d) => { bytes[off] = d; };
-        }
-        // a RAM range may still have a write handler override (e.g. videoram_w)
-        if (r.write) {
-          const h = registry.write[r.write];
-          if (!h) throw new Error(`missing write handler: ${r.write}`);
-          const adapted = adaptWrite(h);
-          const ramWrite = write!;
-          const ramWordWrite = wordWrite;
-          write = r.writeHandlerOwnsRam
-            ? adapted
-            : (a, off, d) => { ramWrite(a, off, d); adapted(a, off, d); };
-          if (dataWidth === 16) {
-            const handlerWordWrite = adaptWordWrite(h)!;
-            wordWrite = r.writeHandlerOwnsRam
-              ? handlerWordWrite
-              : (a, off, data) => {
-                ramWordWrite!(a, off, data);
-                handlerWordWrite(a, off, data);
-              };
-          }
-        }
-        // MAME permits different mappings for the two directions in one
-        // fluent range, for example `.portr("IN0").writeonly().share(...)`.
-        // The share owns writes there, while reads must still reach IN0.
-        if (r.read) {
-          const h = registry.read[r.read];
-          if (!h) throw new Error(`missing read handler: ${r.read}`);
-          read = adaptRead(h);
-          wordRead = adaptWordRead(h);
-        }
-      }
-      if (r.kind === 'handler' || (r.kind !== 'ram' && (r.read || r.write))) {
-        if (r.read) {
-          const h = registry.read[r.read];
-          if (!h) throw new Error(`missing read handler: ${r.read}`);
-          read = adaptRead(h);
-          wordRead = adaptWordRead(h);
-        }
-        if (r.write) {
-          const h = registry.write[r.write];
-          if (!h) throw new Error(`missing write handler: ${r.write}`);
-          write = adaptWrite(h);
-          wordWrite = adaptWordWrite(h);
-        }
-      }
-      if (r.writeOnly && !r.read) read = null;
-      if (r.readOnly && !r.write) write = null;
-
-      const readIdx = read ? this.readFns.push(read) - 1 : 0;
-      const writeIdx = write ? this.writeFns.push(write) - 1 : 0;
-      if (wordRead && readIdx) this.wordReadFns[readIdx] = wordRead;
-      if (wordWrite && writeIdx) this.wordWriteFns[writeIdx] = wordWrite;
-      if (readIdx > 255 || writeIdx > 255) throw new Error('too many bus handlers');
-
-      const mirror = r.mirror ?? 0;
-      if (r.viewTag) {
-        if (r.end > 0xffff || (r.end | mirror) > 0xffff) {
-          throw new Error(`memory view ${r.viewTag} exceeds the 16-bit generated bus`);
-        }
-        this.viewMappings.push({
-          tag: r.viewTag,
-          entry: r.viewEntry ?? 0,
-          start: r.start,
-          end: r.end,
-          mirror,
-          readIdx,
-          writeIdx,
-          read: Boolean(read),
-          write: Boolean(write),
-        });
-        if (!this.activeViews.has(r.viewTag)) this.activeViews.set(r.viewTag, 0);
-        continue;
-      }
-      // Apply the range at every mirror/select image. Mirror bits disappear
-      // from the handler offset; select bits remain (MAME's `.select(mask)`),
-      // which is how sparsely decoded control latches receive high offset bits.
-      for (let m = 0; ; m = (m - mirror) & mirror) {
-        const select = r.select ?? 0;
-        for (let s = 0; ; s = (s - select) & select) {
-          const base = (r.start | m) & this.addressMask;
-          for (let a = r.start; a <= r.end; a++) {
-            const ea = (a | m | s) & this.addressMask;
-            if (ea <= 0xffff) {
-              if (read) {
-                this.readId[ea] = readIdx;
-                this.base[ea] = (this.base[ea] & 0xffff0000) | base;
-              }
-              if (write) {
-                this.writeId[ea] = writeIdx;
-                this.base[ea] = (this.base[ea] & 0x0000ffff) | (base << 16);
-              }
-              continue;
-            }
-            const page = ea >>> 12;
-            const offset = ea & 0xfff;
-            if (read) {
-              const ids = this.highReadId.get(page) ?? new Uint8Array(0x1000);
-              const bases = this.highReadBase.get(page) ?? new Uint32Array(0x1000);
-              ids[offset] = readIdx;
-              bases[offset] = base;
-              this.highReadId.set(page, ids);
-              this.highReadBase.set(page, bases);
-            }
-            if (write) {
-              const ids = this.highWriteId.get(page) ?? new Uint8Array(0x1000);
-              const bases = this.highWriteBase.get(page) ?? new Uint32Array(0x1000);
-              ids[offset] = writeIdx;
-              bases[offset] = base;
-              this.highWriteId.set(page, ids);
-              this.highWriteBase.set(page, bases);
-            }
-          }
-          if (select === 0 || s === select) break;
-        }
-        if (mirror === 0 || m === mirror) break;
-      }
-    }
+    this.addressMask = Bus.addressMaskOf(ranges);
+    this.mapping = { rom, registry, dataWidth, regions, endianness };
+    for (const r of ranges) this.mapRange(r);
     this.baseReadId = this.readId.slice();
     this.baseWriteId = this.writeId.slice();
     this.baseAddresses = this.base.slice();
     this.rebuildViews();
   }
+
+  /** What the constructor was given, which an install maps its ranges with. */
+  private readonly mapping: {
+    rom: Uint8Array;
+    registry: HandlerRegistry;
+    dataWidth: 8 | 16;
+    regions?: Readonly<Record<string, Uint8Array>>;
+    endianness: 'big' | 'little';
+  };
+
+  /**
+   * MAME `address_space::install_*` after the space is built: the driver's
+   * machine_start choosing which input handler answers a window (Neo Geo's
+   * `in0_edge_joy_r` when a control port is fitted). A later install wins over
+   * whatever already decoded those addresses, as in MAME; `unmap` leaves
+   * them open.
+   */
+  install(ranges: readonly InstalledRange[], unmap?: { start: number; end: number; mirror: number; read: boolean; write: boolean }): void {
+    // Under the selected views: the install changes what lies beneath them.
+    this.readId.set(this.baseReadId!);
+    this.writeId.set(this.baseWriteId!);
+    this.base.set(this.baseAddresses!);
+    if (unmap) this.unmapRange(unmap);
+    for (const r of ranges) this.mapRange(r);
+    this.baseReadId = this.readId.slice();
+    this.baseWriteId = this.writeId.slice();
+    this.baseAddresses = this.base.slice();
+    this.lastReadPage = -1;
+    this.lastWritePage = -1;
+    this.rebuildViews();
+  }
+
+  private unmapRange(range: { start: number; end: number; mirror: number; read: boolean; write: boolean }): void {
+    for (let m = 0; ; m = (m - range.mirror) & range.mirror) {
+      for (let a = range.start; a <= range.end; a++) {
+        const ea = (a | m) & this.addressMask;
+        if (ea <= 0xffff) {
+          if (range.read) this.readId[ea] = 0;
+          if (range.write) this.writeId[ea] = 0;
+          continue;
+        }
+        const page = ea >>> 12;
+        if (range.read) { const ids = this.highReadId.get(page); if (ids) ids[ea & 0xfff] = 0; }
+        if (range.write) { const ids = this.highWriteId.get(page); if (ids) ids[ea & 0xfff] = 0; }
+      }
+      if (range.mirror === 0 || m === range.mirror) break;
+    }
+  }
+
+  private mapRange(r: InstalledRange): void {
+    const { rom, registry, dataWidth, regions, endianness } = this.mapping;
+    const size = r.end - r.start + 1;
+    let read: ReadHandler | null = null;
+    let write: WriteHandler | null = null;
+    let wordRead: WordReadHandler | null = null;
+    let wordWrite: WordWriteHandler | null = null;
+    // A byte-lane device is wired to one half of the bus. A full-width byte
+    // handler is different: both lanes reach consecutive device offsets,
+    // as with the K051960's byte-addressed sprite RAM on a 68000.
+    const lane = dataWidth === 16 && isByteLane(r.umask) ? r.umask : undefined;
+    const byteHandler = dataWidth === 16 && r.handlerWidth === 8;
+    const littleEndian = dataWidth === 16 && endianness === 'little';
+    // A bank window is storage, so its handler is byte-addressed at every
+    // bus width, exactly like the rom and ram ranges beside it. Only a MAME
+    // device handler is native to the bus and indexed by word.
+    const adaptRead = (h: ReadHandler): ReadHandler =>
+      r.bank ? h
+        : lane !== undefined ? laneReadHandler(h, lane, littleEndian)
+        : byteHandler ? h
+        : dataWidth === 16 ? wordReadHandler(h, littleEndian)
+          : h;
+    const adaptWordRead = (h: ReadHandler): WordReadHandler | null =>
+      r.bank ? (dataWidth === 16 ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff : null)
+        : lane !== undefined ? laneWordReadHandler(h, lane, littleEndian)
+        : byteHandler ? (a, off) => ((h(a, off) << 8) | h(a, off + 1)) & 0xffff
+        : dataWidth === 16 ? (a, off) => {
+            const value = h(a, off >>> 1, 0xffff) & 0xffff;
+            return littleEndian ? ((value & 0xff) << 8) | (value >>> 8) : value;
+          }
+          : null;
+    const adaptWrite = (h: WriteHandler): WriteHandler =>
+      r.bank ? h
+        : lane !== undefined ? laneWriteHandler(h, lane, littleEndian)
+        : byteHandler ? h
+        : dataWidth === 16 ? wordWriteHandler(h, littleEndian)
+          : h;
+    const adaptWordWrite = (h: WriteHandler): WordWriteHandler | null =>
+      r.bank
+        ? (dataWidth === 16
+          ? (a, off, data) => {
+            h(a, off, (data >>> 8) & 0xff, 0xffff);
+            h(a, off + 1, data & 0xff, 0xffff);
+          }
+          : null)
+        : lane !== undefined ? laneWordWriteHandler(h, lane, littleEndian)
+        : byteHandler ? (a, off, data) => {
+          h(a, off, (data >>> 8) & 0xff, LANE_MEM_MASK);
+          h(a + 1, off + 1, data & 0xff, LANE_MEM_MASK);
+        }
+        : dataWidth === 16 ? (a, off, data) => {
+            const value = littleEndian
+              ? ((data & 0xff) << 8) | ((data >>> 8) & 0xff)
+              : data;
+            h(a, off >>> 1, value & 0xffff, 0xffff);
+          }
+          : null;
+
+    if (r.kind === 'rom') {
+      const rangeRom = r.bytes ?? (r.region ? regions?.[r.region] : rom);
+      if (!rangeRom) throw new Error(`missing ROM region: ${r.region}`);
+      // offset-based so mirror images read the same region bytes
+      read = (_a, off) => rangeRom[(r.romOffset ?? r.start) + off];
+    } else if (r.kind === 'ram') {
+      const bytes = r.share
+        ? (this.shares[r.share] ??= new Uint8Array(size))
+        : new Uint8Array(size);
+      if (!r.share) this.ram.push(bytes);
+      if (dataWidth === 16) {
+        const words = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1);
+        read = (_a, off) => littleEndian
+          ? (off & 1 ? words[off >>> 1]! >>> 8 : words[off >>> 1]! & 0xff)
+          : (off & 1 ? words[off >>> 1]! & 0xff : words[off >>> 1]! >>> 8);
+        write = (_a, off, d) => {
+          const index = off >>> 1;
+          words[index] = littleEndian
+            ? (off & 1
+              ? (words[index]! & 0x00ff) | ((d & 0xff) << 8)
+              : (words[index]! & 0xff00) | (d & 0xff))
+            : (off & 1
+              ? (words[index]! & 0xff00) | (d & 0xff)
+              : (words[index]! & 0x00ff) | ((d & 0xff) << 8));
+        };
+        wordRead = (_a, off) => littleEndian
+          ? ((words[off >>> 1]! & 0xff) << 8) | (words[off >>> 1]! >>> 8)
+          : words[off >>> 1]!;
+        wordWrite = (_a, off, data) => {
+          words[off >>> 1] = littleEndian
+            ? ((data & 0xff) << 8) | ((data >>> 8) & 0xff)
+            : data & 0xffff;
+        };
+      } else {
+        read = (_a, off) => bytes[off];
+        write = (_a, off, d) => { bytes[off] = d; };
+      }
+      // a RAM range may still have a write handler override (e.g. videoram_w)
+      if (r.write) {
+        const h = registry.write[r.write];
+        if (!h) throw new Error(`missing write handler: ${r.write}`);
+        const adapted = adaptWrite(h);
+        const ramWrite = write!;
+        const ramWordWrite = wordWrite;
+        write = r.writeHandlerOwnsRam
+          ? adapted
+          : (a, off, d) => { ramWrite(a, off, d); adapted(a, off, d); };
+        if (dataWidth === 16) {
+          const handlerWordWrite = adaptWordWrite(h)!;
+          wordWrite = r.writeHandlerOwnsRam
+            ? handlerWordWrite
+            : (a, off, data) => {
+              ramWordWrite!(a, off, data);
+              handlerWordWrite(a, off, data);
+            };
+        }
+      }
+      // MAME permits different mappings for the two directions in one
+      // fluent range, for example `.portr("IN0").writeonly().share(...)`.
+      // The share owns writes there, while reads must still reach IN0.
+      if (r.read) {
+        const h = registry.read[r.read];
+        if (!h) throw new Error(`missing read handler: ${r.read}`);
+        read = adaptRead(h);
+        wordRead = adaptWordRead(h);
+      }
+    }
+    if (r.kind === 'handler' || (r.kind !== 'ram' && (r.read || r.write))) {
+      if (r.read) {
+        const h = registry.read[r.read];
+        if (!h) throw new Error(`missing read handler: ${r.read}`);
+        read = adaptRead(h);
+        wordRead = adaptWordRead(h);
+      }
+      if (r.write) {
+        const h = registry.write[r.write];
+        if (!h) throw new Error(`missing write handler: ${r.write}`);
+        write = adaptWrite(h);
+        wordWrite = adaptWordWrite(h);
+      }
+    }
+    if (r.writeOnly && !r.read) read = null;
+    if (r.readOnly && !r.write) write = null;
+
+    const readIdx = read ? this.readFns.push(read) - 1 : 0;
+    const writeIdx = write ? this.writeFns.push(write) - 1 : 0;
+    if (wordRead && readIdx) this.wordReadFns[readIdx] = wordRead;
+    if (wordWrite && writeIdx) this.wordWriteFns[writeIdx] = wordWrite;
+    if (readIdx > 255 || writeIdx > 255) throw new Error('too many bus handlers');
+
+    const mirror = r.mirror ?? 0;
+    if (r.viewTag) {
+      if (r.end > 0xffff || (r.end | mirror) > 0xffff) {
+        throw new Error(`memory view ${r.viewTag} exceeds the 16-bit generated bus`);
+      }
+      this.viewMappings.push({
+        tag: r.viewTag,
+        entry: r.viewEntry ?? 0,
+        start: r.start,
+        end: r.end,
+        mirror,
+        readIdx,
+        writeIdx,
+        read: Boolean(read),
+        write: Boolean(write),
+      });
+      if (!this.activeViews.has(r.viewTag)) this.activeViews.set(r.viewTag, 0);
+      return;
+    }
+    // Apply the range at every mirror/select image. Mirror bits disappear
+    // from the handler offset; select bits remain (MAME's `.select(mask)`),
+    // which is how sparsely decoded control latches receive high offset bits.
+    for (let m = 0; ; m = (m - mirror) & mirror) {
+      const select = r.select ?? 0;
+      for (let s = 0; ; s = (s - select) & select) {
+        const base = (r.start | m) & this.addressMask;
+        for (let a = r.start; a <= r.end; a++) {
+          const ea = (a | m | s) & this.addressMask;
+          if (ea <= 0xffff) {
+            if (read) {
+              this.readId[ea] = readIdx;
+              this.base[ea] = (this.base[ea] & 0xffff0000) | base;
+            }
+            if (write) {
+              this.writeId[ea] = writeIdx;
+              this.base[ea] = (this.base[ea] & 0x0000ffff) | (base << 16);
+            }
+            continue;
+          }
+          const page = ea >>> 12;
+          const offset = ea & 0xfff;
+          if (read) {
+            const ids = this.highReadId.get(page) ?? new Uint8Array(0x1000);
+            const bases = this.highReadBase.get(page) ?? new Uint32Array(0x1000);
+            ids[offset] = readIdx;
+            bases[offset] = base;
+            this.highReadId.set(page, ids);
+            this.highReadBase.set(page, bases);
+          }
+          if (write) {
+            const ids = this.highWriteId.get(page) ?? new Uint8Array(0x1000);
+            const bases = this.highWriteBase.get(page) ?? new Uint32Array(0x1000);
+            ids[offset] = writeIdx;
+            bases[offset] = base;
+            this.highWriteId.set(page, ids);
+            this.highWriteBase.set(page, bases);
+          }
+        }
+        if (select === 0 || s === select) break;
+      }
+      if (mirror === 0 || m === mirror) break;
+    }
+    }
 
   /** Save-state roots (machine-state.ts): the view selection; the overlays derive from it. */
   stateKeys(): readonly string[] {
@@ -484,7 +549,7 @@ export class Bus {
 
   read = (addr: number): number => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    if (this.accessTaps.length) this.tap(addr, false);
     if (addr <= 0xffff) {
       return this.readFns[this.readId[addr]](addr, addr - (this.base[addr] & 0xffff)) & 0xff;
     }
@@ -497,7 +562,7 @@ export class Bus {
     // The tap bookkeeping below costs an exception frame on every access; a
     // board with no taps installed cannot need it.
     if (!this.accessTaps.length) return this.read16beUntapped(addr);
-    this.tap(addr);
+    this.tap(addr, false);
     this.tapDepth++;
     try {
       return this.read16beUntapped(addr);
@@ -525,7 +590,7 @@ export class Bus {
 
   write = (addr: number, data: number): void => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    if (this.accessTaps.length) this.tap(addr, true);
     if (addr <= 0xffff) {
       this.writeFns[this.writeId[addr]](addr, addr - (this.base[addr] >>> 16), data & 0xff);
       return;
@@ -539,7 +604,7 @@ export class Bus {
 
   write16be = (addr: number, data: number): void => {
     addr &= this.addressMask;
-    if (this.accessTaps.length) this.tap(addr);
+    if (this.accessTaps.length) this.tap(addr, true);
     this.tapDepth++;
     try {
       this.write16beUntapped(addr, data);

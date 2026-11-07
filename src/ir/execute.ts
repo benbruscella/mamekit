@@ -53,6 +53,18 @@ export function resizeGeneratedVector(vector: unknown[], length: number): unknow
   return vector;
 }
 
+/** ES2024's resizable ArrayBuffer, which the ES2022 lib this project builds against does not declare. */
+interface ResizableArrayBuffer extends ArrayBuffer {
+  readonly resizable: boolean;
+  readonly maxByteLength: number;
+  resize(byteLength: number): void;
+}
+
+/** An empty buffer that can grow in place up to `maxByteLength`. */
+export function resizableBuffer(maxByteLength: number): ArrayBuffer {
+  return new (ArrayBuffer as unknown as new (length: number, options: { maxByteLength: number }) => ArrayBuffer)(0, { maxByteLength });
+}
+
 /** `container.resize(length)` for emitted code: the resized container. */
 export function resizeGeneratedContainer(container: unknown, length: number): unknown {
   if (Array.isArray(container)) return resizeGeneratedVector(container, length);
@@ -60,6 +72,19 @@ export function resizeGeneratedContainer(container: unknown, length: number): un
   const current = container as unknown as ArrayLike<number> & { constructor: new (size: number) => ArrayLike<number> & { set(values: ArrayLike<number>): void } };
   const target = Math.max(0, Math.floor(length));
   if (current.length === target) return container;
+  // A vector over a resizable buffer grows in place, so a resize through a
+  // reference reaches the member it refers to (generated-device's owned
+  // vectors start this way).
+  const buffer = (container as unknown as { buffer: ResizableArrayBuffer }).buffer;
+  const width = (container as unknown as { BYTES_PER_ELEMENT: number }).BYTES_PER_ELEMENT;
+  if (buffer.resizable && (container as unknown as { byteOffset: number }).byteOffset === 0 &&
+      target * width <= buffer.maxByteLength) {
+    const previous = current.length;
+    buffer.resize(target * width);
+    // std::vector::resize value-initialises what it adds.
+    if (target > previous) (container as unknown as Uint8Array).fill(0, previous);
+    return container;
+  }
   const resized = new current.constructor(target);
   resized.set((container as unknown as { subarray(start: number, end: number): ArrayLike<number> }).subarray(0, Math.min(target, current.length)));
   return resized;
@@ -583,7 +608,7 @@ export function generatedPeriodicLines(
  * on a gap the contracts did not reach (#178). Emitted code reports through
  * the same hook (src/mame/device-codegen.ts fallbackLink).
  */
-function noteUnresolvedCall(name: string): void {
+export function noteUnresolvedCall(name: string): void {
   (globalThis as { mamekitMissingCall?: (name: string) => undefined }).mamekitMissingCall?.(name);
 }
 
@@ -835,7 +860,8 @@ function preparedHandlerRuntime(
     },
     overrides: bindings.referenceCalls ?? {},
     memberCall: (object, property, direct, bare) => (...args) => {
-      if (object == null) return bare?.(...args) ?? 0;
+      // A delegate nothing assigned is null (see evaluateCall).
+      if (object == null) return bare?.(...args) ?? (property === 'isnull' || property === 'isunset' ? 1 : 0);
       const target = (direct ? object : dereferenceGeneratedValue(object)) as Record<string, unknown>;
       const value = target[property] as ((...values: unknown[]) => unknown) | number | boolean | undefined;
       if (args.length) return (value == null ? undefined : (value as (...values: unknown[]) => unknown).apply(target, args)) ?? 0;
@@ -1843,12 +1869,8 @@ function compilePackedPointerView(
 ): ((value: Uint8Array) => unknown) | undefined {
   if (!valueType?.includes('*')) return undefined;
   const normalized = valueType.replace(/\bconst\b/g, '').replace(/\s/g, '');
-  if (/^(?:u16|uint16_t)\*$/.test(normalized)) {
-    return value => new Uint16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
-  }
-  if (/^(?:s16|int16_t)\*$/.test(normalized)) {
-    return value => new Int16Array(value.buffer, value.byteOffset, value.byteLength >>> 1);
-  }
+  if (/^(?:u16|uint16_t)\*$/.test(normalized)) return value => wordView(value, false);
+  if (/^(?:s16|int16_t)\*$/.test(normalized)) return value => wordView(value, true);
   return undefined;
 }
 
@@ -2730,6 +2752,27 @@ function applyIdentifierCall(
     const handler = memoryDelegate(expression, args, context);
     if (handler) return handler;
   }
+  // A delegate bound by member pointer to one of the device's own methods,
+  // which a framework service keeps and calls back: the watchdog's
+  // `register_vblank_callback(vblank_state_delegate(&watchdog_timer_device::watchdog_vblank, this))`.
+  if (/_delegate$/.test(name)) {
+    const pointer = expression.args.find(argument =>
+      argument.kind === 'unary' && argument.operator === '&' &&
+      argument.operand.kind === 'identifier' && argument.operand.name.includes('::'));
+    const method = pointer?.kind === 'unary' && pointer.operand.kind === 'identifier'
+      ? pointer.operand.name.split('::').at(-1)!
+      : undefined;
+    const own = method === undefined
+      ? undefined
+      : context.bindings.referenceCalls?.[method] ?? context.bindings.calls?.[method];
+    if (typeof own === 'function') {
+      // Named, so a service that keeps it can tell one registration from another.
+      return Object.assign(
+        (...values: unknown[]) => (own as (...rest: unknown[]) => unknown)(...values),
+        { delegateMethod: method },
+      );
+    }
+  }
   if (name === 'COMBINE_DATA') {
     const memMask = Object.hasOwn(context.locals, 'mem_mask')
       ? context.locals.mem_mask
@@ -2776,6 +2819,12 @@ function applyIdentifierCall(
   ) {
     return args[0];
   }
+  // `m_irq_timer = timer_alloc(FUNC(cls::cb), this)`: the board runs each
+  // driver timer by the member that holds it (generated-board genericTimers),
+  // so the member is left holding nothing and `m_irq_timer->adjust` reaches
+  // that timer by name. One the board does not model is counted there, at
+  // the call that would arm it.
+  if (name === 'timer_alloc' && !context.bindings.calls?.[name]) return undefined;
   const handler = context.bindings.calls?.[name];
   // A member-function pointer is the name of its method (member-pointers.ts);
   // coercing it like any other argument would call method "0".
@@ -2858,6 +2907,13 @@ function evaluateCall(
     const rawObject = evaluate(expression.callee.object, context);
     const object = memberObject(rawObject, expression.callee.property);
     const method = expression.callee.property;
+    // An optional finder with nothing behind it: a Neo Geo cartridge with no
+    // `^audiocrypt` region answers found() false, as MAME's finder does. A
+    // delegate nothing assigned is null: shinobi has no simulated i8751 hook.
+    if (!expression.args.length && (object === 0 || object == null)) {
+      if (method === 'found') return 0;
+      if (method === 'isnull' || method === 'isunset') return 1;
+    }
     if (typeof object === 'number') {
       const answered = attotimeSecondsMethod(object, method,
         expression.args.map(arg => toNumber(evaluate(arg, context))));
@@ -2960,6 +3016,12 @@ function evaluateCall(
       if (Array.isArray(object) && (method === 'reserve' || method === 'shrink_to_fit')) return 0;
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
+      // A finder member re-pointed by its own setter: `m_screen.set_tag(tag)`
+      // is the device's to rebind, not the found object's.
+      if (method === 'set_tag') {
+        const rebind = context.bindings.calls?.[`${generatedExpressionName(expression.callee.object)}.set_tag`];
+        if (rebind) return rebind(...args.map(callArgument));
+      }
       // `std::unique_ptr<T>::get()` on the object it owns.
       if (method === 'get' && !args.length && methodValue === undefined && !Array.isArray(object) &&
           !ArrayBuffer.isView(object) && !isGeneratedPointer(object)) return object;
@@ -3282,10 +3344,72 @@ function packedCastView(valueType: string | undefined): boolean | undefined {
 
 function packedByteView(value: unknown, signed: boolean): unknown {
   if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
-  const bytes: Uint8Array | Int8Array = value;
-  return signed
-    ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
-    : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+  return wordView(value, signed);
+}
+
+/**
+ * Regions a 68000 reads in its own byte order (MAME ROMREGION_BE with
+ * ROMREGION_16BIT), marked by whoever loads them. MAME byte-swaps such a
+ * region to the host's order, so its `u16 *` reads whole words; held in the
+ * 68000's order, the same words are each pair of bytes read high first.
+ */
+// On the array itself, under a registered symbol: the loader and the board
+// can run different copies of this module (the acceptance harness loads ROMs
+// from source while the board runs the built runtime).
+const BIG_ENDIAN_WORDS = Symbol.for('mamekit.bigEndianWords');
+
+export function markBigEndianWords(bytes: Uint8Array): void {
+  Object.defineProperty(bytes, BIG_ENDIAN_WORDS, { value: true });
+}
+
+function isBigEndianWords(bytes: object): boolean {
+  return (bytes as { [BIG_ENDIAN_WORDS]?: boolean })[BIG_ENDIAN_WORDS] === true;
+}
+
+/** The bytes a big-endian word view is over, and its first byte in them. */
+const WORD_VIEW_BYTES = new WeakMap<object, Uint8Array>();
+
+export function bigEndianWordBytes(view: unknown): Uint8Array | undefined {
+  return view && typeof view === 'object' ? WORD_VIEW_BYTES.get(view) : undefined;
+}
+
+/**
+ * A `u16 *`/`s16 *` over byte memory, reinterpreting rather than copying: a
+ * typed view in the host's order, or for a big-endian region an array whose
+ * elements are its words, read and written high byte first.
+ */
+function wordView(bytes: Uint8Array | Int8Array, signed: boolean): unknown {
+  if (!isBigEndianWords(bytes)) {
+    return signed
+      ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
+      : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+  }
+  const source = bytes as Uint8Array;
+  const view = new Proxy(new Array<number>(source.length >>> 1), {
+    get(target, property, receiver) {
+      if (typeof property === 'string' && /^\d+$/.test(property)) {
+        const at = Number(property) * 2;
+        if (at + 1 >= source.length) return 0;
+        const word = (source[at]! << 8) | source[at + 1]!;
+        return signed ? (word << 16) >> 16 : word;
+      }
+      return Reflect.get(target, property, receiver);
+    },
+    set(target, property, value, receiver) {
+      if (typeof property === 'string' && /^\d+$/.test(property)) {
+        const at = Number(property) * 2;
+        const word = toNumber(value) & 0xffff;
+        if (at + 1 < source.length) {
+          source[at] = word >>> 8;
+          source[at + 1] = word & 0xff;
+        }
+        return true;
+      }
+      return Reflect.set(target, property, value, receiver);
+    },
+  });
+  WORD_VIEW_BYTES.set(view, source);
+  return view;
 }
 
 function wrapValue(valueType: string | undefined, value: unknown): unknown {
@@ -3454,6 +3578,8 @@ function indexValue(object: unknown, index: number): unknown {
   if (Array.isArray(object)) return object[index] ?? 0;
   // A C string's characters are its bytes: `names()[0][0] == '*'`.
   if (typeof object === 'string') return object.charCodeAt(index) || 0;
+  // A host object with an operator[] of its own: a `memory_view`'s entries.
+  if (object && typeof object === 'object') return (object as Record<number, unknown>)[index] ?? 0;
   return 0;
 }
 
@@ -3833,6 +3959,16 @@ function copyGeneratedMemory(
 ): void {
   // Bytes into a struct (`read(file, &header, CRT_HEADER_LENGTH)`).
   const struct = isGeneratedPointer(destination) && destination.target ? destination.target.get() : destination;
+  // A struct copied whole into another: konami_decode_gfx's
+  // `memcpy(&gl, layout, sizeof(gl))`. Field by field, arrays copied too.
+  const whole = isGeneratedPointer(source) && source.target ? source.target.get() : source;
+  if (isGeneratedStruct(struct) && isGeneratedStruct(whole)) {
+    const copy = (value: unknown): unknown => Array.isArray(value) ? value.map(copy)
+      : isGeneratedStruct(value) ? generatedStruct(Object.entries(value).flatMap(([field, held]) => [field, copy(held)]))
+        : value;
+    for (const [field, value] of Object.entries(whole)) struct[field] = copy(value);
+    return;
+  }
   if (isGeneratedStruct(struct)) {
     const origin = generatedMemoryView(source, bytewise);
     if (!origin) return;
@@ -3944,6 +4080,7 @@ function resizeGeneratedMemory(
     return;
   }
   if (!isIndexableMemory(current) || current.length === length) return;
+  if (ArrayBuffer.isView(current) && resizeGeneratedContainer(current, length) === current) return;
   const resized = ArrayBuffer.isView(current)
     ? new (current.constructor as new (size: number) => ArrayLike<unknown>)(length)
     : new Array<number>(length).fill(0);
@@ -3978,6 +4115,8 @@ export function generatedByteView(value: unknown): unknown {
   // `(const char *)custom_data()` over a string literal: its C bytes.
   if (typeof value === 'string') return cString(value);
   const bytes = (memory: unknown): Uint8Array | undefined => {
+    const words = bigEndianWordBytes(memory);
+    if (words) return words;
     const view = memory as Uint16Array;
     return ArrayBuffer.isView(memory) && view.BYTES_PER_ELEMENT > 1
       ? new Uint8Array(view.buffer as ArrayBuffer, view.byteOffset, view.byteLength)
@@ -3986,17 +4125,14 @@ export function generatedByteView(value: unknown): unknown {
   if (isGeneratedPointer(value)) {
     const source = bytes(value.source);
     if (!source) return value;
-    return { ...value, source, offset: value.offset * (value.source as Uint16Array).BYTES_PER_ELEMENT };
+    const width = bigEndianWordBytes(value.source) ? 2 : (value.source as Uint16Array).BYTES_PER_ELEMENT;
+    return { ...value, source, offset: value.offset * width };
   }
   return bytes(value) ?? value;
 }
 
 export function generatedPackedView(value: unknown, signed: boolean): unknown {
-  if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
-  const bytes: Uint8Array | Int8Array = value;
-  return signed
-    ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
-    : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+  return packedByteView(value, signed);
 }
 
 /** The source spelling of an assignment target, for diagnostics. */
@@ -4245,7 +4381,11 @@ export function generatedContainerAccessor(value: unknown, method: string): unkn
       : undefined;
     // `std::unique_ptr<T>::get()` on an object it owns: the object.
     if (method === 'get' && member === undefined && held && typeof held === 'object') return held;
-    return member !== undefined && typeof member !== 'function' ? member : 0;
+    // An object that answers the accessor itself: `m_region_rom->bytes()` on a
+    // memory_region, which emitted code reaches here because its type is
+    // named like a container.
+    if (typeof member === 'function') return (member as () => unknown).call(held);
+    return member !== undefined ? member : 0;
   }
   const length = pointer
     ? Math.max(0, (held.source as ArrayLike<unknown>).length - held.offset)
@@ -4502,11 +4642,15 @@ function memoryDelegate(
   // otherwise every Game Boy MBC read an address where it wanted a bank number.
   const declared = context.bindings.callParameters?.[method];
   const dataOnly = declared?.length === 1;
+  // Named by the handler it binds, `cls.method`, so a board installing it
+  // into a processor's space can decode it exactly as its address map would.
   const apply = (
     callee: (...values: number[]) => unknown,
-  ): ((...values: number[]) => number) =>
+  ): ((...values: number[]) => number) => Object.assign(
     (...values: number[]) =>
-      Number(callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0;
+      Number(callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0,
+    { delegateHandler: qualified.name.replace('::', '.') },
+  );
   const bound = target && typeof target === 'object'
     ? (target as Record<string, unknown>)[method]
     : undefined;

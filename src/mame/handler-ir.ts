@@ -487,6 +487,11 @@ class HandlerParser {
       return undefined;
     }
     const operation = this.expressionStatement(expression);
+    // `m_rom_view[i + 1];` names a view entry and nothing more. MAME creates
+    // the empty entry on first use; a view here is built from its installs,
+    // and an entry with none already decodes nothing, so the statement does
+    // nothing to lower.
+    if (!operation && pureLvalue(expression)) return [];
     if (!operation) {
       this.diagnostics.push(`discarded non-call expression at byte ${start.offset}`);
       return undefined;
@@ -1099,17 +1104,34 @@ class HandlerParser {
           this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
           return declarations;
         }
+        // Further dimensions: `static const uint8_t convtable[32][4] = { {...}, ... }`,
+        // each of the Sega Z80 decryptors' key tables.
+        let dimensions = 1;
+        while (this.consume('[')) {
+          if (!this.parseExpression() || !this.consume(']')) {
+            this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
+            return declarations;
+          }
+          dimensions++;
+        }
         const directListInitializer = this.consume('{');
         if (directListInitializer || this.consume('=')) {
           if (!directListInitializer && !this.consume('{')) {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
-          const values = this.parseDelimitedExpressions('}');
-          if (!values) {
+          const parsed = this.parseDelimitedExpressions('}');
+          if (!parsed) {
             this.unsupportedStatement(`invalid array initializer of "${name.text}"`);
             return declarations;
           }
+          // A row of a multi-dimensional array is an array, not a struct.
+          const rows = (expression: GeneratedExpression): GeneratedExpression =>
+            expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+              expression.callee.name === 'AGGREGATE'
+              ? { ...expression, callee: { kind: 'identifier', name: 'ARRAY' }, args: expression.args.map(rows) }
+              : expression;
+          const values = dimensions > 1 ? parsed.map(rows) : parsed;
           value = values.length ? {
             kind: 'call',
             callee: { kind: 'identifier', name: 'ARRAY' },
@@ -1821,6 +1843,19 @@ function unquote(text: string): string {
     }
   }
   return text.slice(1, -1);
+}
+
+/** A name, member or subscript built only from those and numbers: no call, no store. */
+function pureLvalue(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'identifier' || expression.kind === 'number') return true;
+  if (expression.kind === 'member') return pureLvalue(expression.object);
+  if (expression.kind === 'index') return pureLvalue(expression.object) && pureIndex(expression.index);
+  return false;
+}
+
+function pureIndex(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'binary') return pureIndex(expression.left) && pureIndex(expression.right);
+  return pureLvalue(expression);
 }
 
 function expressionName(expression: GeneratedExpression): string {

@@ -146,6 +146,10 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       );
     }
   }
+  for (const [index, delegate] of (board.execution.initDelegates ?? []).entries()) {
+    if (handlerKeys.has(delegate.handler)) continue;
+    fail(`execution.initDelegates[${index}]`, `init delegate handler "${delegate.handler}" was not generated`);
+  }
   // A MAME timer_device is declared by the callback that schedules it rather
   // than by a machine-config device line, so it owns itself.
   const timerOwners = new Set(
@@ -284,29 +288,6 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       bank.source,
     );
   }
-  for (const [index, tap] of (board.execution.accessTaps ?? []).entries()) {
-    if (!board.execution.cpus.some(cpu => cpu.tag === tap.cpu)) {
-      fail(
-        `execution.accessTaps[${index}].cpu`,
-        `access tap watches unknown CPU "${tap.cpu}"`,
-        tap.source,
-      );
-    }
-    if (!board.devices?.some(device => device.tag === tap.device)) {
-      fail(
-        `execution.accessTaps[${index}].device`,
-        `access tap targets unknown device "${tap.device}"`,
-        tap.source,
-      );
-    }
-    if (tap.bank !== undefined && !bankTags.has(tap.bank)) {
-      fail(
-        `execution.accessTaps[${index}].bank`,
-        `access tap selects bank "${tap.bank}", which the board does not configure`,
-        tap.source,
-      );
-    }
-  }
   for (const [index, cpu] of board.execution.cpus.entries()) {
     for (const [position, range] of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].entries()) {
       for (const key of [range.read, range.write]) {
@@ -353,7 +334,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       );
       continue;
     }
-    if (custom.source === 'screen-vblank' || custom.source === 'rtc-tp' || custom.source === 'rtc-data') continue;
+    if (custom.source === 'screen-vblank') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)
       : handlerMethods.has(custom.member);

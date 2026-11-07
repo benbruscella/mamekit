@@ -447,6 +447,27 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.initDelegates !== undefined) {
+    for (const [index, delegate] of reader.array(execution.initDelegates, 'execution.initDelegates').entries()) {
+      const path = `execution.initDelegates[${index}]`;
+      reader.string(reader.object(delegate, path).member, `${path}.member`);
+      reader.string(reader.object(delegate, path).handler, `${path}.handler`);
+    }
+  }
+
+  if (execution.regionObjects !== undefined) {
+    for (const [member, tag] of Object.entries(reader.object(execution.regionObjects, 'execution.regionObjects'))) {
+      reader.string(tag, `execution.regionObjects.${member}`);
+    }
+  }
+  if (execution.memoryBanks !== undefined) {
+    for (const [index, bank] of reader.array(execution.memoryBanks, 'execution.memoryBanks').entries()) {
+      const path = `execution.memoryBanks[${index}]`;
+      reader.string(reader.object(bank, path).member, `${path}.member`);
+      reader.string(reader.object(bank, path).tag, `${path}.tag`);
+    }
+  }
+
   reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
   if (execution.executeDevices !== undefined) {
     for (const [index, entry] of reader.array(execution.executeDevices, 'execution.executeDevices').entries()) {
@@ -477,23 +498,6 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.number(event.line, `${path}.line`, source);
     reader.number(event.state, `${path}.state`, source);
     reader.optionalNumber(event.frequency, `${path}.frequency`, source);
-  }
-
-  if (execution.accessTaps !== undefined) {
-    for (const [index, entry] of reader.array(
-      execution.accessTaps, 'execution.accessTaps').entries()) {
-      const path = `execution.accessTaps[${index}]`;
-      const tap = reader.object(entry, path);
-      const source = sourceOf(tap);
-      reader.string(tap.cpu, `${path}.cpu`, source);
-      reader.string(tap.space, `${path}.space`, source);
-      reader.string(tap.device, `${path}.device`, source);
-      reader.string(tap.method, `${path}.method`, source);
-      reader.number(tap.start, `${path}.start`, source);
-      reader.number(tap.end, `${path}.end`, source);
-      reader.number(tap.mirror, `${path}.mirror`, source);
-      reader.optionalString(tap.bank, `${path}.bank`, source);
-    }
   }
 
   if (execution.spaceAccessors !== undefined) {

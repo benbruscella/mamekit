@@ -30,6 +30,8 @@ export const DEVICE_MAME_TYPES = [
   'HC259',
   'HD6845S',
   'I8257',
+  'I8243',
+  'I8255',
   'I8255A',
   'INPUT_MERGER_ALL_HIGH',
   'INPUT_MERGER_ANY_HIGH',
@@ -57,6 +59,10 @@ export const DEVICE_MAME_TYPES = [
   'PIC8259',
   'RST_NEG_BUFFER',
   'SEGA_315_5195_MEM_MAPPER',
+  // Elevator Action's security interface: its own device_start/reset and
+  // set_int_mode configuration, around the 68705 it holds.
+  'TAITO_SJ_SECURITY_MCU',
+  'SEGA_SYS16A_SPRITES',
   'SEGA_SYS16B_SPRITES',
   'SEGAIC16VID',
   'SLAPSTIC',
@@ -95,6 +101,10 @@ export const DEVICE_MAME_TYPES = [
   // Protocol devices used when a dumped firmware core is not executable.
   'NAMCO_51XX',
   'NAMCO_53XX',
+  // Vblank-counted or timed; firing is machine().schedule_soft_reset().
+  'WATCHDOG_TIMER',
+  // Neo Geo's calendar clock, with the device_rtc_interface it counts in.
+  'UPD4990A',
 ] as const;
 
 export const DEVICE_PORTS: readonly PortDeclaration[] = [

@@ -105,6 +105,22 @@ function isFactoryNode(node: unknown): node is Record<string, unknown> & { $fact
     typeof (node as { $factory?: unknown }).$factory === 'string';
 }
 
+/**
+ * The node a second reference to an object is captured as: the path the
+ * object was first captured at. MAME devices hold pointers into their own
+ * objects -- the slapstic's `m_state` is whichever of its ten states is
+ * current -- and a pointer restores by pointing, not by copying what the
+ * other object holds into the one it points at now.
+ */
+interface AliasReference {
+  $alias: string;
+}
+
+function isAliasReference(node: unknown): node is AliasReference {
+  return typeof node === 'object' && node !== null && !Array.isArray(node) &&
+    typeof (node as AliasReference).$alias === 'string';
+}
+
 function isFunctionReference(node: unknown): node is FunctionReference {
   return typeof node === 'object' && node !== null &&
     typeof (node as FunctionReference).$function === 'string';
@@ -236,6 +252,8 @@ function child(path: string, key: string | number): string {
 
 class Capture {
   private readonly ancestors = new Set<object>();
+  /** Where each object was first captured; a later reference is an alias of it. */
+  private readonly captured = new Map<object, string>();
   private readonly options: WalkOptions;
   constructor(options: WalkOptions) { this.options = options; }
 
@@ -263,7 +281,14 @@ class Capture {
         return out;
       });
       case 'set': return new Set(value as Set<unknown>);
-      case 'object': return this.container(value as object, path, () => {
+      case 'object': {
+        // A value object (`$factory`) is copied by C++ value semantics and
+        // never shared; anything else reached again is the same object.
+        const first = this.captured.get(value as object);
+        if (first !== undefined) return { $alias: first } satisfies AliasReference;
+        if (factoryName(value) === undefined) this.captured.set(value as object, path);
+      }
+      return this.container(value as object, path, () => {
         const out: Record<string, StateNode> = {};
         const object = value as Record<string, unknown>;
         const factory = factoryName(object);
@@ -320,12 +345,25 @@ class Restore {
   readonly diagnostics: StateDiagnostic[] = [];
   private readonly ancestors = new Set<object>();
   private readonly restored: StatefulKeys[] = [];
+  /** Each object restored in place, by the path it was captured at. */
+  private readonly objects = new Map<string, object>();
+  /** Slots saved as aliases, pointed at their object once every path is known. */
+  private readonly aliases: { current: () => unknown; point: (target: object) => void; target: string; path: string }[] = [];
+
+  private alias(holder: object, key: string | number, target: string, path: string): void {
+    const slot = holder as Record<string | number, unknown>;
+    this.aliases.push({ current: () => slot[key], point: value => this.assign(holder, key, value, path), target, path });
+  }
   private readonly options: WalkOptions;
   constructor(options: WalkOptions) { this.options = options; }
 
   /** Write `saved` into `live`, which the caller holds at `holder[key]`. */
   into(live: unknown, saved: StateNode, holder: object, key: string | number, path: string): void {
     const kind = kindOf(live, this.options);
+    if (isAliasReference(saved)) {
+      if (kind !== 'skip' && kind !== 'opaque') this.alias(holder, key, saved.$alias, path);
+      return;
+    }
     // A slot changes kind as the machine runs: driver state is declared as
     // zero and later holds a value object, a sample buffer is handed back as
     // null. The save says what the slot held; a live slot of the other kind
@@ -375,6 +413,14 @@ class Restore {
   }
 
   finish(): StateDiagnostic[] {
+    for (const alias of this.aliases) {
+      const target = this.objects.get(alias.target);
+      if (!target) {
+        this.report(alias.path, `refers to ${alias.target}, which was not restored`);
+        continue;
+      }
+      if (alias.current() !== target) alias.point(target);
+    }
     // Derived caches rebuild after every write is in, innermost object first,
     // so a container's rebuild sees its children already restored.
     for (const object of this.restored) object.stateRestored?.();
@@ -414,7 +460,7 @@ class Restore {
         // A named function or a value object is resolved as any slot's is; a
         // bare copy of its reference left a delegate array holding
         // `{ $function }` records after a load (#178, Spy Hunter's SSIO).
-        if (isFunctionReference(item) || isFactoryNode(item)) {
+        if (isFunctionReference(item) || isFactoryNode(item) || isAliasReference(item)) {
           this.into(live[index], item, live, index, child(path, index));
           continue;
         }
@@ -445,6 +491,10 @@ class Restore {
       }
       for (const [key, item] of saved) {
         const current = live.get(key);
+        if (isAliasReference(item)) {
+          this.aliases.push({ current: () => live.get(key), point: value => { live.set(key, value); }, target: item.$alias, path: child(path, String(key)) });
+          continue;
+        }
         if (current !== undefined && this.isContainer(current) && this.isContainer(item)) {
           this.into(current, item, live, String(key), child(path, String(key)));
         } else if (current === undefined || !this.isContainer(current)) {
@@ -464,6 +514,7 @@ class Restore {
       return this.report(path, 'expected an object');
     }
     if (!this.enter(live)) return;
+    this.objects.set(path, live);
     try {
       const record = saved as Record<string, StateNode>;
       const keyed = hasStateKeys(live);
@@ -497,6 +548,10 @@ class Restore {
       for (const key of Object.keys(record)) {
         if (seen.has(key)) continue;
         if (keyed) { this.report(child(path, key), 'saved, but the object does not declare it'); continue; }
+        if (isAliasReference(record[key])) {
+          this.alias(live, key, (record[key] as AliasReference).$alias, child(path, key));
+          continue;
+        }
         // an open record (device members, driver state) gains keys as the
         // source assigns them; a save from further on carries the new one
         this.assign(live, key, clone(record[key]), child(path, key));
@@ -581,7 +636,7 @@ export function stateByteLength(node: StateNode): number {
   if (node instanceof Set) return node.size * 8;
   if (Array.isArray(node)) return node.reduce<number>((total, item) => total + stateByteLength(item), 0);
   if (typeof node === 'object' && node !== null) {
-    if (isBufferReference(node) || isFunctionReference(node)) return 0;
+    if (isBufferReference(node) || isFunctionReference(node) || isAliasReference(node)) return 0;
     if (isFactoryNode(node)) return Object.keys(node).length * 8;
     return Object.values(node).reduce<number>((total, item) => total + stateByteLength(item), 0);
   }

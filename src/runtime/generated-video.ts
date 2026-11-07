@@ -44,6 +44,8 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
    * both must hand back the same buffer.
    */
   screenPriority?(): GeneratedPriorityBitmap;
+  /** The palette's shadow and highlight groups, when the configuration enables them. */
+  paletteShadows?(): GeneratedPaletteShadows | undefined;
   /** Route a MAME palette_device RAM write when the plan declares one. */
   writePaletteRam?(offset: number, data: number, ext?: boolean): void;
   /** Reapply driver-declared reset-time video state. */
@@ -346,6 +348,7 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     const scaledXOffset = xOffset * xScale;
     const scaledYOffset = yOffset * yScale;
     const bitmap = {
+      bpp: () => this.indexed ? 16 : 32,
       direct: {
         pixels: target,
         width: this.width,
@@ -521,6 +524,8 @@ interface BitmapTarget {
     offset: number;
   };
   fill(color: number, rectangle?: GeneratedRectangle): void;
+  /** bitmap_t::bpp(), which tells a bitmap_ind16 from a bitmap_rgb32. */
+  bpp?(): number;
   plotRect?(
     x: number,
     y: number,
@@ -574,6 +579,11 @@ class GeneratedIndexedBitmap implements BitmapTarget {
 
   cliprect(): GeneratedRectangle {
     return new GeneratedRectangle(0, this.width - 1, 0, this.height - 1);
+  }
+
+  /** bitmap_t::bpp(): a bitmap_ind16. */
+  bpp(): number {
+    return 16;
   }
 
   fill(color: number, rectangle?: GeneratedRectangle): void {
@@ -708,6 +718,109 @@ interface GeneratedPaletteDevice {
   black_pen(): number;
   pens(): Uint32Array;
   set_pen_color?(pen: number, colorOrRed: number, green?: number, blue?: number): void;
+  /** The shadow and highlight groups, when the configuration enables them. */
+  shadows?: GeneratedPaletteShadows;
+}
+
+/** drawgfx.h's per-pen draw modes. */
+const DRAWMODE_NONE = 0;
+const DRAWMODE_SOURCE = 1;
+const DRAWMODE_SHADOW_PRI = 3;
+
+/**
+ * device_palette_interface's shadow and highlight groups for an indexed
+ * screen (dipalette.cpp). The palette holds its `entries` base colours, then
+ * a shadow group, then a highlight group, each the base colours under that
+ * group's contrast (palette_t::update_adjusted_color). shadow_table() maps a
+ * pen into a group: presets 0 and 2 to the shadows, 1 and 3 to the
+ * highlights, and a pen past the base colours to itself.
+ */
+export class GeneratedPaletteShadows {
+  /** Save-state roots (machine-state.ts); the tables derive from these. */
+  stateKeys(): readonly string[] {
+    return ['mode', 'contrast'];
+  }
+
+  stateRestored(): void {
+    for (let group = 1; group < this.groups; group++) this.setContrast(group, this.contrast[group]!);
+  }
+
+  readonly entries: number;
+  readonly groups: number;
+  readonly shadowGroup: number;
+  readonly highlightGroup: number;
+  private mode = 0;
+  /** palette_t::m_group_contrast, a float per group. */
+  private readonly contrast: number[];
+  private readonly levels: Uint8Array[];
+  private readonly tables: (Uint32Array | undefined)[] = [];
+
+  constructor(plan: NonNullable<NonNullable<BoardIr['video']>['paletteGroups']>) {
+    this.entries = plan.entries;
+    let groups = 1;
+    this.shadowGroup = plan.shadows ? groups++ : 0;
+    this.highlightGroup = plan.highlights ? groups++ : 0;
+    this.groups = groups;
+    this.contrast = new Array<number>(groups).fill(1);
+    this.levels = Array.from({ length: groups }, () => Uint8Array.from({ length: 256 }, (_, level) => level));
+    // allocate_palette: PALETTE_DEFAULT_SHADOW_FACTOR, and its reciprocal.
+    const shadowFactor = Math.fround(0.6);
+    if (this.shadowGroup) this.setContrast(this.shadowGroup, shadowFactor);
+    if (this.highlightGroup) this.setContrast(this.highlightGroup, Math.fround(1 / shadowFactor));
+    // allocate_shadow_tables, palettized: one 64k table per kind.
+    if (this.shadowGroup) {
+      const table = Uint32Array.from({ length: 65536 }, (_, pen) => pen < this.entries ? pen + this.entries : pen);
+      this.tables[0] = this.tables[2] = table;
+    }
+    if (this.highlightGroup) {
+      const table = Uint32Array.from({ length: 65536 }, (_, pen) => pen < this.entries ? pen + 2 * this.entries : pen);
+      this.tables[1] = this.tables[3] = table;
+    }
+  }
+
+  shadow_table(): Uint32Array | undefined {
+    return this.tables[this.mode];
+  }
+
+  shadow_mode(): number {
+    return this.mode;
+  }
+
+  set_shadow_mode(mode: number): void {
+    this.mode = mode & 3;
+  }
+
+  set_shadow_factor(factor: number): void {
+    if (this.shadowGroup) this.setContrast(this.shadowGroup, factor);
+  }
+
+  set_highlight_factor(factor: number): void {
+    if (this.highlightGroup) this.setContrast(this.highlightGroup, factor);
+  }
+
+  /** The adjusted colour of any pen, given the base colours. */
+  resolve(colors: Uint32Array, pen: number): number {
+    const group = Math.floor(pen / this.entries);
+    if (group <= 0) return colors[pen] ?? 0xff000000;
+    // palette_t keeps black and then white after the last group.
+    if (group >= this.groups) return pen === this.entries * this.groups + 1 ? 0xffffffff : 0xff000000;
+    const base = colors[pen - group * this.entries] ?? 0xff000000;
+    const level = this.levels[group]!;
+    return ((base & 0xff000000) |
+      (level[(base >>> 16) & 0xff]! << 16) |
+      (level[(base >>> 8) & 0xff]! << 8) |
+      level[base & 0xff]!) >>> 0;
+  }
+
+  /** adjust_palette_entry: `clamp(float(level) * contrast)`, in float. */
+  private setContrast(group: number, factor: number): void {
+    const contrast = Math.fround(factor);
+    this.contrast[group] = contrast;
+    const levels = this.levels[group]!;
+    for (let level = 0; level < 256; level++) {
+      levels[level] = Math.min(255, Math.max(0, Math.trunc(Math.fround(level * contrast))));
+    }
+  }
 }
 
 /**
@@ -1665,6 +1778,11 @@ export class GeneratedGfxElement {
     sy: number,
     drawModes: ArrayLike<number>,
   ): void {
+    const shadow = this.shadowTable(drawModes);
+    if (shadow) {
+      this.drawTable(bitmap, clip, code, color, flipX, flipY, sx, sy, undefined, drawModes, shadow);
+      return;
+    }
     this.draw(bitmap, clip, code, color, flipX, flipY, sx, sy, drawModeMask(drawModes));
   }
 
@@ -1683,6 +1801,14 @@ export class GeneratedGfxElement {
   ): void {
     if (!(priorityBitmap instanceof GeneratedPriorityBitmap)) {
       throw new Error('prio_transtable needs the screen priority bitmap');
+    }
+    const shadow = this.shadowTable(drawModes);
+    if (shadow) {
+      this.drawTable(
+        bitmap, clip, code, color, flipX, flipY, sx, sy, undefined, drawModes, shadow,
+        { bitmap: priorityBitmap, mask: priorityMask | (1 << 31) },
+      );
+      return;
     }
     this.draw(
       bitmap, clip, code, color, flipX, flipY, sx, sy,
@@ -1704,6 +1830,11 @@ export class GeneratedGfxElement {
     scaleY: number,
     drawModes: ArrayLike<number>,
   ): void {
+    const shadow = this.shadowTable(drawModes);
+    if (shadow) {
+      this.drawTable(bitmap, clip, code, color, flipX, flipY, sx, sy, [scaleX, scaleY], drawModes, shadow);
+      return;
+    }
     this.drawZoom(
       bitmap, clip, code, color, flipX, flipY, sx, sy, scaleX, scaleY,
       drawModeMask(drawModes),
@@ -1727,6 +1858,14 @@ export class GeneratedGfxElement {
   ): void {
     if (!(priorityBitmap instanceof GeneratedPriorityBitmap)) {
       throw new Error('prio_zoom_transtable needs the screen priority bitmap');
+    }
+    const shadow = this.shadowTable(drawModes);
+    if (shadow) {
+      this.drawTable(
+        bitmap, clip, code, color, flipX, flipY, sx, sy, [scaleX, scaleY], drawModes, shadow,
+        { bitmap: priorityBitmap, mask: priorityMask | (1 << 31) },
+      );
+      return;
     }
     this.drawZoom(
       bitmap, clip, code, color, flipX, flipY, sx, sy, scaleX, scaleY,
@@ -1976,6 +2115,71 @@ export class GeneratedGfxElement {
     }
   }
 
+  /**
+   * The palette's shadow table, when a transtable has a pen that darkens and
+   * the screen composes pens; otherwise the mask path draws it the same.
+   */
+  private shadowTable(drawModes: ArrayLike<number>): Uint32Array | undefined {
+    if (!this.indexed) return undefined;
+    const table = this.palette.shadows?.shadow_table();
+    if (!table) return undefined;
+    const pens = Math.min(drawModes.length, 1 << this.entry.layout.planes);
+    for (let pen = 0; pen < pens; pen++) {
+      if ((drawModes[pen] ?? DRAWMODE_NONE) > DRAWMODE_SOURCE) return table;
+    }
+    return undefined;
+  }
+
+  /** A transtable draw through shadowPixel, plain (`scale` absent) or zoomed. */
+  private drawTable(
+    bitmap: BitmapTarget,
+    clip: GeneratedRectangle,
+    code: number,
+    color: number,
+    flipX: number,
+    flipY: number,
+    sx: number,
+    sy: number,
+    scale: [number, number] | undefined,
+    drawModes: ArrayLike<number>,
+    shadow: Uint32Array,
+    claim?: { bitmap: GeneratedPriorityBitmap; mask: number },
+  ): void {
+    const gfx = this.decoded;
+    let width = gfx.width;
+    let height = gfx.height;
+    let xStep = this.entry.xscale;
+    let yStep = this.entry.yscale;
+    if (scale) {
+      if (!(scale[0] > 0) || !(scale[1] > 0)) return;
+      width = Math.max(1, Math.floor((gfx.width * scale[0] + 0x8000) / 0x10000));
+      height = Math.max(1, Math.floor((gfx.height * scale[1] + 0x8000) / 0x10000));
+      xStep = yStep = 1;
+    }
+    const base = modulo(code, gfx.count) * gfx.width * gfx.height;
+    const colorBase = this.entry.colorBase + color * this.penGranularity;
+    for (let dy = 0; dy < height; dy++) {
+      const rawY = scale ? Math.min(gfx.height - 1, Math.floor(dy * gfx.height / height)) : dy;
+      const sourceY = flipY ? gfx.height - 1 - rawY : rawY;
+      for (let dx = 0; dx < width; dx++) {
+        const rawX = scale ? Math.min(gfx.width - 1, Math.floor(dx * gfx.width / width)) : dx;
+        const sourceX = flipX ? gfx.width - 1 - rawX : rawX;
+        const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
+        const mode = drawModes[pen] ?? DRAWMODE_NONE;
+        if (mode === DRAWMODE_NONE) continue;
+        for (let yy = 0; yy < yStep; yy++) {
+          const y = sy + dy * yStep + yy;
+          if (y < clip.min_y || y > clip.max_y) continue;
+          for (let xx = 0; xx < xStep; xx++) {
+            const x = sx + dx * xStep + xx;
+            if (x < clip.min_x || x > clip.max_x) continue;
+            shadowPixel(bitmap, x, y, mode, colorBase + pen, shadow, claim);
+          }
+        }
+      }
+    }
+  }
+
   private drawZoom(
     bitmap: BitmapTarget,
     clip: GeneratedRectangle,
@@ -2031,6 +2235,69 @@ export class GeneratedGfxElement {
   }
 }
 
+/**
+ * One pixel of a transtable draw whose pen darkens rather than paints:
+ * PIXEL_OP_REBASE_TRANSTABLE16 and its _PRIORITY form (drawgfxt.ipp). A
+ * shadow pen sends what the destination already holds through the palette's
+ * shadow table. Under a priority claim the pixel also records the pen's draw
+ * mode, and a source pen painting a DRAWMODE_SHADOW_PRI pixel paints
+ * shadowed.
+ */
+function shadowPixel(
+  bitmap: BitmapTarget,
+  x: number,
+  y: number,
+  mode: number,
+  source: number,
+  shadow: Uint32Array,
+  claim?: { bitmap: GeneratedPriorityBitmap; mask: number },
+): void {
+  if (!claim) {
+    bitmap['pix='](y, x, mode === DRAWMODE_SOURCE ? source : shadow[(bitmap.pix?.(y, x) ?? 0) & 0xffff]!);
+    return;
+  }
+  const priority = claim.bitmap.get(x, y);
+  const open = ((1 << (priority & 0x1f)) & claim.mask) === 0;
+  if (mode === DRAWMODE_SOURCE) {
+    if (open) {
+      bitmap['pix='](y, x, (priority & 0xc0) === (DRAWMODE_SHADOW_PRI << 6) ? shadow[source & 0xffff]! : source);
+    }
+    claim.bitmap.set(x, y, 31);
+  } else if ((priority & 0x80) === 0 && open) {
+    bitmap['pix='](y, x, shadow[(bitmap.pix?.(y, x) ?? 0) & 0xffff]!);
+    claim.bitmap.set(x, y, priority | (mode << 6));
+  }
+}
+
+/**
+ * digfx.h's `gfx_layout` as a device builds one: its offset arrays sized to
+ * MAX_GFX_PLANES and MAX_GFX_SIZE, of which the planes, width and height
+ * count. An RGN_FRAC value keeps its fraction of the region.
+ */
+function structGfxLayout(layout: Record<string, unknown>): GeneratedGfxLayout {
+  const offset = (value: unknown): number | string => {
+    const bits = Number(value) >>> 0;
+    if (!(bits & 0x80000000)) return bits;
+    const rest = bits & 0x007fffff;
+    return `RGN_FRAC(${(bits >>> 27) & 0x0f},${(bits >>> 23) & 0x0f})${rest ? `+${rest}` : ''}`;
+  };
+  const list = (value: unknown, count: number) => Array.from({ length: count }, (_unused, index) =>
+    offset((value as ArrayLike<unknown> | undefined)?.[index] ?? 0));
+  const width = Number(layout.width);
+  const height = Number(layout.height);
+  const planes = Number(layout.planes);
+  return {
+    width,
+    height,
+    total: offset(layout.total),
+    planes,
+    planeOffsets: list(layout.planeoffset, planes),
+    xOffsets: list(layout.xoffset, width),
+    yOffsets: list(layout.yoffset, height),
+    charIncrement: Number(layout.charincrement),
+  };
+}
+
 function drawModeMask(drawModes: ArrayLike<number>): number {
   let transparent = 0;
   for (let pen = 0; pen < Math.min(32, drawModes.length); pen++) {
@@ -2056,7 +2323,12 @@ class GeneratedTilemap {
   /** The share `tilemap_device::m_basemem` binds; see GeneratedTilemapPlan. */
   private readonly baseMemory?: Uint8Array;
   private readonly mapper?: GeneratedHandler;
-  private readonly tileInfo: GeneratedHandler;
+  private readonly tileInfo?: GeneratedHandler;
+  /** The get_info delegate of a tilemap a device created at run time. */
+  private readonly tileInfoCall?: (tilemap: unknown, tileinfo: unknown, index: number) => unknown;
+  /** tilemap_t::set_user_data, for a tilemap created at run time. */
+  private userData?: unknown;
+  private paletteOffset = 0;
   private readonly machine: BoardIr;
   private readonly bindings: () => GeneratedHandlerBindings;
   private readonly gfx: GeneratedGfxElement[];
@@ -2081,6 +2353,7 @@ class GeneratedTilemap {
     bindings: () => GeneratedHandlerBindings,
     gfx: GeneratedGfxElement[],
     baseMemory?: Uint8Array,
+    tileInfoCall?: (tilemap: unknown, tileinfo: unknown, index: number) => unknown,
   ) {
     this.baseMemory = baseMemory;
     this.plan = plan;
@@ -2090,7 +2363,8 @@ class GeneratedTilemap {
     this.mapper = standardMapper(plan.mapper)
       ? undefined
       : requiredHandler(machine, plan.mapper);
-    this.tileInfo = requiredHandler(machine, plan.tileInfo);
+    this.tileInfoCall = tileInfoCall;
+    if (!tileInfoCall) this.tileInfo = requiredHandler(machine, plan.tileInfo);
     this.scrollX = new Array(plan.scrollRows ?? 1).fill(0);
     this.scrollY = new Array(plan.scrollColumns ?? 1).fill(0);
     this.pixmapBitmap = new GeneratedIndexedBitmap(
@@ -2143,7 +2417,30 @@ class GeneratedTilemap {
     this.mark_tile_dirty(index);
   }
 
+  set_user_data(value: unknown): void {
+    this.userData = value;
+  }
+
+  // The configuration a plan states for a tilemap the video compiler found,
+  // set by the source itself on one a device created at run time.
+  set_transparent_pen(pen: number): void {
+    (this.plan as { transparentPen?: number }).transparentPen = Number(pen);
+  }
+
+  set_scrolldx(normal: number, flipped: number): void {
+    (this.plan as { scrollDx?: [number, number] }).scrollDx = [Number(normal), Number(flipped)];
+  }
+
+  set_scrolldy(normal: number, flipped: number): void {
+    (this.plan as { scrollDy?: [number, number] }).scrollDy = [Number(normal), Number(flipped)];
+  }
+
+  set_palette_offset(offset: number): void {
+    this.paletteOffset = Number(offset);
+  }
+
   user_data(): unknown {
+    if (this.userData !== undefined) return this.userData;
     const source = this.plan.userDataMember
       ? this.bindings().members?.[this.plan.userDataMember]
       : undefined;
@@ -2272,13 +2569,13 @@ class GeneratedTilemap {
       Object.assign(tile, { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 });
       const tileinfo = createGeneratedTileInfoTarget(tile);
       const bindings = this.bindings();
-      const deviceTileInfo = bindings.referenceCalls?.[this.plan.tileInfo];
+      const deviceTileInfo = this.tileInfoCall ?? bindings.referenceCalls?.[this.plan.tileInfo];
       if (deviceTileInfo) {
         deviceTileInfo(this, tileinfo, tileIndex);
       } else {
         executeGeneratedMachineProgram(
           this.machine,
-          this.tileInfo,
+          this.tileInfo!,
           bindings,
           { tilemap: this, tileinfo, tile_index: tileIndex },
         );
@@ -2344,6 +2641,9 @@ class GeneratedTilemap {
     _priorityMask = 0xff,
   ): void {
     if (!this.active) return;
+    // The gfx elements draw from their own colour base; an offset on top of
+    // it is not drawn yet, and must not be dropped silently.
+    if (this.paletteOffset) throw new Error(`${this.machine.game}: a tilemap palette offset is not drawn`);
     // tilemap_t::configure_blit_parameters packs the pair into one code and
     // skips the priority bitmap entirely when it comes out as 0xff00 — the
     // default "I am not using priority" call every ordinary driver makes.
@@ -2860,7 +3160,10 @@ class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
 export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, Renderer {
   /** Save-state roots (machine-state.ts); tilemaps and gfx handles are reached through the driver state. */
   stateKeys(): readonly string[] {
-    return ['motionObjects', 'gfx', 'palette', 'palettes', 'ramPalette', 'bitmapPalette', 'priorityBitmap'];
+    return [
+      'motionObjects', 'gfx', 'palette', 'palettes', 'ramPalette', 'bitmapPalette', 'priorityBitmap',
+      'shadowGroups',
+    ];
   }
 
   stateRestored(): void {
@@ -2871,6 +3174,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   readonly height: number;
   private readonly machine: BoardIr;
   private readonly regions: Regions;
+  private readonly shares: Record<string, Uint8Array>;
+  /** A generated device's members, by tag (set by the board that built it). */
+  deviceMembers?: (tag: string) => Record<string, unknown> | undefined;
   private readonly state: Record<string, unknown>;
   private readonly motionObjects?: GeneratedMotionObjects;
   private readonly gfx: GeneratedGfxElement[];
@@ -2878,6 +3184,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private readonly palettes = new Map<string, GeneratedPaletteDevice>();
   private readonly ramPalette?: GeneratedRamPalette;
   private readonly bitmapPalette?: GeneratedBitmapPalette;
+  private readonly shadowGroups?: GeneratedPaletteShadows;
   private readonly gfxByDecode = new Map<string, GeneratedGfxElement[]>();
   private readonly bindings: GeneratedHandlerBindings;
   private readonly directScreenShape?: GeneratedDirectScreenShape;
@@ -2899,6 +3206,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   ) {
     this.machine = machine;
     this.regions = regions;
+    this.shares = shares;
     this.state = state;
     this.memoryRead = memoryRead;
     this.vectorPoints = vectorPoints;
@@ -3015,7 +3323,27 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     // palette_device's read accessor is a framework service. Generated
     // screen handlers read the same colors the host uses to resolve pens.
     for (const palette of new Set([...this.palettes.values(), this.palette])) {
-      if (palette) palette.pen_color ??= pen => palette.colors[pen] ?? 0xff000000;
+      if (!palette) continue;
+      palette.pen_color ??= pen => palette.colors[pen] ?? 0xff000000;
+      // device_palette_interface::entries(): the base colours, which a
+      // device sizes its colour codes from (konami_decode_gfx).
+      (palette as { entries?: () => number }).entries ??= () => palette.colors.length;
+    }
+    // The shadow services belong to the palette, which the driver and its
+    // devices both reach (`m_palette->set_shadow_factor`, `palette()`).
+    const groups = machine.video?.paletteGroups;
+    if (groups && this.palette) {
+      const shadows = new GeneratedPaletteShadows(groups);
+      this.shadowGroups = shadows;
+      Object.assign(this.palette, {
+        shadows,
+        shadows_enabled: () => shadows.shadowGroup ? 1 : 0,
+        highlights_enabled: () => shadows.highlightGroup ? 1 : 0,
+        shadow_table: () => shadows.shadow_table() ?? 0,
+        set_shadow_mode: (mode: number) => shadows.set_shadow_mode(Number(mode)),
+        set_shadow_factor: (factor: number) => shadows.set_shadow_factor(Number(factor)),
+        set_highlight_factor: (factor: number) => shadows.set_highlight_factor(Number(factor)),
+      });
     }
     const indexed = isIndexedScreen(machine);
     this.gfx = (machine.video?.gfx ?? []).map(entry => {
@@ -3077,34 +3405,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
       ...bindings.referenceCalls,
       // gfx_element(palette, layout, srcdata, xormask, total_colors, color_base).
-      'std::make_unique<gfx_element>': (...args) => {
-        const palette = generatedArgumentValue(args[0]) as GeneratedPaletteDevice | undefined;
-        const layout = (generatedArgumentValue(args[1]) as { gfxLayout?: GeneratedGfxLayout } | undefined)
-          ?.gfxLayout;
-        const source = generatedArgumentValue(args[2]) as
-          { source?: unknown; offset?: number } | undefined;
-        const bytes = source?.source;
-        if (!layout || !ArrayBuffer.isView(bytes)) {
-          throw new Error(`${machine.game}: gfx_element needs a compiled layout and source memory`);
-        }
-        const offset = Number(source?.offset ?? 0);
-        const entry: GeneratedGfxEntry = {
-          region: '',
-          offset,
-          colorBase: Number(generatedArgumentValue(args[5]) ?? 0),
-          colorCount: Number(generatedArgumentValue(args[4]) ?? 0),
-          xscale: 1,
-          yscale: 1,
-          layout,
-        };
-        const rom = bytes as Uint8Array;
-        return new GeneratedGfxElement(
-          entry,
-          decodeGfx(layout, rom.subarray(offset)),
-          palette ?? this.palette!,
-          indexed,
-        );
-      },
+      'std::make_unique<gfx_element>': (...args) => this.makeGfxElement(...args),
       'std::make_unique': (...args) => new GeneratedIndexedBitmap(
         Math.max(1, Number(generatedArgumentValue(args[0]) ?? this.width)),
         Math.max(1, Number(generatedArgumentValue(args[1]) ?? this.height)),
@@ -3660,8 +3961,87 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     return this.gfxByDecode.get(member);
   }
 
+  /**
+   * `std::make_unique<gfx_element>(palette, layout, srcdata, xormask,
+   * total_colors, color_base)`: a graphics set built at run time, from a
+   * layout the driver names (`{ gfxLayout }`) or a `gfx_layout` a device
+   * built itself (konami_decode_gfx copies one and sets its `total`).
+   */
+  makeGfxElement(...args: unknown[]): GeneratedGfxElement {
+    const palette = generatedArgumentValue(args[0]) as GeneratedPaletteDevice | undefined;
+    const given = generatedArgumentValue(args[1]) as
+      { gfxLayout?: GeneratedGfxLayout } & Record<string, unknown> | undefined;
+    const layout = given?.gfxLayout ?? (given && 'planeoffset' in given ? structGfxLayout(given) : undefined);
+    const source = generatedArgumentValue(args[2]) as
+      { source?: unknown; offset?: number } | undefined;
+    const bytes = source?.source;
+    if (!layout || !ArrayBuffer.isView(bytes)) {
+      throw new Error(`${this.machine.game}: gfx_element needs a compiled layout and source memory`);
+    }
+    const offset = Number(source?.offset ?? 0);
+    const entry: GeneratedGfxEntry = {
+      region: '',
+      offset,
+      colorBase: Number(generatedArgumentValue(args[5]) ?? 0),
+      colorCount: Number(generatedArgumentValue(args[4]) ?? 0),
+      xscale: 1,
+      yscale: 1,
+      layout,
+    };
+    const rom = bytes as Uint8Array;
+    return new GeneratedGfxElement(
+      entry,
+      decodeGfx(layout, rom.subarray(offset)),
+      palette ?? this.palette!,
+      isIndexedScreen(this.machine),
+    );
+  }
+
+  /** The palette a device's `palette()` answers: the board's own. */
+  devicePalette(): GeneratedPaletteDevice | undefined {
+    return this.palette;
+  }
+
+  paletteShadows(): GeneratedPaletteShadows | undefined {
+    return this.shadowGroups;
+  }
+
   screenPriority(): GeneratedPriorityBitmap {
     return (this.priorityBitmap ??= new GeneratedPriorityBitmap(this.machine));
+  }
+
+  /**
+   * tilemap_manager::create for a tilemap a device builds at run time, into
+   * storage the video compiler has no member for: segaic16's tilemap_init
+   * creates its text and page tilemaps into `info->textmap` and
+   * `info->tilemaps[n]`, fields of a struct. The geometry, the standard mapper
+   * and the get_info delegate are the call's own arguments.
+   */
+  createTilemap(
+    decode: unknown,
+    tileInfo: (tilemap: unknown, tileinfo: unknown, index: number) => unknown,
+    mapper: unknown,
+    tileWidth: number,
+    tileHeight: number,
+    columns: number,
+    rows: number,
+  ): GeneratedTilemap {
+    // tilemap.h's tilemap_standard_mapper: ROWS is 0, COLS is 4.
+    const standard = ({ 0: 'TILEMAP_SCAN_ROWS', 4: 'TILEMAP_SCAN_COLS' } as Record<number, string>)[Number(mapper)];
+    if (!standard) throw new Error(`${this.machine.game}: tilemap mapper ${String(mapper)} is not a standard one`);
+    const decoded = [...this.gfxByDecode].find(([member]) => this.state[member] === decode)?.[1] ?? this.gfx;
+    return new GeneratedTilemap(
+      {
+        member: '', mapper: standard, tileInfo: '',
+        tileWidth: Number(tileWidth), tileHeight: Number(tileHeight),
+        columns: Number(columns), rows: Number(rows),
+      },
+      this.machine,
+      () => this.bindings,
+      decoded,
+      undefined,
+      tileInfo,
+    );
   }
 
   generatedVideoBindings(_frame: Uint32Array): GeneratedHandlerBindings {
@@ -3678,9 +4058,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private gfxDecodeInterface(group: GeneratedGfxElement[]): {
     gfx(index: number): GeneratedGfxElement | 0;
     set_gfx(index: number, element: unknown): number;
+    started(): number;
   } {
     return {
       gfx: index => group[index] ?? 0,
+      // device_t::started(): composed with the video, before any device that
+      // waits on it (`if (!m_gfxdecode->started()) throw
+      // device_missing_dependencies();`) starts.
+      started: () => 1,
       set_gfx: (index, element) => {
         if (!(element instanceof GeneratedGfxElement)) return 0;
         group[index] = element;
@@ -4290,7 +4675,10 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     };
     const tile = wordsView(this.state.m_tileram);
     const text = wordsView(this.state.m_textram);
-    const sprites = wordsView(this.state.m_sprites);
+    // sprite_device::device_start takes its RAM from the share named after
+    // the device's own tag.
+    const sprites = wordsView(this.shares[
+      this.machine.devices?.find(device => device.member === 'm_sprites')?.tag ?? '']);
     const palette = wordsView(this.state.m_paletteram);
     const spriteRom = this.regions.sprites;
     const gfx = this.gfx[0];
@@ -4309,11 +4697,20 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       this.ramPalette?.set_pen_color(index + paletteEntries, colors.effect);
     }
 
+    // The layer controls are the compiled SEGAIC16VID's: the PPI's port B and
+    // C callbacks set them through tilemap_set_flip/rowscroll/colscroll and
+    // set_display_enable, and the sprite device keeps its own set_flip.
+    const members = (member: string) => this.deviceMembers?.(
+      this.machine.devices?.find(device => device.member === member)?.tag ?? '') ?? {};
+    const video = members('m_segaic16vid');
+    const layers = (video.m_bg_tilemap as Record<string, unknown>[] | undefined)?.[0] ?? {};
     bitmap.fill(0, cliprect);
+    if (!Number(video.m_display_enable)) return true;
     const priority = new Uint8Array(this.width * this.height);
-    const flipped = Boolean(this.state.__flip_screen);
-    const rowscroll = Boolean(this.state.__system16aRowscroll);
-    const colscroll = Boolean(this.state.__system16aColscroll);
+    const flipped = Boolean(Number(layers.flip));
+    const spritesFlipped = Boolean(Number(members('m_sprites').m_flip));
+    const rowscroll = Boolean(Number(layers.rowscroll));
+    const colscroll = Boolean(Number(layers.colscroll));
     const decoded = gfx.decoded;
     const decodedPixel = (code: number, x: number, y: number): number =>
       decoded.pixels[(code % decoded.count) * 64 + (y & 7) * 8 + (x & 7)] ?? 0;
@@ -4403,7 +4800,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       if (top >= bottom) continue;
       let xDelta = 1;
       let xOrigin = 189;
-      if (flipped) {
+      if (spritesFlipped) {
         const oldTop = top;
         top = 224 - bottom;
         bottom = 224 - oldTop;
@@ -5186,6 +5583,15 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const colors = this.palette?.colors;
     if (!colors) return;
     const end = Math.min(frame.length, pens.length, start + count);
+    const shadows = this.shadowGroups;
+    if (shadows) {
+      const entries = shadows.entries;
+      for (let index = start; index < end; index++) {
+        const pen = pens[index]!;
+        frame[index] = pen < entries ? colors[pen] ?? 0xff000000 : shadows.resolve(colors, pen);
+      }
+      return;
+    }
     for (let index = start; index < end; index++) {
       frame[index] = colors[pens[index]!] ?? 0xff000000;
     }

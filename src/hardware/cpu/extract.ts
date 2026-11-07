@@ -49,6 +49,7 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   I8039: source => compileMameMcs48(source, 'I8039'),
   MB8884: source => compileMameMcs48(source, 'MB8884'),
   M58715: source => compileMameMcs48(source, 'M58715'),
+  UPD7751: source => compileMameMcs48(source, 'UPD7751'),
   M6502: compileMameM6502,
   M6507: compileMameM6507,
   M6510: compileMameM6510,

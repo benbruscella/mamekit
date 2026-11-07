@@ -19,6 +19,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listXmlOracle } from '../../src/gen/listxml.ts';
+import { CONTRACT_BASE_TIME } from '../../src/ir/host-config.ts';
 import { samplesDir as samplesRoot } from '../../src/paths.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { IoPlan, OraclePlan, OursBoot, Timeline, TimelineEvent } from './plan.ts';
@@ -113,6 +114,8 @@ export function mameArguments(
     '-hashpath', join(mameSrc, 'hash'),
     ...(politeness.watch ? ['-window'] : ['-window', '-nomaximize', '-video', 'none']),
     '-sound', 'none', '-nothrottle', '-skip_gameinfo', '-snapview', 'native',
+    // The date ours runs at (acceptance-harness), so a clock chip agrees.
+    '-rtc', CONTRACT_BASE_TIME,
     '-nvram_directory', join(dir, 'mame-nvram'),
     '-cfg_directory', join(dir, 'mame-cfg'),
     '-snapshot_directory', join(dir, 'mame-snap'),

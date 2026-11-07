@@ -76,9 +76,8 @@ const HOST_BOUNDARIES = {
 // A branch on a MAME device type selects code written for that chip or board.
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
   'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS', 'DVG', 'I8243', 'M58715',
+    'ATARI_MOTION_OBJECTS', 'DVG', 'M58715',
     'NEOGEO_CONTROL_PORT', 'NEOGEO_CTRL_EDGE_CONNECTOR', 'NEOGEO_SPRITE_OPTIMZIED',
-    'SEGA_SYS16A_SPRITES', 'TAITO_SJ_SECURITY_MCU',
   ],
   'generated-device.ts': ['GENERIC_LATCH_8'],
   'generated-video.ts': ['DVG', 'NEOGEO_SPRITE_OPTIMZIED'],
@@ -92,22 +91,16 @@ const DIRECT_SCREEN_SHAPES = [
   'technos-tilemap-sprites', 'timeplt', 'tnx1-banked-raster', 'vicdual-character-ram',
 ];
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
-// for a hand-written body, keyed by the compiler that makes it. One argument
-// is not a literal: `method` is every SEGAIC16VID method that has diagnostics.
+// for a hand-written body, keyed by the compiler that makes it.
 const REPLACED_METHODS = [
-  'compileK053246: device_start', 'compileK053246: k053247_sprites_draw_common',
   'compileNeogeoSprite: device_reset', 'compileNeogeoSprite: draw_fixed_layer',
   'compileNeogeoSprite: draw_pixel',
-  'compileSegaic16Video: method', 'compileSegaic16Video: tilemap_init',
-  'compileSlapstic: change_bank', 'compileSlapstic: device_post_load',
-  'compileSlapstic: device_pre_save', 'compileSlapstic: device_reset',
-  'compileSlapstic: device_start',
   'compileUpd7759: sound_stream_update',
 ];
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
 const SPECIALIZED_COMPILERS = [
-  'K053246', 'NEOGEO_SPRITE_OPTIMZIED', 'SEGAIC16VID', 'SLAPSTIC', 'UPD7759',
+  'NEOGEO_SPRITE_OPTIMZIED', 'UPD7759',
 ];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
