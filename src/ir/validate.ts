@@ -334,7 +334,7 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
       );
       continue;
     }
-    if (custom.source === 'screen-vblank' || custom.source === 'rtc-tp' || custom.source === 'rtc-data') continue;
+    if (custom.source === 'screen-vblank') continue;
     const resolved = custom.handler
       ? handlerKeys.has(custom.handler)
       : handlerMethods.has(custom.member);

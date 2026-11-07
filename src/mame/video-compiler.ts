@@ -988,6 +988,20 @@ function compileHandlerRamPalette(
  * from the ROM tag. Only region_ptr declarations are included; device and
  * shared-memory finders have separate runtime binding paths.
  */
+/**
+ * A driver's `memory_region` finders, by member: `optional_memory_region
+ * m_region_mainbios` found as `m_region_mainbios(*this, "mainbios")`. Neo Geo's
+ * vector handler reads the BIOS through one.
+ */
+export function sourceMemoryRegions(source: string): Record<string, string> {
+  const members = new Set([...source.matchAll(/\b(?:required|optional)_memory_region\s+(m_\w+)\s*;/g)].map(match => match[1]!));
+  const regions: Record<string, string> = {};
+  for (const match of source.matchAll(/\b(m_\w+)\s*\(\s*\*this\s*,\s*"([^"]+)"\s*\)/g)) {
+    if (members.has(match[1]!)) regions[match[1]!] = match[2]!;
+  }
+  return regions;
+}
+
 export function sourceRegionBindings(source: string): Record<string, string> {
   /** member -> declared array extent (0 for a scalar region_ptr). */
   const regionMembers = new Map<string, number>();

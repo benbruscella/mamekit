@@ -270,8 +270,9 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
   // MAME's legacy lifecycle overrides are function definitions hidden behind
   // macros. Give them stable names so extraction can select the override that
   // belongs to a machine config and compile it like any other driver method.
-  // CALL_MEMBER is represented by the ordered lifecycle plan rather than as
-  // an ordinary C++ call, so blank it while preserving source offsets/lines.
+  // MACHINE_RESET_CALL_MEMBER(common) runs the class's machine_reset_common,
+  // so it is that call, the same length, as VIDEO_START_CALL_MEMBER is above:
+  // a machine's lifecycle lists only the override it runs.
   const lifecycleRe =
     /\bMACHINE_(START|RESET)_MEMBER\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*\{/g;
   while ((fm = lifecycleRe.exec(masked)) !== null) {
@@ -282,8 +283,8 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const kind = fm[1]!.toLowerCase();
     const rawBody = source.slice(bodyStart, braceEnd);
     const body = rawBody.replace(
-      new RegExp(`\\bMACHINE_${fm[1]}_CALL_MEMBER\\s*\\([^)]*\\)\\s*;?`, 'g'),
-      value => value.replace(/[^\r\n]/g, ' '),
+      new RegExp(`\\bMACHINE_${fm[1]}_CALL_MEMBER\\s*\\(\\s*(\\w+)\\s*\\)`, 'g'),
+      (whole, name: string) => `machine_${kind}_${name}()`.padEnd(whole.length, ' '),
     );
     functions.push({
       kind: 'function',

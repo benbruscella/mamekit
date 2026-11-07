@@ -455,6 +455,19 @@ function decodeExecution(reader: Reader, value: unknown): void {
     }
   }
 
+  if (execution.regionObjects !== undefined) {
+    for (const [member, tag] of Object.entries(reader.object(execution.regionObjects, 'execution.regionObjects'))) {
+      reader.string(tag, `execution.regionObjects.${member}`);
+    }
+  }
+  if (execution.memoryBanks !== undefined) {
+    for (const [index, bank] of reader.array(execution.memoryBanks, 'execution.memoryBanks').entries()) {
+      const path = `execution.memoryBanks[${index}]`;
+      reader.string(reader.object(bank, path).member, `${path}.member`);
+      reader.string(reader.object(bank, path).tag, `${path}.tag`);
+    }
+  }
+
   reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
   if (execution.executeDevices !== undefined) {
     for (const [index, entry] of reader.array(execution.executeDevices, 'execution.executeDevices').entries()) {

@@ -677,6 +677,14 @@ export interface GeneratedExecutionPlan {
   resetHandlers?: string[];
   /** Delegate members the driver init points at one of its handlers. */
   initDelegates?: { member: string; handler: string }[];
+  /**
+   * The driver's own memory banks that no bank below plans: configured as
+   * its code runs (`m_bank_cartridge->set_base(...)`), and installed into a
+   * space the same way (`install_read_bank`).
+   */
+  memoryBanks?: { member: string; tag: string }[];
+  /** The driver's memory_region finders, member to region: each is the region, or null. */
+  regionObjects?: Record<string, string>;
   banks?: {
     tag: string;
     member: string;
@@ -735,7 +743,7 @@ export interface GeneratedExecutionPlan {
     mask: number;
     member: string;
     handler?: string;
-    source?: 'screen-vblank' | 'rtc-tp' | 'rtc-data' | 'device-line';
+    source?: 'screen-vblank' | 'device-line';
     /**
      * MAME `PORT_READ_LINE_DEVICE_MEMBER(tag, FUNC(class::method))`: the bit
      * is an output line of another device rather than a switch. The device

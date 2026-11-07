@@ -676,7 +676,11 @@ function compileMameDeviceSource(
     const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'), defines);
     return { file, source: options.transformSource ? options.transformSource(file, source) : source };
   });
-  for (const library of [...formatLibrarySources(mameSrc, sources), ...helperLibrarySources(mameSrc, sources)]) {
+  for (const library of [
+    ...formatLibrarySources(mameSrc, sources),
+    ...helperLibrarySources(mameSrc, sources),
+    ...frameworkInterfaceSources(mameSrc, sources),
+  ]) {
     sources.push(library);
     sourceFiles.push(library.file);
   }
@@ -1410,10 +1414,13 @@ function compileMameDeviceSource(
     }
   }
   const regionResources = Object.fromEntries(members.flatMap(member => {
-    if (!/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
+    // `optional_memory_region m_region_rom(*this, "^maincpu")`: the region
+    // itself, asked found(), bytes() and base() (a Neo Geo cartridge's ROMs).
+    const object = /^(?:required|optional)_memory_region$/.test(member.valueType);
+    if (!object && !/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
     const target = constructorBindings[member.name]?.at(-1) ?? '';
     const name = target === 'DEVICE_SELF' ? 'self' : unquoteToken(target);
-    return name ? [[member.name, { kind: 'region' as const, name }]] : [];
+    return name ? [[member.name, { kind: object ? 'region-object' as const : 'region' as const, name }]] : [];
   }));
   for (const className of hierarchy) {
     const body = classes.get(className)?.body ?? '';
@@ -1624,12 +1631,22 @@ function compileMameDeviceSource(
   const callbackMethods = new Set([...source.matchAll(
     /\bFUNC\s*\(\s*[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*::([A-Za-z_]\w*)(?:\s*<\s*(\d+)\s*>)?\s*\)/g,
   )].map(match => match[2] === undefined ? match[1]! : `${match[1]}_${match[2]}`));
+  // A loop three deep is a bulk transform over a whole table or ROM:
+  // neosprite_optimized_device::optimize_helper decodes all 16 MB of Metal
+  // Slug's sprites, pixel by pixel, at every reset.
+  const loopDepth = (operations: readonly GeneratedHandlerOperation[]): number => Math.max(0, ...operations.map(operation => {
+    if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') return 1 + loopDepth(operation.body);
+    if (operation.op === 'if') return Math.max(loopDepth(operation.then), loopDepth(operation.else ?? []));
+    if (operation.op === 'switch') return Math.max(0, ...operation.cases.map(entry => loopDepth(entry.body)));
+    return 0;
+  }));
   const hotMethods = methods
     .filter(method =>
       !method.program.diagnostics.length &&
       (
         /\bbitmap_(?:rgb32|ind16)\s*&/.test(method.parameters) ||
-        callbackMethods.has(method.name)
+        callbackMethods.has(method.name) ||
+        loopDepth(method.program.operations) >= 3
       ))
     .map(method => method.name);
   resolveInheritedBaseCalls(methods, hierarchy);
@@ -2929,6 +2946,29 @@ function headerFunctionNames(header: string): string[] {
   const declared = stripCppComments(header);
   const outside = declared.replace(/\b(?:class|struct)\s+\w+[^;{]*\{(?:[^{}]|\{[^{}]*\})*\}\s*;/g, '');
   return [...outside.matchAll(/^[\w:<>*&\s]+?\b(\w+)\s*\([^;{}]*\)\s*;/gm)].map(name => name[1]!);
+}
+
+/**
+ * src/emu interfaces that are logic of their own rather than a service the
+ * host answers, compiled with any device that derives one. MAME's
+ * device_rtc_interface keeps the calendar a clock chip counts in
+ * (advance_seconds, convert_to_bcd); the uPD4990A calls it on every tick.
+ * Interfaces the host provides -- sound streams, screens, memory spaces --
+ * are never compiled this way.
+ */
+const FRAMEWORK_INTERFACES: Record<string, string> = {
+  device_rtc_interface: 'src/emu/dirtc',
+};
+
+function frameworkInterfaceSources(
+  mameSrc: string,
+  sources: readonly { file: string; source: string }[],
+): { file: string; source: string }[] {
+  const own = sources.map(({ source }) => stripCppComments(source)).join('\n');
+  return Object.entries(FRAMEWORK_INTERFACES).flatMap(([name, stem]) =>
+    new RegExp(`\\bpublic\\s+${name}\\b`).test(own) && !sources.some(({ file }) => file === `${stem}.cpp`)
+      ? [`${stem}.h`, `${stem}.cpp`].map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') }))
+      : []);
 }
 
 /**

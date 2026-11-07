@@ -780,8 +780,20 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       cfg.name,
       'reset',
     );
-    const resetHandlers = resetFunctions.map(fn => `${fn.className}.${fn.name}`);
-    const startHandlers = videoStart ? [`${videoStart.className}.${videoStart.name}`] : [];
+    // MAME calls the most-derived override, and it calls its own bases
+    // (`neogeo_base_state::machine_start();`), so only that one is listed:
+    // listing the bases too ran each again inside the override that calls it.
+    const resetHandlers = resetFunctions.slice(-1).map(fn => `${fn.className}.${fn.name}`);
+    // driver_device::device_start: machine_start, then video_start, once every
+    // device has started.
+    const startFunctions = [
+      ...resolveMachineLifecycle(ast, cfg.cls, cfg.name, 'start'),
+      ...(videoStart ? [videoStart] : []),
+    ];
+    const startHandlers = [
+      ...startFunctions.slice(0, videoStart ? -1 : undefined).slice(-1),
+      ...(videoStart ? [videoStart] : []),
+    ].map(fn => `${fn.className}.${fn.name}`);
     // MAME `machine_config::set_perfect_quantum(device)`: this board is
     // interleaved as finely as the scheduler can manage, for the whole run.
     // Qix's three processors share RAM through a handshake that will not
@@ -818,32 +830,46 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       const [className, method] = key.split('.');
       const fn = className && method ? ast.findFunctionInHierarchy(className, method) : undefined;
       if (!fn) return [];
+      // Wherever the driver arms it: missile's machine_start through its own
+      // closure, the Spectrum's vblank callback, Neo Geo's video registers
+      // and Simpsons' sprite DMA from the handlers that start them. A timer
+      // the board already reaches another way (berzerk's scanline schedule)
+      // is left to that in emit-machine.
       return [...fn.body.matchAll(/\b(m_\w+)\s*=\s*timer_alloc\s*\(\s*FUNC\(\s*(\w+)::(\w+)\s*\)/g)]
-        // Armed by the function that allocates it, through its own closure
-        // (missile's machine_start arms m_irq_timer via schedule_next_irq).
-        // Or, for one video_start allocates, armed by another handler of the
-        // driver's: the Spectrum's vblank callback arms its IRQ timer, whose
-        // callback arms the one that clears the line again. Only there: a
-        // machine-start timer armed elsewhere is one the runtime already
-        // schedules its own way (Neo Geo's raster interrupts, Simpsons'
-        // sprite DMA), and lowering it too fires it twice.
-        .flatMap(match => functionClosureContains(ast, fn, body => body.includes(`${match[1]}->adjust`)) ||
-          (method?.startsWith('video_start') &&
-            ast.ast.units.some(unit => unit.functions.some(candidate => candidate.body.includes(`${match[1]}->adjust`))))
-          ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
-          : []);
+        .flatMap(match =>
+          ast.ast.units.some(unit => unit.functions.some(candidate => candidate.body.includes(`${match[1]}->adjust`)))
+            ? [`${match[1]}=${match[2]}.${match[3]}@${key}`]
+            : []);
     });
     // A timer armed inside a line rather than at its start: MAME's
     // `time_until_pos(v, h)` with a pixel, or a duration in clocks (the
     // Spectrum's IRQ, raised at the screen area's left edge and held for 32
     // T-states). Only those need the board to fire them between instructions;
     // one aimed at a line start keeps its line (Missile Command's).
+    const timeMacros = new Map([...combined.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^\n]+)/gm)]
+      .map(match => [match[1]!, match[2]!.trim()]));
+    const expandTimeMacros = (text: string): string => {
+      for (let depth = 0; depth < 4; depth++) {
+        const next = text.replace(/\b[A-Z_][A-Z0-9_]*\b/g, name => timeMacros.get(name) ?? name);
+        if (next === text) break;
+        text = next;
+      }
+      return text;
+    };
     const preciseTimers = armedTimers.map(entry => /^([^=]+)=/.exec(entry)![1]!).filter(member =>
       ast.ast.units.some(unit => unit.functions.some(fn => {
         for (const call of fn.body.matchAll(new RegExp(`\\b${member}\\s*->\\s*adjust\\s*\\(`, 'g'))) {
           const open = call.index + call[0].length - 1;
           const close = matchingParenthesis(fn.body, open);
-          const argument = fn.body.slice(open + 1, close < 0 ? undefined : close);
+          // Through the driver's own #defines (Neo Geo's
+          // NEOGEO_VBLANK_IRQ_HTIM is an attotime::from_ticks) and back to a
+          // local's initializer (its display counter's `period`).
+          let argument = expandTimeMacros(fn.body.slice(open + 1, close < 0 ? undefined : close));
+          const local = /^\s*(\w+)\s*$/.exec(argument)?.[1];
+          const initializer = local
+            ? new RegExp(`\\b${local}\\s*(?:=\\s*([^;]+);|\\(([^;]+)\\)\\s*;)`).exec(fn.body)
+            : undefined;
+          if (initializer) argument = expandTimeMacros(initializer[1] ?? initializer[2] ?? '');
           if (/\bclocks_to_attotime\s*\(|\bfrom_ticks\s*\(/.test(argument)) return true;
           const position = /\btime_until_pos\s*\(/.exec(argument);
           if (position) {
@@ -873,6 +899,9 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ...(preciseTimers.length ? { preciseTimers } : {}),
       ...(driverStateMembers(ast, cfg.cls).length
         ? { stateMembers: driverStateMembers(ast, cfg.cls).map(member => JSON.stringify(member)) }
+        : {}),
+      ...(driverMemoryBanks(ast, cfg.cls, memberTags).length
+        ? { memoryBanks: driverMemoryBanks(ast, cfg.cls, memberTags).map(bank => JSON.stringify(bank)) }
         : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
       ...(maximumQuantum ? { maximumQuantum } : {}),
@@ -906,14 +935,14 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
-    if (videoStart) {
+    for (const fn of startFunctions) {
       const handlerId = emitSourceHandlerClosure(
         g,
         ast,
-        videoStart.className,
-        videoStart.name,
+        fn.className,
+        fn.name,
         consts,
-        videoStart.span,
+        fn.span,
       );
       g.edge(cfgId, handlerId, 'CALLS_HANDLER');
     }
@@ -1196,6 +1225,8 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         // literal, or a device finder resolved to its tag (the Battlezone
         // AVG's `set_memory(m_maincpu, AS_PROGRAM, 0x2000)`).
         const values = splitMameArgs(call[3]!).map(value => {
+          // `.set_user_loadable(false)`: a bool is the number C++ makes of it.
+          if (/^\s*(?:true|false)\s*$/.test(value)) return value.trim() === 'true' ? '1' : '0';
           const number = evalExpr(expandConstexprCalls(value, constexprFunctions), { ...addressSpaces, ...consts });
           if (number !== null) return String(number);
           const text = value.trim();
@@ -2216,6 +2247,26 @@ function includedBaseDeclarations(
     }
   }
   return found;
+}
+
+/**
+ * The memory banks a driver class finds or creates for itself
+ * (`memory_bank_creator m_bank_cartridge{*this, "cartridge"}`), by member and
+ * tag. Neo Geo points its cartridge window's bank with set_base() once it knows
+ * which slot is fitted, so the bank exists before anything is configured in it.
+ */
+function driverMemoryBanks(
+  ast: MameAstIndex,
+  className: string,
+  memberTags: Record<string, string>,
+): { member: string; tag: string }[] {
+  const classes = new Map(ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]));
+  return sourceClassHierarchy(ast, className).flatMap(name => [
+    ...(classes.get(name)?.body ?? '').matchAll(/\b(?:memory_bank_creator|required_memory_bank|optional_memory_bank)\s+(m_\w+)\s*[;{]/g),
+  ].flatMap(match => {
+    const tag = memberTags[`${name}::${match[1]}`] ?? memberTags[match[1]!];
+    return tag ? [{ member: match[1]!, tag }] : [];
+  }));
 }
 
 function sourceClassHierarchy(ast: MameAstIndex, className: string): string[] {

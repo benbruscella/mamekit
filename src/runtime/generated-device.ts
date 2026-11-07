@@ -429,6 +429,12 @@ export interface Device {
   constants(): Readonly<Record<string, number>>;
   methodNames(): readonly string[];
   /**
+   * A machine-config setter of an interface the host answers rather than the
+   * device: `.set_user_loadable(false)` on device_image_interface. False for
+   * one the host does not keep.
+   */
+  configureHost?(method: string, args: readonly unknown[]): boolean;
+  /**
    * PCM the device published through `sound_stream::put_int`, and clear it.
    *
    * A sound device rendered on the main thread has to hand its samples to the
@@ -2042,6 +2048,12 @@ class IrDevice implements Device {
       const chosen = selected === undefined && options.image ? this.defaultCardSoftware() : undefined;
       const option = String(selected ?? chosen ?? definition.slot.default ?? '');
       this.slotOption = option || undefined;
+      // device_slot_interface::default_option(): the card the machine config
+      // fits. Neo Geo's fixed cartridge slot hands it to set_cart_type, which
+      // names the PCB by comparing it against its own table.
+      const configured = String(options.slot ?? definition.slot.default ?? '');
+      this.bindings.calls!.default_option = () => configured as never;
+      (this.members.this as Record<string, unknown>).default_option ??= () => configured;
       const childDefinition = definition.slot.options[option];
       if (childDefinition) {
         const cartSpace = definition.slot.install?.space;
@@ -2530,6 +2542,15 @@ class IrDevice implements Device {
     return [...this.methods.keys()];
   }
 
+  /** The image-interface setters the host keeps (see hostImageFile). */
+  private readonly hostSettings: Record<string, readonly unknown[]> = {};
+
+  configureHost(method: string, args: readonly unknown[]): boolean {
+    if (method !== 'set_user_loadable' || !this.readsOwnFile()) return false;
+    this.hostSettings[method] = args.map(Number);
+    return true;
+  }
+
   /** Every stream the device allocated, in `stream_alloc` order. */
   streams(): readonly IrSoundStream[] {
     return this.soundStreams;
@@ -2813,10 +2834,11 @@ class IrDevice implements Device {
     const surface: Record<string, (...args: unknown[]) => unknown> = {
       exists: () => this.imageFile ? 1 : 0,
       is_open: () => this.imageFile ? 1 : 0,
-      // device_image_interface's own default; only a machine's internal
-      // socket says set_user_loadable(false). The generic cartridge slot
-      // reads a user-loaded ROM, not its region, on this answer.
-      user_loadable: () => 1,
+      // device_image_interface's own default, unless the machine config
+      // says set_user_loadable(false): Neo Geo's fixed cartridge socket, read
+      // from its regions rather than a loaded image. The generic cartridge
+      // slot reads a user-loaded ROM, not its region, on this answer.
+      user_loadable: () => this.hostSettings.set_user_loadable?.[0] === 0 ? 0 : 1,
       filename: () => this.imageFile?.name ?? 0,
       basename: () => this.imageFile?.name ?? 0,
       basename_noext: () => this.imageFile?.name.replace(/\.[^.]*$/, '') ?? 0,
@@ -3273,7 +3295,11 @@ function resolveDeviceResource(
   // (Battlezone's AVG state PROM is region "avg:prom"), as MAME does.
   // A device built inside another carries its full tag as deviceTag.
   const own = options.deviceTag && regions[`${options.deviceTag}:${resourceName}`] ? options.deviceTag : options.tag;
-  const subtag = own && resourceName !== 'self' ? `${own}:${resourceName}` : undefined;
+  // `^maincpu` from a cartridge card names its slot's region, `cslot1:maincpu`.
+  const relative = /^[\^:]/.test(resourceName) && (options.deviceTag ?? options.tag)
+    ? mameSubtag(options.deviceTag ?? options.tag ?? '', resourceName)
+    : undefined;
+  const subtag = relative ?? (own && resourceName !== 'self' ? `${own}:${resourceName}` : undefined);
   const regionName = resourceName === 'self'
     ? options.tag ?? ''
     : subtag && regions[subtag] ? subtag : resourceName;
@@ -3282,15 +3308,7 @@ function resolveDeviceResource(
   // questions -- how big, where does it start, give me the bytes -- and a
   // missing region answers as a null pointer does, which is what lets a
   // cartridge with no save RAM take MAME's own "no NVRAM" branch.
-  if (resource.kind === 'region-object') {
-    const bytes = regions[regionName];
-    if (!bytes?.length) return 0;
-    return {
-      bytes: () => bytes.length,
-      base: () => bytes,
-      as_u8: () => bytes,
-    };
-  }
+  if (resource.kind === 'region-object') return memoryRegionObject(regions[regionName]);
   if (resource.kind === 'region-pointer') {
     // MAME's `get_rom_base() + N`: the same bytes, addressed from an offset.
     return {
@@ -4088,4 +4106,29 @@ function inputFinderRead(
   return () => fallback !== undefined && inputs?.has?.(tag) === false
     ? fallback
     : inputs?.read(tag) ?? fallback ?? 0xff;
+}
+
+/**
+ * MAME's `memory_region *`. Whoever is handed one asks it how big it is, where
+ * it starts and for its bytes; a missing region answers as a null pointer
+ * does, which is what lets a cartridge with no save RAM take MAME's own "no
+ * NVRAM" branch.
+ */
+export function memoryRegionObject(bytes: Uint8Array | undefined): unknown {
+  if (!bytes?.length) return 0;
+  return {
+    found: () => 1,
+    bytes: () => bytes.length,
+    base: () => bytes,
+    // `&region->as_u8(n)` and `&region->as_u16(n)`: the storage from byte or
+    // word n, as the device's own pointers read it.
+    as_u8: (offset = 0) => Number(offset) ? { generatedPointer: true, source: bytes, offset: Number(offset) } : bytes,
+    as_u16: (offset = 0) => {
+      const words = generatedPackedView(bytes, false);
+      return Number(offset) ? { generatedPointer: true, source: words, offset: Number(offset) } : words;
+    },
+    // What `&` of each answers, as emitted code asks for it.
+    'as_u8&': (offset = 0) => ({ generatedPointer: true, source: bytes, offset: Number(offset) }),
+    'as_u16&': (offset = 0) => ({ generatedPointer: true, source: generatedPackedView(bytes, false), offset: Number(offset) }),
+  };
 }

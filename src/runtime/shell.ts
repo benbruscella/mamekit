@@ -16,7 +16,7 @@ import { readZip, crc32 } from './zip.ts';
 import { missingMedia, putMedia, recordMedia, transportImage, type TransportImage, type TransportMedia } from './transport-media.ts';
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
-import { executeGeneratedHandler } from '../ir/execute.ts';
+import { executeGeneratedHandler, markBigEndianWords } from '../ir/execute.ts';
 import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes, fetchSampleSetBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
@@ -70,6 +70,12 @@ export interface RomRegionSpec {
   fill?: number;
   /** MAME ROMREGION_INVERT complements every byte after the region is loaded. */
   invert?: boolean;
+  /**
+   * MAME ROMREGION_BE with ROMREGION_16BIT: a 68000's program, held here in
+   * its own byte order. MAME keeps it in the host's, so a `u16 *` over it
+   * reads whole words; the bytes are the same once read as words this way.
+   */
+  bigEndianWords?: true;
   /** Source ROM_FILL directives applied after physical chips are loaded. */
   fills?: { offset: number; size: number; value: number }[];
   /**
@@ -1832,6 +1838,7 @@ export function assembleRegions(
     if (spec.invert) {
       for (let index = 0; index < bytes.length; index++) bytes[index] ^= 0xff;
     }
+    if (spec.bigEndianWords) markBigEndianWords(bytes);
     regions[spec.region] = bytes;
   }
   if (missingOther.length) {

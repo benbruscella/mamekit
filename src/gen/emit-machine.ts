@@ -20,7 +20,7 @@ import type {
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
-import { sourceRegionBindings } from '../mame/video-compiler.ts';
+import { sourceMemoryRegions, sourceRegionBindings } from '../mame/video-compiler.ts';
 import { lowerRamAllocation, ramPowerOn, sharePowerOn } from '../mame/ram-compiler.ts';
 
 /**
@@ -627,6 +627,10 @@ export function lowerGeneratedMachine(
   const startHandlers = Array.isArray(selectedMachine?.props.startHandlers)
     ? selectedMachine.props.startHandlers.map(String)
     : [];
+  // A driver's banks, filtered against the planned ones once those are lowered
+  // (build.ts driverMemoryBanks).
+  const driverBanks = ((selectedMachine?.props.memoryBanks as string[] | undefined) ?? [])
+    .map(value => JSON.parse(value) as { member: string; tag: string });
   // What the selected game's init leaves in driver state runs first, as MAME
   // runs the init before machine_start (build.ts).
   const initDelegates: { member: string; handler: string }[] = [];
@@ -686,7 +690,8 @@ export function lowerGeneratedMachine(
   // A driver timer with a real callback that nothing else reaches: no frame
   // event, scanline timer or device line targets the handler it fires, so
   // the board runs it as the one-shot MAME has, armed by the machine-start
-  // function that arms it in source (build.ts `armedTimers`).
+  // function that arms it in source (build.ts `armedTimers`), which runs
+  // as part of the machine's own start.
   const reachedHandlers = new Set(callbacks.flatMap(callback =>
     callback.targetClass && callback.targetMethod
       ? [`${callback.targetClass}.${callback.targetMethod}`]
@@ -694,12 +699,16 @@ export function lowerGeneratedMachine(
   for (const entry of (selectedMachine?.props.armedTimers as string[] | undefined) ?? []) {
     const match = /^([^=]+)=([^@]+)@(.+)$/.exec(entry);
     if (!match) continue;
-    const [, member, handler, arming] = match as unknown as [string, string, string, string];
+    const [, member, handler] = match as unknown as [string, string, string];
     if (reachedHandlers.has(handler) || genericTimers.some(timer => timer.member === member)) continue;
     if (!handlers.some(candidate => `${candidate.ownerClass}.${candidate.method}` === handler)) continue;
+    // Armed by a handler this machine has. Bubble Bobble allocates the
+    // irq_ack timer only its 68705 bootleg arms; a timer nothing arms ends no
+    // timeslice in MAME, and a driver timer puts the board on a per-line
+    // schedule.
+    if (!handlers.some(candidate => candidate.body?.includes(`${member}->adjust`))) continue;
     const precise = ((selectedMachine?.props.preciseTimers as string[] | undefined) ?? []).includes(member);
     genericTimers.push({ tag: member.replace(/^m_/, ''), member, handler, driver: true, ...(precise ? { precise: true as const } : {}) });
-    if (!startHandlers.includes(arming)) startHandlers.unshift(arming);
   }
   // Timers a composed device allocates in its device_start (build.ts). A
   // generated device runs its own timers.
@@ -761,6 +770,8 @@ export function lowerGeneratedMachine(
     }
   }
   const memoryBanks = lowerMemoryBanks(graph, sourceRef);
+  const unplannedBanks = driverBanks.filter(bank =>
+    !memoryBanks.some(planned => planned.member === bank.member || planned.tag === bank.tag));
   // The driver's own region_ptr finders, read straight from its source. These
   // reach the runtime whether or not the board compiles a video plan.
   const driverPath = join(String(graph.meta.mameSrc ?? ''), String(graph.meta.driverFile ?? ''));
@@ -775,6 +786,12 @@ export function lowerGeneratedMachine(
       existsSync(driverPath)
     ? sourceRegionBindings(readFileSync(driverPath, 'utf8'))
     : {});
+  // The driver's memory_region finders, declared in its header as often as in
+  // the driver itself.
+  const driverSources = [driverPath, driverPath.replace(/\.cpp$/, '.h')]
+    .filter(path => graph.meta.mameSrc && graph.meta.driverFile && existsSync(path))
+    .map(path => readFileSync(path, 'utf8')).join('\n');
+  const regionObjects = sourceMemoryRegions(driverSources);
   const executionCpus = board.cpus.map(cpu => {
     const interruptVectorWriters = inferInterruptVectorWriters(
       cpu.tag,
@@ -851,6 +868,7 @@ export function lowerGeneratedMachine(
   // What the driver's machine_start leaves in a RAM share at power-on.
   const sharePowerOnBytes = machineStartShares(graph, rootMachineClass, executionCpus, shareBindings);
   const execution: GeneratedExecutionPlan = {
+    ...(Object.keys(regionObjects).length ? { regionObjects } : {}),
     ...(Object.keys(driverRegionBindings).length
       ? { regionBindings: driverRegionBindings }
       : {}),
@@ -869,6 +887,7 @@ export function lowerGeneratedMachine(
     ...(shareBindings.length ? { shareBindings } : {}),
     ...(startHandlers.length ? { startHandlers } : {}),
     ...(initDelegates.length ? { initDelegates } : {}),
+    ...(unplannedBanks.length ? { memoryBanks: unplannedBanks } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
     ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),

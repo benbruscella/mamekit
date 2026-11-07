@@ -512,40 +512,6 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       }];
     });
 
-  if (family === 'neogeo') {
-    const main = cpus.find(cpu => cpu.tag === 'maincpu');
-    if (main) {
-      // set_slot_idx installs the fixed cartridge window and its initial 1 MiB
-      // bank dynamically. Fixed arcade carts select slot zero at machine start;
-      // expressing those source-owned installs as ranges lets the generated
-      // bus execute the BIOS-to-cartridge handoff before dynamic bank changes.
-      main.ranges = [
-        {
-          start: 0x000080,
-          end: 0x0fffff,
-          kind: 'rom' as const,
-          region: 'cslot1:maincpu',
-          romOffset: 0x80,
-        },
-        {
-          start: 0x200000,
-          end: 0x2fffff,
-          kind: 'rom' as const,
-          region: 'cslot1:maincpu',
-          romOffset: 0x100000,
-        },
-        ...main.ranges,
-        {
-          start: 0x000000,
-          end: 0x00007f,
-          kind: 'rom' as const,
-          region: 'mainbios',
-          romOffset: 0,
-        },
-      ];
-    }
-  }
-
   // legacy alias: boards for single-map families read cpus[n].ranges; the
   // shared `ranges` field mirrors cpu[0] for the galaga family's shared map
   const ranges = cpus[0].ranges;

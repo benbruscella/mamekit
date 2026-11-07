@@ -487,6 +487,11 @@ class HandlerParser {
       return undefined;
     }
     const operation = this.expressionStatement(expression);
+    // `m_rom_view[i + 1];` names a view entry and nothing more. MAME creates
+    // the empty entry on first use; a view here is built from its installs,
+    // and an entry with none already decodes nothing, so the statement does
+    // nothing to lower.
+    if (!operation && pureLvalue(expression)) return [];
     if (!operation) {
       this.diagnostics.push(`discarded non-call expression at byte ${start.offset}`);
       return undefined;
@@ -1838,6 +1843,19 @@ function unquote(text: string): string {
     }
   }
   return text.slice(1, -1);
+}
+
+/** A name, member or subscript built only from those and numbers: no call, no store. */
+function pureLvalue(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'identifier' || expression.kind === 'number') return true;
+  if (expression.kind === 'member') return pureLvalue(expression.object);
+  if (expression.kind === 'index') return pureLvalue(expression.object) && pureIndex(expression.index);
+  return false;
+}
+
+function pureIndex(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'binary') return pureIndex(expression.left) && pureIndex(expression.right);
+  return pureLvalue(expression);
 }
 
 function expressionName(expression: GeneratedExpression): string {

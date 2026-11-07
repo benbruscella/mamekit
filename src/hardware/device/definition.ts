@@ -103,6 +103,8 @@ export const DEVICE_MAME_TYPES = [
   'NAMCO_53XX',
   // Vblank-counted or timed; firing is machine().schedule_soft_reset().
   'WATCHDOG_TIMER',
+  // Neo Geo's calendar clock, with the device_rtc_interface it counts in.
+  'UPD4990A',
 ] as const;
 
 export const DEVICE_PORTS: readonly PortDeclaration[] = [
