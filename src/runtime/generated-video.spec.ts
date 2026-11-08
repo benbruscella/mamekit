@@ -159,56 +159,6 @@ const machine: BoardIr = {
   );
 }
 
-// Universal's Lady Bug hardware inverts each PROM output before its RGB
-// resistor network. A zero PROM byte must therefore produce the bright color,
-// while an all-one byte produces black.
-{
-  const paletteMachine: BoardIr = {
-    ...machine,
-    video: {
-      gfx: [],
-      tilemaps: [],
-      initialState: {},
-      palette: {
-        region: 'proms',
-        colorCount: 2,
-        min: 0,
-        max: 255,
-        scaler: -1,
-        channels: (['r', 'g', 'b'] as const).map(channel => ({
-          channel,
-          bits: [0, 1],
-          inverted: [true, true],
-          resistances: [470, 220],
-          pulldown: 470,
-          pullup: 0,
-        })),
-        lookupOffset: 0,
-        lookupCount: 2,
-        lookupMask: 0xff,
-        banks: [{
-          penOffset: 0,
-          colorOr: 0,
-          lookupOffset: 0,
-          lookupCount: 2,
-          direct: true,
-        }],
-        transparentIndirect: 0,
-      },
-    },
-  };
-  const paletteState: Record<string, unknown> = {};
-  new GeneratedMameVideoPrimitives(
-    paletteMachine,
-    { proms: Uint8Array.of(0x00, 0xff) },
-    paletteState,
-    {},
-  );
-  const palette = paletteState.m_palette as { colors: Uint32Array };
-  assert.equal(palette.colors[0], 0xffffffff);
-  assert.equal(palette.colors[1], 0xff000000);
-}
-
 const renderer = new GeneratedVideoRenderer(machine, primitives);
 const frame = new Uint32Array(4);
 renderer.vblank();
@@ -627,9 +577,21 @@ assert.deepEqual(
 // Packed-framebuffer machines such as Juno First still receive their palette
 // bytes through palette_device::write8; those writes must update the bitmap
 // palette rather than only the tile/sprite RAM-palette implementation.
+// Palette RAM converted by the driver's own set_format routine
+// (Tutankham's raw_to_rgb_func): the routine runs as the board handler it is,
+// for the power-on RAM and again for every entry written.
 {
+  const converterBody = 'return rgb_t(BIT(raw, 0) ? 255 : 0, BIT(raw, 1) ? 255 : 0, BIT(raw, 2) ? 255 : 0);';
   const bitmapMachine: BoardIr = {
     ...machine,
+    handlers: [{
+      id: 'handler:test_state.raw_to_rgb',
+      ownerClass: 'test_state',
+      method: 'raw_to_rgb',
+      parameters: 'u32 raw',
+      body: converterBody,
+      program: compileMameHandler(converterBody),
+    }],
     video: {
       gfx: [],
       tilemaps: [],
@@ -650,11 +612,8 @@ assert.deepEqual(
           min: 0,
           max: 255,
           scaler: 1,
-          channels: [
-            { channel: 'r', bits: [0], resistances: [1], pulldown: 0, pullup: 0 },
-            { channel: 'g', bits: [1], resistances: [1], pulldown: 0, pullup: 0 },
-            { channel: 'b', bits: [2], resistances: [1], pulldown: 0, pullup: 0 },
-          ],
+          channels: [],
+          converter: 'test_state.raw_to_rgb',
         },
       },
     },

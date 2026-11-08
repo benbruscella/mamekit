@@ -1898,9 +1898,6 @@ function compileValueWrapper(valueType: string | undefined): (value: unknown) =>
     (valueType?.includes('&') ?? false);
   const declared = valueType?.replace(/\bconst\b/g, '').trim();
   const narrow = compileValueNarrowing(declared);
-  // A rectangle is a value: `rectangle adjusted = cliprect;` is a copy the
-  // body may move, never the caller's own rectangle under a second name.
-  if (declared === 'rectangle') return value => isIntersectable(value) ? intersectionCopy(value) : value;
   return value => {
     if (packed && value instanceof Uint8Array) return packed(value);
     if (opaque) return value;
@@ -3148,11 +3145,6 @@ function assign(
   value: unknown,
   context: ExecutionContext,
 ): void {
-  // A local declared as a rectangle takes a copy, as C++ assigns a value.
-  if (operator === '=' && target.kind === 'identifier' && isIntersectable(value) &&
-      context.localTypes[target.name]?.replace(/\bconst\b/g, '').trim() === 'rectangle') {
-    value = intersectionCopy(value);
-  }
   // `static_cast<base &>(*this) = config`: the object's own base subobject
   // takes each field. Atari's motion-object device inherits its
   // configuration struct and set_config copies the driver's aggregate in.

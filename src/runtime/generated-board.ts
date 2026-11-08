@@ -851,6 +851,24 @@ class IrBoard implements Board {
             highlights_enabled: () => this.videoPrimitives?.paletteShadows?.()?.highlightGroup ? 1 : 0,
             shadow_table: () => this.videoPrimitives?.paletteShadows?.()?.shadow_table() ?? 0,
           },
+          // The device's owner -- the driver -- answers its shares by tag:
+          // sprite.h's device_start binds `owner()->memshare(tag())` as the
+          // sprite RAM. A share a 16-bit processor owns is its words, as the
+          // board binds it (bindGeneratedShareState).
+          owner: {
+            memshare: (tag: unknown) => {
+              // A tag path (`:mob`, or a child's `owner:mob`) names its leaf share.
+              const leaf = String(generatedCallValue(tag) ?? '').split(':').at(-1)!;
+              tag = leaf;
+              const bytes = this.shares[leaf];
+              if (!bytes) return 0;
+              const words = machine.execution.cpus.some(cpu =>
+                generatedCpuDataWidth(cpu.type ?? 'Z80') === 16 &&
+                [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].some(range => range.share === String(generatedCallValue(tag))));
+              const view = words ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1) : bytes;
+              return { ptr: () => view, bytes: () => bytes.length };
+            },
+          },
           machine: {
             side_effects_disabled: () => 0,
             phase: () => this.machinePhase,

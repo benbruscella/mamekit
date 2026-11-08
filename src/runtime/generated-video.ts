@@ -1432,6 +1432,15 @@ export class GeneratedGfxElement {
     return this.decoded.count;
   }
 
+  /** gfx_element::width()/height(): a tile's size, which atarimo sizes its grid from. */
+  width(): number {
+    return this.decoded.width;
+  }
+
+  height(): number {
+    return this.decoded.height;
+  }
+
   rowbytes(): number {
     return this.decoded.width;
   }

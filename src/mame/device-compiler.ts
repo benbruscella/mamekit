@@ -712,11 +712,25 @@ function compileMameDeviceSource(
       if (source) sources.push({ file, source });
     }
   }
+  // A template instance named through an alias is that template: a call
+  // qualified by the alias (atarimo's `sprite16_device_ind16::device_start()`)
+  // is the template's method, so it is spelled that way before parsing.
+  const joinedSource = sources.map(({ source }) => source).join('\n');
+  const definedTemplates = new Set([...stripCppComments(joinedSource)
+    .matchAll(/\btemplate\s*<[^;{}]*?>\s*(?:class|struct)\s+(\w+)/g)].map(match => match[1]!));
+  const aliasTemplates = new Map([...templateAliases(joinedSource)]
+    .filter(([, alias]) => definedTemplates.has(alias.template)));
+  if (aliasTemplates.size) {
+    for (const source of sources) {
+      source.source = source.source.replace(/\b(\w+)\s*::\s*(?=~?\w)/g, (whole, alias: string) =>
+        aliasTemplates.has(alias) ? `${aliasTemplates.get(alias)!.template}::` : whole);
+    }
+  }
   const ast = parseMameAst(sources);
   const classes = new Map(
     ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]),
   );
-  resolveTemplateAliasBases(classes, sources.map(({ source }) => source).join('\n'));
+  resolveTemplateAliasBases(classes, aliasTemplates);
   const hierarchy = classHierarchy(definition.className, classes);
   const memberOwners = new Map<string, string[]>();
   for (const className of hierarchy) {
@@ -3454,7 +3468,8 @@ function resolveInheritedBaseCalls(
  * Unresolved, the hierarchy stopped at the alias and the motion-object device
  * had no draw_async, bitmap() or spriteram() -- it never drew a sprite.
  */
-function resolveTemplateAliasBases(classes: Map<string, MameClass>, source: string): void {
+/** `typedef T<args> Name;` and `using Name = T<args>;`, by alias name. */
+function templateAliases(source: string): Map<string, { template: string; args: string[] }> {
   const aliases = new Map<string, { template: string; args: string[] }>();
   const text = stripCppComments(source);
   for (const match of text.matchAll(/\btypedef\s+([\w:]+)\s*<([^;<>]*(?:<[^;<>]*>[^;<>]*)*)>\s*(\w+)\s*;/g)) {
@@ -3463,6 +3478,13 @@ function resolveTemplateAliasBases(classes: Map<string, MameClass>, source: stri
   for (const match of text.matchAll(/\busing\s+(\w+)\s*=\s*([\w:]+)\s*<([^;<>]*(?:<[^;<>]*>[^;<>]*)*)>\s*;/g)) {
     aliases.set(match[1]!, { template: match[2]!.split('::').at(-1)!, args: splitMameArgs(match[3]!).map(arg => arg.trim()) });
   }
+  return aliases;
+}
+
+function resolveTemplateAliasBases(
+  classes: Map<string, MameClass>,
+  aliases: Map<string, { template: string; args: string[] }>,
+): void {
   if (!aliases.size) return;
   for (const [name, declaration] of classes) {
     const bases = declaration.bases.map(base => {

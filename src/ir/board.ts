@@ -382,6 +382,9 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   'palette().shadows_enabled',
   'palette().highlights_enabled',
   'palette().shadow_table',
+  // device_t::owner()->memshare(tag()): a sprite device finds its sprite RAM
+  // as the share named for its own tag (sprite.h's device_start).
+  'owner().memshare',
 ];
 
 export type GeneratedExpression =

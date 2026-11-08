@@ -1260,7 +1260,10 @@ class IrDevice implements Device {
           // the struct as its members, one runtime per struct, kept. POKEY's
           // four channels count down through inc_chan and check_borrow once a
           // clock, and interpreted they were most of a POKEY board's time.
-          const compiled = definition.allocations?.[type]?.compiledMethods?.[method.name];
+          // Compiled methods are keyed by name, so an overloaded one is left
+          // to the interpreter, which picks the overload by its arguments.
+          const overloaded = methods.filter(candidate => candidate.name === method.name).length > 1;
+          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name];
           if (compiled) {
             // Four check_borrow calls a clock: no rest array, no mapped copy.
             const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;
@@ -1285,10 +1288,18 @@ class IrDevice implements Device {
             // One bindings object per struct, kept: the compiled program is
             // cached by bindings, and a fresh one per call recompiled ymfm's
             // `output->clear()` fifty thousand times a second.
+            // A struct method calling its own sibling -- `set(input.data)` in
+            // atarimo's sprite_parameter -- reaches the struct's method (by its
+            // overloads), before anything of the device's of that name.
             let bindings = STRUCT_BINDINGS.get(this);
-            if (!bindings) STRUCT_BINDINGS.set(this, bindings = {
-              members: this, constants: device.bindings.constants, calls: device.bindings.calls,
-            } as GeneratedHandlerBindings);
+            if (!bindings) {
+              const own = STRUCT_METHODS.get(definition.structs!)?.[type] ?? {};
+              const calls = Object.create(device.bindings.calls ?? null) as Record<string, unknown>;
+              for (const [name, fn] of Object.entries(own)) calls[name] = (fn as (...args: unknown[]) => unknown).bind(this);
+              STRUCT_BINDINGS.set(this, bindings = {
+                members: this, constants: device.bindings.constants, calls,
+              } as GeneratedHandlerBindings);
+            }
             return executeGeneratedProgram(method.program, bindings, locals, false).value;
           }];
         }))])));
@@ -1632,6 +1643,9 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
+        // device_t::tag(): the device's own tag, which sprite.h hands its
+        // owner to find the share named for it.
+        tag: () => this.ownTag,
         // `rectangle(min_x, max_x, min_y, max_y)`, a value: sprite.cpp's
         // sparse_dirty_bitmap starts `m_rect_list_bounds(0, -1, 0, -1)`.
         // A bitmap built over memory: `BitmapType wrapped(base, w, h, rowpixels)`.
