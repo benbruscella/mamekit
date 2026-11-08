@@ -918,7 +918,11 @@ function emitOperation(
               operation.value.callee.name === 'ARRAY' && /\*\s*$/.test(operation.valueType ?? ''))
           ? value
           : wrapAllocatedArray(value, operation.valueType))
-        : wrapType(value, operation.valueType)
+        // `rectangle adjusted = cliprect;` is a copy the body may move
+        // (sprite.h's draw_async offsets it), not the caller's own.
+        : operation.valueType?.replace(/\bconst\b/g, '').trim() === 'rectangle' && operation.value?.kind !== 'call'
+          ? copiedValue(value)
+          : wrapType(value, operation.valueType)
     };${pointee ? ` let ${pointee}${annotation} = runtime.dereference(${localName(operation.name)});` : ''}`;
   }
   if (operation.op === 'assign') {
@@ -2106,6 +2110,9 @@ function valueMemberCallCode(
   // element. Running it through runtime.dereference turns an empty vector into
   // undefined, so the first push is discarded and it remains empty forever.
   if (property === 'push') return `(${object}).push(${args.join(', ')})`;
+  // So is emplace_back, which builds the element and answers it
+  // (generatedVector): sprite.cpp's rect list started empty and stayed so.
+  if (property === 'emplace_back') return `(${object}).emplace_back(${args.join(', ')})`;
   // A member holding a C++ pointer is a generated pointer at run time, not the
   // thing it points at: `m_vram_space = &space(AS_DATA)` makes every
   // `m_vram_space->read_byte(...)` a call on the wrapper. The interpreter
@@ -2118,6 +2125,8 @@ function valueMemberCallCode(
   const finder = member?.finder?.kind === 'device' ||
     /^(?:required|optional)_device(?:_array)?</.test(member?.valueType ?? '');
   const directObject = finder || /^bitmap_(?:rgb32|ind16|ind8)$/.test(member?.valueType ?? '') ||
+    // A std::vector member is the container, never a pointer to its first element.
+    /^std::vector\s*</.test(member?.valueType ?? '') ||
     (receiver.kind === 'call' && receiver.callee.kind === 'identifier' &&
       receiver.callee.name === 'space' && Boolean(context.definition.spaces?.length));
   const accessed = directObject ? `(${object})` : `runtime.dereference(${object})`;
@@ -2377,6 +2386,12 @@ function emitAssignment(
   // must leave two structs, not one object under two names.
   if (operator === '=' && expression.kind === 'identifier' && !context.locals.has(expression.name)) {
     const member = context.definition.members.find(candidate => candidate.name === expression.name);
+    // So does a rectangle: sprite.cpp keeps `m_rect_list_bounds = cliprect`,
+    // and holding the caller's object instead, its invalidate_rect_list()
+    // emptied the screen update's own cliprect -- nothing drew after it.
+    if (member?.valueType.trim() === 'rectangle') {
+      return `members.${member.name} = ${copiedValue(right)}`;
+    }
     if (member?.fields && !member.arrayLength && !member.valueType.includes('*')) {
       const copier = structCopier(member, value, context);
       if (copier) return `${copier}(members.${member.name}, ${right})`;
@@ -2433,6 +2448,16 @@ function pointerAssignment(
     : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
 }
 
+/**
+ * A copy of a class value C++ assigns by value: a rectangle (anything with
+ * rectangle's `intersect`) is cloned, any other value passes through.
+ * Self-contained, so board and device code emit it alike.
+ */
+function copiedValue(value: string): string {
+  return `((__v) => (__v !== null && typeof __v === 'object' && typeof __v.intersect === 'function') ` +
+    `? Object.assign(Object.create(Object.getPrototypeOf(__v)), __v) : __v)(${value})`;
+}
+
 function emitAddressOf(
   expression: GeneratedExpression,
   context: EmitContext,
@@ -2446,6 +2471,12 @@ function emitAddressOf(
     return context.pointerSafeIndex
       ? `runtime.addressOf(${object}, ${index})`
       : `({ generatedPointer: true, source: ${object}, offset: ${index} })`;
+  }
+  // A container's element reference -- `&v.emplace_back(...)`, `&v.back()`
+  // -- is that element, an object whose address is itself.
+  if (expression.kind === 'call' && expression.callee.kind === 'member' &&
+      ['emplace_back', 'back', 'front'].includes(expression.callee.property)) {
+    return emitExpression(expression, context);
   }
   if (expression.kind === 'call' && expression.callee.kind === 'member') {
     // A slot of an array of pointers holds a pointer to the object, whose

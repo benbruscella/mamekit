@@ -1,6 +1,6 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
-import type { BoardIr, GeneratedGfxEntry, GeneratedGfxLayout, GeneratedHandler, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
+import type { BoardIr, GeneratedGfxEntry, GeneratedGfxLayout, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineHandler,
@@ -8,7 +8,6 @@ import {
   executeGeneratedMachineProgram,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
-import { executeGeneratedHandler } from '../ir/execute.ts';
 import { GeneratedRectangle } from './rectangle.ts';
 import { decodeGfx, redecodeGfxElement, type GfxSet } from './gfx.ts';
 
@@ -948,12 +947,18 @@ class GeneratedBitmapPalette implements GeneratedPaletteDevice {
   private readonly plan:
     NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {};
 
+  private readonly convert?: (raw: number) => number;
+
   constructor(
     plan: NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {},
+    convert?: (raw: number) => number,
   ) {
     this.plan = plan;
+    this.convert = convert;
     this.ram = new Uint8Array(plan.entries);
-    this.colors = createRamPalette(plan, this.ram);
+    // A converter is a board handler, callable once the video's bindings are
+    // composed; the host converts the power-on RAM then (reset()).
+    this.colors = convert ? new Uint32Array(plan.entries) : createRamPalette(plan, this.ram);
   }
 
   read8(offset: number): number {
@@ -963,12 +968,16 @@ class GeneratedBitmapPalette implements GeneratedPaletteDevice {
   write8(offset: number, data: number): void {
     if (offset < 0 || offset >= this.ram.length) return;
     this.ram[offset] = data & 0xff;
+    if (this.convert) {
+      this.colors[offset] = this.convert(data & 0xff) >>> 0;
+      return;
+    }
     this.colors = createRamPalette(this.plan, this.ram);
   }
 
   reset(): void {
     this.ram.fill(0);
-    this.colors = createRamPalette(this.plan, this.ram);
+    this.colors = createRamPalette(this.plan, this.ram, this.convert);
   }
 
   transpen_mask(): number {
@@ -981,129 +990,6 @@ class GeneratedBitmapPalette implements GeneratedPaletteDevice {
 
   pens(): Uint32Array {
     return this.colors;
-  }
-}
-
-/**
- * A palette whose colors come from executing MAME's own init callback.
- *
- * The declarative PROM palette above is the normal path and stays preferred:
- * it is inspectable data. This is for callbacks that compute their network in
- * source instead of declaring it (Mr. Do! derives sixteen resistor weights from
- * parallel resistances, a pull-down and a diode drop). The callback runs once
- * here against the palette_device operations it calls in MAME.
- */
-class GeneratedProgramPalette implements GeneratedPaletteDevice {
-  /** Save-state roots (machine-state.ts). */
-  stateKeys(): readonly string[] {
-    return ['colors', 'indirect', 'indirectColors'];
-  }
-
-  readonly colors: Uint32Array;
-  readonly indirect: Uint16Array;
-  private readonly indirectColors: Uint32Array;
-
-  constructor(plan: GeneratedProgramPalettePlan, regions: Regions, game: string) {
-    this.colors = new Uint32Array(Math.max(1, plan.entries));
-    this.indirect = new Uint16Array(this.colors.length);
-    this.indirectColors = new Uint32Array(Math.max(1, plan.indirectEntries));
-    const device: Record<string, (...args: number[]) => unknown> = {
-      set_indirect_color: (index, color) => {
-        if (index >= 0 && index < this.indirectColors.length) {
-          this.indirectColors[index] = color >>> 0;
-        }
-        return 0;
-      },
-      set_pen_indirect: (pen, indirect) => {
-        if (pen >= 0 && pen < this.indirect.length) this.indirect[pen] = indirect & 0xffff;
-        return 0;
-      },
-      set_pen_color: (pen, colorOrRed, green, blue) => {
-        if (pen < 0 || pen >= this.colors.length) return 0;
-        this.colors[pen] = green === undefined || blue === undefined
-          ? colorOrRed >>> 0
-          : packRgb(colorOrRed, green, blue);
-        return 0;
-      },
-      entries: () => this.colors.length,
-      indirect_entries: () => this.indirectColors.length,
-    };
-    const calls: Record<string, (...args: number[]) => unknown> = {};
-    for (const [method, implementation] of Object.entries(device)) {
-      // The callback names the device by its own parameter; a driver that
-      // calls the method unqualified reaches the same implementation.
-      calls[`${plan.deviceParameter}.${method}`] = implementation;
-      calls[method] = implementation;
-    }
-    executeGeneratedHandler(plan.program, {
-      constants: plan.constants ?? {},
-      members: {},
-      calls,
-      referenceCalls: {
-        // `set_pen_colors(base, table)` hands over a whole rgb_t table (the
-        // Spectrum's sixteen pens), which a numeric call would flatten.
-        ...Object.fromEntries([plan.deviceParameter, ''].map(owner => [
-          owner ? `${owner}.set_pen_colors` : 'set_pen_colors',
-          (...args: unknown[]) => {
-            const base = Number(generatedArgumentValue(args[0]) ?? 0);
-            const table = generatedArgumentValue(args[1]) as ArrayLike<number> | undefined;
-            const count = args[2] === undefined ? table?.length ?? 0 : Number(generatedArgumentValue(args[2]));
-            for (let index = 0; index < count; index++) {
-              const pen = base + index;
-              if (pen >= 0 && pen < this.colors.length) this.colors[pen] = Number(table?.[index]) >>> 0;
-            }
-            return 0;
-          },
-        ])),
-        memregion: (...args: unknown[]) => {
-          const tag = String(generatedArgumentValue(args[0]) ?? '');
-          const bytes = regions[tag];
-          if (!bytes) throw new Error(`${game}: missing palette ROM region "${tag}"`);
-          return { base: () => bytes, bytes: () => bytes.length };
-        },
-      },
-    });
-    // MAME resolves a pen lazily from its indirect entry, so the callback is
-    // free to write the lookup table before the colors it points at.
-    if (plan.indirectEntries) {
-      for (let pen = 0; pen < this.colors.length; pen++) {
-        this.colors[pen] = this.indirectColors[this.indirect[pen]!] ?? 0xff000000;
-      }
-    }
-  }
-
-  transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number {
-    let mask = 0;
-    const base = gfx.entry.colorBase + color * gfx.granularity();
-    for (let pen = 0; pen < gfx.granularity(); pen++) {
-      if (this.indirect[base + pen] === transparent) mask |= 1 << pen;
-    }
-    return mask;
-  }
-
-  black_pen(): number {
-    for (let pen = 0; pen < this.colors.length; pen++) {
-      if (this.colors[pen] === 0xff000000) return pen;
-    }
-    return 0;
-  }
-
-  pens(): Uint32Array {
-    return this.colors;
-  }
-
-  set_pen_indirect(pen: number, indirect: number): void {
-    if (pen < 0 || pen >= this.colors.length) return;
-    const color = indirect & 0xffff;
-    this.indirect[pen] = color;
-    this.colors[pen] = this.indirectColors[color] ?? 0xff000000;
-  }
-
-  set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
-    if (pen < 0 || pen >= this.colors.length) return;
-    this.colors[pen] = green === undefined || blue === undefined
-      ? colorOrRed >>> 0
-      : packRgb(colorOrRed, green, blue);
   }
 }
 
@@ -1142,94 +1028,23 @@ class GeneratedPalette implements GeneratedPaletteDevice {
     if (!lookupProm) {
       throw new Error(`generated palette: missing lookup ROM region "${plan.lookupRegion}"`);
     }
-    const weights = computeWeights(plan);
-    const coreCount = Math.max(
-      plan.colorCount,
-      ...(plan.computedColors ?? []).map(group => group.base + group.count),
-      ...(plan.indexedColors ?? []).map(group => group.base + group.colors.length),
-      ...(plan.promColors ?? []).map(group => group.base + group.count),
-    );
-    const core = new Uint32Array(coreCount);
+    // MAME's builtin PROM decoders (palette_device::RRRRGGGGBBBB_proms and
+    // kin) are fixed weightings of the PROM bits; every other palette is the
+    // driver's own callback, run as a handler (execution.paletteInits).
+    const core = new Uint32Array(plan.colorCount);
     for (let index = 0; index < plan.colorCount; index++) {
       const rgb = { r: 0, g: 0, b: 0 };
-      for (const [channelIndex, channel] of plan.channels.entries()) {
-        const values = weights[channel.channel];
-        let value: number;
-        if (plan.resNet) {
-          let inputs = 0;
-          for (let bit = 0; bit < channel.bits.length; bit++) {
-            const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-            inputs |= palettePromBit(source, channel, bit) << bit;
-          }
-          value = computeMameTtlSanyoResNet(
-            inputs,
-            channel.resistances,
-            channel.pullup,
-            channel.pulldown,
-            plan.resNet.amplifiers[channelIndex] ?? 'none',
-          );
-        } else {
-          value = 0;
-          for (let bit = 0; bit < channel.bits.length; bit++) {
-            const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-            value += values[bit]! * palettePromBit(source, channel, bit);
-          }
+      for (const channel of plan.channels) {
+        const weights = channel.weights;
+        if (!weights) throw new Error(`generated palette: channel ${channel.channel} has no weights`);
+        let value = 0;
+        for (let bit = 0; bit < channel.bits.length; bit++) {
+          const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
+          value += weights[bit]! * plan.scaler * palettePromBit(source, channel, bit);
         }
         rgb[channel.channel] = Math.floor(value + 0.5);
       }
       core[index] = packRgb(rgb.r, rgb.g, rgb.b);
-    }
-    if (plan.colorIndexMap) {
-      const decoded = core.slice();
-      for (let index = 0; index < plan.colorCount; index++) {
-        core[index] = decoded[plan.colorIndexMap[index] ?? index] ?? 0xff000000;
-      }
-    }
-    if (plan.forceBlack) {
-      for (let index = 0; index < plan.colorCount; index++) {
-        if ((index & plan.forceBlack.mask) === plan.forceBlack.value) {
-          core[index] = packRgb(0, 0, 0);
-        }
-      }
-    }
-    if (plan.normalize) normalizePaletteRange(core, plan.normalize);
-    for (const group of plan.indexedColors ?? []) {
-      core.set(Uint32Array.from(group.colors, color => color >>> 0), group.base);
-    }
-    // Computed sections derive each channel from bits of the color index
-    // through their own resistor network (05xx star colors and kin).
-    for (const group of plan.computedColors ?? []) {
-      const groupWeights = computeWeights({ ...plan, ...group });
-      for (let index = 0; index < group.count; index++) {
-        const rgb = { r: 0, g: 0, b: 0 };
-        for (const channel of group.channels) {
-          const values = groupWeights[channel.channel];
-          let value = 0;
-          for (let bit = 0; bit < channel.bits.length; bit++) {
-            value += values[bit]! * ((index >> channel.bits[bit]!) & 1);
-          }
-          rgb[channel.channel] = Math.floor(value + 0.5);
-        }
-        core[group.base + index] = packRgb(rgb.r, rgb.g, rgb.b);
-      }
-    }
-    for (const group of plan.promColors ?? []) {
-      for (let index = 0; index < group.count; index++) {
-        const rgb = { r: 0, g: 0, b: 0 };
-        for (const channel of group.channels) {
-          const values = channel.weights ?? computeWeights({
-            ...plan,
-            channels: [channel],
-          })[channel.channel];
-          let value = 0;
-          for (let bit = 0; bit < channel.bits.length; bit++) {
-            const source = prom[index + (channel.offsets?.[bit] ?? 0)] ?? 0;
-            value += values[bit]! * palettePromBit(source, channel, bit);
-          }
-          rgb[channel.channel] = Math.floor(value + 0.5);
-        }
-        core[group.base + index] = packRgb(rgb.r, rgb.g, rgb.b);
-      }
     }
     this.indirectColors = core;
     const penCount = Math.max(
@@ -1319,86 +1134,6 @@ function palettePromBit(
   position: number,
 ): number {
   return ((source >>> channel.bits[position]!) & 1) ^ Number(channel.inverted?.[position] ?? false);
-}
-
-/** TNX1's DMA-selected background/text/sprite PROM resistor networks. */
-class GeneratedTnx1Palette implements GeneratedPaletteDevice {
-  /** Save-state roots (machine-state.ts). */
-  stateKeys(): readonly string[] {
-    return ['bank', 'colors'];
-  }
-
-  readonly colors = new Uint32Array(80);
-  private readonly colorProm: Uint8Array;
-  private readonly spriteProm: Uint8Array;
-  private bank = -1;
-
-  constructor(
-    plan: NonNullable<GeneratedPromPalettePlan['dynamic']>,
-    regions: Regions,
-  ) {
-    const colorProm = regions[plan.colorRegion];
-    const spriteProm = regions[plan.spriteRegion];
-    if (!colorProm || !spriteProm) {
-      throw new Error(
-        `generated TNX1 palette: missing ROM region "${!colorProm ? plan.colorRegion : plan.spriteRegion}"`,
-      );
-    }
-    this.colorProm = colorProm;
-    this.spriteProm = spriteProm;
-    this.colors.fill(0xff000000);
-  }
-
-  sync(state: Record<string, unknown>): void {
-    const bank = Number(state.m_palette_bank ?? 0) & 0x0f;
-    if (bank === this.bank) return;
-    this.bank = bank;
-    const colorBank = (bank & 0x08) ? 16 : 0;
-    for (let index = 0; index < 16; index++) {
-      this.colors[index] = this.decode(
-        this.colorProm[colorBank + index] ?? 0,
-        [1200, 680, 470],
-        [680, 470],
-      );
-      const text = this.colorProm[32 + colorBank + index] ?? 0;
-      this.colors[16 + index * 2] = 0xff000000;
-      this.colors[17 + index * 2] = this.decode(
-        text,
-        [1000, 470, 220],
-        [470, 220],
-      );
-    }
-    const spriteBank = (bank & 0x07) * 32;
-    for (let index = 0; index < 32; index++) {
-      const address = spriteBank + index;
-      const aliased = (address & 0x3f) | ((address & 0x20) << 1);
-      this.colors[48 + index] = this.decode(
-        this.spriteProm[aliased] ?? 0,
-        [1000, 470, 220],
-        [470, 220],
-      );
-    }
-  }
-
-  private decode(value: number, rgbResistors: number[], blueResistors: number[]): number {
-    return packRgb(
-      computeMameTtlSanyoResNet(value & 0x07, rgbResistors, 470, 0, 'darlington'),
-      computeMameTtlSanyoResNet((value >>> 3) & 0x07, rgbResistors, 470, 0, 'darlington'),
-      computeMameTtlSanyoResNet((value >>> 6) & 0x03, blueResistors, 680, 0, 'darlington'),
-    );
-  }
-
-  transpen_mask(_gfx: GeneratedGfxElement, _color: number, transparent: number): number {
-    return 1 << transparent;
-  }
-
-  black_pen(): number {
-    return 0;
-  }
-
-  pens(): Uint32Array {
-    return this.colors;
-  }
 }
 
 export class GeneratedGfxElement {
@@ -2852,18 +2587,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       );
     }
     if (machine.video?.palette) {
-      this.palettes.set(
-        'm_palette',
-        machine.video.palette.dynamic?.kind === 'tnx1-banked'
-          ? new GeneratedTnx1Palette(machine.video.palette.dynamic, regions)
-          : new GeneratedPalette(machine.video.palette, regions),
-      );
-    }
-    if (machine.video?.paletteProgram) {
-      this.palettes.set(
-        'm_palette',
-        new GeneratedProgramPalette(machine.video.paletteProgram, regions, machine.game),
-      );
+      this.palettes.set('m_palette', new GeneratedPalette(machine.video.palette, regions));
     }
     const ramPalettePlan = machine.video?.ramPalette;
     if (ramPalettePlan) {
@@ -2875,11 +2599,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       this.palettes.set('m_palette', this.ramPalette);
     }
     if (bitmapPlan?.paletteRam) {
-      this.bitmapPalette = new GeneratedBitmapPalette(bitmapPlan.paletteRam);
+      this.bitmapPalette = new GeneratedBitmapPalette(bitmapPlan.paletteRam, this.paletteConverter(bitmapPlan.paletteRam));
       this.palettes.set(bitmapPlan.paletteRam.member, this.bitmapPalette);
-    }
-    for (const palette of machine.video?.palettes ?? []) {
-      this.palettes.set(palette.member, new GeneratedPalette(palette.plan, regions));
     }
     // Each palette_device MAME hands an init routine: the pens it sets are the
     // palette. The gfx decode names each by its finder.
@@ -3223,84 +2944,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     // Source creation order and generated plan order are identical.
     let nextCreatedTilemap = 0;
     const calls = bindings.calls ??= {};
-    const resistorWeightTables = new WeakMap<object, number[]>();
-    calls.compute_resistor_weights ??= (...rawArgs: number[]) => {
-      const args = rawArgs as unknown as unknown[];
-      const minimum = Number(args[0] ?? 0);
-      const maximum = Number(args[1] ?? 0);
-      const requestedScale = Number(args[2] ?? -1);
-      const networks = [3, 8, 13].flatMap(base => {
-        const count = Number(args[base] ?? 0);
-        const resistances = args[base + 1];
-        const output = args[base + 2];
-        if (!count || !Array.isArray(resistances) || !output || typeof output !== 'object') {
-          return [];
-        }
-        return [{
-          count,
-          resistances: resistances.map(Number),
-          output: output as object,
-          pulldown: Number(args[base + 3] ?? 0),
-          pullup: Number(args[base + 4] ?? 0),
-          weights: [] as number[],
-        }];
-      });
-      if (!networks.length) return requestedScale;
-      let maximumOutput = 0;
-      for (const network of networks) {
-        for (let active = 0; active < network.count; active++) {
-          let lowConductance = network.pulldown ? 1 / network.pulldown : 1 / 1e12;
-          let highConductance = network.pullup ? 1 / network.pullup : 1 / 1e12;
-          for (let index = 0; index < network.count; index++) {
-            const resistance = network.resistances[index] ?? 0;
-            if (!resistance) continue;
-            if (index === active) highConductance += 1 / resistance;
-            else lowConductance += 1 / resistance;
-          }
-          const low = 1 / lowConductance;
-          const high = 1 / highConductance;
-          network.weights[active] = Math.min(
-            maximum,
-            Math.max(minimum, (maximum - minimum) * low / (high + low) + minimum),
-          );
-        }
-        maximumOutput = Math.max(
-          maximumOutput,
-          network.weights.reduce((sum, value) => sum + value, 0),
-        );
-      }
-      const scale = requestedScale < 0
-        ? maximum / Math.max(Number.EPSILON, maximumOutput)
-        : requestedScale;
-      for (const network of networks) {
-        const scaled = network.weights.map(value => value * scale);
-        // MAME writes the computed values into the caller-owned weight array.
-        // Keeping them only in the WeakMap made later handler invocations lose
-        // the table when the IR evaluator materialised a fresh pointer wrapper
-        // for the same array (Gottlieb's dynamic palette is one such path).
-        const output = network.output as Record<number, number>;
-        for (let index = 0; index < scaled.length; index++) {
-          output[index] = scaled[index]!;
-        }
-        resistorWeightTables.set(
-          network.output,
-          scaled,
-        );
-      }
-      return scale;
-    };
-    calls.combine_weights ??= (...rawArgs: number[]) => {
-      const args = rawArgs as unknown as unknown[];
-      const output = args[0];
-      const weights = output && typeof output === 'object'
-        ? resistorWeightTables.get(output) ?? Array.from(output as ArrayLike<number>, Number)
-        : [];
-      const value = args.slice(1).reduce<number>(
-        (sum, bit, index) => sum + (weights[index] ?? 0) * Number(bit),
-        0,
-      );
-      return Math.trunc(value + 0.5);
-    };
     calls['m_screen.width'] = () => this.width;
     calls['m_screen.height'] = () => this.height;
     calls['machine().tilemap().create'] = () =>
@@ -3326,6 +2969,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         executeGeneratedMachineHandler(machine, handler, this.bindings, { [parameter]: palette });
       }
     }
+    // A palette RAM converted by the driver's set_format routine: its
+    // power-on entries, now that the routine can run.
+    this.bitmapPalette?.reset();
   }
 
   /** MAME allocates one priority bitmap per screen; so does this. */
@@ -3470,7 +3116,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   }
 
   resolveScreenPens(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void {
-    (this.palette as GeneratedTnx1Palette | undefined)?.sync?.(this.state);
     const colors = this.palette?.colors;
     if (!colors) return;
     const end = Math.min(frame.length, pens.length, start + count);
@@ -3486,6 +3131,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     for (let index = start; index < end; index++) {
       frame[index] = colors[pens[index]!] ?? 0xff000000;
     }
+  }
+
+  /** A set_format converter run as the board handler it is: raw entry in, rgb_t out. */
+  private paletteConverter(plan: { converter?: string }): ((raw: number) => number) | undefined {
+    if (!plan.converter) return undefined;
+    const handler = requiredHandler(this.machine, plan.converter);
+    const parameter = parameterNames(handler.parameters)[0] ?? 'raw';
+    return raw => Number(executeGeneratedMachineHandler(this.machine, handler, this.bindings, { [parameter]: raw }) ?? 0);
   }
 
   render(frame: Uint32Array): void {
@@ -3505,7 +3158,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     const palette = paletteBytes instanceof GeneratedBitmapPalette
       ? paletteBytes.colors
       : plan.paletteRam && ArrayBuffer.isView(paletteBytes)
-        ? createRamPalette(plan.paletteRam, paletteBytes as Uint8Array)
+        ? createRamPalette(plan.paletteRam, paletteBytes as Uint8Array, this.paletteConverter(plan.paletteRam))
         : undefined;
     const flipX = Boolean(plan.flipXMember && this.state[plan.flipXMember]);
     const flipY = Boolean(plan.flipYMember && this.state[plan.flipYMember]);
@@ -3563,7 +3216,9 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
 function createRamPalette(
   plan: NonNullable<NonNullable<BoardIr['video']>['bitmap']>['paletteRam'] & {},
   bytes: Uint8Array,
+  convert?: (raw: number) => number,
 ): Uint32Array {
+  if (convert) return Uint32Array.from(bytes, raw => convert(raw) >>> 0);
   if (plan.lookup) {
     const colors = new Uint32Array(plan.entries);
     for (let index = 0; index < colors.length; index++) {
@@ -3580,27 +3235,7 @@ function createRamPalette(
     }
     return colors;
   }
-  const network = {
-    min: plan.min,
-    max: plan.max,
-    scaler: plan.scaler,
-    channels: plan.channels,
-  };
-  const weights = computeWeights(network as GeneratedPromPalettePlan);
-  const colors = new Uint32Array(plan.entries);
-  for (let index = 0; index < colors.length; index++) {
-    const raw = bytes[index] ?? 0;
-    const rgb = { r: 0, g: 0, b: 0 };
-    for (const channel of plan.channels) {
-      rgb[channel.channel] = Math.floor(channel.bits.reduce(
-        (sum, bit, position) =>
-          sum + weights[channel.channel][position]! * ((raw >>> bit) & 1),
-        0,
-      ) + 0.5);
-    }
-    colors[index] = packRgb(rgb.r, rgb.g, rgb.b);
-  }
-  return colors;
+  throw new Error('palette RAM plan has neither a converter nor a lookup table');
 }
 
 // A MAME signature is a constant, so parsing it is cached by that string.
@@ -3639,21 +3274,6 @@ function generatedArgumentValue(value: unknown): unknown {
   return value;
 }
 
-/** Read the scalar addressed by a generated C++ pointer argument. */
-function generatedPointerNumber(value: unknown): number {
-  const pointer = value as {
-    generatedPointer?: boolean;
-    target?: { get?: () => unknown };
-    source?: ArrayLike<unknown>;
-    offset?: number;
-  } | undefined;
-  if (pointer?.generatedPointer) {
-    if (typeof pointer.target?.get === 'function') return Number(pointer.target.get() ?? 0);
-    if (pointer.source) return Number(pointer.source[pointer.offset ?? 0] ?? 0);
-  }
-  return Number(generatedArgumentValue(value) ?? 0);
-}
-
 function requiredHandler(machine: BoardIr, key: string): GeneratedHandler {
   const handler = machine.handlers?.find(candidate =>
     `${candidate.ownerClass}.${candidate.method}` === key &&
@@ -3677,95 +3297,6 @@ function mapStandardTile(
   if (key === 'TILEMAP_SCAN_ROWS') return row * columns + column;
   if (key === 'TILEMAP_SCAN_COLS') return column * rows + row;
   return 0;
-}
-
-function computeWeights(
-  plan: GeneratedPromPalettePlan,
-): Record<'r' | 'g' | 'b', number[]> {
-  const raw: Record<'r' | 'g' | 'b', number[]> = { r: [], g: [], b: [] };
-  let maximum = 0;
-  for (const channel of plan.channels) {
-    if (channel.weights) {
-      raw[channel.channel] = [...channel.weights];
-      maximum = Math.max(
-        maximum,
-        channel.weights.reduce((sum, value) => sum + value, 0),
-      );
-      continue;
-    }
-    const values = channel.resistances.map((_, selected) => {
-      let r0 = channel.pulldown ? 1 / channel.pulldown : 1 / 1e12;
-      let r1 = channel.pullup ? 1 / channel.pullup : 1 / 1e12;
-      for (let index = 0; index < channel.resistances.length; index++) {
-        const resistance = channel.resistances[index]!;
-        if (!resistance) continue;
-        if (index === selected) r1 += 1 / resistance;
-        else r0 += 1 / resistance;
-      }
-      r0 = 1 / r0;
-      r1 = 1 / r1;
-      return Math.min(
-        plan.max,
-        Math.max(plan.min, (plan.max - plan.min) * r0 / (r1 + r0) + plan.min),
-      );
-    });
-    raw[channel.channel] = values;
-    maximum = Math.max(maximum, values.reduce((sum, value) => sum + value, 0));
-  }
-  const scale = plan.scaler < 0 ? plan.max / maximum : plan.scaler;
-  for (const channel of ['r', 'g', 'b'] as const) {
-    raw[channel] = raw[channel].map(value => value * scale);
-  }
-  return raw;
-}
-
-/**
- * MAME compute_res_net for the MB7052/TTL-output, 5V-bias path followed by
- * the Sanyo EZV20 monitor stage. These are electrical inputs: a zero bit
- * actively pulls low and the monitor then inverts the mixed voltage.
- */
-function computeMameTtlSanyoResNet(
-  inputs: number,
-  resistances: readonly number[],
-  biasResistance: number,
-  groundResistance: number,
-  amplifier: 'darlington' | 'emitter' | 'none',
-): number {
-  const vcc = 5;
-  const vBias = 5;
-  const vLow = 0.05;
-  const vHigh = 4;
-  const ttlHighResistance = 50;
-  let conductance = 0;
-  let weightedVoltage = 0;
-  for (let bit = 0; bit < resistances.length; bit++) {
-    const resistance = resistances[bit]!;
-    if (!resistance || ((inputs >> bit) & 1)) continue;
-    conductance += 1 / resistance;
-    weightedVoltage += vLow / resistance;
-  }
-  if (biasResistance) {
-    conductance += 1 / biasResistance;
-    weightedVoltage += vBias / biasResistance;
-  }
-  if (groundResistance) conductance += 1 / groundResistance;
-
-  let openCollector = conductance > 0 && weightedVoltage / conductance > vHigh;
-  for (let bit = 0; bit < resistances.length; bit++) {
-    const resistance = resistances[bit]!;
-    if (!resistance || !((inputs >> bit) & 1) || openCollector) continue;
-    conductance += 1 / (resistance + ttlHighResistance);
-    weightedVoltage += vHigh / (resistance + ttlHighResistance);
-  }
-  let voltage = conductance > 0 ? weightedVoltage / conductance : 0;
-  if (amplifier === 'darlington') voltage = Math.max(0.7, voltage);
-  else if (amplifier === 'emitter') voltage = Math.max(0, voltage - 0.7);
-
-  voltage = vcc - voltage;
-  voltage = Math.max(0, voltage - 0.7);
-  voltage = Math.min(voltage, vcc - 1.4);
-  voltage = voltage / (vcc - 1.4) * vcc;
-  return Math.floor(voltage * 255 / vcc + 0.4);
 }
 
 /**

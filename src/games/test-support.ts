@@ -45,7 +45,5 @@ export function assertPaletteCallback(
 ): void {
   assert.ok(video, 'the video source must lower');
   assert.equal(video.plan.palette, undefined, 'no plan stands in for the palette callback');
-  assert.equal(video.plan.paletteProgram, undefined, 'no standalone program stands in for the palette callback');
-  assert.equal(video.plan.palettes, undefined, 'no plan stands in for a named palette callback');
   assert.deepEqual(video.paletteCallbacks?.map(({ member: _, ...callback }) => callback), expected);
 }

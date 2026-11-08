@@ -597,8 +597,7 @@ export function lowerGeneratedMachine(
         handler.ownerClass === paletteCallback.targetClass &&
         handler.method === paletteCallback.targetMethod)
     : undefined;
-  const otherPalette = compiledVideo?.plan.palette || compiledVideo?.plan.ramPalette ||
-    compiledVideo?.plan.palettes?.length || compiledVideo?.plan.paletteProgram;
+  const otherPalette = compiledVideo?.plan.palette || compiledVideo?.plan.ramPalette;
   if (paletteHandler && !otherPalette && paletteHandler.program?.diagnostics.length) {
     throw new Error(`${game}: palette callback ${paletteHandler.ownerClass}::${paletteHandler.method} ` +
       `does not compile: ${paletteHandler.program.diagnostics.join('; ')}`);

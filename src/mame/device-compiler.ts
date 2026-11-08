@@ -13,7 +13,7 @@ import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
-import { DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
+import { cppDefaultArgument, DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
 import {
   collectFunctionMacros,
   collectMemberCallMacros,
@@ -1842,12 +1842,24 @@ function compileMameDeviceSource(
     member.object = allocation;
     // Built as the owner's constructor builds it: `m_timer(*this)`, which
     // may be written inside the class (`ymfm_device_base`'s `m_chip(*this)`).
-    const initializer = [
+    const owning = [
       ...constructors.filter(candidate => hierarchy.includes(candidate.className)),
       ...hierarchy.flatMap(className => inlineConstructor(sources, className) ?? []),
-    ].flatMap(candidate => candidate.initializers)
-      .find(candidate => candidate.name === member.name);
-    if (initializer?.args.length) member.objectArgs = initializer.args.map(argument => argument.trim());
+    ].find(candidate => candidate.initializers.some(initializer => initializer.name === member.name));
+    const initializer = owning?.initializers.find(candidate => candidate.name === member.name);
+    // An argument naming the owning constructor's own parameter is that
+    // parameter's default, when the derived class's base call leaves it out:
+    // sprite_device's `m_dirty(dirty_granularity)`, with
+    // `int dirty_granularity = 3`, which atarimo's base call never passes.
+    // As a member name it read zero, and the dirty grid was one cell a pixel.
+    const parameterDefaults = new Map(splitMameArgs(owning?.parameters ?? '').flatMap(parameter => {
+      const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1];
+      const fallback = cppDefaultArgument(parameter);
+      return name && fallback !== undefined ? [[name, String(fallback)] as const] : [];
+    }));
+    if (initializer?.args.length) {
+      member.objectArgs = initializer.args.map(argument => parameterDefaults.get(argument.trim()) ?? argument.trim());
+    }
     if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
     delete member.values;
     delete member.initial;

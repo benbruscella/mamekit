@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = import.meta.dirname;
@@ -158,6 +158,38 @@ assert.deepEqual(
   'a direct-screen shape is a renderer written for one driver; generate the video ' +
     'instead (or, if one was removed, delete it from DIRECT_SCREEN_SHAPES)',
 );
+
+// The video stand-ins #240 retired, as two exact lists that may only shrink
+// (in the style of HOST_MODELS). A replaced video handler is a `*Handler` slot
+// on GeneratedVideoExecution that the runtime resolves to a stand-in body
+// instead of running MAME's method (CPS1 sprites, the Pole Position road, the
+// starfield row). A hand-ported library restates MAME library code in the
+// runtime: resnet.cpp's weights, atarimo.cpp's motion objects, the DVG.
+const REPLACED_VIDEO_HANDLERS: string[] = [];
+const HAND_PORTED_LIBRARIES: string[] = [];
+{
+  const videoExecution = readFileSync(join(root, '../ir/video-execution.ts'), 'utf8');
+  const runtimeSources = sharedRuntime.map(file => readFileSync(join(root, file), 'utf8')).join('\n');
+  const replaced = new Set([
+    ...[...videoExecution.matchAll(/^\s*(\w+Handler)\??\s*:/gm)].map(match => match[1]!),
+    ...[...runtimeSources.matchAll(/\breplacedHandler\s*\([^,]*,\s*[^)]*?\.(\w+)\s*\)/g)].map(match => match[1]!),
+  ]);
+  assert.deepEqual([...replaced].sort(), [...REPLACED_VIDEO_HANDLERS].sort(),
+    'a video handler the runtime replaces is a stand-in for MAME\'s method; compile the method instead ' +
+    '(or, if one was removed, delete it from REPLACED_VIDEO_HANDLERS)');
+  assert.doesNotMatch(videoExecution, /GeneratedDirectScreenShape|directScreen/,
+    'a direct-screen shape is a renderer written for one driver; lower the screen update instead');
+  const ported: string[] = [];
+  if (/\bcalls(?:\.|\[['"])(?:compute_resistor_weights|compute_res_net|combine_weights)\b|\bfunction\s+(?:computeWeights|computeMameTtlSanyoResNet)\b/
+    .test(runtimeSources)) ported.push('resnet.cpp');
+  if (/\bclass\s+\w*MotionObjects\b/.test(runtimeSources) || existsSync(join(root, '../mame/atarimo-compiler.ts'))) {
+    ported.push('atarimo.cpp');
+  }
+  if (existsSync(join(root, '../hardware/vector/dvg.ts'))) ported.push('avgdvg.cpp');
+  assert.deepEqual(ported.sort(), [...HAND_PORTED_LIBRARIES].sort(),
+    'a hand port of a MAME library restates MAME by hand; compile the library from source instead ' +
+    '(or, if one was removed, delete it from HAND_PORTED_LIBRARIES)');
+}
 
 const deviceExtract = readFileSync(join(root, '../hardware/device/extract.ts'), 'utf8');
 const compilerDeclaration = /^(?:export\s+)?function\s+(\w+)/gm;

@@ -859,17 +859,12 @@ export interface GeneratedGfxEntry {
   layout: GeneratedGfxLayout;
 }
 
+/**
+ * A palette_device decoded by one of MAME's builtin PROM init routines
+ * (palette_device::RRRRGGGGBBBB_proms and kin): fixed weights of PROM bits.
+ * Every other palette is the driver's own init callback, run as a handler.
+ */
 export interface GeneratedPromPalettePlan {
-  /**
-   * A source-defined palette that switches multiple PROM-backed resistor
-   * networks at runtime.  TNX1 hardware exposes background/text and sprite
-   * PROMs through one palette_device and selects their banks from DMA state.
-   */
-  dynamic?: {
-    kind: 'tnx1-banked';
-    colorRegion: string;
-    spriteRegion: string;
-  };
   region: string;
   /** Lookup PROM when it is separate from the RGB PROM. */
   lookupRegion?: string;
@@ -889,60 +884,6 @@ export interface GeneratedPromPalettePlan {
     resistances: number[];
     pulldown: number;
     pullup: number;
-  }[];
-  /** Exact MAME res_net electrical model when the source declares one. */
-  resNet?: {
-    input: 'ttl';
-    monitor: 'sanyo';
-    amplifiers: ('darlington' | 'emitter' | 'none')[];
-  };
-  /** palette_t::normalize_range applied after PROM decoding/overrides. */
-  normalize?: { start: number; end: number; lumMin: number; lumMax: number };
-  /** Destination pen -> decoded PROM color permutation applied by the driver. */
-  colorIndexMap?: number[];
-  /**
-   * PROM indices overridden to electrical black after resistor decoding.
-   * Some boards tri-state their palette outputs for a masked subset of
-   * colors (for example the Donkey Kong background).
-   */
-  forceBlack?: { mask: number; value: number };
-  /**
-   * Indirect-color sections computed from the color INDEX bits rather than a
-   * PROM (e.g. the 05xx starfield palette): each channel's bits select bits
-   * of the index and feed a resistor network of its own.
-   */
-  computedColors?: {
-    base: number;
-    count: number;
-    min: number;
-    max: number;
-    scaler: number;
-    channels: {
-      channel: 'r' | 'g' | 'b';
-      bits: number[];
-      resistances: number[];
-      pulldown: number;
-      pullup: number;
-    }[];
-  }[];
-  /**
-   * Indirect-color sections computed entirely from the palette index with
-   * fixed MAME helpers/expressions (for example pal1bit and conditional
-   * resistor pulls). Values are packed in the runtime's native RGBA word
-   * order and do not depend on a PROM byte.
-   */
-  indexedColors?: {
-    base: number;
-    colors: number[];
-  }[];
-  /**
-   * Additional indirect-color sections read from a different range of the
-   * same PROM with their own fixed bit weights.
-   */
-  promColors?: {
-    base: number;
-    count: number;
-    channels: GeneratedPromPalettePlan['channels'];
   }[];
   lookupOffset: number;
   lookupCount: number;
@@ -979,29 +920,6 @@ export interface GeneratedPromPalettePlan {
     direct?: boolean;
   }[];
   transparentIndirect: number;
-  source?: BoardSourceRef;
-}
-
-/**
- * A palette init callback MAME wrote as ordinary code rather than as one of the
- * resistor-network idioms the declarative plan above recognizes. Mr. Do! builds
- * its own 16-entry weight table from parallel resistances and a diode drop, so
- * there is no compute_resistor_weights call to read the network out of.
- *
- * The callback is lowered to handler IR and executed once at machine start
- * against the same palette_device operations MAME's callback calls. It is the
- * fallback, not the preferred form: a declarative plan stays inspectable data,
- * while this preserves behavior no fixed vocabulary covers.
- */
-export interface GeneratedProgramPalettePlan {
-  /** palette_device pen count from the machine configuration. */
-  entries: number;
-  /** indirect_entries, or 0 when the device colors its pens directly. */
-  indirectEntries: number;
-  /** Callback parameter naming the palette_device (`palette_device &palette`). */
-  deviceParameter: string;
-  program: GeneratedHandlerProgram;
-  constants?: Record<string, number>;
   source?: BoardSourceRef;
 }
 
@@ -1111,6 +1029,12 @@ export interface GeneratedBitmapPlan {
       pulldown: number;
       pullup: number;
     }[];
+    /**
+     * The driver's own set_format converter, `Class.method` (a board
+     * handler taking the raw entry): Tutankham's raw_to_rgb_func, run as
+     * palette_device::write8 runs it, resnet.cpp and all.
+     */
+    converter?: string;
     /** Direct source table used by palette formats such as Qix R2G2B2I2. */
     lookup?: {
       values: number[];
@@ -1162,12 +1086,6 @@ export interface GeneratedVideoPlan {
   /** Byte offset applied to a region pointer assigned inside a source callback. */
   regionBindingOffsets?: Record<string, number>;
   palette?: GeneratedPromPalettePlan;
-  palettes?: {
-    member: string;
-    plan: GeneratedPromPalettePlan;
-  }[];
-  /** Executed palette init callback, when no declarative palette shape fits. */
-  paletteProgram?: GeneratedProgramPalettePlan;
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
   /**

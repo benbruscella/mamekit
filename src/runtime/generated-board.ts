@@ -1609,6 +1609,15 @@ class IrBoard implements Board {
           if (!bytes) throw new Error(`${machine.game}: no ROM region "${tag}"`);
           return { base: () => bytes, bytes: () => bytes.length };
         },
+        // MAME's share finder by tag. System 16's paletteram_w sizes its
+        // shadow half as `memshare("paletteram")->bytes() / 2`; unbound that
+        // was 0, and every shadow pen was written over its normal pen.
+        memshare: (...args: unknown[]) => {
+          const tag = String(generatedCallValue(args[0]) ?? '');
+          const bytes = this.shares[tag];
+          if (!bytes) throw new Error(`${machine.game}: no memory share "${tag}"`);
+          return { ptr: () => bytes, bytes: () => bytes.length };
+        },
       },
       callParameters: {},
       // MAME's address_space, for a handler whose signature takes one. The

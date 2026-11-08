@@ -34,6 +34,7 @@ import {
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
+import { GeneratedRectangle } from './rectangle.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
 import { STREAM_VARIANT_SUFFIX, type GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
@@ -1631,6 +1632,14 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
+        // `rectangle(min_x, max_x, min_y, max_y)`, a value: sprite.cpp's
+        // sparse_dirty_bitmap starts `m_rect_list_bounds(0, -1, 0, -1)`.
+        // A bitmap built over memory: `BitmapType wrapped(base, w, h, rowpixels)`.
+        ...Object.fromEntries(['bitmap_ind8', 'bitmap_ind16', 'bitmap_ind32', 'bitmap_rgb32'].map(type => [type,
+          (base: GeneratedCallArgument, width: GeneratedCallArgument, height: GeneratedCallArgument, rowpixels: GeneratedCallArgument) =>
+            GeneratedBitmap.wrap(type, base, Number(width), Number(height), Number(rowpixels ?? width))])),
+        rectangle: (...args: GeneratedCallArgument[]) => new GeneratedRectangle(
+          Number(args[0] ?? 0), Number(args[1] ?? 0), Number(args[2] ?? 0), Number(args[3] ?? 0)),
         // `m_screen.set_tag(screen_tag)`: a setter re-pointing a device finder
         // (the watchdog's set_vblank_count) rebinds the member to that tag.
         ...Object.fromEntries(definition.members
@@ -3422,6 +3431,9 @@ class GeneratedBitmap {
   pixels: Uint32Array | Uint16Array | Uint8Array;
   private bitmapWidth = 0;
   private bitmapHeight = 0;
+  /** Row pitch and first pixel: a bitmap wrapped over another's memory has its own. */
+  private pitch = 0;
+  private base = 0;
   private readonly storage: Uint32ArrayConstructor | Uint16ArrayConstructor | Uint8ArrayConstructor;
 
   constructor(valueType: string) {
@@ -3433,9 +3445,27 @@ class GeneratedBitmap {
     this.pixels = new this.storage(0);
   }
 
+  /**
+   * bitmap_t(base, width, height, rowpixels): a view over memory another
+   * bitmap owns. sprite.h's draw_async wraps its own bitmap, offset by the
+   * sprite origin, and draws through the view.
+   */
+  static wrap(valueType: string, base: unknown, width: number, height: number, rowpixels: number): GeneratedBitmap {
+    const bitmap = new GeneratedBitmap(valueType);
+    const pointer = base as { generatedPointer?: boolean; source?: unknown; offset?: number };
+    if (pointer?.generatedPointer && ArrayBuffer.isView(pointer.source)) {
+      bitmap.pixels = pointer.source as Uint32Array | Uint16Array | Uint8Array;
+      bitmap.base = Number(pointer.offset ?? 0);
+    }
+    bitmap.bitmapWidth = Math.max(0, width | 0);
+    bitmap.bitmapHeight = Math.max(0, height | 0);
+    bitmap.pitch = Math.max(0, rowpixels | 0);
+    return bitmap;
+  }
+
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['bitmapWidth', 'bitmapHeight', 'pixels'];
+    return ['bitmapWidth', 'bitmapHeight', 'pitch', 'base', 'pixels'];
   }
 
   stateResizable(): readonly string[] {
@@ -3445,6 +3475,8 @@ class GeneratedBitmap {
   allocate(width: number, height: number): void {
     this.bitmapWidth = Math.max(0, width | 0);
     this.bitmapHeight = Math.max(0, height | 0);
+    this.pitch = this.bitmapWidth;
+    this.base = 0;
     this.pixels = new this.storage(this.bitmapWidth * this.bitmapHeight);
   }
 
@@ -3456,6 +3488,36 @@ class GeneratedBitmap {
     return this.bitmapHeight;
   }
 
+  /**
+   * bitmap_t::resize: sprite.h's draw_async grows its bitmap to the cliprect
+   * it is asked for (the slop is MAME's guard border, which ours needs not).
+   */
+  resize(width: number, height: number): void {
+    if ((width | 0) !== this.bitmapWidth || (height | 0) !== this.bitmapHeight) this.allocate(width, height);
+  }
+
+  /** bitmap_t::rowpixels: the row pitch, which without MAME's slop border is the width. */
+  rowpixels(): number {
+    return this.pitch;
+  }
+
+  /** bitmap_t::cliprect: the whole bitmap. */
+  cliprect(): GeneratedRectangle {
+    return new GeneratedRectangle(0, this.bitmapWidth - 1, 0, this.bitmapHeight - 1);
+  }
+
+  /** bitmap_t::fill, of the whole bitmap or a rectangle of it. */
+  fill(value: number, rect?: { min_x: number; max_x: number; min_y: number; max_y: number }): void {
+    const narrowed = Number(value) >>> 0;
+    if (!rect) { this.pixels.fill(narrowed); return; }
+    const left = Math.max(0, rect.min_x | 0), right = Math.min(this.bitmapWidth - 1, rect.max_x | 0);
+    const top = Math.max(0, rect.min_y | 0), bottom = Math.min(this.bitmapHeight - 1, rect.max_y | 0);
+    if (right < left) return;
+    for (let row = top; row <= bottom; row++) {
+      this.pixels.fill(narrowed, this.base + row * this.pitch + left, this.base + row * this.pitch + right + 1);
+    }
+  }
+
   /** MAME bitmap_t::plot_box, clipped to this bitmap's bounds. */
   plot_box(x: number, y: number, width: number, height: number, color: number): void {
     const left = Math.max(0, x), right = Math.min(this.bitmapWidth, x + width);
@@ -3463,7 +3525,7 @@ class GeneratedBitmap {
     if (right <= left || bottom <= top) return;
     const pixels = this.pixels;
     for (let row = top; row < bottom; row++) {
-      const start = row * this.bitmapWidth;
+      const start = this.base + row * this.pitch;
       // The VIC-II paints its border eight pixels at a time, every cycle; a
       // `fill` call costs more than storing a run that short.
       if (right - left <= 16) {
@@ -3475,11 +3537,11 @@ class GeneratedBitmap {
   }
 
   pix(y: number, x = 0): number {
-    return this.pixels[y * this.bitmapWidth + x] ?? 0;
+    return this.pixels[this.base + y * this.pitch + x] ?? 0;
   }
 
   'pix='(y: number, x: number, value: number): void {
-    const index = y * this.bitmapWidth + x;
+    const index = this.base + y * this.pitch + x;
     if (index >= 0 && index < this.pixels.length) this.pixels[index] = value >>> 0;
   }
 
@@ -3491,7 +3553,7 @@ class GeneratedBitmap {
     return {
       generatedPointer: true,
       source: this.pixels,
-      offset: y * this.bitmapWidth + x,
+      offset: this.base + y * this.pitch + x,
     };
   }
 }
@@ -4042,10 +4104,16 @@ function rgbPixel(red: number, green: number, blue: number): number {
 function vectorElement(
   element: string | undefined,
   structs: Readonly<Record<string, readonly StructField[]>> | undefined,
-): (() => unknown) | undefined {
+): ((...args: unknown[]) => unknown) | undefined {
   if (!element) return undefined;
   const inner = /^std::vector<\s*(.+?)\s*>$/.exec(element);
   if (inner) return () => generatedVector(vectorElement(inner[1], structs));
+  // MAME's rectangle, by its (min_x, max_x, min_y, max_y) constructor;
+  // default-constructed it is all zero (emu/rendertypes.h).
+  if (element.trim() === 'rectangle') {
+    return (...args: unknown[]) => new GeneratedRectangle(
+      Number(args[0] ?? 0), Number(args[1] ?? 0), Number(args[2] ?? 0), Number(args[3] ?? 0));
+  }
   const fields = structs?.[element.split('::').at(-1)!.trim()];
   return fields ? () => structMember(fields, structs, element) : undefined;
 }

@@ -4044,9 +4044,11 @@ export function normalizeMameExecutionSource(source: string): string {
     // A move hands over its operand, which is all a value here is:
     // `m_buffers.emplace_back(std::move(buf))`.
     .replace(/\bstd::move\s*\(/g, '(')
-    // Built in place or copied in, a vector's new last element is the same:
-    // discrete's tasks buffer their outputs with `emplace_back(std::move(buf))`.
-    .replace(/\.emplace_back\s*\(/g, '.push(');
+    // Copied in, a vector's new last element is the value: discrete's tasks
+    // buffer their outputs with `emplace_back(std::move(buf))`. Built in place
+    // from several constructor arguments it stays emplace_back, which makes
+    // the element and answers it (generatedVector).
+    .replace(/\.emplace_back\s*\(((?:[^(),]|\([^()]*\))*)\)/g, '.push($1)');
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {

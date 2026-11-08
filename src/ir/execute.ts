@@ -38,9 +38,20 @@ const GENERATED_ELEMENT = Symbol.for('mamekit.vectorElement');
  * empties, `resize` grows by elements of its own kind. `element` makes one;
  * absent, elements are integers and grow as zero.
  */
-export function generatedVector(element?: () => unknown): unknown[] {
+export function generatedVector(element?: (...args: unknown[]) => unknown): unknown[] {
   const vector: unknown[] = [];
   if (element) Object.defineProperty(vector, GENERATED_ELEMENT, { value: element, enumerable: false });
+  // `emplace_back(args...)` builds the new last element from its
+  // constructor's arguments and hands back a reference to it: sprite.cpp's
+  // `currect = &m_rect_list.emplace_back(min_x, max_x, min_y, max_y)`.
+  Object.defineProperty(vector, 'emplace_back', {
+    value: (...args: unknown[]) => {
+      const made = element ? element(...args) : args[0] ?? 0;
+      vector.push(made);
+      return made;
+    },
+    enumerable: false,
+  });
   return vector;
 }
 
@@ -1887,6 +1898,9 @@ function compileValueWrapper(valueType: string | undefined): (value: unknown) =>
     (valueType?.includes('&') ?? false);
   const declared = valueType?.replace(/\bconst\b/g, '').trim();
   const narrow = compileValueNarrowing(declared);
+  // A rectangle is a value: `rectangle adjusted = cliprect;` is a copy the
+  // body may move, never the caller's own rectangle under a second name.
+  if (declared === 'rectangle') return value => isIntersectable(value) ? intersectionCopy(value) : value;
   return value => {
     if (packed && value instanceof Uint8Array) return packed(value);
     if (opaque) return value;
@@ -3134,6 +3148,11 @@ function assign(
   value: unknown,
   context: ExecutionContext,
 ): void {
+  // A local declared as a rectangle takes a copy, as C++ assigns a value.
+  if (operator === '=' && target.kind === 'identifier' && isIntersectable(value) &&
+      context.localTypes[target.name]?.replace(/\bconst\b/g, '').trim() === 'rectangle') {
+    value = intersectionCopy(value);
+  }
   // `static_cast<base &>(*this) = config`: the object's own base subobject
   // takes each field. Atari's motion-object device inherits its
   // configuration struct and set_config copies the driver's aggregate in.
@@ -3884,9 +3903,14 @@ function isIntersectable(value: unknown): value is Intersectable {
  * this way.
  */
 function intersection(left: Intersectable, right: unknown): Intersectable {
-  const copy = Object.assign(Object.create(Object.getPrototypeOf(left)), left) as Intersectable;
+  const copy = intersectionCopy(left);
   copy.intersect(right);
   return copy;
+}
+
+/** A rectangle by value: the same edges in an object of its own. */
+function intersectionCopy(value: Intersectable): Intersectable {
+  return Object.assign(Object.create(Object.getPrototypeOf(value)), value) as Intersectable;
 }
 
 /** C++ `a & b` as the interpreter applies it, for emitted code. */

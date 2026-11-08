@@ -3981,6 +3981,18 @@ function recordPaletteInit(
       ?? (construction && /,\s*([^,()]+)\s*\)\s*$/.exec(construction)?.[1]?.trim());
     const paletteEntries = entryCount !== undefined ? evalExpr(entryCount, constants) : null;
     if (paletteEntries !== null && paletteEntries > 0) device.props.paletteEntries = paletteEntries;
+    // A set_format converter the driver writes itself --
+    // `set_format(1, tutankhm_state::raw_to_rgb_func, 16)` -- runs for every
+    // palette RAM write (palette_device::write8), so it is a handler too, with
+    // MAME's resnet.cpp in its closure. palette_device's own formats are
+    // named constants, not functions, and are decoded as data.
+    const converter = config.join('\n').match(/\bset_format\s*\(\s*[^,]+,\s*(\w+)::(\w+)\s*,/);
+    if (converter && converter[1] !== 'palette_device') {
+      const converterId = emitSourceHandlerClosure(
+        g, ast, converter[1]!, converter[2]!, constants, { file: driverFile, start: 0, end: 0, line: 0, column: 0, endLine: 0, endColumn: 0 },
+      );
+      g.edge(device.id, converterId, 'CALLS_HANDLER');
+    }
     const func = construction && /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(construction);
     if (!func) continue;
     // PALETTE(config, tag, init, entries [, indirect_entries]), or the counts
